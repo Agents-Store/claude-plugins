@@ -1,0 +1,9 @@
+{
+  "name": "trigger.dev",
+  "version": "1.0.0",
+  "description": "Trigger.dev background jobs plugin. Manage tasks, trigger runs, deploy projects, and monitor workflows via 14 MCP tools.",
+  "author": {
+    "name": "AGENTS.STORE"
+  },
+  "mcpServers": "./.mcp.json"
+}

@@ -10,5 +10,17 @@
     "version": "1.0.0",
     "pluginRoot": "./plugins"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "trigger.dev",
+      "source": "./plugins/trigger.dev",
+      "description": "Trigger.dev background jobs plugin. Manage tasks, trigger runs, deploy projects, and monitor workflows via 14 MCP tools.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["trigger.dev", "background-jobs", "tasks", "deployment", "monitoring", "cron", "queues", "ai-agents"],
+      "category": "development"
+    }
+  ]
 }
