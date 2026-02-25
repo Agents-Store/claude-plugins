@@ -32,6 +32,17 @@
       },
       "keywords": ["sendpulse", "email-marketing", "chatbots", "crm", "smtp", "telegram", "whatsapp", "instagram", "messenger", "viber", "campaigns", "automation", "leads", "deals", "pipelines"],
       "category": "marketing"
+    },
+    {
+      "name": "teleshop",
+      "source": "./plugins/teleshop",
+      "description": "Teleshop store management plugin. Manage products, orders, categories, attributes, customers, webhooks, and addons for your Telegram store via 50 MCP tools.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["teleshop", "telegram", "ecommerce", "store", "products", "orders", "catalog", "webhooks", "addons", "mini-app", "bot-shop"],
+      "category": "ecommerce"
     }
   ]
 }
