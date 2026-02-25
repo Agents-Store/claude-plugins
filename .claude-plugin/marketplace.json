@@ -21,6 +21,17 @@
       },
       "keywords": ["trigger.dev", "background-jobs", "tasks", "deployment", "monitoring", "cron", "queues", "ai-agents"],
       "category": "development"
+    },
+    {
+      "name": "sendpulse",
+      "source": "./plugins/sendpulse",
+      "description": "Sendpulse multi-channel marketing plugin. Manage chatbots (Telegram, WhatsApp, Instagram, Messenger, Viber), CRM (contacts, deals, pipelines, boards, tasks), email campaigns, templates, addressbooks, and SMTP transactional email via 133+ MCP tools.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["sendpulse", "email-marketing", "chatbots", "crm", "smtp", "telegram", "whatsapp", "instagram", "messenger", "viber", "campaigns", "automation", "leads", "deals", "pipelines"],
+      "category": "marketing"
     }
   ]
 }

@@ -1,9 +1,5 @@
 {
   "mcpServers": {
-    "trigger.dev": {
-      "type": "http",
-      "url": "https://my-mcp.mcpware.net/mcp/tds"
-    },
     "sendpulse": {
       "type":"http",
       "url": "https://mcp.sendpulse.com/mcp"
