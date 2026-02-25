@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agents-store-claude-plugins",
+  "owner": {
+    "name": "Agents Store",
+    "email": "admin@agents.store"
+  },
+  "metadata": {
+    "description": "Claude Plugin marketplace by Agents Store",
+    "version": "1.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": []
+}
