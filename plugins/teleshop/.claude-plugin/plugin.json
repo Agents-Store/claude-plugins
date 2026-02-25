@@ -1,0 +1,9 @@
+{
+  "name": "teleshop",
+  "version": "1.0.0",
+  "description": "Teleshop store management plugin. Manage products, orders, categories, attributes, customers, webhooks, and addons for your Telegram store via 50 MCP tools.",
+  "author": {
+    "name": "AGENTS.STORE"
+  },
+  "mcpServers": "./.mcp.json"
+}
