@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "nocobase": {
+      "command": "npx",
+      "args": ["-y", "@nocobase/mcp-server"],
+      "env": {
+        "NOCOBASE_URL": "https://your-nocobase-instance:13000",
+        "NOCOBASE_EMAIL": "admin@nocobase.com",
+        "NOCOBASE_PASSWORD": "your-password"
+      }
+    }
+  }
+}

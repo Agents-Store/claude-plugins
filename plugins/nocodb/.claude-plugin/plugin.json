@@ -1,0 +1,9 @@
+{
+  "name": "nocodb",
+  "version": "1.0.0",
+  "description": "NocoDB database development plugin. Manage tables, records, columns, views, relations, formulas, rollups, lookups, filtering, sorting, search, aggregation, webhooks, and filter/sort management via MCP tools.",
+  "author": {
+    "name": "AGENTS.STORE"
+  },
+  "mcpServers": "./.mcp.json"
+}
