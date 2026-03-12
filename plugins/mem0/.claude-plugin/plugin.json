@@ -1,0 +1,9 @@
+{
+  "name": "mem0",
+  "version": "1.0.0",
+  "description": "Mem0 memory management plugin. Store, search, update, and organize memories with semantic search, batch operations, file attachments, and change history tracking via MCP tools.",
+  "author": {
+    "name": "AGENTS.STORE"
+  },
+  "mcpServers": "./.mcp.json"
+}
