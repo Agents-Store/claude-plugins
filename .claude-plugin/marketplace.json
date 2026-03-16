@@ -89,15 +89,15 @@
       "category": "development"
     },
     {
-      "name": "mem0",
-      "source": "./plugins/mem0",
-      "description": "Mem0 memory management plugin. Store, search, update, and organize memories with semantic search, batch operations, file attachments, and change history tracking via 12 MCP tools.",
+      "name": "plane",
+      "source": "./plugins/plane",
+      "description": "Plane Agile Coach plugin for startups. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, and daily standups using Agile best practices via 98 Plane MCP tools.",
       "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["mem0", "memory", "knowledge-base", "vector-search", "semantic-search", "context", "ai-memory", "files", "recall"],
-      "category": "development"
+      "keywords": ["plane", "agile", "scrum", "sprint-planning", "retrospective", "velocity", "standup", "estimation", "backlog", "project-management", "kanban", "wsjf", "invest"],
+      "category": "project-management"
     }
   ]
 }

@@ -1,0 +1,8 @@
+{
+  "name": "plane",
+  "version": "1.0.0",
+  "description": "Plane Agile Coach plugin for startups. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, and daily standups using Agile best practices via Plane MCP tools.",
+  "author": {
+    "name": "AGENTS.STORE"
+  }
+}
