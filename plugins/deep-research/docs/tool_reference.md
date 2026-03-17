@@ -144,15 +144,18 @@ read_url({ url: "https://example.com/article" })
 ```
 
 ### parallel_read_url
-Параллельное чтение нескольких URL.
+Параллельное чтение нескольких URL одновременно. Возвращает markdown-контент для каждого URL. Идеален для batch-чтения top-5 результатов поиска.
 
 | Параметр | Тип | Обязательный | Описание |
 |----------|-----|-------------|----------|
-| urls | string[] | Да | Список URL |
+| urls | string[] | Да | Список URL для параллельного чтения |
 
 ```
-parallel_read_url({ urls: ["https://a.com", "https://b.com", "https://c.com"] })
+parallel_read_url({ urls: ["https://example.com/page1", "https://example.com/page2", "https://example.com/page3"] })
+→ Returns: markdown content for each URL simultaneously
 ```
+
+Best practice: используй после `sort_by_relevance` для чтения top-N наиболее релевантных страниц.
 
 ### search_web
 Поиск по вебу через Jina.
@@ -202,14 +205,29 @@ search_arxiv({ query: "retrieval augmented generation" })
 | query | string | Да | Поисковый запрос |
 
 ### parallel_search_ssrn
-Параллельный поиск на SSRN.
-
-### search_images
-Поиск изображений.
+Параллельный поиск на SSRN по нескольким запросам одновременно. Аналог parallel_search_arxiv для социальных наук и экономики.
 
 | Параметр | Тип | Обязательный | Описание |
 |----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос |
+| searches | array | Да | Массив объектов поиска (max 5), каждый с полем query |
+| timeout | number | Нет | Таймаут в мс (по умолчанию 30000) |
+
+```
+parallel_search_ssrn({ searches: [{ query: "fintech regulation impact" }, { query: "digital banking adoption" }] })
+→ Returns: papers from SSRN for each query simultaneously
+```
+
+### search_images
+Поиск изображений по запросу. Полезен для нахождения диаграмм, архитектурных схем, инфографики.
+
+| Параметр | Тип | Обязательный | Описание |
+|----------|-----|-------------|----------|
+| query | string | Да | Поисковый запрос для поиска изображений |
+
+```
+search_images({ query: "microservices architecture diagram" })
+→ Returns: image URLs with descriptions
+```
 
 ### search_bibtex
 Поиск библиографических записей.
@@ -219,7 +237,18 @@ search_arxiv({ query: "retrieval augmented generation" })
 | query | string | Да | Поисковый запрос |
 
 ### search_jina_blog
-Поиск по блогу Jina AI.
+Поиск по блогу и новостям Jina AI. Полезен для нахождения документации, туториалов и анонсов продуктов Jina.
+
+| Параметр | Тип | Обязательный | Описание |
+|----------|-----|-------------|----------|
+| query | string/string[] | Да | Поисковый запрос (строка или массив для параллельного поиска) |
+| num | number | Нет | Макс. результатов (1-100, по умолчанию 30) |
+| tbs | string | Нет | Фильтр времени: qdr:h, qdr:d, qdr:w, qdr:m, qdr:y |
+
+```
+search_jina_blog({ query: "embeddings reranker", num: 10 })
+→ Returns: Jina blog posts about embeddings and reranker
+```
 
 ### expand_query
 Расширение запроса — генерация связанных поисковых терминов.
@@ -268,7 +297,17 @@ deduplicate_strings({ strings: ["fact A", "fact A rephrased", "fact B"] })
 ```
 
 ### deduplicate_images
-Дедупликация изображений.
+Дедупликация изображений по визуальному сходству с использованием Jina CLIP v2. Выбирает наиболее разнообразное подмножество из набора похожих изображений.
+
+| Параметр | Тип | Обязательный | Описание |
+|----------|-----|-------------|----------|
+| images | string[] | Да | Массив URL изображений или base64-строк |
+| k | number | Нет | Количество уникальных изображений для возврата (auto если не указано) |
+
+```
+deduplicate_images({ images: ["https://img1.png", "https://img2.png", "https://img3.png"], k: 2 })
+→ Returns: top-k most visually diverse images
+```
 
 ### extract_pdf
 Извлечение текста из PDF.
