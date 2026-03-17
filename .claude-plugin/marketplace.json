@@ -109,6 +109,17 @@
       },
       "keywords": ["plane", "agile", "scrum", "sprint-planning", "retrospective", "velocity", "standup", "estimation", "backlog", "project-management", "kanban", "wsjf", "invest"],
       "category": "project-management"
+    },
+    {
+      "name": "deep-research",
+      "source": "./plugins/deep-research",
+      "description": "Deep Research plugin. Conduct comprehensive web research using 38 tools across 4 providers (Firecrawl, Jina, Exa, Perplexity) with intelligent fallback chains, parallel search, content extraction, and structured report generation.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["deep-research", "web-research", "search", "scraping", "exa", "firecrawl", "jina", "perplexity", "content-extraction", "report-generation", "competitive-analysis", "market-research"],
+      "category": "research"
     }
   ]
 }
