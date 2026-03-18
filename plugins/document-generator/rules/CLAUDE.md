@@ -37,12 +37,14 @@ If pandoc is missing:
 - Check script exit code; if non-zero, read stderr for error details
 - Scripts output JSON to stdout: `{ "success": true, "outputPath": "..." }` or `{ "success": false, "error": "..." }`
 
-## Output
+## Output Location
 
-- Generate files in the user's current working directory or a specified path
+- **Always ask the user where to save the document** before generating
+- If the user specifies a folder that doesn't exist, ask if you should create it, then create it
+- If the user says "here" or "current folder", use the current working directory
 - Never overwrite existing files without confirmation
 - Naming pattern: `{type}_{sanitized_title}_{YYYY-MM-DD}.{ext}`
-- After generation, confirm the output file exists and report its size
+- After generation, confirm the output file path and its size
 
 ## Data Collection
 

@@ -65,6 +65,7 @@ async function generateWithPuppeteer(outputPath, data, type, template) {
     format: styling.pageSize || "A4",
     margin: margins,
     printBackground: true,
+    displayHeaderFooter: false,
   });
   await browser.close();
 }
