@@ -15,6 +15,12 @@ Depth: deep (architecture analysis)
 
 ### Step 2: PLAN
 ```
+IF topic is a specific named tool/framework/product:
+  → Run Exhaustive Discovery Protocol FIRST
+  → Probe: {name}.com, {name}.ai, {name}.dev, {name}.io, github.com/{name}/{name},
+    npmjs.com/package/{name}, pypi.org/project/{name}, docs.{name}.ai
+  → Use discovered URLs as primary sources
+
 expand_query({ query: "RAG pipeline architecture" })
 
 Queries:
@@ -29,29 +35,27 @@ Queries:
 
 ### Step 3: SEARCH
 ```
-get_code_context_exa({ query: "RAG pipeline implementation architecture" })
+~~code_search("RAG pipeline implementation architecture")
 → Code examples and technical context
 
-search_arxiv({ query: "retrieval augmented generation architecture evaluation" })
+~~academic_search("retrieval augmented generation architecture evaluation")
 → Academic papers
 
-parallel_search_web({
-  queries: [
-    "RAG best practices production 2026",
-    "RAG chunking strategies comparison",
-    "RAG evaluation metrics benchmarks"
-  ]
-})
+~~batch_search([
+  "RAG best practices production 2026",
+  "RAG chunking strategies comparison",
+  "RAG evaluation metrics benchmarks"
+])
 
-search({ query: "current state of RAG architecture best practices 2026" })
+~~search("current state of RAG architecture best practices 2026")
 ```
 
 ### Step 4: READ
 ```
-sort_by_relevance("RAG architecture best practices", all_urls)
-parallel_read_url(top_8_urls)
+Rank by relevance("RAG architecture best practices", all_urls)
+~~batch_scrape(top_8_urls)
 
-extract_pdf(arxiv_paper_url) → full paper text for key papers
+Extract PDF from arxiv paper → full paper text for key papers
 ```
 
 ### Step 5: EXTRACT
@@ -84,5 +88,5 @@ Output: Deep Research Report with:
 - Academic references
 - Methodology
 
-### Expected Tools Used
-`get_code_context_exa`, `search_arxiv`, `parallel_search_web`, `search`, `sort_by_relevance`, `parallel_read_url`, `extract_pdf`, `deduplicate_strings`
+### Expected Capabilities Used
+`~~code_search`, `~~academic_search`, `~~batch_search`, `~~search`, `~~batch_scrape`, PDF extraction, relevance ranking, deduplication

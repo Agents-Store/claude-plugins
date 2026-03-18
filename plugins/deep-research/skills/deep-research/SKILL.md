@@ -5,24 +5,24 @@ description: Main research automation skill. 7-step algorithm for comprehensive 
 
 # Deep Research
 
-Основной алгоритм проведения комплексных исследований. 7 шагов, 6 типов исследований, 38 инструментов.
+Core algorithm for comprehensive research. 7 steps, 6 research types. All calls use `~~capability` with automatic fallback between providers (see CONNECTORS.md for chains).
 
 ## 6 Research Types
 
-| Тип | Сигналы-триггеры | Фокус | Шаблон отчёта |
-|-----|-----------------|-------|--------------|
-| **Competitive Analysis** | «конкуренты», «vs», «сравни», «альтернативы to» | Сайты, продукты, цены, позиционирование | Comparison Table |
-| **Market Research** | «рынок», «market», «тренды», «TAM», «прогноз» | Размер, рост, сегменты, игроки | Deep Research Report |
-| **Technical Audit** | «архитектура», «стек», «как работает», «best practices» | Технологии, производительность, паттерны | Deep Research Report |
-| **Person/Company Lookup** | имя, компания, «кто такой», «о компании» | Биография, история, ключевые факты | Executive Summary |
-| **Topic Deep Dive** | «объясни», «deep dive», «подробно», «comprehensive» | Все углы, история, текущее состояние | Deep Research Report |
-| **News & Trends** | «новости», «latest», «свежие», год/дата | События, развитие, таймлайн | Executive Summary |
+| Type | Trigger Signals | Focus | Report Template |
+|------|----------------|-------|----------------|
+| **Competitive Analysis** | "competitors", "vs", "compare", "alternatives" | Sites, products, prices, positioning | Comparison Table |
+| **Market Research** | "market", "trends", "TAM", "forecast" | Size, growth, segments, players | Deep Research Report |
+| **Technical Audit** | "architecture", "stack", "how does it work", "best practices" | Technologies, performance, patterns | Deep Research Report |
+| **Person/Company Lookup** | name, company, "who is", "about company" | Biography, history, key facts | Executive Summary |
+| **Topic Deep Dive** | "explain", "deep dive", "in detail", "comprehensive" | All angles, history, current state | Deep Research Report |
+| **News & Trends** | "news", "latest", "recent", year/date | Events, developments, timeline | Executive Summary |
 
 ## 7-Step Algorithm
 
 ### Step 1: CLASSIFY
 
-Определи тип исследования по сигналам в запросе пользователя.
+Determine the research type from signals in the user's query.
 
 ```
 Input: user query
@@ -33,15 +33,15 @@ If ambiguous: ask user to clarify
 
 **Depth levels:**
 
-| Level | Queries | Pages | Описание |
-|-------|---------|-------|----------|
-| quick | 2-3 | 3 | Быстрый обзор |
-| standard | 4-5 | 5 | Стандартное исследование |
-| deep | 6-7 | 8-10 | Глубокий анализ |
+| Level | Queries | Pages | Description |
+|-------|---------|-------|-------------|
+| quick | 2-3 | 3 | Quick overview |
+| standard | 4-5 | 5 | Standard research |
+| deep | 6-7 | 8-10 | Deep analysis |
 
 ### Step 2: PLAN
 
-Сформировать 3-7 поисковых запросов с разных углов.
+Form 3-7 search queries from different angles.
 
 ```
 1. expand_query(topic) → related terms
@@ -53,10 +53,14 @@ If ambiguous: ask user to clarify
    - Trends: "{topic} trends forecast"
 ```
 
-**Query patterns по типу:**
+**IMPORTANT — Named Entity Discovery:**
 
-| Тип | Query patterns |
-|-----|---------------|
+If the query contains a specific product/project/brand/tool name, FIRST run the Exhaustive Discovery Protocol (see `search-strategies` skill) BEFORE general research.
+
+**Query patterns by type:**
+
+| Type | Query patterns |
+|------|---------------|
 | Competitive Analysis | "{product} pricing", "{product} vs {competitor}", "{product} reviews", "{product} features comparison" |
 | Market Research | "{industry} market size", "{industry} trends 2026", "{industry} key players", "{industry} growth forecast" |
 | Technical Audit | "{technology} architecture", "{technology} best practices", "{technology} performance benchmarks", "{technology} documentation" |
@@ -66,54 +70,56 @@ If ambiguous: ask user to clarify
 
 ### Step 3: SEARCH
 
-Параллельный поиск через оптимальные инструменты.
+Search using `~~search` / `~~batch_search` with automatic fallback (see CONNECTORS.md for provider order).
 
 ```
-1. parallel_search_web(queries) — batch search через Jina
-   OR if parallel unavailable:
-   web_search_exa(query) для каждого запроса
+1. IF named entity (product/project/brand):
+   → Run Exhaustive Discovery Protocol FIRST
+   → Use found URLs as primary sources
 
-2. Для научных тем:
-   search_arxiv(query) — добавить академические результаты
+2. ~~batch_search(queries) — parallel search
+   Fallback: ~~search(query) for each query individually
 
-3. Для фактов:
-   search(query) — Perplexity для AI-синтезированных ответов
+3. For scientific topics:
+   ~~academic_search(query) — add academic results
 
-4. Apply fallback chains if any tool fails
-   (see search-strategies skill)
+4. For facts:
+   ~~search(query) — AI-synthesized answers
+
+5. On error from any provider → try next in chain (see CONNECTORS.md)
 ```
 
-**Tool selection по типу:**
+**Tool selection by type:**
 
-| Тип | Primary search | Additional |
-|-----|---------------|-----------|
-| Competitive Analysis | `web_search_exa` | `firecrawl_extract` для pricing |
-| Market Research | `search` (Perplexity) | `web_search_exa` для детальных данных |
-| Technical Audit | `get_code_context_exa` | `search_web` для docs |
-| Person/Company Lookup | `web_search_exa` | `search` для фактов |
-| Topic Deep Dive | `parallel_search_web` | `search_arxiv` для papers |
-| News & Trends | `search` (Perplexity) | `web_search_exa` с date filter |
+| Type | Primary | Additional |
+|------|---------|-----------|
+| Competitive Analysis | `~~search` | `~~extract` for pricing |
+| Market Research | `~~search` | `~~search` (different provider for details) |
+| Technical Audit | `~~code_search` | `~~search` for docs |
+| Person/Company Lookup | **Exhaustive Discovery Protocol** | `~~search` for facts |
+| Topic Deep Dive | `~~batch_search` | `~~academic_search` for papers |
+| News & Trends | `~~search` | `~~search` (with date filter) |
 
 ### Step 4: READ
 
-Прочитать top-5 страниц из результатов поиска.
+Read top-5 pages using `~~scrape` / `~~batch_scrape` with fallback.
 
 ```
 1. Collect all URLs from search results
-2. sort_by_relevance(query, urls) → rank by relevance
+2. Rank by relevance → top results
 3. Select top-5 (or top-N based on depth)
-4. parallel_read_url(top_urls) → get content
-   Fallback: read_url per URL → firecrawl_scrape
+4. ~~batch_scrape(top_urls) → get content
+   Fallback: ~~scrape per URL individually
 
 Priority:
 - Official sites > reputable sources > blogs
-- Recent > older (check with guess_datetime_url)
+- Recent > older (check publication date)
 - Primary sources > secondary
 ```
 
 ### Step 5: EXTRACT
 
-Извлечь ключевые данные из прочитанного контента.
+Extract key data from the content read.
 
 ```
 From each page extract:
@@ -123,17 +129,17 @@ From each page extract:
 - Dates and timeline events
 
 Tools:
-- classify_text(text, labels) → categorize content
-- firecrawl_extract(urls, schema) → structured data
-- For PDFs: extract_pdf(url) → full text
+- Text classification → categorize content
+- ~~extract(urls, schema) → structured data
+- For PDFs: PDF extraction → full text
 ```
 
 ### Step 6: SYNTHESIZE
 
-Объединить данные, дедупликация, cross-check.
+Combine data, deduplicate, cross-check.
 
 ```
-1. deduplicate_strings(facts) → remove redundant info
+1. Deduplicate → remove redundant info
 2. Cross-check: compare facts from different sources
    - Same fact from 3+ sources → High confidence
    - Same fact from 2 sources → Medium confidence
@@ -144,7 +150,7 @@ Tools:
 
 ### Step 7: REPORT
 
-Сформировать структурированный отчёт.
+Generate a structured report.
 
 ```
 1. Select template based on research_type
@@ -158,52 +164,13 @@ Tools:
 
 3. ALWAYS include Methodology:
    - Research type
-   - Tools used (providers)
+   - Providers used (which responded, which failed)
    - Search queries (full list)
    - Pages analyzed (count)
    - Date of research
    - Limitations
 
 4. Output the report in markdown
-```
-
-## Complete Workflow Example
-
-**Query:** "Compare Notion vs Linear vs Asana for project management"
-
-```
-Step 1: CLASSIFY → Competitive Analysis, standard depth
-
-Step 2: PLAN →
-  - "Notion project management features pricing"
-  - "Linear project management features pricing"
-  - "Asana project management features pricing"
-  - "Notion vs Linear vs Asana comparison"
-  - "best project management tool 2026 review"
-
-Step 3: SEARCH →
-  parallel_search_web(["Notion features pricing", "Linear features pricing", "Asana features pricing"])
-  web_search_exa("Notion vs Linear vs Asana comparison 2026")
-  search("best project management tool comparison 2026")
-
-Step 4: READ →
-  sort_by_relevance("project management comparison", all_urls)
-  parallel_read_url(top_5_urls)
-
-Step 5: EXTRACT →
-  firecrawl_extract(pricing_urls, pricing_schema)
-  Extract features, pricing, ratings from content
-
-Step 6: SYNTHESIZE →
-  deduplicate_strings(all_facts)
-  Cross-check pricing across sources
-  Identify feature gaps
-
-Step 7: REPORT →
-  Use Comparison Table template
-  Fill feature comparison table
-  Add detailed analysis per product
-  Include verdict and methodology
 ```
 
 ## Quality Checklist

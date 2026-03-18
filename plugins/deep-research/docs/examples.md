@@ -107,7 +107,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 ## Methodology
 
 - **Research type:** Competitive Analysis
-- **Tools used:** `parallel_search_web` (Jina, 4 queries), `search` (Perplexity), `firecrawl_scrape` (Firecrawl)
+- **Tools used:** ~~batch_search (Jina, 4 queries), ~~search (Perplexity), ~~scrape (Firecrawl)
 - **Search queries:**
   1. "Cursor vs GitHub Copilot vs Claude Code features comparison 2026"
   2. "Cursor GitHub Copilot Claude Code pricing plans 2026"
@@ -128,8 +128,8 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 |------|--------|-----------|--------|
 | 1. CLASSIFY | Detected "vs" → Competitive Analysis | — | Comparison Table template |
 | 2. PLAN | Generated 5 queries from different angles | — | pricing, features, reviews, benchmarks |
-| 3. SEARCH | Parallel search (4 queries) + Perplexity | `parallel_search_web`, `search` | 40+ snippets + structured report |
-| 4. READ | Full article scrape | `firecrawl_scrape` | ~4000 words with detailed analysis |
+| 3. SEARCH | Parallel search (4 queries) + Perplexity | ~~batch_search, ~~search | 40+ snippets + structured report |
+| 4. READ | Full article scrape | ~~scrape | ~4000 words with detailed analysis |
 | 5. EXTRACT | Pricing, scores, ratings, revenue | — | 11-row comparison table |
 | 6. SYNTHESIZE | Cross-checked across 8 sources | — | Confidence: High |
 | 7. REPORT | Comparison Table template + Methodology | — | Full structured report |
@@ -142,13 +142,12 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 **Type:** Competitive Analysis
 **Template:** Comparison Table
 
-**Tools:**
-- `parallel_search_web` — search features/pricing for each product
-- `web_search_exa` — comparison articles
-- `firecrawl_extract` — structured pricing data
-- `parallel_read_url` — reading review articles
-- `sort_by_relevance` — ranking sources
-- `deduplicate_strings` — deduplication of facts
+**Capabilities:**
+- `~~batch_search` — search features/pricing for each product
+- `~~search` — comparison articles
+- `~~extract` — structured pricing data
+- `~~batch_scrape` — reading review articles
+- Relevance ranking + deduplication
 
 **Expected result:**
 - Comparison Table with prices, features, integrations
@@ -165,13 +164,11 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 **Type:** Market Research
 **Template:** Deep Research Report
 
-**Tools:**
-- `search` (Perplexity) — market size, AI-synthesized data
-- `web_search_exa` — detailed market reports
-- `parallel_search_web` — multiple market angles
-- `parallel_read_url` — top sources
-- `guess_datetime_url` — filter for recent data
-- `deduplicate_strings` — clean data
+**Capabilities:**
+- `~~search` — market size, AI-synthesized data, detailed reports
+- `~~batch_search` — multiple market angles
+- `~~batch_scrape` — top sources
+- Date detection + deduplication
 
 **Expected result:**
 - Market size figures with sources
@@ -188,12 +185,12 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 **Type:** Technical Audit
 **Template:** Deep Research Report
 
-**Tools:**
-- `get_code_context_exa` — code patterns
-- `search_arxiv` — academic papers
-- `parallel_search_web` — best practices articles
-- `extract_pdf` — key papers
-- `parallel_read_url` — documentation
+**Capabilities:**
+- `~~code_search` — code patterns
+- `~~academic_search` — academic papers
+- `~~batch_search` — best practices articles
+- PDF extraction — key papers
+- `~~batch_scrape` — documentation
 
 **Expected result:**
 - Architecture overview
@@ -210,10 +207,9 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 **Type:** Person/Company Lookup
 **Template:** Executive Summary
 
-**Tools:**
-- `web_search_exa` (category: "company") — company info
-- `search` (Perplexity) — quick facts
-- `parallel_read_url` — official site + news
+**Capabilities:**
+- `~~search` — company info, quick facts
+- `~~batch_scrape` — official site + news
 
 **Expected result:**
 - Key Findings (5 bullets)
@@ -229,13 +225,13 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 **Type:** Topic Deep Dive
 **Template:** Deep Research Report
 
-**Tools:**
-- `expand_query` — generate related terms
-- `parallel_search_web` — multiple angles
-- `search_arxiv` — academic foundations
-- `get_code_context_exa` — implementation examples
-- `parallel_read_url` — comprehensive reading
-- `extract_pdf` — key papers
+**Capabilities:**
+- Query expansion — generate related terms
+- `~~batch_search` — multiple angles
+- `~~academic_search` — academic foundations
+- `~~code_search` — implementation examples
+- `~~batch_scrape` — comprehensive reading
+- PDF extraction — key papers
 
 **Expected result:**
 - Core concepts explained
@@ -253,12 +249,11 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 **Type:** News & Trends
 **Template:** Executive Summary
 
-**Tools:**
-- `search` (Perplexity) — latest AI answer
-- `web_search_exa` (category: "news", date filter) — recent news
-- `parallel_search_web` — regional coverage
-- `guess_datetime_url` — verify recency
-- `parallel_read_url` — read latest articles
+**Capabilities:**
+- `~~search` — latest AI answer, recent news with date filter
+- `~~batch_search` — regional coverage
+- Date detection — verify recency
+- `~~batch_scrape` — read latest articles
 
 **Expected result:**
 - Key Findings (top 5 developments)
@@ -273,13 +268,13 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 **Goal:** Verify automatic switching on primary tool error.
 
 **Scenario:**
-1. Execute search via `web_search_exa`
-2. If Exa unavailable → automatically switch to `search` (Perplexity)
-3. If Perplexity unavailable → switch to `search_web` (Jina)
+1. Execute ~~search via first provider (Exa)
+2. If Exa unavailable → automatically switch to next provider (Perplexity)
+3. If Perplexity unavailable → switch to next provider (Jina)
 
 **Read verification:**
-1. `read_url` for JS-heavy page → may return empty content
-2. Fallback to `firecrawl_scrape` with `waitFor: 5000`
+1. ~~scrape for JS-heavy page → may return empty content
+2. Fallback to next ~~scrape provider with JS rendering support
 3. Should return full content
 
 **Expected result:**
@@ -294,7 +289,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 ### Test 1: Competitive Analysis
 - **Status:** PASS
 - **Queries executed:** 3 (Exa + Perplexity + Firecrawl in parallel)
-- **Tools used:** `web_search_exa`, `search` (Perplexity), `firecrawl_search`
+- **Capabilities used:** ~~search (Exa), ~~search (Perplexity), ~~search (Firecrawl)
 - **Fallback triggered:** No (all 3 providers successful)
 - **Results returned:** Exa 5 articles, Perplexity full structured analysis, Firecrawl 5 URLs
 - **Key data found:**
@@ -307,7 +302,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 ### Test 2: Market Research
 - **Status:** PASS
 - **Queries executed:** 4 (1 Perplexity + 3 parallel Jina)
-- **Tools used:** `search` (Perplexity), `parallel_search_web` (Jina)
+- **Capabilities used:** ~~search (Perplexity), ~~batch_search (Jina)
 - **Fallback triggered:** No
 - **Results returned:** Perplexity structured report with 8 citations; Jina 30+ results across 3 queries
 - **Key data found:**
@@ -318,12 +313,12 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
   - Anthropic: $14B total annualized revenue
   - 81% of developers use AI coding assistants, 49% daily
   - Private AI companies raised record $225.8B in 2025 (CB Insights)
-- **Notes:** parallel_search_web returned competitive intelligence (Cursor vs Copilot vs Claude Code market share data) that Perplexity did not have
+- **Notes:** ~~batch_search (Jina) returned competitive intelligence (Cursor vs Copilot vs Claude Code market share data) that Perplexity did not have
 
 ### Test 3: Technical Audit
 - **Status:** PASS
 - **Queries executed:** 3 (1 Exa code + 2 parallel arxiv)
-- **Tools used:** `get_code_context_exa` (Exa), `parallel_search_arxiv` (Jina)
+- **Capabilities used:** ~~code_search (Exa), ~~academic_search (Jina arXiv parallel)
 - **Fallback triggered:** No
 - **Results returned:** Exa 7 production RAG articles with code; Jina 18 arxiv papers
 - **Key data found:**
@@ -338,7 +333,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 ### Test 4: Person/Company Lookup
 - **Status:** PASS
 - **Queries executed:** 1
-- **Tools used:** `web_search_exa` (category: "company")
+- **Capabilities used:** ~~search (Exa, category: "company")
 - **Fallback triggered:** No
 - **Results returned:** 5 results including full company profile
 - **Key data found:**
@@ -354,7 +349,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 ### Test 5: Topic Deep Dive
 - **Status:** PASS
 - **Queries executed:** 2 (1 parallel web + 1 parallel arxiv from Test 3)
-- **Tools used:** `parallel_search_web` (Jina), `parallel_search_arxiv` (Jina)
+- **Capabilities used:** ~~batch_search (Jina), ~~academic_search (Jina arXiv parallel)
 - **Fallback triggered:** No
 - **Results returned:** 10 HNSW/vector search articles; 18 arxiv papers
 - **Key data found:**
@@ -368,7 +363,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 ### Test 6: News & Trends
 - **Status:** PASS
 - **Queries executed:** 1 (parallel web)
-- **Tools used:** `parallel_search_web` (Jina)
+- **Capabilities used:** ~~batch_search (Jina)
 - **Fallback triggered:** No
 - **Results returned:** 10 news articles (all 2025-2026)
 - **Key data found:**
@@ -383,10 +378,10 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 - **Status:** PASS
 - **Tests executed:**
   - **Search chain:** Exa PASS (5 results), Perplexity PASS (structured report), Firecrawl PASS (5 URLs) — all 3 providers work for same query
-  - **Read chain:** `firecrawl_scrape` PASS — returned full Pinecone HNSW article in markdown (~15,000 chars with code, diagrams, 8 academic references)
-  - **Parallel search:** `parallel_search_web` PASS — 2 batch queries with 10+ results each simultaneously
-  - **Parallel arxiv:** `parallel_search_arxiv` PASS — 2 academic queries with 18 papers simultaneously
-  - **Deduplication:** `deduplicate_strings` PASS — correctly processed 6 market data facts, preserved all unique while grouping semantically similar
+  - **~~scrape chain:** Firecrawl PASS — returned full Pinecone HNSW article in markdown (~15,000 chars with code, diagrams, 8 academic references)
+  - **~~batch_search:** Jina PASS — 2 batch queries with 10+ results each simultaneously
+  - **~~academic_search:** Jina arXiv PASS — 2 academic queries with 18 papers simultaneously
+  - **Deduplication:** PASS — correctly processed 6 market data facts, preserved all unique while grouping semantically similar
 - **Fallback viability:** All 4 providers confirmed operational. Any provider can substitute for another on failure
 
 ---

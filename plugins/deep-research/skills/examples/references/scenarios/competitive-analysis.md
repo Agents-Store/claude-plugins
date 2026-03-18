@@ -27,61 +27,37 @@ Queries:
 
 ### Step 3: SEARCH
 ```
-parallel_search_web({
-  queries: [
-    "Notion project management pricing features",
-    "Linear project management pricing features",
-    "Asana project management pricing features"
-  ]
-})
+~~batch_search([
+  "Notion project management pricing features",
+  "Linear project management pricing features",
+  "Asana project management pricing features"
+])
 
-web_search_exa({
-  query: "Notion vs Linear vs Asana comparison 2026",
-  num_results: 5,
-  type: "auto"
-})
+~~search("Notion vs Linear vs Asana comparison 2026")
 
-search({ query: "best project management tool comparison 2026" })
+~~search("best project management tool comparison 2026")
 ```
 
 ### Step 4: READ
 ```
-sort_by_relevance("project management comparison", all_urls)
+Rank by relevance("project management comparison", all_urls)
 
-parallel_read_url({
-  urls: [
-    "https://notion.so/pricing",
-    "https://linear.app/pricing",
-    "https://asana.com/pricing",
-    "top_comparison_article_url",
-    "top_review_url"
-  ]
-})
+~~batch_scrape([
+  "https://notion.so/pricing",
+  "https://linear.app/pricing",
+  "https://asana.com/pricing",
+  top_comparison_article_url,
+  top_review_url
+])
 ```
 
 ### Step 5: EXTRACT
 ```
-firecrawl_extract({
+~~extract(
   urls: ["https://notion.so/pricing", "https://linear.app/pricing", "https://asana.com/pricing"],
   prompt: "Extract plan names, monthly prices, key features, and user limits",
-  schema: {
-    "type": "object",
-    "properties": {
-      "plans": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": { "type": "string" },
-            "price_monthly": { "type": "number" },
-            "features": { "type": "array", "items": { "type": "string" } },
-            "user_limit": { "type": "string" }
-          }
-        }
-      }
-    }
-  }
-})
+  schema: { plans: [{ name, price_monthly, features[], user_limit }] }
+)
 ```
 
 ### Step 6: SYNTHESIZE
@@ -99,5 +75,5 @@ Output: Comparison Table template with:
 - Sources (5+ URLs)
 - Methodology section
 
-### Expected Tools Used
-`parallel_search_web`, `web_search_exa`, `search`, `sort_by_relevance`, `parallel_read_url`, `firecrawl_extract`, `deduplicate_strings`
+### Expected Capabilities Used
+`~~batch_search`, `~~search`, `~~batch_scrape`, `~~extract`, relevance ranking, deduplication

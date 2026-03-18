@@ -1,12 +1,11 @@
 ---
 description: Search the web using optimal provider with automatic fallback
-allowed-tools: ["web_search_exa", "search", "search_web", "parallel_search_web", "search_arxiv", "get_code_context_exa", "firecrawl_search"]
-argument-hint: <query> [--provider <exa|perplexity|jina|firecrawl>] [--type <web|code|academic>]
+argument-hint: <query> [--type <web|code|academic>]
 ---
 
 # Web Search
 
-Search the web with automatic fallback between providers.
+Search the web with automatic fallback between providers. See CONNECTORS.md for provider mapping.
 
 ## Process
 
@@ -17,23 +16,20 @@ Search the web with automatic fallback between providers.
 
 2. **Execute search** with fallback chain:
 
-   **Web search:**
+   **Web search (~~search):**
    ```
-   web_search_exa({ query: "$ARGUMENTS" })
-   → If error: search({ query: "$ARGUMENTS" })
-   → If error: search_web({ query: "$ARGUMENTS" })
-   ```
-
-   **Code search:**
-   ```
-   get_code_context_exa({ query: "$ARGUMENTS" })
-   → If error: search_web({ query: "$ARGUMENTS github code" })
+   Try each provider: Exa → Perplexity → Jina → Firecrawl
+   On error → next provider automatically
    ```
 
-   **Academic search:**
+   **Code search (~~code_search):**
    ```
-   search_arxiv({ query: "$ARGUMENTS" })
-   → If error: search({ query: "$ARGUMENTS arxiv paper" })
+   Try: Exa code → ~~search + "github code"
+   ```
+
+   **Academic search (~~academic_search):**
+   ```
+   Try: Jina arXiv → Jina SSRN → Perplexity + "paper"
    ```
 
 3. **Display results** with titles, URLs, and snippets.
@@ -43,5 +39,4 @@ Search the web with automatic fallback between providers.
 /search best RAG frameworks 2026
 /search React server components --type code
 /search transformer attention mechanism --type academic
-/search AI market trends --provider perplexity
 ```

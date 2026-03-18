@@ -5,157 +5,171 @@ description: Search strategy guidelines — tool selection, fallback chains, que
 
 # Search Strategies
 
-Стратегии поиска, выбор инструментов и fallback-цепочки для 4 провайдеров (Exa, Firecrawl, Jina, Perplexity).
-
-## Available Search Tools
-
-| Tool | Provider | Best For | Speed | Quality |
-|------|----------|----------|-------|---------|
-| `web_search_exa` | Exa | Семантический поиск, похожий контент | Fast | High relevance |
-| `search` | Perplexity | AI-ответы с цитатами, факты | Medium | High (pre-analyzed) |
-| `search_web` | Jina | Общий веб-поиск | Fast | Good |
-| `parallel_search_web` | Jina | Множество запросов одновременно | Fast | Good |
-| `firecrawl_search` | Firecrawl | Поиск + скрапинг контента | Medium | Good |
-| `search_arxiv` | Jina | Научные статьи (arXiv) | Fast | High for papers |
-| `parallel_search_arxiv` | Jina | Множество академических запросов | Fast | High |
-| `search_ssrn` | Jina | Социальные науки, экономика | Fast | Niche |
-| `get_code_context_exa` | Exa | Код, технический контекст | Fast | High for code |
-| `search_images` | Jina | Поиск изображений | Fast | Good |
-| `search_bibtex` | Jina | Библиографии, цитирования | Fast | Niche |
-
-## Fallback Chains
-
-### Семантический поиск
-```
-1. Try web_search_exa(query) — семантический, высокая релевантность
-2. If error/empty → Try search(query) — Perplexity AI-ответ
-3. If error/empty → Try search_web(query) — Jina общий поиск
-```
-
-### Чтение страницы (URL → текст)
-```
-1. Try read_url(url) — Jina, быстрый и чистый markdown
-2. If error/empty → Try firecrawl_scrape(url, formats: ["markdown"]) — с JS-рендерингом
-3. If error/empty → Try parallel_read_url([url]) — Jina альтернативный endpoint
-```
-
-### Краулинг сайта
-```
-1. Try firecrawl_crawl(url, limit: 20) — полный краулинг
-2. If error/timeout → Try firecrawl_map(url) — получить карту сайта (легче)
-```
-
-### AI-ответ с цитатами
-```
-1. Try search(query) — Perplexity Sonar Pro, готовый ответ
-2. If error → Try web_search_exa(query) + read top results — собрать вручную
-```
-
-### Поиск кода
-```
-1. Try get_code_context_exa(query) — специализированный поиск кода
-2. If error/empty → Try search_web(query + " github code example")
-3. If error/empty → Try firecrawl_search(query + " code implementation")
-```
-
-### Научные статьи
-```
-1. Try search_arxiv(query) — прямой поиск по arXiv
-2. If error/empty → Try parallel_search_arxiv([query, related_query])
-3. If error/empty → Try search(query + " research paper arxiv") — Perplexity
-```
-
-### Параллельный поиск
-```
-1. Try parallel_search_web(queries[]) — batch запросы через Jina
-2. If error → Sequential: search_web(query) для каждого запроса отдельно
-```
+Search strategies, provider selection, and query optimization. All calls use `~~capability` — on error, automatically try the next provider (see CONNECTORS.md for fallback chains).
 
 ## When to Use Each Provider
 
-### Exa — семантика и смысл
-- Поиск по смыслу, а не ключевым словам
-- Найти похожий контент (`type: "auto"`)
-- Фильтрация по категории (company, research_paper, news)
-- Поиск кода и технического контекста
+### Exa
+- Semantic meaning-based search (not keyword matching)
+- Find similar content
+- Filter by category (company, research_paper, news)
+- Code and technical context search
 
-### Perplexity — быстрые факты
-- Фактические вопросы (размер рынка, даты, определения)
-- Когда нужен готовый AI-ответ с цитатами
-- Быстрая проверка фактов
+### Perplexity
+- Factual questions (market size, dates, definitions)
+- AI-synthesized answer with citations
+- Quick fact-checking
 
-### Jina — параллельность и объём
-- Множество запросов одновременно (`parallel_search_web`)
-- Чтение URL (`read_url` — primary для чтения)
-- Научный поиск (arXiv, SSRN)
-- Дедупликация и сортировка результатов
-- Расширение запросов (`expand_query`)
+### Jina
+- Multiple queries at once (~~batch_search)
+- Reading URLs (~~scrape — primary)
+- Scientific papers (arXiv, SSRN)
+- Deduplication and relevance ranking
+- Query expansion
 
-### Firecrawl — скрапинг и структура
-- JS-тяжёлые страницы (с `waitFor`)
-- Краулинг целых сайтов
-- Структурированное извлечение данных (JSON schema)
-- Скриншоты и browser sessions
+### Firecrawl
+- JS-heavy pages (with waitFor)
+- Crawling entire sites (~~crawl)
+- Structured data extraction (~~extract with JSON schema)
+- Screenshots and browser sessions
+
+## Exhaustive Discovery Protocol
+
+**CRITICAL**: When searching for a specific product, project, brand, or tool by name — ALWAYS run this protocol BEFORE concluding "not found".
+
+### Step 1: Direct URL Probing
+
+Try reading the project's likely homepage across ALL common domain zones:
+
+```
+For query "{Name}":
+1. ~~scrape("https://{name}.com")
+2. ~~scrape("https://{name}.ai")       ← CRITICAL for AI projects
+3. ~~scrape("https://{name}.dev")
+4. ~~scrape("https://{name}.io")
+5. ~~scrape("https://{name}.app")
+6. ~~scrape("https://{name}.org")
+7. ~~scrape("https://{name}.co")
+8. ~~scrape("https://{name}.sh")       ← for CLI tools
+
+Run ALL. Most will fail — that's expected.
+Even ONE success gives you the real homepage.
+```
+
+### Step 2: Platform-Specific Checks
+
+```
+GitHub:
+- ~~scrape("https://github.com/{name}")
+- ~~scrape("https://github.com/{name}/{name}")
+- ~~search("{name} site:github.com")
+
+Package registries:
+- ~~scrape("https://www.npmjs.com/package/{name}")
+- ~~scrape("https://pypi.org/project/{name}/")
+
+Documentation:
+- ~~scrape("https://docs.{name}.ai")
+- ~~scrape("https://docs.{name}.dev")
+```
+
+### Step 3: Search Variations
+
+```
+1. Exact match:     "{Name}" (in quotes)
+2. With context:    "{Name}" + domain keywords
+3. Hyphenated:      "{name-name}" or "{name_name}"
+4. GitHub search:   "{name}" site:github.com
+5. Discussions:     "{name}" site:reddit.com OR site:news.ycombinator.com
+```
+
+### Step 4: Escalation
+
+If Steps 1-3 all return empty:
+```
+1. ~~search("What is {Name}? {context}") — try Perplexity first
+2. ~~search("{Name}") — try other providers
+3. ~~search("{Name} twitter OR linkedin OR discord")
+```
+
+**NEVER conclude "not found" until ALL 4 steps are exhausted.**
+
+### Minimum Discovery Attempts
+
+| Query Type | Minimum Probes Before "Not Found" |
+|-----------|----------------------------------|
+| Product/Project name | 8 domain probes + 3 GitHub + 2 registry + 5 search = 18 |
+| Company name | 5 domain probes + 3 search + Perplexity + Crunchbase = 10 |
+| Person name | 3 search queries + Perplexity + LinkedIn search = 5 |
+| Generic topic | 3 search queries across providers = 3 |
 
 ## Query Optimization
 
-### Расширение запросов
+### Expanding queries
 ```
-1. expand_query(query) → получить связанные термины
-2. Сформировать 3-7 запросов с разных углов:
-   - Direct query: "RAG frameworks comparison"
+1. Use query expansion utility to get related terms
+2. Form 3-7 queries from different angles:
+   - Direct: "RAG frameworks comparison"
    - Synonym: "retrieval augmented generation tools"
    - Comparison: "RAG vs fine-tuning"
-   - Expert opinion: "best RAG framework expert review"
+   - Expert: "best RAG framework expert review"
    - Data: "RAG benchmark results 2026"
 ```
 
-### Domain Filtering
-| Домен | Источники |
-|-------|----------|
-| Tech | github.com, stackoverflow.com, dev.to |
-| Business | crunchbase.com, linkedin.com, bloomberg.com |
-| Academic | arxiv.org, scholar.google.com |
-| News | techcrunch.com, reuters.com, theverge.com |
-
-### Date Filtering
-- Актуальные темы (новости, тренды) → последние 3-6 месяцев
-- Evergreen темы (концепции, архитектуры) → без ограничений
-- Firecrawl: `tbs: "qdr:m"` (month), `"qdr:y"` (year)
-- Exa: `start_published_date: "2025-01-01"`
-
-## Parallel Search Strategy
-
-### Оптимальный паттерн
+### Parallel Search Strategy
 ```
-1. expand_query(topic) → related terms
-2. Сформировать 3-5 запросов с разных углов
-3. parallel_search_web(queries) → batch результаты
-4. sort_by_relevance(topic, results) → ранжирование
-5. deduplicate_strings(results) → убрать дубли
+1. Expand query → related terms
+2. Form 3-5 queries from different angles
+3. ~~batch_search(queries) → batch results
+4. Rank by relevance → top results
+5. Deduplicate → remove duplicates
 ```
 
-### Ограничения
-- Рекомендовано 3-5 запросов в одном batch
-- При ошибке parallel — откат на последовательный search_web
+## Domain-Specific Search
+
+Target specific domains based on research type:
+
+| Research Type | Domain Strategy |
+|--------------|----------------|
+| Technical / Code | ~~search + `site:github.com` OR `site:stackoverflow.com` OR `site:dev.to` |
+| Business / Market | ~~search + `site:crunchbase.com` OR `site:linkedin.com` OR `site:bloomberg.com` |
+| Academic / Papers | ~~academic_search (arXiv, SSRN) |
+| News / Trends | ~~search + date filter (last 3-6 months) + `site:techcrunch.com` OR `site:reuters.com` |
+| Product / Company | Exhaustive Discovery Protocol (domain probes + GitHub + registries) |
+
+Combine domain filtering with general search for broader coverage. Never rely on domain filtering alone.
+
+## Exa Semantic Search
+
+Exa provides meaning-based search (not keyword matching). Use category filters for targeted discovery:
+
+| Category | What it finds | When to use |
+|----------|--------------|-------------|
+| `company` | Company profiles, about pages, team info | Person/Company Lookup |
+| `research_paper` | Academic papers, studies, reports | Market Research, Technical Audit |
+| `news` | News articles, press releases | News & Trends |
+| (no filter) | Everything — semantic matching by meaning | Topic Deep Dive, general search |
+
+**Exa type modes:**
+- `auto` — balanced (default, recommended)
+- `fast` — quick results, less semantic depth
+
+**Exa date filtering:**
+- `start_published_date` — filter to recent content (e.g., "2025-06-01")
+- Combine with category for targeted fresh results
+
+**When Exa shines:**
+- Finding conceptually similar content (not just keyword matches)
+- Discovering competitors and alternatives
+- Finding company/product information with structured context
 
 ## Error Handling
 
-| Ошибка | Действие |
-|--------|---------|
-| Tool not available | Перейти к следующему в fallback-цепочке |
-| Empty results | Расширить запрос, попробовать другой провайдер |
-| Rate limited | Подождать, попробовать альтернативный провайдер |
-| Timeout | Попробовать более лёгкую альтернативу (map вместо crawl) |
-| Invalid URL | Проверить URL, попробовать firecrawl_scrape с waitFor |
-| Content blocked | Использовать firecrawl_scrape с proxy: "stealth" |
-
-## Best Practices
-
-1. **Всегда начинай с семантического поиска** — web_search_exa для высокой релевантности
-2. **Используй параллельный поиск** — parallel_search_web для скорости
-3. **Дедупликация обязательна** — deduplicate_strings после параллельного поиска
-4. **Расширяй запросы** — expand_query перед поиском для лучшего покрытия
-5. **Fallback автоматически** — при ошибке сразу переключайся, не жди
-6. **Минимум 3 запроса** — разные углы для полноты исследования
-7. **Сортируй по релевантности** — sort_by_relevance перед чтением страниц
+| Error | Action |
+|-------|--------|
+| Provider error | Try next provider in fallback chain |
+| Empty results | Broaden query, try different provider |
+| Rate limited | Try alternative provider immediately |
+| Timeout | Try lighter alternative (map instead of crawl) |
+| Invalid URL | Check URL, try ~~scrape with next provider |
+| Content blocked | Try provider with proxy/stealth support |

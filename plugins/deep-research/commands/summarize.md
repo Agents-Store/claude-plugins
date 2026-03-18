@@ -1,12 +1,11 @@
 ---
 description: Summarize a topic or URL content
-allowed-tools: ["search", "read_url", "firecrawl_scrape", "parallel_read_url", "classify_text", "web_search_exa", "sort_by_relevance"]
 argument-hint: <topic-or-url>
 ---
 
 # Summarize
 
-Quick summary of a topic or URL content.
+Quick summary of a topic or URL content. See CONNECTORS.md for provider mapping.
 
 ## Process
 
@@ -16,23 +15,15 @@ Quick summary of a topic or URL content.
 
 2. **For URL input:**
    ```
-   read_url({ url: "$ARGUMENTS" })
-   → If error: firecrawl_scrape({ url: "$ARGUMENTS", formats: ["markdown"] })
-
-   classify_text({ text: content, labels: ["news", "tutorial", "research", "opinion", "documentation"] })
-
+   ~~scrape(url) → get content
+   Classify content type (news, tutorial, research, etc.)
    Summarize: key points, main argument, data highlights
    ```
 
 3. **For topic input:**
    ```
-   search({ query: "$ARGUMENTS" })
-   → Perplexity AI-summarized answer
-
-   web_search_exa({ query: "$ARGUMENTS", num_results: 3 })
-   → Top results for additional context
-
-   read_url(top_result_url) → fuller context if needed
+   ~~search(topic) → AI-summarized answer + top results
+   ~~scrape(top_result_url) → fuller context if needed
    ```
 
 4. **Output** concise summary with:

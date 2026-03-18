@@ -1,30 +1,28 @@
 ---
 description: Read and extract content from a URL with fallback
-allowed-tools: ["read_url", "firecrawl_scrape", "parallel_read_url", "extract_pdf", "guess_datetime_url", "capture_screenshot_url"]
 argument-hint: <url> [--format <markdown|json|screenshot>]
 ---
 
 # Read URL
 
-Read and extract content from a web page or PDF.
+Read and extract content from a web page or PDF. See CONNECTORS.md for provider mapping.
 
 ## Process
 
 1. **Detect content type** from URL:
-   - `.pdf` → use `extract_pdf`
-   - Regular URL → use `read_url` with fallback
+   - `.pdf` → use PDF extraction
+   - Regular URL → use ~~scrape with fallback
 
-2. **Read content** with fallback:
+2. **Read content** with fallback (~~scrape):
    ```
-   read_url({ url: "$ARGUMENTS" })
-   → If error: firecrawl_scrape({ url: "$ARGUMENTS", formats: ["markdown"], onlyMainContent: true })
-   → If error: parallel_read_url({ urls: ["$ARGUMENTS"] })
+   Try each provider: Jina → Firecrawl
+   On error → next provider automatically
    ```
 
 3. **Optional extras:**
-   - `--format screenshot` → `capture_screenshot_url({ url: "$ARGUMENTS" })`
-   - `--format json` → `firecrawl_scrape({ url: "$ARGUMENTS", formats: ["json"] })`
-   - Check publish date: `guess_datetime_url({ url: "$ARGUMENTS" })`
+   - `--format screenshot` → capture page screenshot
+   - `--format json` → structured JSON extraction
+   - Check publish date → detect page date
 
 4. **Display** extracted content with source URL and date.
 

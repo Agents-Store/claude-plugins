@@ -25,33 +25,26 @@ Queries:
 
 ### Step 3: SEARCH
 ```
-search({ query: "latest AI regulation news and developments 2026" })
+~~search("latest AI regulation news and developments 2026")
 → Perplexity for most recent AI answer
 
-web_search_exa({
-  query: "AI regulation policy 2026",
-  num_results: 10,
-  category: "news",
-  start_published_date: "2025-09-01"
-})
-→ Exa filtered to recent news
+~~search("AI regulation policy 2026")
+→ Exa with news category and date filter
 
-parallel_search_web({
-  queries: [
-    "EU AI Act enforcement 2026",
-    "US AI regulation legislation 2026",
-    "China AI regulation updates"
-  ]
-})
+~~batch_search([
+  "EU AI Act enforcement 2026",
+  "US AI regulation legislation 2026",
+  "China AI regulation updates"
+])
 ```
 
 ### Step 4: READ
 ```
-guess_datetime_url(all_urls) → filter for most recent only
+Detect dates on all URLs → filter for most recent only
 
-sort_by_relevance("AI regulation 2026", recent_urls)
+Rank by relevance("AI regulation 2026", recent_urls)
 
-parallel_read_url(top_5_recent_urls)
+~~batch_scrape(top_5_recent_urls)
 ```
 
 ### Step 5: EXTRACT
@@ -83,5 +76,5 @@ Output: Executive Summary with:
 - Sources (5+ recent URLs)
 - Methodology
 
-### Expected Tools Used
-`search`, `web_search_exa` (with date filter), `parallel_search_web`, `guess_datetime_url`, `sort_by_relevance`, `parallel_read_url`, `deduplicate_strings`
+### Expected Capabilities Used
+`~~search`, `~~batch_search`, `~~batch_scrape`, date detection, relevance ranking, deduplication

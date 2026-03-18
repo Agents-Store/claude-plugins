@@ -29,27 +29,25 @@ Queries:
 
 ### Step 3: SEARCH
 ```
-parallel_search_web({
-  queries: [
-    "vector search how it works explained",
-    "vector embeddings similarity algorithms",
-    "HNSW IVF vector index comparison",
-    "vector database architecture production"
-  ]
-})
+~~batch_search([
+  "vector search how it works explained",
+  "vector embeddings similarity algorithms",
+  "HNSW IVF vector index comparison",
+  "vector database architecture production"
+])
 
-search_arxiv({ query: "approximate nearest neighbor search vector" })
+~~academic_search("approximate nearest neighbor search vector")
 
-get_code_context_exa({ query: "vector search implementation example" })
+~~code_search("vector search implementation example")
 
-search({ query: "how does vector search work comprehensive explanation" })
+~~search("how does vector search work comprehensive explanation")
 ```
 
 ### Step 4: READ
 ```
-sort_by_relevance("vector search explanation", all_urls)
-parallel_read_url(top_8_urls)
-extract_pdf(best_arxiv_paper_url)
+Rank by relevance("vector search explanation", all_urls)
+~~batch_scrape(top_8_urls)
+Extract PDF from best arXiv paper
 ```
 
 ### Step 5: EXTRACT
@@ -86,5 +84,5 @@ Output: Deep Research Report with:
 - Gaps & Limitations
 - Methodology
 
-### Expected Tools Used
-`expand_query`, `parallel_search_web`, `search_arxiv`, `get_code_context_exa`, `search`, `sort_by_relevance`, `parallel_read_url`, `extract_pdf`, `deduplicate_strings`
+### Expected Capabilities Used
+`~~batch_search`, `~~academic_search`, `~~code_search`, `~~search`, `~~batch_scrape`, query expansion, PDF extraction, relevance ranking, deduplication

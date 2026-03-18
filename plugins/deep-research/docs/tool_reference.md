@@ -1,397 +1,213 @@
 # Tool Reference — Deep Research Plugin
 
-Справочник всех 38 инструментов, организованных по провайдерам. Названия указаны без MCP-префиксов.
+Справочник всех 36 инструментов, организованных по capabilities. Для fallback-цепочек см. CONNECTORS.md.
 
 ---
 
-## Firecrawl (12 инструментов)
+## ~~search — Web Search
 
-### firecrawl_scrape
-Скрапинг одной страницы с поддержкой JS-рендеринга.
+| Tool | Provider | Best for |
+|------|----------|----------|
+| `web_search_exa` | Exa | Semantic search by meaning, category filters |
+| `search` | Perplexity | AI-synthesized answers with citations |
+| `search_web` | Jina | General web search, supports query arrays |
+| `firecrawl_search` | Firecrawl | Search + optional content scraping |
 
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| url | string | Да | URL страницы |
-| formats | string[] | Нет | Форматы: markdown, html, json, screenshot, links, summary |
-| onlyMainContent | boolean | Нет | Только основной контент (без навигации) |
-| waitFor | number | Нет | Ожидание JS-рендеринга (мс) |
-| jsonOptions | object | Нет | Схема для JSON-извлечения |
-| actions | array | Нет | Действия перед скрапингом (click, scroll, wait) |
-
+### web_search_exa
 ```
-firecrawl_scrape({ url: "https://example.com", formats: ["markdown"], onlyMainContent: true })
+web_search_exa({ query: "...", numResults: 10, type: "auto", category: "company" })
 ```
+Params: `query` (required), `numResults`, `type` (auto/fast), `category` (company/research paper/people), `livecrawl`, `contextMaxCharacters`
+
+### search (Perplexity)
+```
+search({ query: "What is the market size for AI code assistants?" })
+```
+Params: `query` (required). Returns AI answer with citations.
+
+### search_web (Jina)
+```
+search_web({ query: "...", num: 30, tbs: "qdr:m" })
+```
+Params: `query` (string or array), `num`, `gl`, `hl`, `location`, `tbs`
 
 ### firecrawl_search
-Поиск по вебу с извлечением контента из результатов.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос |
-| limit | number | Нет | Макс. результатов (по умолчанию 5) |
-| lang | string | Нет | Язык (en, ru, de...) |
-| country | string | Нет | Страна (us, uk, de...) |
-| tbs | string | Нет | Фильтр времени: qdr:h, qdr:d, qdr:w, qdr:m, qdr:y |
-| scrapeOptions | object | Нет | Опции скрапинга результатов |
-
 ```
-firecrawl_search({ query: "AI trends 2026", limit: 5, lang: "en" })
+firecrawl_search({ query: "...", limit: 5, lang: "en", country: "us" })
 ```
+Params: `query` (required), `limit`, `lang`, `country`, `tbs`, `scrapeOptions`
+
+---
+
+## ~~scrape — Read/Scrape Single Page
+
+| Tool | Provider | Best for |
+|------|----------|----------|
+| `read_url` | Jina | Fast, clean markdown output |
+| `firecrawl_scrape` | Firecrawl | JS rendering, JSON extraction, screenshots |
+
+### read_url (Jina)
+```
+read_url({ url: "https://example.com/article" })
+```
+Params: `url` (string or array), `withAllImages`, `withAllLinks`
+
+### firecrawl_scrape
+```
+firecrawl_scrape({ url: "...", formats: ["markdown"], onlyMainContent: true, waitFor: 5000 })
+```
+Params: `url` (required), `formats`, `onlyMainContent`, `waitFor`, `jsonOptions`, `actions`, `proxy`
+
+---
+
+## ~~batch_search — Parallel Search
+
+| Tool | Provider | Best for |
+|------|----------|----------|
+| `parallel_search_web` | Jina | 3-5 queries simultaneously |
+
+### parallel_search_web
+```
+parallel_search_web({ searches: [{ query: "..." }, { query: "..." }], timeout: 30000 })
+```
+Params: `searches` (array of {query, num, tbs, gl, hl}, max 5), `timeout`
+
+---
+
+## ~~batch_scrape — Read Multiple Pages
+
+| Tool | Provider | Best for |
+|------|----------|----------|
+| `parallel_read_url` | Jina | Batch reading 3-5 URLs simultaneously |
+
+### parallel_read_url
+```
+parallel_read_url({ urls: [{ url: "..." }, { url: "..." }], timeout: 30000 })
+```
+Params: `urls` (array of {url, withAllImages, withAllLinks}, max 5), `timeout`
+
+---
+
+## ~~crawl — Crawl Entire Website
+
+| Tool | Provider | Best for |
+|------|----------|----------|
+| `firecrawl_crawl` | Firecrawl | Full site crawl with depth control |
+| `firecrawl_check_crawl_status` | Firecrawl | Poll crawl job status |
+| `firecrawl_map` | Firecrawl | Get site URL map (lighter than crawl) |
 
 ### firecrawl_crawl
-Краулинг сайта целиком.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| url | string | Да | Стартовый URL |
-| limit | number | Нет | Макс. страниц |
-| maxDiscoveryDepth | number | Нет | Глубина обхода |
-| includePaths | string[] | Нет | Паттерны включения |
-| excludePaths | string[] | Нет | Паттерны исключения |
-
 ```
-firecrawl_crawl({ url: "https://docs.example.com", limit: 20, maxDiscoveryDepth: 3 })
+firecrawl_crawl({ url: "...", limit: 20, maxDiscoveryDepth: 3 })
 ```
+Params: `url` (required), `limit`, `maxDiscoveryDepth`, `includePaths`, `excludePaths`
 
 ### firecrawl_check_crawl_status
-Проверка статуса краулинга.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| id | string | Да | ID задачи краулинга |
-
 ```
 firecrawl_check_crawl_status({ id: "crawl-job-id" })
 ```
 
 ### firecrawl_map
-Получение карты сайта (все URL).
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| url | string | Да | URL сайта |
-| search | string | Нет | Поиск конкретных страниц |
-| limit | number | Нет | Макс. URL |
-
 ```
-firecrawl_map({ url: "https://docs.example.com", search: "API reference" })
+firecrawl_map({ url: "...", search: "API reference", limit: 100 })
 ```
+
+---
+
+## ~~extract — Structured Data Extraction
+
+| Tool | Provider | Best for |
+|------|----------|----------|
+| `firecrawl_extract` | Firecrawl | LLM extraction with JSON schema |
 
 ### firecrawl_extract
-Извлечение структурированных данных с URL по JSON-схеме.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| urls | string[] | Да | Список URL |
-| prompt | string | Да | Что извлекать |
-| schema | object | Нет | JSON Schema для результата |
-| enableWebSearch | boolean | Нет | Дополнить веб-поиском |
-
 ```
-firecrawl_extract({ urls: ["https://example.com/pricing"], prompt: "Extract pricing plans", schema: {...} })
+firecrawl_extract({ urls: ["..."], prompt: "Extract pricing plans", schema: {...} })
 ```
-
-### firecrawl_agent
-Автономный исследовательский агент.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| prompt | string | Да | Задача исследования (макс 10000 символов) |
-| urls | string[] | Нет | Стартовые URL |
-| schema | object | Нет | JSON Schema для структурированного вывода |
-
-```
-firecrawl_agent({ prompt: "Compare top 5 CRM pricing plans", urls: ["https://hubspot.com/pricing"] })
-```
-
-### firecrawl_agent_status
-Проверка результатов агента.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| id | string | Да | ID агента |
-
-### firecrawl_browser_create
-Создание браузерной сессии для JS-тяжёлых страниц.
-
-### firecrawl_browser_execute
-Выполнение действий в браузерной сессии.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| session_id | string | Да | ID сессии |
-| actions | array | Да | Действия (click, type, scroll, screenshot) |
-
-### firecrawl_browser_delete
-Удаление браузерной сессии.
-
-### firecrawl_browser_list
-Список активных браузерных сессий.
+Params: `urls` (required), `prompt`, `schema`, `enableWebSearch`
 
 ---
 
-## Jina (21 инструмент)
+## ~~academic_search — Scientific Papers
 
-### read_url
-Чтение URL и конвертация в markdown. Primary инструмент для чтения страниц.
+| Tool | Provider | Best for |
+|------|----------|----------|
+| `search_arxiv` | Jina | arXiv preprints (CS, physics, math) |
+| `parallel_search_arxiv` | Jina | Batch arXiv search |
+| `search_ssrn` | Jina | Social sciences, economics, law |
+| `parallel_search_ssrn` | Jina | Batch SSRN search |
 
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| url | string | Да | URL страницы |
-
+### search_arxiv / search_ssrn
 ```
-read_url({ url: "https://example.com/article" })
+search_arxiv({ query: "...", num: 30 })
+search_ssrn({ query: "...", num: 30 })
 ```
+Params: `query` (string or array), `num`, `tbs`
 
-### parallel_read_url
-Параллельное чтение нескольких URL одновременно. Возвращает markdown-контент для каждого URL. Идеален для batch-чтения top-5 результатов поиска.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| urls | string[] | Да | Список URL для параллельного чтения |
-
+### parallel_search_arxiv / parallel_search_ssrn
 ```
-parallel_read_url({ urls: ["https://example.com/page1", "https://example.com/page2", "https://example.com/page3"] })
-→ Returns: markdown content for each URL simultaneously
+parallel_search_arxiv({ searches: [{ query: "..." }], timeout: 30000 })
+parallel_search_ssrn({ searches: [{ query: "..." }], timeout: 30000 })
 ```
-
-Best practice: используй после `sort_by_relevance` для чтения top-N наиболее релевантных страниц.
-
-### search_web
-Поиск по вебу через Jina.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос |
-
-```
-search_web({ query: "best practices microservices architecture" })
-```
-
-### parallel_search_web
-Параллельный поиск по нескольким запросам одновременно.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| queries | string[] | Да | Список запросов (3-5 рекомендовано) |
-
-```
-parallel_search_web({ queries: ["RAG frameworks comparison", "vector database benchmarks", "embedding models 2026"] })
-```
-
-### search_arxiv
-Поиск научных статей на arXiv.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос |
-
-```
-search_arxiv({ query: "retrieval augmented generation" })
-```
-
-### parallel_search_arxiv
-Параллельный поиск на arXiv по нескольким запросам.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| queries | string[] | Да | Список запросов |
-
-### search_ssrn
-Поиск на SSRN (социальные науки, экономика).
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос |
-
-### parallel_search_ssrn
-Параллельный поиск на SSRN по нескольким запросам одновременно. Аналог parallel_search_arxiv для социальных наук и экономики.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| searches | array | Да | Массив объектов поиска (max 5), каждый с полем query |
-| timeout | number | Нет | Таймаут в мс (по умолчанию 30000) |
-
-```
-parallel_search_ssrn({ searches: [{ query: "fintech regulation impact" }, { query: "digital banking adoption" }] })
-→ Returns: papers from SSRN for each query simultaneously
-```
-
-### search_images
-Поиск изображений по запросу. Полезен для нахождения диаграмм, архитектурных схем, инфографики.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос для поиска изображений |
-
-```
-search_images({ query: "microservices architecture diagram" })
-→ Returns: image URLs with descriptions
-```
-
-### search_bibtex
-Поиск библиографических записей.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос |
-
-### search_jina_blog
-Поиск по блогу и новостям Jina AI. Полезен для нахождения документации, туториалов и анонсов продуктов Jina.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string/string[] | Да | Поисковый запрос (строка или массив для параллельного поиска) |
-| num | number | Нет | Макс. результатов (1-100, по умолчанию 30) |
-| tbs | string | Нет | Фильтр времени: qdr:h, qdr:d, qdr:w, qdr:m, qdr:y |
-
-```
-search_jina_blog({ query: "embeddings reranker", num: 10 })
-→ Returns: Jina blog posts about embeddings and reranker
-```
-
-### expand_query
-Расширение запроса — генерация связанных поисковых терминов.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Исходный запрос |
-
-```
-expand_query({ query: "AI code assistant" })
-```
-
-### classify_text
-Классификация текста по категориям.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| text | string | Да | Текст для классификации |
-| labels | string[] | Да | Возможные категории |
-
-```
-classify_text({ text: "...", labels: ["technology", "business", "science"] })
-```
-
-### sort_by_relevance
-Сортировка текстов по релевантности к запросу.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Запрос |
-| documents | string[] | Да | Список текстов |
-
-```
-sort_by_relevance({ query: "machine learning", documents: ["text1", "text2", "text3"] })
-```
-
-### deduplicate_strings
-Дедупликация текстовых строк.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| strings | string[] | Да | Список строк |
-
-```
-deduplicate_strings({ strings: ["fact A", "fact A rephrased", "fact B"] })
-```
-
-### deduplicate_images
-Дедупликация изображений по визуальному сходству с использованием Jina CLIP v2. Выбирает наиболее разнообразное подмножество из набора похожих изображений.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| images | string[] | Да | Массив URL изображений или base64-строк |
-| k | number | Нет | Количество уникальных изображений для возврата (auto если не указано) |
-
-```
-deduplicate_images({ images: ["https://img1.png", "https://img2.png", "https://img3.png"], k: 2 })
-→ Returns: top-k most visually diverse images
-```
-
-### extract_pdf
-Извлечение текста из PDF.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| url | string | Да | URL PDF-файла |
-
-```
-extract_pdf({ url: "https://arxiv.org/pdf/2301.00001" })
-```
-
-### capture_screenshot_url
-Скриншот веб-страницы.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| url | string | Да | URL страницы |
-
-### guess_datetime_url
-Определение даты публикации страницы.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| url | string | Да | URL страницы |
-
-```
-guess_datetime_url({ url: "https://example.com/blog/post" })
-```
-
-### primer
-Получение сводки/описания Jina API.
-
-### show_api_key
-Показ текущего API-ключа Jina.
 
 ---
 
-## Exa (2 инструмента)
+## ~~code_search — Code and Technical Docs
 
-### web_search_exa
-Семантический поиск по вебу. Лучший для поиска по смыслу, а не по ключевым словам.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос |
-| num_results | number | Нет | Количество результатов |
-| type | string | Нет | Тип: auto, keyword, neural |
-| category | string | Нет | Категория: company, research_paper, news, tweet |
-| start_published_date | string | Нет | Дата начала (ISO) |
-| end_published_date | string | Нет | Дата конца (ISO) |
-
-```
-web_search_exa({ query: "best alternatives to Notion for team collaboration", num_results: 10, type: "auto" })
-```
+| Tool | Provider | Best for |
+|------|----------|----------|
+| `get_code_context_exa` | Exa | Code examples, GitHub, Stack Overflow, docs |
 
 ### get_code_context_exa
-Поиск кода и технического контекста.
-
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Поисковый запрос по коду |
-
 ```
-get_code_context_exa({ query: "React server components implementation pattern" })
+get_code_context_exa({ query: "React server components pattern", tokensNum: 5000 })
 ```
+Params: `query` (required), `tokensNum` (1000-50000)
 
 ---
 
-## Perplexity (1 инструмент)
+## Utility Tools (unique, no fallback)
 
-### search
-AI-поиск через Perplexity Sonar Pro. Возвращает синтезированный ответ с цитатами.
+### Text Processing (Jina)
 
-| Параметр | Тип | Обязательный | Описание |
-|----------|-----|-------------|----------|
-| query | string | Да | Вопрос или поисковый запрос |
+| Tool | Purpose | Key Params |
+|------|---------|------------|
+| `expand_query` | Generate related search terms | `query` |
+| `classify_text` | Categorize text by labels | `texts`, `labels` |
+| `sort_by_relevance` | Rank docs by relevance | `query`, `documents`, `top_n` |
+| `deduplicate_strings` | Remove similar text | `strings`, `k` |
+| `deduplicate_images` | Remove similar images | `images`, `k` |
 
-```
-search({ query: "What is the current market size for AI code assistants in 2026?" })
-```
+### Document & Media (Jina)
 
-Особенности:
-- Возвращает готовый AI-ответ, а не список ссылок
-- Включает цитаты с URL-источниками
-- Лучший для фактических вопросов и быстрых ответов
-- Использует модель Sonar Pro
+| Tool | Purpose | Key Params |
+|------|---------|------------|
+| `extract_pdf` | Extract figures/tables from PDF | `id` or `url`, `type` |
+| `capture_screenshot_url` | Screenshot a page | `url`, `return_url` |
+| `guess_datetime_url` | Detect publication date | `url` |
+| `search_images` | Search images | `query`, `return_url` |
+| `search_bibtex` | Search BibTeX citations | `query`, `num`, `author`, `year` |
+| `search_jina_blog` | Search Jina blog | `query`, `num` |
+
+### Autonomous Agent (Firecrawl)
+
+| Tool | Purpose | Key Params |
+|------|---------|------------|
+| `firecrawl_agent` | Autonomous research agent | `prompt`, `urls`, `schema` |
+| `firecrawl_agent_status` | Check agent job | `id` |
+
+### Browser Automation (Firecrawl)
+
+| Tool | Purpose | Key Params |
+|------|---------|------------|
+| `firecrawl_browser_create` | Create browser session | `ttl`, `profile` |
+| `firecrawl_browser_execute` | Execute actions | `sessionId`, `code`, `language` |
+| `firecrawl_browser_delete` | Delete session | `sessionId` |
+| `firecrawl_browser_list` | List sessions | `status` |
+
+### System (Jina)
+
+| Tool | Purpose |
+|------|---------|
+| `primer` | Session context info |
+| `show_api_key` | Show API key (debug) |

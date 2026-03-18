@@ -29,32 +29,26 @@ Queries:
 
 ### Step 3: SEARCH
 ```
-search({ query: "AI code assistant market size and growth in 2026" })
+~~search("AI code assistant market size and growth in 2026")
 → Perplexity for AI-synthesized market data with citations
 
-web_search_exa({
-  query: "AI code assistant market revenue forecast",
-  num_results: 10,
-  category: "research_paper",
-  start_published_date: "2025-06-01"
-})
+~~search("AI code assistant market revenue forecast")
+→ Exa with research_paper category filter
 
-parallel_search_web({
-  queries: [
-    "GitHub Copilot revenue market share 2026",
-    "Cursor AI funding valuation",
-    "AI coding tools enterprise adoption rate",
-    "AI developer productivity tools market"
-  ]
-})
+~~batch_search([
+  "GitHub Copilot revenue market share 2026",
+  "Cursor AI funding valuation",
+  "AI coding tools enterprise adoption rate",
+  "AI developer productivity tools market"
+])
 ```
 
 ### Step 4: READ
 ```
-sort_by_relevance("AI code assistant market", all_urls)
-parallel_read_url(top_8_urls)
+Rank by relevance("AI code assistant market", all_urls)
+~~batch_scrape(top_8_urls)
 
-guess_datetime_url(urls) → filter for recent data only
+Detect dates on URLs → filter for recent data only
 ```
 
 ### Step 5: EXTRACT
@@ -86,5 +80,5 @@ Output: Deep Research Report with:
 - Recommendations
 - Methodology (7 queries, 8 pages, Perplexity + Exa + Jina)
 
-### Expected Tools Used
-`search`, `web_search_exa`, `parallel_search_web`, `sort_by_relevance`, `parallel_read_url`, `guess_datetime_url`, `deduplicate_strings`
+### Expected Capabilities Used
+`~~search`, `~~batch_search`, `~~batch_scrape`, relevance ranking, date detection, deduplication

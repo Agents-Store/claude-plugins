@@ -1,315 +1,163 @@
 # Tool Call Patterns
 
-Паттерны вызовов всех 38 инструментов Deep Research Plugin. Названия без MCP-префиксов.
+Patterns organized by `~~capability`. The agent resolves these to actual tools from available MCP servers with automatic fallback (see CONNECTORS.md).
 
 ---
 
-## Firecrawl (12 tools)
+## ~~search — Web Search
 
-### firecrawl_scrape
 ```
-firecrawl_scrape({
-  url: "https://example.com/page",
-  formats: ["markdown"],
-  onlyMainContent: true
-})
-```
-Minimal: `firecrawl_scrape({ url: "https://example.com" })`
+~~search("best alternatives to Notion")
+→ Tries: Exa → Perplexity → Jina → Firecrawl
+→ First success returns results with URLs
 
-### firecrawl_search
-```
-firecrawl_search({
-  query: "AI automation tools comparison",
-  limit: 10,
-  lang: "en",
-  country: "us",
-  tbs: "qdr:m"
-})
-```
-Minimal: `firecrawl_search({ query: "AI tools" })`
-
-### firecrawl_crawl
-```
-firecrawl_crawl({
-  url: "https://docs.example.com",
-  limit: 20,
-  maxDiscoveryDepth: 3,
-  includePaths: ["/docs/*"],
-  excludePaths: ["/admin/*"]
-})
-```
-Minimal: `firecrawl_crawl({ url: "https://docs.example.com", limit: 20 })`
-
-### firecrawl_check_crawl_status
-```
-firecrawl_check_crawl_status({ id: "crawl-job-uuid" })
+~~search("What is the current market size for AI code assistants?")
+→ Perplexity first gives AI answer with citations
+→ Exa for semantic search results
 ```
 
-### firecrawl_map
-```
-firecrawl_map({
-  url: "https://docs.example.com",
-  search: "API reference",
-  limit: 100
-})
-```
-Minimal: `firecrawl_map({ url: "https://docs.example.com" })`
+---
 
-### firecrawl_extract
+## ~~scrape — Read Single Page
+
 ```
-firecrawl_extract({
+~~scrape("https://example.com/article")
+→ Tries: Jina → Firecrawl
+→ Returns clean markdown content
+
+For JS-heavy pages:
+→ Firecrawl provider supports waitFor for JS rendering
+```
+
+---
+
+## ~~batch_search — Parallel Search
+
+```
+~~batch_search([
+  "RAG frameworks comparison",
+  "vector database benchmarks 2026",
+  "embedding models performance"
+])
+→ Tries: Jina parallel → sequential Exa → sequential Perplexity
+→ Returns batch results from all queries
+```
+
+---
+
+## ~~batch_scrape — Read Multiple Pages
+
+```
+~~batch_scrape([
+  "https://example.com/page1",
+  "https://example.com/page2",
+  "https://example.com/page3"
+])
+→ Tries: Jina parallel → sequential Firecrawl
+→ Returns content from all URLs
+```
+
+---
+
+## ~~crawl — Crawl Site
+
+```
+~~crawl("https://docs.example.com", limit: 20, depth: 3)
+→ Firecrawl crawl → poll status until completed
+→ Fallback: Firecrawl map → get URLs → ~~batch_scrape
+```
+
+---
+
+## ~~extract — Structured Data
+
+```
+~~extract(
   urls: ["https://example.com/pricing"],
-  prompt: "Extract all pricing plans with names, prices, and features",
-  schema: {
-    "type": "object",
-    "properties": {
-      "plans": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": { "type": "string" },
-            "price": { "type": "number" },
-            "features": { "type": "array", "items": { "type": "string" } }
-          }
-        }
-      }
-    }
-  }
-})
-```
-Minimal: `firecrawl_extract({ urls: ["https://example.com"], prompt: "Extract key info" })`
-
-### firecrawl_agent
-```
-firecrawl_agent({
-  prompt: "Research the top 5 vector databases and compare pricing and features",
-  urls: ["https://pinecone.io", "https://weaviate.io"],
-  schema: { "type": "object", "properties": { "databases": { "type": "array" } } }
-})
-```
-Minimal: `firecrawl_agent({ prompt: "Research topic" })`
-
-### firecrawl_agent_status
-```
-firecrawl_agent_status({ id: "agent-uuid" })
-```
-
-### firecrawl_browser_create
-```
-firecrawl_browser_create()
-→ Returns: { session_id: "session-uuid" }
-```
-
-### firecrawl_browser_execute
-```
-firecrawl_browser_execute({
-  session_id: "session-uuid",
-  actions: [
-    { type: "click", selector: "#load-more" },
-    { type: "wait", milliseconds: 2000 },
-    { type: "scrape" }
-  ]
-})
-```
-
-### firecrawl_browser_delete
-```
-firecrawl_browser_delete({ session_id: "session-uuid" })
-```
-
-### firecrawl_browser_list
-```
-firecrawl_browser_list()
-→ Returns: list of active sessions
+  prompt: "Extract all pricing plans",
+  schema: { plans: [{ name, price, features[] }] }
+)
+→ Firecrawl extract with LLM
+→ Fallback: Firecrawl scrape with JSON options
 ```
 
 ---
 
-## Jina (21 tools)
+## ~~academic_search — Papers
 
-### read_url
 ```
-read_url({ url: "https://example.com/article" })
-→ Returns: markdown content
-```
+~~academic_search("retrieval augmented generation transformer")
+→ Tries: Jina arXiv → Jina SSRN → Perplexity + "research paper"
+→ Returns papers with titles, abstracts, URLs
 
-### parallel_read_url
-```
-parallel_read_url({
-  urls: [
-    "https://example.com/page1",
-    "https://example.com/page2",
-    "https://example.com/page3"
-  ]
-})
-→ Returns: content for all URLs
-```
-
-### search_web
-```
-search_web({ query: "microservices best practices 2026" })
-→ Returns: search results with snippets
-```
-
-### parallel_search_web
-```
-parallel_search_web({
-  queries: [
-    "RAG frameworks comparison",
-    "vector database benchmarks 2026",
-    "embedding models performance"
-  ]
-})
-→ Returns: results for all queries
-```
-
-### search_arxiv
-```
-search_arxiv({ query: "retrieval augmented generation transformer" })
-→ Returns: arxiv papers with abstracts
-```
-
-### parallel_search_arxiv
-```
-parallel_search_arxiv({
-  queries: ["RAG transformer", "dense passage retrieval"]
-})
-```
-
-### search_ssrn
-```
-search_ssrn({ query: "digital transformation impact SME" })
-```
-
-### parallel_search_ssrn
-```
-parallel_search_ssrn({ queries: ["fintech regulation", "digital banking"] })
-```
-
-### search_images
-```
-search_images({ query: "system architecture diagram microservices" })
-```
-
-### search_bibtex
-```
-search_bibtex({ query: "attention is all you need" })
-→ Returns: BibTeX citation entries
-```
-
-### search_jina_blog
-```
-search_jina_blog({ query: "embeddings" })
-```
-
-### expand_query
-```
-expand_query({ query: "AI code assistant" })
-→ Returns: related queries and terms
-```
-
-### classify_text
-```
-classify_text({
-  text: "This article discusses the latest developments in quantum computing...",
-  labels: ["technology", "science", "business", "politics"]
-})
-→ Returns: classification with confidence
-```
-
-### sort_by_relevance
-```
-sort_by_relevance({
-  query: "machine learning deployment",
-  documents: [
-    "MLOps best practices for production",
-    "History of artificial intelligence",
-    "Deploying ML models at scale"
-  ]
-})
-→ Returns: sorted by relevance
-```
-
-### deduplicate_strings
-```
-deduplicate_strings({
-  strings: [
-    "GPT-4 has 1.8T parameters",
-    "GPT-4 reportedly has 1.8 trillion parameters",
-    "LLaMA 3 was released by Meta"
-  ]
-})
-→ Returns: deduplicated list
-```
-
-### deduplicate_images
-```
-deduplicate_images({ images: ["url1", "url2", "url3"] })
-```
-
-### extract_pdf
-```
-extract_pdf({ url: "https://arxiv.org/pdf/2301.00001" })
-→ Returns: full text from PDF
-```
-
-### capture_screenshot_url
-```
-capture_screenshot_url({ url: "https://example.com" })
-→ Returns: screenshot image
-```
-
-### guess_datetime_url
-```
-guess_datetime_url({ url: "https://blog.example.com/post-title" })
-→ Returns: estimated publication date
-```
-
-### primer
-```
-primer()
-→ Returns: Jina API overview and capabilities
-```
-
-### show_api_key
-```
-show_api_key()
-→ Returns: current Jina API key
+Parallel variant:
+~~academic_search(["RAG transformer", "dense passage retrieval"])
+→ Jina parallel arXiv/SSRN search
 ```
 
 ---
 
-## Exa (2 tools)
+## ~~code_search — Code
 
-### web_search_exa
 ```
-web_search_exa({
-  query: "best alternatives to Notion for team collaboration",
-  num_results: 10,
-  type: "auto",
-  category: "company",
-  start_published_date: "2025-01-01",
-  end_published_date: "2026-12-31"
-})
-```
-Minimal: `web_search_exa({ query: "Notion alternatives" })`
-
-### get_code_context_exa
-```
-get_code_context_exa({
-  query: "React server components implementation pattern"
-})
+~~code_search("React server components implementation pattern")
+→ Tries: Exa code search → ~~search + "github code example"
+→ Returns code snippets with context
 ```
 
 ---
 
-## Perplexity (1 tool)
+## Utility Tools (unique, no fallback)
 
-### search
+### Query expansion
 ```
-search({
-  query: "What is the current market size for AI code assistants in 2026?"
-})
-→ Returns: AI-synthesized answer with citations
+expand_query("AI code assistant")
+→ Related terms for broader search
+```
+
+### Text classification
+```
+classify_text(texts: ["article..."], labels: ["tech", "science", "business"])
+→ Category for each text
+```
+
+### Relevance ranking
+```
+sort_by_relevance(query: "machine learning", documents: ["text1", "text2"])
+→ Documents ranked by relevance
+```
+
+### Deduplication
+```
+deduplicate_strings(["fact A", "fact A rephrased", "fact B"])
+→ Unique facts only
+```
+
+### PDF extraction
+```
+extract_pdf(id: "1706.03762")
+→ Figures, tables, equations from arXiv paper
+```
+
+### Screenshots
+```
+capture_screenshot_url("https://example.com")
+→ JPEG image of the page
+```
+
+### Date detection
+```
+guess_datetime_url("https://blog.example.com/post")
+→ Publication/update timestamp
+```
+
+### Autonomous agent (Firecrawl)
+```
+Start agent with prompt → agent_id
+Poll agent status until "completed" (1-5 min)
+```
+
+### Browser automation (Firecrawl)
+```
+Create session → execute actions → delete session
 ```

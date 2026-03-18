@@ -5,12 +5,12 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 # Report Generation
 
-3 шаблона отчётов с правилами цитирования и обязательной секцией Methodology.
+3 report templates with citation rules and mandatory Methodology section.
 
 ## Template Selection
 
-| Тип исследования | Primary шаблон | Alternative |
-|-----------------|---------------|-------------|
+| Research Type | Primary Template | Alternative |
+|--------------|-----------------|-------------|
 | Competitive Analysis | Comparison Table | Deep Research Report |
 | Market Research | Deep Research Report | Executive Summary |
 | Technical Audit | Deep Research Report | — |
@@ -20,7 +20,7 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Template 1: Executive Summary
 
-Краткий формат для быстрых исследований и фактических запросов.
+Short format for quick research and factual queries.
 
 ```markdown
 # {Topic} — Executive Summary
@@ -36,7 +36,7 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Overview
 
-{2-3 параграфа с основными выводами}
+{2-3 paragraphs with main conclusions}
 
 ## Key Data Points
 
@@ -46,8 +46,8 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Recommendations
 
-1. {Рекомендация 1}
-2. {Рекомендация 2}
+1. {Recommendation 1}
+2. {Recommendation 2}
 
 ## Sources
 
@@ -57,7 +57,7 @@ description: Report templates and generation guidelines — Executive Summary, D
 ## Methodology
 
 - **Research type:** {type}
-- **Tools used:** {list of tools with providers}
+- **Tools used:** {list of providers}
 - **Queries executed:** {count}
 - **Pages analyzed:** {count}
 - **Date range:** {if applicable}
@@ -65,7 +65,7 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Template 2: Deep Research Report
 
-Полный формат для глубоких исследований.
+Full format for in-depth research.
 
 ```markdown
 # {Topic} — Deep Research Report
@@ -75,29 +75,29 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Executive Summary
 
-{3-5 предложений с ключевыми выводами}
+{3-5 sentences with key conclusions}
 
 ## Background
 
-{Контекст: почему это важно, текущая ситуация}
+{Context: why this matters, current situation}
 
 ## Findings
 
 ### {Section 1: Aspect/Angle}
 
-{Детальные находки с inline-цитатами [Source](url)}
+{Detailed findings with inline citations [Source](url)}
 
 ### {Section 2: Aspect/Angle}
 
-{Детальные находки}
+{Detailed findings}
 
 ### {Section 3: Aspect/Angle}
 
-{Детальные находки}
+{Detailed findings}
 
 ## Analysis
 
-{Кросс-анализ источников: паттерны, тренды, противоречия}
+{Cross-source analysis: patterns, trends, contradictions}
 
 ## Data & Metrics
 
@@ -107,18 +107,18 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Key Quotes
 
-> "{Цитата}" — {Author/Source}, [{Link}]({url})
+> "{Quote}" — {Author/Source}, [{Link}]({url})
 
 ## Gaps & Limitations
 
-- {Что не удалось найти}
-- {Противоречивые данные}
-- {Ограничения исследования}
+- {What was not found}
+- {Contradictory data}
+- {Research limitations}
 
 ## Recommendations
 
-1. {Рекомендация 1} — обоснование
-2. {Рекомендация 2} — обоснование
+1. {Recommendation 1} — rationale
+2. {Recommendation 2} — rationale
 
 ## Sources
 
@@ -140,7 +140,7 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Template 3: Comparison Table
 
-Формат для сравнительного анализа (Competitive Analysis).
+Format for competitive analysis.
 
 ```markdown
 # {Item A} vs {Item B} vs {Item C} — Comparative Analysis
@@ -149,7 +149,7 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Summary
 
-{Краткий обзор сравнения, 2-3 предложения}
+{Brief comparison overview, 2-3 sentences}
 
 ## Feature Comparison
 
@@ -189,9 +189,9 @@ description: Report templates and generation guidelines — Executive Summary, D
 
 ## Verdict
 
-{Рекомендация в зависимости от use case:}
-- **Для {use case 1}:** выбрать {Item}
-- **Для {use case 2}:** выбрать {Item}
+Recommendation by use case:
+- **For {use case 1}:** choose {Item}
+- **For {use case 2}:** choose {Item}
 
 ## Sources
 
@@ -206,43 +206,43 @@ description: Report templates and generation guidelines — Executive Summary, D
 - **Pages analyzed:** {count}
 ```
 
-## Methodology Section — обязательные поля
+## Methodology Section — Required Fields
 
-Каждый отчёт ДОЛЖЕН содержать секцию Methodology с:
+Every report MUST contain a Methodology section with:
 
-1. **Research type** — один из 6 типов
-2. **Tools used** — какие инструменты и от каких провайдеров
-3. **Search queries** — список использованных запросов
-4. **Pages analyzed** — количество прочитанных страниц
-5. **Date of research** — дата проведения
-6. **Limitations** — ограничения (paywalls, blocked content, missing data)
+1. **Research type** — one of 6 types
+2. **Tools used** — which providers were used
+3. **Search queries** — list of queries executed
+4. **Pages analyzed** — number of pages read
+5. **Date of research** — when research was conducted
+6. **Limitations** — paywalls, blocked content, missing data
 
 ## Citation Format
 
-### Inline цитирование
+### Inline citations
 ```
-Размер рынка AI code assistants составляет $5.2B [Gartner](https://gartner.com/report)
+The AI code assistant market is worth $5.2B [Gartner](https://gartner.com/report)
 ```
 
-### Список источников
+### Source list
 ```
 1. [Gartner: AI Code Assistant Market Report](https://gartner.com/report) — accessed 2026-03-16
 2. [TechCrunch: The Rise of AI Coding Tools](https://techcrunch.com/article) — accessed 2026-03-16
 ```
 
-### Уровни уверенности
-| Уровень | Критерий | Использование |
-|---------|---------|--------------|
-| **High** | 3+ независимых источника подтверждают | Для фактов и цифр |
-| **Medium** | 2 источника подтверждают | Для оценок и прогнозов |
-| **Low** | 1 источник или противоречивые данные | Обязательно отметить в тексте |
+### Confidence Levels
+| Level | Criteria | Usage |
+|-------|---------|-------|
+| **High** | 3+ independent sources confirm | For facts and figures |
+| **Medium** | 2 sources confirm | For estimates and forecasts |
+| **Low** | 1 source or contradictory data | Must flag in text |
 
 ## Best Practices
 
-1. **Каждый факт — с URL** — без исключений
-2. **Cross-check цифры** — данные из одного источника помечать как Low confidence
-3. **Gaps обязательны** — честно указывать что не найдено
-4. **Дата в каждом отчёте** — исследования устаревают
-5. **Methodology прозрачна** — читатель должен понимать как проводилось исследование
-6. **Таблицы для данных** — числовые сравнения всегда в таблицах
-7. **Quotes для подкрепления** — прямые цитаты повышают достоверность
+1. **Every fact with a URL** — no exceptions
+2. **Cross-check numbers** — single-source data marked as Low confidence
+3. **Gaps are mandatory** — honestly state what was not found
+4. **Date in every report** — research gets stale
+5. **Methodology is transparent** — reader must understand how research was conducted
+6. **Tables for data** — numerical comparisons always in tables
+7. **Quotes for support** — direct quotes increase credibility

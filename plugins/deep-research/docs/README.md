@@ -1,36 +1,38 @@
 # Deep Research Plugin
 
-Плагин для Claude Code для проведения комплексных веб-исследований с использованием 38 инструментов от 4 провайдеров через единый MCP endpoint.
+Плагин для Claude Code для комплексных веб-исследований. 4 провайдера (Exa, Firecrawl, Jina, Perplexity), capability-based CONNECTORS с автоматическим FALLBACK.
+
+## Архитектура: CONNECTORS + FALLBACK
+
+Плагин описывает действия через `~~capability` (search, scrape, crawl) — НЕ конкретные инструменты. Каждое действие имеет цепочку провайдеров. При ошибке — автоматически следующий.
+
+| Capability | Описание | Fallback chain |
+|-----------|----------|----------------|
+| `~~search` | Поиск в интернете | Exa → Perplexity → Jina → Firecrawl |
+| `~~scrape` | Прочитать страницу | Jina → Firecrawl |
+| `~~batch_search` | Параллельный поиск | Jina parallel → multiple Exa |
+| `~~batch_scrape` | Прочитать несколько страниц | Jina parallel → multiple Firecrawl |
+| `~~crawl` | Краулинг сайта | Firecrawl crawl → map + batch_scrape |
+| `~~extract` | Структурированные данные | Firecrawl extract → scrape + JSON |
+| `~~academic_search` | Научные статьи | arXiv → SSRN → Perplexity |
+| `~~code_search` | Поиск кода | Exa code → search + "github" |
+
+См. `CONNECTORS.md` для полного маппинга.
 
 ## Провайдеры
 
-| Провайдер | Инструменты | Специализация |
-|-----------|------------|---------------|
-| **Firecrawl** | 12 | Скрапинг, краулинг, структурированное извлечение, браузерные сессии |
-| **Jina** | 21 | Параллельный поиск, чтение URL, arxiv, PDF, дедупликация |
-| **Exa** | 2 | Семантический поиск, поиск кода |
-| **Perplexity** | 1 | AI-ответы с цитатами (Sonar Pro) |
+| Провайдер | Специализация |
+|-----------|---------------|
+| **Exa** | Семантический поиск, код |
+| **Firecrawl** | Скрапинг, краулинг, JSON extraction, браузер |
+| **Jina** | Параллельный поиск, чтение URL, arXiv, PDF, дедупликация |
+| **Perplexity** | AI-ответы с цитатами (Sonar Pro) |
 
 ## Установка
 
-1. Скопируйте папку `deep-research` в директорию плагинов Claude Code:
-   ```bash
-   cp -r plugins/deep-research ~/.claude/plugins/deep-research
-   ```
-
-2. MCP-сервер настроен в `.mcp.json`:
-   ```json
-   {
-     "mcpServers": {
-       "deep-research": {
-         "type": "http",
-         "url": "https://mcp.mcpware.net/mcp/YOUR-ENDPOINT-ID"
-       }
-     }
-   }
-   ```
-
-3. Перезапустите Claude Code для подключения MCP-сервера.
+1. Скопируйте папку `deep-research` в директорию плагинов Claude Code
+2. MCP-сервер настроен в `.mcp.json`
+3. Перезапустите Claude Code
 
 ## Быстрый старт
 
@@ -69,23 +71,11 @@
 
 | Скилл | Назначение |
 |-------|-----------|
-| `deep-research` | Главный 7-шаговый алгоритм исследования |
-| `search-strategies` | Выбор инструментов поиска и fallback-цепочки |
+| `deep-research` | Главный 7-шаговый алгоритм |
+| `search-strategies` | Выбор инструментов и fallback-цепочки |
 | `content-extraction` | Чтение URL, скрапинг, краулинг, PDF |
 | `report-generation` | 3 шаблона отчётов |
 | `examples` | Примеры и справочники |
-
-## Fallback Logic
-
-При ошибке primary инструмента — автоматическое переключение на следующий:
-
-```
-Поиск:     web_search_exa → search (Perplexity) → search_web (Jina)
-Чтение:    read_url (Jina) → firecrawl_scrape → parallel_read_url
-Краулинг:  firecrawl_crawl → firecrawl_map
-Код:       get_code_context_exa → search_web → firecrawl_search
-Академия:  search_arxiv → parallel_search_arxiv → search (Perplexity)
-```
 
 ## Шаблоны отчётов
 
@@ -93,4 +83,4 @@
 2. **Deep Research Report** — полный отчёт с Background, Findings, Analysis, Data, Quotes, Gaps
 3. **Comparison Table** — таблица сравнения с Verdict и детальным анализом
 
-Каждый отчёт содержит секцию **Methodology** с информацией об использованных инструментах, количестве запросов и источников.
+Каждый отчёт содержит секцию **Methodology** с информацией о провайдерах, количестве запросов и источников.
