@@ -8,7 +8,7 @@
     "recipientBlock": true,
     "itemsTable": {
       "columns": [
-        { "key": "description", "label": "Description", "width": "50%" },
+        { "key": "description", "label": "Description", "width": "50%", "align": "left" },
         { "key": "quantity", "label": "Qty", "width": "10%", "align": "center" },
         { "key": "unitPrice", "label": "Unit Price", "width": "20%", "align": "right" },
         { "key": "total", "label": "Total", "width": "20%", "align": "right" }
@@ -20,18 +20,23 @@
     "notes": true
   },
   "styling": {
-    "primaryColor": "#2563EB",
-    "accentColor": "#F59E0B",
-    "backgroundColor": "#FFFFFF",
-    "fontFamily": "Helvetica, Arial, sans-serif",
-    "fontSizeTitle": "24px",
-    "fontSizeBody": "14px",
+    "primaryColor": "#1E3A5F",
+    "accentColor": "#2563EB",
+    "backgroundColor": "#F8FAFC",
+    "textColor": "#1E293B",
+    "mutedColor": "#64748B",
+    "borderColor": "#E2E8F0",
+    "highlightBg": "#EFF6FF",
+    "fontFamily": "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    "fontHeading": "Georgia, 'Times New Roman', serif",
+    "fontSizeTitle": "28px",
+    "fontSizeBody": "13px",
     "fontSizeSmall": "11px",
-    "tableHeaderBg": "#2563EB",
+    "tableHeaderBg": "#1E3A5F",
     "tableHeaderColor": "#FFFFFF",
     "tableStripeBg": "#F8FAFC",
     "pageSize": "A4",
-    "margins": { "top": "20mm", "bottom": "20mm", "left": "15mm", "right": "15mm" }
+    "margins": { "top": "20mm", "bottom": "20mm", "left": "18mm", "right": "18mm" }
   },
   "currency": "USD",
   "currencySymbol": "$"

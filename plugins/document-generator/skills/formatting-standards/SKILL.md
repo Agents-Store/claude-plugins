@@ -5,156 +5,177 @@ description: Typography, font, margin, color, and layout standards for professio
 
 # Formatting Standards
 
-Professional formatting guidelines for business documents.
+Professional formatting guidelines based on industry best practices. Follows the **60-30-10 color rule** (60% background, 30% structure, 10% accent) and an **8px spacing grid**.
 
-## Font Standards
+## Font System
 
-| Context | Font | Fallback |
-|---------|------|----------|
-| Business documents (proposals, reports) | Calibri | Arial, Helvetica |
-| Legal documents (contracts, agreements) | Times New Roman | Georgia, serif |
-| Invoices, financial | Helvetica | Arial, sans-serif |
-| Presentations | Calibri | Arial, sans-serif |
+### Font Pairing
 
-## Font Size Hierarchy
+| Context | Headings | Body Text |
+|---------|----------|-----------|
+| Proposals, Reports | **Georgia** (serif) | Helvetica Neue / Arial (sans-serif) |
+| Invoices, Financial | Georgia (serif) | Helvetica Neue / Arial (sans-serif) |
+| Presentations | Georgia (serif) | Arial (sans-serif) |
+| Contracts, Legal | **Georgia** (serif) | Georgia (serif) |
 
-### DOCX Documents
+Georgia provides a premium serif feel for headings, while Helvetica Neue/Arial gives clean readability for body text. Both are available on all platforms without installation.
 
-| Element | Size (pt) | Style |
-|---------|-----------|-------|
-| Document title | 28 | Bold, primary color |
-| Heading 1 | 18 | Bold, primary color |
-| Heading 2 | 14 | Bold, primary color |
-| Heading 3 | 12 | Bold, dark gray |
-| Body text | 11 | Regular, black |
-| Footer/header | 9 | Regular, gray |
-| Table header | 11 | Bold, white on primary |
-| Table body | 11 | Regular |
+### Font Size Hierarchy
 
-### PDF Documents (Invoice)
+#### DOCX Documents (sizes in pt)
 
-Note: PDF sizes use **px** (CSS pixels) because PDFs are generated from HTML via Puppeteer. DOCX and PPTX use **pt** (points) as their native unit.
+| Element | Size | Weight | Color |
+|---------|------|--------|-------|
+| Document title | 32 | Bold | Primary (#1E3A5F) |
+| Heading 1 | 18 | Bold | Primary (#1E3A5F) |
+| Heading 2 | 14 | Bold | Primary (#1E3A5F) |
+| Heading 3 | 12 | Bold | Text (#1E293B) |
+| Body text | 11 | Regular | Text (#1E293B) |
+| Meta/footer | 8-9 | Regular/Italic | Muted (#64748B) |
+| Table header | 11 | Bold | White on Primary |
+| Table body | 11 | Regular | Text (#1E293B) |
 
-| Element | Size | Style |
-|---------|------|-------|
-| Invoice title | 36px | Bold, primary color |
-| Company name | 24px | Bold, primary color |
-| Section label | 12px | Uppercase, primary color |
-| Body text | 14px | Regular |
-| Small text | 11px | Gray |
-| Table header | 12px | Bold, white, uppercase |
+#### PDF Documents (sizes in px — CSS pixels via Puppeteer)
 
-### Presentations
+Note: PDF uses **px** (CSS pixels) because documents are rendered from HTML. DOCX and PPTX use **pt** as their native unit.
 
-| Element | Size (pt) | Style |
-|---------|-----------|-------|
-| Slide title | 36 | Bold, white on primary |
-| Subtitle | 24 | Regular, light gray |
-| Body/bullets | 18 | Regular |
-| Small bullets | 16 | Regular |
-| Header bar text | 14 | Bold, white |
-| Notes | 12 | Regular |
+| Element | Size | Weight | Color |
+|---------|------|--------|-------|
+| Invoice title (INVOICE) | 32px | Bold | Primary |
+| Company name | 22px | Bold | Primary |
+| Section label | 10-11px | Uppercase, 700 | Muted |
+| Body text | 13px | Regular | Text |
+| Small/notes | 11px | Regular | Muted |
+| Table header | 11px | Bold, uppercase | White |
 
-## Page Layout
+#### Presentations (sizes in pt)
+
+| Element | Size | Weight | Color |
+|---------|------|--------|-------|
+| Slide title (title slide) | 40 | Bold | White |
+| Slide header bar | 16 | Bold | White on Primary |
+| Subtitle | 20-22 | Regular | Muted (#94A3B8) |
+| Body/bullets | 16-18 | Regular | Text (#1E293B) |
+| Agenda numbers | 24 | Bold | Accent (#2563EB) |
+| Meta/author | 13 | Regular | Muted |
+
+## Color System
+
+### Primary Palette — Corporate Blue
+
+| Role | Color | Hex | Usage |
+|------|-------|-----|-------|
+| **Primary** | Navy | `#1E3A5F` | Headings, header bars, title slide bg |
+| **Accent** | Bright blue | `#2563EB` | Accent lines, bullet colors, links |
+| **Background** | Cool gray | `#F8FAFC` | Alternating sections, card backgrounds |
+| **Text** | Dark slate | `#1E293B` | Body text |
+| **Muted** | Slate gray | `#64748B` | Secondary text, meta, captions |
+| **Border** | Light border | `#E2E8F0` | Dividers, table borders |
+| **Highlight** | Light blue | `#EFF6FF` | Payment cards, callout boxes |
+
+### Default Palette by Document Type
+
+| Document Type | Default Palette | Primary | Accent |
+|--------------|----------------|---------|--------|
+| Proposal | Corporate Blue | #1E3A5F | #2563EB |
+| Report | Corporate Blue | #1E3A5F | #2563EB |
+| Invoice | Corporate Blue | #1E3A5F | #2563EB |
+| Presentation | Corporate Blue | #1E3A5F | #2563EB |
+| Contract | Dark Slate | #1E293B | #1E3A5F |
+
+### Color Application (60-30-10 Rule)
+
+- **60%** Background: White (#FFFFFF) and light gray (#F8FAFC)
+- **30%** Structure: Navy (#1E3A5F) for headers, headings, table headers
+- **10%** Accent: Bright blue (#2563EB) for lines, bullet colors, links, highlights
+
+## Layout & Spacing
+
+### Spacing Grid (8px base)
+
+Use multiples of 8px: 8, 16, 24, 32, 48, 64px for all spacing values.
+
+| Context | Before | After |
+|---------|--------|-------|
+| H1 heading | 48px (480 twips) | 6px + accent line |
+| H2 heading | 32px (320 twips) | 12px (120 twips) |
+| Body paragraph | — | 16px (160 twips) |
+| Bullet item | — | 8px (80 twips) |
+| Section gap | 32px | 32px |
+| Cover page title spacer | 300px (3000 twips) | — |
 
 ### Margins
 
 | Type | Top | Bottom | Left | Right |
 |------|-----|--------|------|-------|
-| Standard (proposals, reports) | 1" (1440 twips) | 1" | 0.75" (1080 twips) | 0.75" |
-| Legal (contracts) | 1" | 1" | 1" (1440 twips) | 1" |
-| Invoice (PDF) | 20mm | 20mm | 15mm | 15mm |
+| Proposals, Reports | 1" (1440 twips) | 1" | 0.75" (1080 twips) | 0.75" |
+| Contracts | 1" | 1" | 1" (1440 twips) | 1" |
+| Invoice PDF | 20mm | 20mm | 18mm | 18mm |
 
 ### Line Spacing
 
 | Context | Spacing |
 |---------|---------|
-| Business documents | 1.15 |
-| Legal documents | 1.5 |
+| Business documents (proposals, reports) | 1.3 |
+| Legal documents (contracts) | 1.5 |
 | Presentations | Single (1.0) |
 
-### Page Size
+## Visual Design Techniques
 
-| Context | Size |
-|---------|------|
-| Default | A4 (210 x 297 mm) |
-| US documents | Letter (8.5 x 11") |
-| Presentations | Widescreen (13.33 x 7.5") |
+### Color Blocking
 
-## Color Palettes
+- **Top/bottom bars**: 4-6px colored bars at page edges (navy primary)
+- **Header bars**: Full-width navy background with white text (presentations, invoices)
+- **Accent underlines**: 3-4px accent blue lines under H1 headings
+- **Card backgrounds**: Light gray (#F8FAFC) with left accent border (4px blue)
+- **Alternating rows**: White / #F8FAFC for table rows and sections
 
-**Default palette per document type:**
+### Cover Pages (DOCX)
 
-| Document Type | Default Palette | Primary Color |
-|--------------|----------------|---------------|
-| Proposal | Professional Blue | #003366 |
-| Report | Professional Blue | #003366 |
-| Invoice | Tech Blue | #2563EB |
-| Presentation | Professional Blue | #003366 |
-| Contract | Corporate Gray | #1F2937 |
+1. Large spacer (pushes title to center-upper area)
+2. Accent line (6px blue) above title
+3. Title in Georgia Bold, left-aligned, primary color
+4. Subtitle in body font, muted color
+5. Meta block (author, recipient, date) in small muted text
+6. Page break
 
-### Professional Blue
+### Invoice Layout (PDF)
 
-| Element | Color | Hex |
-|---------|-------|-----|
-| Primary | Dark blue | #003366 |
-| Secondary/Accent | Amber | #F59E0B |
-| Background | White | #FFFFFF |
-| Body text | Dark gray | #1F2937 |
-| Secondary text | Medium gray | #6B7280 |
-| Muted text | Light gray | #9CA3AF |
-| Table stripe | Very light gray | #F3F4F6 |
+1. Top accent bar (6px navy)
+2. Header: company info left, "INVOICE" right in Georgia
+3. Info cards with left accent borders (Bill To, Summary)
+4. Items table with navy header row
+5. Totals box with navy "Total Due" row
+6. Payment details in light blue card (#EFF6FF)
+7. Bottom accent bar (4px navy)
 
-### Corporate Gray
+### Presentation Slides
 
-| Element | Color | Hex |
-|---------|-------|-----|
-| Primary | Charcoal | #1F2937 |
-| Secondary | Blue gray | #6B7280 |
-| Accent | Emerald | #10B981 |
-
-### Tech Blue
-
-| Element | Color | Hex |
-|---------|-------|-----|
-| Primary | Royal blue | #2563EB |
-| Secondary | Amber | #F59E0B |
-| Accent | Light blue | #3B82F6 |
-
-## Tables
-
-### DOCX Tables
-
-- Header row: bold text, white color, primary background
-- Alternating row colors: white / light gray (#F3F4F6)
-- Cell padding: adequate spacing for readability
-- Border: light gray (#E5E7EB) or none
-- Full width (100%)
-
-### PDF/HTML Tables
-
-- Header: primary color background, white text, uppercase, letter-spacing
-- Body: 14px, alternating #fff / #F8FAFC
-- Cell padding: 10-12px
-- Border-bottom: 1px solid #E5E7EB
+1. Master slide: navy header bar (0.75") + accent line (0.04")
+2. Title slide: full navy background, accent stripe, left-aligned
+3. Agenda: numbered items with accent-colored numbers + dividers
+4. Content: accent-colored bullet points
+5. Two-column: accent/secondary left border lines
+6. Summary: two card boxes with top accent stripe
+7. Contact: navy background with accent stripe
 
 ## Branding Customization
 
-When the user provides branding information:
+When the user provides branding:
+1. **Primary color** → replaces #1E3A5F in headers, bars, headings
+2. **Accent color** → replaces #2563EB in lines, bullets, highlights
+3. **Logo** → placed in header area
+4. **Company name** → header and footer
+5. **Font override** → replaces Georgia/Arial if specified
 
-1. **Primary color**: Apply to headings, table headers, accent elements
-2. **Logo**: Place in header (top-left for docs, top-right for invoices)
-3. **Company name**: Use in headers, footers, cover pages
-4. **Font**: Override default fonts if specified
+If no branding is provided, use the Corporate Blue palette with Georgia + Arial.
 
-If no branding is provided, use the Professional Blue palette with Calibri font.
+## Anti-Patterns (What Makes Documents Look Primitive)
 
-## Best Practices
-
-- Maximum 3 colors per document (primary + secondary + neutral)
-- Consistent heading hierarchy throughout
-- Adequate white space between sections
-- Page numbers on all multi-page documents
-- Company name or document title in header/footer
-- Date on every document
-- Professional tone in all generated content
+- More than 3 colors in a document
+- Centered body text (use left-aligned)
+- Thick borders on tables (use 1px or none)
+- No visual hierarchy (all same size/weight)
+- Dense text without white space
+- Default system fonts without pairing (e.g., plain Calibri everywhere)
+- Missing accent elements (no lines, bars, or color blocks)

@@ -39,7 +39,9 @@ Refer to the **document-templates** skill for complete field checklists per docu
 | Report | DOCX | docx-js | `generate_docx.js` |
 | Report (final) | PDF | puppeteer | `generate_pdf.js` |
 | Presentation | PPTX | pptxgenjs | `generate_pptx.js` |
+| Presentation (PDF export) | PDF | pandoc | `convert.sh` (PPTX→PDF, as follow-up) |
 | Contract | DOCX | docx-js | `generate_docx.js` |
+| Contract (final) | PDF | puppeteer | `generate_pdf.js` |
 
 ### Step 4: BUILD JSON Input
 

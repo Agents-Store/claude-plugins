@@ -27,11 +27,15 @@
     }
   },
   "styling": {
-    "primaryColor": "#1F2937",
-    "fontBody": "Times New Roman",
-    "fontSizeTitle": 16,
+    "primaryColor": "#1E293B",
+    "accentColor": "#1E3A5F",
+    "textColor": "#1E293B",
+    "mutedColor": "#64748B",
+    "borderColor": "#E2E8F0",
+    "fontBody": "Georgia",
+    "fontSizeTitle": 18,
     "fontSizeClauseTitle": 12,
-    "fontSizeBody": 12,
+    "fontSizeBody": 11,
     "lineSpacing": 1.5,
     "clauseNumbering": "decimal",
     "margins": { "top": 1440, "bottom": 1440, "left": 1440, "right": 1440 }

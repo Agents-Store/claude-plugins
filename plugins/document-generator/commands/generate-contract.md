@@ -1,7 +1,7 @@
 ---
-description: Generate a contract or agreement (DOCX)
+description: Generate a contract or agreement (DOCX/PDF)
 allowed-tools: ["Bash", "Read", "Write", "Glob"]
-argument-hint: <title> [--type <service|nda|employment>]
+argument-hint: <title> [--format <docx|pdf>] [--type <service|nda|employment>]
 ---
 
 # Generate Contract
@@ -10,8 +10,9 @@ Generate a professional contract with numbered clauses, party details, and signa
 
 ## Arguments
 
-Format: `<title> [--type <service|nda|employment>]`
+Format: `<title> [--format <docx|pdf>] [--type <service|nda|employment>]`
 - title: Contract title (required)
+- --format: Output format -- docx (default, editable) or pdf (final version)
 - --type: Contract type for suggested clause structure (optional)
 
 Parse from "$ARGUMENTS".
@@ -45,11 +46,15 @@ Parse from "$ARGUMENTS".
 5. **Build JSON input:**
    Structure clauses with numbered format. Each clause can have multiple paragraphs (sub-clauses). Write to `.doc_input.json`.
 
-6. **Generate DOCX:**
+6. **Generate document:**
+   For DOCX (default):
    ```bash
    cd <plugin_dir> && node scripts/generate_docx.js /absolute/path/.doc_input.json
    ```
-   Note: Contracts always generate as DOCX (needs edits and signatures).
+   For PDF (final version):
+   ```bash
+   cd <plugin_dir> && node scripts/generate_pdf.js /absolute/path/.doc_input.json
+   ```
 
 7. **Deliver result:**
    Show file path and size. Remind user this is a template -- recommend legal review before signing.

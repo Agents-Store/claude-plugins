@@ -28,61 +28,49 @@ async function main() {
     const pptx = new PptxGenJS();
 
     const styling = template?.styling || data.branding || {};
-    const primaryColor = styling.primaryColor || "003366";
-    const secondaryColor = styling.secondaryColor || "F59E0B";
-    const bgColor = styling.backgroundColor || "FFFFFF";
-    const fontFamily = styling.fontFamily || "Calibri";
-    const titleFontSize = styling.titleFontSize || 36;
+    const primary = (styling.primaryColor || "#1E3A5F").replace("#", "");
+    const accent = (styling.accentColor || "#2563EB").replace("#", "");
+    const secondary = (styling.secondaryColor || "#64748B").replace("#", "");
+    const bgColor = (styling.backgroundColor || "#FFFFFF").replace("#", "");
+    const textColor = (styling.textColor || "#1E293B").replace("#", "");
+    const fontBody = styling.fontFamily || "Arial";
+    const fontHeading = styling.fontHeading || "Georgia";
+    const titleFontSize = styling.titleFontSize || 40;
     const bodyFontSize = styling.bodyFontSize || 18;
 
     pptx.layout = "LAYOUT_WIDE";
     pptx.author = data.author || "Document Generator";
     pptx.title = data.title || "Presentation";
 
-    // Define master slides
+    // Master slide with navy header bar + accent line
     pptx.defineSlideMaster({
       title: "CONTENT_SLIDE",
       background: { color: bgColor },
       objects: [
-        {
-          rect: { x: 0, y: 0, w: "100%", h: 0.6, fill: { color: primaryColor.replace("#", "") } },
-        },
+        { rect: { x: 0, y: 0, w: "100%", h: 0.75, fill: { color: primary } } },
+        { rect: { x: 0, y: 0.75, w: "100%", h: 0.04, fill: { color: accent } } },
+        { rect: { x: 0, y: 7.2, w: "100%", h: 0.02, fill: { color: "E2E8F0" } } },
       ],
     });
 
+    const ctx = { pptx, primary, accent, secondary, bgColor, textColor, fontBody, fontHeading, titleFontSize, bodyFontSize };
     const slides = data.slides || [];
 
     for (const slideData of slides) {
       switch (slideData.type) {
-        case "title":
-          addTitleSlide(pptx, slideData, data, primaryColor, secondaryColor, fontFamily, titleFontSize);
-          break;
-        case "agenda":
-          addAgendaSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize);
-          break;
-        case "content":
-          addContentSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize);
-          break;
-        case "two-column":
-          addTwoColumnSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize);
-          break;
-        case "chart":
-          addChartSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize);
-          break;
-        case "summary":
-          addSummarySlide(pptx, slideData, primaryColor, secondaryColor, fontFamily, bodyFontSize);
-          break;
-        case "contact":
-          addContactSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize);
-          break;
-        default:
-          addContentSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize);
+        case "title": addTitleSlide(ctx, slideData, data); break;
+        case "agenda": addAgendaSlide(ctx, slideData); break;
+        case "content": addContentSlide(ctx, slideData); break;
+        case "two-column": addTwoColumnSlide(ctx, slideData); break;
+        case "chart": addChartSlide(ctx, slideData); break;
+        case "summary": addSummarySlide(ctx, slideData); break;
+        case "contact": addContactSlide(ctx, slideData); break;
+        default: addContentSlide(ctx, slideData);
       }
     }
 
-    // If no slides were provided, create a basic title slide
     if (slides.length === 0) {
-      addTitleSlide(pptx, { title: data.title, subtitle: data.subtitle }, data, primaryColor, secondaryColor, fontFamily, titleFontSize);
+      addTitleSlide(ctx, { title: data.title, subtitle: data.subtitle }, data);
     }
 
     const dir = path.dirname(outputPath);
@@ -91,49 +79,40 @@ async function main() {
     await pptx.writeFile({ fileName: outputPath });
 
     const stats = fs.statSync(outputPath);
-    console.log(
-      JSON.stringify({
-        success: true,
-        outputPath: path.resolve(outputPath),
-        size: stats.size,
-        slides: Math.max(slides.length, 1),
-      })
-    );
+    console.log(JSON.stringify({ success: true, outputPath: path.resolve(outputPath), size: stats.size, slides: Math.max(slides.length, 1) }));
   } catch (err) {
     console.log(JSON.stringify({ success: false, error: err.message }));
     process.exit(1);
   }
 }
 
-function addTitleSlide(pptx, slideData, data, primaryColor, secondaryColor, fontFamily, titleFontSize) {
-  const slide = pptx.addSlide();
-  const pc = primaryColor.replace("#", "");
+function addTitleSlide(ctx, slideData, data) {
+  const slide = ctx.pptx.addSlide();
+  slide.background = { color: ctx.primary };
 
-  slide.background = { color: pc };
+  // Accent stripe at bottom
+  slide.addShape(ctx.pptx.ShapeType.rect, { x: 0, y: 6.8, w: "100%", h: 0.06, fill: { color: ctx.accent } });
 
   slide.addText(slideData.title || data.title || "Presentation", {
-    x: 0.5,
-    y: 1.5,
-    w: "90%",
-    h: 2,
-    fontSize: titleFontSize,
-    fontFace: fontFamily,
+    x: 1.0, y: 1.2, w: 11.3, h: 2.5,
+    fontSize: ctx.titleFontSize,
+    fontFace: ctx.fontHeading,
     color: "FFFFFF",
     bold: true,
-    align: "center",
-    valign: "middle",
+    align: "left",
+    valign: "bottom",
   });
+
+  // Accent line under title
+  slide.addShape(ctx.pptx.ShapeType.rect, { x: 1.0, y: 3.8, w: 1.5, h: 0.06, fill: { color: ctx.accent } });
 
   if (slideData.subtitle || data.subtitle) {
     slide.addText(slideData.subtitle || data.subtitle, {
-      x: 0.5,
-      y: 3.5,
-      w: "90%",
-      h: 1,
+      x: 1.0, y: 4.0, w: 11.3, h: 1.0,
       fontSize: 20,
-      fontFace: fontFamily,
-      color: "CCCCCC",
-      align: "center",
+      fontFace: ctx.fontBody,
+      color: "94A3B8",
+      align: "left",
     });
   }
 
@@ -141,77 +120,74 @@ function addTitleSlide(pptx, slideData, data, primaryColor, secondaryColor, font
   if (data.author) metaParts.push(data.author);
   if (data.date || slideData.date) metaParts.push(data.date || slideData.date);
   if (metaParts.length > 0) {
-    slide.addText(metaParts.join(" | "), {
-      x: 0.5,
-      y: 5.0,
-      w: "90%",
-      h: 0.5,
-      fontSize: 14,
-      fontFace: fontFamily,
-      color: "AAAAAA",
-      align: "center",
+    slide.addText(metaParts.join("  |  "), {
+      x: 1.0, y: 5.8, w: 11.3, h: 0.5,
+      fontSize: 13,
+      fontFace: ctx.fontBody,
+      color: "64748B",
+      align: "left",
     });
   }
 }
 
-function addAgendaSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize) {
-  const slide = pptx.addSlide({ masterName: "CONTENT_SLIDE" });
-  const pc = primaryColor.replace("#", "");
+function addAgendaSlide(ctx, slideData) {
+  const slide = ctx.pptx.addSlide({ masterName: "CONTENT_SLIDE" });
 
   slide.addText(slideData.title || "Agenda", {
-    x: 0.5,
-    y: 0.1,
-    w: "90%",
-    h: 0.5,
-    fontSize: 14,
-    fontFace: fontFamily,
-    color: "FFFFFF",
-    bold: true,
+    x: 0.6, y: 0.12, w: "90%", h: 0.55,
+    fontSize: 16, fontFace: ctx.fontHeading, color: "FFFFFF", bold: true,
   });
 
   const items = slideData.items || [];
   const bulletItems = items.map((item, idx) => ({
-    text: `${idx + 1}. ${item}`,
-    options: { fontSize: bodyFontSize, fontFace: fontFamily, color: "333333", bullet: false, breakLine: true, paraSpaceAfter: 12 },
+    text: `${String(idx + 1).padStart(2, "0")}`,
+    options: { fontSize: 28, fontFace: ctx.fontBody, color: ctx.accent, bold: true, breakLine: false },
   }));
 
-  slide.addText(bulletItems, { x: 1, y: 1.2, w: 11, h: 5, valign: "top" });
+  // Numbered items with accent color numbers
+  let yPos = 1.2;
+  for (let i = 0; i < items.length; i++) {
+    slide.addText(String(i + 1).padStart(2, "0"), {
+      x: 0.8, y: yPos, w: 0.8, h: 0.6,
+      fontSize: 24, fontFace: ctx.fontBody, color: ctx.accent, bold: true,
+    });
+    slide.addText(items[i], {
+      x: 1.7, y: yPos + 0.05, w: 10, h: 0.5,
+      fontSize: ctx.bodyFontSize, fontFace: ctx.fontBody, color: ctx.textColor,
+    });
+    // Subtle divider
+    if (i < items.length - 1) {
+      slide.addShape(ctx.pptx.ShapeType.rect, { x: 0.8, y: yPos + 0.65, w: 11, h: 0.01, fill: { color: "E2E8F0" } });
+    }
+    yPos += 0.75;
+  }
 }
 
-function addContentSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize) {
-  const slide = pptx.addSlide({ masterName: "CONTENT_SLIDE" });
-  const pc = primaryColor.replace("#", "");
+function addContentSlide(ctx, slideData) {
+  const slide = ctx.pptx.addSlide({ masterName: "CONTENT_SLIDE" });
 
   slide.addText(slideData.title || "", {
-    x: 0.5,
-    y: 0.1,
-    w: "90%",
-    h: 0.5,
-    fontSize: 14,
-    fontFace: fontFamily,
-    color: "FFFFFF",
-    bold: true,
+    x: 0.6, y: 0.12, w: "90%", h: 0.55,
+    fontSize: 16, fontFace: ctx.fontHeading, color: "FFFFFF", bold: true,
   });
 
   if (slideData.bullets && Array.isArray(slideData.bullets)) {
     const bulletItems = slideData.bullets.map((b) => ({
       text: b,
-      options: { fontSize: bodyFontSize - 2, fontFace: fontFamily, color: "333333", bullet: { type: "bullet" }, breakLine: true, paraSpaceAfter: 8 },
+      options: {
+        fontSize: ctx.bodyFontSize - 2, fontFace: ctx.fontBody, color: ctx.textColor,
+        bullet: { type: "bullet", color: ctx.accent },
+        breakLine: true, paraSpaceAfter: 10,
+      },
     }));
 
-    const textWidth = slideData.image ? 6.5 : 11;
-    slide.addText(bulletItems, { x: 0.8, y: 1.0, w: textWidth, h: 5.5, valign: "top" });
+    const textWidth = slideData.image ? 6.5 : 11.5;
+    slide.addText(bulletItems, { x: 0.8, y: 1.2, w: textWidth, h: 5.3, valign: "top" });
   } else if (slideData.content) {
-    const textWidth = slideData.image ? 6.5 : 11;
+    const textWidth = slideData.image ? 6.5 : 11.5;
     slide.addText(slideData.content, {
-      x: 0.8,
-      y: 1.0,
-      w: textWidth,
-      h: 5.5,
-      fontSize: bodyFontSize - 2,
-      fontFace: fontFamily,
-      color: "333333",
-      valign: "top",
+      x: 0.8, y: 1.2, w: textWidth, h: 5.3,
+      fontSize: ctx.bodyFontSize - 2, fontFace: ctx.fontBody, color: ctx.textColor, valign: "top", lineSpacing: 24,
     });
   }
 
@@ -219,165 +195,126 @@ function addContentSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize
     slide.addImage({ path: slideData.image, x: 8, y: 1.2, w: 4.5, h: 4.5 });
   }
 
-  if (slideData.notes) {
-    slide.addNotes(slideData.notes);
-  }
+  if (slideData.notes) slide.addNotes(slideData.notes);
 }
 
-function addTwoColumnSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize) {
-  const slide = pptx.addSlide({ masterName: "CONTENT_SLIDE" });
+function addTwoColumnSlide(ctx, slideData) {
+  const slide = ctx.pptx.addSlide({ masterName: "CONTENT_SLIDE" });
 
   slide.addText(slideData.title || "", {
-    x: 0.5,
-    y: 0.1,
-    w: "90%",
-    h: 0.5,
-    fontSize: 14,
-    fontFace: fontFamily,
-    color: "FFFFFF",
-    bold: true,
+    x: 0.6, y: 0.12, w: "90%", h: 0.55,
+    fontSize: 16, fontFace: ctx.fontHeading, color: "FFFFFF", bold: true,
   });
 
+  // Left column with accent border
+  slide.addShape(ctx.pptx.ShapeType.rect, { x: 0.5, y: 1.1, w: 0.04, h: 5.0, fill: { color: ctx.accent } });
   const leftItems = (slideData.leftColumn || slideData.left || []).map((b) => ({
     text: b,
-    options: { fontSize: bodyFontSize - 2, fontFace: fontFamily, color: "333333", bullet: { type: "bullet" }, breakLine: true, paraSpaceAfter: 8 },
+    options: { fontSize: ctx.bodyFontSize - 2, fontFace: ctx.fontBody, color: ctx.textColor, bullet: { type: "bullet", color: ctx.accent }, breakLine: true, paraSpaceAfter: 10 },
   }));
+  slide.addText(leftItems, { x: 0.8, y: 1.1, w: 5.5, h: 5.2, valign: "top" });
 
+  // Right column with secondary border
+  slide.addShape(ctx.pptx.ShapeType.rect, { x: 6.7, y: 1.1, w: 0.04, h: 5.0, fill: { color: ctx.secondary } });
   const rightItems = (slideData.rightColumn || slideData.right || []).map((b) => ({
     text: b,
-    options: { fontSize: bodyFontSize - 2, fontFace: fontFamily, color: "333333", bullet: { type: "bullet" }, breakLine: true, paraSpaceAfter: 8 },
+    options: { fontSize: ctx.bodyFontSize - 2, fontFace: ctx.fontBody, color: ctx.textColor, bullet: { type: "bullet", color: ctx.secondary }, breakLine: true, paraSpaceAfter: 10 },
   }));
-
-  slide.addText(leftItems, { x: 0.5, y: 1.0, w: 5.8, h: 5.5, valign: "top" });
-  slide.addText(rightItems, { x: 6.8, y: 1.0, w: 5.8, h: 5.5, valign: "top" });
+  slide.addText(rightItems, { x: 7.0, y: 1.1, w: 5.5, h: 5.2, valign: "top" });
 }
 
-function addChartSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize) {
-  const slide = pptx.addSlide({ masterName: "CONTENT_SLIDE" });
+function addChartSlide(ctx, slideData) {
+  const slide = ctx.pptx.addSlide({ masterName: "CONTENT_SLIDE" });
 
   slide.addText(slideData.title || "", {
-    x: 0.5,
-    y: 0.1,
-    w: "90%",
-    h: 0.5,
-    fontSize: 14,
-    fontFace: fontFamily,
-    color: "FFFFFF",
-    bold: true,
+    x: 0.6, y: 0.12, w: "90%", h: 0.55,
+    fontSize: 16, fontFace: ctx.fontHeading, color: "FFFFFF", bold: true,
   });
 
   if (slideData.chartData) {
     const chartType = slideData.chartType || "bar";
-    const pptxChartType = chartType === "pie" ? pptx.ChartType.pie : chartType === "line" ? pptx.ChartType.line : pptx.ChartType.bar;
+    const pptxChartType = chartType === "pie" ? ctx.pptx.ChartType.pie : chartType === "line" ? ctx.pptx.ChartType.line : ctx.pptx.ChartType.bar;
 
     slide.addChart(pptxChartType, slideData.chartData, {
-      x: 1,
-      y: 1.2,
-      w: 11,
-      h: 5,
-      showTitle: false,
-      showValue: true,
-      chartColors: [primaryColor.replace("#", ""), "F59E0B", "10B981", "EF4444", "8B5CF6"],
+      x: 1, y: 1.2, w: 11, h: 5.2,
+      showTitle: false, showValue: true,
+      chartColors: [ctx.accent, "F59E0B", "10B981", "EF4444", "8B5CF6"],
+      border: { pt: 0 },
     });
   } else {
     slide.addText("Chart data not provided", {
-      x: 1,
-      y: 3,
-      w: 11,
-      h: 1,
-      fontSize: bodyFontSize,
-      fontFace: fontFamily,
-      color: "999999",
-      align: "center",
+      x: 1, y: 3, w: 11, h: 1,
+      fontSize: ctx.bodyFontSize, fontFace: ctx.fontBody, color: "94A3B8", align: "center",
     });
   }
 
   if (slideData.notes) slide.addNotes(slideData.notes);
 }
 
-function addSummarySlide(pptx, slideData, primaryColor, secondaryColor, fontFamily, bodyFontSize) {
-  const slide = pptx.addSlide({ masterName: "CONTENT_SLIDE" });
-  const pc = primaryColor.replace("#", "");
+function addSummarySlide(ctx, slideData) {
+  const slide = ctx.pptx.addSlide({ masterName: "CONTENT_SLIDE" });
 
   slide.addText(slideData.title || "Summary", {
-    x: 0.5,
-    y: 0.1,
-    w: "90%",
-    h: 0.5,
-    fontSize: 14,
-    fontFace: fontFamily,
-    color: "FFFFFF",
-    bold: true,
+    x: 0.6, y: 0.12, w: "90%", h: 0.55,
+    fontSize: 16, fontFace: ctx.fontHeading, color: "FFFFFF", bold: true,
   });
 
+  // Key takeaways box
   if (slideData.keyPoints && Array.isArray(slideData.keyPoints)) {
+    slide.addShape(ctx.pptx.ShapeType.rect, { x: 0.5, y: 1.0, w: 5.8, h: 5.5, fill: { color: "F8FAFC" }, rectRadius: 0.1 });
+    slide.addShape(ctx.pptx.ShapeType.rect, { x: 0.5, y: 1.0, w: 5.8, h: 0.06, fill: { color: ctx.accent } });
+
     slide.addText("Key Takeaways", {
-      x: 0.5,
-      y: 1.0,
-      w: 5.8,
-      h: 0.5,
-      fontSize: bodyFontSize,
-      fontFace: fontFamily,
-      color: pc,
-      bold: true,
+      x: 0.8, y: 1.2, w: 5.2, h: 0.5,
+      fontSize: ctx.bodyFontSize, fontFace: ctx.fontHeading, color: ctx.primary, bold: true,
     });
 
     const keyItems = slideData.keyPoints.map((p) => ({
       text: p,
-      options: { fontSize: bodyFontSize - 2, fontFace: fontFamily, color: "333333", bullet: { type: "bullet" }, breakLine: true, paraSpaceAfter: 8 },
+      options: { fontSize: ctx.bodyFontSize - 2, fontFace: ctx.fontBody, color: ctx.textColor, bullet: { type: "bullet", color: ctx.accent }, breakLine: true, paraSpaceAfter: 10 },
     }));
-    slide.addText(keyItems, { x: 0.8, y: 1.6, w: 5.5, h: 4.5, valign: "top" });
+    slide.addText(keyItems, { x: 1.0, y: 1.8, w: 5.0, h: 4.2, valign: "top" });
   }
 
+  // Next steps box
   if (slideData.nextSteps && Array.isArray(slideData.nextSteps)) {
+    slide.addShape(ctx.pptx.ShapeType.rect, { x: 6.8, y: 1.0, w: 5.8, h: 5.5, fill: { color: "F8FAFC" }, rectRadius: 0.1 });
+    slide.addShape(ctx.pptx.ShapeType.rect, { x: 6.8, y: 1.0, w: 5.8, h: 0.06, fill: { color: "F59E0B" } });
+
     slide.addText("Next Steps", {
-      x: 6.8,
-      y: 1.0,
-      w: 5.8,
-      h: 0.5,
-      fontSize: bodyFontSize,
-      fontFace: fontFamily,
-      color: secondaryColor.replace("#", ""),
-      bold: true,
+      x: 7.1, y: 1.2, w: 5.2, h: 0.5,
+      fontSize: ctx.bodyFontSize, fontFace: ctx.fontHeading, color: ctx.primary, bold: true,
     });
 
     const nextItems = slideData.nextSteps.map((s, idx) => ({
       text: `${idx + 1}. ${s}`,
-      options: { fontSize: bodyFontSize - 2, fontFace: fontFamily, color: "333333", bullet: false, breakLine: true, paraSpaceAfter: 8 },
+      options: { fontSize: ctx.bodyFontSize - 2, fontFace: ctx.fontBody, color: ctx.textColor, bullet: false, breakLine: true, paraSpaceAfter: 10 },
     }));
-    slide.addText(nextItems, { x: 7.0, y: 1.6, w: 5.5, h: 4.5, valign: "top" });
+    slide.addText(nextItems, { x: 7.3, y: 1.8, w: 5.0, h: 4.2, valign: "top" });
   }
 }
 
-function addContactSlide(pptx, slideData, primaryColor, fontFamily, bodyFontSize) {
-  const slide = pptx.addSlide();
-  const pc = primaryColor.replace("#", "");
-  slide.background = { color: pc };
+function addContactSlide(ctx, slideData) {
+  const slide = ctx.pptx.addSlide();
+  slide.background = { color: ctx.primary };
+
+  slide.addShape(ctx.pptx.ShapeType.rect, { x: 0, y: 6.8, w: "100%", h: 0.06, fill: { color: ctx.accent } });
 
   slide.addText("Thank You", {
-    x: 0.5,
-    y: 1.5,
-    w: "90%",
-    h: 1.5,
-    fontSize: 36,
-    fontFace: fontFamily,
-    color: "FFFFFF",
-    bold: true,
-    align: "center",
+    x: 1.0, y: 1.5, w: 11.3, h: 1.5,
+    fontSize: 44, fontFace: ctx.fontHeading, color: "FFFFFF", bold: true, align: "left",
   });
 
+  slide.addShape(ctx.pptx.ShapeType.rect, { x: 1.0, y: 3.1, w: 1.5, h: 0.06, fill: { color: ctx.accent } });
+
   const contactLines = [];
-  if (slideData.name) contactLines.push(slideData.name);
-  if (slideData.email) contactLines.push(slideData.email);
-  if (slideData.phone) contactLines.push(slideData.phone);
-  if (slideData.website) contactLines.push(slideData.website);
+  if (slideData.name) contactLines.push({ text: slideData.name, options: { fontSize: 20, fontFace: ctx.fontBody, color: "FFFFFF", bold: true, breakLine: true, paraSpaceAfter: 6 } });
+  if (slideData.email) contactLines.push({ text: slideData.email, options: { fontSize: 16, fontFace: ctx.fontBody, color: "94A3B8", breakLine: true, paraSpaceAfter: 4 } });
+  if (slideData.phone) contactLines.push({ text: slideData.phone, options: { fontSize: 16, fontFace: ctx.fontBody, color: "94A3B8", breakLine: true, paraSpaceAfter: 4 } });
+  if (slideData.website) contactLines.push({ text: slideData.website, options: { fontSize: 16, fontFace: ctx.fontBody, color: ctx.accent, breakLine: true, paraSpaceAfter: 4 } });
 
   if (contactLines.length > 0) {
-    const contactItems = contactLines.map((line) => ({
-      text: line,
-      options: { fontSize: 18, fontFace: fontFamily, color: "CCCCCC", breakLine: true, paraSpaceAfter: 8 },
-    }));
-    slide.addText(contactItems, { x: 0.5, y: 3.5, w: "90%", h: 2, align: "center" });
+    slide.addText(contactLines, { x: 1.0, y: 3.5, w: 11.3, h: 2.5 });
   }
 }
 

@@ -19,7 +19,8 @@ if [ -z "$INPUT" ] || [ -z "$OUTPUT" ]; then
 fi
 
 if [ ! -f "$INPUT" ]; then
-  echo "{\"success\": false, \"error\": \"Input file not found: $INPUT\"}"
+  INPUT_SAFE=$(echo "$INPUT" | sed 's/["\]/\\&/g')
+  echo "{\"success\": false, \"error\": \"Input file not found: $INPUT_SAFE\"}"
   exit 1
 fi
 

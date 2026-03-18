@@ -44,17 +44,14 @@ async function main() {
 async function generateWithPuppeteer(outputPath, data, type, template) {
   const puppeteer = require("puppeteer");
   const styling = template?.styling || {};
-  const primaryColor = styling.primaryColor || "#2563EB";
-  const accentColor = styling.accentColor || "#F59E0B";
-  const fontFamily = styling.fontFamily || "Helvetica, Arial, sans-serif";
-  const margins = styling.margins || { top: "20mm", bottom: "20mm", left: "15mm", right: "15mm" };
+  const margins = styling.margins || { top: "20mm", bottom: "20mm", left: "18mm", right: "18mm" };
 
   let html = "";
 
   if (type === "invoice") {
-    html = buildInvoiceHtml(data, primaryColor, accentColor, fontFamily, template);
+    html = buildInvoiceHtml(data, styling, template);
   } else {
-    html = buildGenericHtml(data, primaryColor, fontFamily);
+    html = buildGenericHtml(data, styling);
   }
 
   const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
@@ -70,133 +67,195 @@ async function generateWithPuppeteer(outputPath, data, type, template) {
   await browser.close();
 }
 
-function buildInvoiceHtml(data, primaryColor, accentColor, fontFamily, template) {
+function buildInvoiceHtml(data, styling, template) {
+  const primary = styling.primaryColor || "#1E3A5F";
+  const accent = styling.accentColor || "#2563EB";
+  const textColor = styling.textColor || "#1E293B";
+  const muted = styling.mutedColor || "#64748B";
+  const border = styling.borderColor || "#E2E8F0";
+  const bgLight = styling.backgroundColor || "#F8FAFC";
+  const highlightBg = styling.highlightBg || "#EFF6FF";
+  const fontBody = styling.fontFamily || "'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const fontHeading = styling.fontHeading || "Georgia, 'Times New Roman', serif";
   const currency = template?.currencySymbol || data.currencySymbol || "$";
+
   const items = data.items || [];
   const subtotal = data.subtotal ?? items.reduce((sum, i) => sum + (i.total || i.quantity * i.unitPrice || 0), 0);
   const tax = data.tax ?? 0;
   const discount = data.discount ?? 0;
   const total = data.total ?? subtotal + tax - discount;
 
+  const companyInfo = data.companyInfo || {};
+  const recipient = data.recipientInfo || {};
+
   const itemRows = items
     .map(
       (item, idx) => `
-    <tr style="background: ${idx % 2 === 0 ? "#fff" : "#F8FAFC"}">
-      <td style="padding: 10px 12px; border-bottom: 1px solid #E5E7EB;">${item.description || ""}</td>
-      <td style="padding: 10px 12px; text-align: center; border-bottom: 1px solid #E5E7EB;">${item.quantity || ""}</td>
-      <td style="padding: 10px 12px; text-align: right; border-bottom: 1px solid #E5E7EB;">${currency}${formatNum(item.unitPrice)}</td>
-      <td style="padding: 10px 12px; text-align: right; border-bottom: 1px solid #E5E7EB;">${currency}${formatNum(item.total || item.quantity * item.unitPrice)}</td>
+    <tr style="background: ${idx % 2 === 0 ? "#FFFFFF" : bgLight};">
+      <td style="padding: 14px 16px; border-bottom: 1px solid ${border}; color: ${textColor};">${esc(item.description)}</td>
+      <td style="padding: 14px 16px; text-align: center; border-bottom: 1px solid ${border}; color: ${muted};">${esc(item.quantity)}</td>
+      <td style="padding: 14px 16px; text-align: right; border-bottom: 1px solid ${border}; color: ${muted};">${currency}${formatNum(item.unitPrice)}</td>
+      <td style="padding: 14px 16px; text-align: right; border-bottom: 1px solid ${border}; color: ${textColor}; font-weight: 600;">${currency}${formatNum(item.total || item.quantity * item.unitPrice)}</td>
     </tr>`
     )
     .join("\n");
 
-  const companyInfo = data.companyInfo || {};
-  const recipient = data.recipientInfo || {};
-
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
-  body { font-family: ${fontFamily}; color: #1F2937; margin: 0; padding: 0; font-size: 14px; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
-  .company-name { font-size: 24px; font-weight: bold; color: ${primaryColor}; }
-  .invoice-title { font-size: 36px; font-weight: bold; color: ${primaryColor}; text-align: right; }
-  .meta-table { margin-bottom: 30px; }
-  .meta-table td { padding: 4px 12px; }
-  .meta-label { font-weight: bold; color: #6B7280; }
-  .info-block { display: flex; justify-content: space-between; margin-bottom: 30px; }
-  .info-section h3 { margin: 0 0 8px; color: ${primaryColor}; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-  .info-section p { margin: 2px 0; color: #4B5563; }
-  table.items { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-  table.items th { background: ${primaryColor}; color: white; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: ${fontBody}; color: ${textColor}; font-size: 13px; line-height: 1.5; }
+
+  .top-bar { background: ${primary}; height: 6px; }
+
+  .header { display: flex; justify-content: space-between; align-items: flex-start; padding: 32px 0 24px; border-bottom: 1px solid ${border}; margin-bottom: 32px; }
+  .company-name { font-family: ${fontHeading}; font-size: 22px; font-weight: bold; color: ${primary}; margin-bottom: 6px; }
+  .company-details { color: ${muted}; font-size: 12px; line-height: 1.7; }
+  .invoice-badge { text-align: right; }
+  .invoice-badge h1 { font-family: ${fontHeading}; font-size: 32px; color: ${primary}; letter-spacing: 2px; margin-bottom: 8px; }
+  .invoice-badge .meta { color: ${muted}; font-size: 12px; line-height: 1.8; }
+  .invoice-badge .meta strong { color: ${textColor}; }
+
+  .info-row { display: flex; justify-content: space-between; margin-bottom: 32px; gap: 40px; }
+  .info-card { flex: 1; padding: 20px 24px; background: ${bgLight}; border-radius: 8px; border-left: 4px solid ${accent}; }
+  .info-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: ${muted}; font-weight: 700; margin-bottom: 8px; }
+  .info-card .name { font-size: 15px; font-weight: 700; color: ${textColor}; margin-bottom: 4px; }
+  .info-card .detail { color: ${muted}; font-size: 12px; line-height: 1.6; }
+
+  table.items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  table.items thead tr { background: ${primary}; }
+  table.items th { color: #FFFFFF; padding: 12px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
   table.items th:nth-child(2) { text-align: center; }
   table.items th:nth-child(3), table.items th:nth-child(4) { text-align: right; }
-  .totals { width: 300px; margin-left: auto; }
-  .totals tr td { padding: 6px 12px; }
-  .totals .total-row { font-size: 18px; font-weight: bold; color: ${primaryColor}; border-top: 2px solid ${primaryColor}; }
-  .payment-section { margin-top: 40px; padding: 20px; background: #F8FAFC; border-radius: 8px; }
-  .payment-section h3 { margin: 0 0 12px; color: ${primaryColor}; }
-  .notes { margin-top: 30px; color: #6B7280; font-size: 12px; }
+
+  .totals-wrapper { display: flex; justify-content: flex-end; margin-bottom: 32px; }
+  .totals-box { width: 320px; }
+  .totals-row { display: flex; justify-content: space-between; padding: 8px 16px; font-size: 13px; }
+  .totals-row .label { color: ${muted}; }
+  .totals-row .value { color: ${textColor}; }
+  .totals-row.grand { background: ${primary}; color: #FFFFFF; border-radius: 6px; padding: 14px 16px; margin-top: 8px; font-size: 18px; font-weight: 700; }
+  .totals-row.grand .label, .totals-row.grand .value { color: #FFFFFF; }
+
+  .payment-card { padding: 24px; background: ${highlightBg}; border-radius: 8px; border: 1px solid ${border}; margin-bottom: 24px; }
+  .payment-card h3 { font-family: ${fontHeading}; font-size: 14px; color: ${primary}; margin-bottom: 12px; }
+  .payment-card .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .payment-card .field-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: ${muted}; font-weight: 700; }
+  .payment-card .field-value { font-size: 13px; color: ${textColor}; font-weight: 500; }
+
+  .notes { color: ${muted}; font-size: 11px; line-height: 1.6; padding-top: 16px; border-top: 1px solid ${border}; }
+
+  .bottom-bar { background: ${primary}; height: 4px; margin-top: 32px; }
 </style></head><body>
+
+<div class="top-bar"></div>
 
 <div class="header">
   <div>
-    <div class="company-name">${companyInfo.name || "Company Name"}</div>
-    <p style="color: #6B7280; margin: 4px 0;">${companyInfo.address || ""}</p>
-    <p style="color: #6B7280; margin: 4px 0;">${companyInfo.phone || ""} ${companyInfo.email ? "| " + companyInfo.email : ""}</p>
+    <div class="company-name">${esc(companyInfo.name) || "Company Name"}</div>
+    <div class="company-details">
+      ${companyInfo.address ? esc(companyInfo.address) + "<br>" : ""}
+      ${esc(companyInfo.phone)}${companyInfo.email ? " &middot; " + esc(companyInfo.email) : ""}
+    </div>
   </div>
-  <div class="invoice-title">INVOICE</div>
+  <div class="invoice-badge">
+    <h1>INVOICE</h1>
+    <div class="meta">
+      <strong>${esc(data.invoiceNumber)}</strong><br>
+      Issued: ${esc(data.date)}<br>
+      Due: ${esc(data.dueDate)}
+    </div>
+  </div>
 </div>
 
-<div class="info-block">
-  <div class="info-section">
-    <h3>Bill To</h3>
-    <p><strong>${recipient.name || ""}</strong></p>
-    <p>${recipient.address || ""}</p>
-    <p>${recipient.email || ""}</p>
+<div class="info-row">
+  <div class="info-card">
+    <div class="label">Bill To</div>
+    <div class="name">${esc(recipient.name)}</div>
+    <div class="detail">
+      ${esc(recipient.address)}${recipient.email ? "<br>" + esc(recipient.email) : ""}
+    </div>
   </div>
-  <div class="info-section" style="text-align: right;">
-    <table class="meta-table">
-      <tr><td class="meta-label">Invoice #:</td><td><strong>${data.invoiceNumber || ""}</strong></td></tr>
-      <tr><td class="meta-label">Date:</td><td>${data.date || ""}</td></tr>
-      <tr><td class="meta-label">Due Date:</td><td>${data.dueDate || ""}</td></tr>
-    </table>
+  <div class="info-card">
+    <div class="label">Invoice Summary</div>
+    <div class="name">${currency}${formatNum(total)}</div>
+    <div class="detail">
+      ${items.length} item${items.length !== 1 ? "s" : ""} &middot; Due ${esc(data.dueDate) || "on receipt"}
+    </div>
   </div>
 </div>
 
 <table class="items">
   <thead>
-    <tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+    <tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr>
   </thead>
   <tbody>${itemRows}</tbody>
 </table>
 
-<table class="totals">
-  <tr><td class="meta-label">Subtotal:</td><td style="text-align: right;">${currency}${formatNum(subtotal)}</td></tr>
-  ${tax ? `<tr><td class="meta-label">Tax:</td><td style="text-align: right;">${currency}${formatNum(tax)}</td></tr>` : ""}
-  ${discount ? `<tr><td class="meta-label">Discount:</td><td style="text-align: right;">-${currency}${formatNum(discount)}</td></tr>` : ""}
-  <tr class="total-row"><td>Total:</td><td style="text-align: right;">${currency}${formatNum(total)}</td></tr>
-</table>
+<div class="totals-wrapper">
+  <div class="totals-box">
+    <div class="totals-row"><span class="label">Subtotal</span><span class="value">${currency}${formatNum(subtotal)}</span></div>
+    ${tax ? `<div class="totals-row"><span class="label">Tax</span><span class="value">${currency}${formatNum(tax)}</span></div>` : ""}
+    ${discount ? `<div class="totals-row"><span class="label">Discount</span><span class="value">-${currency}${formatNum(discount)}</span></div>` : ""}
+    <div class="totals-row grand"><span class="label">Total Due</span><span class="value">${currency}${formatNum(total)}</span></div>
+  </div>
+</div>
 
 ${
   data.paymentDetails
-    ? `<div class="payment-section">
+    ? `<div class="payment-card">
   <h3>Payment Details</h3>
-  ${data.paymentDetails.bank ? `<p><strong>Bank:</strong> ${data.paymentDetails.bank}</p>` : ""}
-  ${data.paymentDetails.iban ? `<p><strong>IBAN:</strong> ${data.paymentDetails.iban}</p>` : ""}
-  ${data.paymentDetails.swift ? `<p><strong>SWIFT:</strong> ${data.paymentDetails.swift}</p>` : ""}
-  ${data.paymentDetails.accountName ? `<p><strong>Account:</strong> ${data.paymentDetails.accountName}</p>` : ""}
+  <div class="grid">
+    ${data.paymentDetails.bank ? `<div><div class="field-label">Bank</div><div class="field-value">${esc(data.paymentDetails.bank)}</div></div>` : ""}
+    ${data.paymentDetails.accountName ? `<div><div class="field-label">Account</div><div class="field-value">${esc(data.paymentDetails.accountName)}</div></div>` : ""}
+    ${data.paymentDetails.iban ? `<div><div class="field-label">IBAN</div><div class="field-value">${esc(data.paymentDetails.iban)}</div></div>` : ""}
+    ${data.paymentDetails.swift ? `<div><div class="field-label">SWIFT</div><div class="field-value">${esc(data.paymentDetails.swift)}</div></div>` : ""}
+  </div>
 </div>`
     : ""
 }
 
-${data.notes ? `<div class="notes"><p>${data.notes}</p></div>` : ""}
+${data.notes ? `<div class="notes">${esc(data.notes)}</div>` : ""}
+
+<div class="bottom-bar"></div>
 
 </body></html>`;
 }
 
-function buildGenericHtml(data, primaryColor, fontFamily) {
+function buildGenericHtml(data, styling) {
+  const primary = styling.primaryColor || "#1E3A5F";
+  const accent = styling.accentColor || "#2563EB";
+  const textColor = styling.textColor || "#1E293B";
+  const muted = styling.mutedColor || "#64748B";
+  const border = styling.borderColor || "#E2E8F0";
+  const bgLight = styling.backgroundColor || "#F8FAFC";
+  const fontBody = styling.fontFamily || "'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const fontHeading = styling.fontHeading || "Georgia, 'Times New Roman', serif";
+
   const sections = (data.sections || [])
     .map(
-      (s) => `
-    <h${s.level || 1} style="color: ${primaryColor}; margin-top: 30px;">${s.heading}</h${s.level || 1}>
-    ${s.content ? s.content.split("\n\n").map((p) => `<p>${p}</p>`).join("") : ""}
-    ${s.bullets ? "<ul>" + s.bullets.map((b) => `<li>${b}</li>`).join("") + "</ul>" : ""}
-  `
+      (s, idx) => `
+    <div style="margin-bottom: 32px; ${idx % 2 === 1 ? `background: ${bgLight}; padding: 24px; border-radius: 8px;` : ""}">
+      <h${s.level || 1} style="font-family: ${fontHeading}; color: ${primary}; margin: 0 0 4px; font-size: ${s.level === 1 ? "20px" : s.level === 2 ? "16px" : "14px"};">${s.heading}</h${s.level || 1}>
+      <div style="width: 40px; height: 3px; background: ${accent}; margin-bottom: 16px; border-radius: 2px;"></div>
+      ${s.content ? s.content.split("\n\n").map((p) => `<p style="margin: 0 0 12px; line-height: 1.7; color: ${textColor};">${esc(p)}</p>`).join("") : ""}
+      ${s.bullets ? `<ul style="padding-left: 20px; margin: 8px 0;">${s.bullets.map((b) => `<li style="margin: 6px 0; color: ${textColor}; line-height: 1.6;">${esc(b)}</li>`).join("")}</ul>` : ""}
+    </div>`
     )
     .join("\n");
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
-  body { font-family: ${fontFamily}; color: #1F2937; line-height: 1.6; font-size: 14px; }
-  h1 { font-size: 28px; color: ${primaryColor}; }
-  h2 { font-size: 20px; color: ${primaryColor}; }
-  h3 { font-size: 16px; color: ${primaryColor}; }
-  p { margin: 8px 0; }
-  ul { padding-left: 20px; }
-  li { margin: 4px 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: ${fontBody}; color: ${textColor}; line-height: 1.6; font-size: 13px; }
 </style></head><body>
-  <h1 style="text-align: center; margin-bottom: 40px;">${data.title || ""}</h1>
-  ${data.author ? `<p style="text-align: center; color: #6B7280;">${data.author}${data.date ? " | " + data.date : ""}</p>` : ""}
-  ${sections}
+
+<div style="background: ${primary}; padding: 48px 32px; margin-bottom: 32px; border-radius: 0 0 12px 12px;">
+  <h1 style="font-family: ${fontHeading}; color: #FFFFFF; font-size: 32px; margin-bottom: 8px;">${esc(data.title)}</h1>
+  ${data.subtitle ? `<p style="color: rgba(255,255,255,0.7); font-size: 16px; margin-bottom: 4px;">${esc(data.subtitle)}</p>` : ""}
+  ${data.author || data.date ? `<p style="color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 16px;">${esc(data.author)}${data.date ? " &middot; " + esc(data.date) : ""}</p>` : ""}
+</div>
+
+${sections}
+
 </body></html>`;
 }
 
@@ -206,29 +265,26 @@ async function generateWithPdfKit(outputPath, data, template) {
   const stream = fs.createWriteStream(outputPath);
   doc.pipe(stream);
 
-  const primaryColor = template?.styling?.primaryColor || "#2563EB";
+  const primaryColor = template?.styling?.primaryColor || "#1E3A5F";
+  const muted = "#64748B";
 
-  // Title
   if (data.title) {
-    doc.fontSize(24).fillColor(primaryColor).text(data.title, { align: "center" });
+    doc.fontSize(24).fillColor(primaryColor).font("Helvetica-Bold").text(data.title, { align: "center" });
     doc.moveDown();
   }
 
-  // Meta
-  if (data.date) doc.fontSize(11).fillColor("#6B7280").text(`Date: ${data.date}`, { align: "center" });
-  if (data.author) doc.fontSize(11).fillColor("#6B7280").text(`Author: ${data.author}`, { align: "center" });
+  if (data.date) doc.fontSize(11).fillColor(muted).font("Helvetica").text(`Date: ${data.date}`, { align: "center" });
+  if (data.author) doc.fontSize(11).fillColor(muted).text(`Author: ${data.author}`, { align: "center" });
   doc.moveDown(2);
 
-  // Sections
   if (data.sections) {
     for (const section of data.sections) {
-      doc
-        .fontSize(section.level === 1 ? 16 : 13)
-        .fillColor(primaryColor)
-        .text(section.heading);
+      doc.fontSize(section.level === 1 ? 16 : 13).fillColor(primaryColor).font("Helvetica-Bold").text(section.heading);
+      doc.moveDown(0.3);
+      doc.moveTo(doc.x, doc.y).lineTo(doc.x + 40, doc.y).strokeColor("#2563EB").lineWidth(2).stroke();
       doc.moveDown(0.5);
       if (section.content) {
-        doc.fontSize(11).fillColor("#1F2937").text(section.content);
+        doc.fontSize(11).fillColor("#1E293B").font("Helvetica").text(section.content);
         doc.moveDown();
       }
     }
@@ -236,6 +292,11 @@ async function generateWithPdfKit(outputPath, data, template) {
 
   doc.end();
   await new Promise((resolve) => stream.on("finish", resolve));
+}
+
+function esc(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 function formatNum(n) {
