@@ -120,6 +120,17 @@
       },
       "keywords": ["deep-research", "web-research", "search", "scraping", "exa", "firecrawl", "jina", "perplexity", "content-extraction", "report-generation", "competitive-analysis", "market-research"],
       "category": "research"
+    },
+    {
+      "name": "document-generator",
+      "source": "./plugins/document-generator",
+      "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, puppeteer, pptxgenjs, pandoc).",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["document", "pdf", "docx", "pptx", "invoice", "proposal", "report", "presentation", "contract", "generator", "converter", "pandoc", "business-documents"],
+      "category": "productivity"
     }
   ]
 }

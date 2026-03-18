@@ -1,0 +1,8 @@
+{
+  "name": "document-generator",
+  "version": "1.0.0",
+  "description": "Professional document generator. Creates business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX formats using open-source libraries. Converts between MD, DOCX, PDF, HTML, and PPTX.",
+  "author": {
+    "name": "AGENTS.STORE"
+  }
+}

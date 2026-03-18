@@ -1,0 +1,13 @@
+{
+  "name": "document-generator-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts for the document-generator Claude Code plugin",
+  "dependencies": {
+    "docx": "^9.6.1",
+    "pdfkit": "^0.15.0",
+    "puppeteer": "^23.0.0",
+    "pptxgenjs": "^4.0.1",
+    "pdf-parse": "^1.1.1"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "type": "presentation",
+  "format": "pptx",
+  "structure": {
+    "defaultSlides": [
+      { "type": "title", "required": true },
+      { "type": "agenda", "required": true },
+      { "type": "content", "required": true, "repeatable": true },
+      { "type": "two-column", "required": false, "repeatable": true },
+      { "type": "chart", "required": false, "repeatable": true },
+      { "type": "summary", "required": true },
+      { "type": "contact", "required": false }
+    ],
+    "slideTypes": {
+      "title": { "fields": ["title", "subtitle", "author", "date"] },
+      "agenda": { "fields": ["title", "items"] },
+      "content": { "fields": ["title", "bullets", "image", "notes"] },
+      "two-column": { "fields": ["title", "leftColumn", "rightColumn"] },
+      "chart": { "fields": ["title", "chartType", "chartData", "notes"] },
+      "summary": { "fields": ["title", "keyPoints", "nextSteps"] },
+      "contact": { "fields": ["name", "email", "phone", "website"] }
+    }
+  },
+  "styling": {
+    "primaryColor": "#003366",
+    "secondaryColor": "#F59E0B",
+    "backgroundColor": "#FFFFFF",
+    "fontFamily": "Calibri",
+    "titleFontSize": 36,
+    "subtitleFontSize": 24,
+    "bodyFontSize": 18,
+    "bulletFontSize": 16,
+    "slideWidth": 13.33,
+    "slideHeight": 7.5
+  }
+}

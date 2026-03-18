@@ -1,0 +1,243 @@
+---
+name: document-templates
+description: Document template structures and data collection checklists for each document type (proposal, invoice, report, presentation, contract). This skill should be used when determining what data to collect from the user, what fields are required or optional, or how to structure a specific document type.
+---
+
+# Document Templates
+
+Reference for document structures, required fields, and content guidelines for each document type.
+
+## Proposal
+
+**Structure:** Cover -> Executive Summary -> Problem -> Solution -> Scope -> Timeline -> Pricing -> Terms -> About Us -> Contact
+
+### Required Fields
+
+| Field | Description | Example |
+|-------|------------|---------|
+| title | Proposal title | "Cloud Migration Proposal" |
+| recipient | Client name/company | "Acme Corporation" |
+| author | Your name/company | "TechCo Solutions" |
+| date | Proposal date | "2026-03-17" |
+| sections.executive_summary | Brief overview | 2-3 paragraphs |
+| sections.problem_statement | Client's challenge | What problem are we solving? |
+| sections.proposed_solution | Your solution | How do we solve it? |
+| sections.timeline | Milestones with dates | Phase 1: Week 1-2, Phase 2: Week 3-4 |
+| sections.pricing | Cost breakdown | Table with items and costs |
+
+### Optional Fields
+
+| Field | Description |
+|-------|------------|
+| subtitle | Secondary title |
+| companyName | For footer branding |
+| branding.primaryColor | Hex color |
+| branding.logoPath | Path to logo file |
+| sections.approach | Methodology description |
+| sections.terms | Terms and conditions |
+| sections.about_us | Company background |
+
+---
+
+## Invoice
+
+**Structure:** Header (logo, company) -> Client Info -> Line Items Table -> Subtotal/Tax/Total -> Payment Details -> Notes
+
+### Required Fields
+
+| Field | Description | Example |
+|-------|------------|---------|
+| invoiceNumber | Unique identifier | "INV-2026-001" |
+| date | Invoice date | "2026-03-17" |
+| dueDate | Payment due date | "2026-04-17" |
+| companyInfo.name | Your company name | "TechCo Solutions" |
+| companyInfo.address | Your address | "123 Main St, City" |
+| recipientInfo.name | Client name | "Acme Corporation" |
+| items[] | Line items array | See below |
+| items[].description | Item description | "Web Development" |
+| items[].quantity | Quantity | 10 |
+| items[].unitPrice | Price per unit | 150 |
+
+### Optional Fields
+
+| Field | Description |
+|-------|------------|
+| companyInfo.email | Company email |
+| companyInfo.phone | Company phone |
+| companyInfo.logo | Logo URL or path |
+| recipientInfo.address | Client address |
+| recipientInfo.email | Client email |
+| tax | Tax amount |
+| discount | Discount amount |
+| paymentDetails.bank | Bank name |
+| paymentDetails.iban | IBAN number |
+| paymentDetails.swift | SWIFT code |
+| notes | Additional notes |
+| currencySymbol | Currency symbol (default: $) |
+
+### Line Item Calculation
+
+```
+item.total = item.quantity * item.unitPrice
+subtotal = sum of all item.total
+total = subtotal + tax - discount
+```
+
+---
+
+## Report
+
+**Structure:** Cover -> TOC -> Introduction -> Background -> Methodology -> Findings -> Analysis -> Conclusions -> Recommendations -> Appendices -> References
+
+### Required Fields
+
+| Field | Description | Example |
+|-------|------------|---------|
+| title | Report title | "Q1 2026 Performance Analysis" |
+| author | Author name | "Data Analytics Team" |
+| date | Report date | "2026-03-17" |
+| sections.introduction | Context and purpose | Why was this report created? |
+| sections.findings | Key findings | Data and observations |
+| sections.conclusions | Summary conclusions | What does the data tell us? |
+
+### Optional Fields
+
+| Field | Description |
+|-------|------------|
+| subtitle | Secondary title |
+| sections.background | Background context |
+| sections.methodology | How data was collected |
+| sections.analysis | Detailed analysis |
+| sections.recommendations | Action items |
+| sections.appendices | Supporting materials |
+| sections.references | Sources cited |
+| headerText | Custom header text |
+
+---
+
+## Presentation
+
+**Structure:** Title Slide -> Agenda -> Content Slides -> Summary -> Contact
+
+### Required Fields
+
+| Field | Description | Example |
+|-------|------------|---------|
+| title | Presentation title | "Product Launch Strategy" |
+| slides[] | Array of slide objects | See slide types below |
+
+### Slide Types
+
+**Title slide:**
+```json
+{ "type": "title", "title": "Main Title", "subtitle": "Subtitle", "date": "2026-03-17" }
+```
+
+**Agenda slide:**
+```json
+{ "type": "agenda", "title": "Agenda", "items": ["Topic 1", "Topic 2", "Topic 3"] }
+```
+
+**Content slide:**
+```json
+{ "type": "content", "title": "Slide Title", "bullets": ["Point 1", "Point 2"], "image": "path/to/img.png" }
+```
+
+**Two-column slide:**
+```json
+{ "type": "two-column", "title": "Comparison", "left": ["Left 1", "Left 2"], "right": ["Right 1", "Right 2"] }
+```
+
+**Chart slide:**
+```json
+{ "type": "chart", "title": "Revenue", "chartType": "bar", "chartData": [{"name": "Q1", "labels": ["Jan","Feb","Mar"], "values": [100,200,300]}] }
+```
+
+**Summary slide:**
+```json
+{ "type": "summary", "title": "Summary", "keyPoints": ["Point 1"], "nextSteps": ["Step 1"] }
+```
+
+**Contact slide:**
+```json
+{ "type": "contact", "name": "John Doe", "email": "john@example.com", "phone": "+1-555-0123" }
+```
+
+### Optional Fields
+
+| Field | Description |
+|-------|------------|
+| author | Presenter name |
+| subtitle | Presentation subtitle |
+| branding.primaryColor | Theme color |
+| branding.secondaryColor | Accent color |
+| branding.fontFamily | Font family |
+
+---
+
+## Contract
+
+**Structure:** Header -> Parties -> Clauses (numbered) -> Signature Blocks
+
+### Required Fields
+
+| Field | Description | Example |
+|-------|------------|---------|
+| title | Contract title | "Service Agreement" |
+| date | Agreement date | "2026-03-17" |
+| parties.party1.name | First party name | "TechCo Solutions LLC" |
+| parties.party2.name | Second party name | "Acme Corporation" |
+| clauses[] | Array of clauses | See below |
+
+### Standard Clauses
+
+| ID | Title | Required |
+|----|-------|----------|
+| definitions | Definitions | Yes |
+| scope | Scope of Services | Yes |
+| deliverables | Deliverables | No |
+| payment | Payment Terms | Yes |
+| duration | Duration and Termination | Yes |
+| confidentiality | Confidentiality | Yes |
+| ip | Intellectual Property | No |
+| liability | Limitation of Liability | No |
+| force_majeure | Force Majeure | No |
+| governing_law | Governing Law | Yes |
+| dispute_resolution | Dispute Resolution | No |
+| general | General Provisions | No |
+
+### Clause Format
+```json
+{
+  "id": "scope",
+  "title": "Scope of Services",
+  "content": "Paragraph 1 describing the scope.\n\nParagraph 2 with additional details."
+}
+```
+
+Each paragraph within `content` (separated by `\n\n`) gets auto-numbered as sub-clauses (e.g., 2.1, 2.2).
+
+### Optional Fields
+
+| Field | Description |
+|-------|------------|
+| contractNumber | Reference number |
+| parties.*.address | Party address |
+| parties.*.registrationNumber | Registration/tax ID |
+| parties.*.label | Custom party label |
+
+---
+
+## Template File Locations
+
+All templates are in `<plugin_dir>/templates/`:
+
+| File | Document Type |
+|------|--------------|
+| `proposal_template.json` | Proposals |
+| `invoice_template.json` | Invoices |
+| `report_template.json` | Reports |
+| `presentation_template.json` | Presentations |
+| `contract_template.json` | Contracts |
+
+Read the template file to get default structure and styling, then merge with user-provided data.

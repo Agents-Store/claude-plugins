@@ -1,0 +1,39 @@
+{
+  "type": "contract",
+  "format": "docx",
+  "structure": {
+    "header": { "title": true, "date": true, "contractNumber": true },
+    "parties": {
+      "party1": { "label": "Service Provider", "fields": ["name", "address", "registrationNumber"] },
+      "party2": { "label": "Client", "fields": ["name", "address", "registrationNumber"] }
+    },
+    "clauses": [
+      { "id": "definitions", "title": "Definitions", "required": true },
+      { "id": "scope", "title": "Scope of Services", "required": true },
+      { "id": "deliverables", "title": "Deliverables", "required": false },
+      { "id": "payment", "title": "Payment Terms", "required": true },
+      { "id": "duration", "title": "Duration and Termination", "required": true },
+      { "id": "confidentiality", "title": "Confidentiality", "required": true },
+      { "id": "ip", "title": "Intellectual Property", "required": false },
+      { "id": "liability", "title": "Limitation of Liability", "required": false },
+      { "id": "force_majeure", "title": "Force Majeure", "required": false },
+      { "id": "governing_law", "title": "Governing Law", "required": true },
+      { "id": "dispute_resolution", "title": "Dispute Resolution", "required": false },
+      { "id": "general", "title": "General Provisions", "required": false }
+    ],
+    "signatureBlock": {
+      "party1": { "name": true, "title": true, "date": true, "signatureLine": true },
+      "party2": { "name": true, "title": true, "date": true, "signatureLine": true }
+    }
+  },
+  "styling": {
+    "primaryColor": "#1F2937",
+    "fontBody": "Times New Roman",
+    "fontSizeTitle": 16,
+    "fontSizeClauseTitle": 12,
+    "fontSizeBody": 12,
+    "lineSpacing": 1.5,
+    "clauseNumbering": "decimal",
+    "margins": { "top": 1440, "bottom": 1440, "left": 1440, "right": 1440 }
+  }
+}
