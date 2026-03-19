@@ -52,7 +52,7 @@ Reference for document structures, required fields, and content guidelines for e
 | dueDate | Payment due date | "2026-04-17" |
 | companyInfo.name | Your company name | "TechCo Solutions" |
 | companyInfo.address | Your address | "123 Main St, City" |
-| recipientInfo.name | Client name | "Acme Corporation" |
+| recipient.name | Client name | "Acme Corporation" |
 | items[] | Line items array | See below |
 | items[].description | Item description | "Web Development" |
 | items[].quantity | Quantity | 10 |
@@ -65,8 +65,8 @@ Reference for document structures, required fields, and content guidelines for e
 | companyInfo.email | Company email |
 | companyInfo.phone | Company phone |
 | companyInfo.logo | Logo URL or path |
-| recipientInfo.address | Client address |
-| recipientInfo.email | Client email |
+| recipient.address | Client address |
+| recipient.email | Client email |
 | tax | Tax amount |
 | discount | Discount amount |
 | paymentDetails.bank | Bank name |
@@ -145,7 +145,7 @@ total = subtotal + tax - discount
 
 **Two-column slide:**
 ```json
-{ "type": "two-column", "title": "Comparison", "left": ["Left 1", "Left 2"], "right": ["Right 1", "Right 2"] }
+{ "type": "two-column", "title": "Comparison", "leftColumn": ["Left 1", "Left 2"], "rightColumn": ["Right 1", "Right 2"] }
 ```
 
 **Chart slide:**
