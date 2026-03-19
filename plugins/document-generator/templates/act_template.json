@@ -1,0 +1,65 @@
+{
+  "type": "act",
+  "engine": "puppeteer",
+  "description": "Act of Completed Works / Акт виконаних робіт",
+  "requiredFields": ["contractor", "customer", "services", "date"],
+  "optionalFields": ["actNumber", "city", "contractRef", "vatRate", "currencySymbol", "notes"],
+  "styling": {
+    "primaryColor": "#1E293B",
+    "accentColor": "#1E3A5F",
+    "textColor": "#1E293B",
+    "mutedColor": "#64748B",
+    "borderColor": "#E2E8F0",
+    "backgroundColor": "#F8FAFC",
+    "fontBody": "PT Serif",
+    "fontMeta": "Inter",
+    "lineSpacing": 1.7,
+    "pageSize": "A4",
+    "margins": {
+      "top": "28mm",
+      "bottom": "22mm",
+      "left": "20mm",
+      "right": "20mm"
+    }
+  },
+  "sampleData": {
+    "actNumber": "АКТ-001",
+    "date": "2026-03-19",
+    "city": "Київ",
+    "contractRef": "Договору №001 від 01.01.2026",
+    "currencySymbol": "₴",
+    "vatRate": 0,
+    "contractor": {
+      "name": "ФОП Іваненко Іван Іванович",
+      "representative": "Іваненко І.І.",
+      "title": "Фізична особа-підприємець",
+      "reg": "1234567890",
+      "address": "м. Київ, вул. Хрещатик, 1"
+    },
+    "customer": {
+      "name": "ТОВ «Компанія Замовника»",
+      "representative": "Петренко П.П.",
+      "title": "Директор",
+      "reg": "98765432",
+      "address": "м. Київ, вул. Велика Васильківська, 50"
+    },
+    "services": [
+      {
+        "description": "Розробка веб-додатку",
+        "unit": "год",
+        "quantity": 40,
+        "unitPrice": 1500,
+        "total": 60000
+      },
+      {
+        "description": "Технічна підтримка та тестування",
+        "unit": "год",
+        "quantity": 10,
+        "unitPrice": 1000,
+        "total": 10000
+      }
+    ],
+    "totalAmount": 70000,
+    "notes": "Роботи виконано у строк, встановлений договором."
+  }
+}

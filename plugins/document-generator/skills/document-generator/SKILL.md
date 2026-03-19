@@ -1,6 +1,6 @@
 ---
 name: document-generator
-description: Document generation process -- format selection, data collection, script invocation, and delivery. This skill should be used when generating any document (proposal, invoice, report, presentation, contract), deciding which format or engine to use, or running generation scripts.
+description: Document generation process -- format selection, data collection, script invocation, and delivery. This skill should be used when generating any document (proposal, invoice, report, presentation, contract, act/акт), deciding which format or engine to use, or running generation scripts.
 ---
 
 # Document Generator Process
@@ -20,6 +20,7 @@ Determine the document type from the user's request:
 | report, analysis, findings, research | **report** | DOCX |
 | presentation, slides, deck, pitch deck | **presentation** | PPTX |
 | contract, agreement, NDA, terms | **contract** | DOCX |
+| act, акт, виконаних робіт | **act** | PDF |
 | convert, transform, export | **conversion** | varies |
 
 ### Step 2: GATHER
@@ -42,6 +43,8 @@ Refer to the **document-templates** skill for complete field checklists per docu
 | Presentation (PDF export) | PDF | pandoc | `convert.sh` (PPTX→PDF, as follow-up) |
 | Contract | DOCX | docx-js | `generate_docx.js` |
 | Contract (final) | PDF | puppeteer | `generate_pdf.js` |
+| Act of works (Акт) | PDF | puppeteer | `generate_pdf.js` |
+| Act of works (Акт) | DOCX | docx-js | `generate_docx.js` |
 
 ### Step 4: BUILD JSON Input
 
@@ -53,7 +56,7 @@ Refer to the **document-templates** skill for complete field checklists per docu
 **Input JSON structure:**
 ```json
 {
-  "type": "proposal|invoice|report|contract",
+  "type": "proposal|invoice|report|contract|act",
   "engine": "puppeteer|pdfkit",
   "outputPath": "./proposal_acme_2026-03-17.docx",
   "template": { "...from template file..." },
@@ -115,3 +118,4 @@ Examples:
 - `report_q1_analysis_2026-03-17.docx`
 - `presentation_product_launch_2026-03-17.pptx`
 - `contract_service_agreement_2026-03-17.docx`
+- `act_akt-001_2026-03-17.pdf`

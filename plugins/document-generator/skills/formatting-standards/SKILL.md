@@ -11,14 +11,30 @@ Professional formatting guidelines based on industry best practices. Follows the
 
 ### Font Pairing
 
+Fonts differ by output format — DOCX/PPTX use system fonts; PDF uses embedded Inter + PT Serif (Cyrillic+Latin, offline).
+
+#### DOCX / PPTX — System Fonts
+
 | Context | Headings | Body Text |
 |---------|----------|-----------|
-| Proposals, Reports | **Georgia** (serif) | Helvetica Neue / Arial (sans-serif) |
-| Invoices, Financial | Georgia (serif) | Helvetica Neue / Arial (sans-serif) |
-| Presentations | Georgia (serif) | Arial (sans-serif) |
+| Proposals, Reports | **Georgia** (serif) | Arial (sans-serif) |
+| Presentations | **Georgia** (serif) | Arial (sans-serif) |
 | Contracts, Legal | **Georgia** (serif) | Georgia (serif) |
 
-Georgia provides a premium serif feel for headings, while Helvetica Neue/Arial gives clean readability for body text. Both are available on all platforms without installation.
+Georgia and Arial are pre-installed on macOS and Windows — no embedding needed.
+
+#### PDF — Embedded Fonts (Inter + PT Serif)
+
+Loaded from `scripts/fonts.js`. Works fully offline. Supports Ukrainian and English.
+
+| Context | Headings | Body Text |
+|---------|----------|-----------|
+| Invoices | **PT Serif** | Inter |
+| Contracts (PDF) | **PT Serif** | PT Serif |
+| Acts / Акти | **PT Serif** | PT Serif + Inter (meta labels) |
+| Reports, Proposals (PDF) | **PT Serif** | Inter |
+
+PT Serif was designed for Cyrillic+Latin — ideal for Ukrainian documents. Inter provides clean readability for body text.
 
 ### Font Size Hierarchy
 
