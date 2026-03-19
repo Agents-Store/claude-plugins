@@ -36,11 +36,12 @@ Script: `generate_docx.js`
   "outputPath": "./contract_service_agreement_2026-03-18.docx",
   "template": {
     "styling": {
-      "primaryColor": "#1F2937",
-      "fontBody": "Times New Roman",
+      "primaryColor": "#1E293B",
+      "accentColor": "#1E3A5F",
+      "fontBody": "Georgia",
       "fontSizeTitle": 16,
       "fontSizeClauseTitle": 12,
-      "fontSizeBody": 12,
+      "fontSizeBody": 11,
       "lineSpacing": 1.5,
       "margins": { "top": 1440, "bottom": 1440, "left": 1440, "right": 1440 }
     }
@@ -49,19 +50,17 @@ Script: `generate_docx.js`
     "title": "SERVICE AGREEMENT",
     "contractNumber": "SA-2026-015",
     "date": "March 18, 2026",
-    "parties": {
-      "provider": {
-        "label": "Service Provider",
-        "name": "TechFlow Solutions LLC",
-        "address": "12 Innovation Street, Kyiv, Ukraine, 01001",
-        "registrationNumber": "UA-44521890"
-      },
-      "client": {
-        "label": "Client",
-        "name": "DataVault Corp",
-        "address": "500 Enterprise Blvd, Suite 300, Kyiv, Ukraine, 02002",
-        "registrationNumber": "UA-33198450"
-      }
+    "party1": {
+      "role": "Service Provider",
+      "name": "TechFlow Solutions LLC",
+      "address": "12 Innovation Street, Kyiv, Ukraine, 01001",
+      "reg": "UA-44521890"
+    },
+    "party2": {
+      "role": "Client",
+      "name": "DataVault Corp",
+      "address": "500 Enterprise Blvd, Suite 300, Kyiv, Ukraine, 02002",
+      "reg": "UA-33198450"
     },
     "clauses": [
       {
@@ -101,13 +100,13 @@ Script: `generate_docx.js`
       }
     ],
     "signatureBlock": {
-      "provider": {
+      "party1": {
         "label": "TechFlow Solutions LLC",
         "name": true,
         "title": true,
         "date": true
       },
-      "client": {
+      "party2": {
         "label": "DataVault Corp",
         "name": true,
         "title": true,

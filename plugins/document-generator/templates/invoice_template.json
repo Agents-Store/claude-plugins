@@ -15,8 +15,10 @@
       ]
     },
     "totalsBlock": ["subtotal", "tax", "discount", "total"],
-    "paymentDetails": true,
-    "qrCode": false,
+    "paymentDetails": {
+      "fields": ["bank", "accountName", "iban", "swift"],
+      "note": "All fields optional. Rendered in a highlighted card at the bottom of the invoice."
+    },
     "notes": true
   },
   "styling": {

@@ -15,7 +15,7 @@ Complete example of JSON input for `generate_pdf.js` to create a professional in
     "companyInfo": {
       "name": "Your Company"
     },
-    "recipientInfo": {
+    "recipient": {
       "name": "Client Company"
     },
     "items": [
@@ -36,25 +36,26 @@ Complete example of JSON input for `generate_pdf.js` to create a professional in
   "outputPath": "./invoice_2026-042_2026-03-17.pdf",
   "template": {
     "styling": {
-      "primaryColor": "#2563EB",
-      "accentColor": "#F59E0B",
-      "fontFamily": "Helvetica, Arial, sans-serif",
-      "pageSize": "A4",
-      "margins": { "top": "20mm", "bottom": "20mm", "left": "15mm", "right": "15mm" }
+      "primaryColor": "#1E3A5F",
+      "accentColor": "#2563EB",
+      "textColor": "#1E293B",
+      "mutedColor": "#64748B",
+      "borderColor": "#E2E8F0",
+      "backgroundColor": "#F8FAFC"
     },
     "currencySymbol": "$"
   },
   "data": {
     "invoiceNumber": "INV-2026-042",
-    "date": "2026-03-17",
-    "dueDate": "2026-04-17",
+    "date": "March 17, 2026",
+    "dueDate": "April 17, 2026",
     "companyInfo": {
       "name": "Apex Development Studio",
       "address": "100 Innovation Drive, Austin, TX 78701",
       "phone": "+1 (512) 555-0190",
       "email": "billing@apexdev.io"
     },
-    "recipientInfo": {
+    "recipient": {
       "name": "NovaTech Industries",
       "address": "500 Corporate Park, Chicago, IL 60601",
       "email": "accounts@novatech.com"

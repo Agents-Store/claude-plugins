@@ -20,7 +20,6 @@ const {
   HeadingLevel,
   AlignmentType,
   PageBreak,
-  TableOfContents,
   Table,
   TableRow,
   TableCell,
@@ -49,7 +48,7 @@ async function main() {
     if (!outputPath) throw new Error("outputPath is required");
     if (!data) throw new Error("data is required");
 
-    const styling = template?.styling || data.branding || {};
+    const styling = template?.styling || {};
     const primaryColor = (styling.primaryColor || "#1E3A5F").replace("#", "");
     const accentColor = (styling.accentColor || "#2563EB").replace("#", "");
     const textColor = (styling.textColor || "#1E293B").replace("#", "");
@@ -60,6 +59,17 @@ async function main() {
     const fontBody = styling.fontBody || styling.fontBodyFallback || "Arial";
     const fontSizeBody = styling.fontSizeBody || 11;
     const lineSpacing = styling.lineSpacing || 1.3;
+
+    // Substitute template placeholders in header/footer text
+    const subs = {
+      title: data.title || "",
+      date: data.date || "",
+      companyName: data.companyName || "",
+      author: data.author || "",
+    };
+    const fillPlaceholders = (str) => str ? str.replace(/\{\{(\w+)\}\}/g, (_, k) => subs[k] ?? _) : str;
+    if (data.headerText) data.headerText = fillPlaceholders(data.headerText);
+    if (data.footer) data.footer = fillPlaceholders(data.footer);
 
     let children = [];
 
@@ -195,8 +205,8 @@ function buildDocument(data, type, styling, primaryColor, accentColor, textColor
     if (data.author) metaLines.push(`Prepared by  ${data.author}`);
     if (data.recipient) metaLines.push(`Prepared for  ${data.recipient}`);
     if (data.date) metaLines.push(data.date);
-    if (data.companyName || data.branding?.companyName) {
-      metaLines.push(data.companyName || data.branding.companyName);
+    if (data.companyName) {
+      metaLines.push(data.companyName);
     }
 
     if (metaLines.length > 0) {
@@ -214,17 +224,35 @@ function buildDocument(data, type, styling, primaryColor, accentColor, textColor
     children.push(new Paragraph({ children: [new PageBreak()] }));
   }
 
-  // Table of Contents
-  if (data.tableOfContents !== false) {
+  // Table of Contents — built manually from sections so it renders correctly without Word field update
+  if (data.tableOfContents !== false && data.sections && data.sections.length > 0) {
     children.push(
       new Paragraph({
         children: [
           new TextRun({ text: "Contents", bold: true, size: fontSizeH1, color: primaryColor, font: fontHeading }),
         ],
-        spacing: { after: 200 },
+        spacing: { after: 240 },
       })
     );
-    children.push(new TableOfContents("Table of Contents", { hyperlink: true, headingStyleRange: "1-3" }));
+    for (const section of data.sections) {
+      const level = section.level || 1;
+      const indent = level === 1 ? 0 : level === 2 ? 360 : 720;
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: section.heading || section.title || "",
+              size: level === 1 ? 24 : 22,
+              color: level === 1 ? primaryColor : textColor,
+              font: level === 1 ? fontHeading : fontBody,
+              bold: level === 1,
+            }),
+          ],
+          indent: { left: indent },
+          spacing: { after: level === 1 ? 100 : 60 },
+        })
+      );
+    }
     children.push(new Paragraph({ children: [new PageBreak()] }));
   }
 
@@ -322,6 +350,13 @@ function buildContract(data, styling, primaryColor, accentColor, textColor, mute
   const children = [];
   const fontSize = fontSizeBody * 2;
 
+  // Normalize party1/party2 and parties object into a unified map
+  const partiesMap = data.parties
+    ? data.parties
+    : data.party1 || data.party2
+      ? { party1: data.party1 || {}, party2: data.party2 || {} }
+      : null;
+
   // Title with line
   children.push(
     new Paragraph({
@@ -360,7 +395,7 @@ function buildContract(data, styling, primaryColor, accentColor, textColor, mute
   }
 
   // Parties
-  if (data.parties) {
+  if (partiesMap) {
     children.push(
       new Paragraph({
         children: [new TextRun({ text: "PARTIES", bold: true, size: 24, font: fontHeading, color: primaryColor })],
@@ -368,8 +403,8 @@ function buildContract(data, styling, primaryColor, accentColor, textColor, mute
         border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: borderColor } },
       })
     );
-    for (const [key, party] of Object.entries(data.parties)) {
-      const label = party.label || key;
+    for (const [key, party] of Object.entries(partiesMap)) {
+      const label = party.role || party.label || key;
       children.push(
         new Paragraph({
           children: [
@@ -387,10 +422,10 @@ function buildContract(data, styling, primaryColor, accentColor, textColor, mute
           })
         );
       }
-      if (party.registrationNumber) {
+      if (party.reg) {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: `Registration No: ${party.registrationNumber}`, size: fontSize, font: fontBody, color: mutedColor })],
+            children: [new TextRun({ text: `Registration No: ${party.reg}`, size: fontSize, font: fontBody, color: mutedColor })],
             spacing: { after: 120 },
           })
         );
@@ -439,7 +474,7 @@ function buildContract(data, styling, primaryColor, accentColor, textColor, mute
   }
 
   // Signature block
-  if (data.signatureBlock || data.parties) {
+  if (data.signatureBlock || partiesMap) {
     children.push(new Paragraph({ spacing: { before: 600 } }));
     children.push(
       new Paragraph({
@@ -451,10 +486,10 @@ function buildContract(data, styling, primaryColor, accentColor, textColor, mute
 
     const parties = data.signatureBlock
       ? Object.entries(data.signatureBlock)
-      : Object.entries(data.parties || {});
+      : Object.entries(partiesMap || {});
 
     for (const [key, party] of parties) {
-      const label = party.label || party.name || key;
+      const label = party.role || party.label || party.name || key;
       children.push(
         new Paragraph({
           children: [new TextRun({ text: `For ${label}:`, bold: true, size: fontSize, font: fontBody, color: primaryColor })],

@@ -1,11 +1,22 @@
 ---
 name: formatting-standards
-description: Typography, font, margin, color, and layout standards for professional business documents. This skill should be used when making formatting decisions, customizing fonts or colors, adjusting margins or spacing, applying branding, or choosing a color palette.
+description: Typography, font, margin, color, and layout standards for professional business documents. Use this skill when making any formatting decisions — choosing fonts, colors, margins, spacing, or layout patterns for any document type.
 ---
 
 # Formatting Standards
 
-Professional formatting guidelines based on industry best practices. Follows the **60-30-10 color rule** (60% background, 30% structure, 10% accent) and an **8px spacing grid**.
+Professional document design based on **corporate best practices** (McKinsey, Deloitte, PwC style).
+Core principles: **clear typographic hierarchy**, **generous whitespace**, **restrained color use**, **information architecture over decoration**.
+
+## Design Philosophy
+
+Good business documents communicate structure through typography and space — not through colored boxes and decorative fills.
+
+- **White space is not empty space** — generous margins and section gaps signal professionalism
+- **Color has a job** — navy anchors headers and structure; accent blue highlights key values; everything else is black/gray/white
+- **Hierarchy through scale and weight** — font size + weight differences should be obvious at a glance
+- **Line-based separators over box-based containers** — a 1px rule is more elegant than a colored card with borders
+- **Tables anchor numbers** — dark header rows with white text; light zebra striping only, no colored fills in data cells
 
 ## Font System
 
@@ -34,7 +45,7 @@ Loaded from `scripts/fonts.js`. Works fully offline. Supports Ukrainian and Engl
 | Acts / Акти | **PT Serif** | PT Serif + Inter (meta labels) |
 | Reports, Proposals (PDF) | **PT Serif** | Inter |
 
-PT Serif was designed for Cyrillic+Latin — ideal for Ukrainian documents. Inter provides clean readability for body text.
+PT Serif was designed for Cyrillic+Latin — ideal for Ukrainian documents.
 
 ### Font Size Hierarchy
 
@@ -47,151 +58,183 @@ PT Serif was designed for Cyrillic+Latin — ideal for Ukrainian documents. Inte
 | Heading 2 | 14 | Bold | Primary (#1E3A5F) |
 | Heading 3 | 12 | Bold | Text (#1E293B) |
 | Body text | 11 | Regular | Text (#1E293B) |
-| Meta/footer | 8-9 | Regular/Italic | Muted (#64748B) |
+| Meta/footer | 8–9 | Regular/Italic | Muted (#64748B) |
 | Table header | 11 | Bold | White on Primary |
 | Table body | 11 | Regular | Text (#1E293B) |
 
-#### PDF Documents (sizes in px — CSS pixels via Puppeteer)
-
-Note: PDF uses **px** (CSS pixels) because documents are rendered from HTML. DOCX and PPTX use **pt** as their native unit.
+#### PDF Documents (sizes in px — CSS via Puppeteer)
 
 | Element | Size | Weight | Color |
 |---------|------|--------|-------|
-| Invoice title (INVOICE) | 32px | Bold | Primary |
-| Company name | 22px | Bold | Primary |
-| Section label | 10-11px | Uppercase, 700 | Muted |
-| Body text | 13px | Regular | Text |
-| Small/notes | 11px | Regular | Muted |
-| Table header | 11px | Bold, uppercase | White |
+| INVOICE title | 26px | 700 | Primary |
+| Company name | 20px | 700 | Primary |
+| Bill-to name / grand total | 14–16px | 700 | Text / Primary |
+| Section label (uppercase caps) | 9–10px | 700, uppercase, tracked | Muted |
+| Body / table text | 12–13px | 400 | Text |
+| Table header text | 10.5px | 600, uppercase | White |
+| Notes / captions | 11px | 400 | Muted |
 
 #### Presentations (sizes in pt)
 
 | Element | Size | Weight | Color |
 |---------|------|--------|-------|
-| Slide title (title slide) | 40 | Bold | White |
+| Title slide heading | 40 | Bold | White |
 | Slide header bar | 16 | Bold | White on Primary |
-| Subtitle | 20-22 | Regular | Muted (#94A3B8) |
-| Body/bullets | 16-18 | Regular | Text (#1E293B) |
+| Subtitle | 20–22 | Regular | Muted (#94A3B8) |
+| Body/bullets | 16–18 | Regular | Text (#1E293B) |
 | Agenda numbers | 24 | Bold | Accent (#2563EB) |
 | Meta/author | 13 | Regular | Muted |
 
 ## Color System
 
-### Primary Palette — Corporate Blue
+### Primary Palette — Professional Corporate
 
-| Role | Color | Hex | Usage |
-|------|-------|-----|-------|
-| **Primary** | Navy | `#1E3A5F` | Headings, header bars, title slide bg |
-| **Accent** | Bright blue | `#2563EB` | Accent lines, bullet colors, links |
-| **Background** | Cool gray | `#F8FAFC` | Alternating sections, card backgrounds |
-| **Text** | Dark slate | `#1E293B` | Body text |
-| **Muted** | Slate gray | `#64748B` | Secondary text, meta, captions |
-| **Border** | Light border | `#E2E8F0` | Dividers, table borders |
-| **Highlight** | Light blue | `#EFF6FF` | Payment cards, callout boxes |
+| Role | Hex | Usage |
+|------|-----|-------|
+| **Primary** — Deep Navy | `#1E3A5F` | Table headers, document title, top/bottom bars, key amounts |
+| **Accent** — Corporate Blue | `#2563EB` | H1 underlines, bullet markers, left-border accents in DOCX |
+| **Text** — Dark Slate | `#1E293B` | Body text, names, amounts |
+| **Muted** — Slate Gray | `#64748B` | Labels, captions, secondary info, footer |
+| **Border** — Light | `#E2E8F0` | Table row borders, section dividers, separator lines |
+| **Background** — Off-white | `#F8FAFC` | Alternating table rows only; keep page background pure white |
 
-### Default Palette by Document Type
+**Do not use** `#EFF6FF` (light blue) or other fill colors as section backgrounds in PDFs — they look like web UI widgets, not business documents. Use white + separator lines instead.
 
-| Document Type | Default Palette | Primary | Accent |
-|--------------|----------------|---------|--------|
-| Proposal | Corporate Blue | #1E3A5F | #2563EB |
-| Report | Corporate Blue | #1E3A5F | #2563EB |
-| Invoice | Corporate Blue | #1E3A5F | #2563EB |
-| Presentation | Corporate Blue | #1E3A5F | #2563EB |
-| Contract | Dark Slate | #1E293B | #1E3A5F |
+### Palette by Document Type
+
+| Document Type | Primary | Accent | Notes |
+|--------------|---------|--------|-------|
+| Proposal, Report, Invoice, Presentation | `#1E3A5F` | `#2563EB` | Corporate Blue |
+| Contract, Act / Акт | `#1E293B` | `#1E3A5F` | Dark Slate (more formal) |
 
 ### Color Application (60-30-10 Rule)
 
-- **60%** Background: White (#FFFFFF) and light gray (#F8FAFC)
-- **30%** Structure: Navy (#1E3A5F) for headers, headings, table headers
-- **10%** Accent: Bright blue (#2563EB) for lines, bullet colors, links, highlights
+- **60%** White — page background, section backgrounds
+- **30%** Navy — table headers, document top bar, headings, bold key values
+- **10%** Blue accent — underlines, bullet colors, key amounts highlighted
 
 ## Layout & Spacing
 
 ### Spacing Grid (8px base)
 
-Use multiples of 8px: 8, 16, 24, 32, 48, 64px for all spacing values.
+Use multiples of 8px for all spacing: 8, 16, 24, 32, 48, 64px.
 
-| Context | Before | After |
-|---------|--------|-------|
-| H1 heading | 48px (480 twips) | 6px + accent line |
-| H2 heading | 32px (320 twips) | 12px (120 twips) |
-| Body paragraph | — | 16px (160 twips) |
-| Bullet item | — | 8px (80 twips) |
-| Section gap | 32px | 32px |
-| Cover page title spacer | 300px (3000 twips) | — |
+| Context (DOCX twips) | Before | After |
+|----------------------|--------|-------|
+| H1 heading | 480 twips | 60 twips + accent line |
+| H2 heading | 320 twips | 120 twips |
+| Body paragraph | — | 160 twips |
+| Bullet item | — | 80 twips |
+| Cover page title spacer | 3000 twips | — |
 
 ### Margins
 
 | Type | Top | Bottom | Left | Right |
 |------|-----|--------|------|-------|
-| Proposals, Reports | 1" (1440 twips) | 1" | 0.75" (1080 twips) | 0.75" |
-| Contracts | 1" | 1" | 1" (1440 twips) | 1" |
-| Invoice PDF | 20mm | 20mm | 18mm | 18mm |
+| Proposals, Reports (DOCX) | 1" (1440) | 1" | 0.75" (1080) | 0.75" |
+| Contracts (DOCX) | 1" | 1" | 1" | 1" |
+| All PDFs | 28mm | 22mm | 18mm | 18mm |
+
+PDF top/bottom are larger to accommodate Puppeteer's page header and footer (`displayHeaderFooter: true`).
+
+### PDF Header/Footer (all PDFs)
+
+| Zone | Content |
+|------|---------|
+| Header left | Company name (`data.companyInfo.name` → `data.company` → `data.contractor.name`) |
+| Footer right | "Page N of M" |
+
+Style: Inter 8px, muted (#64748B), 1px border line separator.
 
 ### Line Spacing
 
-| Context | Spacing |
-|---------|---------|
-| Business documents (proposals, reports) | 1.3 |
-| Legal documents (contracts) | 1.5 |
-| Presentations | Single (1.0) |
+| Context | Value |
+|---------|-------|
+| Business docs (proposals, reports) | 1.3 |
+| Legal docs (contracts, acts) | 1.5–1.7 |
+| Presentations | 1.0 |
 
-## Visual Design Techniques
+## Layout Patterns by Document Type
 
-### Color Blocking
+### Invoice Layout (PDF) — Professional Corporate
 
-- **Top/bottom bars**: 4-6px colored bars at page edges (navy primary)
-- **Header bars**: Full-width navy background with white text (presentations, invoices)
-- **Accent underlines**: 3-4px accent blue lines under H1 headings
-- **Card backgrounds**: Light gray (#F8FAFC) with left accent border (4px blue)
-- **Alternating rows**: White / #F8FAFC for table rows and sections
+The goal is a clean financial document, not a web dashboard.
+
+1. **5px primary top bar** — subtle anchor, not a heavy band
+2. **Header row**: company name + details left; "INVOICE" (26px, PT Serif) + invoice number + issued/due dates right. Separated from content by a 1px border line.
+3. **Bill To section**: plain text — field label (9px uppercase muted) above client name (14px bold) and address/email (12px muted). No colored background cards, no left-border accents.
+4. **Amount Due** shown right-aligned in the same Bill To row (18px bold primary color).
+5. **Items table**: navy header row (#1E3A5F) with white uppercase labels (10.5px). Alternating rows white / #F8FAFC. No inner vertical borders on rows.
+6. **Totals section** — right-aligned, line-based:
+   - Subtotal / Tax / Discount lines at 12.5px muted label + text value
+   - `1.5px solid border-top` (full navy) divider line
+   - "Total Due" at 13px bold + amount at 15px bold primary color
+   - **No navy fill box**
+7. **Payment Details**: plain section with `border-top: 1px solid #E2E8F0` separator. 2-column grid of label+value pairs. No colored background.
+8. **4px primary bottom bar**
+
+### Act Layout (PDF) — Ukrainian Legal Format
+
+1. **Center header**: "АКТ ВИКОНАНИХ РОБІТ" (19px bold PT Serif, uppercase, 2px letter-spacing), act number below, date/city in muted Inter
+2. **2px solid bottom border** under header block
+3. **Intro paragraph** (12px, line-height 1.8): party names bolded inline
+4. **Services table**: primary header (#1E293B), numeric columns (Од., Кількість, Ціна, Сума) with fixed widths for clean alignment, alternating rows
+5. **Totals** — right-aligned, line-based:
+   - Subtotal / VAT rows at 12px muted (only shown when `vatRate > 0`)
+   - `1.5px solid border-top` divider
+   - "Всього до сплати" + amount bold, primary color
+6. **Confirmation box**: left border 3px accent + light gray background — acceptable here as a distinct callout block in a legal document
+7. **Signature section**: uppercase section label (9px, tracked) with bottom border. Two-column ВИКОНАВЕЦЬ / ЗАМОВНИК blocks: party name bold + representative + reg. number (no hardcoded "ЄДРПОУ:" prefix — data already includes it). 36px margin before signature line, dashed seal line.
+
+### Contract Layout (PDF) — Legal Document
+
+1. **Centered title block**: document title in PT Serif Bold (19px, uppercase, 0.08em tracking), contract number + date in muted Inter below; separated by `2.5px solid primary`
+2. **Recital paragraph**: auto-generated from party names and roles, PT Serif 12.5px, justified
+3. **Article bars**: full-width primary background with white uppercase Inter text (9.5px, 0.12em tracking) — professional dividers between clauses
+4. **Party info**: two-column, clean text hierarchy — role label (8.5px uppercase muted) → company name (13px bold) → address/reg/representative (10px muted Inter)
+5. **Clause paragraphs**: PT Serif 13px, line-height 1.45, justified with hyphenation; numbered sub-clauses use hanging indent (`padding-left: 2.2em; text-indent: -2.2em`)
+6. **"IN WITNESS WHEREOF"** preamble (italic) before signatures
+7. **Two-column signature block**: party label (8.5px uppercase) → party name (bold) → By / Name / Title / Date lines with 0.75px border
 
 ### Cover Pages (DOCX)
 
-1. Large spacer (pushes title to center-upper area)
+1. Large spacer (3000 twips — pushes title down to visual center-upper area)
 2. Accent line (6px blue) above title
 3. Title in Georgia Bold, left-aligned, primary color
 4. Subtitle in body font, muted color
-5. Meta block (author, recipient, date) in small muted text
+5. Meta block: "Prepared by", "Prepared for", date in small muted text
 6. Page break
-
-### Invoice Layout (PDF)
-
-1. Top accent bar (6px navy)
-2. Header: company info left, "INVOICE" right in Georgia
-3. Info cards with left accent borders (Bill To, Summary)
-4. Items table with navy header row
-5. Totals box with navy "Total Due" row
-6. Payment details in light blue card (#EFF6FF)
-7. Bottom accent bar (4px navy)
 
 ### Presentation Slides
 
-1. Master slide: navy header bar (0.75") + accent line (0.04")
+1. Master: navy header bar (0.75") + accent line (0.04")
 2. Title slide: full navy background, accent stripe, left-aligned
-3. Agenda: numbered items with accent-colored numbers + dividers
-4. Content: accent-colored bullet points
-5. Two-column: accent/secondary left border lines
-6. Summary: two card boxes with top accent stripe
-7. Contact: navy background with accent stripe
+3. Agenda: numbered items with accent numbers + dividers
+4. Content: accent-colored bullets
+5. Summary: two card boxes with top accent stripe
 
 ## Branding Customization
 
 When the user provides branding:
-1. **Primary color** → replaces #1E3A5F in headers, bars, headings
-2. **Accent color** → replaces #2563EB in lines, bullets, highlights
-3. **Logo** → placed in header area
-4. **Company name** → header and footer
-5. **Font override** → replaces Georgia/Arial if specified
+1. **primaryColor** → replaces #1E3A5F in bars, headers, table headers, key amounts
+2. **accentColor** → replaces #2563EB in underlines, bullets, left borders
+3. **logo** → placed top-left in header section
+4. **company name** → header and footer of every PDF page
+5. **font override** → use in `fontHeading` / `fontBody` template fields
 
-If no branding is provided, use the Corporate Blue palette with Georgia + Arial.
+Default when no branding: Corporate Blue palette with Georgia (headings) + Arial (body) for DOCX; PT Serif + Inter for PDF.
 
-## Anti-Patterns (What Makes Documents Look Primitive)
+## Anti-Patterns
 
-- More than 3 colors in a document
-- Centered body text (use left-aligned)
-- Thick borders on tables (use 1px or none)
-- No visual hierarchy (all same size/weight)
-- Dense text without white space
-- Default system fonts without pairing (e.g., plain Calibri everywhere)
-- Missing accent elements (no lines, bars, or color blocks)
+These are the most common mistakes that make documents look unprofessional:
+
+| Anti-pattern | Better approach |
+|---|---|
+| Colored fill boxes for info sections (blue/gray cards) | Plain text with a thin separator line |
+| Navy fill on "Total Due" row | Bold text + 1.5px border-top rule |
+| `border-left: 4px solid accent` on text cards | Reserve left-border accents for callout boxes only (confirmation text, warnings) |
+| More than 3 colors in one document | Stick to primary + muted + accent — that's enough |
+| Centered body text | Left-aligned always (except document title and act header) |
+| Dense text with no paragraph breaks | Minimum 1.6 line-height; clear paragraph spacing |
+| Mismatched font pairing (e.g., Arial headings + Arial body) | Always pair a serif heading with sans-serif body, or full serif for legal |
+| Missing visual anchor (no top bar, no table headers, no section labels) | At minimum: top bar + dark table header + uppercase section labels |

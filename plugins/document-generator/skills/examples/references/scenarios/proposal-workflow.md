@@ -42,11 +42,12 @@ Script: `generate_docx.js`
   "outputPath": "./proposal_cloud_migration_2026-03-17.docx",
   "template": {
     "styling": {
-      "primaryColor": "#003366",
-      "fontHeading": "Calibri",
-      "fontBody": "Calibri",
+      "primaryColor": "#1E3A5F",
+      "accentColor": "#2563EB",
+      "fontHeading": "Georgia",
+      "fontBody": "Arial",
       "fontSizeBody": 11,
-      "lineSpacing": 1.15,
+      "lineSpacing": 1.3,
       "margins": { "top": 1440, "bottom": 1440, "left": 1080, "right": 1080 }
     }
   },

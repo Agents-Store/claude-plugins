@@ -59,4 +59,4 @@ If pandoc is missing:
 - Invoice: PDF always
 - Report: DOCX (draft) or PDF (final)
 - Presentation: PPTX always
-- Contract: DOCX always (needs edits/signatures)
+- Contract: DOCX (default, editable/signable) or PDF (final/distribution)

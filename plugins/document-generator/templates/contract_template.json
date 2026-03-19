@@ -4,8 +4,8 @@
   "structure": {
     "header": { "title": true, "date": true, "contractNumber": true },
     "parties": {
-      "party1": { "label": "Service Provider", "fields": ["name", "address", "registrationNumber"] },
-      "party2": { "label": "Client", "fields": ["name", "address", "registrationNumber"] }
+      "party1": { "label": "Service Provider", "fields": ["name", "address", "reg"] },
+      "party2": { "label": "Client", "fields": ["name", "address", "reg"] }
     },
     "clauses": [
       { "id": "definitions", "title": "Definitions", "required": true },
