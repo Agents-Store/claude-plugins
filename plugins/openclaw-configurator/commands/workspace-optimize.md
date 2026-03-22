@@ -96,9 +96,11 @@ Following the skill's best practices:
   6. Run: `openclaw-team doctor --fix`
 
 ### 9. Fix permissions
-After writing files, remind user to fix Docker permissions:
+After writing files, fix Docker permissions:
 ```bash
-cd /docker/openclaw-{instance}
+# Derive instance name from CWD (e.g., /root/.openclaw-team → team)
+INSTANCE=$(basename "$(pwd)" | sed 's/^\.openclaw-//')
+cd /docker/openclaw-$INSTANCE
 docker compose exec -u root openclaw-gateway chown -R node:node /home/node/.openclaw/
 ```
 
