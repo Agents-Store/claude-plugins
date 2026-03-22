@@ -1,11 +1,13 @@
 ---
 name: agents-md
-description: AGENTS.md customization guide for OpenClaw. Use when the user needs to create, edit, or optimize their AGENTS.md file — the operating rules and procedures for their OpenClaw agent. Triggers on "customize AGENTS.md", "agent operating rules", "OpenClaw agent behavior", "session startup rules", "group chat rules", "red lines for agent".
+description: Guide for creating and customizing AGENTS.md — the operating rules, procedures, and behavioral guardrails for an OpenClaw agent. Use this skill whenever the user is working on agent behavior, operating procedures, session startup sequences, memory management policies, group chat rules, safety red lines, tool usage priorities, or standing order references. Even if they just say "the agent should do X differently" or "add a rule for Y", this skill applies because operational rules belong in AGENTS.md. Also use when deciding what belongs in AGENTS.md versus SOUL.md — this skill clarifies the boundary.
 ---
 
 # AGENTS.md Customization Guide
 
 AGENTS.md is the "employee handbook" for an OpenClaw agent. It defines HOW the agent operates — procedures, rules, memory management, group chat behavior, and standing orders. Loaded into every session.
+
+**Write all content in English.** Users may communicate in any language, but workspace files are always English — this ensures consistency across multi-user setups and better model compatibility (LLMs process English instructions more reliably).
 
 ## Key Distinction
 
@@ -80,7 +82,27 @@ Point to TOOLS.md and add usage priorities:
 - For complex tasks (3+ steps): create a .prose program
 ```
 
-### 6. Heartbeat Configuration
+### 6. Reference Documents (Subfolder Pattern)
+
+AGENTS.md should reference on-demand docs that the agent reads when needed:
+
+```markdown
+## Reference Documents
+Before starting a task, check if a relevant doc exists.
+Read it with: read docs/<folder>/<file>.md
+
+Available docs:
+- docs/rules/         — security rules, data classification, group chat policy
+- docs/procedures/    — step-by-step guides for specific task types
+- docs/clients/       — client profiles, contracts, key facts
+- docs/standing-orders/ — recurring tasks and schedules
+
+Always read the relevant doc BEFORE starting work. Do not guess.
+```
+
+This saves tokens — files in docs/ are loaded only when relevant, unlike AGENTS.md which loads every session. Use the 50% rule: if content is needed in < 50% of sessions, move it to docs/.
+
+### 7. Heartbeat Configuration
 
 Background task triggers:
 
@@ -92,7 +114,7 @@ Background task triggers:
 - Respect quiet hours: [time range]
 ```
 
-### 7. Standing Orders References
+### 8. Standing Orders References
 
 Point to docs/standing-orders/ for autonomous programs:
 
@@ -138,3 +160,4 @@ See `references/default-agents-template.md` for the official default AGENTS.md t
 4. Reference docs/ subfolders rather than embedding long content
 5. Keep total AGENTS.md under 15,000 characters to leave room for other bootstrap files
 6. After a week, ask the agent: "suggest improvements to your AGENTS.md"
+7. All content in English — even if users communicate in other languages

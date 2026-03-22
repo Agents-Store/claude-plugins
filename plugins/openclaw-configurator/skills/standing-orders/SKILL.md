@@ -1,6 +1,6 @@
 ---
 name: standing-orders
-description: Standing orders design patterns for OpenClaw. Use when the user needs to create autonomous programs, recurring tasks, or scheduled agent operations. Triggers on "standing orders", "autonomous tasks", "recurring tasks", "agent automation", "cron jobs OpenClaw", "scheduled operations", "execute-verify-report".
+description: Design patterns for standing orders — autonomous programs that give agents permanent operating authority for defined tasks. Use this skill whenever the user needs recurring tasks, scheduled agent operations, autonomous execution rules, or the execute-verify-report pattern. Also applies when discussing cron jobs with OpenClaw, periodic reports, automated monitoring, content scheduling, or any task the agent should do on its own without prompting each time.
 ---
 
 # Standing Orders Design Guide
@@ -27,7 +27,7 @@ Every standing order specifies four elements:
 ### 2. Triggers — When it executes
 ```markdown
 ## Trigger
-- Schedule: Every Friday at 15:00 (Europe/Kyiv)
+- Schedule: Every Friday at 15:00 (user's timezone)
 - OR: On request from authorized user
 - OR: When specific condition is met
 ```
@@ -51,7 +51,7 @@ Every standing order specifies four elements:
 
 ## Execute-Verify-Report Pattern
 
-Every standing order task MUST follow this pattern:
+Every standing order task should follow this pattern (skipping it leads to a common failure where the agent acknowledges a task but doesn't actually complete it):
 
 1. **Execute** — complete the work (not just acknowledge it)
 2. **Verify** — confirm results (file exists, delivery confirmed, data parsed correctly)

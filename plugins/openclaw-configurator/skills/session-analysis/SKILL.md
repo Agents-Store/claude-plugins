@@ -1,6 +1,6 @@
 ---
 name: session-analysis
-description: OpenClaw session JSONL analysis techniques. Use when the user wants to analyze agent session logs to understand user behavior, tool effectiveness, error patterns, costs, or active hours. Triggers on "analyze sessions", "session logs", "tool usage stats", "agent errors", "cost analysis", "user behavior analysis", "what do users ask about".
+description: Techniques for analyzing OpenClaw session JSONL logs to understand user behavior, tool effectiveness, error patterns, token costs, and active hours. Use this skill whenever the user wants to analyze how their agent is performing, what users are asking, which tools work best, what errors occur, or how to improve the workspace based on real usage data. Also applies to questions like "what do my users ask about", "is my agent working well", or "show me session stats".
 ---
 
 # Session JSONL Analysis

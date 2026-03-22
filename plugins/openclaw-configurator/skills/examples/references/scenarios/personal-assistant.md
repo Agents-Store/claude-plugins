@@ -75,7 +75,7 @@ Track: personal preferences, routines, important dates, ongoing projects, people
 ```markdown
 - Name: [Name]
 - Call me: [Nickname]
-- Timezone: Europe/Kyiv
+- Timezone: America/New_York
 - Language: Ukrainian for personal, English for work topics
 - Style: Brief and direct, detailed only when I ask
 - Likes: Efficiency, clear action items, proactive reminders

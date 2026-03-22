@@ -1,6 +1,6 @@
 ---
 name: user-md
-description: USER.md profile building guide for OpenClaw. Use when the user needs to create or update their USER.md file — defining who the agent's users are, their preferences, roles, and communication styles. Triggers on "customize USER.md", "user profile", "OpenClaw user setup", "who uses the agent", "user preferences".
+description: Guide for building USER.md — user profiles, preferences, roles, and communication styles. Use this skill whenever the user is setting up who will interact with the agent, mapping Telegram/Discord user IDs to names, configuring multi-user access, or defining communication preferences. Even questions like "how does the agent know who I am", "add a team member", or "set up user permissions" need this skill.
 ---
 
 # USER.md Profile Building Guide
@@ -13,7 +13,7 @@ USER.md tells the agent WHO it's helping. It contains user profiles, preferences
 *Name:* (your name)
 *What to call them:* (preferred address)
 *Pronouns:* (optional)
-*Timezone:* (e.g., Europe/Kyiv)
+*Timezone:* (e.g., America/New_York)
 *Notes:* (anything relevant)
 ```
 
@@ -28,7 +28,7 @@ For richer context, expand beyond the template:
 - Name: [Full name]
 - Call me: [Preferred name/nickname]
 - Pronouns: [optional]
-- Timezone: Europe/Kyiv
+- Timezone: America/New_York
 - Role: [CEO / Developer / Lawyer / etc.]
 - Language: [Ukrainian / English / bilingual]
 - Communication style: [direct and brief / detailed / formal]
@@ -53,19 +53,19 @@ When multiple people interact with the agent (e.g., via Telegram group):
 ```markdown
 ## Users
 
-### Valentyn (tg:549422805)
+### Alice (tg:USER_ID_1)
 - Role: Founder, primary decision-maker
-- Language: Ukrainian/English
+- Language: English
 - Style: Direct, prefers brief responses
 - Can approve: all actions
 
-### Maria (tg:123456789)
+### Bob (tg:USER_ID_2)
 - Role: Marketing lead
-- Language: Ukrainian
+- Language: English/Spanish
 - Style: Detailed, appreciates context
 - Can approve: content publication, social media posts
 
-### Alex (tg:987654321)
+### Charlie (tg:USER_ID_3)
 - Role: Developer
 - Language: English
 - Style: Technical, code-first
@@ -74,7 +74,7 @@ When multiple people interact with the agent (e.g., via Telegram group):
 
 ## Mapping Telegram IDs to Users
 
-OpenClaw identifies users by channel-prefixed IDs (e.g., `tg:549422805`). Map these in USER.md so the agent addresses people by name instead of ID.
+OpenClaw identifies users by channel-prefixed IDs (e.g., `tg:USER_ID`). Map these in USER.md so the agent addresses people by name instead of ID.
 
 Cross-reference with `openclaw.json`:
 - `channels.telegram.allowFrom` — who can DM the agent

@@ -1,6 +1,6 @@
 ---
 name: heartbeat-md
-description: HEARTBEAT.md and periodic task configuration for OpenClaw. Use when the user needs to set up background monitoring, periodic checks, quiet hours, or standing orders integration. Triggers on "configure HEARTBEAT.md", "periodic tasks", "background checks", "monitoring setup", "heartbeat configuration", "quiet hours".
+description: Guide for configuring HEARTBEAT.md — the periodic background task checklist that OpenClaw executes on a schedule. Use this skill whenever the user needs background monitoring, periodic checks, standing orders integration, quiet hours configuration, or wants to understand heartbeat mechanics and token costs. Even questions like "how do I make the agent check something periodically", "set up monitoring", or "reduce heartbeat token costs" need this skill.
 ---
 
 # HEARTBEAT.md Configuration Guide
@@ -48,7 +48,7 @@ An empty HEARTBEAT.md (or comments only) means NO heartbeat API calls — saves 
 - [ ] Review standing orders due for execution
 
 # Quiet Hours
-No checks between 22:00 and 08:00 (Europe/Kyiv)
+No checks between 22:00 and 08:00 (user's timezone)
 ```
 
 ## Standing Orders Integration

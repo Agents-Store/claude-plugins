@@ -1,5 +1,5 @@
 ---
-description: Quick health check of OpenClaw instance — scans all standard files, sessions, cron, logs, shared skills/plugins, checks sizes, identifies missing components
+description: Quick health check of OpenClaw instance — scans all categories (A–J), checks sizes, detects inline secrets, identifies missing components, verifies language
 allowed-tools: ["Read", "Bash", "Glob", "Grep"]
 argument-hint: ""
 ---
@@ -17,7 +17,7 @@ Perform a quick health check of the current OpenClaw instance. CWD is the instan
 pwd
 ```
 
-### 2. Scan workspace files (target 1)
+### 2. Scan workspace files (Cat A)
 ```bash
 for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md BOOT.md BOOTSTRAP.md; do
   if [ -f "./workspace/$f" ]; then
@@ -35,10 +35,10 @@ done
 - Per-file limit: 20,000 chars (default). Flag files exceeding this.
 - Total limit: 150,000 chars. Sum all file sizes and check.
 ```bash
-cat ./workspace/*.md 2>/dev/null | wc -c
+echo "TOTAL: $(cat ./workspace/*.md 2>/dev/null | wc -c) chars (limit: 150,000)"
 ```
 
-### 4. Check openclaw.json (target 5)
+### 4. Check openclaw.json (Cat E)
 ```bash
 if [ -f ./openclaw.json ]; then
   echo "openclaw.json: $(wc -c < ./openclaw.json) bytes"
@@ -47,37 +47,61 @@ else
 fi
 ```
 
-### 5. Check workspace subfolders (targets 2, 3, 6)
+### 5. Secret detection in openclaw.json
 ```bash
-echo "--- Docs (target 2) ---"
-find ./workspace/docs/ -name "*.md" -type f 2>/dev/null | wc -l
+# Check for potential inline secrets
+grep -n -E '"[A-Za-z0-9_:.-]{20,}"' ./openclaw.json 2>/dev/null | grep -vi '"source"\|"provider"\|"id"\|"model"\|"profile"\|"mode"\|"workspace"\|"description"\|"name"'
+```
 
-echo "--- Instance Skills (target 3) ---"
+If matches found, warn user:
+- Inline secrets are a security risk
+- Recommend SecretRef pattern: `{ "source": "env", "provider": "default", "id": "ENV_VAR_NAME" }`
+- `openclaw doctor` SecretRef resolution errors outside gateway runtime are safe to ignore
+
+### 6. Check workspace subfolders (Cat B, C, D, J)
+```bash
+echo "--- Memory Logs (Cat B) ---"
+ls ./workspace/memory/ 2>/dev/null | wc -l
+
+echo "--- Instance Skills (Cat C) ---"
 find ./workspace/skills/ -name "SKILL.md" -type f 2>/dev/null | wc -l
 
-echo "--- Memory Logs (target 6) ---"
-ls ./workspace/memory/ 2>/dev/null | wc -l
+echo "--- Docs (Cat D) ---"
+find ./workspace/docs/ -name "*.md" -type f 2>/dev/null | wc -l
+
+echo "--- Workflows (Cat D) ---"
+find ./workspace/workflows/ -name "*.prose" -type f 2>/dev/null | wc -l
+
+echo "--- Canvas (Cat J) ---"
+ls ./workspace/canvas/ 2>/dev/null | wc -l
 
 echo "--- Standing Orders ---"
 ls ./workspace/docs/standing-orders/ 2>/dev/null | wc -l
 ```
 
-### 6. Check sessions (target 4)
+### 7. Check sessions (Cat F)
 ```bash
 echo "--- Sessions ---"
 ls ./agents/main/sessions/*.jsonl 2>/dev/null | wc -l
 [ -f ./agents/main/sessions/sessions.json ] && echo "sessions.json: $(jq length ./agents/main/sessions/sessions.json 2>/dev/null) entries" || echo "sessions.json: MISSING"
 ```
 
-### 7. Check cron jobs (target 7)
+### 8. Check memory index (Cat G)
 ```bash
-echo "--- Cron Jobs ---"
-ls ./cron/ 2>/dev/null || echo "cron/: NOT FOUND"
+[ -f ./memory/main.sqlite ] && echo "memory index: $(ls -lh ./memory/main.sqlite | awk '{print $5}')" || echo "memory index: NOT FOUND"
 ```
 
-### 8. Check logs (target 8)
+### 9. Check cron jobs (Cat H)
 ```bash
-echo "--- Logs ---"
+if [ -f ./cron/jobs.json ]; then
+  echo "cron/jobs.json: $(wc -c < ./cron/jobs.json) bytes"
+else
+  ls ./cron/ 2>/dev/null || echo "cron/: NOT FOUND"
+fi
+```
+
+### 10. Check logs (Cat I)
+```bash
 if [ -f ./logs/openclaw.log ]; then
   echo "openclaw.log: $(wc -l < ./logs/openclaw.log) lines"
   echo "Recent errors: $(grep -ci 'error\|fatal' ./logs/openclaw.log 2>/dev/null)"
@@ -86,25 +110,30 @@ else
 fi
 ```
 
-### 9. Check shared skills & plugins (targets 9-11)
+### 11. Check shared skills & plugins
 ```bash
-echo "--- Shared Public Skills (target 9) ---"
+echo "--- Shared Public Skills ---"
 find /root/openclaw-skills/ -name "SKILL.md" -type f 2>/dev/null | wc -l
 
-echo "--- Shared Private Skills (target 10) ---"
+echo "--- Shared Private Skills ---"
 find /root/openclaw-private-skills/ -name "SKILL.md" -type f 2>/dev/null | wc -l
 
-echo "--- Shared Public Plugins (target 11a) ---"
+echo "--- Shared Public Plugins ---"
 ls /root/openclaw-plugins/packages/ 2>/dev/null | wc -l
 
-echo "--- Shared Private Plugins (target 11b) ---"
+echo "--- Shared Private Plugins ---"
 ls /root/openclaw-plugins-private/packages/ 2>/dev/null | wc -l
 ```
 
-### 10. Check for BOOTSTRAP.md
+### 12. Check for BOOTSTRAP.md
 If BOOTSTRAP.md exists, flag it — it means bootstrap never completed.
 
-### 11. Output summary table
+### 13. Quick security flags
+- Does AGENTS.md have a "Red Lines" section?
+- Does SOUL.md have a "Boundaries" section?
+- Is dmPolicy set to "allowlist" (not "open")?
+
+### 14. Output summary table
 
 ```
 | File          | Status  | Size    | Words | Last Modified | Issues        |
@@ -116,10 +145,12 @@ If BOOTSTRAP.md exists, flag it — it means bootstrap never completed.
 
 Instance: [CWD]
 Total: X/9 files present, Y chars total (limit: 150,000)
-Docs: N files | Skills: N | Memory: N daily logs
-Sessions: N JSONL | Cron: N jobs | Log errors: N
+Docs: N files | Skills: N | Memory: N daily logs | Workflows: N
+Sessions: N JSONL | Cron: [configured/none] | Log errors: N
+Memory index: [present/absent] | Canvas: [N files/none]
 Shared: N public skills, N private skills, N public plugins, N private plugins
+Security: [OK / WARNINGS (details)]
 ```
 
-### 12. Quick recommendations
+### 15. Quick recommendations
 List top 3 immediate actions based on scan results.

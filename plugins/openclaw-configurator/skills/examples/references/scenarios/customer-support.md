@@ -91,7 +91,7 @@ Track: common issues and resolutions, customer preferences, product bugs, FAQ pa
 ```markdown
 ## Support Lead
 - Name: [Name]
-- Timezone: Europe/Kyiv
+- Timezone: America/New_York
 - Role: Support Team Lead
 - Language: Ukrainian/English
 - Style: Concise, metrics-focused

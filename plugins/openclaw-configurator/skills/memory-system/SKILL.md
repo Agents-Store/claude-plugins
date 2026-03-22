@@ -1,6 +1,6 @@
 ---
 name: memory-system
-description: MEMORY.md and memory directory management guide for OpenClaw. Use when the user needs to configure the agent's memory system — daily logs, long-term memory curation, memory flush, vector search. Triggers on "configure memory", "MEMORY.md setup", "memory management", "daily logs", "memory curation", "vector search memory".
+description: Guide for OpenClaw's memory system — MEMORY.md curation, daily logs, memory flush, and vector search. Use this skill whenever the user asks about how the agent remembers things between sessions, wants to configure memory management, needs to understand daily logs versus long-term memory, or is setting up memory curation processes. Also applies to questions about vector search, memory security in groups, or "how does the agent remember".
 ---
 
 # Memory System Guide
@@ -72,8 +72,8 @@ Recommended format for curated long-term memory:
 # MEMORY.md
 
 ## User Preferences
-- Valentyn prefers brief responses unless complexity requires detail
-- Ukrainian for casual topics, English for technical discussions
+- User prefers brief responses unless complexity requires detail
+- Concise answers for simple questions, thorough for complex ones
 - Prefers code examples over long explanations
 
 ## Key Decisions

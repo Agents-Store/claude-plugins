@@ -85,7 +85,7 @@ Track: writing style patterns, content ideas, editorial calendar, audience insig
 ```markdown
 - Name: [Name]
 - Call me: [Nickname]
-- Timezone: Europe/Kyiv
+- Timezone: America/New_York
 - Language: [Primary language]
 - Style: Creative, informal internally. Varies by platform for published content.
 - Platforms: Blog, Newsletter, [Social media platforms]

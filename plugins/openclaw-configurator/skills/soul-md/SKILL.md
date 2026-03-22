@@ -1,11 +1,13 @@
 ---
 name: soul-md
-description: SOUL.md persona design guide for OpenClaw. Use when the user needs to create, edit, or refine their SOUL.md file — the agent's personality, values, tone, and boundaries. Triggers on "customize SOUL.md", "agent persona", "agent personality", "agent tone", "OpenClaw identity", "agent vibe", "agent boundaries".
+description: Guide for creating and refining SOUL.md — the agent's personality, values, tone, and boundaries. Use this skill whenever the user is working on who the agent should be, its communication style, persona traits, behavioral boundaries, or domain-specific character. Even requests like "make the agent more friendly", "add a boundary", "change the tone", or "the agent sounds too corporate" need this skill because personality and tone live in SOUL.md, not AGENTS.md.
 ---
 
 # SOUL.md Persona Design Guide
 
 SOUL.md defines WHO the agent IS — personality, values, tone, and boundaries. It's the agent's "character sheet." Loaded into every prompt, so every word costs tokens on every interaction.
+
+**Write all content in English.** Even if the agent communicates with users in other languages, SOUL.md itself is always English — LLMs process English system prompts more reliably, and it keeps things consistent across multi-user setups.
 
 ## Critical Rule: Under 2,000 Words
 

@@ -13,7 +13,7 @@ Complete reference for the most important openclaw.json configuration fields.
 | `imageModel` | string/object | — | Model for image analysis |
 | `bootstrapMaxChars` | number | 20000 | Max chars per workspace file |
 | `bootstrapTotalMaxChars` | number | 150000 | Max total chars across all files |
-| `userTimezone` | string | — | e.g., `"Europe/Kyiv"` |
+| `userTimezone` | string | — | IANA timezone, e.g., `"America/New_York"` |
 | `timeFormat` | string | `"auto"` | `"auto"` / `"12"` / `"24"` |
 | `timeoutSeconds` | number | 600 | Session timeout |
 | `maxConcurrent` | number | 3 | Max parallel sessions |
@@ -58,9 +58,9 @@ Complete reference for the most important openclaw.json configuration fields.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `enabled` | boolean | — | Enable Telegram channel |
-| `botToken` | string | — | Bot token (or `tokenFile`) |
+| `botToken` | string/SecretRef | — | Bot token (use SecretRef: `{ source, provider, id }`) |
 | `dmPolicy` | string | — | `"pairing"` / `"allowlist"` / `"open"` / `"disabled"` |
-| `allowFrom` | string[] | — | User IDs: `["tg:549422805"]` |
+| `allowFrom` | string[] | — | User IDs: `["tg:USER_ID"]` |
 | `groups` | object | — | Per-group config (see below) |
 | `historyLimit` | number | 50 | Messages to load per session |
 | `streaming` | string | — | `"off"` / `"partial"` / `"block"` / `"progress"` |
@@ -79,7 +79,7 @@ Complete reference for the most important openclaw.json configuration fields.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `enabled` | boolean | — | Enable Discord |
-| `token` | string | — | Bot token |
+| `token` | string/SecretRef | — | Bot token (use SecretRef) |
 | `dmPolicy` | string | — | Same as Telegram |
 | `allowFrom` | string[] | — | User IDs |
 | `guilds` | object | — | Per-guild config |
@@ -159,3 +159,19 @@ Complete reference for the most important openclaw.json configuration fields.
 | `allowBundled` | string[] | Which bundled skills to enable |
 | `load.extraDirs` | string[] | Additional skill directories |
 | `entries` | object | Per-skill configuration |
+
+---
+
+## SecretRef Pattern
+
+For any field containing a secret (tokens, API keys), use:
+
+```json
+{
+  "source": "env",
+  "provider": "default",
+  "id": "ENV_VAR_NAME"
+}
+```
+
+Place actual values in the `.env` file at the instance root. Never put raw secrets inline.

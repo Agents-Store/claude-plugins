@@ -1,6 +1,6 @@
 ---
 name: bootstrap-boot
-description: BOOTSTRAP.md and BOOT.md setup guide for OpenClaw. Use when the user needs to configure first-run setup rituals or gateway restart instructions. Triggers on "create BOOTSTRAP.md", "first run setup", "bootstrap agent", "BOOT.md", "gateway restart checklist", "onboarding flow".
+description: Guide for BOOTSTRAP.md (first-run setup ritual) and BOOT.md (gateway restart checklist) in OpenClaw. Use this skill whenever the user is setting up a new agent for the first time, configuring onboarding flows, creating first-run discovery processes, or defining what should happen on gateway restart. Even questions like "what should happen when the agent starts for the first time", "how do I initialize a fresh agent", or "what runs on reboot" need this skill.
 ---
 
 # BOOTSTRAP.md and BOOT.md Guide

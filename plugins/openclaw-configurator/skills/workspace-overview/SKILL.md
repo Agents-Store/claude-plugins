@@ -1,6 +1,6 @@
 ---
 name: workspace-overview
-description: OpenClaw workspace architecture and file system overview. Use when the user asks about OpenClaw workspace structure, how workspace files are loaded, character limits, subfolder patterns, or what goes in each file. Triggers on questions like "how does OpenClaw workspace work", "what files does OpenClaw load", "workspace file limits", "how to organize OpenClaw workspace".
+description: OpenClaw workspace architecture and file system overview — directory structure, file loading mechanics, character limits, scan categories (A-J), and subfolder organization patterns. Use this skill whenever the user asks about how the workspace is structured, what files get loaded automatically, character limits, what goes where, or how to organize their workspace. This is the foundational skill — use it first when the user is new to OpenClaw or asks broad questions about workspace organization, even before more specific skills like agents-md or soul-md.
 ---
 
 # OpenClaw Workspace Architecture
@@ -22,12 +22,14 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 │   ├── HEARTBEAT.md            # Background task checklist
 │   ├── MEMORY.md               # Curated long-term memory
 │   ├── BOOT.md                 # Gateway restart instructions
-│   ├── docs/                   # Read on demand
-│   │   ├── clients/
-│   │   ├── procedures/
-│   │   ├── contracts/
-│   │   └── standing-orders/
-│   ├── workflows/              # .prose files
+│   ├── BOOTSTRAP.md            # First-run ritual (deleted after)
+│   ├── docs/                   # On-demand reference files
+│   │   ├── rules/              # Extended rules
+│   │   ├── procedures/         # Task-specific guides
+│   │   ├── clients/            # Client profiles
+│   │   └── standing-orders/    # Recurring autonomous tasks
+│   ├── workflows/              # .prose workflow files
+│   ├── canvas/                 # Canvas UI files (optional)
 │   ├── memory/                 # Daily logs (auto-created)
 │   └── skills/                 # Instance-specific skills
 ├── agents/
@@ -35,7 +37,10 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 │       └── sessions/
 │           ├── sessions.json   # Session index
 │           └── *.jsonl         # Session transcripts
-├── cron/                       # Cron job configurations
+├── memory/
+│   └── main.sqlite             # Vector search index (auto-built)
+├── cron/
+│   └── jobs.json               # Scheduled jobs
 ├── logs/
 │   └── openclaw.log            # Gateway log
 ├── openclaw.json               # Central gateway configuration
@@ -46,7 +51,6 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 ├── completions/                # DO NOT SCAN
 ├── delivery-queue/             # DO NOT SCAN
 ├── media/                      # DO NOT SCAN
-├── canvas/                     # DO NOT SCAN
 ├── identity/                   # DO NOT SCAN
 ├── config.yaml                 # DO NOT SCAN
 └── *.bak*                      # DO NOT SCAN
@@ -61,23 +65,42 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 /root/openclaw-plugins-private/packages/*/  # Shared private plugins
 ```
 
-## Scan Targets for Evaluation (11 total)
+## Scan Categories (A–J + Shared)
 
-| # | Target | Path | Mode |
-|---|--------|------|------|
-| 1 | Workspace files | `./workspace/*.md` | Read + Write |
-| 2 | Workspace docs | `./workspace/docs/**/*.md` | Read + Write |
-| 3 | Instance skills | `./workspace/skills/*/SKILL.md` | Read only |
-| 4 | Sessions | `./agents/main/sessions/` | Read only |
-| 5 | Config | `./openclaw.json` | Read only |
-| 6 | Memory logs | `./workspace/memory/*.md` | Read only |
-| 7 | Cron jobs | `./cron/` | Read only |
-| 8 | Logs | `./logs/openclaw.log` | Read only |
-| 9 | Shared public skills | `/root/openclaw-skills/*/SKILL.md` | Read only |
-| 10 | Shared private skills | `/root/openclaw-private-skills/*/SKILL.md` | Read only |
-| 11 | Shared plugins | `/root/openclaw-plugins/packages/*/` + private | Read only |
+| Cat | Target | Path | Mode |
+|-----|--------|------|------|
+| A | Auto-injected workspace files | `./workspace/AGENTS.md`, `SOUL.md`, `USER.md`, `IDENTITY.md`, `TOOLS.md`, `HEARTBEAT.md`, `MEMORY.md`, `BOOT.md`, `BOOTSTRAP.md` | Read + Write |
+| B | Memory files | `./workspace/memory/*.md` + `./workspace/MEMORY.md` | Read + Write |
+| C | Instance skills | `./workspace/skills/*/SKILL.md` | Read only |
+| D | Subfolders (on-demand) | `./workspace/docs/**/*.md` + `./workspace/workflows/**/*.prose` | Read + Write |
+| E | Config | `./openclaw.json` | Read + Write (with permission) |
+| F | Sessions | `./agents/main/sessions/sessions.json` + `*.jsonl` | Read only |
+| G | Memory index | `./memory/main.sqlite` | Read only (vector search index) |
+| H | Cron | `./cron/jobs.json` | Read only |
+| I | Logs | `./logs/openclaw.log` | Read only |
+| J | Canvas | `./workspace/canvas/` | Read + Write |
+| — | Shared public skills | `/root/openclaw-skills/*/SKILL.md` | Read only |
+| — | Shared private skills | `/root/openclaw-private-skills/*/SKILL.md` | Read only |
+| — | Shared plugins | `/root/openclaw-plugins/packages/*/` + private | Read only |
 
-**Write scope**: The plugin only creates/edits files inside `./workspace/`. Everything else is read-only for analysis.
+**Write scope**: The plugin creates/edits files in `./workspace/` and `./openclaw.json` (with explicit user permission). Everything else is read-only for analysis.
+
+## DO NOT SCAN — Excluded Directories
+
+These contain sensitive/internal data (OAuth tokens, session state, device pairing, certs) — reading them risks exposing secrets in LLM context. Do not scan:
+
+- `./credentials/` — OAuth tokens, API keys
+- `./telegram/` — Telegram session state
+- `./devices/` — device pairing data
+- `./subagents/` — internal subagent state
+- `./completions/` — LLM completion cache
+- `./delivery-queue/` — message delivery queue
+- `./media/` — media file cache
+- `./identity/` — certificates and identity data
+- `./config.yaml` — internal gateway config
+- `./*.bak*` — backup files
+- `./memory/main.sqlite-wal` — sqlite WAL (do not touch)
+- `./memory/main.sqlite-shm` — sqlite shared memory (do not touch)
 
 ## Auto-Injected Files (loaded every session)
 
@@ -116,6 +139,18 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 - **AGENTS.md** = HOW the agent OPERATES (procedures, rules, memory management, group chat behavior)
 - Never mix personality into AGENTS.md or procedures into SOUL.md
 
+## Workspace Subfolders — On-Demand Reference Files
+
+Only auto-injected files are loaded every session. Everything in subfolders is read on demand by the agent via the `read` tool — saving tokens when content is not relevant.
+
+**Key rules**:
+- If content is needed in >= 50% of sessions → keep in auto-injected files
+- If content is needed in < 50% of sessions → move to docs/
+- If content is critical for safety → keep in AGENTS.md or SOUL.md regardless
+- One topic per file, lowercase-hyphen naming
+
+See `references/subfolder-patterns.md` for detailed subfolder structure, templates, and examples.
+
 ## Files NOT Auto-Loaded
 
 These must be read manually by the agent when referenced from AGENTS.md:
@@ -123,35 +158,28 @@ These must be read manually by the agent when referenced from AGENTS.md:
 - `memory/YYYY-MM-DD.md` — daily memory logs
 - `docs/**/*.md` — documentation subfolders
 - `workflows/*.prose` — workflow files
+- `canvas/` — canvas UI files
 - `skills/` — instance-specific skills (separate loading system)
+
+## Content Language
+
+Write all workspace file content in English. This ensures consistency across multi-user setups, better compatibility with LLM models (which process English instructions more reliably), and clearer prompt engineering. Users may communicate with the agent in any language, but the workspace files themselves are always English.
 
 ## Referencing Subfolders from AGENTS.md
 
 Since subfolders are NOT auto-loaded, reference them explicitly:
 
 ```markdown
-## Documentation
-When needed, read files from docs/:
-- docs/clients/ — client profiles (read before working on a client matter)
-- docs/procedures/ — methodologies and templates
-- docs/standing-orders/ — recurring autonomous task programs
+## Reference Documents
+Before starting a task, check if a relevant doc exists.
+Read it with: read docs/<folder>/<file>.md
+
+Available docs:
+- docs/rules/         — security rules, data classification
+- docs/procedures/    — step-by-step guides for specific task types
+- docs/clients/       — client profiles, contracts, key facts
+- docs/standing-orders/ — recurring tasks and schedules
 ```
-
-## DO NOT SCAN — Excluded Directories
-
-These directories contain sensitive/internal data and must NEVER be read or scanned:
-
-- `./credentials/` — OAuth tokens, API keys
-- `./telegram/` — Telegram session state
-- `./devices/` — device pairing data
-- `./subagents/` — internal subagent state
-- `./completions/` — LLM completion cache
-- `./delivery-queue/` — message delivery queue
-- `./media/` — media file cache
-- `./canvas/` — canvas state
-- `./identity/` — certificates and identity data
-- `./config.yaml` — internal gateway config
-- `./*.bak*` — backup files
 
 ## Version Control
 
@@ -170,9 +198,11 @@ The recommended approach for workspace optimization:
 1. **Scan** — read all current workspace files, check for gaps
 2. **Interview** — understand goals, users, tasks, channels, success criteria
 3. **Analyze** — identify missing rules, conflicts, unused tools, pain points
-4. **Optimize** — generate improved files following best practices
-5. **Apply** — show diffs, get approval, write changes to `./workspace/`
-6. **Iterate** — start short, add rules when problems are observed
+4. **Security audit** — check for secrets, prompt injection risks, missing safety rules
+5. **Optimize** — generate improved files following best practices
+6. **Apply** — show diffs, get approval, write changes to `./workspace/`
+7. **Fix permissions** — run chown + doctor in Docker after edits
+8. **Iterate** — start short, add rules when problems are observed
 
 ## SOUL.md Size Rule
 

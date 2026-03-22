@@ -1,6 +1,6 @@
 ---
 name: tools-md
-description: TOOLS.md optimization guide for OpenClaw. Use when the user needs to create or improve their TOOLS.md file — environment-specific tool notes, search priorities, device names, and local infrastructure details. Triggers on "customize TOOLS.md", "tool notes", "search tool priority", "OpenClaw tools", "which search tool to use".
+description: Guide for optimizing TOOLS.md — environment-specific tool notes, search priorities, device names, and local infrastructure details. Use this skill whenever the user is configuring which tools their agent should prefer, adding environment notes, documenting search tool priority orders, or setting up device/API references. Even questions like "which search tool should my agent use first", "how do I tell the agent about my devices", or "add tool notes" need this skill.
 ---
 
 # TOOLS.md Optimization Guide

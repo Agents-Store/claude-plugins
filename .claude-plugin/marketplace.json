@@ -135,8 +135,8 @@
     {
       "name": "openclaw-configurator",
       "source": "./plugins/openclaw-configurator",
-      "description": "OpenClaw instance configurator plugin. Scan, analyze, and optimize all workspace files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOTSTRAP.md, BOOT.md) plus openclaw.json. Guided interviews, session log analysis, standing orders design, and 6 industry-specific workspace templates.",
-      "version": "1.0.0",
+      "description": "OpenClaw instance configurator plugin. Scan, analyze, and optimize all workspace files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOTSTRAP.md, BOOT.md) plus openclaw.json. Guided interviews, session log analysis, standing orders design, security audit, config validation, permission fix hooks, and 6 industry-specific workspace templates.",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },

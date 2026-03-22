@@ -1,6 +1,6 @@
 ---
 name: identity-md
-description: IDENTITY.md creation guide for OpenClaw. Use when the user needs to set up the agent's name, creature type, vibe, emoji, and avatar. Triggers on "create IDENTITY.md", "agent name", "agent emoji", "agent avatar", "name my OpenClaw agent".
+description: Guide for creating IDENTITY.md — the agent's name, creature type, vibe, emoji, and avatar in OpenClaw. Use this skill whenever the user is naming their agent, choosing an emoji or avatar, setting up the agent's visual identity, or asking how agent identity works. Even simple questions like "what should I name my agent", "how do I set the bot emoji", or "change the agent's avatar" need this skill.
 ---
 
 # IDENTITY.md Creation Guide

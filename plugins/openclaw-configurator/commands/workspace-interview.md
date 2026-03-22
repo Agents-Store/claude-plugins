@@ -8,6 +8,8 @@ argument-hint: ""
 
 Conduct a guided discovery session to understand what the OpenClaw workspace needs to achieve. CWD is the instance root (`~/.openclaw-{name}/`).
 
+**Note**: The interview conversation can be in the user's preferred language. However, all generated workspace files and the workspace brief MUST be written in English.
+
 ## Process
 
 ### Step 1: Check current state
@@ -62,7 +64,7 @@ Ask these questions conversationally, not as a rigid form. Adapt based on answer
 
 ### Step 3: Compile brief
 
-After gathering all answers, create a structured brief:
+After gathering all answers, create a structured brief **in English**:
 
 ```markdown
 # Workspace Configuration Brief
@@ -111,5 +113,7 @@ Show the compiled brief to the user and suggest next steps:
 1. Save brief to workspace as `./workspace/docs/workspace-brief.md`
 2. Run `/workspace-optimize all` to generate all workspace files based on this brief
 3. Or optimize specific files: `/workspace-optimize soul`, `/workspace-optimize agents`, etc.
+4. Run `/config-validate` to check openclaw.json
+5. After all edits: fix Docker permissions
 
 Ask for approval before saving.

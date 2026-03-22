@@ -1,11 +1,32 @@
 ---
 name: openclaw-config
-description: OpenClaw openclaw.json configuration guide. Use when the user needs to understand or modify their openclaw.json — agents, channels, tools, plugins, session, and model settings. Triggers on "openclaw.json", "configure OpenClaw", "channel setup", "model configuration", "tools profile", "plugin configuration", "agent routing".
+description: Comprehensive guide for openclaw.json — the central gateway configuration file controlling models, channels, tools, plugins, and sessions. Use this skill whenever the user needs to understand, modify, or troubleshoot their openclaw.json. Covers agent settings, Telegram/Discord/WhatsApp channel setup, tool profiles, plugin management, session behavior, secret handling with SecretRef, and model configuration. Even questions like "how do I add Telegram", "change the model", or "what does this config field do" need this skill.
 ---
 
 # openclaw.json Configuration Guide
 
 `openclaw.json` is the central gateway configuration file, located at `./openclaw.json` (relative to instance root `~/.openclaw-{name}/`). It controls models, channels, tools, plugins, sessions, and agent routing. Separate from workspace files — this is infrastructure configuration.
+
+## Official Documentation
+
+Always verify configuration against official docs:
+- **Docs**: `https://docs.openclaw.ai`
+- **Source + changelog**: `https://github.com/openclaw/openclaw`
+- **Skills examples**: `https://github.com/openclaw/skills`
+
+Use firecrawl, exa, perplexity, jina, or WebFetch to check docs when uncertain.
+
+## Editing openclaw.json
+
+The plugin CAN edit `./openclaw.json` with these mandatory safeguards:
+
+1. **Show diff** — always display proposed changes before applying
+2. **Ask permission** — require explicit user confirmation
+3. **Back up** — `cp ./openclaw.json ./openclaw.json.bak` before any edit
+4. **Validate JSON** — check syntax before writing
+5. **Run doctor** — `openclaw-team doctor --fix` after editing
+6. **Never delete sections** — only add or modify existing fields
+7. **Fix permissions** — run Docker chown after edits
 
 ## Key Sections
 
@@ -19,7 +40,7 @@ description: OpenClaw openclaw.json configuration guide. Use when the user needs
       "model": "claude-sonnet-4-20250514",
       "bootstrapMaxChars": 20000,
       "bootstrapTotalMaxChars": 150000,
-      "userTimezone": "Europe/Kyiv",
+      "userTimezone": "America/New_York",
       "timeFormat": "24",
       "timeoutSeconds": 600,
       "maxConcurrent": 3,
@@ -56,13 +77,13 @@ description: OpenClaw openclaw.json configuration guide. Use when the user needs
   "channels": {
     "telegram": {
       "enabled": true,
-      "botToken": "$TELEGRAM_BOT_TOKEN",
+      "botToken": { "source": "env", "provider": "default", "id": "TELEGRAM_BOT_TOKEN" },
       "dmPolicy": "allowlist",
-      "allowFrom": ["tg:549422805"],
+      "allowFrom": ["tg:USER_ID"],
       "groups": {
-        "-1001234567890": {
+        "-100GROUP_ID": {
           "requireMention": true,
-          "allowFrom": ["tg:549422805", "tg:123456789"]
+          "allowFrom": ["tg:USER_ID", "tg:ANOTHER_USER_ID"]
         }
       }
     }
@@ -76,7 +97,7 @@ description: OpenClaw openclaw.json configuration guide. Use when the user needs
   "channels": {
     "discord": {
       "enabled": true,
-      "token": "$DISCORD_BOT_TOKEN",
+      "token": { "source": "env", "provider": "default", "id": "DISCORD_BOT_TOKEN" },
       "dmPolicy": "allowlist",
       "allowFrom": ["discord:USER_ID"],
       "guilds": {
@@ -120,7 +141,7 @@ description: OpenClaw openclaw.json configuration guide. Use when the user needs
       "backgroundMs": 10000
     },
     "loopDetection": {
-      "enabled": false,
+      "enabled": true,
       "warningThreshold": 10,
       "criticalThreshold": 20
     }
@@ -142,7 +163,7 @@ description: OpenClaw openclaw.json configuration guide. Use when the user needs
     "entries": {
       "my-plugin": {
         "enabled": true,
-        "config": { "apiKey": "$PLUGIN_API_KEY" }
+        "config": { "apiKey": { "source": "env", "provider": "default", "id": "PLUGIN_API_KEY" } }
       }
     }
   }
@@ -166,6 +187,24 @@ description: OpenClaw openclaw.json configuration guide. Use when the user needs
 
 **dmScope options:** `"main"` | `"per-peer"` | `"per-channel-peer"`
 
+## Secret Handling — SecretRef Pattern
+
+**Never put raw secrets in openclaw.json.** Use the SecretRef pattern:
+
+```json
+{
+  "source": "env",
+  "provider": "default",
+  "id": "ENV_VAR_NAME"
+}
+```
+
+Place actual values in `.env` file at the instance root.
+
+**Known issue**: `openclaw doctor` may show `unresolved SecretRef` errors when running outside gateway runtime. This is safe to ignore.
+
+If inline secrets are found during audit, warn the user and recommend migration to SecretRef.
+
 ## Relationship to Workspace Files
 
 | openclaw.json | Informs Which Workspace File |
@@ -187,14 +226,20 @@ description: OpenClaw openclaw.json configuration guide. Use when the user needs
 5. **Tool profile** — "full" vs "minimal" based on agent's needs?
 6. **Plugin entries** — are all needed plugins enabled?
 7. **Bootstrap limits** — workspace files staying under limits?
+8. **Secret handling** — all secrets use SecretRef pattern?
+9. **Loop detection** — enabled for production stability?
+10. **dmPolicy** — "allowlist" for production (not "open")?
 
 See `references/config-reference.md` for the complete field reference.
 
 ## Best Practices
 
-1. Keep secrets (tokens, API keys) in env vars, not inline
+1. Keep secrets (tokens, API keys) in env vars via SecretRef pattern
 2. Use `allowlist` dmPolicy for production agents
 3. Set `heartbeat.model` to a cheap model
 4. Configure `userTimezone` to match primary user
 5. Enable `loopDetection` for production stability
 6. Review `maxConcurrent` based on usage patterns
+7. Always back up before editing: `cp ./openclaw.json ./openclaw.json.bak`
+8. Run `openclaw-team doctor --fix` after any changes
+9. Fix Docker permissions after edits

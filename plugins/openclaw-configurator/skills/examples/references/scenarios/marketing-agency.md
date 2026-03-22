@@ -82,7 +82,7 @@ Track: client brand guidelines, content calendars, performance metrics, platform
 ```markdown
 ## Account Manager
 - Name: [Name]
-- Timezone: Europe/Kyiv
+- Timezone: America/New_York
 - Role: Account Manager
 - Language: Ukrainian/English
 - Style: Concise, action-oriented

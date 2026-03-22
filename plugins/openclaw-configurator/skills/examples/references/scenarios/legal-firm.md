@@ -85,7 +85,7 @@ Check docs/standing-orders/ for:
 ## Primary User
 - Name: [Partner Name]
 - Call me: [First Name]
-- Timezone: Europe/Kyiv
+- Timezone: America/New_York
 - Role: Managing Partner
 - Language: Ukrainian (legal terms in original language), English for international matters
 - Style: Formal, thorough analysis preferred
@@ -123,7 +123,7 @@ Check docs/standing-orders/ for:
 - [ ] Check for new legislation affecting monitored areas
 - [ ] Check court decision registry for pending cases
 - [ ] Review compliance deadlines (next 7 days)
-# Quiet: 22:00-07:00 (Europe/Kyiv)
+# Quiet: 22:00-07:00 (America/New_York)
 ```
 
 ## Workspace Structure

@@ -82,7 +82,7 @@ When reviewing code:
 ```markdown
 ## Team Lead
 - Name: [Name]
-- Timezone: Europe/Kyiv
+- Timezone: America/New_York
 - Role: Tech Lead
 - Language: English for code, Ukrainian for discussion
 - Style: Code-first, minimal explanation

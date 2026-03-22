@@ -1,6 +1,6 @@
 ---
 name: examples
-description: End-to-end OpenClaw workspace customization examples and scenarios. Use when the user wants to see complete workspace setups for specific industries or use cases, or needs reference implementations. Triggers on "show me an example", "workspace setup example", "how to set up OpenClaw for", "complete workspace configuration", "reference implementation".
+description: Complete end-to-end workspace customization examples for different industries — legal firms, dev teams, marketing agencies, customer support, personal assistants, and content creators. Use this skill whenever the user wants to see a reference implementation, asks "how would you set up OpenClaw for X", wants to see what a complete workspace looks like, or needs a starting template for their industry. Even vague requests like "show me an example" or "what does a good workspace look like" should trigger this skill.
 ---
 
 # Workspace Customization Examples
