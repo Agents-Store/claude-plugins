@@ -1,0 +1,8 @@
+{
+  "name": "openclaw-configurator",
+  "version": "1.0.0",
+  "description": "OpenClaw instance configurator plugin. Scan, analyze, and optimize all workspace files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOTSTRAP.md, BOOT.md) plus openclaw.json. Guided interviews, session log analysis, standing orders design, and industry-specific workspace templates for legal firms, dev teams, agencies, and more.",
+  "author": {
+    "name": "AGENTS.STORE"
+  }
+}
