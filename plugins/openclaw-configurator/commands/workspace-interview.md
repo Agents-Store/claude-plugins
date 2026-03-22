@@ -1,7 +1,7 @@
 ---
 description: Guided discovery session to understand goals, users, tasks, and success criteria for OpenClaw workspace customization
 allowed-tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
-argument-hint: ""
+argument-hint: "[new|existing]"
 ---
 
 # Workspace Interview

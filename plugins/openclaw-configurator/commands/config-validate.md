@@ -1,7 +1,7 @@
 ---
 description: Validate openclaw.json against official documentation, check for latest features, detect inline secrets, and verify cross-references with workspace files
 allowed-tools: ["Read", "Bash", "Glob", "Grep", "WebFetch", "WebSearch"]
-argument-hint: ""
+argument-hint: "[--secrets] [--docs] [--all]"
 ---
 
 # Config Validate

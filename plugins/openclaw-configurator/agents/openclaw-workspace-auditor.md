@@ -15,7 +15,13 @@ description: |
   <example>
   user: "Check my workspace for security issues"
   </example>
-tools: Read, Bash, Glob, Grep, WebFetch, WebSearch
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 model: sonnet
 color: yellow
 ---

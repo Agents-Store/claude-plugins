@@ -27,7 +27,15 @@ description: |
   <example>
   user: "Run a security audit on my workspace"
   </example>
-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, WebSearch
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - WebFetch
+  - WebSearch
 model: sonnet
 color: blue
 ---
