@@ -1,0 +1,9 @@
+{
+  "name": "multi-bank-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Utility scripts for the multi-bank Claude Code plugin",
+  "dependencies": {
+    "pdfkit": "^0.15.0"
+  }
+}

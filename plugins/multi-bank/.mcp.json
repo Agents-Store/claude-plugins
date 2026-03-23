@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "monobank": {
+      "type": "http",
+      "url": "https://your-mcp-server.example.com/mcp/monobank"
+    },
+    "privatbank": {
+      "type": "http",
+      "url": "https://your-mcp-server.example.com/mcp/privatbank"
+    }
+  }
+}

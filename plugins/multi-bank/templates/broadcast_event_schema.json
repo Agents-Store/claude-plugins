@@ -1,0 +1,171 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Broadcast Event Schemas",
+  "description": "JSON schemas and examples for all broadcast event types",
+  "event_types": {
+    "balance_updated": {
+      "description": "Emitted after bank balance sync completes for an account via MCP",
+      "latency_target_ms": 5000,
+      "example": {
+        "id": "evt_abc123",
+        "type": "balance_updated",
+        "timestamp": "2026-03-23T14:30:00Z",
+        "accountId": "acc_mono_1234",
+        "payload": {
+          "institutionName": "Monobank",
+          "accountName": "Чорна картка ****1234",
+          "currentBalance": 5432.10,
+          "availableBalance": 5200.00,
+          "currency": "UAH",
+          "previousBalance": 5382.10,
+          "delta": 50.00
+        }
+      }
+    },
+    "transaction_added": {
+      "description": "Emitted for each new transaction detected during sync",
+      "latency_target_ms": 5000,
+      "example": {
+        "id": "evt_def456",
+        "type": "transaction_added",
+        "timestamp": "2026-03-23T14:30:01Z",
+        "accountId": "acc_mono_1234",
+        "payload": {
+          "transactionId": "txn_789",
+          "amount": -45.67,
+          "category": "Dining",
+          "subcategory": "Restaurants",
+          "merchantName": "Сільпо",
+          "date": "2026-03-22",
+          "pending": false,
+          "tags": ["recurring"],
+          "location": { "city": "Kyiv", "region": "Kyiv" }
+        }
+      }
+    },
+    "budget_alert": {
+      "description": "Emitted when spending crosses a budget threshold",
+      "latency_target_ms": 1000,
+      "example": {
+        "id": "evt_ghi789",
+        "type": "budget_alert",
+        "timestamp": "2026-03-23T14:30:02Z",
+        "accountId": null,
+        "payload": {
+          "budgetId": "budget_dining_monthly",
+          "category": "Dining",
+          "budgetAmount": 500.00,
+          "spentAmount": 475.67,
+          "percentUsed": 95.1,
+          "threshold": 90,
+          "period": "monthly",
+          "periodStart": "2026-03-01",
+          "periodEnd": "2026-03-31",
+          "remainingBudget": 24.33
+        }
+      }
+    },
+    "sync_complete": {
+      "description": "Emitted after all accounts finish syncing",
+      "latency_target_ms": 0,
+      "example": {
+        "id": "evt_jkl012",
+        "type": "sync_complete",
+        "timestamp": "2026-03-23T14:30:05Z",
+        "accountId": null,
+        "payload": {
+          "accountsSynced": ["acc_mono_1234", "acc_mono_5678", "acc_privat_3456"],
+          "failedAccounts": [],
+          "totalBalanceUAH": 120782.40,
+          "transactionsAdded": 12,
+          "syncDurationMs": 4200,
+          "nextSyncScheduled": "2026-03-23T15:30:00Z"
+        }
+      }
+    },
+    "payment_prepared": {
+      "description": "Emitted when a payment is prepared and sent for mobile signing",
+      "example": {
+        "id": "evt_pay001",
+        "type": "payment_prepared",
+        "timestamp": "2026-03-23T15:00:00Z",
+        "payload": {
+          "paymentId": "pay_abc123",
+          "senderIban": "UA29...****0001",
+          "receiverIban": "UA21...****5678",
+          "receiverName": "ТОВ Приклад",
+          "amount": 1000000,
+          "amountUAH": 10000.00,
+          "currency": "980",
+          "destination": "Оплата за послуги",
+          "status": "CREATED",
+          "externalReference": "ref_2026_03_001"
+        }
+      }
+    },
+    "payment_completed": {
+      "description": "Emitted when a payment is successfully processed",
+      "example": {
+        "id": "evt_pay002",
+        "type": "payment_completed",
+        "timestamp": "2026-03-23T15:05:00Z",
+        "payload": {
+          "paymentId": "pay_abc123",
+          "status": "SUCCESS",
+          "amountUAH": 10000.00,
+          "externalReference": "ref_2026_03_001"
+        }
+      }
+    },
+    "salary_registry_created": {
+      "description": "Emitted when a salary registry is created",
+      "example": {
+        "id": "evt_sal001",
+        "type": "salary_registry_created",
+        "timestamp": "2026-03-23T16:00:00Z",
+        "payload": {
+          "registryId": "reg_abc123",
+          "registryName": "Заробітна плата за березень 2026",
+          "recipientCount": 15,
+          "totalAmountUAH": 450000.00,
+          "status": "CREATED"
+        }
+      }
+    },
+    "salary_registry_status_changed": {
+      "description": "Emitted when a salary registry status changes",
+      "example": {
+        "id": "evt_sal002",
+        "type": "salary_registry_status_changed",
+        "timestamp": "2026-03-23T16:30:00Z",
+        "payload": {
+          "registryId": "reg_abc123",
+          "previousStatus": "PROCESSING",
+          "newStatus": "COMPLETED",
+          "successCount": 15,
+          "failedCount": 0
+        }
+      }
+    },
+    "payslips_sent": {
+      "description": "Emitted when payslips are sent to employees' mobile apps",
+      "example": {
+        "id": "evt_ps001",
+        "type": "payslips_sent",
+        "timestamp": "2026-03-23T17:00:00Z",
+        "payload": {
+          "period": "2026-03",
+          "employeeCount": 45,
+          "status": "SENT"
+        }
+      }
+    }
+  },
+  "subscription_schema": {
+    "subscriberId": "string (unique)",
+    "eventTypes": ["balance_updated", "transaction_added", "budget_alert", "sync_complete", "payment_prepared", "payment_completed", "salary_registry_created", "salary_registry_status_changed", "payslips_sent"],
+    "accountFilter": ["string[] (empty = all accounts)"],
+    "callbackType": "websocket | polling | file",
+    "callbackTarget": "string (ws:// URL, HTTP endpoint, or file path)"
+  }
+}

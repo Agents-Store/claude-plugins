@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bank MCP Configuration",
+  "description": "Template for configuring MCP server connections to Ukrainian banks",
+  "template": {
+    "mcpServers": {
+      "monobank": {
+        "type": "http",
+        "url": "https://your-mcp-server.example.com/mcp/monobank"
+      },
+      "privatbank": {
+        "type": "http",
+        "url": "https://your-mcp-server.example.com/mcp/privatbank"
+      }
+    }
+  },
+  "tool_domains": {
+    "accounts": {
+      "description": "Account management and balance queries",
+      "discovery_keywords": ["account", "balance", "iban", "рахунок", "баланс"],
+      "typical_operations": ["list all accounts", "get account by IBAN", "balance history by period"]
+    },
+    "statements": {
+      "description": "Transaction statements and payment details",
+      "discovery_keywords": ["statement", "extract", "виписка", "операція"],
+      "typical_operations": ["get statement by IBAN and date range", "get payment details"]
+    },
+    "payments": {
+      "description": "Payment preparation and tracking",
+      "discovery_keywords": ["payment", "prepare", "pay", "платіж"],
+      "typical_operations": ["prepare payment", "get payment status", "track by reference"]
+    },
+    "salary": {
+      "description": "Salary project management",
+      "discovery_keywords": ["salary", "contact", "registry", "зарплат", "контакт", "відомість"],
+      "typical_operations": ["manage contacts", "create registry", "get registry types/status"]
+    },
+    "payslips": {
+      "description": "Payslip distribution",
+      "discovery_keywords": ["payslip", "import", "mobile", "pdf", "розрахунковий", "листок"],
+      "typical_operations": ["batch upload", "send to mobile", "generate PDF", "check status"]
+    },
+    "e_documents": {
+      "description": "Electronic document exchange (EDO)",
+      "discovery_keywords": ["edoc", "document", "journal", "inbox", "outbox", "sign"],
+      "typical_operations": ["list documents", "get document Base64", "check signatures", "delete document"]
+    },
+    "currency_rates": {
+      "description": "Currency exchange rates",
+      "discovery_keywords": ["currency", "rate", "курс", "exchange"],
+      "typical_operations": ["current rates", "rate history"]
+    },
+    "corporate_cards": {
+      "description": "Corporate card management",
+      "discovery_keywords": ["corporate", "card", "картк"],
+      "typical_operations": ["list cards by status"]
+    },
+    "maspay": {
+      "description": "Mass salary payments (PrivatBank-style packets)",
+      "discovery_keywords": ["maspay", "packet", "payroll", "receiver"],
+      "typical_operations": ["create packet", "add receivers", "validate", "list packets"]
+    }
+  },
+  "supported_banks": [
+    {
+      "name": "Monobank",
+      "mcp_key": "monobank",
+      "tool_pattern_hint": "mcp__<server-name>__*",
+      "currency": "UAH",
+      "statement_rate_limit": "1 request per 60 seconds per account",
+      "available_domains": ["accounts", "statements", "payments", "salary", "payslips"],
+      "note": "Corporate API has all domains. Personal API may have fewer."
+    },
+    {
+      "name": "PrivatBank",
+      "mcp_key": "privatbank",
+      "tool_pattern_hint": "mcp__<server-name>__*",
+      "currency": "UAH",
+      "statement_rate_limit": "varies by endpoint",
+      "available_domains": ["accounts", "statements", "payments", "salary", "maspay", "e_documents", "currency_rates", "corporate_cards"],
+      "note": "Corporate API (Privat24 for Business) has all domains. Features depend on MCP server implementation."
+    }
+  ],
+  "setup_instructions": [
+    "1. Copy the 'template' section into your plugin's .mcp.json file",
+    "2. Replace placeholder URLs with your actual MCP server endpoints",
+    "3. Verify connectivity: list available MCP tools to confirm both servers respond",
+    "4. NEVER commit real MCP server URLs to the repository"
+  ]
+}
