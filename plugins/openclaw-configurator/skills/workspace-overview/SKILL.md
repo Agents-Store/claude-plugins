@@ -9,7 +9,11 @@ This skill covers the structure, loading mechanics, and organization of an OpenC
 
 ## Instance Directory Structure
 
-Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`). The plugin runs from this directory as CWD. All paths below are relative to CWD.
+**Standard layout**: `~/.openclaw/` (single instance). Multi-profile via `OPENCLAW_PROFILE` env var creates `~/.openclaw/workspace-<profile>`.
+
+**Docker multi-instance layout**: Each instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`). This is a deployment convention for running multiple OpenClaw instances, each with its own config and workspace.
+
+The plugin runs from the instance root as CWD. All paths below are relative to CWD.
 
 ```
 ./                              # Instance root (~/.openclaw-{name}/)
@@ -38,7 +42,7 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 │           ├── sessions.json   # Session index
 │           └── *.jsonl         # Session transcripts
 ├── memory/
-│   └── main.sqlite             # Vector search index (auto-built)
+│   └── main.sqlite             # Hybrid BM25 + vector search index (auto-built)
 ├── cron/
 │   └── jobs.json               # Scheduled jobs
 ├── logs/
@@ -56,8 +60,14 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 └── *.bak*                      # DO NOT SCAN
 ```
 
-### Shared Resources (absolute paths — one set for all instances)
+### Shared Resources
 
+**Standard paths:**
+```
+~/.openclaw/skills/*/SKILL.md               # Managed/local skills
+```
+
+**Docker deployment paths** (deployment-specific, may vary):
 ```
 /root/openclaw-skills/*/SKILL.md            # Shared public skills
 /root/openclaw-private-skills/*/SKILL.md    # Shared private skills
@@ -65,11 +75,17 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 /root/openclaw-plugins-private/packages/*/  # Shared private plugins
 ```
 
+Additional skill directories via `skills.load.extraDirs` in openclaw.json.
+
+**ClawHub** (clawhub.com) is the public registry for discovering and sharing skills and plugins.
+
 ## Scan Categories (A–J + Shared)
 
 | Cat | Target | Path | Mode |
 |-----|--------|------|------|
-| A | Auto-injected workspace files | `./workspace/AGENTS.md`, `SOUL.md`, `USER.md`, `IDENTITY.md`, `TOOLS.md`, `HEARTBEAT.md`, `MEMORY.md`, `BOOT.md`, `BOOTSTRAP.md` | Read + Write |
+| A | Auto-injected workspace files (7 core) | `./workspace/AGENTS.md`, `SOUL.md`, `USER.md`, `IDENTITY.md`, `TOOLS.md`, `HEARTBEAT.md`, `MEMORY.md` | Read + Write |
+| A+ | BOOT.md (hook-executed, not injected) | `./workspace/BOOT.md` (optional, persistent) | Read + Write |
+| A++ | BOOTSTRAP.md (auto-injected when present) | `./workspace/BOOTSTRAP.md` (temporary, deleted after bootstrap) | Read + Write |
 | B | Memory files | `./workspace/memory/*.md` + `./workspace/MEMORY.md` | Read + Write |
 | C | Instance skills | `./workspace/skills/*/SKILL.md` | Read only |
 | D | Subfolders (on-demand) | `./workspace/docs/**/*.md` + `./workspace/workflows/**/*.prose` | Read + Write |
@@ -79,9 +95,8 @@ Each OpenClaw instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`)
 | H | Cron | `./cron/jobs.json` | Read only |
 | I | Logs | `./logs/openclaw.log` | Read only |
 | J | Canvas | `./workspace/canvas/` | Read + Write |
-| — | Shared public skills | `/root/openclaw-skills/*/SKILL.md` | Read only |
-| — | Shared private skills | `/root/openclaw-private-skills/*/SKILL.md` | Read only |
-| — | Shared plugins | `/root/openclaw-plugins/packages/*/` + private | Read only |
+| — | Managed skills | `~/.openclaw/skills/*/SKILL.md` (standard) or `/root/openclaw-skills/*/SKILL.md` (Docker) | Read only |
+| — | Extra skill dirs | Paths from `skills.load.extraDirs` in openclaw.json | Read only |
 
 **Write scope**: The plugin creates/edits files in `./workspace/` and `./openclaw.json` (with explicit user permission). Everything else is read-only for analysis.
 
@@ -104,23 +119,53 @@ These contain sensitive/internal data (OAuth tokens, session state, device pairi
 
 ## Auto-Injected Files (loaded every session)
 
-| File | Purpose | When Loaded |
-|------|---------|-------------|
-| `AGENTS.md` | Operating rules, priorities, behavioral guidance | Every session |
-| `SOUL.md` | Persona, tone, boundaries, values | Every session |
-| `USER.md` | User identity, preferences, context | Every session |
-| `IDENTITY.md` | Agent name, vibe, emoji, avatar | Every session |
-| `TOOLS.md` | Local tool notes and environment-specific details | Every session |
+These 7 files are injected into the agent's context window on every turn — they consume tokens constantly. The `bootstrapMaxChars` and `bootstrapTotalMaxChars` limits apply to these files.
+
+| File | Purpose | Injection Scope |
+|------|---------|-----------------|
+| `AGENTS.md` | Operating rules, priorities, behavioral guidance | Every session + sub-agents |
+| `SOUL.md` | Persona, tone, boundaries, values | Main sessions only |
+| `USER.md` | User identity, preferences, context | Main sessions only |
+| `IDENTITY.md` | Agent name, vibe, emoji, avatar | Main sessions only |
+| `TOOLS.md` | Local tool notes and environment-specific details | Every session + sub-agents |
 | `HEARTBEAT.md` | Background task checklist | Heartbeat runs only |
-| `BOOT.md` | Gateway restart instructions | On gateway restart |
-| `MEMORY.md` | Curated long-term memory | Main session only (never in groups) |
-| `BOOTSTRAP.md` | First-run ritual (deleted after completion) | First session only |
+| `MEMORY.md` | Curated long-term memory | Main sessions only (never in groups) |
+
+Sub-agents only get `AGENTS.md` and `TOOLS.md` — other files are filtered out to keep sub-agent context small.
+
+## BOOTSTRAP.md — Auto-Injected When Present (Temporary)
+
+BOOTSTRAP.md **IS auto-injected** into the agent's context while it exists. It is created for brand-new workspaces during `openclaw onboard` and deleted after the bootstrap ritual completes. While present, it counts toward `bootstrapMaxChars` / `bootstrapTotalMaxChars` limits like any other auto-injected file.
+
+| File | Purpose | Lifecycle |
+|------|---------|-----------|
+| `BOOTSTRAP.md` | First-run onboarding ritual | Auto-injected when present. Created during `openclaw onboard`. Deleted after bootstrap completes. Counted toward char limits while present. |
+
+**Scanning behavior**:
+- BOOTSTRAP.md missing → good (means bootstrap completed successfully)
+- BOOTSTRAP.md present → warning (bootstrap hasn't finished — the agent should complete or remove it)
+- Can be skipped: `--dev` flag or `agent.skipBootstrap: true` in openclaw.json
+
+## BOOT.md — Hook-Executed, NOT Auto-Injected
+
+BOOT.md is NOT injected into the session context window. It is executed via the `boot-md` hook on `gateway:startup` event only. It is NOT counted toward character limits.
+
+| File | Purpose | Lifecycle |
+|------|---------|-----------|
+| `BOOT.md` | Gateway restart instructions | Optional. Executed via `boot-md` hook (requires `hooks.internal.enabled`). Persistent — runs on every gateway restart. Never deleted. Not injected into session context. |
+
+**Scanning behavior**:
+- BOOT.md missing → normal (optional file, user creates if needed)
 
 ## Character Limits
 
+These limits apply ONLY to the 7 auto-injected files listed above. Other files in `workspace/` (agent-created files, docs/ subfolders, etc.) are NOT counted toward these limits and are NOT loaded into context automatically.
+
 - **Per file**: `bootstrapMaxChars` = 20,000 characters (default)
-- **Total across all files**: `bootstrapTotalMaxChars` = 150,000 characters (default)
-- Files exceeding limits are **truncated silently**
+- **Total across all auto-injected files**: `bootstrapTotalMaxChars` = 150,000 characters (default)
+- Files exceeding limits are **truncated** with a marker
+- BOOT.md is NOT counted (not auto-injected — hook-executed only)
+- BOOTSTRAP.md IS counted while present (auto-injected on new workspaces, deleted after bootstrap)
 - Override in `./openclaw.json`:
   ```json
   {
@@ -132,6 +177,16 @@ These contain sensitive/internal data (OAuth tokens, session state, device pairi
     }
   }
   ```
+
+**The workspace/ folder can contain any files** — agents create files there during sessions (research notes, drafts, exports). These extra files are perfectly fine — they don't consume context tokens and don't count toward limits. If they're reference material the agent should access later, move them to `docs/` and reference from AGENTS.md.
+
+## Warning Signs — When to Extract to Subfolders
+
+- Auto-injected file **> 15K chars** → approaching the 20K truncation limit, move infrequently-used sections to `docs/`
+- AGENTS.md contains **procedure sections** → extract to `docs/procedures/`
+- AGENTS.md contains **client-specific rules** → extract to `docs/clients/`
+- AGENTS.md contains **detailed security policies** → extract to `docs/rules/`
+- Any **non-standard .md file in workspace/ root** → if it's reference material, move to `docs/` and add a reference in AGENTS.md
 
 ## Key Rule: SOUL vs AGENTS Separation
 
@@ -153,13 +208,15 @@ See `references/subfolder-patterns.md` for detailed subfolder structure, templat
 
 ## Files NOT Auto-Loaded
 
-These must be read manually by the agent when referenced from AGENTS.md:
+These exist in workspace/ but are NOT injected into context — the agent reads them on demand:
 
-- `memory/YYYY-MM-DD.md` — daily memory logs
-- `docs/**/*.md` — documentation subfolders
+- `BOOT.md` — executed via hook on gateway restart, not injected
+- `memory/YYYY-MM-DD.md` — daily memory logs (accessed via memory tools)
+- `docs/**/*.md` — documentation subfolders (read when referenced from AGENTS.md)
 - `workflows/*.prose` — workflow files
 - `canvas/` — canvas UI files
-- `skills/` — instance-specific skills (separate loading system)
+- `skills/` — instance-specific skills (injected as compact XML list ~97 chars per skill; full SKILL.md loaded on demand when triggered)
+- **Any other files** — agents can create arbitrary files in workspace/ during sessions (research, exports, drafts). These are stored but not loaded into context.
 
 ## Content Language
 

@@ -9,14 +9,14 @@ OpenClaw stores session data as JSONL files. Analyzing these reveals user behavi
 
 ## Session File Location
 
-All paths relative to CWD (`~/.openclaw-{name}/`):
+All paths relative to CWD (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`):
 
 ```
 ./agents/main/sessions/sessions.json   # Session index
 ./agents/main/sessions/*.jsonl         # Session transcripts
 ```
 
-Each JSONL line is a JSON object representing a message, tool call, or system event.
+Each JSONL line is a JSON object representing a message, tool call, or system event. Sessions reset daily at **4 AM local time** by default.
 
 ## Key Data Extractable
 

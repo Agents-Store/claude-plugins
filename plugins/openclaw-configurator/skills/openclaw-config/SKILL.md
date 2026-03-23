@@ -5,7 +5,9 @@ description: Comprehensive guide for openclaw.json — the central gateway confi
 
 # openclaw.json Configuration Guide
 
-`openclaw.json` is the central gateway configuration file, located at `./openclaw.json` (relative to instance root `~/.openclaw-{name}/`). It controls models, channels, tools, plugins, sessions, and agent routing. Separate from workspace files — this is infrastructure configuration.
+`openclaw.json` is the central gateway configuration file. Standard location: `~/.openclaw/openclaw.json`. In Docker multi-instance deployments, each instance has its own config at `~/.openclaw-{name}/openclaw.json` (e.g., `~/.openclaw-team/openclaw.json`). It controls models, channels, tools, plugins, sessions, and agent routing. Separate from workspace files — this is infrastructure configuration.
+
+The config uses JSON5 format and has **strict schema validation** — unknown keys cause the Gateway to refuse to start. Only `$schema` is allowed as a non-schema root key.
 
 ## Official Documentation
 
@@ -24,9 +26,9 @@ The plugin CAN edit `./openclaw.json` with these mandatory safeguards:
 2. **Ask permission** — require explicit user confirmation
 3. **Back up** — `cp ./openclaw.json ./openclaw.json.bak` before any edit
 4. **Validate JSON** — check syntax before writing
-5. **Run doctor** — `openclaw-team doctor --fix` after editing
+5. **Run doctor** — `openclaw doctor --fix` after editing (in Docker multi-instance: `openclaw-{name} doctor --fix`)
 6. **Never delete sections** — only add or modify existing fields
-7. **Fix permissions** — run Docker chown after edits
+7. **Fix permissions** — run Docker chown after edits (Docker deployments only)
 
 ## Key Sections
 
@@ -37,7 +39,10 @@ The plugin CAN edit `./openclaw.json` with these mandatory safeguards:
   "agents": {
     "defaults": {
       "workspace": "./workspace",
-      "model": "claude-sonnet-4-20250514",
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-20250514",
+        "fallbacks": ["openai/gpt-4o"]
+      },
       "bootstrapMaxChars": 20000,
       "bootstrapTotalMaxChars": 150000,
       "userTimezone": "America/New_York",
@@ -63,11 +68,13 @@ The plugin CAN edit `./openclaw.json` with these mandatory safeguards:
 ```
 
 **Key fields:**
-- `model` — primary LLM (string or `{ primary, fallbacks[] }`)
+- `model` — primary LLM in `provider/model` format (string or `{ primary: "provider/model", fallbacks: [...] }`)
 - `bootstrapMaxChars` / `bootstrapTotalMaxChars` — workspace file limits
-- `heartbeat.every` — heartbeat interval ("5m", "10m", "1h")
+- `heartbeat.every` — heartbeat interval ("5m", "10m", "1h", "0m" to disable)
 - `heartbeat.model` — cheaper model for heartbeats to save tokens
-- `maxConcurrent` — parallel session limit
+- `heartbeat.target` — heartbeat delivery target: `last | whatsapp | telegram | discord | none`
+- `sandbox.mode` — sandbox mode: `off | non-main | all`
+- `sandbox.scope` — sandbox scope: `session | agent | shared`
 
 ### channels — Communication Platforms
 
@@ -176,16 +183,25 @@ The plugin CAN edit `./openclaw.json` with these mandatory safeguards:
 {
   "session": {
     "dmScope": "main",
+    "mainKey": "main",
     "reset": {
-      "mode": "idle",
+      "mode": "daily",
+      "atHour": 4,
       "idleMinutes": 60
     },
-    "resetTriggers": ["/new", "/reset"]
+    "resetTriggers": ["/new", "/reset"],
+    "maintenance": {
+      "mode": "warn",
+      "pruneAfter": "30d",
+      "maxEntries": 500
+    }
   }
 }
 ```
 
-**dmScope options:** `"main"` | `"per-peer"` | `"per-channel-peer"`
+**dmScope options:** `"main"` | `"per-peer"` | `"per-channel-peer"` | `"per-account-channel-peer"`
+**reset.mode:** `"daily"` — resets at `atHour` (default 4 AM local). `idleMinutes` is a separate idle window.
+**maintenance.mode:** `"warn"` (log warnings) | `"enforce"` (auto-prune stale sessions)
 
 ## Secret Handling — SecretRef Pattern
 
@@ -232,6 +248,56 @@ If inline secrets are found during audit, warn the user and recommend migration 
 
 See `references/config-reference.md` for the complete field reference.
 
+## Config Splitting — $include
+
+Split large configs into multiple files:
+
+```json
+{
+  "$include": "channels.json"
+}
+```
+
+Or include multiple files:
+```json
+{
+  "$include": ["channels.json", "tools.json"]
+}
+```
+
+Supports up to 10 levels of nesting.
+
+## Env Var Substitution
+
+Use `${VAR_NAME}` syntax in config string values. Only uppercase variable names are matched:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "workspace": "${WORKSPACE_PATH}"
+    }
+  }
+}
+```
+
+## Config Hot Reload
+
+The Gateway watches `openclaw.json` for changes. Most fields hot-apply automatically. Gateway-level fields (`gateway.*`) require a restart. Default reload mode is `hybrid` — auto-restarts for critical changes only.
+
+Configure reload behavior:
+```json
+{
+  "gateway": {
+    "reload": {
+      "mode": "hybrid"
+    }
+  }
+}
+```
+
+Modes: `"hybrid"` (default) | `"hot"` | `"restart"` | `"off"`
+
 ## Best Practices
 
 1. Keep secrets (tokens, API keys) in env vars via SecretRef pattern
@@ -241,5 +307,7 @@ See `references/config-reference.md` for the complete field reference.
 5. Enable `loopDetection` for production stability
 6. Review `maxConcurrent` based on usage patterns
 7. Always back up before editing: `cp ./openclaw.json ./openclaw.json.bak`
-8. Run `openclaw-team doctor --fix` after any changes
-9. Fix Docker permissions after edits
+8. Run `openclaw doctor --fix` after any changes (Docker multi-instance: `openclaw-{name} doctor --fix`)
+9. Fix Docker permissions after edits (Docker deployments only)
+10. Use `$include` to split large configs into separate files
+11. Use `${VAR_NAME}` syntax for env var substitution in string values

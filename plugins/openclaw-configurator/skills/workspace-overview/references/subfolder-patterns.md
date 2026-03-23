@@ -2,7 +2,7 @@
 
 ## How It Works
 
-Only the core files are auto-injected into every session (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOT.md). Everything else lives in subfolders. The agent reads them when needed via the `read` tool. This saves tokens — files are loaded only when relevant.
+Only 7 core files are auto-injected into every session (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md). BOOTSTRAP.md is also auto-injected when present on new workspaces (deleted after bootstrap completes). Everything else — including BOOT.md, agent-created files, and subfolders — lives in workspace/ but is NOT loaded into context automatically. The agent reads them when needed via the `read` tool. This saves tokens — files are loaded only when relevant.
 
 ## Structure
 

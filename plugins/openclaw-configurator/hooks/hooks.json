@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "You just modified a file in the OpenClaw workspace. OpenClaw runs as `node` inside Docker. Host-side edits (as root or another user) break file permissions.\n\nAfter completing your current batch of edits, fix permissions:\n\n1. Derive the instance name from CWD:\n   INSTANCE=$(basename \"$(pwd)\" | sed 's/^\\.openclaw-//')\n   # Example: pwd=/root/.openclaw-team → INSTANCE=team\n\n2. Fix ownership via docker compose:\n   cd /docker/openclaw-$INSTANCE && docker compose exec -u root openclaw-gateway chown -R node:node /home/node/.openclaw/\n\n3. Run doctor to verify:\n   openclaw-team doctor --fix\n\nBatch all edits first, then fix permissions once at the end."
+            "prompt": "You just modified a file in the OpenClaw workspace. If OpenClaw runs inside Docker, host-side edits (as root or another user) break file permissions.\n\nFor Docker deployments, after completing your current batch of edits, fix permissions:\n\n1. Derive the instance name from CWD:\n   INSTANCE=$(basename \"$(pwd)\" | sed 's/^\\.openclaw-//')\n   # Example: pwd=/root/.openclaw-team → INSTANCE=team\n\n2. Fix ownership via docker compose:\n   cd /docker/openclaw-$INSTANCE && docker compose exec -u root openclaw-gateway chown -R node:node /home/node/.openclaw/\n\n3. Run doctor to verify:\n   openclaw doctor --fix\n   # Docker multi-instance: openclaw-$INSTANCE doctor --fix\n\nFor non-Docker deployments, just run: openclaw doctor --fix\n\nBatch all edits first, then fix permissions once at the end."
           }
         ]
       }

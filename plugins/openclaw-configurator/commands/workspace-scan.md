@@ -6,7 +6,7 @@ argument-hint: "[quick|full|security]"
 
 # Workspace Scan
 
-Perform a quick health check of the current OpenClaw instance. CWD is the instance root (`~/.openclaw-{name}/`).
+Perform a quick health check of the current OpenClaw instance. CWD is the instance root (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
 
 ## Process
 
@@ -17,9 +17,11 @@ Perform a quick health check of the current OpenClaw instance. CWD is the instan
 pwd
 ```
 
-### 2. Scan workspace files (Cat A)
+### 2. Scan auto-injected workspace files (Cat A — 7 core files)
+
+Only these 7 files are auto-injected into the agent's context every session:
 ```bash
-for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md BOOT.md BOOTSTRAP.md; do
+for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md; do
   if [ -f "./workspace/$f" ]; then
     CHARS=$(wc -c < "./workspace/$f")
     WORDS=$(wc -w < "./workspace/$f")
@@ -31,12 +33,59 @@ for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md B
 done
 ```
 
-### 3. Check character limits
-- Per-file limit: 20,000 chars (default). Flag files exceeding this.
-- Total limit: 150,000 chars. Sum all file sizes and check.
+### 2b. Check special lifecycle files (BOOT.md, BOOTSTRAP.md)
+
+BOOTSTRAP.md IS auto-injected when present (on new workspaces, deleted after bootstrap). BOOT.md is NOT auto-injected — it runs via hook on gateway restart only.
 ```bash
-echo "TOTAL: $(cat ./workspace/*.md 2>/dev/null | wc -c) chars (limit: 150,000)"
+# BOOT.md — optional persistent startup script (executed via hook, not injected)
+if [ -f "./workspace/BOOT.md" ]; then
+  echo "OK  BOOT.md  $(wc -c < "./workspace/BOOT.md")c  $(wc -w < "./workspace/BOOT.md")w  (optional startup script)"
+else
+  echo "—   BOOT.md  not configured (optional)"
+fi
+
+# BOOTSTRAP.md — one-time first-run ritual (deleted after completion)
+if [ -f "./workspace/BOOTSTRAP.md" ]; then
+  echo "WARN  BOOTSTRAP.md  PRESENT — bootstrap has not completed yet"
+else
+  echo "OK  BOOTSTRAP.md  absent (bootstrap completed)"
+fi
 ```
+
+### 2c. Detect extra files in workspace/ root
+
+Agents can create arbitrary files in workspace/ during sessions. These are NOT auto-injected and don't count toward character limits:
+```bash
+for f in ./workspace/*.md; do
+  [ -f "$f" ] || continue
+  BASENAME=$(basename "$f")
+  case "$BASENAME" in
+    AGENTS.md|SOUL.md|USER.md|IDENTITY.md|TOOLS.md|HEARTBEAT.md|MEMORY.md|BOOT.md|BOOTSTRAP.md) continue ;;
+    *) echo "EXTRA: $BASENAME ($(wc -c < "$f") chars) — not auto-injected, not counted toward limits" ;;
+  esac
+done
+```
+If extra files are found, note: "These files were created by the agent during sessions. They don't consume context tokens. If they contain reference material the agent needs, consider moving them to `workspace/docs/` and adding a reference in AGENTS.md."
+
+### 3. Check character limits (auto-injected files only)
+
+Limits apply to the 7 auto-injected files plus BOOTSTRAP.md while present. BOOT.md and agent-created files are NOT counted:
+- Per-file limit: 20,000 chars (default). Flag files exceeding this.
+- Total limit: 150,000 chars across all auto-injected files.
+```bash
+TOTAL=0
+for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md; do
+  if [ -f "./workspace/$f" ]; then
+    CHARS=$(wc -c < "./workspace/$f")
+    TOTAL=$((TOTAL + CHARS))
+    [ "$CHARS" -gt 15000 ] && echo "WARNING: $f is ${CHARS}c — approaching 20K truncation limit. Consider moving infrequently-used sections to docs/"
+    [ "$CHARS" -gt 20000 ] && echo "CRITICAL: $f is ${CHARS}c — EXCEEDS 20K limit, content will be truncated!"
+  fi
+done
+echo "Auto-injected total: $TOTAL chars (limit: 150,000)"
+```
+
+If any auto-injected file is near the limit, recommend: "Use the 50% rule — if content is needed in less than 50% of sessions, move it to `workspace/docs/` and reference from AGENTS.md. See subfolder-patterns for templates."
 
 ### 4. Check openclaw.json (Cat E)
 ```bash
@@ -112,21 +161,24 @@ fi
 
 ### 11. Check shared skills & plugins
 ```bash
-echo "--- Shared Public Skills ---"
+echo "--- Managed Skills (standard path) ---"
+find ~/.openclaw/skills/ -name "SKILL.md" -type f 2>/dev/null | wc -l
+
+echo "--- Shared Public Skills (Docker path) ---"
 find /root/openclaw-skills/ -name "SKILL.md" -type f 2>/dev/null | wc -l
 
-echo "--- Shared Private Skills ---"
+echo "--- Shared Private Skills (Docker path) ---"
 find /root/openclaw-private-skills/ -name "SKILL.md" -type f 2>/dev/null | wc -l
 
-echo "--- Shared Public Plugins ---"
+echo "--- Shared Public Plugins (Docker path) ---"
 ls /root/openclaw-plugins/packages/ 2>/dev/null | wc -l
 
-echo "--- Shared Private Plugins ---"
+echo "--- Shared Private Plugins (Docker path) ---"
 ls /root/openclaw-plugins-private/packages/ 2>/dev/null | wc -l
 ```
 
-### 12. Check for BOOTSTRAP.md
-If BOOTSTRAP.md exists, flag it — it means bootstrap never completed.
+### 12. Bootstrap status
+Already checked in step 2b. If BOOTSTRAP.md is present, remind the user that bootstrap hasn't completed — the agent should run it or the file should be deleted.
 
 ### 13. Quick security flags
 - Does AGENTS.md have a "Red Lines" section?
@@ -136,6 +188,7 @@ If BOOTSTRAP.md exists, flag it — it means bootstrap never completed.
 ### 14. Output summary table
 
 ```
+Auto-injected files (7 core — counted toward context limits):
 | File          | Status  | Size    | Words | Last Modified | Issues        |
 |---------------|---------|---------|-------|---------------|---------------|
 | AGENTS.md     | OK      | 3,200c  | 450w  | 2025-03-15    |               |
@@ -143,8 +196,21 @@ If BOOTSTRAP.md exists, flag it — it means bootstrap never completed.
 | USER.md       | MISSING | -       | -     | -             | Create this!  |
 | ...           | ...     | ...     | ...   | ...           | ...           |
 
+Special lifecycle files (NOT auto-injected):
+| File           | Status                          |
+|----------------|---------------------------------|
+| BOOT.md        | Not configured (optional)       |
+| BOOTSTRAP.md   | Absent — bootstrap completed OK |
+
+Extra workspace files (NOT auto-injected, not counted toward limits):
+| File                             | Size     | Recommendation                    |
+|----------------------------------|----------|-----------------------------------|
+| research-agent-marketplaces.md   | 231,000c | Move to docs/ or delete           |
+
 Instance: [CWD]
-Total: X/9 files present, Y chars total (limit: 150,000)
+Core files: X/7 present, Y chars total (limit: 150,000)
+BOOT.md: [configured/not configured] | BOOTSTRAP.md: [completed/WARNING: present]
+Extra workspace files: N (not auto-injected)
 Docs: N files | Skills: N | Memory: N daily logs | Workflows: N
 Sessions: N JSONL | Cron: [configured/none] | Log errors: N
 Memory index: [present/absent] | Canvas: [N files/none]

@@ -6,7 +6,7 @@ argument-hint: <soul|agents|user|tools|heartbeat|identity|memory|bootstrap|boot|
 
 # Workspace Optimize
 
-Optimize a specific OpenClaw workspace file following best practices. CWD is the instance root (`~/.openclaw-{name}/`). Files are read from and written to `./workspace/`.
+Optimize a specific OpenClaw workspace file following best practices. CWD is the instance root (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`). Files are read from and written to `./workspace/`.
 
 **All generated content MUST be in English.** The interview/conversation with the user can be in any language, but workspace file content is always English.
 
@@ -22,15 +22,15 @@ Extract file type from arguments.
 
 ### 2. Read current file
 Map file type to filename:
-- `soul` → `./workspace/SOUL.md`
-- `agents` → `./workspace/AGENTS.md`
-- `user` → `./workspace/USER.md`
-- `tools` → `./workspace/TOOLS.md`
-- `heartbeat` → `./workspace/HEARTBEAT.md`
-- `identity` → `./workspace/IDENTITY.md`
-- `memory` → `./workspace/MEMORY.md`
-- `bootstrap` → `./workspace/BOOTSTRAP.md`
-- `boot` → `./workspace/BOOT.md`
+- `soul` → `./workspace/SOUL.md` (auto-injected every session)
+- `agents` → `./workspace/AGENTS.md` (auto-injected every session)
+- `user` → `./workspace/USER.md` (auto-injected every session)
+- `tools` → `./workspace/TOOLS.md` (auto-injected every session)
+- `heartbeat` → `./workspace/HEARTBEAT.md` (auto-injected in heartbeat runs)
+- `identity` → `./workspace/IDENTITY.md` (auto-injected every session)
+- `memory` → `./workspace/MEMORY.md` (auto-injected in main sessions only)
+- `bootstrap` → `./workspace/BOOTSTRAP.md` (auto-injected when present — one-time first-run ritual, deleted after bootstrap completes)
+- `boot` → `./workspace/BOOT.md` (NOT auto-injected — optional, executed via hook on gateway restart)
 - `config` → `./openclaw.json` (editable with user permission)
 - `all` → process all files sequentially
 
@@ -77,7 +77,8 @@ Following the skill's best practices:
 - Apply the correct template structure
 - Include all recommended sections
 - Ensure word count is within limits (SOUL.md < 2,000 words)
-- Ensure character count is within limits (< 20,000 chars)
+- Ensure character count is within limits (< 20,000 chars for auto-injected files)
+- For large auto-injected files: recommend extracting infrequently-used content to `docs/` subfolders
 - Maintain consistency with other workspace files
 - **All content in English**
 - Include security best practices (red lines, boundaries, memory isolation)
@@ -93,16 +94,17 @@ Following the skill's best practices:
   3. Back up: `cp ./openclaw.json ./openclaw.json.bak`
   4. Validate JSON syntax before writing
   5. Apply changes
-  6. Run: `openclaw-team doctor --fix`
+  6. Run: `openclaw doctor --fix` (Docker multi-instance: `openclaw-{name} doctor --fix`)
 
-### 9. Fix permissions
-After writing files, fix Docker permissions:
+### 9. Fix permissions (Docker deployments only)
+After writing files in Docker deployments, fix permissions:
 ```bash
 # Derive instance name from CWD (e.g., /root/.openclaw-team → team)
 INSTANCE=$(basename "$(pwd)" | sed 's/^\.openclaw-//')
 cd /docker/openclaw-$INSTANCE
 docker compose exec -u root openclaw-gateway chown -R node:node /home/node/.openclaw/
 ```
+For non-Docker deployments, skip this step.
 
 ### 10. Verify
 After writing:

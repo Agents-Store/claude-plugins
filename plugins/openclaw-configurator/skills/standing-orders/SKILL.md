@@ -88,12 +88,13 @@ Standing orders define WHAT; cron jobs define WHEN.
 Standing order (docs/standing-orders/weekly-report.md):
   - What to do, quality standards, approval rules
 
-Cron job (openclaw.json or system cron):
+Cron job (managed via `openclaw cron add/edit/rm`, stored in ./cron/jobs.json):
   - When to trigger the agent
   - References the standing order
+  - NOT configured in openclaw.json (only `cron.enabled` boolean lives there)
 ```
 
-The cron job triggers the agent, which reads the standing order and executes it.
+The cron job triggers the agent, which reads the standing order and executes it. Manage cron jobs via the CLI (`openclaw cron add`, `openclaw cron edit`, `openclaw cron rm`), not by editing openclaw.json directly.
 
 ## Real-World Patterns
 

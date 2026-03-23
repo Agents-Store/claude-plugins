@@ -6,7 +6,7 @@ argument-hint: "[--secrets] [--docs] [--all]"
 
 # Config Validate
 
-Validate the current OpenClaw instance's `openclaw.json` against official documentation and best practices. CWD is the instance root (`~/.openclaw-{name}/`).
+Validate the current OpenClaw instance's `openclaw.json` against official documentation and best practices. CWD is the instance root (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
 
 ## Process
 
@@ -141,5 +141,5 @@ Compare current config with latest available features. Flag:
 If issues found, offer to fix them:
 - For openclaw.json changes: show proposed diff, ask for explicit confirmation
 - Always back up before editing: `cp ./openclaw.json ./openclaw.json.bak`
-- After editing: run `openclaw-team doctor --fix` to verify
+- After editing: run `openclaw doctor --fix` to verify (Docker multi-instance: `openclaw-{name} doctor --fix`)
 - For workspace file issues: suggest using `/workspace-optimize <file>`

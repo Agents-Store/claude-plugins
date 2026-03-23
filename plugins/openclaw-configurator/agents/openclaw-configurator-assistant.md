@@ -100,7 +100,7 @@ Use these skills for detailed guidance on each component:
 
 ## Working Directory & Paths
 
-The plugin runs from the OpenClaw instance root (`~/.openclaw-{name}/`). All paths are relative to CWD.
+The plugin runs from the OpenClaw instance root. Standard: `~/.openclaw/`. Docker multi-instance: `~/.openclaw-{name}/`. All paths are relative to CWD.
 
 **Scan categories (A–J):**
 - A: `./workspace/*.md` — auto-injected workspace files
@@ -115,14 +115,15 @@ The plugin runs from the OpenClaw instance root (`~/.openclaw-{name}/`). All pat
 - J: `./workspace/canvas/` — canvas files
 
 **Shared resources:**
-- `/root/openclaw-skills/*/SKILL.md` — shared public skills
-- `/root/openclaw-private-skills/*/SKILL.md` — shared private skills
-- `/root/openclaw-plugins/packages/*/` — shared public plugins
-- `/root/openclaw-plugins-private/packages/*/` — shared private plugins
+- `~/.openclaw/skills/*/SKILL.md` — managed skills (standard)
+- `/root/openclaw-skills/*/SKILL.md` — shared public skills (Docker deployments)
+- `/root/openclaw-private-skills/*/SKILL.md` — shared private skills (Docker deployments)
+- `/root/openclaw-plugins/packages/*/` — shared public plugins (Docker deployments)
+- `/root/openclaw-plugins-private/packages/*/` — shared private plugins (Docker deployments)
 
 **Write scope:**
 - `./workspace/` — create and edit workspace files freely
-- `./openclaw.json` — edit ONLY with explicit user permission, always back up first (`cp ./openclaw.json ./openclaw.json.bak`), validate JSON before writing, run `openclaw-team doctor --fix` after
+- `./openclaw.json` — edit ONLY with explicit user permission, always back up first (`cp ./openclaw.json ./openclaw.json.bak`), validate JSON before writing, run `openclaw doctor --fix` after (Docker multi-instance: `openclaw-{name} doctor --fix`)
 
 **DO NOT SCAN:**
 `./credentials/`, `./telegram/`, `./devices/`, `./subagents/`, `./completions/`, `./delivery-queue/`, `./media/`, `./identity/`, `./config.yaml`, `./*.bak*`, `./memory/main.sqlite-wal`, `./memory/main.sqlite-shm`
@@ -150,7 +151,7 @@ The plugin CAN edit `./openclaw.json`, but with strict safeguards:
 2. **Always ask** for explicit user confirmation
 3. **Always back up**: `cp ./openclaw.json ./openclaw.json.bak`
 4. **Validate JSON** syntax before writing
-5. **Run doctor** after: `openclaw-team doctor --fix`
+5. **Run doctor** after: `openclaw doctor --fix` (Docker multi-instance: `openclaw-{name} doctor --fix`)
 6. **Never delete sections** — only add or modify
 7. **SecretRef pattern** for secrets:
    ```json
@@ -158,9 +159,9 @@ The plugin CAN edit `./openclaw.json`, but with strict safeguards:
    ```
 8. **Ignore** SecretRef resolution errors outside gateway runtime
 
-## File Permission Fix (Docker)
+## File Permission Fix (Docker deployments only)
 
-OpenClaw runs as `node` inside Docker. After modifying workspace files, fix permissions:
+In Docker deployments, OpenClaw runs as `node` inside the container. After modifying workspace files from the host, fix permissions:
 
 ```bash
 # Derive instance name from CWD (e.g., /root/.openclaw-team → team)
@@ -169,7 +170,9 @@ cd /docker/openclaw-$INSTANCE
 docker compose exec -u root openclaw-gateway chown -R node:node /home/node/.openclaw/
 ```
 
-Then run: `openclaw-team doctor --fix`
+Then run: `openclaw doctor --fix` (Docker multi-instance: `openclaw-{name} doctor --fix`)
+
+For non-Docker deployments, just run `openclaw doctor --fix` — no permission fix needed.
 
 Always remind users about this after batch edits.
 

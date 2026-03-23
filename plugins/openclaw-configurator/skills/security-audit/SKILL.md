@@ -178,13 +178,26 @@ jq '.tools' ./openclaw.json 2>/dev/null
 2. [Another fix]
 ```
 
+## Advisory vs Hard Enforcement
+
+Red lines in AGENTS.md and boundaries in SOUL.md are **prompting-level guardrails** — they guide the agent's behavior but are advisory only. A sufficiently creative prompt or edge case can bypass them.
+
+For **hard enforcement**, use openclaw.json configuration:
+- `tools.deny` — block specific tools entirely (agent cannot call them regardless of instructions)
+- `sandbox.mode` — restrict file system and network access
+- `dmPolicy: "allowlist"` — only allow messages from approved users
+- `tools.profile` — limit available tool categories
+
+Both layers are important: advisory guardrails handle the common case with nuance, while hard enforcement prevents catastrophic failures.
+
 ## Best Practices
 
-1. Run security audit before deploying any workspace changes
+1. Run security audit before deploying any workspace changes. Also available via CLI: `openclaw security audit` (with `--deep` for live probing, `--fix` to tighten defaults)
 2. Never put secrets in workspace files — use environment variables
-3. Always have explicit red lines in AGENTS.md
-4. Always have boundaries in SOUL.md
-5. Review standing orders quarterly for scope creep
-6. Enable `loopDetection` in production
-7. Use `allowlist` dmPolicy instead of `open` for production agents
-8. Keep MEMORY.md isolated from group chats
+3. Always have explicit red lines in AGENTS.md (advisory guardrails)
+4. Always have boundaries in SOUL.md (advisory guardrails)
+5. Use `tools.deny` and `sandbox.mode` in openclaw.json for hard enforcement
+6. Review standing orders quarterly for scope creep
+7. Enable `loopDetection` in production
+8. Use `allowlist` dmPolicy instead of `open` for production agents
+9. Keep MEMORY.md isolated from group chats

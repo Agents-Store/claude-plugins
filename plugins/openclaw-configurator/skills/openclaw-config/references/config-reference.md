@@ -9,7 +9,7 @@ Complete reference for the most important openclaw.json configuration fields.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `workspace` | string | `./workspace` | Agent workspace path (relative to instance root) |
-| `model` | string/object | — | Primary LLM model. Object: `{ primary, fallbacks[] }` |
+| `model` | string/object | — | Primary LLM model. Format: `"provider/model"`. Object: `{ primary: "provider/model", fallbacks: ["provider/model"] }` |
 | `imageModel` | string/object | — | Model for image analysis |
 | `bootstrapMaxChars` | number | 20000 | Max chars per workspace file |
 | `bootstrapTotalMaxChars` | number | 150000 | Max total chars across all files |
@@ -19,13 +19,14 @@ Complete reference for the most important openclaw.json configuration fields.
 | `maxConcurrent` | number | 3 | Max parallel sessions |
 | `thinkingDefault` | string | — | `"off"` / `"minimal"` / `"low"` / `"medium"` / `"high"` / `"adaptive"` |
 | `contextTokens` | number | 200000 | Context window size |
-| `skipBootstrap` | boolean | false | Skip workspace file loading |
+| `imageMaxDimensionPx` | number | 1200 | Max dimension for image analysis |
 
 ## agents.defaults.heartbeat
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `every` | string | — | Interval: `"5m"`, `"10m"`, `"1h"` |
+| `every` | string | — | Interval: `"5m"`, `"10m"`, `"1h"`, `"0m"` to disable |
+| `target` | string | — | Delivery target: `"last"` / `"whatsapp"` / `"telegram"` / `"discord"` / `"none"` |
 | `model` | string | — | Model for heartbeats (use cheap one) |
 | `lightContext` | boolean | — | Minimal context loading |
 | `isolatedSession` | boolean | — | Separate session for heartbeats |
@@ -38,6 +39,21 @@ Complete reference for the most important openclaw.json configuration fields.
 | `mode` | string | — | Compaction strategy |
 | `reserveTokensFloor` | number | — | Reserved tokens before compaction |
 | `memoryFlush` | boolean | — | Enable memory flush before compaction |
+
+## agents.defaults.sandbox
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `mode` | string | `"off"` | Sandbox mode: `"off"` / `"non-main"` / `"all"` |
+| `scope` | string | — | Sandbox scope: `"session"` / `"agent"` / `"shared"` |
+
+## agent (top-level)
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `skipBootstrap` | boolean | false | Skip workspace file loading. Also available via `--dev` CLI flag |
+
+> **Note**: This is `agent.skipBootstrap` (singular `agent` at root), NOT `agents.defaults.skipBootstrap`.
 
 ## agents.list[]
 
@@ -120,6 +136,8 @@ Complete reference for the most important openclaw.json configuration fields.
 | `warningThreshold` | number | 10 | Warning trigger count |
 | `criticalThreshold` | number | 20 | Critical stop count |
 
+**Tool groups** for `allow`/`deny` lists: `group:runtime`, `group:fs`, `group:sessions`, `group:memory`, `group:web`, `group:ui`, `group:automation`, `group:messaging`, `group:nodes`, `group:openclaw`
+
 ---
 
 ## plugins
@@ -139,16 +157,25 @@ Complete reference for the most important openclaw.json configuration fields.
 | `config` | object | Plugin-specific configuration |
 | `env` | object | Plugin-scoped environment variables |
 
+**Plugin types**: Native plugins ship `openclaw.plugin.json` and run in-process. Bundle plugins are content packs from Codex/Claude/Cursor ecosystems mapped to native features. Key limitation: Claude `hooks/hooks.json` and `agents` in bundles are **detected but NOT executed**.
+
+**CLI**: `openclaw plugins list/install/enable/disable/inspect`
+
 ---
 
 ## session
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `dmScope` | string | — | `"main"` / `"per-peer"` / `"per-channel-peer"` |
-| `reset.mode` | string | — | Session reset strategy |
-| `reset.idleMinutes` | number | — | Idle timeout for reset |
-| `resetTriggers` | string[] | — | Commands that reset session: `["/new", "/reset"]` |
+| `dmScope` | string | `"main"` | `"main"` / `"per-peer"` / `"per-channel-peer"` / `"per-account-channel-peer"` |
+| `mainKey` | string | `"main"` | Default session key identifier |
+| `reset.mode` | string | `"daily"` | Session reset mode: `"daily"` |
+| `reset.atHour` | number | 4 | Hour to reset (local time on gateway host, 0-23) |
+| `reset.idleMinutes` | number | — | Idle window — reset if no activity for this many minutes |
+| `resetTriggers` | string[] | `["/new", "/reset"]` | Commands that trigger session reset |
+| `maintenance.mode` | string | `"warn"` | `"warn"` (log warnings) / `"enforce"` (auto-prune) |
+| `maintenance.pruneAfter` | string | `"30d"` | Prune sessions older than this |
+| `maintenance.maxEntries` | number | 500 | Max session entries before pruning |
 
 ---
 
@@ -159,6 +186,80 @@ Complete reference for the most important openclaw.json configuration fields.
 | `allowBundled` | string[] | Which bundled skills to enable |
 | `load.extraDirs` | string[] | Additional skill directories |
 | `entries` | object | Per-skill configuration |
+
+---
+
+## hooks
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `hooks.internal.enabled` | boolean | false | Enable internal hooks (required for BOOT.md execution via `boot-md` hook) |
+| `hooks.internal.entries.<name>.enabled` | boolean | true | Enable/disable a specific internal hook by name |
+
+Internal hooks trigger on gateway lifecycle events (e.g., `gateway:startup`). When enabled, BOOT.md is executed on every gateway restart via the `boot-md` hook.
+
+**Bundled hooks**: `session-memory` (saves context on `/new`), `bootstrap-extra-files` (injects extra files during `agent:bootstrap`), `command-logger` (logs commands), `boot-md` (runs BOOT.md on startup).
+
+**Native hook system**: OpenClaw also has a native hook system using `HOOK.md` + `handler.ts` files, discovered from `workspace/hooks/`, `~/.openclaw/hooks/`, and bundled locations. Events: `command:*`, `session:*`, `agent:*`, `gateway:*`, `message:*`. Manage via CLI: `openclaw hooks list/info/enable/disable`.
+
+---
+
+## cron
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `cron.enabled` | boolean | — | Enable/disable the cron system |
+
+> **Note**: `openclaw.json` only contains `cron.enabled`. Cron jobs are managed via the CLI (`openclaw cron add/edit/rm/list/enable/disable/run`) and persisted in `./cron/jobs.json`, NOT in openclaw.json.
+
+**Job format in `./cron/jobs.json`**: Each job has `schedule.kind` (`"at"` / `"every"` / `"cron"`), `schedule.value`, `delivery.mode`, and `prompt`.
+
+---
+
+## gateway
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `gateway.port` | number | 18789 | Gateway HTTP port |
+| `gateway.host` | string | — | Bind address |
+| `gateway.reload.mode` | string | `"hybrid"` | Config reload mode: `"hybrid"` / `"hot"` / `"restart"` / `"off"` |
+| `gateway.auth.token` | string | — | Authentication token for the Gateway API |
+
+Gateway-level configuration. Changes to `gateway.*` fields require a restart (unlike most other fields which hot-reload).
+
+---
+
+## memory
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `memory.embedding.provider` | string | auto | Embedding provider: `"openai"` / `"gemini"` / `"voyage"` / `"mistral"` / `"ollama"` / `"gguf"` |
+| `memory.embedding.model` | string | — | Specific embedding model |
+| `memory.search.hybrid` | boolean | true | Enable hybrid BM25 + vector search |
+
+The memory system uses hybrid BM25 + vector search with auto-selected embedding provider. Indexes both MEMORY.md and daily logs for semantic retrieval.
+
+---
+
+## env
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `env.vars` | object | — | Inline environment variables (key-value pairs) |
+| `env.shellEnv.enabled` | boolean | — | Import shell environment variables into the gateway process |
+
+---
+
+## Config Features
+
+### $include
+Split config into multiple files: `"$include": "channels.json"` or `"$include": ["channels.json", "tools.json"]`. Up to 10 levels deep.
+
+### Env var substitution
+Use `${VAR_NAME}` in config string values. Only uppercase variable names are matched.
+
+### Schema validation
+Strict validation — unknown keys cause Gateway to refuse to start. Only `$schema` is allowed as a non-schema root key.
 
 ---
 

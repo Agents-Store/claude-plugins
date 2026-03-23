@@ -13,6 +13,7 @@ Two special-purpose files that run at specific lifecycle events.
 One-time setup instructions for a fresh agent. The agent follows these on first session, then **deletes the file** — it should never run twice.
 
 ### When It Runs
+- Created during `openclaw setup` or `openclaw onboard` for brand-new workspaces
 - Only when BOOTSTRAP.md exists in the workspace
 - Triggered on the very first session after workspace creation
 - After completion, the agent deletes BOOTSTRAP.md
@@ -73,6 +74,8 @@ Delete this file (BOOTSTRAP.md) — setup is complete.
 2. Keep instructions concrete and sequential
 3. Can be conversational (discovery) or procedural (pre-configured)
 4. Maximum 20,000 characters (bootstrapMaxChars limit)
+5. BOOTSTRAP.md is auto-injected into context while present — it counts toward char limits
+6. Can be skipped: start with `--dev` flag, or set `agent.skipBootstrap: true` in openclaw.json
 
 ---
 

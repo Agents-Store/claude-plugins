@@ -32,7 +32,7 @@ You are an autonomous workspace auditor. Your job is to scan all data sources, p
 
 ## Important: Working Directory
 
-The plugin runs from the OpenClaw instance root (`~/.openclaw-{name}/`). All paths are relative to CWD (`./`).
+The plugin runs from the OpenClaw instance root. Standard: `~/.openclaw/`. Docker multi-instance: `~/.openclaw-{name}/`. All paths are relative to CWD (`./`).
 
 **DO NOT SCAN** — sensitive/internal directories:
 `./credentials/`, `./telegram/`, `./devices/`, `./subagents/`, `./completions/`, `./delivery-queue/`, `./media/`, `./identity/`, `./config.yaml`, `./*.bak*`, `./memory/main.sqlite-wal`, `./memory/main.sqlite-shm`
@@ -43,7 +43,9 @@ The plugin runs from the OpenClaw instance root (`~/.openclaw-{name}/`). All pat
 
 | Cat | Target | Path |
 |-----|--------|------|
-| A | Auto-injected files | `./workspace/AGENTS.md`, `SOUL.md`, `USER.md`, `IDENTITY.md`, `TOOLS.md`, `HEARTBEAT.md`, `MEMORY.md`, `BOOT.md`, `BOOTSTRAP.md` |
+| A | Auto-injected files (7 core) | `./workspace/AGENTS.md`, `SOUL.md`, `USER.md`, `IDENTITY.md`, `TOOLS.md`, `HEARTBEAT.md`, `MEMORY.md` |
+| A+ | BOOT.md (hook-executed, not injected) | `./workspace/BOOT.md` (optional, persistent) |
+| A++ | BOOTSTRAP.md (auto-injected when present) | `./workspace/BOOTSTRAP.md` (temporary, deleted after bootstrap) |
 | B | Memory files | `./workspace/memory/*.md` |
 | C | Instance skills | `./workspace/skills/*/SKILL.md` |
 | D | On-demand subfolders | `./workspace/docs/**/*.md` + `./workspace/workflows/**/*.prose` |
@@ -54,14 +56,15 @@ The plugin runs from the OpenClaw instance root (`~/.openclaw-{name}/`). All pat
 | I | Logs | `./logs/openclaw.log` |
 | J | Canvas | `./workspace/canvas/` |
 
-### Shared (absolute paths):
+### Shared:
 
 | Target | Path |
 |--------|------|
-| Public skills | `/root/openclaw-skills/*/SKILL.md` |
-| Private skills | `/root/openclaw-private-skills/*/SKILL.md` |
-| Public plugins | `/root/openclaw-plugins/packages/*/` |
-| Private plugins | `/root/openclaw-plugins-private/packages/*/` |
+| Managed skills (standard) | `~/.openclaw/skills/*/SKILL.md` |
+| Public skills (Docker) | `/root/openclaw-skills/*/SKILL.md` |
+| Private skills (Docker) | `/root/openclaw-private-skills/*/SKILL.md` |
+| Public plugins (Docker) | `/root/openclaw-plugins/packages/*/` |
+| Private plugins (Docker) | `/root/openclaw-plugins-private/packages/*/` |
 
 ## Official Documentation
 
@@ -83,10 +86,11 @@ When verifying configuration or features, use web search/scraping tools to check
 pwd
 ```
 
-### Step 2: Scan Standard Workspace Files (Cat A)
+### Step 2: Scan Auto-Injected Workspace Files (Cat A — 7 core files)
 
+Only these 7 files are auto-injected into the agent's context every session:
 ```bash
-for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md BOOT.md BOOTSTRAP.md; do
+for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md; do
   if [ -f "./workspace/$f" ]; then
     CHARS=$(wc -c < "./workspace/$f")
     WORDS=$(wc -w < "./workspace/$f")
@@ -108,19 +112,67 @@ done
 | TOOLS.md | Has tool priorities? |
 | HEARTBEAT.md | Token-efficient (short)? |
 | MEMORY.md | Well-structured categories? Under 5K chars? |
-| BOOT.md | (optional) |
-| BOOTSTRAP.md | Should NOT exist (means bootstrap never completed) |
 
-**Language check**: All workspace files MUST be in English. Flag any non-English content.
+**Language check**: All workspace files should be in English. Flag any non-English content.
 
-### Step 3: Check Character Limits
+### Step 2b: Check Special Lifecycle Files
 
+BOOTSTRAP.md IS auto-injected when present (on new workspaces, deleted after bootstrap). BOOT.md is NOT auto-injected — it runs via hook on gateway restart only.
 ```bash
-for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md BOOT.md; do
-  [ -f "./workspace/$f" ] && echo "$f: $(wc -c < "./workspace/$f") chars" || echo "$f: MISSING"
-done
-echo "TOTAL: $(cat ./workspace/*.md 2>/dev/null | wc -c) chars (limit: 150,000)"
+# BOOT.md — optional persistent startup script (executed via hook, not injected into context)
+if [ -f "./workspace/BOOT.md" ]; then
+  echo "OK  BOOT.md  $(wc -c < "./workspace/BOOT.md")c  (optional startup script)"
+else
+  echo "—   BOOT.md  not configured (optional)"
+fi
+
+# BOOTSTRAP.md — one-time first-run ritual (deleted after completion)
+if [ -f "./workspace/BOOTSTRAP.md" ]; then
+  echo "WARN  BOOTSTRAP.md  PRESENT — bootstrap has not completed yet"
+else
+  echo "OK  BOOTSTRAP.md  absent (bootstrap completed)"
+fi
 ```
+
+### Step 2c: Detect Extra Files in workspace/ Root
+
+Agents can create arbitrary files in workspace/ during sessions. These are NOT auto-injected and don't count toward character limits:
+```bash
+for f in ./workspace/*.md; do
+  [ -f "$f" ] || continue
+  BASENAME=$(basename "$f")
+  case "$BASENAME" in
+    AGENTS.md|SOUL.md|USER.md|IDENTITY.md|TOOLS.md|HEARTBEAT.md|MEMORY.md|BOOT.md|BOOTSTRAP.md) continue ;;
+    *) echo "EXTRA: $BASENAME ($(wc -c < "$f") chars) — not auto-injected" ;;
+  esac
+done
+```
+For each extra file found: it does not consume context tokens and does not count toward limits. If it contains reference material the agent should access later, recommend moving it to `workspace/docs/` and adding a reference in AGENTS.md.
+
+### Step 3: Check Character Limits (auto-injected files only)
+
+Limits apply to the 7 auto-injected files plus BOOTSTRAP.md while present. BOOT.md and agent-created files are NOT counted:
+```bash
+TOTAL=0
+for f in AGENTS.md SOUL.md USER.md IDENTITY.md TOOLS.md HEARTBEAT.md MEMORY.md; do
+  if [ -f "./workspace/$f" ]; then
+    CHARS=$(wc -c < "./workspace/$f")
+    TOTAL=$((TOTAL + CHARS))
+    echo "$f: $CHARS chars"
+    [ "$CHARS" -gt 15000 ] && echo "  WARNING: approaching 20K truncation limit — consider extracting to docs/"
+    [ "$CHARS" -gt 20000 ] && echo "  CRITICAL: exceeds 20K limit — content will be truncated!"
+  else
+    echo "$f: MISSING"
+  fi
+done
+echo "Auto-injected total: $TOTAL chars (limit: 150,000)"
+```
+
+**Subfolder extraction recommendations**: If any auto-injected file is near the limit, analyze its content and recommend specific sections to extract:
+- Procedure sections in AGENTS.md → `docs/procedures/`
+- Client-specific rules → `docs/clients/`
+- Detailed security policies → `docs/rules/`
+- Content used in < 50% of sessions → `docs/` (the "50% rule")
 
 ### Step 4: Prompt Security Audit
 
@@ -235,16 +287,19 @@ fi
 ### Step 11: Check Shared Skills & Plugins
 
 ```bash
-echo "--- Shared Public Skills ---"
+echo "--- Managed Skills (standard path) ---"
+find ~/.openclaw/skills/ -name "SKILL.md" -type f 2>/dev/null
+
+echo "--- Shared Public Skills (Docker path) ---"
 find /root/openclaw-skills/ -name "SKILL.md" -type f 2>/dev/null
 
-echo "--- Shared Private Skills ---"
+echo "--- Shared Private Skills (Docker path) ---"
 find /root/openclaw-private-skills/ -name "SKILL.md" -type f 2>/dev/null
 
-echo "--- Shared Public Plugins ---"
+echo "--- Shared Public Plugins (Docker path) ---"
 ls /root/openclaw-plugins/packages/ 2>/dev/null
 
-echo "--- Shared Private Plugins ---"
+echo "--- Shared Private Plugins (Docker path) ---"
 ls /root/openclaw-plugins-private/packages/ 2>/dev/null
 ```
 
@@ -262,16 +317,27 @@ Use firecrawl or other search tools to check:
 
 ## Summary
 - Instance: [CWD path]
-- Files: [X/9 present]
-- Total size: [X chars / 150,000 limit]
+- Core auto-injected files: [X/7 present]
+- Auto-injected total: [X chars / 150,000 limit]
 - Overall health: [Good / Needs Attention / Critical]
 - Security: [X critical, X high, X medium issues]
 
-## File Status
+## Auto-Injected Files (7 core)
 | File | Status | Size | Issues |
 |------|--------|------|--------|
 | AGENTS.md | OK/MISSING/ISSUE | Xw | [details] |
 | ... | ... | ... | ... |
+
+## Special Lifecycle Files
+| File | Status |
+|------|--------|
+| BOOT.md | Not configured (optional) / OK (Xc) |
+| BOOTSTRAP.md | Absent (completed) / WARNING: present |
+
+## Extra Workspace Files (not auto-injected)
+| File | Size | Recommendation |
+|------|------|----------------|
+| [filename] | Xc | Move to docs/ if reference material |
 
 ## Security Audit
 - Hardcoded secrets: [NONE / FOUND]

@@ -113,9 +113,12 @@ For each configured channel (telegram, discord, whatsapp):
 
 | Field | Check | Severity |
 |-------|-------|----------|
-| `dmScope` | Appropriate for use case? | LOW |
-| `reset.idleMinutes` | Reasonable timeout? | LOW |
+| `dmScope` | Appropriate? Options: `main/per-peer/per-channel-peer/per-account-channel-peer` | LOW |
+| `reset.mode` | Set to `"daily"`? (only valid value) | LOW |
+| `reset.atHour` | Reasonable reset hour? (default 4) | LOW |
+| `reset.idleMinutes` | Reasonable idle timeout? | LOW |
 | `resetTriggers` | Includes `/new` or `/reset`? | LOW |
+| `maintenance.mode` | `"warn"` or `"enforce"`? | LOW |
 
 ## Cross-Validation with Workspace Files
 
@@ -178,10 +181,12 @@ After fetching latest docs, check for:
 ## Best Practices
 
 1. Always validate after editing openclaw.json
-2. Run `openclaw-team doctor --fix` after changes
+2. Run `openclaw doctor --fix` after changes (Docker multi-instance: `openclaw-{name} doctor --fix`)
 3. Check official docs for latest features quarterly
-4. Keep model names current — old model IDs may stop working
+4. Keep model names current — use `provider/model` format (e.g. `anthropic/claude-sonnet-4-20250514`)
 5. Use `allowlist` dmPolicy in production
 6. Enable loopDetection for stability
-7. Set heartbeat to a cheap model
+7. Set heartbeat to a cheap model, configure `heartbeat.target`
 8. Match userTimezone to primary user's location
+9. Verify `agent.skipBootstrap` path (singular `agent`, NOT `agents.defaults.skipBootstrap`)
+10. Cron jobs are managed via CLI, config only has `cron.enabled`
