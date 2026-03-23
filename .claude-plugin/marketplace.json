@@ -142,17 +142,6 @@
       },
       "keywords": ["openclaw", "workspace", "configurator", "agents-md", "soul-md", "persona", "standing-orders", "session-analysis", "heartbeat", "memory", "ai-agent", "self-hosted"],
       "category": "ai-agents"
-    },
-    {
-      "name": "multi-bank",
-      "source": "./plugins/multi-bank",
-      "description": "Multi-Bank Account Manager with broadcast architecture pattern. Aggregates financial data from Monobank and PrivatBank via MCP tools, broadcasts balance updates and budget alerts, categorizes transactions, manages payments and salary projects, and exports financial reports in CSV/PDF.",
-      "version": "1.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": ["multi-bank", "monobank", "privatbank", "banking", "finance", "broadcast", "balances", "transactions", "payments", "salary", "budget", "reports", "ukrainian-banks", "mcp"],
-      "category": "finance"
     }
   ]
 }
