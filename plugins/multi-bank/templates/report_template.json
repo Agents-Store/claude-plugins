@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Report Template",
+  "description": "Layout configuration for financial report generation",
+  "pdf": {
+    "pageSize": "A4",
+    "margins": {
+      "top": 50,
+      "bottom": 50,
+      "left": 50,
+      "right": 50
+    },
+    "sections": [
+      {
+        "type": "header",
+        "fields": ["title", "dateRange", "generatedAt"]
+      },
+      {
+        "type": "account_summary",
+        "fields": ["institution", "accountName", "currentBalance"],
+        "showTotal": true
+      },
+      {
+        "type": "category_breakdown",
+        "fields": ["category", "amount", "count", "percent"],
+        "visualization": "horizontal_bar",
+        "sortBy": "amount",
+        "sortOrder": "desc"
+      },
+      {
+        "type": "budget_status",
+        "fields": ["category", "budget", "spent", "percent"],
+        "visualization": "progress_bar",
+        "colors": {
+          "safe": "#27AE60",
+          "warning": "#F39C12",
+          "danger": "#E74C3C"
+        },
+        "thresholds": {
+          "warning": 75,
+          "danger": 100
+        }
+      },
+      {
+        "type": "recent_transactions",
+        "fields": ["date", "account", "merchant", "category", "amount"],
+        "maxRows": 20,
+        "fontSize": 8
+      },
+      {
+        "type": "footer",
+        "fields": ["netChange", "totalDebits", "totalCredits"]
+      }
+    ],
+    "fonts": {
+      "title": { "family": "Helvetica-Bold", "size": 20 },
+      "subtitle": { "family": "Helvetica", "size": 12 },
+      "sectionHeader": { "family": "Helvetica-Bold", "size": 14 },
+      "body": { "family": "Helvetica", "size": 10 },
+      "table": { "family": "Helvetica", "size": 8 }
+    }
+  },
+  "csv": {
+    "encoding": "utf-8",
+    "bom": true,
+    "delimiter": ",",
+    "defaultColumns": ["date", "account", "merchant", "category", "amount", "balance"],
+    "availableColumns": ["date", "account", "merchant", "category", "subcategory", "amount", "balance", "tags", "pending", "location"],
+    "dateFormat": "YYYY-MM-DD",
+    "numberFormat": {
+      "decimals": 2,
+      "thousandsSeparator": ""
+    }
+  }
+}

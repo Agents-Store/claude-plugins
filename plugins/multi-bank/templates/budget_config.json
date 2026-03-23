@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Budget Configuration",
+  "description": "Template for budget definitions with alert thresholds",
+  "defaults": {
+    "currency": "UAH",
+    "period": "monthly",
+    "thresholds": [50, 75, 90, 100],
+    "accountFilter": [],
+    "enabled": true
+  },
+  "templates": [
+    {
+      "id": "budget_dining_monthly",
+      "category": "Dining",
+      "amount": 5000.00,
+      "period": "monthly"
+    },
+    {
+      "id": "budget_groceries_monthly",
+      "category": "Groceries",
+      "amount": 8000.00,
+      "period": "monthly"
+    },
+    {
+      "id": "budget_transportation_monthly",
+      "category": "Transportation",
+      "amount": 2000.00,
+      "period": "monthly"
+    },
+    {
+      "id": "budget_shopping_monthly",
+      "category": "Shopping",
+      "amount": 3000.00,
+      "period": "monthly"
+    },
+    {
+      "id": "budget_entertainment_monthly",
+      "category": "Entertainment",
+      "amount": 1500.00,
+      "period": "monthly"
+    },
+    {
+      "id": "budget_subscriptions_monthly",
+      "category": "Subscriptions",
+      "amount": 1000.00,
+      "period": "monthly"
+    }
+  ],
+  "valid_periods": ["weekly", "monthly", "quarterly", "yearly"],
+  "valid_categories": [
+    "Dining", "Groceries", "Transportation", "Shopping",
+    "Entertainment", "Subscriptions", "Healthcare", "Utilities",
+    "Housing", "Insurance", "Education", "Travel", "Fees", "Other"
+  ]
+}
