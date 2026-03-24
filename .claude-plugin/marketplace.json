@@ -11,117 +11,143 @@
       "name": "trigger.dev",
       "source": "./plugins/trigger.dev",
       "description": "Trigger.dev background jobs plugin. Manage tasks, trigger runs, deploy projects, and monitor workflows via 14 MCP tools.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["trigger.dev", "background-jobs", "tasks", "deployment", "monitoring", "cron", "queues", "ai-agents"],
       "category": "development"
     },
     {
       "name": "sendpulse",
       "source": "./plugins/sendpulse",
       "description": "Sendpulse multi-channel marketing plugin. Manage chatbots (Telegram, WhatsApp, Instagram, Messenger, Viber), CRM (contacts, deals, pipelines, boards, tasks), email campaigns, templates, addressbooks, and SMTP transactional email via 133+ MCP tools.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["sendpulse", "email-marketing", "chatbots", "crm", "smtp", "telegram", "whatsapp", "instagram", "messenger", "viber", "campaigns", "automation", "leads", "deals", "pipelines"],
       "category": "marketing"
     },
     {
       "name": "teleshop",
       "source": "./plugins/teleshop",
       "description": "Teleshop store management plugin. Manage products, orders, categories, attributes, customers, webhooks, and addons for your Telegram store via 50 MCP tools.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["teleshop", "telegram", "ecommerce", "store", "products", "orders", "catalog", "webhooks", "addons", "mini-app", "bot-shop"],
       "category": "ecommerce"
     },
     {
       "name": "nocodb",
       "source": "./plugins/nocodb",
       "description": "NocoDB database development plugin. Manage tables, records, columns, views, relations, formulas, rollups, lookups, filtering, and sorting via 17+ MCP tools.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["nocodb", "database", "tables", "records", "columns", "views", "relations", "formulas", "no-code", "spreadsheet", "airtable-alternative"],
       "category": "development"
     },
     {
       "name": "n8n",
       "source": "./plugins/n8n",
       "description": "n8n workflow automation plugin. Manage workflows, execute automations, configure nodes, handle credentials, and monitor executions via 17+ MCP tools.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["n8n", "workflow", "automation", "nodes", "triggers", "executions", "credentials", "integrations", "webhooks", "scheduling"],
       "category": "development"
     },
     {
       "name": "firecrawl",
       "source": "./plugins/firecrawl",
       "description": "Firecrawl web scraping and search plugin. Scrape URLs, crawl sites, search the web, map site structures, and extract structured data via 6 MCP tools.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["firecrawl", "web-scraping", "crawling", "search", "data-extraction", "sitemap", "markdown", "content"],
       "category": "development"
     },
     {
       "name": "nocobase",
       "source": "./plugins/nocobase",
       "description": "NocoBase platform development knowledge plugin. Expert guidance on collections, fields, relations, workflows, UI blocks, and plugin development for NocoBase applications.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["nocobase", "low-code", "collections", "workflows", "ui-blocks", "plugin-development", "no-code", "application-builder"],
       "category": "development"
     },
     {
       "name": "mem0",
       "source": "./plugins/mem0",
       "description": "Mem0 memory management plugin. Store, search, update, and organize memories with semantic search, batch operations, file attachments, and change history tracking via 12 MCP tools.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["mem0", "memory", "knowledge-base", "vector-search", "semantic-search", "context", "ai-memory", "files", "recall"],
       "category": "development"
     },
     {
       "name": "plane",
       "source": "./plugins/plane",
       "description": "Plane Agile Coach plugin for startups. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, and daily standups using Agile best practices via 98 Plane MCP tools.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["plane", "agile", "scrum", "sprint-planning", "retrospective", "velocity", "standup", "estimation", "backlog", "project-management", "kanban", "wsjf", "invest"],
       "category": "project-management"
     },
     {
       "name": "deep-research",
       "source": "./plugins/deep-research",
       "description": "Deep Research plugin. Conduct comprehensive web research using 38 tools across 4 providers (Firecrawl, Jina, Exa, Perplexity) with intelligent fallback chains, parallel search, content extraction, and structured report generation.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["deep-research", "web-research", "search", "scraping", "exa", "firecrawl", "jina", "perplexity", "content-extraction", "report-generation", "competitive-analysis", "market-research"],
       "category": "research"
     },
     {
       "name": "document-generator",
       "source": "./plugins/document-generator",
       "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, puppeteer, pptxgenjs, pandoc).",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["document", "pdf", "docx", "pptx", "invoice", "proposal", "report", "presentation", "contract", "generator", "converter", "pandoc", "business-documents"],
       "category": "productivity"
     },
     {
       "name": "openclaw-configurator",
       "source": "./plugins/openclaw-configurator",
       "description": "OpenClaw instance configurator plugin. Scan, analyze, and optimize all workspace files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOT.md, BOOTSTRAP.md) plus openclaw.json. Guided interviews, session log analysis, standing orders design, security audit, config validation, permission fix hooks, and 6 industry-specific workspace templates.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["openclaw", "workspace", "configurator", "agents-md", "soul-md", "persona", "standing-orders", "session-analysis", "heartbeat", "memory", "ai-agent", "self-hosted"],
       "category": "ai-agents"
     },
     {
       "name": "multi-bank",
       "source": "./plugins/multi-bank",
       "description": "Multi-Bank Account Manager with broadcast architecture pattern. Aggregates financial data from Monobank and PrivatBank via MCP tools, broadcasts balance updates and budget alerts, categorizes transactions, manages payments and salary projects, and exports financial reports in CSV/PDF.",
+      "version": "1.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
+      "keywords": ["multi-bank", "monobank", "privatbank", "banking", "finance", "broadcast", "balances", "transactions", "payments", "salary", "budget", "reports", "ukrainian-banks", "mcp"],
       "category": "finance"
     }
   ]
