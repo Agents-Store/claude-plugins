@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "directus": {
-      "type": "http",
-      "url": "https://your-directus-instance.com/mcp"
-    }
-  }
-}

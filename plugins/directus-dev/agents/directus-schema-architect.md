@@ -29,7 +29,6 @@ description: |
   Schema refactoring requires understanding current state and planning improvements.
   </commentary>
   </example>
-tools: mcp__directus__*
 model: sonnet
 color: cyan
 ---

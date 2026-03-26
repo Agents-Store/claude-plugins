@@ -1,10 +1,9 @@
 {
   "name": "directus-dev",
-  "version": "1.0.0",
-  "description": "Directus development plugin. Manage collections, items, fields, relations, files, flows, operations, and schema via 12 MCP tools. Includes REST API reference and @directus/sdk patterns.",
+  "version": "1.1.0",
+  "description": "Directus development plugin. Knowledge base for working with Directus MCP tools (12 tools), REST API, and @directus/sdk. Covers collections, items, fields, relations, files, flows, operations, and schema design.",
   "author": {
     "name": "AGENTS.STORE"
   },
-  "keywords": ["directus", "headless-cms", "collections", "fields", "relations", "flows", "schema", "mcp", "api", "sdk", "content-management", "data-modeling"],
-  "mcpServers": "./.mcp.json"
+  "keywords": ["directus", "headless-cms", "collections", "fields", "relations", "flows", "schema", "mcp", "api", "sdk", "content-management", "data-modeling"]
 }

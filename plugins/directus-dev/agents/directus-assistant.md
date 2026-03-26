@@ -47,7 +47,6 @@ description: |
   User needs to create a Directus flow with operations.
   </commentary>
   </example>
-tools: mcp__directus__*
 model: sonnet
 color: magenta
 ---
@@ -68,12 +67,14 @@ This is NOT like platforms with separate `list_*`, `create_*`, `get_*` tools. Al
 
 ## Working with MCP Tools
 
-Tool names in skills are **generic examples**. Actual MCP server tools may have different prefixes.
+This plugin does NOT bundle MCP connections. The Directus MCP server must be connected at the project level. Tool names depend on how the MCP server was registered — it could be `mcp__directus__items`, `mcp__directus_1__items`, or `mcp__cms__items`.
 
-**Before executing workflows:**
-1. List available tools to discover actual tool names (they may be `mcp__directus__*` or `mcp__directus-1__*`)
-2. Call `system-prompt` tool (no params) to get instance-specific context
-3. Call `schema` tool (no params) to discover existing collections
+**Before executing any workflows:**
+1. Check available MCP tools to discover the actual Directus tool prefix
+2. Call the `system-prompt` tool (no params) to get instance-specific context
+3. Call the `schema` tool (no params) to discover existing collections
+
+If no Directus MCP tools are found, tell the user they need to connect a Directus MCP server first (see plugin README for instructions).
 
 ## Skill Routing
 

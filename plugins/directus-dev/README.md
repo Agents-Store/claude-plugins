@@ -1,13 +1,12 @@
 # directus-dev
 
-Directus development plugin for Claude Code. Manage collections, items, fields, relations, files, flows, operations, and schema via 12 MCP tools. Includes REST API reference and @directus/sdk patterns.
+Directus development plugin for Claude Code. Knowledge base for working with Directus MCP tools (12 tools), REST API, and @directus/sdk. Covers collections, items, fields, relations, files, flows, operations, and schema design.
 
 ## Features
 
 - **10 skills** covering MCP tools, item operations, schema design, field/relations, flow automation, file management, REST API, SDK patterns, troubleshooting, and examples
 - **2 agents** — general assistant and schema architect
 - **10 commands** for quick operations
-- **MCP integration** with Directus built-in MCP server
 
 ## Prerequisites
 
@@ -16,13 +15,17 @@ Directus development plugin for Claude Code. Manage collections, items, fields, 
 
 ## Installation
 
-### As Claude Code Plugin
+### As Claude Code Plugin (user scope)
 
 ```bash
-claude plugin add /path/to/directus-dev
+claude plugin install directus-dev@agents-store
 ```
 
-### MCP Server Setup
+This plugin provides **knowledge only** — it teaches Claude how to use Directus MCP tools, API, and SDK. It does NOT connect to any Directus instance.
+
+### Connecting to Directus (project scope)
+
+MCP connection is configured per-project, NOT in this plugin. Set it up in your project:
 
 ```bash
 claude mcp add --transport http directus \
@@ -30,14 +33,27 @@ claude mcp add --transport http directus \
   --header "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-Or configure in `.mcp.json`:
+For multiple instances:
+```bash
+claude mcp add --transport http directus_products \
+  https://products.example.com/mcp \
+  --header "Authorization: Bearer TOKEN_1"
 
+claude mcp add --transport http directus_content \
+  https://content.example.com/mcp \
+  --header "Authorization: Bearer TOKEN_2"
+```
+
+Or in the project's `.mcp.json` (for Stack Plugins with `${VAR}`):
 ```json
 {
   "mcpServers": {
     "directus": {
       "type": "http",
-      "url": "https://your-directus-instance.com/mcp"
+      "url": "${DIRECTUS_URL}/mcp",
+      "headers": {
+        "Authorization": "Bearer ${DIRECTUS_TOKEN}"
+      }
     }
   }
 }
