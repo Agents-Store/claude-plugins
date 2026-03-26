@@ -275,6 +275,7 @@ Filter/sort/limit nested relations:
 |-------|---------|-----|
 | "action is required" | Missing action parameter | Add `"action": "read"` (or create/update/delete) |
 | "collection is required" | Missing collection name | Add `"collection": "your_collection"` |
+| "data must be an array" | `data` passed as object instead of array | Wrap in array: `"data": [{ ... }]` — even for a single item |
 | 404 Not Found | Item/collection doesn't exist | Verify name with `schema` tool |
 | 403 Forbidden | Insufficient permissions | Check user role permissions |
 | 422 Validation | Required field missing or wrong type | Read schema first, check field types |

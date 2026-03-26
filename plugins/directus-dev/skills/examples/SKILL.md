@@ -28,7 +28,9 @@ End-to-end walkthroughs and reference implementations for common Directus tasks.
 
 ## Quick Walkthrough: Explore → Build → Populate
 
-### 1. Explore the Instance
+**Every workflow starts with schema discovery.** Before creating collections, fields, or items, always call `schema {}` first to understand what already exists. This prevents duplicate collections, reveals existing field names, and ensures correct dependency ordering.
+
+### 1. Explore the Instance (always do this first)
 
 ```json
 Tool: schema
