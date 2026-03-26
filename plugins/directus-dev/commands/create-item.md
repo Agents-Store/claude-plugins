@@ -1,6 +1,5 @@
 ---
 description: Create a new item in a Directus collection
-allowed-tools: ["mcp__directus__items", "mcp__directus__schema"]
 argument-hint: <collection> <field=value> [field=value...]
 ---
 

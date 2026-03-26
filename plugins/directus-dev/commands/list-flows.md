@@ -1,6 +1,5 @@
 ---
 description: List all automation flows in Directus
-allowed-tools: ["mcp__directus__flows"]
 argument-hint:
 ---
 

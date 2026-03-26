@@ -1,6 +1,5 @@
 ---
 description: Create a new Directus collection with optional fields
-allowed-tools: ["mcp__directus__collections", "mcp__directus__fields", "mcp__directus__schema"]
 argument-hint: <name> [--fields <field1:type,field2:type>] [--icon <icon>]
 ---
 

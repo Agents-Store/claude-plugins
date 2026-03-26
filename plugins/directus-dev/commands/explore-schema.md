@@ -1,6 +1,5 @@
 ---
 description: Explore the Directus schema — list all collections or get detailed field info for a specific collection
-allowed-tools: ["mcp__directus__schema", "mcp__directus__system-prompt"]
 argument-hint: [collection-name]
 ---
 

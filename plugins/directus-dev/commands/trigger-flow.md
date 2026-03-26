@@ -1,6 +1,5 @@
 ---
 description: Trigger a Directus automation flow
-allowed-tools: ["mcp__directus__flows", "mcp__directus__trigger-flow"]
 argument-hint: <flow-name-or-id> <collection> [--keys <id1,id2>] [--data <json>]
 ---
 

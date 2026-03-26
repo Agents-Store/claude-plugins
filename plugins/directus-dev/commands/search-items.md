@@ -1,6 +1,5 @@
 ---
 description: Search items across a Directus collection using full-text search
-allowed-tools: ["mcp__directus__items", "mcp__directus__schema"]
 argument-hint: <collection> <query>
 ---
 

@@ -1,6 +1,5 @@
 ---
 description: List files in Directus with optional folder or type filter
-allowed-tools: ["mcp__directus__files", "mcp__directus__folders"]
 argument-hint: [--folder <name>] [--type <mime-prefix>]
 ---
 

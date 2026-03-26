@@ -1,6 +1,5 @@
 ---
 description: List items from a Directus collection with optional filters
-allowed-tools: ["mcp__directus__items", "mcp__directus__schema"]
 argument-hint: <collection> [--filter <field=value>] [--sort <field>] [--limit <n>]
 ---
 

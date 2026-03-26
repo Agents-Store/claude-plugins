@@ -1,6 +1,5 @@
 ---
 description: List all collections in the Directus instance
-allowed-tools: ["mcp__directus__schema"]
 argument-hint:
 ---
 

@@ -1,6 +1,5 @@
 ---
 description: Get a schema snapshot — shows complete data model for one or more collections
-allowed-tools: ["mcp__directus__schema", "mcp__directus__relations"]
 argument-hint: [collection1 collection2 ...]
 ---
 
