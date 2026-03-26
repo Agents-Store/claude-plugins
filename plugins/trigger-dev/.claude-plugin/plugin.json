@@ -1,0 +1,10 @@
+{
+  "name": "trigger-dev",
+  "version": "1.0.0",
+  "description": "Trigger.dev dev plugin for Agents Store. MCP tool patterns, SDK usage, CLI recipes, REST API reference, task development, deployment, AI agent patterns, and troubleshooting for developers building with Trigger.dev.",
+  "author": {
+    "name": "Agents Store",
+    "url": "https://github.com/agents-store"
+  },
+  "keywords": ["trigger.dev", "trigger-dev", "dev", "agents-store", "background-jobs", "task-queue"]
+}
