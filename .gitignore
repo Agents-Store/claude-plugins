@@ -1,2 +1,9 @@
 /.mcp.json
 CLAUDE.md
+**/evals/workspace/
+**/evals/*-workspace/
+**/iteration-*/
+**/benchmark.json
+**/grading.json
+**/timing.json
+**/feedback.json
