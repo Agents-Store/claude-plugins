@@ -1,0 +1,7 @@
+{
+  "name": "nextjs-dev",
+  "version": "1.0.0",
+  "description": "Next.js development plugin. Knowledge base for building modern Next.js applications with App Router, Server/Client Components, data fetching, caching, performance optimization, and the next-devtools-mcp toolchain.",
+  "author": { "name": "AGENTS.STORE" },
+  "keywords": ["nextjs", "next.js", "react", "app-router", "server-components", "typescript", "vercel", "dev", "agents-store"]
+}
