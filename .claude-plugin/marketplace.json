@@ -175,6 +175,17 @@
       },
       "keywords": ["nextjs", "next.js", "react", "app-router", "server-components", "typescript", "vercel", "dev", "agents-store"],
       "category": "development"
+    },
+    {
+      "name": "nextjs-provision",
+      "source": "./plugins/nextjs-provision",
+      "description": "Next.js provisioning plugin. Set up shadcn/ui and shadcn studio — component installation, theme configuration, MCP server setup, and project scaffolding.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["nextjs", "shadcn", "shadcn-ui", "shadcn-studio", "ui-components", "tailwind", "provision", "agents-store"],
+      "category": "development"
     }
   ]
 }
