@@ -169,7 +169,7 @@
       "name": "nextjs-dev",
       "source": "./plugins/nextjs-dev",
       "description": "Next.js development plugin. Knowledge base for building modern Next.js applications with App Router, Server/Client Components, data fetching, caching, performance optimization, and the next-devtools-mcp toolchain.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },

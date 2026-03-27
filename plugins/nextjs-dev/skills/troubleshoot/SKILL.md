@@ -67,6 +67,81 @@ export default function Component() {
 }
 ```
 
+### Locale-Dependent Date Rendering
+
+`toLocaleDateString()` produces different output on server vs client because locale settings differ. Three approaches, from best to simplest:
+
+**Approach 1 — ISO initial render + client upgrade (recommended):**
+
+Render a stable ISO string on the server, then upgrade to the user's locale format after hydration. No mismatch, no flash of wrong content for most users:
+
+```tsx
+// components/formatted-date.tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+export function FormattedDate({ dateString }: { dateString: string }) {
+  const [formatted, setFormatted] = useState(() => {
+    // Stable initial render — matches server output
+    return new Date(dateString).toISOString().split('T')[0]
+  })
+
+  useEffect(() => {
+    // After hydration, upgrade to user's locale format
+    setFormatted(new Date(dateString).toLocaleDateString())
+  }, [dateString])
+
+  return <time dateTime={dateString}>{formatted}</time>
+}
+```
+
+Use in a Server Component page:
+```tsx
+// app/blog/[id]/page.tsx — Server Component
+import { FormattedDate } from '@/components/formatted-date'
+
+export default async function BlogPost({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const post = await getPost(id)
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <FormattedDate dateString={post.date} />
+      <p>{post.content}</p>
+    </article>
+  )
+}
+```
+
+**Approach 2 — Fixed locale (simpler but less flexible):**
+
+Pin the locale so server and client produce identical output:
+
+```tsx
+'use client'
+
+export function FormattedDate({ dateString }: { dateString: string }) {
+  return (
+    <time dateTime={dateString}>
+      {new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+      })}
+    </time>
+  )
+}
+```
+
+**Approach 3 — `suppressHydrationWarning` (last resort):**
+
+```tsx
+<time dateTime={post.date} suppressHydrationWarning>
+  {new Date(post.date).toLocaleDateString()}
+</time>
+```
+
+Only use `suppressHydrationWarning` for leaf elements where the mismatch is cosmetic (e.g., date formatting). It does not fix the mismatch — it silences the warning and shows the client output after hydration.
+
 ## `'use client'` Errors
 
 | Error | Cause | Fix |

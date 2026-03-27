@@ -85,7 +85,8 @@ import { getPost } from '@/lib/data'
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const post = await getPost(id)
-  return <LikeButton likes={post.likes} />
+  // Pass only the serializable data the Client Component needs
+  return <LikeButton postId={post.id} initialLikes={post.likes} />
 }
 ```
 
@@ -95,11 +96,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
 import { useState } from 'react'
 
-export default function LikeButton({ likes }: { likes: number }) {
-  const [count, setCount] = useState(likes)
+export default function LikeButton({ postId, initialLikes }: { postId: string; initialLikes: number }) {
+  const [count, setCount] = useState(initialLikes)
   return <button onClick={() => setCount(c => c + 1)}>{count} likes</button>
 }
 ```
+
+Be explicit about what crosses the boundary — pass specific primitive props (strings, numbers) rather than entire objects when possible. This makes the serialization contract clear and keeps the Client Component lightweight.
 
 ## Interleaving: Server Components Inside Client Components
 
@@ -203,11 +206,11 @@ export default function Page() {
 
 ## Environment Poisoning Prevention
 
-Prevent server-only code from leaking to client bundles:
+Every data-access module that touches databases, API keys, or secrets should start with `import 'server-only'`. This causes a build-time error if the module is accidentally imported in a Client Component — catching the leak before it reaches production:
 
 ```tsx
 // lib/data.ts
-import 'server-only'
+import 'server-only'  // Build fails if any Client Component imports this file
 
 export async function getData() {
   const res = await fetch('https://api.example.com/data', {
@@ -217,13 +220,61 @@ export async function getData() {
 }
 ```
 
-Install `server-only` and `client-only` packages to get build-time errors when modules are imported in the wrong environment:
+```tsx
+// lib/products.ts
+import 'server-only'
+
+export async function getProduct(slug: string) { /* ... */ }
+export async function getAllProducts() { /* ... */ }
+```
+
+Install both guard packages:
 
 ```bash
 npm install server-only client-only
 ```
 
+Use `import 'client-only'` in modules that depend on browser APIs (`localStorage`, `window`) to prevent accidental server-side usage.
+
 Only env vars prefixed with `NEXT_PUBLIC_` are included in the client bundle. Unprefixed variables are replaced with empty strings on the client. Never put secrets in `NEXT_PUBLIC_*` variables.
+
+## Shared Types Across Server/Client Boundary
+
+When Server and Client Components share types, extract them into a standalone types file. Type-only files have no runtime code, so they don't affect bundling:
+
+```tsx
+// types/product.ts — shared between server and client
+export interface Product {
+  id: string
+  name: string
+  slug: string
+  price: number
+  image: string
+}
+
+export interface CartItem {
+  product: Product
+  quantity: number
+}
+```
+
+```tsx
+// lib/products.ts — Server-only data layer
+import 'server-only'
+import type { Product } from '@/types/product'
+
+export async function getProduct(slug: string): Promise<Product | null> { /* ... */ }
+```
+
+```tsx
+// components/add-to-cart.tsx — Client Component
+'use client'
+import type { Product } from '@/types/product'
+
+export function AddToCartButton({ product }: { product: Product }) { /* ... */ }
+```
+
+The `import type` syntax ensures types are stripped at build time and never affect bundle size.
 
 ## Common Mistakes
 

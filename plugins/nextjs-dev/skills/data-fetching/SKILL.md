@@ -87,6 +87,31 @@ export default function Page() {
 
 Alternatively, use `loading.tsx` for route-level loading states (automatically wraps the page in `<Suspense>`).
 
+### Suspense Key Pattern for Dynamic Content
+
+When content depends on URL parameters (search, pagination), use the `key` prop to force Suspense to re-show the fallback when params change. Without this, stale content stays visible while new data loads:
+
+```tsx
+// app/users/page.tsx
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>
+}) {
+  const { q, page } = await searchParams
+
+  return (
+    <div>
+      <SearchInput defaultValue={q} />
+      {/* key changes → Suspense remounts → fallback shows → fresh data streams in */}
+      <Suspense key={`${q}-${page}`} fallback={<TableSkeleton />}>
+        <UserTable query={q} page={Number(page) || 1} />
+      </Suspense>
+    </div>
+  )
+}
+```
+
 Use the `use` API to stream data from Server to Client Components:
 
 ```tsx
@@ -191,22 +216,35 @@ export async function updatePost(id: string, data: FormData) {
 
 ### Tag-based Revalidation
 
-Revalidate specific data across multiple routes:
+Revalidate specific data across multiple routes. Tag-based revalidation is more precise than path-based or time-based approaches — it invalidates exactly the cached entries you need without re-rendering unrelated content:
 
 ```tsx
-// Fetch with a tag
-const posts = await fetch('https://api.example.com/posts', {
-  next: { tags: ['posts'] },
-})
+// lib/data.ts — tag each fetch with a resource-specific tag
+export async function getPost(id: string) {
+  const res = await fetch(`https://api.example.com/posts/${id}`, {
+    next: { tags: [`post-${id}`, 'posts'] },
+  })
+  return res.json()
+}
+```
 
-// Later, revalidate by tag
+```tsx
+// lib/actions.ts — after mutation, invalidate only the affected tag
 'use server'
 import { revalidateTag } from 'next/cache'
 
-export async function refreshPosts() {
-  revalidateTag('posts')
+export async function updatePost(id: string, formData: FormData) {
+  await db.post.update({ where: { id }, data: { /* ... */ } })
+  revalidateTag(`post-${id}`)  // Only this post's cache is busted
 }
 ```
+
+**When to use which revalidation:**
+- `revalidateTag()` — surgical invalidation of specific data across all routes that use it
+- `revalidatePath()` — broader, invalidates all cached data for a specific URL path
+- `export const revalidate = N` — background regeneration on a timer (ISR), no mutation trigger needed
+
+Prefer tag-based revalidation for mutations because it's precise. Use `revalidatePath` when you need to refresh an entire page. Use ISR when data changes externally (not via your app's mutations).
 
 ### Time-based Revalidation (ISR)
 
@@ -290,6 +328,80 @@ export const getUser = cache(async (id: string) => {
 ```
 
 Now multiple components calling `getUser('123')` in the same request only execute the query once.
+
+## Optimistic UI with Server Actions
+
+Update the UI immediately before the server confirms, then roll back on failure. This makes mutations feel instant:
+
+```tsx
+// components/like-button.tsx
+'use client'
+
+import { useState, useTransition } from 'react'
+import { likePost } from '@/lib/actions'
+
+export function LikeButton({ postId, initialLikes }: { postId: string; initialLikes: number }) {
+  const [likes, setLikes] = useState(initialLikes)
+  const [isPending, startTransition] = useTransition()
+
+  function handleLike() {
+    setLikes(prev => prev + 1)  // Optimistic update — instant feedback
+    startTransition(async () => {
+      try {
+        await likePost(postId)
+      } catch {
+        setLikes(prev => prev - 1)  // Rollback on failure
+      }
+    })
+  }
+
+  return (
+    <button onClick={handleLike} disabled={isPending}>
+      {likes} likes
+    </button>
+  )
+}
+```
+
+```tsx
+// lib/actions.ts
+'use server'
+import { revalidateTag } from 'next/cache'
+
+export async function likePost(postId: string) {
+  await db.post.update({ where: { id: postId }, data: { likes: { increment: 1 } } })
+  revalidateTag(`post-${postId}`)
+}
+```
+
+The pattern: update local state first, fire the Server Action in a transition, revert if it fails. The Server Action handles revalidation so subsequent page loads reflect the real value.
+
+For forms, `useOptimistic` (React 19) provides a similar pattern:
+
+```tsx
+'use client'
+import { useOptimistic } from 'react'
+
+function TodoList({ todos, addTodo }: { todos: Todo[]; addTodo: (text: string) => Promise<void> }) {
+  const [optimisticTodos, addOptimistic] = useOptimistic(
+    todos,
+    (state, newTodo: string) => [...state, { id: 'temp', text: newTodo, pending: true }]
+  )
+
+  async function handleSubmit(formData: FormData) {
+    const text = formData.get('text') as string
+    addOptimistic(text)
+    await addTodo(text)
+  }
+
+  return (
+    <form action={handleSubmit}>
+      <input name="text" />
+      <ul>{optimisticTodos.map(t => <li key={t.id} style={{ opacity: t.pending ? 0.5 : 1 }}>{t.text}</li>)}</ul>
+    </form>
+  )
+}
+```
 
 ## Rendering Strategy Summary
 
