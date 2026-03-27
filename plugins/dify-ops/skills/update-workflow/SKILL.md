@@ -140,15 +140,27 @@ git add .
 git commit -m "Merge upstream into dev"
 ```
 
-## Post-merge
+## Post-merge: Volume Backup
 
-After successful merge (clean or resolved):
+After successful merge (clean or resolved), **always backup Docker volumes before rebuilding containers** — volumes hold persistent data (postgres, redis, weaviate, file storage) that cannot be recovered if a container rebuild or migration corrupts them.
+
+```bash
+cd $DOCKER_DIR
+
+# Create timestamped archive of all volumes
+tar -cvf volumes-$(date +%s).tgz volumes
+echo "Volume backup created"
+```
+
+Keep at least the last backup until the update is verified healthy. If disk space is a concern, remove older backups after confirming the new version works.
+
+## Post-merge: Status
 
 ```bash
 NEW_COMMIT=$(git rev-parse HEAD)
 echo "Updated from $PRE_UPDATE_COMMIT to $NEW_COMMIT"
 echo "Rollback command: git reset --hard $PRE_UPDATE_COMMIT"
-echo "WARNING: Rollback will NOT undo database migrations"
+echo "WARNING: Rollback will NOT undo database migrations — restore volumes from backup"
 ```
 
 If stashed earlier:

@@ -82,7 +82,21 @@ docker-api-1
 Detected Docker project name: docker
 ```
 
-### 7. Rebuild
+### 7. Volume Backup
+
+```
+$ cd /opt/dify/docker
+$ tar -cvf volumes-$(date +%s).tgz volumes
+volumes/
+volumes/postgres/
+volumes/redis/
+volumes/weaviate/
+volumes/storage/
+...
+Volume backup created: volumes-1743091200.tgz
+```
+
+### 8. Rebuild
 
 ```
 $ docker compose up -d --build
@@ -101,7 +115,7 @@ $ docker compose up -d --build
  ✔ Container docker-nginx-1           Started
 ```
 
-### 8. Verification
+### 9. Verification
 
 ```
 $ docker compose ps
@@ -116,7 +130,7 @@ docker-web-1              Up 25 seconds   3000/tcp
 HTTP 200 — Dify web reachable
 ```
 
-### 9. Summary
+### 10. Summary
 
 ```
 === Dify Update Summary ===
@@ -128,5 +142,6 @@ New env vars:     3 added to .env
 Conflicts:        None
 Docker project:   docker
 Containers:       All running
+Volume backup:    volumes-1743091200.tgz
 Rollback:         git reset --hard abc1234
 ```

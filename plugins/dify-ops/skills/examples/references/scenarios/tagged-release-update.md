@@ -128,7 +128,21 @@ dify-prod-api-1
 Detected Docker project name: dify-prod
 ```
 
-### 8. Rebuild
+### 8. Volume Backup
+
+```
+$ cd /opt/dify-prod/docker
+$ tar -cvf volumes-$(date +%s).tgz volumes
+volumes/
+volumes/postgres/
+volumes/redis/
+volumes/weaviate/
+volumes/storage/
+...
+Volume backup created: volumes-1743091200.tgz
+```
+
+### 9. Rebuild
 
 ```
 $ docker compose -p dify-prod up -d --build
@@ -140,14 +154,14 @@ $ docker compose -p dify-prod up -d --build
  ✔ Container dify-prod-nginx-1          Started
 ```
 
-### 9. Verification
+### 10. Verification
 
 ```
 All 11 containers running.
 HTTP 200 — Dify web reachable at http://localhost:8080
 ```
 
-### 10. Restore Stashed Changes
+### 11. Restore Stashed Changes
 
 ```
 $ git stash pop
@@ -159,7 +173,7 @@ Note: The stashed comment was added to docker-compose.yaml.
 The file was already modified by the merge, so review the stash pop result.
 ```
 
-### 11. Summary
+### 12. Summary
 
 ```
 === Dify Update Summary ===
@@ -172,5 +186,6 @@ Conflicts:        1 resolved (docker-compose.yaml — port env vars)
 Docker project:   dify-prod
 Containers:       All running
 Stash:            Restored
+Volume backup:    volumes-1743091200.tgz
 Rollback:         git reset --hard aaa1111
 ```
