@@ -1,0 +1,9 @@
+{
+  "name": "dify-ops",
+  "version": "1.0.0",
+  "description": "Dify self-hosted update operations plugin. Pull upstream changes, merge into local dev branch, sync .env variables, detect Docker project names, and rebuild containers for Dify Docker deployments.",
+  "author": {
+    "name": "AGENTS.STORE"
+  },
+  "keywords": ["dify", "docker", "self-hosted", "update", "ops", "docker-compose", "env-sync", "llm-platform"]
+}

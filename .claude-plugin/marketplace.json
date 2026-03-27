@@ -186,6 +186,17 @@
       },
       "keywords": ["nextjs", "shadcn", "shadcn-ui", "shadcn-studio", "ui-components", "tailwind", "provision", "agents-store"],
       "category": "development"
+    },
+    {
+      "name": "dify-ops",
+      "source": "./plugins/dify-ops",
+      "description": "Dify self-hosted update operations plugin. Pull upstream changes, merge into local dev branch, sync .env variables, detect Docker project names, and rebuild containers for Dify Docker deployments.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["dify", "docker", "self-hosted", "update", "ops", "docker-compose", "env-sync", "llm-platform"],
+      "category": "operations"
     }
   ]
 }
