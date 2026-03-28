@@ -1,10 +1,12 @@
 ---
 name: component-registry
 description: >
-  Browse, search, and install shadcn/ui and shadcn studio components, blocks, and templates. This skill
+  Browse, search, install, and use shadcn/ui and shadcn studio components, blocks, and templates. This skill
   should be used when the user asks to "install a shadcn component", "add a button", "list shadcn blocks",
   "find a form block", "browse shadcn studio components", "add a card component", "install a navigation
-  block", "what components are available", or needs to discover and install UI components from shadcn registries.
+  block", "what components are available", "write code with shadcn components", "use Button component",
+  "render shadcn component as link", "Button as a link", "shadcn component patterns", or needs to discover,
+  install, or use UI components from shadcn registries correctly.
 ---
 
 ## Registries Overview

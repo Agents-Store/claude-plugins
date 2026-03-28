@@ -84,6 +84,20 @@ Check these files exist and are correct:
 
 3. **`globals.css`** -- Should contain `:root` and `.dark` CSS variable blocks
 
+4. **Font variable check** -- After init, verify `globals.css` does not contain circular font references:
+   - `--font-sans: var(--font-sans)` — **wrong**, circular reference, browser falls back to system font
+   - `--font-sans: var(--font-geist-sans)` — **correct**, maps to the CSS variable set by `next/font` in `layout.tsx`
+
+   If the project uses Geist (Next.js default), ensure `layout.tsx` declares the font variable:
+   ```typescript
+   import { Geist } from "next/font/google"
+   const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
+   ```
+   And `globals.css` maps it (inside `@theme inline`):
+   ```css
+   --font-sans: var(--font-geist-sans);
+   ```
+
 ## Step 3: Configure shadcn studio Registries
 
 To access shadcn studio components, blocks, and themes, add the studio registry to `components.json`:
