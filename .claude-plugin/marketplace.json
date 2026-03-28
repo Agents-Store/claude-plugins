@@ -197,6 +197,17 @@
       },
       "keywords": ["dify", "docker", "self-hosted", "update", "ops", "docker-compose", "env-sync", "llm-platform"],
       "category": "operations"
+    },
+    {
+      "name": "stack-directus-nextjs-dev",
+      "source": "./plugins/stack-directus-nextjs-dev",
+      "description": "Directus + Next.js stack dev plugin. Integrates Directus headless CMS with Next.js App Router for content-driven applications, with Vercel deployment and Docker local dev.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["stack", "directus-nextjs", "dev", "agents-store", "directus", "nextjs", "vercel", "headless-cms", "app-router"],
+      "category": "development"
     }
   ]
 }
