@@ -219,6 +219,27 @@ export function UserProfileCard({ user }: { user: User }) {
 }
 ```
 
+## shadcn v4 Button as Link
+
+shadcn v4 uses `@base-ui/react` instead of Radix. The `asChild` prop no longer exists. Use the `render` prop with `nativeButton={false}` when rendering a Button as an `<a>` tag — omitting `nativeButton={false}` causes a Base UI console warning because it expects a native `<button>` element by default.
+
+```typescript
+import { Button } from "@/components/ui/button"
+
+// Correct — renders as <a> with button styling
+<Button nativeButton={false} render={<a href="/dashboard" />}>
+  Go to Dashboard
+</Button>
+
+// With variant
+<Button nativeButton={false} variant="outline" render={<a href="https://example.com" target="_blank" rel="noopener noreferrer" />}>
+  External Link
+</Button>
+
+// Wrong — asChild does NOT exist in shadcn v4
+// <Button asChild><a href="/dashboard">Go</a></Button>
+```
+
 ## Updating Components
 
 To update to the latest version of a component, re-run the add command with `--overwrite`:
