@@ -208,6 +208,28 @@
       },
       "keywords": ["stack", "directus-nextjs", "dev", "agents-store", "directus", "nextjs", "vercel", "headless-cms", "app-router"],
       "category": "development"
+    },
+    {
+      "name": "web-search-dev",
+      "source": "./plugins/web-search-dev",
+      "description": "Web search and scraping developer toolkit. MCP tool patterns, REST API reference, SDK/CLI usage for Firecrawl, Exa, Perplexity, Jina, Pexels, Unsplash, and Context7. Practical skills for web scraping, documentation search, and media discovery in dev workflows.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["web-search", "scraping", "firecrawl", "exa", "perplexity", "jina", "pexels", "unsplash", "context7", "dev", "agents-store"],
+      "category": "development"
+    },
+    {
+      "name": "media-hosting-ops",
+      "source": "./plugins/media-hosting-ops",
+      "description": "Media hosting operations plugin. Upload images by public URL to MinIO-based media hosting via the uploadImageToMinio MCP tool.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["media-hosting", "minio", "image-upload", "ops", "agents-store"],
+      "category": "operations"
     }
   ]
 }

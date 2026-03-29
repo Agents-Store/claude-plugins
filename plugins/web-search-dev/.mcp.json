@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${user_config.firecrawl_api_key}"
+      }
+    },
+    "exa": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.exa.ai/mcp"]
+    },
+    "perplexity": {
+      "command": "npx",
+      "args": ["-y", "@perplexity-ai/mcp-server"],
+      "env": {
+        "PERPLEXITY_API_KEY": "${user_config.perplexity_api_key}"
+      }
+    },
+    "jina": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.jina.ai/v1", "--header", "Authorization: Bearer ${user_config.jina_api_key}"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  }
+}
