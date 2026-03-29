@@ -50,14 +50,6 @@ API keys are configured via `userConfig` — Claude Code prompts for them when t
 
 Pexels and Unsplash require separate MCP configuration.
 
-## Relationship to deep-research
-
-This plugin complements the `deep-research` plugin:
-- **deep-research** — Research orchestration: 7-step algorithm, report templates, CONNECTORS pattern
-- **web-search-dev** — Developer toolkit: direct service knowledge, practical scraping, doc search, media discovery
-
-Use `deep-research` for research reports. Use `web-search-dev` for building applications.
-
 ## Prerequisites
 
 - Node.js 18+ (for MCP servers via npx)

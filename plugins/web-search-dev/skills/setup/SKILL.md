@@ -116,4 +116,3 @@ If a recommended tool is unavailable, the mcp-patterns skill routing table shows
 
 - Creating API accounts — visit each service's website to sign up
 - Configuring MCP servers from scratch — the plugin's `.mcp.json` handles this automatically
-- Deep research workflows — see the `deep-research` plugin for research orchestration
