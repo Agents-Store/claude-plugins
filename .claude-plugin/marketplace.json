@@ -230,6 +230,17 @@
       },
       "keywords": ["media-hosting", "minio", "image-upload", "ops", "agents-store"],
       "category": "operations"
+    },
+    {
+      "name": "image-search-dev",
+      "source": "./plugins/image-search-dev",
+      "description": "Stock image and video search developer toolkit. MCP tool patterns for Pexels (9 tools) and Unsplash (4 tools) from mcpware-dev-tools. Photo search, video search, collections, curated content, and MinIO upload integration.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["image-search", "pexels", "unsplash", "stock-photos", "stock-videos", "media", "dev", "agents-store"],
+      "category": "development"
     }
   ]
 }
