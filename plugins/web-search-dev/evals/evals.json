@@ -1,0 +1,75 @@
+{
+  "skill_name": "web-search-dev",
+  "evals": [
+    {
+      "id": 0,
+      "skill": "setup",
+      "prompt": "I just installed the web-search-dev plugin but I'm not sure which of the search services are actually working. Can you check which ones are connected and give me a status report?",
+      "expected_output": "Should attempt to verify each service (Firecrawl, Exa, Perplexity, Jina, Context7) with a lightweight test call and produce a status summary table showing which are connected vs not available.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "skill": "mcp-patterns",
+      "prompt": "I need to scrape some product data from a website and then find stock photos for my app. Which MCP tools should I use for each task? Give me the specific tool names and a quick overview of what's available.",
+      "expected_output": "Should reference the mcp-patterns skill routing table, recommend specific tools like firecrawl_scrape/firecrawl_extract for scraping and searchPhotos/get_search_photos for media, and show awareness of the full tool ecosystem across services.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "skill": "api-reference",
+      "prompt": "Show me the curl commands to scrape a page with Firecrawl and search with Exa. I need the actual REST API endpoints and authentication headers.",
+      "expected_output": "Should load the api-reference skill (disable-model-invocation means it only loads on explicit request) and provide curl examples with correct endpoints (api.firecrawl.dev/v1/scrape, api.exa.ai/search), proper auth headers, and ${VAR} placeholders for API keys.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "skill": "sdk-patterns",
+      "prompt": "I'm building a Next.js app and want to integrate Exa search and Jina reader into my TypeScript code. Show me how to install the SDKs and write the basic integration code.",
+      "expected_output": "Should provide npm install commands (exa-js), TypeScript code for Exa client initialization and search, and fetch-based patterns for Jina reader API. Should use process.env for API keys.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "skill": "cli-recipes",
+      "prompt": "I want to use the command line to quickly scrape a few pages and search the web. What CLI tools are available and how do I install them? Show me some common commands.",
+      "expected_output": "Should reference both Firecrawl CLI (npm install -g firecrawl-cli) and Jina CLI (pip install jina-cli), with practical commands like 'firecrawl scrape URL', 'jina read URL', 'jina search QUERY'. Should show pipe composability.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "skill": "web-scraping",
+      "prompt": "I need to scrape all product listings from a competitor's e-commerce site and extract the product names, prices, and descriptions into structured JSON. The site uses React so pages are rendered client-side. Walk me through how to do this.",
+      "expected_output": "Should recommend firecrawl_map to discover URLs, then firecrawl_extract with a JSON schema for structured extraction. Should mention waitFor for JS-rendered pages. Should cover the full pipeline: discover URLs → filter → extract structured data → transform.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "skill": "doc-search",
+      "prompt": "I'm getting a weird error in my Next.js 15 app — something about 'useSearchParams() should be wrapped in a suspense boundary'. I need to find the current docs that explain this. Can you search the latest Next.js documentation?",
+      "expected_output": "Should use Context7 (resolve-library-id for nextjs, then query-docs) as the primary approach for finding current docs. May also suggest perplexity_reason for debugging help. Should provide a clear workflow: resolve library → query docs → optionally search for community solutions.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "skill": "media-search",
+      "prompt": "I'm building a tech blog and need some high-quality landscape photos of modern office workspaces for my hero sections. Also need a few short background videos. Find me some options.",
+      "expected_output": "Should use searchPhotos (Pexels) for photos with orientation=landscape, searchVideos for videos. May also suggest get_search_photos (Unsplash) as alternative. Should mention image sizes (src.large for hero) and licensing info.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "skill": "troubleshoot",
+      "prompt": "My Firecrawl scrapes keep timing out and Jina is returning empty content for some pages. Also getting 429 errors from Exa. Help me debug these issues.",
+      "expected_output": "Should provide service-specific troubleshooting: Firecrawl timeout → try waitFor or onlyMainContent, Jina empty → page uses heavy JS so try Firecrawl instead, Exa 429 → rate limited, add API key or add delays. Should reference the troubleshoot skill's error tables.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "skill": "examples",
+      "prompt": "Show me a complete example of building a content pipeline that discovers articles from tech blogs, extracts their content, classifies them by topic, and imports them into a CMS.",
+      "expected_output": "Should reference the content-pipeline scenario from examples/references/scenarios/. Should show the full multi-service pipeline: discover sources (Exa) → map URLs (Firecrawl) → batch read (Jina) → extract structured data (Firecrawl) → classify (Jina) → deduplicate (Jina) → import to CMS.",
+      "files": []
+    }
+  ]
+}
