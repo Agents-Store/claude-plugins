@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "trigger.dev": {
-      "type": "http",
-      "url": "https://my-mcp.mcpware.net/mcp/tds"
-    }
-  }
-}

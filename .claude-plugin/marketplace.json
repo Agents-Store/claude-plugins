@@ -12,17 +12,6 @@
   },
   "plugins": [
     {
-      "name": "trigger.dev",
-      "source": "./plugins/trigger.dev",
-      "description": "Trigger.dev background jobs plugin. Manage tasks, trigger runs, deploy projects, and monitor workflows via 14 MCP tools.",
-      "version": "1.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": ["trigger.dev", "background-jobs", "tasks", "deployment", "monitoring", "cron", "queues", "ai-agents"],
-      "category": "development"
-    },
-    {
       "name": "sendpulse",
       "source": "./plugins/sendpulse",
       "description": "Sendpulse multi-channel marketing plugin. Manage chatbots (Telegram, WhatsApp, Instagram, Messenger, Viber), CRM (contacts, deals, pipelines, boards, tasks), email campaigns, templates, addressbooks, and SMTP transactional email via 133+ MCP tools.",
