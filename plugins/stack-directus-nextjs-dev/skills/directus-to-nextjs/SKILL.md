@@ -140,7 +140,7 @@ Relational fields use union types: `author: string | Author` — it's a UUID str
 
 ## Image Handling
 
-Directus serves file assets at `{DIRECTUS_URL}/assets/{file_id}`. Create a helper:
+Directus serves file assets at `{DIRECTUS_URL}/assets/{file_id}`. Create a helper that includes authentication — Directus assets return **403 Forbidden** unless the public role has read access to `directus_files` or the URL includes an `access_token`:
 
 ```typescript
 export function directusAsset(
@@ -153,9 +153,20 @@ export function directusAsset(
   if (params?.height) url.searchParams.set('height', String(params.height));
   if (params?.fit) url.searchParams.set('fit', params.fit);
   if (params?.quality) url.searchParams.set('quality', String(params.quality));
+  // Include access_token — without it, assets return 403 unless the public role has file read access
+  const token = process.env.DIRECTUS_ADMIN_TOKEN;
+  if (token) url.searchParams.set('access_token', token);
   return url.toString();
 }
 ```
+
+**Asset authentication options (pick one):**
+
+| Approach | When to use |
+|----------|------------|
+| `access_token` in URL (above) | Quick setup — token is in the URL but proxied through `next/image` so not directly exposed to end users |
+| Public role with file read access | Production best practice — configure in Directus: Settings > Roles > Public > `directus_files` read permission |
+| API route proxy | Maximum security — create `/api/assets/[id]` route that fetches with the token server-side |
 
 Use with `next/image`:
 

@@ -169,6 +169,17 @@ Only use `suppressHydrationWarning` for leaf elements where the mismatch is cosm
 | "Error: NEXT_REDIRECT" | `redirect()` caught in try/catch | Call `redirect()` outside try/catch blocks — it throws intentionally |
 | Stale data after mutation | Cache not revalidated | Call `revalidatePath()` or `revalidateTag()` after mutations |
 
+## Image Issues (`next/image`)
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Broken/missing images, no visible error | Upstream image source returns 403 — `next/image` proxies through `/_next/image` so the HTTP error is hidden from the browser | Check network tab for `/_next/image` requests returning 403/401. If the upstream (e.g., Directus, S3) requires auth, include `access_token` or API key in the image URL |
+| "Invalid src prop" or "hostname not configured" | Remote image domain missing from config | Add the domain to `images.remotePatterns` in `next.config.ts` |
+| Images load in `<img>` but not `<Image>` | `next/image` optimizer can't fetch the upstream URL | Verify the upstream URL is reachable from the server (not just the browser). Common with private networks or auth-protected CDNs |
+| Blurry or low-quality images | Wrong `sizes` prop or default quality | Set `sizes` to match actual display size; increase `quality` (default 75) |
+
+**Debugging tip:** When images appear broken with no error, always check `/_next/image` requests in the browser Network tab — the HTTP status reveals whether the issue is upstream auth (403), missing config (400), or network (502/504).
+
 ## Performance Issues
 
 | Symptom | Likely Cause | Fix |

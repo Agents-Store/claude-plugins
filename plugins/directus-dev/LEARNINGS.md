@@ -1,5 +1,12 @@
 # Learnings
 
+## 2026-03-30 — troubleshoot: 403 section missing file asset authentication gotcha
+
+**Problem:** The 403 troubleshooting section covered general permission issues but didn't mention the #1 403 gotcha: Directus file assets (`/assets/{id}`) returning 403 when accessed without authentication. Developers integrating with frontends (Next.js, React, etc.) hit this constantly.
+**Fix:** Added a dedicated "403 on file assets" subsection documenting the two fix approaches (access_token in URL vs public role file read permission) and the opaque symptom when using `next/image`.
+**Root cause:** Troubleshoot skill focused on API/collection permissions, overlooked file/asset access as a distinct permission category.
+**Severity:** Major
+
 ## 2026-03-26 — plugin-wide: Remove hardcoded MCP server name prefix
 
 **Problem:** Plugin shipped with `.mcp.json`, `mcpServers` in plugin.json, `tools: mcp__directus__*` in agents, and `allowed-tools: ["mcp__directus__*"]` in all 10 commands. This hardcodes the MCP server name to `directus`, breaking when users register it as `directus-1`, `cms`, `content_hub`, or any other name. Also violates Technology plugin rules — Level 1 plugins must not bundle MCP connections.

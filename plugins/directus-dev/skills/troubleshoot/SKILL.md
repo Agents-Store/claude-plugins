@@ -97,6 +97,12 @@ curl "${DIRECTUS_URL}/users/me" \
   - Schema management permissions for collection/field creation
 - For MCP: ensure the MCP user has permissions matching intended operations
 
+**403 on file assets (`/assets/{id}`)** — the most common 403 issue when integrating with frontends:
+- Directus file assets require authentication by default — unauthenticated requests to `/assets/{id}` return 403
+- **Fix option 1:** Add `?access_token=TOKEN` to asset URLs (quick, works for server-rendered pages)
+- **Fix option 2:** Grant the Public role read access to `directus_files` (Settings > Roles > Public > directus_files > enable Read) — preferred for public-facing sites
+- When using `next/image`, the 403 manifests as broken/missing images with no obvious error since Next.js proxies through `/_next/image`
+
 ### 404 Not Found
 
 **Cause:** Collection, item, or endpoint doesn't exist.
