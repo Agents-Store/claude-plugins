@@ -221,9 +221,13 @@ export function UserProfileCard({ user }: { user: User }) {
 }
 ```
 
-## shadcn v4 Button as Link
+## shadcn v4: `render` Prop Instead of `asChild`
 
-shadcn v4 uses `@base-ui/react` instead of Radix. The `asChild` prop no longer exists. Use the `render` prop with `nativeButton={false}` when rendering a Button as an `<a>` tag — omitting `nativeButton={false}` causes a Base UI console warning because it expects a native `<button>` element by default.
+shadcn v4 uses `@base-ui/react` instead of Radix. The `asChild` prop **does not exist** in any shadcn v4 component — it will cause a TypeScript error. Use the `render` prop instead. This applies to **all** compound components (Button, SheetTrigger, DialogTrigger, DropdownMenuTrigger, etc.), not just Button.
+
+### Button as Link
+
+Use `render` with `nativeButton={false}` — omitting `nativeButton={false}` causes a Base UI console warning because it expects a native `<button>` element by default.
 
 ```typescript
 import { Button } from "@/components/ui/button"
@@ -233,13 +237,25 @@ import { Button } from "@/components/ui/button"
   Go to Dashboard
 </Button>
 
-// With variant
-<Button nativeButton={false} variant="outline" render={<a href="https://example.com" target="_blank" rel="noopener noreferrer" />}>
-  External Link
-</Button>
-
 // Wrong — asChild does NOT exist in shadcn v4
 // <Button asChild><a href="/dashboard">Go</a></Button>
+```
+
+### Trigger Components (SheetTrigger, DialogTrigger, etc.)
+
+When wrapping a custom element as a trigger, use `render` to compose the trigger with your component:
+
+```typescript
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
+
+// Correct — SheetTrigger renders as a Button
+<SheetTrigger render={<Button variant="ghost" size="icon" nativeButton={false} />}>
+  <Menu className="h-5 w-5" />
+</SheetTrigger>
+
+// Wrong — asChild does NOT exist
+// <SheetTrigger asChild><Button>Open</Button></SheetTrigger>
 ```
 
 ## Updating Components

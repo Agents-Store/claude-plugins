@@ -8,3 +8,10 @@ Accumulated fixes, discoveries, and improvements for the nextjs-provision plugin
 **Fix:** Added "shadcn v4 Button as Link" section to component-registry SKILL.md with correct `render` + `nativeButton={false}` pattern and a note about the removed `asChild` prop.
 **Root cause:** Skill was written for shadcn v3 (Radix-based). shadcn v4 migrated to @base-ui/react with a different composition API.
 **Severity:** Major
+
+## 2026-03-30 — component-registry: Expand render prop guidance to all trigger components
+
+**Problem:** The `asChild` → `render` migration guidance only covered Button as `<a>`. SheetTrigger, DialogTrigger, and other compound trigger components also need `render` prop composition, but no examples existed. Building a mobile nav with SheetTrigger wrapping a Button caused a TypeScript error on `asChild`.
+**Fix:** Renamed section to "shadcn v4: `render` Prop Instead of `asChild`". Added explicit note that `asChild` doesn't exist on ANY shadcn v4 component. Added SheetTrigger + Button composition example alongside the existing Button-as-link pattern.
+**Root cause:** Previous fix (2026-03-28) only addressed the Button-specific case. The `render` prop pattern applies to all `@base-ui/react` components, not just Button.
+**Severity:** Major

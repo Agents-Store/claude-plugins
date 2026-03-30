@@ -1,6 +1,6 @@
 {
   "name": "nextjs-provision",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Next.js provisioning plugin. Set up shadcn/ui and shadcn studio — component installation, theme configuration, MCP server setup, and project scaffolding.",
   "author": { "name": "AGENTS.STORE" },
   "keywords": ["nextjs", "shadcn", "shadcn-ui", "shadcn-studio", "ui-components", "tailwind", "provision", "agents-store"]

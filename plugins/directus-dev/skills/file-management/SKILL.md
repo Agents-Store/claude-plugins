@@ -30,7 +30,6 @@ Input: {
     "file": {
       "title": "Product Hero Image",
       "description": "Main product photo for landing page",
-      "tags": ["product", "hero", "landing"],
       "folder": "folder-uuid-here"
     }
   }]
@@ -95,7 +94,6 @@ Input: {
   "data": [{
     "title": "Updated Title",
     "description": "Better description for SEO",
-    "tags": ["updated", "seo-friendly"],
     "focal_point_x": 0.5,
     "focal_point_y": 0.3
   }]
@@ -128,7 +126,7 @@ Input: {
 | `duration` | integer | Audio/video duration (ms) |
 | `description` | string | File description |
 | `location` | string | Location metadata |
-| `tags` | json | Array of tags |
+| `tags` | string \| null | Comma-separated tags string (not an array — the MCP tool schema expects `string \| null`, arrays will cause validation errors) |
 | `uploaded_by` | uuid | Uploader user ID |
 | `uploaded_on` | timestamp | Upload date |
 | `modified_by` | uuid | Last modifier |
@@ -259,7 +257,6 @@ Input: {
       "url": "https://cdn.example.com/hero.jpg",
       "file": {
         "title": "Homepage Hero",
-        "tags": ["hero", "homepage"],
         "folder": "folder-uuid"
       }
     }
@@ -298,7 +295,7 @@ Input: { "id": "file-uuid" }
 
 - Use folders to organize files — don't leave everything in the root
 - Set descriptive titles on import — don't rely on original filenames
-- Use tags for cross-folder categorization
+- Tags are `string | null` in the MCP tool schema — pass a comma-separated string like `"hero,product"`, never an array
 - Filter by MIME type when listing: `{ "type": { "_starts_with": "image/" } }`
 - Set focal points for images used in cropped contexts
 - Import files with metadata in a single call rather than importing then updating
