@@ -241,6 +241,17 @@
       },
       "keywords": ["image-search", "pexels", "unsplash", "stock-photos", "stock-videos", "media", "dev", "agents-store"],
       "category": "development"
+    },
+    {
+      "name": "project-template-creator",
+      "source": "./plugins/project-template-creator",
+      "description": "Manage project template hierarchy. Send feedback UP from child projects to parent templates, create new stack templates from the universal base, sync changes down to children, and validate template conventions across Level 0/1/1.5/2.",
+      "version": "1.1.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["project-template", "template-hierarchy", "feedback", "scaffold", "stack", "template-creator", "CLAUDE.md", "skills", "agents", "commands"],
+      "category": "development"
     }
   ]
 }

@@ -1,0 +1,179 @@
+{
+  "skill_name": "project-template-creator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm working in acme-website (a Level 2 client project based on project-directus-nextjs) and I just realized that the .env.example in the parent template is missing VERCEL_TOKEN and VERCEL_ORG_ID. Every Directus+Next.js project needs these for deployment. Can you push this fix up to the Level 1 template?",
+      "expected_output": "The feedback skill reads stack.json to find the parent (project-directus-nextjs), locates it at $PROJECT_TEMPLATES_DIR, adds VERCEL_TOKEN and VERCEL_ORG_ID to its .env.example under a Vercel section, records the change in LEARNINGS.md with source attribution to acme-website, and commits.",
+      "files": [],
+      "expectations": [
+        "Reads stack.json from the current project to determine parent template name",
+        "Identifies the target as Level 1 (project-directus-nextjs), not Level 0",
+        "Locates the parent template directory using $PROJECT_TEMPLATES_DIR",
+        "Adds VERCEL_TOKEN and VERCEL_ORG_ID to the parent's .env.example",
+        "Appends an entry to the parent's LEARNINGS.md with the source project name (acme-website)",
+        "Creates a git commit in the parent template repo with a descriptive message",
+        "Notes which child projects should merge from the updated parent"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We keep running into the same issue across all our projects — people accidentally run git push --force to main and it wrecks everyone's branches. This isn't specific to any stack, it should be a universal safety rule in the base template. Add it to project-template's safety rules.",
+      "expected_output": "The feedback skill identifies this as a Level 0 (universal) improvement. It navigates to project-template (not a Level 1 template), creates or updates .claude/rules/safety.md with a rule about never force-pushing to main, records in LEARNINGS.md, and commits.",
+      "files": [],
+      "expectations": [
+        "Identifies the target as Level 0 (project-template) since this is universal across all stacks",
+        "Does NOT target a Level 1 stack-specific template",
+        "Locates project-template directory at $PROJECT_TEMPLATES_DIR/project-template",
+        "Creates or updates .claude/rules/safety.md with a force-push prevention rule",
+        "The rule includes a WHY explanation (not just a bare prohibition)",
+        "Records in project-template's LEARNINGS.md",
+        "Commits to the project-template repo"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I just spent an hour figuring out that shadcn v4 components use @base-ui/react instead of Radix, and the asChild prop doesn't exist anymore — you have to use render instead. This gotcha should definitely be in the Level 1 template's CLAUDE.md so nobody else wastes time on it.",
+      "expected_output": "The feedback skill identifies this as stack-specific (Level 1, project-directus-nextjs). It locates the parent template, adds the shadcn v4 gotcha to the CLAUDE.md Gotchas section, records in LEARNINGS.md, and commits.",
+      "files": [],
+      "expectations": [
+        "Identifies the target as Level 1 (stack-specific) since shadcn/base-ui is Next.js-specific",
+        "Reads stack.json to resolve the Level 1 parent template",
+        "Adds the gotcha about shadcn v4 and @base-ui/react to CLAUDE.md's Gotchas section",
+        "The gotcha mentions both the old pattern (asChild) and the new pattern (render)",
+        "Records in the parent template's LEARNINGS.md",
+        "Commits with a descriptive message referencing the gotcha"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I want to create a new Level 1 template for projects using Supabase as the data layer and Nuxt as the frontend. We'll also use Trigger.dev for background jobs. Call it project-supabase-nuxt.",
+      "expected_output": "The create skill clones project-template into a new project-supabase-nuxt directory, fills stack.json with level=1 and the correct layers/plugins, customizes CLAUDE.md with the tech stack, updates .env.example with Supabase and Trigger.dev vars, searches for matching Agents Store plugins, validates the result, and makes an initial commit.",
+      "files": [],
+      "expectations": [
+        "Clones project-template (Level 0) as the parent, not another Level 1 template",
+        "Creates a new directory named project-supabase-nuxt",
+        "Fills stack.json with level=1, parent='project-template', stack='supabase-nuxt'",
+        "Populates stack.json layers: data=['supabase'], logic=['nuxt', 'trigger-dev'], interface=['nuxt']",
+        "Customizes CLAUDE.md with Supabase + Nuxt tech stack details",
+        "Updates .env.example with Supabase variables (SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY)",
+        "Searches plugin directories for matching technology plugins",
+        "Initializes a new git repo and makes an initial commit"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Create a Level 2 client project for Widgets Inc from the project-directus-nextjs template. It's a corporate website with a blog and team directory.",
+      "expected_output": "The create skill clones project-directus-nextjs into widgets-inc-website, sets stack.json to level=2 with parent=project-directus-nextjs, prompts for real credentials and resource IDs, and customizes CLAUDE.md with the client project name and description.",
+      "files": [],
+      "expectations": [
+        "Uses project-directus-nextjs (Level 1) as the parent template, not project-template",
+        "Creates a directory with a client-prefixed name (e.g., widgets-inc-website) without 'project-' prefix",
+        "Sets stack.json level to 2 with parent='project-directus-nextjs'",
+        "Inherits the stack, layers, and plugins from the Level 1 parent",
+        "Customizes CLAUDE.md with the client name and project description",
+        "Prompts user about credentials and environment configuration"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Can you validate the project-directus-nextjs template? I want to make sure it follows all our Level 1 conventions before I fork it for a new client.",
+      "expected_output": "The validate skill reads stack.json, confirms level=1, checks all required files (core skills, commands, agents, rules, docs), validates CLAUDE.md quality (under 100 lines, no placeholders, Tech Stack filled), checks consistency between stack.json and CLAUDE.md, runs security checks, and produces a detailed validation report.",
+      "files": [],
+      "expectations": [
+        "Reads stack.json and correctly identifies the template as Level 1",
+        "Checks for all core required files (brainstorming, planning, tdd, debugging, verification skills)",
+        "Checks for core commands (init-stack, commit, pr, plan, review, sync)",
+        "Verifies CLAUDE.md has filled Tech Stack section (not placeholder text)",
+        "Checks that CLAUDE.md Installed Plugins matches stack.json plugins",
+        "Verifies .env.example has stack-specific variables",
+        "Checks security (.env and .mcp.json are gitignored)",
+        "Produces a structured validation report with pass/fail per category"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "I just finished a long session in demo-directus-nextjs. I added a deploy.sh for Vercel, fixed the Docker hot-reload by adding a volume mount, and created a useDirectus composable. I think some of this should go into the parent template. Can you help me sort it out?",
+      "expected_output": "The wrap-up skill reviews the session, categorizes each improvement (deploy.sh → Level 1, Docker fix → Level 1, useDirectus composable → project-only), presents the categorized findings, asks whether to apply/issue/record, and applies the chosen action.",
+      "files": [],
+      "expectations": [
+        "Identifies deploy.sh as a Level 1 improvement (stack-specific, generic to all Directus+Next.js)",
+        "Identifies Docker hot-reload fix as a Level 1 improvement (stack-specific config)",
+        "Identifies useDirectus composable as project-only (demo-specific, not generic enough)",
+        "Does NOT push the useDirectus composable to the parent template",
+        "Presents categorized findings to the user before taking action",
+        "Offers multiple options: apply to parent, create GitHub Issue, record in LEARNINGS.md, or skip",
+        "If applying, delegates to the feedback skill for each improvement"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "I need to add a new skill to the project-template base. It should be called 'code-review-checklist' and guide developers through a structured code review process before creating PRs. This is useful for every project regardless of stack.",
+      "expected_output": "The feedback skill identifies this as a Level 0 improvement (universal skill), locates project-template, creates .claude/skills/code-review-checklist/SKILL.md with proper frontmatter and structured code review steps, records in LEARNINGS.md, and commits.",
+      "files": [],
+      "expectations": [
+        "Identifies the target as Level 0 (project-template) since code review is universal",
+        "Creates .claude/skills/code-review-checklist/SKILL.md in the parent template",
+        "The SKILL.md has valid YAML frontmatter with name and description fields",
+        "The skill body contains structured code review steps in imperative form",
+        "Records the addition in project-template's LEARNINGS.md",
+        "Commits with a feat() message since this is a new skill"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "What's the difference between Level 0 and Level 1 templates? When I discover something while working on a client project, how do I know which template to push it to?",
+      "expected_output": "The template-reference skill provides a clear explanation of the 4-level hierarchy, the classification rules for deciding Level 0 vs Level 1, and examples of what belongs where.",
+      "files": [],
+      "expectations": [
+        "Explains the 4-level hierarchy (Level 0, 1, 1.5, 2) with their purposes",
+        "Describes the classification rule: universal improvements → Level 0, stack-specific → Level 1",
+        "Provides concrete examples of what goes to Level 0 (safety rules, process skills, core commands)",
+        "Provides concrete examples of what goes to Level 1 (stack-specific skills, gotchas, env vars)",
+        "Mentions that project-specific content (resource IDs, client logic) stays at Level 2"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Show me a walkthrough of how the feedback flow works. I want to understand the complete process before I start using it on my project.",
+      "expected_output": "The examples skill presents the feedback-flow scenario walkthrough, showing the complete 8-step process from invoking feedback to noting child projects that should merge.",
+      "files": [],
+      "expectations": [
+        "References or presents the feedback-flow scenario from the examples skill",
+        "Shows the complete flow: invoke → identify → read stack.json → locate parent → apply fix → LEARNINGS.md → commit → note children",
+        "Includes concrete examples of what happens at each step",
+        "Mentions the $PROJECT_TEMPLATES_DIR environment variable requirement"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "I'm in a Level 2 project (acme-website, parent is project-directus-nextjs) and I want to add a 'new-api-route' skill that scaffolds Next.js API routes with Directus data fetching. This is specific to the Directus+Next.js stack. Push it to the Level 1 template.",
+      "expected_output": "The feedback skill routes this to Level 1 (project-directus-nextjs), creates the new-api-route skill with proper SKILL.md frontmatter and Next.js + Directus-specific content, records in LEARNINGS.md, and commits.",
+      "files": [],
+      "expectations": [
+        "Routes to Level 1 (project-directus-nextjs), not Level 0, since this is stack-specific",
+        "Reads stack.json from acme-website to resolve the parent",
+        "Creates .claude/skills/new-api-route/SKILL.md in project-directus-nextjs",
+        "The skill's SKILL.md includes Next.js API route patterns with Directus SDK usage",
+        "Has proper YAML frontmatter with name and description including trigger phrases",
+        "Records in project-directus-nextjs's LEARNINGS.md with source attribution",
+        "Uses feat() commit convention since this is a new skill addition"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Create a Level 1.5 demo template from project-directus-nextjs. It should be called demo-directus-nextjs and include sample blog posts, a team directory page, and seed data scripts.",
+      "expected_output": "The create skill clones project-directus-nextjs into demo-directus-nextjs, sets stack.json to level=1.5, inherits all Level 1 content, and sets up the demo-specific structure with sample data scaffolding.",
+      "files": [],
+      "expectations": [
+        "Clones from project-directus-nextjs (Level 1), not project-template (Level 0)",
+        "Creates demo-directus-nextjs directory with demo- prefix",
+        "Sets stack.json level to 1.5 with parent='project-directus-nextjs'",
+        "Inherits all stack, layers, and plugins from the Level 1 parent",
+        "Mentions or scaffolds seed data scripts",
+        "Mentions sample content structure (blog posts, team directory)",
+        "Makes an initial commit"
+      ]
+    }
+  ]
+}
