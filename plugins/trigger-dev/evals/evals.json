@@ -1,0 +1,125 @@
+{
+  "skill_name": "trigger-dev",
+  "evals": [
+    {
+      "id": 0,
+      "skill": "setup",
+      "prompt": "I have a self-hosted Trigger.dev v4 instance running at trigger.mycompany.com. How do I set up a new Node.js project to use it? I need to configure both dev and production environments.",
+      "expected_output": "Should cover: login -a with URL, profiles, npx trigger init, trigger.config.ts, TRIGGER_SECRET_KEY formats (tr_dev_xxx, tr_prod_xxx), TRIGGER_API_URL, .env setup",
+      "assertions": [
+        {"text": "Mentions login -a flag for self-hosted", "type": "content_check"},
+        {"text": "Shows both tr_dev_xxx and tr_prod_xxx key formats", "type": "content_check"},
+        {"text": "Mentions TRIGGER_API_URL env var", "type": "content_check"},
+        {"text": "Includes npx trigger.dev@latest init command", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 1,
+      "skill": "task-development",
+      "prompt": "Write a Trigger.dev task that processes image uploads. It should validate the input with Zod, retry up to 5 times on failure, use a queue with max 3 concurrent executions, and track progress via metadata.",
+      "expected_output": "Should produce working TypeScript with schemaTask or task+zod, retry config, queue(), metadata.set for progress, proper exports",
+      "assertions": [
+        {"text": "Uses @trigger.dev/sdk import", "type": "content_check"},
+        {"text": "Includes retry configuration with maxAttempts", "type": "content_check"},
+        {"text": "Uses queue with concurrencyLimit", "type": "content_check"},
+        {"text": "Uses metadata.set for progress tracking", "type": "content_check"},
+        {"text": "Task is exported", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 2,
+      "skill": "config-and-build",
+      "prompt": "I need to configure my Trigger.dev project to use Prisma for database access and FFmpeg for video processing. Show me the complete trigger.config.ts.",
+      "expected_output": "Should show defineConfig with both prismaExtension and ffmpeg in build.extensions array",
+      "assertions": [
+        {"text": "Imports prismaExtension from @trigger.dev/build/extensions/prisma", "type": "content_check"},
+        {"text": "Imports ffmpeg from @trigger.dev/build/extensions", "type": "content_check"},
+        {"text": "Uses defineConfig from @trigger.dev/sdk", "type": "content_check"},
+        {"text": "Both extensions in build.extensions array", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 3,
+      "skill": "ai-agent-patterns",
+      "prompt": "Build a Trigger.dev pipeline that classifies incoming customer support emails, routes complex ones to GPT-4o and simple ones to GPT-4o-mini, processes them in parallel batches, and pauses for human review on flagged content.",
+      "expected_output": "Should combine routing pattern, parallelization with batch.triggerByTaskAndWait, and wait.forToken for human approval",
+      "assertions": [
+        {"text": "Uses routing pattern (classify then dispatch)", "type": "content_check"},
+        {"text": "Uses batch or parallel execution pattern", "type": "content_check"},
+        {"text": "Includes wait.forToken or human-in-the-loop", "type": "content_check"},
+        {"text": "Checks result.ok before accessing output", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 4,
+      "skill": "realtime",
+      "prompt": "I want to show real-time progress of a long-running Trigger.dev task in my Next.js React app. The task processes a batch of items and I want a progress bar. How do I set this up?",
+      "expected_output": "Should cover: auth.createPublicToken, useRealtimeRun or useRealtimeTaskTrigger hook, metadata for progress, @trigger.dev/react-hooks",
+      "assertions": [
+        {"text": "Mentions @trigger.dev/react-hooks package", "type": "content_check"},
+        {"text": "Shows useRealtimeRun or useRealtimeTaskTrigger hook", "type": "content_check"},
+        {"text": "Includes auth token creation (createPublicToken or createTriggerPublicToken)", "type": "content_check"},
+        {"text": "Uses metadata for progress tracking", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 5,
+      "skill": "deployment",
+      "prompt": "Set up GitHub Actions to deploy my Trigger.dev tasks. I have a self-hosted instance and want to deploy to staging on develop branch pushes and production on main branch pushes.",
+      "expected_output": "Should show GitHub Actions YAML with branch conditions, TRIGGER_ACCESS_TOKEN and TRIGGER_API_URL secrets, deploy --env staging/production",
+      "assertions": [
+        {"text": "Shows GitHub Actions YAML workflow", "type": "content_check"},
+        {"text": "Uses TRIGGER_ACCESS_TOKEN secret", "type": "content_check"},
+        {"text": "Uses TRIGGER_API_URL for self-hosted", "type": "content_check"},
+        {"text": "Has branch conditions for staging and production", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 6,
+      "skill": "cli-recipes",
+      "prompt": "I manage two Trigger.dev instances - one on cloud and one self-hosted. How do I set up CLI profiles to switch between them easily?",
+      "expected_output": "Should cover: login with --profile, list-profiles, switch command, using profiles with dev and deploy",
+      "assertions": [
+        {"text": "Shows login --profile flag", "type": "content_check"},
+        {"text": "Mentions list-profiles command", "type": "content_check"},
+        {"text": "Shows switch command", "type": "content_check"},
+        {"text": "Shows using profile with dev or deploy command", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 7,
+      "skill": "mcp-patterns",
+      "prompt": "I want to trigger a Trigger.dev task via MCP, wait for it to complete, and if it fails, get the error details. What MCP tools do I use?",
+      "expected_output": "Should show: get_current_worker to check schema, trigger_task, wait_for_run_to_complete, get_run_details for errors",
+      "assertions": [
+        {"text": "Mentions get_current_worker tool", "type": "content_check"},
+        {"text": "Mentions trigger_task tool", "type": "content_check"},
+        {"text": "Mentions wait_for_run_to_complete or get_run_details", "type": "content_check"},
+        {"text": "Shows sequential workflow pattern", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 8,
+      "skill": "troubleshoot",
+      "prompt": "My self-hosted Trigger.dev v4 runs are stuck in QUEUED status and never start executing. The supervisor container is running but tasks just sit there.",
+      "expected_output": "Should check: worker token, supervisor logs, Docker memory, container health, suggest restart supervisor",
+      "assertions": [
+        {"text": "Mentions checking worker token (TRIGGER_WORKER_TOKEN)", "type": "content_check"},
+        {"text": "Suggests checking supervisor logs", "type": "content_check"},
+        {"text": "Mentions Docker or container health check", "type": "content_check"}
+      ]
+    },
+    {
+      "id": 9,
+      "skill": "examples",
+      "prompt": "Show me a complete example of a Trigger.dev scheduled task that syncs data from an external API every hour with batch processing and error handling.",
+      "expected_output": "Should show schedules.task with cron, batch processing pattern, retry/error handling, complete working code",
+      "assertions": [
+        {"text": "Uses schedules.task or schedules from @trigger.dev/sdk", "type": "content_check"},
+        {"text": "Includes cron expression", "type": "content_check"},
+        {"text": "Shows batch or parallel processing", "type": "content_check"},
+        {"text": "Includes error handling", "type": "content_check"}
+      ]
+    }
+  ]
+}
