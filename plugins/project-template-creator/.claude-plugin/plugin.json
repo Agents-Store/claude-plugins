@@ -1,7 +1,7 @@
 {
   "name": "project-template-creator",
-  "version": "1.1.0",
-  "description": "Manage project template hierarchy. Send feedback UP from child projects to parent templates, create new stack templates from the universal base, and validate template conventions across Level 0/1/1.5/2.",
+  "version": "1.2.0",
+  "description": "Manage project template hierarchy with unified improvement workflow. Route fixes to plugins or parent templates automatically, quick-capture ideas for later, and run unified end-of-session reviews covering both plugins and templates.",
   "author": {
     "name": "AGENTS.STORE"
   },
@@ -15,6 +15,9 @@
     "CLAUDE.md",
     "skills",
     "agents",
-    "commands"
+    "commands",
+    "improve",
+    "capture",
+    "unified-wrap-up"
   ]
 }

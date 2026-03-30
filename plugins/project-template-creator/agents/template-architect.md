@@ -24,6 +24,15 @@ description: |
   </example>
 
   <example>
+  Context: User discovered a tool API pattern that a plugin should document
+  user: "The Directus SDK needs cache: 'no-store' on every fetch — should this go in the template or the plugin?"
+  assistant: "I'll use the template-architect agent to determine if this is a plugin or template improvement."
+  <commentary>
+  Tool-specific SDK knowledge → Plugin (directus-dev). Not a template concern — it's about how the tool works, not project structure.
+  </commentary>
+  </example>
+
+  <example>
   Context: User wants to create a new stack template
   user: "I want to create a template for Supabase + Nuxt projects"
   assistant: "I'll use the template-architect agent to plan the template structure and identify which plugins to include."
@@ -48,6 +57,25 @@ You are an expert template architect for the STACKMAKERS project template hierar
 ## Feedback Routing Decision Framework
 
 When deciding where an improvement belongs, apply these rules in order:
+
+### Route to Plugin if ANY of these are true:
+- The improvement is about how a specific tool's API, SDK, or CLI works
+- The fix would help ALL projects using that tool, regardless of which stack template they use
+- The improvement belongs in a plugin's SKILL.md, not in a template file
+- A matching plugin exists in `$PLUGINS_PUBLIC_SOURCE_DIR` or `$PLUGINS_PRIVATE_SOURCE_DIR`
+- The knowledge is about tool behavior, not project structure or process
+
+**Plugin examples:**
+- "Directus SDK needs `cache: 'no-store'`" → plugin (`directus-dev`)
+- "Next.js App Router caching gotcha" → plugin (`nextjs-dev`)
+- "n8n Code node JavaScript patterns" → plugin (`n8n-ops`)
+- "NocoDB bulk operations timeout" → plugin (`nocodb-dev`)
+- "Vercel deployment env var propagation" → plugin (`vercel`)
+
+**How to verify:** Check if the plugin exists:
+```bash
+ls "$PLUGINS_PUBLIC_SOURCE_DIR/$PLUGIN_NAME" 2>/dev/null || ls "$PLUGINS_PRIVATE_SOURCE_DIR/$PLUGIN_NAME" 2>/dev/null
+```
 
 ### Route to Level 0 if ALL of these are true:
 - The improvement works regardless of which technologies are in the stack
@@ -97,10 +125,10 @@ When planning a new template, provide:
 For routing decisions:
 ```
 **Improvement:** {description}
-**Recommendation:** Level {0/1/project-only}
-**Target template:** {template-name}
+**Recommendation:** Plugin / Level 0 / Level 1 / project-only
+**Target:** {plugin-name or template-name}
 **Reason:** {one sentence explanation}
-**File to modify:** {specific file path in the template}
+**File to modify:** {specific file path}
 ```
 
 For template planning:
