@@ -252,6 +252,39 @@
       },
       "keywords": ["trigger.dev", "trigger-dev", "dev", "agents-store", "background-jobs", "task-queue", "self-hosted", "durable-execution", "ai-agents"],
       "category": "development"
+    },
+    {
+      "name": "flask-dev",
+      "source": "./plugins/flask-dev",
+      "description": "Flask dev plugin for Agents Store. Application factory patterns, blueprint organization, Jinja2 templates, Flask CLI recipes, and troubleshooting for developers building with Flask.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["flask", "dev", "agents-store", "python", "jinja2", "blueprints", "web-framework"],
+      "category": "development"
+    },
+    {
+      "name": "sqlalchemy-dev",
+      "source": "./plugins/sqlalchemy-dev",
+      "description": "SQLAlchemy dev plugin for Agents Store. Model definition patterns, relationship mapping, query optimization, Alembic migrations, and troubleshooting for developers building with SQLAlchemy 2.0+.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["sqlalchemy", "dev", "agents-store", "python", "orm", "alembic", "database"],
+      "category": "development"
+    },
+    {
+      "name": "stack-flask-sqlalchemy-dev",
+      "source": "./plugins/stack-flask-sqlalchemy-dev",
+      "description": "Flask + SQLAlchemy stack dev plugin for Agents Store. Integration patterns for app factory wiring, blueprint-model coordination, Flask-Login + SQLAlchemy auth, Jinja2 + query data, and full-feature recipes.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["stack", "flask-sqlalchemy", "dev", "agents-store", "flask", "sqlalchemy", "python"],
+      "category": "development"
     }
   ]
 }
