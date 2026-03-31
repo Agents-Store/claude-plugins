@@ -1,11 +1,28 @@
 ---
 name: mcp-patterns
-description: This skill should be used when the user asks about "web search MCP tools", "which search tools are available", "firecrawl tools", "exa tools", "jina tools", "perplexity tools", "how to use search MCP", "scraping MCP tools", "media search tools", or needs to know which MCP operations are available across web search and scraping services.
+description: This skill should be used when the user asks about "web search MCP tools", "which search tools are available", "firecrawl tools", "exa tools", "jina tools", "perplexity tools", "how to use search MCP", "scraping MCP tools", "media search tools", or needs to know which MCP operations are available across web search and scraping services. Also triggers when doing any web research, URL fetching, or page content extraction — including during planning, exploration, or data source analysis.
 ---
 
 # Web Search & Scraping MCP Tool Patterns
 
 Reference for all available MCP tools across 7 services (60+ tools total). Use the routing table below to find the right tool for your task, then see the per-service reference files for detailed parameters.
+
+## Tool Priority — ALWAYS prefer MCP tools over WebFetch
+
+When MCP scraping/search tools from this plugin are available, they MUST be used instead of the built-in `WebFetch` tool. This applies to ALL web content operations — user-requested scraping, your own research, data source exploration, and planning phases.
+
+**Priority order for reading a URL:**
+1. `read_url` (Jina) — fastest, clean markdown, use first
+2. `firecrawl_scrape` — if JS rendering needed or Jina fails
+3. `WebFetch` — ONLY as last resort if all MCP tools are unavailable
+
+**Priority order for web search:**
+1. `web_search_exa` — semantic search, best for finding specific content
+2. `perplexity_search` — AI-synthesized answers with citations
+3. `firecrawl_search` — search + scrape in one step
+4. `WebSearch` — ONLY as last resort if all MCP tools are unavailable
+
+**Why:** MCP tools provide cleaner output, better JS rendering, structured extraction, and parallel operations. `WebFetch` is a basic fallback with limited capabilities that often fails on dynamic sites and rate-limits quickly.
 
 ## Quick Decision Guide
 
