@@ -4,27 +4,30 @@
       "command": "npx",
       "args": ["-y", "firecrawl-mcp"],
       "env": {
-        "FIRECRAWL_API_KEY": "${user_config.firecrawl_api_key}"
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_TOKEN}"
       }
     },
     "exa": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.exa.ai/mcp"]
+      "args": ["-y", "mcp-remote", "https://mcp.exa.ai/mcp", "--header", "x-api-key: ${EXA_API_KEY}"]
     },
     "perplexity": {
       "command": "npx",
       "args": ["-y", "@perplexity-ai/mcp-server"],
       "env": {
-        "PERPLEXITY_API_KEY": "${user_config.perplexity_api_key}"
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"
       }
     },
     "jina": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.jina.ai/v1", "--header", "Authorization: Bearer ${user_config.jina_api_key}"]
+      "args": ["-y", "mcp-remote", "https://mcp.jina.ai/v1", "--header", "Authorization: Bearer ${JINA_API_KEY}"]
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
     }
   }
 }
