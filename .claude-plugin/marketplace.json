@@ -296,6 +296,17 @@
       },
       "keywords": ["vercel", "nextjs", "deployment", "ai-sdk", "edge-functions", "serverless", "turborepo", "turbopack", "dev", "agents-store"],
       "category": "development"
+    },
+    {
+      "name": "seo-dev",
+      "source": "./plugins/seo-dev",
+      "description": "SEO development plugin for Agents Store. Technical SEO, structured data (JSON-LD), metadata API, Core Web Vitals, sitemaps, and content optimization patterns for Next.js App Router.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["seo", "structured-data", "json-ld", "schema-org", "metadata", "open-graph", "core-web-vitals", "sitemap", "nextjs", "dev", "agents-store"],
+      "category": "development"
     }
   ]
 }
