@@ -2,6 +2,13 @@
 
 Accumulated fixes and discoveries for the web-search-dev plugin.
 
+## 2026-04-03 — .mcp.json: Fix context7 API key passing for v2.x
+
+**Problem:** Context7 MCP server fails to start. The `CONTEXT7_API_KEY` was set as a process env var, but @upstash/context7-mcp v2.x does not read API keys from environment variables in stdio mode.
+**Fix:** Pass the API key as a CLI argument `--api-key ${CONTEXT7_API_KEY}` in the `args` array instead of using `env`.
+**Root cause:** @upstash/context7-mcp v2.0+ changed its API key mechanism — stdio mode requires `--api-key` CLI arg, not env vars. The env var approach only works as an HTTP header for the remote transport mode.
+**Severity:** Critical
+
 ## 2026-04-03 — .mcp.json: Switch from user_config to standard env vars
 
 **Problem:** `.mcp.json` used `${user_config.xxx}` variables and `plugin.json` had a `userConfig` section for API keys. This non-standard approach required plugin-specific config UI instead of using standard environment variables.
