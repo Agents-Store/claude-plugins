@@ -2,6 +2,13 @@
 
 Accumulated fixes and discoveries for the web-search-dev plugin.
 
+## 2026-04-03 — .mcp.json: Corrupted npx cache breaks context7 MCP server
+
+**Problem:** Context7 MCP server fails with `ERR_MODULE_NOT_FOUND: Cannot find module '@modelcontextprotocol/sdk/dist/esm/server/mcp.js'`. The npx cache at `~/.npm/_npx/` had `@upstash/context7-mcp@2.1.6` with `@modelcontextprotocol/sdk@1.27.0`, but the SDK's ESM dist only contained `.d.ts` type files — no `.js` runtime files.
+**Fix:** Cleared the corrupted npx cache directory (`rm -rf ~/.npm/_npx/eea2bd7412d4593b`). Fresh `npx -y @upstash/context7-mcp` installs v1.0.21 with compatible `@modelcontextprotocol/sdk ^1.17.5` and works correctly.
+**Root cause:** The npx cache had a stale/corrupted installation where `@upstash/context7-mcp@2.1.6` brought in `zod@^4.3.4` which is incompatible with `@modelcontextprotocol/sdk@1.27.0` (expects zod v3). This caused a partial/broken installation where JS runtime files were missing from the MCP SDK. The `-y` flag doesn't force re-download if npx finds an existing cache entry.
+**Severity:** Critical
+
 ## 2026-04-03 — .mcp.json: Fix context7 API key passing for v2.x
 
 **Problem:** Context7 MCP server fails to start. The `CONTEXT7_API_KEY` was set as a process env var, but @upstash/context7-mcp v2.x does not read API keys from environment variables in stdio mode.
