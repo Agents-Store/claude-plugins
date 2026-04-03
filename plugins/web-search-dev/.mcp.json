@@ -9,7 +9,10 @@
     },
     "exa": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.exa.ai/mcp", "--header", "x-api-key: ${EXA_API_KEY}"]
+      "args": ["-y", "exa-mcp-server"],
+      "env": {
+        "EXA_API_KEY": "${EXA_API_KEY}"
+      }
     },
     "perplexity": {
       "command": "npx",
@@ -19,15 +22,15 @@
       }
     },
     "jina": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.jina.ai/v1", "--header", "Authorization: Bearer ${JINA_API_KEY}"]
+      "type": "http",
+      "url": "https://mcp.jina.ai/v1",
+      "headers": {
+        "Authorization": "Bearer ${JINA_API_KEY}"
+      }
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
-      }
+      "args": ["-y", "@upstash/context7-mcp"]
     }
   }
 }

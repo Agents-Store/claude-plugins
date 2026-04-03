@@ -41,12 +41,12 @@ Install via Agents Store marketplace or add directly to Claude Code.
 
 The plugin bundles `.mcp.json` with 5 MCP servers:
 - Firecrawl (stdio via npx)
-- Exa (stdio via mcp-remote)
+- Exa (stdio via npx, `exa-mcp-server`)
 - Perplexity (stdio via npx)
-- Jina (stdio via mcp-remote)
+- Jina (native HTTP transport, `https://mcp.jina.ai/v1`)
 - Context7 (stdio via npx)
 
-API keys are configured via `userConfig` — Claude Code prompts for them when the plugin is enabled.
+API keys are configured via standard environment variables (`FIRECRAWL_API_TOKEN`, `EXA_API_KEY`, `PERPLEXITY_API_KEY`, `JINA_API_KEY`).
 
 Pexels and Unsplash require separate MCP configuration.
 

@@ -16,6 +16,13 @@ Accumulated fixes and discoveries for the web-search-dev plugin.
 **Root cause:** Skills only triggered on explicit user scraping requests ("scrape this", "extract data"). No guidance existed for Claude's own research behavior — it defaulted to the basic built-in tools.
 **Severity:** Major
 
+## 2026-04-03 — .mcp.json: Fix exa, jina, context7 MCP server connections
+
+**Problem:** Three MCP servers failing to connect: exa (used `mcp-remote` proxy unnecessarily), jina (`mcp-remote` sends wrong Accept headers causing HTTP 406), context7 (`CONTEXT7_API_KEY` as env var doesn't work for stdio/npx mode).
+**Fix:** Exa: switched from `mcp-remote` to official `exa-mcp-server` npm package with `EXA_API_KEY` env var. Jina: switched from `mcp-remote` to native `type: http` transport with `url: https://mcp.jina.ai/v1` and `Authorization` header. Context7: removed non-functional `CONTEXT7_API_KEY` env var (API key is optional for free tier).
+**Root cause:** `mcp-remote` was used as a stdio-to-HTTP proxy for exa and jina, but both servers now support native HTTP transport or have official npm packages. The proxy introduced incompatibilities (missing Accept headers for jina, unnecessary layer for exa). Context7's npm package doesn't read API keys from env vars in stdio mode.
+**Severity:** Critical
+
 ## 2026-03-29 — multiple skills: remove deep-research plugin cross-references
 
 **Problem:** Agent, README, and setup skill referenced the `deep-research` plugin, suggesting web-search-dev "complements" it. This made the plugin appear dependent on another plugin rather than standalone.
