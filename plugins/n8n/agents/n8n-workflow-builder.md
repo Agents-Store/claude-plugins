@@ -33,9 +33,13 @@ Tool names in skills are **generic examples**. Actual MCP server tools may have 
 | Task | Skill to Use |
 |------|-------------|
 | Trigger types, node types, connection patterns | **workflow-creation** |
+| Modify existing workflows, add/remove nodes | **workflow-editing** |
 | Expression syntax ($json, $input, DateTime) | **expression-syntax** |
 | HTTP Request, Code, IF, Switch, Merge config | **node-configuration** |
 | JavaScript/Python code for Code node | **code-patterns** |
+| Execute workflows, check status, debug errors | **execution-monitoring** |
+| Credentials setup, tags, authentication config | **credential-tag-management** |
+| Tool call patterns and workflow examples | **examples** |
 
 ## Design Principles
 

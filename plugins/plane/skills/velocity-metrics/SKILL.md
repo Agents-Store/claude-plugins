@@ -50,13 +50,21 @@ Tools below are referenced by their **action name** (e.g., `list_archived_cycles
    | Sprint 7 | 35 | 33 | 94% |
    | Sprint 6 | 36 | 32 | 89% |
 
-4. Calculate metrics:
+4. Check data reliability:
+   If fewer than 3 completed sprints:
+     → Warn: "Velocity based on <N> sprint(s) — treat as rough estimate.
+       Need at least 3 sprints for a reliable baseline, 5+ for trend analysis."
+     → Still calculate and show, but flag as LOW CONFIDENCE
+   If 3-4 sprints: MODERATE CONFIDENCE
+   If 5+ sprints: HIGH CONFIDENCE
+
+5. Calculate metrics:
    average_velocity = mean(completed_points) = 32.8
    velocity_range = min..max = 30..35
    avg_completion_rate = mean(rates) = 86%
-   trend = compare last 3 vs previous 3
+   trend = compare last 3 vs previous 3 (only if 6+ sprints)
 
-5. Recommendation:
+6. Recommendation:
    "Plan next sprint for ~33 points (average velocity)"
    "With 15% buffer: commit to ~28 points"
 ```

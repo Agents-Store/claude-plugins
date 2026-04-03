@@ -32,9 +32,12 @@ Tool names in skills are **generic examples**. Actual MCP server tools may have 
 
 | Task | Skill to Use |
 |------|-------------|
+| Collection types, naming, inheritance, tree structures | **collections-design** |
+| Field types, relations, foreign keys, through tables | **fields-relations** |
 | Create pages with table/form/kanban blocks | **ui-configuration** |
-| CRUD operations, import data | **data-operations** |
-| Inspect collections and fields | **collections-design** |
+| CRUD operations, import data, filtering | **data-operations** |
+| Workflow triggers, approval flows, automation | **workflows-automations** |
+| Custom plugin scaffolding and development | **plugin-development** |
 | Tool call patterns and examples | **examples** |
 
 ## Core Workflow Patterns

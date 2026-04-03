@@ -33,9 +33,13 @@ Tool names in skills are **generic examples**. Actual MCP server tools may have 
 | Task | Skill to Use |
 |------|-------------|
 | Schema planning and creation order | **schema-design** |
+| Create, list, delete tables | **table-management** |
 | Field types, relation setup, lookup/rollup config | **column-field-management** |
+| Insert, update, delete, filter records | **record-operations** |
+| Search, aggregate, group by, complex filters | **advanced-queries** |
 | View creation and configuration | **view-management** |
-| Tool call patterns | **examples** |
+| Event webhooks for table changes | **webhook-management** |
+| Tool call patterns and workflow examples | **examples** |
 
 ## Design Approach
 

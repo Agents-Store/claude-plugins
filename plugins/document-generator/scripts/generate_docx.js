@@ -73,6 +73,15 @@ async function main() {
 
     let children = [];
 
+    // Pass template section definitions so buildDocument can normalize object-style sections
+    if (template?.structure?.sections && Array.isArray(template.structure.sections)) {
+      data._templateSections = template.structure.sections;
+    }
+
+    // Also use template header/footer if data doesn't have them
+    if (!data.headerText && template?.headerText) data.headerText = fillPlaceholders(template.headerText);
+    if (!data.footer && template?.footer) data.footer = fillPlaceholders(template.footer);
+
     if (type === "contract") {
       children = buildContract(data, styling, primaryColor, accentColor, textColor, mutedColor, borderColor, fontHeading, fontBody, fontSizeBody);
     } else {
@@ -161,6 +170,38 @@ function buildDocument(data, type, styling, primaryColor, accentColor, textColor
   const fontSizeTitle = (styling.fontSizeTitle || 32) * 2;
   const fontSizeH1 = (styling.fontSizeH1 || 18) * 2;
   const fontSizeH2 = (styling.fontSizeH2 || 14) * 2;
+
+  // Normalize sections: if data.sections is an object (keyed by section id),
+  // convert it to an array using template structure for headings and order.
+  if (data.sections && !Array.isArray(data.sections)) {
+    const sectionData = data.sections;
+    const templateSections = data._templateSections || [];
+    const normalized = [];
+    for (const tmpl of templateSections) {
+      const value = sectionData[tmpl.id];
+      if (value !== undefined && value !== null) {
+        normalized.push({
+          heading: tmpl.heading,
+          level: tmpl.level || 1,
+          content: typeof value === "string" ? value : undefined,
+          items: Array.isArray(value) ? value : undefined,
+        });
+      }
+    }
+    // Also include any sections in data that aren't in the template
+    for (const [key, value] of Object.entries(sectionData)) {
+      if (!templateSections.find((t) => t.id === key)) {
+        const heading = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+        normalized.push({
+          heading,
+          level: 1,
+          content: typeof value === "string" ? value : undefined,
+          items: Array.isArray(value) ? value : undefined,
+        });
+      }
+    }
+    data.sections = normalized;
+  }
 
   // Cover page with visual hierarchy
   if (data.title) {
@@ -308,6 +349,70 @@ function buildDocument(data, type, styling, primaryColor, accentColor, textColor
               children: [new TextRun({ text: bullet, size: fontSizeBody * 2, font: fontBody, color: textColor })],
               bullet: { level: 0 },
               spacing: { after: 80 },
+            })
+          );
+        }
+      }
+
+      // Render array items as either a table or structured list (timeline, pricing, etc.)
+      if (section.items && Array.isArray(section.items)) {
+        for (const item of section.items) {
+          if (typeof item === "object" && item !== null) {
+            // Timeline-style items (phase + duration + description)
+            if (item.phase || item.duration) {
+              const label = [item.phase, item.duration ? `(${item.duration})` : ""].filter(Boolean).join(" ");
+              children.push(
+                new Paragraph({
+                  children: [new TextRun({ text: label, bold: true, size: fontSizeBody * 2, font: fontBody, color: primaryColor })],
+                  spacing: { before: 160, after: 60 },
+                })
+              );
+              if (item.description) {
+                children.push(
+                  new Paragraph({
+                    children: [new TextRun({ text: item.description, size: fontSizeBody * 2, font: fontBody, color: textColor })],
+                    spacing: { after: 120 },
+                  })
+                );
+              }
+            }
+            // Pricing-style items (item + amount)
+            else if (item.item !== undefined && item.amount !== undefined) {
+              children.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: `${item.item}`, size: fontSizeBody * 2, font: fontBody, color: textColor }),
+                    new TextRun({ text: `    $${Number(item.amount).toLocaleString()}`, bold: true, size: fontSizeBody * 2, font: fontBody, color: primaryColor }),
+                  ],
+                  spacing: { after: 80 },
+                  bullet: { level: 0 },
+                })
+              );
+            }
+            // Generic object — render as key-value
+            else {
+              const text = Object.entries(item).map(([k, v]) => `${k}: ${v}`).join(" | ");
+              children.push(
+                new Paragraph({
+                  children: [new TextRun({ text, size: fontSizeBody * 2, font: fontBody, color: textColor })],
+                  spacing: { after: 80 },
+                  bullet: { level: 0 },
+                })
+              );
+            }
+          }
+        }
+        // Add total line for pricing arrays
+        const totalAmount = section.items.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+        if (totalAmount > 0) {
+          children.push(
+            new Paragraph({
+              border: { top: { style: BorderStyle.SINGLE, size: 2, color: primaryColor } },
+              children: [
+                new TextRun({ text: `Total: $${totalAmount.toLocaleString()}`, bold: true, size: (fontSizeBody + 2) * 2, font: fontBody, color: primaryColor }),
+              ],
+              spacing: { before: 160, after: 200 },
+              alignment: AlignmentType.RIGHT,
             })
           );
         }
