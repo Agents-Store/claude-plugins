@@ -83,6 +83,27 @@ Run these checks in order:
 | Library not found | Unknown library name | Try different name variations (e.g., "nextjs" vs "next.js") |
 | No results | Library not indexed | Fall back to Exa search with official docs domain |
 | MCP server not starting | npm issue | Run `npx -y @upstash/context7-mcp` manually |
+| `ERR_MODULE_NOT_FOUND` for `@modelcontextprotocol/sdk/dist/esm/server/mcp.js` | Corrupted npx cache | Clear the stale cache — see fix below |
+
+#### Context7 `ERR_MODULE_NOT_FOUND` Fix
+
+This happens when the npx cache has a broken installation where `@modelcontextprotocol/sdk` is missing JS runtime files (only `.d.ts` present). Caused by version conflicts between context7-mcp and the MCP SDK.
+
+**Automatic fix** — run this to clear and re-download:
+
+```bash
+# Remove corrupted context7 npx cache
+find ~/.npm/_npx -path "*/@upstash/context7-mcp" -print -quit 2>/dev/null | while read p; do
+  cache_dir=$(echo "$p" | sed 's|/node_modules/.*||')
+  echo "Removing corrupted cache: $cache_dir"
+  rm -rf "$cache_dir"
+done
+
+# Verify fresh install works
+npx -y @upstash/context7-mcp --help
+```
+
+After clearing, restart Claude Code or run `/mcp` to reconnect.
 
 ### Pexels / Unsplash
 
@@ -105,7 +126,11 @@ npx -y firecrawl-mcp
 npx -y @perplexity-ai/mcp-server
 npx -y @upstash/context7-mcp
 
-# Check for npm cache issues
+# If you see ERR_MODULE_NOT_FOUND, clear the corrupted npx cache
+# This removes ALL npx caches (they re-download on next use):
+rm -rf ~/.npm/_npx/
+
+# Or clean just npm cache
 npm cache clean --force
 ```
 
