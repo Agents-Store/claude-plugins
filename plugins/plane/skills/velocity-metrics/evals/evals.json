@@ -1,0 +1,17 @@
+{
+  "skill_name": "velocity-metrics",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Calculate team velocity for the Context Engineering project based on historical sprint data.",
+      "expected_output": "Shows velocity from completed cycles, average points per sprint",
+      "files": [],
+      "expectations": [
+        "Fetches all cycles via list_cycles",
+        "Calculates completed story points per cycle",
+        "Reports average velocity (may be limited with only 1 cycle)",
+        "Suggests minimum 3 sprints for reliable velocity"
+      ]
+    }
+  ]
+}

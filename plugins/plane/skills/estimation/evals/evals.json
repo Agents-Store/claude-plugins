@@ -1,0 +1,17 @@
+{
+  "skill_name": "estimation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Estimate unestimated work items in Context Engineering project using Fibonacci story points.",
+      "expected_output": "Lists unestimated items and suggests Fibonacci point values based on complexity",
+      "files": [],
+      "expectations": [
+        "Fetches work items and identifies those without estimates",
+        "Uses Fibonacci scale (1, 2, 3, 5, 8, 13)",
+        "Provides reasoning for each estimate",
+        "Suggests updating items via update_work_item"
+      ]
+    }
+  ]
+}

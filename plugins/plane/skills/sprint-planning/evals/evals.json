@@ -1,0 +1,17 @@
+{
+  "skill_name": "sprint-planning",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Plan a 1-week sprint for the Context Engineering project. We have 3 developers, focus factor 0.7. Select top priority items from backlog.",
+      "expected_output": "Calculates capacity (3 \u00d7 5 \u00d7 0.7 = 10.5 days), lists backlog items, suggests selection based on priority",
+      "files": [],
+      "expectations": [
+        "Lists current project states and work items via MCP",
+        "Calculates team capacity correctly (3 devs \u00d7 5 days \u00d7 0.7 = 10.5)",
+        "Identifies backlog items that need estimation",
+        "Suggests creating a cycle with start/end dates"
+      ]
+    }
+  ]
+}

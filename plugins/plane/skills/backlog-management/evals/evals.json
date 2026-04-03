@@ -1,0 +1,17 @@
+{
+  "skill_name": "backlog-management",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Analyze backlog health for the Context Engineering project. Check for unestimated items, missing priorities, and stale items.",
+      "expected_output": "Reports on items without estimates, items with 'none' priority, identifies health score",
+      "files": [],
+      "expectations": [
+        "Fetches all work items via list_work_items MCP tool",
+        "Identifies items without estimate_point (all items currently lack estimates)",
+        "Identifies items with priority='none'",
+        "Calculates a backlog health score or percentage"
+      ]
+    }
+  ]
+}

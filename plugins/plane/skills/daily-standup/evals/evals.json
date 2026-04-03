@@ -1,0 +1,17 @@
+{
+  "skill_name": "daily-standup",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Generate a daily standup summary for the Context Engineering project.",
+      "expected_output": "Shows in-progress items, completed since last standup, blockers, sprint progress",
+      "files": [],
+      "expectations": [
+        "Fetches current cycle and its work items",
+        "Groups items by state (Done, In Progress, Todo, Backlog)",
+        "Identifies blockers or at-risk items",
+        "Shows sprint progress percentage"
+      ]
+    }
+  ]
+}

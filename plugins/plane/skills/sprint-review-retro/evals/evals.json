@@ -1,0 +1,17 @@
+{
+  "skill_name": "sprint-review-retro",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run a sprint review for Sprint 1 \u2014 March W3 in the Context Engineering project. Show completion metrics.",
+      "expected_output": "Shows completed vs planned items, completion rate, velocity, scope changes",
+      "files": [],
+      "expectations": [
+        "Fetches cycle 'Sprint 1 \u2014 March W3' data via MCP",
+        "Lists completed work items in the cycle",
+        "Calculates completion rate (completed/total)",
+        "Suggests retrospective format (Start-Stop-Continue or similar)"
+      ]
+    }
+  ]
+}

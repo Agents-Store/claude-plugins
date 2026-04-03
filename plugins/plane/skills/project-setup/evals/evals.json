@@ -1,0 +1,17 @@
+{
+  "skill_name": "project-setup",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review the Context Engineering project Agile setup. Check if it has proper states, labels, and cycle view enabled.",
+      "expected_output": "Lists current states, labels, features and identifies gaps",
+      "files": [],
+      "expectations": [
+        "Fetches project details, states, labels, and features via MCP",
+        "Verifies standard Agile states exist (Backlog, Todo, In Progress, Done)",
+        "Checks that cycle_view is enabled",
+        "Identifies missing Agile labels (e.g., bug, feature, tech-debt)"
+      ]
+    }
+  ]
+}

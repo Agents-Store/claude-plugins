@@ -1,0 +1,17 @@
+{
+  "skill_name": "task-decomposition",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Break down the work item 'Build Deep Research Plugin (Exa + Firecrawl + Jina + Perplexity)' into smaller tasks using INVEST criteria.",
+      "expected_output": "Creates 4-6 sub-tasks that are Independent, Negotiable, Valuable, Estimable, Small, Testable",
+      "files": [],
+      "expectations": [
+        "Fetches the work item details via MCP",
+        "Applies INVEST criteria to decomposition",
+        "Creates 4-6 smaller stories/tasks",
+        "Each sub-task is independently deliverable (vertical slice)"
+      ]
+    }
+  ]
+}

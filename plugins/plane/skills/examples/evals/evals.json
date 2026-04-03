@@ -1,0 +1,17 @@
+{
+  "skill_name": "examples",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Show me how to create a work item and add it to a cycle in Plane using MCP tools.",
+      "expected_output": "Step-by-step with create_work_item and add_work_items_to_cycle tool calls",
+      "files": [],
+      "expectations": [
+        "References tool-patterns.md for exact parameter formats",
+        "Shows create_work_item with required fields",
+        "Shows add_work_items_to_cycle with cycle_id and work_item_ids",
+        "Provides complete workflow sequence"
+      ]
+    }
+  ]
+}
