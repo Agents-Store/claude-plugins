@@ -307,6 +307,17 @@
       },
       "keywords": ["seo", "structured-data", "json-ld", "schema-org", "metadata", "open-graph", "core-web-vitals", "sitemap", "nextjs", "dev", "agents-store"],
       "category": "development"
+    },
+    {
+      "name": "postgresql-external-dev",
+      "source": "./plugins/postgresql-external-dev",
+      "description": "PostgreSQL schema design for external database connections. Compatible SQL patterns for NocoDB and NocoBase — table creation, column types, relations, indexes, and anti-patterns.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["postgresql", "postgres", "database", "schema", "sql", "nocodb", "nocobase", "external-database", "low-code", "dev", "agents-store"],
+      "category": "development"
     }
   ]
 }
