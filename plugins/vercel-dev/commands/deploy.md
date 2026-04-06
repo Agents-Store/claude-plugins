@@ -1,5 +1,5 @@
 ---
-description: Deploy the current project to Vercel. Pass "prod" or "production" as argument to deploy to production. Default is preview deployment.
+description: Deploy the current project to Vercel. Pass "prod" or "production" as argument to deploy to production. Default is to ask the user which target (production or preview).
 ---
 
 # Deploy to Vercel
@@ -56,7 +56,7 @@ Before promoting to production, verify observability readiness:
 
 State the intended action before executing:
 
-- **Preview deploy** (default): `vercel` — creates a preview deployment on a unique URL.
+- **Preview deploy**: `vercel` — creates a preview deployment on a unique URL.
 - **Production deploy**: `vercel --prod` — deploys to production domains.
 
 If "$ARGUMENTS" contains "prod" or "production":
@@ -65,7 +65,12 @@ If "$ARGUMENTS" contains "prod" or "production":
 > This will deploy to your live production URL and affect real users.
 > **Ask the user for explicit confirmation before proceeding.** Do not deploy to production without a clear "yes."
 
-If "$ARGUMENTS" does not indicate production:
+If "$ARGUMENTS" is empty (no target specified):
+
+> **Ask the user before proceeding:** "Deploy to **production** or **preview**?"
+> Do not assume a default — the user must explicitly choose the deployment target. Deploying to the wrong target wastes build minutes and causes confusion (e.g., preview deployments may lack required env vars).
+
+If "$ARGUMENTS" contains "preview":
 
 > Deploying a **preview** build. This creates an isolated URL and does not affect production.
 
