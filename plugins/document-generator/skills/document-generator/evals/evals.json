@@ -3,28 +3,28 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Create an invoice for client Acme Corp. Number INV-2026-042, my company is DevStudio, address 10 Khreshchatyk St, Kyiv. Two items: Frontend development, 80 hours at $50, and UX Design, 20 hours at $75. Due by May 1, 2026. Save to the current folder.",
+      "prompt": "Create an invoice for client Acme Corp. Number INV-2026-042, my company is DevStudio, address 100 Main Street, San Francisco. Two items: Frontend development, 80 hours at $50, and UX Design, 20 hours at $75. Due by May 1, 2026. Save to the current folder.",
       "expected_output": "PDF invoice with correct calculations ($5,500 total), two line items, due date May 1 2026",
       "files": [],
       "expectations": [
         "A PDF file is generated in the outputs directory",
         "Invoice total equals $5,500 (80×50 + 20×75)",
         "Contains two line items: Frontend development and UX Design",
-        "Shows DevStudio with address 10 Khreshchatyk St, Kyiv",
+        "Shows DevStudio with address 100 Main Street, San Francisco",
         "Shows due date 2026-05-01"
       ]
     },
     {
       "id": 2,
-      "prompt": "Generate an act of completed works. Contractor: FOP Skoryi I.V., customer: Digital Service LLC, representative Kovalenko O.M. Services: website development 1 unit at $3,000, technical support 10 hours at $80/hr. Date: April 3, 2026, city: Kyiv.",
+      "prompt": "Generate an act of completed works. Contractor: TechCo Solutions LLC, customer: Digital Service LLC, representative Sarah Chen Services: website development 1 unit at $3,000, technical support 10 hours at $80/hr. Date: April 3, 2026, city: San Francisco.",
       "expected_output": "PDF act with services table totaling $3,800, both parties, signature blocks",
       "files": [],
       "expectations": [
         "A PDF file is generated",
         "Total equals $3,800 ($3,000 + $800)",
-        "Contains both parties: FOP Skoryi I.V. and Digital Service LLC",
+        "Contains both parties: TechCo Solutions LLC and Digital Service LLC",
         "Services table with two rows",
-        "Includes date April 3, 2026 and city Kyiv"
+        "Includes date April 3, 2026 and city San Francisco"
       ]
     },
     {

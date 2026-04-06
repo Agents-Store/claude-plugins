@@ -5,7 +5,7 @@
 ```json
 {
   "type": "act",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "outputPath": "./act_act-001_2026-03-19.pdf",
   "template": { "currencySymbol": "$" },
   "data": {
@@ -40,7 +40,7 @@
 ```json
 {
   "type": "act",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "outputPath": "./act_act-002-2026_2026-03-31.pdf",
   "template": {
     "currencySymbol": "$",

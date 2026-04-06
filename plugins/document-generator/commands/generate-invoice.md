@@ -24,7 +24,7 @@ Parse from "$ARGUMENTS".
 
 2. **Check dependencies:**
    ```bash
-   cd <plugin_dir> && node -e "require('puppeteer')" 2>&1
+   cd <plugin_dir> && node -e "require('playwright')" 2>&1
    ```
 
 3. **Gather required data from user:**

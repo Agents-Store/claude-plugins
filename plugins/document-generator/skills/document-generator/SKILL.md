@@ -1,6 +1,6 @@
 ---
 name: document-generator
-description: Document generation process -- format selection, data collection, script invocation, and delivery. This skill should be used when generating any document (proposal, invoice, report, presentation, contract, act), deciding which format or engine to use, or running generation scripts.
+description: Document generation process -- format selection, data collection, script invocation, and delivery. This skill should be used when generating any document (proposal, invoice, estimate, report, presentation, contract, NDA, certificate of completion), deciding which format or engine to use, or running generation scripts.
 ---
 
 # Document Generator Process
@@ -17,20 +17,23 @@ Determine the document type from the user's request:
 |----------|--------------|----------------|
 | proposal, bid, offer, pitch | **proposal** | DOCX |
 | invoice, bill, receipt | **invoice** | PDF |
+| estimate, quotation, quote, pricing | **estimate** | PDF |
 | report, analysis, findings, research | **report** | DOCX |
 | presentation, slides, deck, pitch deck | **presentation** | PPTX |
-| contract, agreement, NDA, terms | **contract** | DOCX |
-| act, act of completed works, works acceptance | **act** | PDF |
+| contract, agreement, MSA, terms | **contract** | DOCX |
+| NDA, non-disclosure, confidentiality | **nda** | PDF |
+| act, certificate of completion | **act** | PDF |
 | convert, transform, export | **conversion** | varies |
 
-### Step 1.5: CHECK USER PREFERENCES
+### Step 1.5: CHECK USER PREFERENCES (MANDATORY)
 
-Before gathering data, check if user preferences exist:
+**You MUST check preferences before any generation. Scripts will reject requests if preferences are missing.**
+
 ```bash
 cat ~/.document-generator/preferences.json 2>/dev/null
 ```
 
-- **File missing** → run the onboarding interview (see **user-preferences** skill)
+- **File missing** → **STOP. Run the onboarding interview** (see **user-preferences** skill) before proceeding.
 - **File exists** → load style preset, default company, language, and currency to pre-fill fields
 
 ### Step 2: GATHER
@@ -43,20 +46,24 @@ If user preferences are loaded, pre-fill company info, currency, and language fr
 
 ### Step 3: SELECT FORMAT & ENGINE
 
-| Type | Format | Engine | Script |
-|------|--------|--------|--------|
-| Proposal | DOCX | docx-js | `generate_docx.js` |
-| Proposal (final) | PDF | puppeteer | `generate_pdf.js` |
-| Invoice | PDF | puppeteer | `generate_pdf.js` |
-| Invoice (simple) | PDF | pdfkit | `generate_pdf.js` (engine: "pdfkit") -- uses generic structure, not invoice fields |
-| Report | DOCX | docx-js | `generate_docx.js` |
-| Report (final) | PDF | puppeteer | `generate_pdf.js` |
-| Presentation | PPTX | pptxgenjs | `generate_pptx.js` |
-| Presentation (PDF export) | PDF | pandoc | `convert.sh` (PPTX→PDF, as follow-up) |
-| Contract | DOCX | docx-js | `generate_docx.js` |
-| Contract (final) | PDF | puppeteer | `generate_pdf.js` |
-| Act of works | PDF | puppeteer | `generate_pdf.js` |
-| Act of works | DOCX | docx-js | `generate_docx.js` |
+| Type | Format | Engine | Script | Notes |
+|------|--------|--------|--------|-------|
+| Proposal | DOCX | docx-js | `generate_docx.js` | Default. Add `"engine": "pandoc"` for PDF-matching style |
+| Proposal | DOCX | pandoc | `generate_docx.js` (engine: "pandoc") | Same HTML templates as PDF. Requires pandoc |
+| Proposal (final) | PDF | playwright | `generate_pdf.js` | Full-page cover, TOC, sections |
+| Invoice | PDF | playwright | `generate_pdf.js` | Always PDF |
+| Report | DOCX | docx-js | `generate_docx.js` | Default. Add `"engine": "pandoc"` for PDF-matching style |
+| Report (final) | PDF | playwright | `generate_pdf.js` | Full-page cover, TOC, sections |
+| Presentation | PPTX | pptxgenjs | `generate_pptx.js` | Always PPTX |
+| Contract | DOCX | docx-js | `generate_docx.js` | Default for editable contracts |
+| Contract (final) | PDF | playwright | `generate_pdf.js` | Legal-grade formatting |
+| Estimate | PDF | playwright | `generate_pdf.js` | Phase-based pricing, timeline |
+| NDA | PDF | playwright | `generate_pdf.js` | Mutual or unilateral |
+| Act / Certificate | PDF | playwright | `generate_pdf.js` | Multi-language support |
+
+**Engine selection for DOCX:**
+- `docx-js` (default): Always works, full feature support (images, complex tables, headers/footers)
+- `pandoc`: Produces DOCX that visually matches PDF output (uses same HTML templates). Set `"engine": "pandoc"` in input JSON. Requires pandoc installed (`which pandoc`).
 
 ### Step 4: BUILD JSON Input
 
@@ -68,8 +75,8 @@ If user preferences are loaded, pre-fill company info, currency, and language fr
 **Input JSON structure:**
 ```json
 {
-  "type": "proposal|invoice|report|contract|act",
-  "engine": "puppeteer|pdfkit",
+  "type": "proposal|invoice|estimate|report|contract|nda|act",
+  "engine": "playwright|pdfkit",
   "outputPath": "./proposal_acme_2026-03-17.docx",
   "template": { "...from template file..." },
   "data": { "...user provided data..." }
@@ -83,11 +90,11 @@ Run the appropriate script via Bash:
 cd <plugin_dir> && node scripts/generate_docx.js /absolute/path/to/.doc_input.json
 ```
 
-**Check dependencies first:**
+**Check dependencies first (use the centralized checker):**
 ```bash
-cd <plugin_dir> && node -e "require('docx')" 2>&1
+cd <plugin_dir> && node scripts/check_deps.js
 ```
-If it fails, tell the user: `cd <plugin_dir> && npm install`
+If `ready: false`, show what's missing and ask user permission to install.
 
 **Script output** (JSON to stdout):
 - Success: `{ "success": true, "outputPath": "/abs/path/to/file.docx", "size": 12345 }`
@@ -112,11 +119,13 @@ Supported conversions: MD->PDF, MD->DOCX, MD->HTML, DOCX->PDF, DOCX->MD, HTML->P
 
 | Error | Resolution |
 |-------|-----------|
-| Module not found (docx, puppeteer, etc.) | Tell user to run `npm install` in plugin dir |
-| pandoc not installed | Tell user: `brew install pandoc` (macOS) or `apt install pandoc` (Linux) |
-| No PDF engine for pandoc | Tell user: `brew install wkhtmltopdf` |
-| Puppeteer browser launch failed | Add `--no-sandbox` flag (already in script) |
+| `warning: ONBOARDING_NOT_DONE` | Document generated with defaults. Offer to run `/setup` for custom styling |
+| Module not found (docx, playwright, etc.) | Run `cd <plugin_dir> && npm install` |
+| pandoc not installed | `brew install pandoc` (macOS) or `apt install pandoc` (Linux) |
+| No PDF engine for pandoc | `pip3 install weasyprint` (recommended) or `brew install wkhtmltopdf` |
+| Playwright browser launch failed | Add `--no-sandbox` flag (already in script) |
 | Output file not created | Check script stderr, verify output directory exists |
+| Margin format mismatch | Scripts auto-normalize (twips ↔ CSS units) via `utils.js` |
 
 ## File Naming Convention
 

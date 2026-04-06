@@ -101,7 +101,7 @@ Actionable design guidelines sourced from top companies and research. Use these 
 
 ### Typography
 - Serif fonts preferred for printed legal documents (traditional, authoritative)
-- Recommended: Georgia, Garamond, PT Serif
+- Recommended: Georgia, Garamond, Source Serif 4
 - Font size: 12pt standard (courts recommend 12pt)
 - Bold for section titles, italics for references/citations, avoid underlining
 
@@ -140,8 +140,8 @@ Actionable design guidelines sourced from top companies and research. Use these 
 
 | Use Case | Headings | Body |
 |----------|----------|------|
-| Invoices, Reports | PT Serif | Inter |
-| Contracts, Acts | PT Serif | PT Serif |
+| Invoices, Reports | Source Serif 4 | Inter |
+| Contracts, Acts | Source Serif 4 | Source Serif 4 |
 
 **Premium pairings (reference):**
 - Helvetica + Garamond: authority + elegance (academic, government, law)
@@ -215,7 +215,7 @@ Actionable design guidelines sourced from top companies and research. Use these 
 - Recommended: Noto Sans CJK / Noto Serif CJK (covers all three scripts, 7 weights, free)
 
 ### Cyrillic (Ukrainian, Russian)
-- PT Serif: designed specifically for Cyrillic+Latin — ideal
+- Source Serif 4: designed specifically for Cyrillic+Latin — ideal
 - Inter: excellent Cyrillic support for sans-serif body text
 - Both embedded as WOFF2 in this plugin's font system
 
@@ -262,7 +262,7 @@ Actionable design guidelines sourced from top companies and research. Use these 
 |--------------|-----|--------|------|-------|
 | Proposals/Reports (DOCX) | 1" | 1" | 0.75" | 0.75" |
 | Contracts (DOCX) | 1" | 1" | 1" | 1" |
-| PDFs (via Puppeteer) | 28mm | 22mm | 18mm | 18mm |
+| PDFs (via Playwright) | 28mm | 22mm | 18mm | 18mm |
 
 ### Spacing Grid (8px base)
 Use multiples of 8px for all spacing: 8, 16, 24, 32, 48, 64px.

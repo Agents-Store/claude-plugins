@@ -1,24 +1,24 @@
 {
-  "type": "invoice",
+  "type": "estimate",
   "format": "pdf",
   "engine": "puppeteer",
   "structure": {
     "header": { "companyInfo": true, "logo": true },
-    "invoiceMeta": ["invoiceNumber", "date", "dueDate"],
-    "recipientBlock": true,
+    "estimateMeta": ["estimateNumber", "date", "validUntil"],
+    "clientBlock": true,
+    "scopeOfWork": true,
     "itemsTable": {
       "columns": [
         { "key": "description", "label": "Description", "width": "50%", "align": "left" },
         { "key": "quantity", "label": "Qty", "width": "10%", "align": "center" },
         { "key": "unitPrice", "label": "Unit Price", "width": "20%", "align": "right" },
-        { "key": "total", "label": "Total", "width": "20%", "align": "right" }
+        { "key": "total", "label": "Amount", "width": "20%", "align": "right" }
       ]
     },
     "totalsBlock": ["subtotal", "tax", "discount", "total"],
-    "paymentDetails": {
-      "fields": ["bank", "accountName", "iban", "swift"],
-      "note": "All fields optional. Rendered in a highlighted card at the bottom of the invoice."
-    },
+    "validity": true,
+    "timeline": true,
+    "terms": true,
     "notes": true
   },
   "styling": {
@@ -28,15 +28,6 @@
     "textColor": "#1E293B",
     "mutedColor": "#64748B",
     "borderColor": "#E2E8F0",
-    "highlightBg": "#EFF6FF",
-    "fontFamily": "'Inter', Arial, sans-serif",
-    "fontHeading": "'Source Serif 4', Georgia, serif",
-    "fontSizeTitle": "28px",
-    "fontSizeBody": "13px",
-    "fontSizeSmall": "11px",
-    "tableHeaderBg": "#0F172A",
-    "tableHeaderColor": "#FFFFFF",
-    "tableStripeBg": "#F8FAFC",
     "pageSize": "A4",
     "margins": { "top": "28mm", "bottom": "22mm", "left": "18mm", "right": "18mm" }
   },

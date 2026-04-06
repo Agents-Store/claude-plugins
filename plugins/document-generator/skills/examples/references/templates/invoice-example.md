@@ -32,7 +32,7 @@ Complete example of JSON input for `generate_pdf.js` to create a professional in
 ```json
 {
   "type": "invoice",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "outputPath": "./invoice_2026-042_2026-03-17.pdf",
   "template": {
     "styling": {
@@ -109,7 +109,7 @@ Complete example of JSON input for `generate_pdf.js` to create a professional in
 
 ## Simple Invoice with PDFKit Engine
 
-**Important**: The pdfkit engine uses a generic document structure (`title`, `author`, `sections`) instead of the structured invoice fields (`invoiceNumber`, `companyInfo`, `items`). Use pdfkit only for simple, text-based invoices when Chromium/Puppeteer is not available. For professional invoices with formatted tables and branding, use the default puppeteer engine.
+**Important**: The pdfkit engine uses a generic document structure (`title`, `author`, `sections`) instead of the structured invoice fields (`invoiceNumber`, `companyInfo`, `items`). Use pdfkit only for simple, text-based invoices when Chromium/Playwright is not available. For professional invoices with formatted tables and branding, use the default playwright engine.
 
 ```json
 {

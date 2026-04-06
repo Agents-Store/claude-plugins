@@ -1,7 +1,7 @@
 {
   "name": "document-generator",
-  "version": "1.0.0",
-  "description": "Professional document generator. Creates proposals, invoices, reports, presentations, contracts, and acts of completed works in PDF, DOCX, and PPTX formats. Supports multi-language documents with embedded fonts (Cyrillic, Latin, and more). First-use onboarding for style preferences, company profiles, and logo management. Converts between MD, DOCX, PDF, HTML, and PPTX.",
+  "version": "2.0.0",
+  "description": "Professional document generator. Creates proposals, invoices, estimates/quotations, reports, presentations, contracts, NDAs, and certificates of completion in PDF, DOCX, and PPTX formats. Supports multi-language documents with embedded fonts (Cyrillic, Latin). First-use onboarding for style preferences, company profiles, and logo management. Converts between MD, DOCX, PDF, HTML, and PPTX.",
   "author": {
     "name": "AGENTS.STORE"
   }

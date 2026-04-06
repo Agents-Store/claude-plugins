@@ -1,43 +1,72 @@
 #!/usr/bin/env node
 /**
- * Convert DOCX → PDF via pandoc (HTML) + Puppeteer
- * Usage: node docx_to_pdf.js <input.docx> <output.pdf>
+ * Convert DOCX -> PDF via pandoc (HTML) + Puppeteer
+ *
+ * Uses the shared html_templates.js design system for consistent styling
+ * with all other document outputs (PDF, DOCX pandoc engine).
+ *
+ * Usage: node docx_to_pdf.js <input.docx> <output.pdf> [--margins "top,bottom,left,right"]
+ *
+ * Margins: CSS units ("28mm,22mm,18mm,18mm") or twips ("1440,1440,1080,1080").
+ * Default: 28mm top, 22mm bottom, 18mm left/right.
  */
 const { execSync } = require("child_process");
-const puppeteer = require("puppeteer");
 const path = require("path");
 const fs = require("fs");
+const { normalizeMargins } = require("./utils");
+const { fontLinks, getDefaults, getBaseStyles } = require("./html_templates");
 
-const [, , inputDocx, outputPdf] = process.argv;
+const args = process.argv.slice(2);
+const inputDocx = args.find((a) => !a.startsWith("--"));
+const outputPdf = args.filter((a) => !a.startsWith("--"))[1];
+const marginsArg = args.indexOf("--margins") !== -1 ? args[args.indexOf("--margins") + 1] : null;
+
 if (!inputDocx || !outputPdf) {
-  console.error("Usage: node docx_to_pdf.js <input.docx> <output.pdf>");
+  console.error("Usage: node docx_to_pdf.js <input.docx> <output.pdf> [--margins top,bottom,left,right]");
   process.exit(1);
 }
 
-(async () => {
-  // 1. Convert DOCX → HTML fragment via pandoc
-  const htmlFragment = execSync(
-    `pandoc "${inputDocx}" -t html --wrap=none`,
-    { encoding: "utf8" }
-  );
+// Parse margin argument
+let margins = null;
+if (marginsArg) {
+  const parts = marginsArg.split(",").map((s) => s.trim());
+  if (parts.length === 4) {
+    margins = {
+      top: isNaN(Number(parts[0])) ? parts[0] : Number(parts[0]),
+      bottom: isNaN(Number(parts[1])) ? parts[1] : Number(parts[1]),
+      left: isNaN(Number(parts[2])) ? parts[2] : Number(parts[2]),
+      right: isNaN(Number(parts[3])) ? parts[3] : Number(parts[3]),
+    };
+  }
+}
 
-  // 2. Wrap in professional corporate CSS
+const pdfMargins = normalizeMargins(margins, "pdf");
+
+(async () => {
+  // 1. Check pandoc
+  try {
+    execSync("which pandoc", { encoding: "utf-8" });
+  } catch (_) {
+    throw new Error(
+      "pandoc is not installed. Install with: brew install pandoc (macOS) or apt install pandoc (Linux)"
+    );
+  }
+
+  // 2. Convert DOCX -> HTML fragment via pandoc
+  const htmlFragment = execSync(`pandoc "${inputDocx}" -t html --wrap=none`, {
+    encoding: "utf8",
+  });
+
+  // 3. Wrap in the plugin's shared design system CSS
+  const s = getDefaults({});
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+${fontLinks()}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 11pt;
-    color: #1E293B;
-    line-height: 1.4;
-    background: #fff;
-  }
+  ${getBaseStyles(s)}
 
   .page {
     max-width: 170mm;
@@ -45,39 +74,32 @@ if (!inputDocx || !outputPdf) {
     padding: 20mm 0;
   }
 
-  /* Cover page block */
-  .cover-block {
-    border-top: 6px solid #2563EB;
-    padding-top: 18px;
-    margin-bottom: 32px;
-  }
-
-  /* Headings */
+  /* Headings — matching the shared template system */
   h1 {
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: ${s.fontHeading};
     font-size: 18pt;
     font-weight: bold;
-    color: #1E3A5F;
+    color: ${s.primary};
     margin-top: 28px;
     margin-bottom: 8px;
     padding-bottom: 5px;
-    border-bottom: 1.5px solid #2563EB;
+    border-bottom: 1.5px solid ${s.accent};
   }
 
   h2 {
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: ${s.fontHeading};
     font-size: 14pt;
     font-weight: bold;
-    color: #1E3A5F;
+    color: ${s.primary};
     margin-top: 20px;
     margin-bottom: 6px;
   }
 
   h3 {
-    font-family: Arial, sans-serif;
+    font-family: ${s.fontBody};
     font-size: 12pt;
     font-weight: bold;
-    color: #1E293B;
+    color: ${s.textColor};
     margin-top: 16px;
     margin-bottom: 5px;
   }
@@ -97,11 +119,8 @@ if (!inputDocx || !outputPdf) {
     margin-bottom: 4px;
     line-height: 1.4;
   }
-  li::marker {
-    color: #2563EB;
-  }
 
-  /* Tables */
+  /* Tables — navy header with alternating rows */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -109,43 +128,33 @@ if (!inputDocx || !outputPdf) {
     font-size: 10.5pt;
   }
   th {
-    background: #1E3A5F;
+    background: linear-gradient(135deg, ${s.primary}, ${s.accentDark || s.primary});
     color: #fff;
-    padding: 8px 12px;
+    padding: 10px 14px;
     text-align: left;
-    font-size: 10pt;
+    font-size: 9pt;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.08em;
   }
+  th:first-child { border-radius: 6px 0 0 0; }
+  th:last-child { border-radius: 0 6px 0 0; }
   td {
-    padding: 7px 12px;
-    border-bottom: 1px solid #E2E8F0;
-    color: #1E293B;
+    padding: 9px 14px;
+    border-bottom: 0.5px solid ${s.borderLight || s.border};
+    color: ${s.textColor};
+    font-variant-numeric: tabular-lining-nums;
   }
   tr:nth-child(even) td {
-    background: #F8FAFC;
-  }
-
-  /* Section divider after first few paragraphs (cover page effect) */
-  .section-break {
-    border: none;
-    border-top: 1px solid #E2E8F0;
-    margin: 20px 0;
-  }
-
-  /* Footer-like muted text */
-  .muted {
-    color: #64748B;
-    font-size: 9pt;
+    background: rgba(0, 0, 0, 0.015);
   }
 
   /* Code blocks */
   pre, code {
     font-family: "Courier New", monospace;
     font-size: 9pt;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
+    background: ${s.bgLight};
+    border: 1px solid ${s.border};
     padding: 2px 4px;
     border-radius: 2px;
   }
@@ -159,14 +168,25 @@ ${htmlFragment}
 </body>
 </html>`;
 
-  // 3. Launch Puppeteer and render PDF
-  const browser = await puppeteer.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"] });
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: "networkidle0" });
+  // 4. Render PDF — try Playwright first, fall back to Puppeteer
+  let browser, page;
+  try {
+    const { chromium } = require("playwright");
+    browser = await chromium.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+    page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle" });
+  } catch (e) {
+    if (e.code === "MODULE_NOT_FOUND") {
+      const puppeteer = require("puppeteer");
+      browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+      page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "networkidle0" });
+    } else { throw e; }
+  }
   await page.pdf({
     path: outputPdf,
     format: "A4",
-    margin: { top: "20mm", bottom: "20mm", left: "20mm", right: "20mm" },
+    margin: pdfMargins,
     printBackground: true,
   });
   await browser.close();

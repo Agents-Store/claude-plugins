@@ -12,6 +12,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { requirePreferences, mergePreferences, normalizeMargins } = require("./utils");
 const {
   Document,
   Packer,
@@ -43,14 +44,26 @@ async function main() {
 
     const raw = fs.readFileSync(inputPath, "utf-8");
     const input = JSON.parse(raw);
-    const { type, outputPath, data, template } = input;
+    const { type, engine, outputPath, data, template } = input;
+
+    // Check preferences (soft — does not block generation)
+    const prefsCheck = requirePreferences(input);
+
+    // Auto-merge user preferences (style, company info, logo) into input
+    mergePreferences(input);
 
     if (!outputPath) throw new Error("outputPath is required");
     if (!data) throw new Error("data is required");
 
+    // ── Pandoc engine: generate HTML → DOCX via pandoc for unified styling ──
+    if (engine === "pandoc") {
+      await generateWithPandoc(type, outputPath, data, template);
+      return;
+    }
+
     const styling = template?.styling || {};
-    const primaryColor = (styling.primaryColor || "#1E3A5F").replace("#", "");
-    const accentColor = (styling.accentColor || "#2563EB").replace("#", "");
+    const primaryColor = (styling.primaryColor || "#0F172A").replace("#", "");
+    const accentColor = (styling.accentColor || "#6366F1").replace("#", "");
     const textColor = (styling.textColor || "#1E293B").replace("#", "");
     const mutedColor = (styling.mutedColor || "#64748B").replace("#", "");
     const borderColor = (styling.borderColor || "#E2E8F0").replace("#", "");
@@ -88,7 +101,7 @@ async function main() {
       children = buildDocument(data, type, styling, primaryColor, accentColor, textColor, mutedColor, borderColor, bgLight, fontHeading, fontBody, fontSizeBody);
     }
 
-    const margins = styling.margins || { top: 1440, bottom: 1440, left: 1080, right: 1080 };
+    const margins = normalizeMargins(styling.margins, "docx");
 
     const doc = new Document({
       styles: {
@@ -151,18 +164,76 @@ async function main() {
     fs.writeFileSync(outputPath, buffer);
 
     const stats = fs.statSync(outputPath);
-    console.log(
-      JSON.stringify({
-        success: true,
-        outputPath: path.resolve(outputPath),
-        size: stats.size,
-        pages: Math.max(1, Math.ceil(children.length / 25)),
-      })
-    );
+    const result = {
+      success: true,
+      outputPath: path.resolve(outputPath),
+      size: stats.size,
+      pages: Math.max(1, Math.ceil(children.length / 25)),
+    };
+    if (!prefsCheck.exists) result.warning = prefsCheck.warning;
+    console.log(JSON.stringify(result));
   } catch (err) {
     console.log(JSON.stringify({ success: false, error: err.message }));
     process.exit(1);
   }
+}
+
+// ─── Pandoc Engine ──────────────────────────────────────────────────────────
+// Generates HTML using the shared html_templates module (same as PDF output),
+// then converts to DOCX via pandoc for unified styling across formats.
+
+async function generateWithPandoc(type, outputPath, data, template) {
+  const { execSync } = require("child_process");
+  const os = require("os");
+  const { buildHtml } = require("./html_templates");
+
+  // Check pandoc is available
+  try {
+    execSync("which pandoc", { encoding: "utf-8" });
+  } catch (_) {
+    throw new Error(
+      "pandoc is not installed (needed for engine: pandoc). " +
+      "Install with: brew install pandoc (macOS) or apt install pandoc (Linux). " +
+      "Alternatively, remove engine: pandoc from the input to use docx-js."
+    );
+  }
+
+  const styling = template?.styling || {};
+
+  // Build HTML using the same shared templates as the PDF generator — all types supported
+  const html = buildHtml(data, styling, type, template);
+
+  // Write HTML to temp file
+  const tmpHtml = path.join(os.tmpdir(), `docgen_${Date.now()}.html`);
+  fs.writeFileSync(tmpHtml, html, "utf-8");
+
+  // Check for reference doc
+  const pluginDir = path.resolve(__dirname, "..");
+  const refDoc = path.join(pluginDir, "assets", "reference.docx");
+  const refArg = fs.existsSync(refDoc) ? ` --reference-doc="${refDoc}"` : "";
+
+  const dir = path.dirname(outputPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+  try {
+    execSync(
+      `pandoc "${tmpHtml}" -f html -t docx${refArg} -o "${outputPath}"`,
+      { encoding: "utf-8", timeout: 30000 }
+    );
+  } finally {
+    try { fs.unlinkSync(tmpHtml); } catch (_) {}
+  }
+
+  const stats = fs.statSync(outputPath);
+  console.log(
+    JSON.stringify({
+      success: true,
+      outputPath: path.resolve(outputPath),
+      size: stats.size,
+      engine: "pandoc",
+    })
+  );
+  process.exit(0);
 }
 
 function buildDocument(data, type, styling, primaryColor, accentColor, textColor, mutedColor, borderColor, bgLight, fontHeading, fontBody, fontSizeBody) {
@@ -205,7 +276,33 @@ function buildDocument(data, type, styling, primaryColor, accentColor, textColor
 
   // Cover page with visual hierarchy
   if (data.title) {
-    children.push(new Paragraph({ spacing: { before: 3000 } }));
+    // Company logo on cover page (if available)
+    const logoBase64 = data.companyInfo?.logoBase64 || data.logoBase64;
+    if (logoBase64) {
+      try {
+        const { ImageRun } = require("docx");
+        const logoBuffer = Buffer.from(logoBase64, "base64");
+        children.push(new Paragraph({ spacing: { before: 1200 } }));
+        children.push(
+          new Paragraph({
+            children: [
+              new ImageRun({
+                data: logoBuffer,
+                transformation: { width: 160, height: 56 },
+                type: "png",
+              }),
+            ],
+            spacing: { after: 400 },
+          })
+        );
+        children.push(new Paragraph({ spacing: { before: 600 } }));
+      } catch (_) {
+        // If logo fails, continue without it
+        children.push(new Paragraph({ spacing: { before: 3000 } }));
+      }
+    } else {
+      children.push(new Paragraph({ spacing: { before: 3000 } }));
+    }
 
     // Accent line before title
     children.push(
@@ -626,7 +723,7 @@ function buildTable(tableData, primaryColor, accentColor, textColor, bgLight, bo
         new TableCell({
           children: [
             new Paragraph({
-              children: [new TextRun({ text: h, bold: true, size: fontSizeBody * 2, color: "FFFFFF", font: fontBody })],
+              children: [new TextRun({ text: h.toUpperCase(), bold: true, size: fontSizeBody * 2, color: "FFFFFF", font: fontBody, characterSpacing: 40 })],
               spacing: { before: 60, after: 60 },
             }),
           ],

@@ -1,0 +1,35 @@
+{
+  "type": "nda",
+  "format": "pdf",
+  "structure": {
+    "header": { "title": true, "date": true, "ndaNumber": true },
+    "parties": {
+      "disclosingParty": { "label": "Disclosing Party", "fields": ["name", "address", "reg", "representative", "title"] },
+      "receivingParty": { "label": "Receiving Party", "fields": ["name", "address", "reg", "representative", "title"] }
+    },
+    "ndaType": "mutual",
+    "clauses": [
+      { "id": "confidentialInfoDef", "title": "Definition of Confidential Information", "required": true },
+      { "id": "obligations", "title": "Obligations", "required": true },
+      { "id": "exclusions", "title": "Exclusions from Confidential Information", "required": true },
+      { "id": "term", "title": "Term and Duration", "required": true },
+      { "id": "returnMaterials", "title": "Return of Materials", "required": true },
+      { "id": "remedies", "title": "Remedies", "required": false },
+      { "id": "governingLaw", "title": "Governing Law", "required": true }
+    ],
+    "signatureBlock": {
+      "party1": { "name": true, "title": true, "date": true, "signatureLine": true },
+      "party2": { "name": true, "title": true, "date": true, "signatureLine": true }
+    }
+  },
+  "styling": {
+    "primaryColor": "#0F172A",
+    "accentColor": "#6366F1",
+    "textColor": "#1A1A2E",
+    "mutedColor": "#4A4A5A",
+    "borderColor": "#D4D4D4",
+    "fontSizeBody": 12,
+    "lineSpacing": 1.5,
+    "margins": { "top": "28mm", "bottom": "22mm", "left": "20mm", "right": "20mm" }
+  }
+}

@@ -8,12 +8,12 @@ Corporate English-language service contract. Used when generating contracts for 
 title: "Service Agreement" | "Non-Disclosure Agreement" | etc.
 number: "CONTRACT-001"
 date: "2026-03-19"
-city: "Kyiv"
-governingLaw: "Ukraine"
+city: "San Francisco"
+governingLaw: "United States"
 
 companyInfo:
   name: "Your Company Name"
-  address: "123 Business St, City, Country"
+  address: "100 Main Street, City, Country"
   reg: "Company Registration No"
   email: "contact@company.com"
   # Optional: logoBase64 (PNG base64 string) or logoUrl
@@ -54,7 +54,7 @@ clauses:
   - number: "5"
     title: "Governing Law"
     paragraphs:
-      - "This Agreement shall be governed by the laws of Ukraine."
+      - "This Agreement shall be governed by the laws of United States."
 ```
 
 ## JSON input structure
@@ -62,7 +62,7 @@ clauses:
 ```json
 {
   "type": "contract",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "outputPath": "./contract_service_agreement_2026-03-19.pdf",
   "template": {
     "styling": {
@@ -74,17 +74,17 @@ clauses:
     "title": "Service Agreement",
     "number": "CONTRACT-001",
     "date": "March 19, 2026",
-    "city": "Kyiv",
-    "governingLaw": "Ukraine",
+    "city": "San Francisco",
+    "governingLaw": "United States",
     "companyInfo": {
       "name": "Your Company Name",
-      "address": "123 Business St, Kyiv, Ukraine",
+      "address": "100 Main Street, San Francisco, CA 94105",
       "reg": "UA12345678",
       "email": "contact@yourcompany.com"
     },
     "party1": {
       "name": "Contractor Ltd.",
-      "address": "456 Contractor Ave, Kyiv, Ukraine",
+      "address": "200 Market Street, San Francisco, CA 94105",
       "reg": "UA87654321",
       "representative": "John Doe",
       "title": "Director"

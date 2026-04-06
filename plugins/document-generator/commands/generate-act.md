@@ -40,7 +40,7 @@ Parse from "$ARGUMENTS".
    ```
 
 5. **Build JSON input:**
-   Use type "act" with puppeteer engine. Services is an array of rows. Write to `.doc_input.json`.
+   Use type "act" with playwright engine. Services is an array of rows. Write to `.doc_input.json`.
 
 6. **Generate document:**
    For PDF (default):

@@ -56,7 +56,7 @@ Ask the user these questions conversationally (not as a rigid form). Adapt based
 > "Any specific formatting preferences?"
 >
 > - Paper size: A4 (default) or Letter
-> - Currency symbol: $, EUR, GBP, UAH, etc.
+> - Currency symbol: $, EUR, GBP, EUR, etc.
 > - Date format: "March 19, 2026" / "19.03.2026" / "2026-03-19"
 
 ### Save Preferences
@@ -263,12 +263,12 @@ Users can store multiple company profiles (e.g., different legal entities):
       "language": "de"
     },
     "acme-ua": {
-      "name": "Acme Ukraine LLC",
-      "address": "1 Khreshchatyk St, Kyiv, Ukraine",
+      "name": "Acme Europe Ltd",
+      "address": "45 Berlin Strasse, Munich, Germany",
       "reg": "EDRPOU: 12345678",
       "logoFile": "acme-ua-logo.png",
-      "currencySymbol": "UAH",
-      "language": "uk"
+      "currencySymbol": "EUR",
+      "language": "de"
     }
   }
 }
@@ -294,7 +294,7 @@ How many companies are stored?
     "You have several company profiles saved:
      1. Acme Corp
      2. Acme Europe GmbH
-     3. Acme Ukraine LLC
+     3. Acme Europe Ltd
      Which one should I use for this document?"
 ```
 

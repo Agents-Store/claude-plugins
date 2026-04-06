@@ -50,7 +50,7 @@ notes: "Thank you for your business."
 ```json
 {
   "type": "invoice",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "outputPath": "./invoice_inv-001_2026-03-19.pdf",
   "template": {
     "currencySymbol": "$",

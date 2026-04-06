@@ -1,6 +1,6 @@
 ---
 name: examples
-description: End-to-end document generation examples, workflow walkthroughs, and complete JSON input samples for all document types (proposal, invoice, report, presentation, contract, act). This skill should be used when the user asks for a worked example, wants to see a sample document, needs a template pattern to follow, or asks how to create a specific document step by step.
+description: End-to-end document generation examples, workflow walkthroughs, and complete JSON input samples for all document types (proposal, invoice, estimate, report, presentation, contract, NDA, certificate of completion). This skill should be used when the user asks for a worked example, wants to see a sample document, needs a template pattern to follow, or asks how to create a specific document step by step.
 ---
 
 # Examples & Reference Index

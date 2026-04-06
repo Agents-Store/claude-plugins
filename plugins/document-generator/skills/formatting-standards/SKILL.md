@@ -22,7 +22,7 @@ Good business documents communicate structure through typography and space — n
 
 ### Font Pairing
 
-Fonts differ by output format — DOCX/PPTX use system fonts; PDF uses embedded Inter + PT Serif (Cyrillic+Latin, offline).
+Fonts differ by output format — DOCX/PPTX use system fonts; PDF uses embedded Inter + Source Serif 4 (Cyrillic+Latin, offline).
 
 #### DOCX / PPTX — System Fonts
 
@@ -34,18 +34,18 @@ Fonts differ by output format — DOCX/PPTX use system fonts; PDF uses embedded 
 
 Georgia and Arial are pre-installed on macOS and Windows — no embedding needed.
 
-#### PDF — Embedded Fonts (Inter + PT Serif)
+#### PDF — Embedded Fonts (Inter + Source Serif 4)
 
 Loaded from `scripts/fonts.js`. Works fully offline. Supports Ukrainian and English.
 
 | Context | Headings | Body Text |
 |---------|----------|-----------|
-| Invoices | **PT Serif** | Inter |
-| Contracts (PDF) | **PT Serif** | PT Serif |
-| Acts of completed works | **PT Serif** | PT Serif + Inter (meta labels) |
-| Reports, Proposals (PDF) | **PT Serif** | Inter |
+| Invoices | **Source Serif 4** | Inter |
+| Contracts (PDF) | **Source Serif 4** | Source Serif 4 |
+| Acts of completed works | **Source Serif 4** | Source Serif 4 + Inter (meta labels) |
+| Reports, Proposals (PDF) | **Source Serif 4** | Inter |
 
-PT Serif was designed for Cyrillic+Latin — ideal for Ukrainian documents.
+Source Serif 4 was designed for Cyrillic+Latin — ideal for Ukrainian documents.
 
 ### Font Size Hierarchy
 
@@ -62,7 +62,7 @@ PT Serif was designed for Cyrillic+Latin — ideal for Ukrainian documents.
 | Table header | 11 | Bold | White on Primary |
 | Table body | 11 | Regular | Text (#1E293B) |
 
-#### PDF Documents (sizes in px — CSS via Puppeteer)
+#### PDF Documents (sizes in px — CSS via Playwright)
 
 | Element | Size | Weight | Color |
 |---------|------|--------|-------|
@@ -135,7 +135,7 @@ Use multiples of 8px for all spacing: 8, 16, 24, 32, 48, 64px.
 | Contracts (DOCX) | 1" | 1" | 1" | 1" |
 | All PDFs | 28mm | 22mm | 18mm | 18mm |
 
-PDF top/bottom are larger to accommodate Puppeteer's page header and footer (`displayHeaderFooter: true`).
+PDF top/bottom are larger to accommodate Playwright's page header and footer (`displayHeaderFooter: true`).
 
 ### PDF Header/Footer (all PDFs)
 
@@ -161,7 +161,7 @@ Style: Inter 8px, muted (#64748B), 1px border line separator.
 The goal is a clean financial document, not a web dashboard.
 
 1. **5px primary top bar** — subtle anchor, not a heavy band
-2. **Header row**: company name + details left; "INVOICE" (26px, PT Serif) + invoice number + issued/due dates right. Separated from content by a 1px border line.
+2. **Header row**: company name + details left; "INVOICE" (26px, Source Serif 4) + invoice number + issued/due dates right. Separated from content by a 1px border line.
 3. **Bill To section**: plain text — field label (9px uppercase muted) above client name (14px bold) and address/email (12px muted). No colored background cards, no left-border accents.
 4. **Amount Due** shown right-aligned in the same Bill To row (18px bold primary color).
 5. **Items table**: navy header row (#1E3A5F) with white uppercase labels (10.5px). Alternating rows white / #F8FAFC. No inner vertical borders on rows.
@@ -175,7 +175,7 @@ The goal is a clean financial document, not a web dashboard.
 
 ### Act Layout (PDF) — Ukrainian Legal Format
 
-1. **Center header**: "ACT OF COMPLETED WORKS" (19px bold PT Serif, uppercase, 2px letter-spacing), act number below, date/city in muted Inter. The title is localized based on `data.language` (e.g., Ukrainian, German, etc.)
+1. **Center header**: "ACT OF COMPLETED WORKS" (19px bold Source Serif 4, uppercase, 2px letter-spacing), act number below, date/city in muted Inter. The title is localized based on `data.language` (e.g., Ukrainian, German, etc.)
 2. **2px solid bottom border** under header block
 3. **Intro paragraph** (12px, line-height 1.8): party names bolded inline
 4. **Services table**: primary header (#1E293B), numeric columns (Unit, Qty, Price, Total) with fixed widths for clean alignment, alternating rows. Column headers are localized.
@@ -188,22 +188,34 @@ The goal is a clean financial document, not a web dashboard.
 
 ### Contract Layout (PDF) — Legal Document
 
-1. **Centered title block**: document title in PT Serif Bold (19px, uppercase, 0.08em tracking), contract number + date in muted Inter below; separated by `2.5px solid primary`
-2. **Recital paragraph**: auto-generated from party names and roles, PT Serif 12.5px, justified
+1. **Centered title block**: document title in Source Serif 4 Bold (19px, uppercase, 0.08em tracking), contract number + date in muted Inter below; separated by `2.5px solid primary`
+2. **Recital paragraph**: auto-generated from party names and roles, Source Serif 4 12.5px, justified
 3. **Article bars**: full-width primary background with white uppercase Inter text (9.5px, 0.12em tracking) — professional dividers between clauses
 4. **Party info**: two-column, clean text hierarchy — role label (8.5px uppercase muted) → company name (13px bold) → address/reg/representative (10px muted Inter)
-5. **Clause paragraphs**: PT Serif 13px, line-height 1.45, justified with hyphenation; numbered sub-clauses use hanging indent (`padding-left: 2.2em; text-indent: -2.2em`)
+5. **Clause paragraphs**: Source Serif 4 13px, line-height 1.45, justified with hyphenation; numbered sub-clauses use hanging indent (`padding-left: 2.2em; text-indent: -2.2em`)
 6. **"IN WITNESS WHEREOF"** preamble (italic) before signatures
 7. **Two-column signature block**: party label (8.5px uppercase) → party name (bold) → By / Name / Title / Date lines with 0.75px border
 
+### Cover Pages (PDF — Full Page)
+
+1. Full-page cover with `page-break-after: always` (content starts on page 2)
+2. Top bar (5px primary color)
+3. Company logo (if available, max 160x56px)
+4. Type label (uppercase, accent color, 9px)
+5. Title: Source Serif 4 32px Bold, primary color
+6. Subtitle: Inter 16px, muted color
+7. Meta block: "Prepared by", "Prepared for", date in small muted text
+8. Bottom bar (3px primary color)
+
 ### Cover Pages (DOCX)
 
-1. Large spacer (3000 twips — pushes title down to visual center-upper area)
-2. Accent line (6px blue) above title
-3. Title in Georgia Bold, left-aligned, primary color
-4. Subtitle in body font, muted color
-5. Meta block: "Prepared by", "Prepared for", date in small muted text
-6. Page break
+1. Company logo (if `companyInfo.logoBase64` is available, rendered as ImageRun 160x56px)
+2. Large spacer (3000 twips if no logo, 600 twips if logo present — pushes title to visual center-upper area)
+3. Accent line (6px blue) above title
+4. Title in Georgia Bold, left-aligned, primary color
+5. Subtitle in body font, muted color
+6. Meta block: "Prepared by", "Prepared for", date in small muted text
+7. Page break
 
 ### Presentation Slides
 
@@ -222,7 +234,24 @@ When the user provides branding:
 4. **company name** → header and footer of every PDF page
 5. **font override** → use in `fontHeading` / `fontBody` template fields
 
-Default when no branding: Corporate Blue palette with Georgia (headings) + Arial (body) for DOCX; PT Serif + Inter for PDF.
+Default when no branding: Corporate Blue palette with Georgia (headings) + Arial (body) for DOCX; Source Serif 4 + Inter for PDF.
+
+## Unified Design System (HTML-First)
+
+Both PDF and DOCX outputs share the same design templates via `scripts/html_templates.js`. This module is the single source of truth for all document layouts:
+
+- **PDF**: HTML rendered directly by Playwright
+- **DOCX (pandoc engine)**: Same HTML converted to DOCX via pandoc with a reference template
+- **DOCX (docx-js engine)**: Independent implementation matching the same design language (Georgia/Arial instead of Source Serif 4/Inter)
+
+**Font mapping between formats:**
+
+| PDF (embedded) | DOCX (system) | Purpose |
+|---|---|---|
+| Source Serif 4 | Georgia | Headings, legal body text |
+| Inter | Arial | Body text, labels, UI elements |
+
+This ensures documents look consistent regardless of output format.
 
 ## Anti-Patterns
 

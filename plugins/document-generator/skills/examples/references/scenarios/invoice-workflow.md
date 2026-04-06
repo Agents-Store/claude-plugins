@@ -25,7 +25,7 @@ Agent confirms and collects:
 ## Step 3: SELECT
 
 Format: PDF
-Engine: puppeteer (HTML template for branded look)
+Engine: playwright (HTML template for branded look)
 Script: `generate_pdf.js`
 
 ## Step 4: BUILD JSON Input
@@ -33,7 +33,7 @@ Script: `generate_pdf.js`
 ```json
 {
   "type": "invoice",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "outputPath": "./invoice_inv-2026-042_2026-03-17.pdf",
   "template": {
     "styling": {

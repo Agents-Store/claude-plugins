@@ -54,7 +54,7 @@ Currency: $
 
 | Type | Format | Engine | Script |
 |------|--------|--------|--------|
-| act | PDF | puppeteer | `generate_pdf.js` |
+| act | PDF | playwright | `generate_pdf.js` |
 
 ---
 
@@ -69,7 +69,7 @@ Build `.doc_input.json`:
 ```json
 {
   "type": "act",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "outputPath": "/Users/user/Documents/act_act-003-2026_2026-03-31.pdf",
   "template": {
     "currencySymbol": "$",

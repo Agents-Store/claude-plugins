@@ -6,6 +6,9 @@
 *.docx
 *.pptx
 
+# Exception: pandoc reference template is part of plugin source
+!assets/reference.docx
+
 # NPM dependencies
 node_modules/
 

@@ -11,6 +11,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { requirePreferences, mergePreferences } = require("./utils");
 
 async function main() {
   try {
@@ -21,6 +22,12 @@ async function main() {
     const input = JSON.parse(raw);
     const { outputPath, data, template } = input;
 
+    // Check preferences (soft — does not block generation)
+    const prefsCheck = requirePreferences(input);
+
+    // Auto-merge user preferences (style, company info, logo) into input
+    mergePreferences(input);
+
     if (!outputPath) throw new Error("outputPath is required");
     if (!data) throw new Error("data is required");
 
@@ -28,8 +35,8 @@ async function main() {
     const pptx = new PptxGenJS();
 
     const styling = template?.styling || data.branding || {};
-    const primary = (styling.primaryColor || "#1E3A5F").replace("#", "");
-    const accent = (styling.accentColor || "#2563EB").replace("#", "");
+    const primary = (styling.primaryColor || "#0F172A").replace("#", "");
+    const accent = (styling.accentColor || "#6366F1").replace("#", "");
     const secondary = (styling.secondaryColor || "#64748B").replace("#", "");
     const bgColor = (styling.backgroundColor || "#FFFFFF").replace("#", "");
     const textColor = (styling.textColor || "#1E293B").replace("#", "");
@@ -79,7 +86,9 @@ async function main() {
     await pptx.writeFile({ fileName: outputPath });
 
     const stats = fs.statSync(outputPath);
-    console.log(JSON.stringify({ success: true, outputPath: path.resolve(outputPath), size: stats.size, slides: Math.max(slides.length, 1) }));
+    const result = { success: true, outputPath: path.resolve(outputPath), size: stats.size, slides: Math.max(slides.length, 1) };
+    if (!prefsCheck.exists) result.warning = prefsCheck.warning;
+    console.log(JSON.stringify(result));
   } catch (err) {
     console.log(JSON.stringify({ success: false, error: err.message }));
     process.exit(1);
@@ -139,10 +148,6 @@ function addAgendaSlide(ctx, slideData) {
   });
 
   const items = slideData.items || [];
-  const bulletItems = items.map((item, idx) => ({
-    text: `${String(idx + 1).padStart(2, "0")}`,
-    options: { fontSize: 28, fontFace: ctx.fontBody, color: ctx.accent, bold: true, breakLine: false },
-  }));
 
   // Numbered items with accent color numbers
   let yPos = 1.2;

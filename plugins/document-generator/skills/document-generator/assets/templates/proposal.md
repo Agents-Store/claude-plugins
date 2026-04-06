@@ -93,7 +93,7 @@ logoBase64: "<base64>"   # company logo
 ## JSON input structure (PDF)
 
 Same as above but:
-- `"engine": "puppeteer"` (or omit engine, defaults to puppeteer for PDF)
+- `"engine": "playwright"` (or omit engine, defaults to playwright for PDF)
 - `"outputPath": "./proposal_acme_2026-03-19.pdf"`
 
 ## Notes

@@ -1,6 +1,6 @@
 ---
 name: document-templates
-description: Document template structures and data collection checklists for each document type (proposal, invoice, report, presentation, contract, act). This skill should be used when determining what data to collect from the user, what fields are required or optional, or how to structure a specific document type.
+description: Document template structures and data collection checklists for each document type (proposal, invoice, estimate, report, presentation, contract, NDA, certificate of completion). This skill should be used when determining what data to collect from the user, what fields are required or optional, or how to structure a specific document type.
 ---
 
 # Document Templates
@@ -228,9 +228,7 @@ Each paragraph within `content` (separated by `\n\n`) gets auto-numbered as sub-
 
 ---
 
----
-
-## Act of Completed Works
+## Certificate of Completion (Act)
 
 **Structure:** Header (title, number, date, city) → Intro paragraph → Services table → Totals → Confirmation → Signature blocks
 
@@ -279,6 +277,99 @@ grandTotal = totalAmount + vatAmount
 
 ---
 
+---
+
+## NDA (Non-Disclosure Agreement)
+
+**Structure:** Header (title, NDA number, date, city) -> Recital (WHEREAS + NOW THEREFORE) -> Clauses -> Witness clause -> Signature blocks
+
+**Format:** PDF. Supports mutual (both parties bound) or unilateral (one-way) NDA.
+
+### Required Fields
+
+| Field | Description | Example |
+|-------|------------|---------|
+| date | Agreement date | "April 7, 2026" |
+| disclosingParty.name | First party name | "TechCo Solutions LLC" |
+| disclosingParty.representative | Signatory name | "Alex Morgan" |
+| receivingParty.name | Second party name | "Acme Corporation" |
+| receivingParty.representative | Signatory name | "Sarah Chen" |
+
+### Optional Fields
+
+| Field | Description | Default |
+|-------|------------|---------|
+| title | Document title | "Non-Disclosure Agreement" |
+| number | NDA reference number | — |
+| city | City of execution | — |
+| ndaType | "mutual" or "unilateral" | "mutual" |
+| jurisdiction | Governing law jurisdiction | "the State of Delaware" |
+| termYears | NDA effective period | "two (2)" |
+| survivalYears | Post-termination obligation period | "three (3)" |
+| disclosingParty.address | Address | — |
+| disclosingParty.title | Legal title | — |
+| disclosingParty.reg | Registration number | — |
+| receivingParty.address | Address | — |
+| receivingParty.title | Legal title | — |
+| receivingParty.reg | Registration number | — |
+
+**Note:** All 7 standard clauses (Confidential Info Definition, Obligations, Exclusions, Term, Return of Materials, Remedies, Governing Law) have professional defaults built in. Only override if the user requests specific wording.
+
+---
+
+## Estimate / Quotation
+
+**Structure:** Header -> Client block -> Summary stats -> Executive summary -> Scope (inclusions/exclusions/assumptions) -> Team -> Phase-based pricing -> Optional items -> Totals -> Timeline (Gantt) -> Payment schedule -> Validity -> Terms -> Acceptance/Signatures
+
+**Format:** PDF. Always use detailed phase-based format.
+
+### Required Fields
+
+| Field | Description | Example |
+|-------|------------|---------|
+| estimateNumber | Reference number | "EST-2026-019" |
+| date | Estimate date | "April 7, 2026" |
+| companyInfo.name | Your company | "Stackmakers Studio" |
+| recipient.name | Client company | "Acme Corporation" |
+| executiveSummary | 2-4 sentence overview | "This estimate covers..." |
+| scope.description | What the project is | "End-to-end redesign..." |
+| scope.inclusions[] | What IS included | ["Frontend dev", "Testing", ...] |
+| scope.exclusions[] | What is NOT included | ["Hosting", "Content", ...] |
+| scope.assumptions[] | Conditions/prerequisites | ["Client provides API docs by Week 1", ...] |
+| team[] | Team members | See below |
+| team[].role | Role name | "Senior Developer" |
+| team[].rate | Hourly rate | 175 |
+| phases[] | Project phases | See below |
+| phases[].name | Phase name | "Phase 1: Discovery" |
+| phases[].tasks[] | Tasks in phase | See below |
+| phases[].tasks[].description | Task description | "Requirements gathering" |
+| phases[].tasks[].role | Who does it | "Project Manager" |
+| phases[].tasks[].hours | Estimated hours | 16 |
+| phases[].tasks[].rate | Hourly rate | 120 |
+| timeline | Project timeline | See below |
+| timeline.totalDuration | Total duration | "14 weeks" |
+| timeline.phases[] | Timeline phases | Start/end weeks + milestones |
+
+### Optional Fields
+
+| Field | Description | Default |
+|-------|------------|---------|
+| validDays | Validity period | 30 |
+| recipient.contactPerson | Contact person name | — |
+| team[].allocation | % allocation | — |
+| phases[].color | Phase accent color | Auto-assigned |
+| optionalItems[] | Add-on items (separate from total) | — |
+| contingency.percent | Risk buffer % | — |
+| contingency.label | Buffer description | "Risk contingency" |
+| paymentSchedule[] | Payment milestones with % | — |
+| terms[] | Terms & conditions | — |
+| acceptance.enabled | Show signature block | true |
+| discount | Discount amount | 0 |
+| tax | Tax amount | 0 |
+| notes | Additional notes | — |
+
+---
+
 ## Template File Locations
 
 All templates are in `<plugin_dir>/templates/`:
@@ -287,9 +378,11 @@ All templates are in `<plugin_dir>/templates/`:
 |------|--------------|
 | `proposal_template.json` | Proposals |
 | `invoice_template.json` | Invoices |
+| `estimate_template.json` | Estimates / Quotations |
 | `report_template.json` | Reports |
 | `presentation_template.json` | Presentations |
 | `contract_template.json` | Contracts |
-| `act_template.json` | Acts of completed works |
+| `nda_template.json` | Non-Disclosure Agreements |
+| `act_template.json` | Certificates of Completion (Acts) |
 
 Read the template file to get default structure and styling, then merge with user-provided data.

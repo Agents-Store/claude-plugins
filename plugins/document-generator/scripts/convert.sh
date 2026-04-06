@@ -6,10 +6,17 @@
 # Usage: ./convert.sh <input-file> <output-file>
 # Supported: MD->PDF, MD->DOCX, MD->HTML, DOCX->PDF, DOCX->MD, HTML->PDF, HTML->DOCX
 #
+# PDF engine fallback chain (best to least):
+#   1. weasyprint  — best CSS support, ideal for styled HTML->PDF
+#   2. wkhtmltopdf — good HTML->PDF, widely available
+#   3. pdflatex    — LaTeX-based, good for academic docs
+#   4. (none)      — suggests using docx_to_pdf.js (puppeteer) as alternative
+#
 # Output: JSON to stdout { success, outputPath } or { success: false, error }
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INPUT="${1:-}"
 OUTPUT="${2:-}"
 
@@ -25,7 +32,15 @@ if [ ! -f "$INPUT" ]; then
 fi
 
 if ! command -v pandoc &> /dev/null; then
-  echo '{"success": false, "error": "pandoc is not installed. Install with: brew install pandoc (macOS) or apt install pandoc (Linux)"}'
+  # Detect platform for install instructions
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    INSTALL_CMD="brew install pandoc"
+  elif [[ "$OSTYPE" == "linux"* ]]; then
+    INSTALL_CMD="sudo apt install -y pandoc"
+  else
+    INSTALL_CMD="See https://pandoc.org/installing.html"
+  fi
+  echo "{\"success\": false, \"error\": \"pandoc is not installed. Install with: $INSTALL_CMD\"}"
   exit 1
 fi
 
@@ -33,28 +48,51 @@ fi
 OUTPUT_DIR=$(dirname "$OUTPUT")
 mkdir -p "$OUTPUT_DIR"
 
-# Determine output format from extension
+# Determine output and input formats from extensions
 OUTPUT_EXT="${OUTPUT##*.}"
 OUTPUT_EXT=$(echo "$OUTPUT_EXT" | tr '[:upper:]' '[:lower:]')
+INPUT_EXT="${INPUT##*.}"
+INPUT_EXT=$(echo "$INPUT_EXT" | tr '[:upper:]' '[:lower:]')
 
 PANDOC_ARGS=""
 
+# Check for reference doc (for DOCX output)
+REFERENCE_DOC="$SCRIPT_DIR/../assets/reference.docx"
+
 case "$OUTPUT_EXT" in
   pdf)
-    # Check for PDF engine
-    if command -v wkhtmltopdf &> /dev/null; then
-      PANDOC_ARGS="--pdf-engine=wkhtmltopdf"
-    elif command -v weasyprint &> /dev/null; then
+    # PDF engine fallback chain: weasyprint > wkhtmltopdf > pdflatex
+    if command -v weasyprint &> /dev/null; then
       PANDOC_ARGS="--pdf-engine=weasyprint"
+    elif command -v wkhtmltopdf &> /dev/null; then
+      PANDOC_ARGS="--pdf-engine=wkhtmltopdf"
     elif command -v pdflatex &> /dev/null; then
       PANDOC_ARGS=""
     else
-      echo '{"success": false, "error": "No PDF engine found. Install one of: wkhtmltopdf, weasyprint, or pdflatex. Example: brew install wkhtmltopdf"}'
+      # No pandoc PDF engine — suggest alternatives
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        INSTALL_CMDS="pip3 install weasyprint (recommended) or brew install wkhtmltopdf"
+      elif [[ "$OSTYPE" == "linux"* ]]; then
+        INSTALL_CMDS="pip3 install weasyprint (recommended) or sudo apt install -y wkhtmltopdf"
+      else
+        INSTALL_CMDS="pip3 install weasyprint (recommended)"
+      fi
+
+      # Check if puppeteer-based converter is available as fallback
+      if [ -f "$SCRIPT_DIR/docx_to_pdf.js" ] && [ "$INPUT_EXT" = "docx" ]; then
+        echo "{\"success\": false, \"error\": \"No pandoc PDF engine found. Falling back to puppeteer. Run: node $SCRIPT_DIR/docx_to_pdf.js \\\"$INPUT\\\" \\\"$OUTPUT\\\"\", \"fallback\": \"puppeteer\", \"fallbackCmd\": \"node $SCRIPT_DIR/docx_to_pdf.js \\\"$INPUT\\\" \\\"$OUTPUT\\\"\"}"
+        exit 1
+      fi
+
+      echo "{\"success\": false, \"error\": \"No PDF engine found for pandoc. Install one: $INSTALL_CMDS\"}"
       exit 1
     fi
     ;;
   docx)
-    PANDOC_ARGS=""
+    # Use reference doc for consistent styling if available
+    if [ -f "$REFERENCE_DOC" ]; then
+      PANDOC_ARGS="--reference-doc=$REFERENCE_DOC"
+    fi
     ;;
   html)
     PANDOC_ARGS="--standalone"
