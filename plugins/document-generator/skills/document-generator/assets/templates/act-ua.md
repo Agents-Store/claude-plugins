@@ -1,114 +1,114 @@
-# Акт виконаних робіт — Шаблон (PDF)
+# Act of Completed Works Template (PDF)
 
-Українська форма акта виконаних робіт (послуг). Включає таблицю послуг, суму, підтвердження відсутності претензій та підписи обох сторін.
+A formal act of completed works (services). Includes a services table, totals, confirmation of no claims, and signature blocks for both parties. Commonly used in Ukrainian business but adaptable to any locale.
 
-## Обов'язкові поля
+## Required Fields
 
 ```
-actNumber: "АКТ-001"
-date: "19 березня 2026 р."
-city: "Київ"
+actNumber: "ACT-001"
+date: "March 19, 2026"
+city: "Kyiv"
 
-contractor:               # Виконавець
-  name: "ФОП Іваненко І.І."
-  representative: "Іваненко І.І."
-  title: "Фізична особа-підприємець"
-  reg: "ІПН: 1234567890"
-  address: "м. Київ, вул. Хрещатик, 1"
+contractor:               # Service provider
+  name: "FOP Ivanenko I.I."
+  representative: "Ivanenko I.I."
+  title: "Individual Entrepreneur"
+  reg: "Tax ID: 1234567890"
+  address: "1 Khreshchatyk St, Kyiv"
 
-customer:                 # Замовник
-  name: "ТОВ «Компанія»"
-  representative: "Петренко П.П."
-  title: "Директор"
-  reg: "ЄДРПОУ: 98765432"
-  address: "м. Київ, вул. Велика Васильківська, 50"
+customer:                 # Client
+  name: "Client Company LLC"
+  representative: "Petrenko P.P."
+  title: "Director"
+  reg: "Reg. No.: 98765432"
+  address: "50 Main St, Kyiv"
 
 services:
-  - description: "Назва послуги або роботи"
-    unit: "год"           # год / шт / послуга / місяць
+  - description: "Service or work description"
+    unit: "hrs"           # hrs / pcs / service / month
     quantity: 40
     unitPrice: 1500
     total: 60000
 ```
 
-## Необов'язкові поля
+## Optional Fields
 
 ```
-contractRef: "Договору №001 від 01.01.2026"    # посилання на договір
-vatRate: 0                                       # ставка ПДВ у %
-currencySymbol: "₴"                              # символ валюти
-totalAmount: 60000                               # якщо не вказано — обраховується автоматично
-notes: "Додаткові примітки або умови."
+contractRef: "Contract No. 001 dated 01.01.2026"    # reference to contract
+vatRate: 0                                            # VAT rate in %
+currencySymbol: "$"                                   # currency symbol
+totalAmount: 60000                                    # auto-calculated if omitted
+notes: "Additional notes or conditions."
 ```
 
-## Структура JSON для генерації
+## JSON Input Structure
 
 ```json
 {
   "type": "act",
   "engine": "puppeteer",
-  "outputPath": "./act_akt-001_2026-03-19.pdf",
+  "outputPath": "./act_act-001_2026-03-19.pdf",
   "template": {
-    "currencySymbol": "₴",
+    "currencySymbol": "$",
     "styling": {
       "primaryColor": "#1E293B",
       "accentColor": "#1E3A5F"
     }
   },
   "data": {
-    "actNumber": "АКТ-001/2026",
-    "date": "19 березня 2026 р.",
-    "city": "Київ",
-    "contractRef": "Договору №001/2026 від 01 березня 2026 р.",
-    "currencySymbol": "₴",
+    "actNumber": "ACT-001/2026",
+    "date": "March 19, 2026",
+    "city": "Kyiv",
+    "contractRef": "Contract No. 001/2026 dated March 1, 2026",
+    "currencySymbol": "$",
     "vatRate": 0,
     "contractor": {
-      "name": "ФОП Іваненко Іван Іванович",
-      "representative": "Іваненко І.І.",
-      "title": "Фізична особа-підприємець",
-      "reg": "ІПН: 1234567890",
-      "address": "вул. Велика Васильківська, 55, м. Київ, 03150"
+      "name": "FOP Ivanenko Ivan Ivanovych",
+      "representative": "Ivanenko I.I.",
+      "title": "Individual Entrepreneur",
+      "reg": "Tax ID: 1234567890",
+      "address": "55 Velyka Vasylkivska St, Kyiv, 03150"
     },
     "customer": {
-      "name": "ТОВ «Компанія Замовника»",
-      "representative": "Петренко П.П.",
-      "title": "Директор",
-      "reg": "ЄДРПОУ: 98765432",
-      "address": "пр. Перемоги, 26, м. Київ, 03055"
+      "name": "Client Company LLC",
+      "representative": "Petrenko P.P.",
+      "title": "Director",
+      "reg": "Reg. No.: 98765432",
+      "address": "26 Peremohy Ave, Kyiv, 03055"
     },
     "services": [
       {
-        "description": "Розробка веб-додатку (frontend)",
-        "unit": "год",
+        "description": "Frontend web application development",
+        "unit": "hrs",
         "quantity": 40,
         "unitPrice": 1500,
         "total": 60000
       },
       {
-        "description": "Технічна підтримка та тестування",
-        "unit": "год",
+        "description": "Technical support and testing",
+        "unit": "hrs",
         "quantity": 10,
         "unitPrice": 1000,
         "total": 10000
       }
     ],
     "totalAmount": 70000,
-    "notes": "Роботи виконано у повному обсязі та у встановлені строки."
+    "notes": "All work completed in full and within the agreed timeline."
   }
 }
 ```
 
-## Типові одиниці виміру
+## Common Units of Measure
 
-| Скорочення | Значення |
-|-----------|----------|
-| год | Година |
-| шт | Штука |
-| послуга | Послуга (разова) |
-| міс | Місяць |
-| кБ | Кілобайт (для файлів) |
+| Abbreviation | Meaning |
+|-------------|---------|
+| hrs | Hours |
+| pcs | Pieces / Units |
+| service | Service (one-time) |
+| month | Month |
+| project | Project (lump sum) |
 
-## Примітки щодо ПДВ
+## VAT Notes
 
-- ФОП на єдиному податку (без ПДВ): `"vatRate": 0`
-- Платник ПДВ: `"vatRate": 20` — сума ПДВ буде обрахована і показана окремим рядком
+- Individual entrepreneur (simplified tax, no VAT): `"vatRate": 0`
+- VAT payer: `"vatRate": 20` — VAT amount will be calculated and shown as a separate line

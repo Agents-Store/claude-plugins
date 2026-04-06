@@ -49,35 +49,35 @@ Same as `invoice-standard.md`, plus one of:
   },
   "data": {
     "invoiceNumber": "INV-001",
-    "date": "19 березня 2026",
-    "dueDate": "2 квітня 2026",
+    "date": "March 19, 2026",
+    "dueDate": "April 2, 2026",
     "companyInfo": {
-      "name": "ФОП Іваненко І.І.",
-      "address": "м. Київ, вул. Хрещатик, 1",
+      "name": "Acme Services Ltd.",
+      "address": "123 Business St, Kyiv, Ukraine",
       "phone": "+380 67 000 0000",
-      "email": "info@company.ua",
+      "email": "info@acme.com",
       "logoBase64": "<base64 string here>"
     },
     "recipientInfo": {
-      "name": "ТОВ «Замовник»",
-      "address": "м. Київ, вул. Велика Васильківська, 50",
-      "email": "pay@zamovnyk.ua"
+      "name": "Global Client Corp.",
+      "address": "456 Client Ave, London, UK",
+      "email": "accounts@globalclient.com"
     },
     "items": [
       {
-        "description": "Розробка сайту",
+        "description": "Website development",
         "quantity": 1,
-        "unitPrice": 30000,
-        "total": 30000
+        "unitPrice": 5000,
+        "total": 5000
       }
     ],
-    "currencySymbol": "₴",
+    "currencySymbol": "$",
     "paymentDetails": {
-      "bank": "ПриватБанк",
-      "accountName": "ФОП Іваненко І.І.",
+      "bank": "First National Bank",
+      "accountName": "Acme Services Ltd.",
       "iban": "UA21 3006 5000 0000 0026 2001 0000 1"
     },
-    "notes": "Оплата протягом 5 робочих днів."
+    "notes": "Payment due within 5 business days."
   }
 }
 ```

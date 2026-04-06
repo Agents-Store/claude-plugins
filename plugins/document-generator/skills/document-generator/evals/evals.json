@@ -3,28 +3,28 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Сделай инвойс для клиента Acme Corp. Номер INV-2026-042, моя компания DevStudio, адрес 10 Хрещатик, Київ. Два айтема: Frontend development, 80 часов по $50, и UX Design, 20 часов по $75. Оплата до 1 мая 2026. Сохрани в текущую папку.",
-      "expected_output": "PDF invoice with correct calculations ($5,500 total), two line items, Cyrillic address, due date May 1 2026",
+      "prompt": "Create an invoice for client Acme Corp. Number INV-2026-042, my company is DevStudio, address 10 Khreshchatyk St, Kyiv. Two items: Frontend development, 80 hours at $50, and UX Design, 20 hours at $75. Due by May 1, 2026. Save to the current folder.",
+      "expected_output": "PDF invoice with correct calculations ($5,500 total), two line items, due date May 1 2026",
       "files": [],
       "expectations": [
         "A PDF file is generated in the outputs directory",
         "Invoice total equals $5,500 (80×50 + 20×75)",
         "Contains two line items: Frontend development and UX Design",
-        "Shows DevStudio with Cyrillic address 10 Хрещатик, Київ",
+        "Shows DevStudio with address 10 Khreshchatyk St, Kyiv",
         "Shows due date 2026-05-01"
       ]
     },
     {
       "id": 2,
-      "prompt": "Зроби акт виконаних робіт. Виконавець ФОП Скорий І.В., замовник ТОВ «Діджитал Сервіс», представник Коваленко О.М. Послуги: розробка веб-сайту 1 шт 45000 грн, технічна підтримка 10 год по 1200 грн. Дата — 3 квітня 2026 р., місто Київ.",
-      "expected_output": "PDF act in Ukrainian legal format with services table totaling 57,000 UAH, both parties, signature blocks",
+      "prompt": "Generate an act of completed works. Contractor: FOP Skoryi I.V., customer: Digital Service LLC, representative Kovalenko O.M. Services: website development 1 unit at $3,000, technical support 10 hours at $80/hr. Date: April 3, 2026, city: Kyiv.",
+      "expected_output": "PDF act with services table totaling $3,800, both parties, signature blocks",
       "files": [],
       "expectations": [
         "A PDF file is generated",
-        "Total equals 57,000 UAH (45000 + 12000)",
-        "Contains both parties: ФОП Скорий І.В. and ТОВ «Діджитал Сервіс»",
-        "Services table with two rows in Ukrainian",
-        "Ukrainian legal format with date 3 квітня 2026 р. and city Київ"
+        "Total equals $3,800 ($3,000 + $800)",
+        "Contains both parties: FOP Skoryi I.V. and Digital Service LLC",
+        "Services table with two rows",
+        "Includes date April 3, 2026 and city Kyiv"
       ]
     },
     {
@@ -42,7 +42,7 @@
     },
     {
       "id": 4,
-      "prompt": "Сгенерируй отчёт Q1 2026 Performance Analysis для компании NovaTech. Автор — Data Analytics Team. Findings: revenue grew 23% to $4.2M, customer churn dropped to 3.1%, new product line contributed 18% of revenue. Recommendations: expand into EU market, increase R&D budget by 15%.",
+      "prompt": "Generate a Q1 2026 Performance Analysis report for NovaTech. Author: Data Analytics Team. Findings: revenue grew 23% to $4.2M, customer churn dropped to 3.1%, new product line contributed 18% of revenue. Recommendations: expand into EU market, increase R&D budget by 15%.",
       "expected_output": "DOCX report with cover, findings section with metrics, conclusions, and recommendations",
       "files": [],
       "expectations": [

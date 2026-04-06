@@ -1,78 +1,78 @@
-# Шаблон договору — Українська мова (PDF)
+# Contract Template — Localized (PDF)
 
-Корпоративний договір українською мовою. Використовується для договорів між українськими юридичними особами або ФОП.
+A corporate service contract template. Used when generating contracts between business entities. Supports any language for content — the template structure is universal.
 
-## Обов'язкові поля
+## Required Fields
 
 ```
-title: "ДОГОВІР ПРО НАДАННЯ ПОСЛУГ"
+title: "SERVICE AGREEMENT"
 number: "001"
-date: "19 березня 2026 р."
-city: "Київ"
-governingLaw: "Україна"
+date: "March 19, 2026"
+city: "Kyiv"
+governingLaw: "Ukraine"
 
 companyInfo:
-  name: "Ваша Компанія"
-  address: "вул. Хрещатик, 1, м. Київ, 01001"
-  reg: "ЄДРПОУ: 12345678"
-  email: "info@company.ua"
-  # Необов'язково: logoBase64 (base64 PNG) або logoUrl
+  name: "Your Company"
+  address: "1 Khreshchatyk St, Kyiv, 01001"
+  reg: "Reg. No.: 12345678"
+  email: "info@company.com"
+  # Optional: logoBase64 (base64 PNG) or logoUrl
 
 party1:
-  name: "ФОП Іваненко Іван Іванович"
-  address: "вул. Велика Васильківська, 55, м. Київ, 03150"
-  reg: "ІПН: 1234567890"
-  representative: "Іваненко І.І."
-  title: "Фізична особа-підприємець"
+  name: "FOP Ivanenko Ivan Ivanovych"
+  address: "55 Velyka Vasylkivska St, Kyiv, 03150"
+  reg: "Tax ID: 1234567890"
+  representative: "Ivanenko I.I."
+  title: "Individual Entrepreneur"
 
 party2:
-  name: "ТОВ «Замовник»"
-  address: "пр. Перемоги, 26, м. Київ, 03055"
-  reg: "ЄДРПОУ: 98765432"
-  representative: "Петренко П.П."
-  title: "Директор"
+  name: "Client Company LLC"
+  address: "26 Peremohy Ave, Kyiv, 03055"
+  reg: "Reg. No.: 98765432"
+  representative: "Petrenko P.P."
+  title: "Director"
 
 clauses:
   - number: "1"
-    title: "Предмет договору"
+    title: "Subject of Agreement"
     paragraphs:
-      - "Виконавець зобов'язується надати Замовнику послуги з розробки програмного забезпечення відповідно до технічного завдання (Додаток №1 до цього Договору)."
-      - "Замовник зобов'язується прийняти та оплатити надані послуги у порядку та строки, передбачені цим Договором."
+      - "The Contractor agrees to provide the Customer with software development services in accordance with the technical specification (Annex 1 to this Agreement)."
+      - "The Customer agrees to accept and pay for the services rendered in the manner and within the timeframe set forth in this Agreement."
   - number: "2"
-    title: "Вартість та порядок оплати"
+    title: "Price and Payment Terms"
     paragraphs:
-      - "Загальна вартість послуг за цим Договором становить 70 000 (сімдесят тисяч) гривень, у тому числі ПДВ — 0 грн."
-      - "Оплата здійснюється протягом 5 (п'яти) банківських днів з моменту підписання Акту виконаних робіт."
+      - "The total fee for services under this Agreement is $70,000 (seventy thousand US dollars), VAT inclusive where applicable."
+      - "Payment shall be made within 5 (five) business days of signing the Act of Completed Works."
   - number: "3"
-    title: "Строки надання послуг"
+    title: "Service Duration"
     paragraphs:
-      - "Послуги надаються протягом 30 (тридцяти) календарних днів з моменту підписання цього Договору."
+      - "Services shall be provided within 30 (thirty) calendar days from the date of signing this Agreement."
   - number: "4"
-    title: "Конфіденційність"
+    title: "Confidentiality"
     paragraphs:
-      - "Сторони зобов'язуються зберігати конфіденційність будь-якої інформації, отриманої в ході виконання цього Договору."
+      - "Both parties agree to maintain the confidentiality of any information received in the course of performing this Agreement."
   - number: "5"
-    title: "Відповідальність сторін"
+    title: "Liability"
     paragraphs:
-      - "У разі прострочення оплати Замовник сплачує пеню у розмірі 0,1% від суми заборгованості за кожен день прострочення."
+      - "In case of late payment, the Customer shall pay a penalty of 0.1% of the outstanding amount for each day of delay."
   - number: "6"
-    title: "Вирішення спорів"
+    title: "Dispute Resolution"
     paragraphs:
-      - "Всі спори вирішуються шляхом переговорів, а у разі недосягнення згоди — у судовому порядку відповідно до законодавства України."
+      - "All disputes shall be resolved through negotiation. If no agreement is reached, disputes shall be submitted to the competent court in accordance with the governing law."
   - number: "7"
-    title: "Інші умови"
+    title: "General Provisions"
     paragraphs:
-      - "Цей Договір набирає чинності з моменту підписання обома Сторонами і діє до повного виконання Сторонами своїх зобов'язань."
-      - "Цей Договір складено у двох примірниках, що мають однакову юридичну силу."
+      - "This Agreement becomes effective upon signing by both Parties and remains in force until all obligations are fully performed."
+      - "This Agreement is executed in two counterparts of equal legal force."
 ```
 
-## Структура JSON для генерації
+## JSON Input Structure
 
 ```json
 {
   "type": "contract",
   "engine": "puppeteer",
-  "outputPath": "./contract_dohovir_2026-03-19.pdf",
+  "outputPath": "./contract_service_agreement_2026-03-19.pdf",
   "template": {
     "styling": {
       "primaryColor": "#1E293B",
@@ -80,38 +80,38 @@ clauses:
     }
   },
   "data": {
-    "title": "ДОГОВІР ПРО НАДАННЯ ПОСЛУГ",
+    "title": "SERVICE AGREEMENT",
     "number": "001/2026",
-    "date": "19 березня 2026 р.",
-    "city": "Київ",
-    "governingLaw": "Україна",
+    "date": "March 19, 2026",
+    "city": "Kyiv",
+    "governingLaw": "Ukraine",
     "companyInfo": {
-      "name": "ФОП Іваненко Іван Іванович",
-      "address": "вул. Велика Васильківська, 55, м. Київ",
-      "reg": "ІПН: 1234567890",
-      "email": "ivan@example.ua"
+      "name": "FOP Ivanenko Ivan Ivanovych",
+      "address": "55 Velyka Vasylkivska St, Kyiv",
+      "reg": "Tax ID: 1234567890",
+      "email": "ivan@example.com"
     },
     "party1": {
-      "name": "ФОП Іваненко Іван Іванович",
-      "address": "вул. Велика Васильківська, 55, м. Київ, 03150",
-      "reg": "ІПН: 1234567890",
-      "representative": "Іваненко І.І.",
-      "title": "Фізична особа-підприємець"
+      "name": "FOP Ivanenko Ivan Ivanovych",
+      "address": "55 Velyka Vasylkivska St, Kyiv, 03150",
+      "reg": "Tax ID: 1234567890",
+      "representative": "Ivanenko I.I.",
+      "title": "Individual Entrepreneur"
     },
     "party2": {
-      "name": "ТОВ «Замовник»",
-      "address": "пр. Перемоги, 26, м. Київ, 03055",
-      "reg": "ЄДРПОУ: 98765432",
-      "representative": "Петренко П.П.",
-      "title": "Директор"
+      "name": "Client Company LLC",
+      "address": "26 Peremohy Ave, Kyiv, 03055",
+      "reg": "Reg. No.: 98765432",
+      "representative": "Petrenko P.P.",
+      "title": "Director"
     },
     "clauses": []
   }
 }
 ```
 
-## Примітки
+## Notes
 
-- Логотип: додайте `"logoBase64": "<base64 рядок>"` всередині `companyInfo`
-- ФОП на єдиному податку: в пункті про ПДВ зазначайте "без ПДВ"
-- Для НДА: додайте пункти про визначення конфіденційної інформації, зобов'язання сторін, строк дії НДА
+- Logo: add `"logoBase64": "<base64 string>"` inside `companyInfo`
+- For NDA: add clauses covering Confidential Information definition, Obligations, Exclusions, Term, Remedies
+- For localized content: simply write clause titles and paragraphs in the target language — the rendering engine handles any Unicode text

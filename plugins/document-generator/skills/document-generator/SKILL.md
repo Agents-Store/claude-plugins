@@ -1,6 +1,6 @@
 ---
 name: document-generator
-description: Document generation process -- format selection, data collection, script invocation, and delivery. This skill should be used when generating any document (proposal, invoice, report, presentation, contract, act/акт), deciding which format or engine to use, or running generation scripts.
+description: Document generation process -- format selection, data collection, script invocation, and delivery. This skill should be used when generating any document (proposal, invoice, report, presentation, contract, act), deciding which format or engine to use, or running generation scripts.
 ---
 
 # Document Generator Process
@@ -20,14 +20,26 @@ Determine the document type from the user's request:
 | report, analysis, findings, research | **report** | DOCX |
 | presentation, slides, deck, pitch deck | **presentation** | PPTX |
 | contract, agreement, NDA, terms | **contract** | DOCX |
-| act, акт, виконаних робіт | **act** | PDF |
+| act, act of completed works, works acceptance | **act** | PDF |
 | convert, transform, export | **conversion** | varies |
+
+### Step 1.5: CHECK USER PREFERENCES
+
+Before gathering data, check if user preferences exist:
+```bash
+cat ~/.document-generator/preferences.json 2>/dev/null
+```
+
+- **File missing** → run the onboarding interview (see **user-preferences** skill)
+- **File exists** → load style preset, default company, language, and currency to pre-fill fields
 
 ### Step 2: GATHER
 
 Collect required data from the user. Each document type has specific required and optional fields.
 
 Refer to the **document-templates** skill for complete field checklists per document type. It defines exactly which fields are required, which are optional, and the expected format for each.
+
+If user preferences are loaded, pre-fill company info, currency, and language from the stored profile. Only ask for fields that aren't already known.
 
 ### Step 3: SELECT FORMAT & ENGINE
 
@@ -43,8 +55,8 @@ Refer to the **document-templates** skill for complete field checklists per docu
 | Presentation (PDF export) | PDF | pandoc | `convert.sh` (PPTX→PDF, as follow-up) |
 | Contract | DOCX | docx-js | `generate_docx.js` |
 | Contract (final) | PDF | puppeteer | `generate_pdf.js` |
-| Act of works (Акт) | PDF | puppeteer | `generate_pdf.js` |
-| Act of works (Акт) | DOCX | docx-js | `generate_docx.js` |
+| Act of works | PDF | puppeteer | `generate_pdf.js` |
+| Act of works | DOCX | docx-js | `generate_docx.js` |
 
 ### Step 4: BUILD JSON Input
 

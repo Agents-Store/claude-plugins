@@ -1,1 +1,22 @@
+# Temporary input files created during document generation
+.doc_input.json
+
+# Generated documents (user output — not part of plugin source)
+*.pdf
+*.docx
+*.pptx
+
+# NPM dependencies
 node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# User preferences and company data are stored in ~/.document-generator/
+# (outside the repo) and never committed. This is intentional — see
+# skills/user-preferences/SKILL.md for the storage architecture.
+#
+# Storage layout (all in HOME, not in repo):
+#   ~/.document-generator/preferences.json   — style, language, defaults
+#   ~/.document-generator/logos/              — company logos (png + base64)

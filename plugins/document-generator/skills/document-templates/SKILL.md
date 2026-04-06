@@ -1,6 +1,6 @@
 ---
 name: document-templates
-description: Document template structures and data collection checklists for each document type (proposal, invoice, report, presentation, contract, act/акт). This skill should be used when determining what data to collect from the user, what fields are required or optional, or how to structure a specific document type.
+description: Document template structures and data collection checklists for each document type (proposal, invoice, report, presentation, contract, act). This skill should be used when determining what data to collect from the user, what fields are required or optional, or how to structure a specific document type.
 ---
 
 # Document Templates
@@ -230,42 +230,42 @@ Each paragraph within `content` (separated by `\n\n`) gets auto-numbered as sub-
 
 ---
 
-## Act of Completed Works (Акт виконаних робіт)
+## Act of Completed Works
 
 **Structure:** Header (title, number, date, city) → Intro paragraph → Services table → Totals → Confirmation → Signature blocks
 
-**Format:** PDF (default). Ukrainian legal format; data values (company names, service descriptions) can be in any language.
+**Format:** PDF (default). Supports any language for all data values (company names, service descriptions, labels).
 
 ### Required Fields
 
 | Field | Description | Example |
 |-------|------------|---------|
-| contractor.name | Contractor (виконавець) | "ФОП Іваненко І.І." |
-| contractor.representative | Signatory name | "Іваненко І.І." |
-| customer.name | Customer (замовник) | "ТОВ «Компанія»" |
-| customer.representative | Signatory name | "Петренко П.П." |
+| contractor.name | Contractor (service provider) | "Acme Consulting LLC" |
+| contractor.representative | Signatory name | "John Smith" |
+| customer.name | Customer (client) | "Global Corp Inc." |
+| customer.representative | Signatory name | "Jane Doe" |
 | services[] | Array of service rows | See below |
-| services[].description | Service/work description | "Web development" |
+| services[].description | Service or work description | "Web development" |
 | services[].quantity | Quantity | 40 |
 | services[].unitPrice | Price per unit | 1500 |
-| date | Document date | "19 березня 2026 р." |
+| date | Document date | "March 19, 2026" |
 
 ### Optional Fields
 
 | Field | Description |
 |-------|------------|
-| actNumber | Act reference number (e.g., "АКТ-001") |
-| city | City name (e.g., "Київ") |
-| contractRef | Reference to contract (e.g., "Договору №001 від 01.01.2026") |
-| services[].unit | Unit of measure (год/шт/послуга) |
+| actNumber | Act reference number (e.g., "ACT-001") |
+| city | City name (e.g., "Kyiv") |
+| contractRef | Reference to contract (e.g., "Contract No. 001 dated 01.01.2026") |
+| services[].unit | Unit of measure (hrs/pcs/service) |
 | services[].total | Row total (auto-calculated if omitted: qty × unitPrice) |
-| vatRate | VAT rate in % (0 if not VAT payer) |
+| vatRate | VAT rate in percent (0 if not VAT payer) |
 | totalAmount | Document total (auto-calculated if omitted) |
-| currencySymbol | Currency symbol (default: ₴) |
-| contractor.title | Legal role (e.g., "ФОП", "Директор") |
-| contractor.reg | Registration number (ЄДРПОУ/ІПН) |
-| customer.title | Legal role |
-| customer.reg | Registration number |
+| currencySymbol | Currency symbol (default: $) |
+| contractor.title | Legal role (e.g., "Director", "CEO") |
+| contractor.reg | Registration number (company ID / tax ID) |
+| customer.title | Legal role (e.g., "Director", "CEO") |
+| customer.reg | Registration number (company ID / tax ID) |
 | notes | Additional notes |
 
 ### Calculation

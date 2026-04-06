@@ -1,17 +1,17 @@
 ---
-description: Generate an Act of Completed Works / Акт виконаних робіт (PDF)
+description: Generate an Act of Completed Works (PDF)
 allowed-tools: ["Bash", "Read", "Write", "Glob"]
 argument-hint: <title> [--format <pdf|docx>]
 ---
 
 # Generate Act of Completed Works
 
-Generate a Ukrainian-format Act of Completed Works (Акт виконаних робіт) with a services table, totals, and two-party signature blocks. Data values (company names, service descriptions) can be in any language.
+Generate a professional Act of Completed Works with a services table, totals, and two-party signature blocks. Supports any language for all data values (company names, service descriptions, labels). The document language is determined by the `language` field in the input data.
 
 ## Arguments
 
 Format: `<title> [--format <pdf|docx>]`
-- title: Document title or act number (required, e.g., "АКТ-001")
+- title: Document title or act number (required, e.g., "ACT-001")
 - --format: Output format — pdf (default) or docx
 
 Parse from "$ARGUMENTS".
@@ -24,14 +24,14 @@ Parse from "$ARGUMENTS".
 2. **Check dependencies.**
 
 3. **Gather required data from user:**
-   - Act number (e.g., АКТ-001/2026)
+   - Act number (e.g., ACT-001/2026)
    - Date and city
-   - Reference to contract (optional, e.g., "Договір №001 від 01.01.2026")
-   - Contractor (Виконавець): name, representative, title, registration number, address
-   - Customer (Замовник): name, representative, title, registration number, address
-   - Services table: each row needs description, unit (год/шт/послуга), quantity, unit price, total
+   - Reference to contract (optional, e.g., "Contract No. 001 dated 01.01.2026")
+   - Contractor (service provider): name, representative, title, registration number, address
+   - Customer (client): name, representative, title, registration number, address
+   - Services table: each row needs description, unit (hrs/pcs/service), quantity, unit price, total
    - VAT rate (0 if not VAT payer, e.g., 20 for standard VAT)
-   - Currency symbol (₴ default)
+   - Currency symbol ($ default)
    - Notes (optional)
 
 4. **Read template:**
@@ -57,8 +57,8 @@ Parse from "$ARGUMENTS".
 
 ## Example Usage
 ```
-/generate-act "АКТ-001"
-/generate-act "АКТ-002/2026" --format docx
+/generate-act "ACT-001"
+/generate-act "ACT-002/2026" --format docx
 ```
 
 ## Output filename

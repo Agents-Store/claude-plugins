@@ -422,7 +422,126 @@ ${articleBar("Signatures")}
 </body></html>`;
 }
 
-// ─── Act of Completed Works (Акт виконаних робіт) ────────────────────────────
+// ─── Act of Completed Works ──────────────────────────────────────────────────
+
+// i18n labels for act documents — keyed by language code
+const ACT_I18N = {
+  en: {
+    title: "Act of Completed Works",
+    cityPrefix: "",
+    serviceDescription: "Service / Work Description",
+    unit: "Unit",
+    quantity: "Qty",
+    price: "Price",
+    amount: "Amount",
+    subtotal: "Subtotal (excl. VAT)",
+    vat: "VAT",
+    totalDue: "Total Due",
+    confirmText: "The above works (services) have been completed in full, within the agreed timeframe, and to proper quality standards. The Customer has no claims regarding the quality or scope of the completed works.",
+    signaturesLabel: "Signatures",
+    contractor: "CONTRACTOR",
+    customer: "CUSTOMER",
+    signatureDate: "Signature / Date",
+    seal: "Seal",
+    introTemplate: (contractorName, customerName, contractRef) =>
+      `We, the undersigned, ${contractorName} (hereinafter referred to as the <strong>Contractor</strong>) and ${customerName} (hereinafter referred to as the <strong>Customer</strong>), have drawn up this act confirming that${contractRef} the Contractor has performed and the Customer has accepted the following works (services):`,
+    contractRefPrefix: " in accordance with ",
+    representativePrefix: ", represented by ",
+  },
+  uk: {
+    title: "Акт виконаних робіт",
+    cityPrefix: "м. ",
+    serviceDescription: "Найменування послуги / роботи",
+    unit: "Од.",
+    quantity: "Кількість",
+    price: "Ціна",
+    amount: "Сума",
+    subtotal: "Сума без ПДВ",
+    vat: "ПДВ",
+    totalDue: "Всього до сплати",
+    confirmText: "Вищезазначені роботи (послуги) виконані в повному обсязі, у встановлені строки та з належною якістю. Замовник до Виконавця претензій щодо якості та обсягу виконаних робіт не має.",
+    signaturesLabel: "Підписи сторін",
+    contractor: "ВИКОНАВЕЦЬ",
+    customer: "ЗАМОВНИК",
+    signatureDate: "Підпис / Дата",
+    seal: "Печатка",
+    introTemplate: (contractorName, customerName, contractRef) =>
+      `Ми, що нижче підписалися, ${contractorName} (надалі — <strong>Виконавець</strong>) та ${customerName} (надалі — <strong>Замовник</strong>), склали цей акт про те, що${contractRef} Виконавець виконав, а Замовник прийняв наступні роботи (послуги):`,
+    contractRefPrefix: " відповідно до ",
+    representativePrefix: ", в особі ",
+  },
+  de: {
+    title: "Abnahmeprotokoll",
+    cityPrefix: "",
+    serviceDescription: "Leistungsbeschreibung",
+    unit: "Einh.",
+    quantity: "Menge",
+    price: "Preis",
+    amount: "Betrag",
+    subtotal: "Nettobetrag",
+    vat: "MwSt.",
+    totalDue: "Gesamtbetrag",
+    confirmText: "Die oben genannten Arbeiten (Leistungen) wurden vollständig, termingerecht und in angemessener Qualität erbracht. Der Auftraggeber hat keine Beanstandungen hinsichtlich der Qualität und des Umfangs der erbrachten Leistungen.",
+    signaturesLabel: "Unterschriften",
+    contractor: "AUFTRAGNEHMER",
+    customer: "AUFTRAGGEBER",
+    signatureDate: "Unterschrift / Datum",
+    seal: "Stempel",
+    introTemplate: (contractorName, customerName, contractRef) =>
+      `Wir, die Unterzeichnenden, ${contractorName} (nachfolgend <strong>Auftragnehmer</strong>) und ${customerName} (nachfolgend <strong>Auftraggeber</strong>), haben dieses Abnahmeprotokoll erstellt, das bestätigt, dass${contractRef} der Auftragnehmer die folgenden Arbeiten (Leistungen) erbracht und der Auftraggeber diese abgenommen hat:`,
+    contractRefPrefix: " gemäß ",
+    representativePrefix: ", vertreten durch ",
+  },
+  fr: {
+    title: "Procès-verbal de réception des travaux",
+    cityPrefix: "",
+    serviceDescription: "Description du service / travail",
+    unit: "Unité",
+    quantity: "Qté",
+    price: "Prix",
+    amount: "Montant",
+    subtotal: "Sous-total (HT)",
+    vat: "TVA",
+    totalDue: "Total TTC",
+    confirmText: "Les travaux (services) mentionnés ci-dessus ont été exécutés intégralement, dans les délais convenus et avec une qualité appropriée. Le Client n'a aucune réclamation concernant la qualité et le volume des travaux réalisés.",
+    signaturesLabel: "Signatures",
+    contractor: "PRESTATAIRE",
+    customer: "CLIENT",
+    signatureDate: "Signature / Date",
+    seal: "Cachet",
+    introTemplate: (contractorName, customerName, contractRef) =>
+      `Nous, soussignés, ${contractorName} (ci-après dénommé le <strong>Prestataire</strong>) et ${customerName} (ci-après dénommé le <strong>Client</strong>), avons établi le présent procès-verbal attestant que${contractRef} le Prestataire a exécuté et le Client a réceptionné les travaux (services) suivants :`,
+    contractRefPrefix: " conformément au ",
+    representativePrefix: ", représenté(e) par ",
+  },
+  es: {
+    title: "Acta de Trabajos Realizados",
+    cityPrefix: "",
+    serviceDescription: "Descripción del servicio / trabajo",
+    unit: "Unid.",
+    quantity: "Cant.",
+    price: "Precio",
+    amount: "Importe",
+    subtotal: "Subtotal (sin IVA)",
+    vat: "IVA",
+    totalDue: "Total a pagar",
+    confirmText: "Los trabajos (servicios) mencionados anteriormente han sido realizados en su totalidad, dentro de los plazos acordados y con la calidad adecuada. El Cliente no tiene reclamaciones respecto a la calidad y el alcance de los trabajos realizados.",
+    signaturesLabel: "Firmas",
+    contractor: "PROVEEDOR",
+    customer: "CLIENTE",
+    signatureDate: "Firma / Fecha",
+    seal: "Sello",
+    introTemplate: (contractorName, customerName, contractRef) =>
+      `Nosotros, los abajo firmantes, ${contractorName} (en adelante el <strong>Proveedor</strong>) y ${customerName} (en adelante el <strong>Cliente</strong>), hemos elaborado la presente acta confirmando que${contractRef} el Proveedor ha realizado y el Cliente ha aceptado los siguientes trabajos (servicios):`,
+    contractRefPrefix: " de conformidad con ",
+    representativePrefix: ", representado por ",
+  },
+};
+
+function getActLabels(data) {
+  const lang = (data.language || "en").toLowerCase().replace(/-.*/, "");
+  return ACT_I18N[lang] || ACT_I18N.en;
+}
 
 function buildActHtml(data, styling, template) {
   const primary = styling.primaryColor || "#1E293B";
@@ -433,7 +552,9 @@ function buildActHtml(data, styling, template) {
   const bgLight = styling.backgroundColor || "#F8FAFC";
   const fontBody = `'PT Serif', Georgia, serif`;
   const fontMeta = `'Inter', Arial, sans-serif`;
-  const currency = template?.currencySymbol || data.currencySymbol || "₴";
+  const currency = template?.currencySymbol || data.currencySymbol || "$";
+
+  const L = getActLabels(data);
 
   const contractor = data.contractor || {};
   const customer = data.customer || {};
@@ -443,10 +564,10 @@ function buildActHtml(data, styling, template) {
   const vatAmount = vatRate ? total * (vatRate / 100) : 0;
 
   // Intro paragraph
-  const contractorName = formatPartyLabel(contractor);
-  const customerName = formatPartyLabel(customer);
-  const contractRef = data.contractRef ? ` відповідно до ${esc(data.contractRef)},` : "";
-  const introText = `Ми, що нижче підписалися, ${contractorName} (надалі — <strong>Виконавець</strong>) та ${customerName} (надалі — <strong>Замовник</strong>), склали цей акт про те, що${contractRef} Виконавець виконав, а Замовник прийняв наступні роботи (послуги):`;
+  const contractorName = formatPartyLabel(contractor, L);
+  const customerName = formatPartyLabel(customer, L);
+  const contractRef = data.contractRef ? `${L.contractRefPrefix}${esc(data.contractRef)},` : "";
+  const introText = L.introTemplate(contractorName, customerName, contractRef);
 
   const serviceRows = services
     .map(
@@ -497,10 +618,10 @@ function buildActHtml(data, styling, template) {
 </style></head><body>
 
 <div class="act-header">
-  <div class="act-title">Акт виконаних робіт</div>
+  <div class="act-title">${esc(L.title)}</div>
   ${data.actNumber ? `<div class="act-number">${esc(data.actNumber)}</div>` : ""}
   <div class="act-datecity">
-    ${data.city ? "м. " + esc(data.city) + " &nbsp;&middot;&nbsp; " : ""}${esc(data.date)}
+    ${data.city ? esc(L.cityPrefix) + esc(data.city) + " &nbsp;&middot;&nbsp; " : ""}${esc(data.date)}
   </div>
 </div>
 
@@ -510,51 +631,50 @@ function buildActHtml(data, styling, template) {
   <thead>
     <tr>
       <th style="text-align:center;width:40px;">№</th>
-      <th>Найменування послуги / роботи</th>
-      <th style="text-align:right;">Од.</th>
-      <th style="text-align:right;">Кількість</th>
-      <th style="text-align:right;">Ціна</th>
-      <th style="text-align:right;">Сума</th>
+      <th>${esc(L.serviceDescription)}</th>
+      <th style="text-align:right;">${esc(L.unit)}</th>
+      <th style="text-align:right;">${esc(L.quantity)}</th>
+      <th style="text-align:right;">${esc(L.price)}</th>
+      <th style="text-align:right;">${esc(L.amount)}</th>
     </tr>
   </thead>
   <tbody>${serviceRows}</tbody>
 </table>
 
 <div class="totals">
-  ${vatRate ? `<div class="total-row"><span>Сума без ПДВ</span><span>${currency}${formatNum(total)}</span></div>` : ""}
-  ${vatRate ? `<div class="total-row"><span>ПДВ (${vatRate}%)</span><span>${currency}${formatNum(vatAmount)}</span></div>` : ""}
+  ${vatRate ? `<div class="total-row"><span>${esc(L.subtotal)}</span><span>${currency}${formatNum(total)}</span></div>` : ""}
+  ${vatRate ? `<div class="total-row"><span>${esc(L.vat)} (${vatRate}%)</span><span>${currency}${formatNum(vatAmount)}</span></div>` : ""}
   <div class="total-divider"></div>
-  <div class="total-row grand"><span>Всього до сплати</span><span>${currency}${formatNum(total + vatAmount)}</span></div>
+  <div class="total-row grand"><span>${esc(L.totalDue)}</span><span>${currency}${formatNum(total + vatAmount)}</span></div>
 </div>
 
 <div class="confirm-box">
-  Вищезазначені роботи (послуги) виконані в повному обсязі, у встановлені строки та з належною якістю.
-  Замовник до Виконавця претензій щодо якості та обсягу виконаних робіт не має.
+  ${esc(L.confirmText)}
   ${data.notes ? "<br>" + esc(data.notes) : ""}
 </div>
 
 <div style="page-break-inside:avoid;">
-<div class="section-label">Підписи сторін</div>
+<div class="section-label">${esc(L.signaturesLabel)}</div>
 <div class="sig-grid">
   <div class="sig-col">
-    <div class="sig-party">ВИКОНАВЕЦЬ</div>
+    <div class="sig-party">${esc(L.contractor)}</div>
     <div class="sig-detail">${esc(contractor.name)}</div>
     ${contractor.representative ? `<div class="sig-detail">${esc(contractor.representative)}${contractor.title ? ", " + esc(contractor.title) : ""}</div>` : ""}
     ${contractor.reg ? `<div class="sig-detail">${esc(contractor.reg)}</div>` : ""}
     <div class="sig-line"></div>
-    <div class="sig-lbl">Підпис / Дата</div>
+    <div class="sig-lbl">${esc(L.signatureDate)}</div>
     <div class="seal-line"></div>
-    <div class="sig-lbl">Печатка</div>
+    <div class="sig-lbl">${esc(L.seal)}</div>
   </div>
   <div class="sig-col">
-    <div class="sig-party">ЗАМОВНИК</div>
+    <div class="sig-party">${esc(L.customer)}</div>
     <div class="sig-detail">${esc(customer.name)}</div>
     ${customer.representative ? `<div class="sig-detail">${esc(customer.representative)}${customer.title ? ", " + esc(customer.title) : ""}</div>` : ""}
     ${customer.reg ? `<div class="sig-detail">${esc(customer.reg)}</div>` : ""}
     <div class="sig-line"></div>
-    <div class="sig-lbl">Підпис / Дата</div>
+    <div class="sig-lbl">${esc(L.signatureDate)}</div>
     <div class="seal-line"></div>
-    <div class="sig-lbl">Печатка</div>
+    <div class="sig-lbl">${esc(L.seal)}</div>
   </div>
 </div>
 </div>
@@ -769,10 +889,11 @@ function formatNum(n) {
   return Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function formatPartyLabel(party) {
+function formatPartyLabel(party, L) {
   if (!party.name) return "—";
   let label = `<strong>${esc(party.name)}</strong>`;
-  if (party.representative) label += `, в особі ${esc(party.representative)}`;
+  const repPrefix = (L && L.representativePrefix) || ", represented by ";
+  if (party.representative) label += `${repPrefix}${esc(party.representative)}`;
   if (party.title) label += ` (${esc(party.title)})`;
   return label;
 }

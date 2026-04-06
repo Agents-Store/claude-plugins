@@ -42,7 +42,7 @@ Loaded from `scripts/fonts.js`. Works fully offline. Supports Ukrainian and Engl
 |---------|----------|-----------|
 | Invoices | **PT Serif** | Inter |
 | Contracts (PDF) | **PT Serif** | PT Serif |
-| Acts / Акти | **PT Serif** | PT Serif + Inter (meta labels) |
+| Acts of completed works | **PT Serif** | PT Serif + Inter (meta labels) |
 | Reports, Proposals (PDF) | **PT Serif** | Inter |
 
 PT Serif was designed for Cyrillic+Latin — ideal for Ukrainian documents.
@@ -105,7 +105,7 @@ PT Serif was designed for Cyrillic+Latin — ideal for Ukrainian documents.
 | Document Type | Primary | Accent | Notes |
 |--------------|---------|--------|-------|
 | Proposal, Report, Invoice, Presentation | `#1E3A5F` | `#2563EB` | Corporate Blue |
-| Contract, Act / Акт | `#1E293B` | `#1E3A5F` | Dark Slate (more formal) |
+| Contract, Act | `#1E293B` | `#1E3A5F` | Dark Slate (more formal) |
 
 ### Color Application (60-30-10 Rule)
 
@@ -175,16 +175,16 @@ The goal is a clean financial document, not a web dashboard.
 
 ### Act Layout (PDF) — Ukrainian Legal Format
 
-1. **Center header**: "АКТ ВИКОНАНИХ РОБІТ" (19px bold PT Serif, uppercase, 2px letter-spacing), act number below, date/city in muted Inter
+1. **Center header**: "ACT OF COMPLETED WORKS" (19px bold PT Serif, uppercase, 2px letter-spacing), act number below, date/city in muted Inter. The title is localized based on `data.language` (e.g., Ukrainian, German, etc.)
 2. **2px solid bottom border** under header block
 3. **Intro paragraph** (12px, line-height 1.8): party names bolded inline
-4. **Services table**: primary header (#1E293B), numeric columns (Од., Кількість, Ціна, Сума) with fixed widths for clean alignment, alternating rows
+4. **Services table**: primary header (#1E293B), numeric columns (Unit, Qty, Price, Total) with fixed widths for clean alignment, alternating rows. Column headers are localized.
 5. **Totals** — right-aligned, line-based:
    - Subtotal / VAT rows at 12px muted (only shown when `vatRate > 0`)
    - `1.5px solid border-top` divider
-   - "Всього до сплати" + amount bold, primary color
+   - "Total Due" + amount bold, primary color
 6. **Confirmation box**: left border 3px accent + light gray background — acceptable here as a distinct callout block in a legal document
-7. **Signature section**: uppercase section label (9px, tracked) with bottom border. Two-column ВИКОНАВЕЦЬ / ЗАМОВНИК blocks: party name bold + representative + reg. number (no hardcoded "ЄДРПОУ:" prefix — data already includes it). 36px margin before signature line, dashed seal line.
+7. **Signature section**: uppercase section label (9px, tracked) with bottom border. Two-column CONTRACTOR / CUSTOMER blocks: party name bold + representative + reg. number. 36px margin before signature line, dashed seal line. Labels are localized based on `data.language`.
 
 ### Contract Layout (PDF) — Legal Document
 
