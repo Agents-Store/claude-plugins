@@ -329,6 +329,17 @@
       },
       "keywords": ["dokploy", "paas", "deployment", "docker", "self-hosted", "applications", "databases", "domains", "compose", "traefik", "backups", "infrastructure", "dev", "agents-store"],
       "category": "infrastructure"
+    },
+    {
+      "name": "nocodb-ops",
+      "source": "./plugins/nocodb-ops",
+      "description": "NocoDB ops plugin for Agents Store. Record management, views, reports, filtering, search, and data import/export for business users via MCP tools and CLI.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["nocodb", "ops", "database", "records", "views", "reports", "agents-store"],
+      "category": "operations"
     }
   ]
 }
