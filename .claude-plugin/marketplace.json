@@ -351,6 +351,17 @@
       },
       "keywords": ["dataforseo", "seo", "keyword-research", "backlinks", "serp", "competitor-analysis", "on-page", "content-analysis", "ai-optimization", "dev", "agents-store"],
       "category": "marketing"
+    },
+    {
+      "name": "n8n-dev",
+      "source": "./plugins/n8n-dev",
+      "description": "n8n workflow automation dev plugin. MCP tools guide (external + native), workflow patterns, expression syntax, validation, node configuration, Code node patterns, REST API reference, CLI recipes, and troubleshooting.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["n8n", "workflow", "automation", "dev", "mcp", "agents-store"],
+      "category": "automation"
     }
   ]
 }
