@@ -362,6 +362,17 @@
       },
       "keywords": ["n8n", "workflow", "automation", "dev", "mcp", "agents-store"],
       "category": "automation"
+    },
+    {
+      "name": "nocobase-dev",
+      "source": "./plugins/nocobase-dev",
+      "description": "NocoBase V2 dev plugin. Complete API reference for customizing collections, fields, records, workflows, UI schemas, authentication, localization, and system configuration through the NocoBase HTTP API.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["nocobase", "no-code", "low-code", "api", "collections", "workflows", "ui-schemas", "dev", "agents-store"],
+      "category": "development"
     }
   ]
 }
