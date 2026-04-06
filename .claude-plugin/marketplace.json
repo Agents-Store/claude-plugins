@@ -340,6 +340,17 @@
       },
       "keywords": ["nocodb", "ops", "database", "records", "views", "reports", "agents-store"],
       "category": "operations"
+    },
+    {
+      "name": "dataforseo-dev",
+      "source": "./plugins/dataforseo-dev",
+      "description": "DataForSEO data analysis plugin. Keyword research, competitor analysis, backlink auditing, SERP monitoring, on-page audits, content analysis, and AI optimization via 70+ MCP tools.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["dataforseo", "seo", "keyword-research", "backlinks", "serp", "competitor-analysis", "on-page", "content-analysis", "ai-optimization", "dev", "agents-store"],
+      "category": "marketing"
     }
   ]
 }
