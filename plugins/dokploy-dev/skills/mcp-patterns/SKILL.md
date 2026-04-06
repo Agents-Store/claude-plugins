@@ -97,9 +97,9 @@ Connect an application to a Git source. Only one provider can be active at a tim
 ### Application usage notes
 
 - `application-create` requires `projectId` and `name`. The `appName` parameter becomes the container name and must be unique across the server.
-- `application-saveEnvironment` expects a single string with newline-separated `KEY=VALUE` pairs. Example: `"DATABASE_URL=postgres://...\nNODE_ENV=production"`.
-- `application-saveBuildType` must be called before `application-deploy` if not using the default Nixpacks build.
-- After calling `application-deploy`, the deployment runs asynchronously. Check application status to confirm completion.
+- `application-saveEnvironment` expects **all** of these parameters: `applicationId`, `env` (newline-separated KEY=VALUE string), `buildArgs` (newline-separated KEY=VALUE string for Docker build args — use empty string if none), `buildSecrets` (empty string if none), `createEnvFile` (boolean). Omitting any parameter causes a 400 validation error. Build args are critical for frameworks like Next.js where env vars (e.g. `NEXT_PUBLIC_*`) must be available during `docker build`.
+- `application-saveBuildType` requires **all** of these parameters: `applicationId`, `buildType` (`nixpacks`, `dockerfile`, `docker`, `buildpacks`), `dockerfile` (filename, e.g. `"Dockerfile"`), `dockerContextPath` (e.g. `"."`), `dockerBuildStage` (empty string if none), `herokuVersion` (empty string if N/A), `railpackVersion` (empty string if N/A). Omitting any parameter causes a 400 validation error. When a project has a `Dockerfile`, default to `buildType: "dockerfile"` — ask the user to confirm.
+- After calling `application-deploy`, the deployment runs asynchronously. Check deployment status via `deployment.all?applicationId=<id>` to confirm completion. On failure, read logs and iterate.
 - `application-markRunning` is a manual override for stuck states. Use only when the container is running but Dokploy shows it as stopped.
 - `application-cleanQueues` clears the deployment queue. Use when deployments are stuck in "queued" state.
 
@@ -242,10 +242,11 @@ Execute these tools in sequence:
    → { applicationId: "def456", repository: "my-repo", branch: "main", owner: "my-org" }
 
 4. mcp__dokploy__application-saveBuildType
-   → { applicationId: "def456", buildType: "nixpacks" }
+   → { applicationId: "def456", buildType: "dockerfile", dockerfile: "Dockerfile", dockerContextPath: ".", dockerBuildStage: "", herokuVersion: "", railpackVersion: "" }
+   (Use "nixpacks" if no Dockerfile exists. Ask user which to use.)
 
 5. mcp__dokploy__application-saveEnvironment
-   → { applicationId: "def456", env: "DATABASE_URL=postgres://...\nNODE_ENV=production\nPORT=3000" }
+   → { applicationId: "def456", env: "DATABASE_URL=postgres://...\nNODE_ENV=production\nPORT=3000", buildArgs: "", buildSecrets: "", createEnvFile: false }
 
 6. mcp__dokploy__domain-create
    → { applicationId: "def456", host: "app.example.com", https: true, certificateType: "letsencrypt", port: 3000 }

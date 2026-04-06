@@ -22,10 +22,17 @@ Parse from "$ARGUMENTS".
 
 2. **Check current state** using MCP tool `application-one` with the applicationId. Report current status and last deployment.
 
-3. **Deploy** using MCP tool `application-deploy` with the applicationId.
+3. **Pre-deploy checks:**
+   - **Environment variables:** Check if `env` is set on the application. If empty, read the project's local `.env.local` or `.env` file and set runtime env vars via `application-saveEnvironment`. Separate build-time vars (e.g. `NEXT_PUBLIC_*`) from runtime-only vars — build-time vars must also go into `buildArgs`.
+   - **Build type:** Check `buildType`. If the project has a `Dockerfile`, ask the user which build type to use (`dockerfile` or `nixpacks`). Default recommendation: `dockerfile` when a Dockerfile exists. Set via `application-saveBuildType` with all required fields (`applicationId`, `buildType`, `dockerfile`, `dockerContextPath`, `dockerBuildStage`, `herokuVersion`, `railpackVersion`).
 
-4. **Report deployment triggered:**
-   Show application name, deployment status. Note that deployment is asynchronous — use `/dokploy-dev:status` to check progress.
+4. **Deploy** using MCP tool `application-deploy` with the applicationId.
+
+5. **Monitor until completion:**
+   - Poll `deployment.all?applicationId=<id>` every 30-60 seconds to check latest deployment status.
+   - If status is `done` — report success and verify the app is reachable (check health endpoint or domain).
+   - If status is `error` — read deployment logs via Beszel container logs or Dokploy log endpoints, diagnose the issue, fix it (update env vars, build type, Dockerfile, etc.), and redeploy. Repeat until deployment succeeds.
+   - Show the user build logs and errors transparently.
 
 ## Example Usage
 ```

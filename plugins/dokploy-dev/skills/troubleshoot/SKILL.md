@@ -16,7 +16,7 @@ Run these checks first to understand the current state:
 1. **Check Dokploy health:**
    ```bash
    curl -s "$DOKPLOY_URL/settings.health" \
-     -H "Authorization: Bearer $DOKPLOY_API_KEY"
+     -H "x-api-key: $DOKPLOY_API_KEY"
    ```
 
 2. **Check Dokploy version:** Call `mcp__dokploy__settings-getDokployVersion`
@@ -73,13 +73,20 @@ If the health check fails, the server itself is down. Fix the server before inve
 
 ### Deployment debugging steps
 
-1. Get the latest deployment log:
-   Call `mcp__dokploy__deployment-allByApplication` with the applicationId to list deployments, then inspect the log of the latest one.
+1. **List deployments and find the latest:**
+   ```bash
+   curl -s -H "x-api-key: $DOKPLOY_API_KEY" \
+     "$DOKPLOY_URL/api/deployment.all?applicationId=<id>" | python3 -m json.tool
+   ```
+   Or call `mcp__dokploy__deployment-allByApplication` with the applicationId.
 
-2. Check application status:
+2. **Read deployment build logs:**
+   Dokploy stores logs at a path like `/etc/dokploy/logs/<appName>/<appName>-<timestamp>.log` on the server. If Beszel is available, use `beszel-getContainerLogs` on the Dokploy container to see recent build output including error traces. The Dokploy container ID can be found via `beszel-get_collections_containers_records` on the dokploy-server system.
+
+3. **Check application status:**
    Call `mcp__dokploy__application-one` with the applicationId. Look at the `applicationStatus` field.
 
-3. Check the container is running:
+4. **Check the container is running:**
    Call `mcp__dokploy__docker-getContainers` and find the container matching the app name.
 
 ---
@@ -137,8 +144,9 @@ For external access, replace `container-name` with the server IP and use the ext
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | MCP tools not found | Plugin not enabled or npx failed | Re-enable the plugin. Verify `npx -y @ahdev/dokploy-mcp` works locally |
-| MCP returns 401 | Invalid API key | Regenerate the API key in the Dokploy dashboard (**Settings > API/Tokens**). Update `userConfig` |
-| MCP returns connection refused | Wrong DOKPLOY_URL | The URL must end with `/api` (e.g. `https://dokploy.example.com/api`) |
+| MCP returns "Invalid URL" | `DOKPLOY_URL` env var not set or not passed to MCP server | Check that `DOKPLOY_URL` and `DOKPLOY_API_KEY` are set in `settings.local.json` under `env`. If MCP tools still fail, fall back to direct `curl` calls with `x-api-key` header (see Diagnostic Commands below) |
+| MCP returns 401 | Invalid API key or wrong auth header | Dokploy API uses `x-api-key` header, NOT `Authorization: Bearer`. Regenerate the API key in the Dokploy dashboard (**Settings > API/Tokens**). Update `userConfig` |
+| MCP returns connection refused | Wrong DOKPLOY_URL | The URL should be the base Dokploy URL (e.g. `https://dokploy.example.com`). API routes are at `/api/` |
 | MCP timeout | Server overloaded or network latency | Check server health. Increase timeout in MCP client config if the server is slow |
 | MCP returns 500 | Server-side error | Check Dokploy server logs. This usually indicates a bug or corrupt state |
 
@@ -151,23 +159,23 @@ For external access, replace `container-name` with the server IP and use the ext
 ```bash
 # Check Dokploy server health
 curl -s "$DOKPLOY_URL/settings.health" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+  -H "x-api-key: $DOKPLOY_API_KEY"
 
 # Check Dokploy version
 curl -s "$DOKPLOY_URL/settings.getDokployVersion" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+  -H "x-api-key: $DOKPLOY_API_KEY"
 
 # List all Docker containers
 curl -s "$DOKPLOY_URL/docker.getContainers" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+  -H "x-api-key: $DOKPLOY_API_KEY"
 
 # Get server public IP
 curl -s "$DOKPLOY_URL/server.publicIp" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+  -H "x-api-key: $DOKPLOY_API_KEY"
 
 # List all projects with their applications
 curl -s "$DOKPLOY_URL/project.all" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+  -H "x-api-key: $DOKPLOY_API_KEY"
 ```
 
 ### Via MCP tools

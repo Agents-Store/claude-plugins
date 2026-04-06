@@ -1,5 +1,12 @@
 # LEARNINGS.md — dokploy-dev
 
+## 2026-04-06 — deploy command + mcp-patterns + troubleshoot: 5 fixes from real deployment session
+
+**Problem:** (1) MCP tools failed with "Invalid URL" when env vars weren't passed through — no fallback guidance. (2) Deploy command didn't mention setting env vars or build args. (3) Deploy command didn't monitor deployment to completion or iterate on failures. (4) No guidance on reading deployment logs (had to use Beszel as workaround). (5) Default build type was nixpacks but project had Dockerfile — should ask user and default to dockerfile.
+**Fix:** Updated deploy command with pre-deploy checks (env vars, build type) and monitoring loop. Updated mcp-patterns with correct required parameters for `saveEnvironment` (buildArgs, buildSecrets, createEnvFile) and `saveBuildType` (dockerfile, dockerContextPath, etc.). Fixed troubleshoot auth header from `Authorization: Bearer` to `x-api-key`. Added MCP "Invalid URL" fallback to troubleshoot. Added deployment log reading via Beszel.
+**Root cause:** Initial skills were written from API docs without testing a real end-to-end deployment. Required parameters for saveEnvironment and saveBuildType were undocumented. Auth header was assumed to be Bearer but Dokploy uses x-api-key.
+**Severity:** Critical
+
 ## 2026-04-04 — all skills: Prompting quality improvements
 
 **Problem:** Skill descriptions used "Use when..." format instead of required third-person "This skill should be used when...". Agent examples lacked commentary. `examples/references/scenarios/` was 2 levels deep (max 1). api-reference SKILL.md was 104 lines (must be under 100). Reference files over 100 lines lacked table of contents.
