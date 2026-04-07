@@ -1,11 +1,11 @@
 {
   "name": "stack-composable-stack-v1",
-  "version": "1.0.0",
-  "description": "Composable Stack v1 dev plugin. Integrates PostgreSQL, NocoDB, n8n, Trigger.dev, and NocoBase via MCP for building data-driven applications with low-code interfaces.",
+  "version": "1.1.0",
+  "description": "Composable Stack v1 dev plugin. Integrates PostgreSQL (direct MCP + PostgREST API), NocoDB, n8n, Trigger.dev, and NocoBase via MCP for building data-driven applications with low-code interfaces.",
   "author": {
     "name": "Agents Store",
     "url": "https://github.com/agents-store"
   },
   "mcpServers": "./.mcp.json",
-  "keywords": ["stack", "composable-stack", "dev", "agents-store", "postgresql", "nocodb", "n8n", "trigger-dev", "nocobase"]
+  "keywords": ["stack", "composable-stack", "dev", "agents-store", "postgresql", "postgrest", "nocodb", "n8n", "trigger-dev", "nocobase"]
 }

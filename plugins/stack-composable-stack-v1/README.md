@@ -1,6 +1,6 @@
 # stack-composable-stack-v1
 
-Composable Stack v1 dev plugin for Agents Store. Integrates PostgreSQL, NocoDB, n8n, Trigger.dev, and NocoBase via MCP for building data-driven applications with low-code interfaces.
+Composable Stack v1 dev plugin for Agents Store. Integrates PostgreSQL (direct MCP + PostgREST API), NocoDB, n8n, Trigger.dev, and NocoBase via MCP for building data-driven applications with low-code interfaces.
 
 ## Architecture
 
@@ -8,6 +8,8 @@ Composable Stack v1 dev plugin for Agents Store. Integrates PostgreSQL, NocoDB, 
 |-------|---------|---------|
 | Data | PostgreSQL | Relational database (source of truth) |
 | Data | NocoDB | Spreadsheet interface + MCP access |
+| Data | PostgreSQL MCP | Direct SQL access and database administration |
+| Data | PostgREST API | REST API over PostgreSQL schema |
 | Logic | n8n | Workflow automation |
 | Logic | Trigger.dev | Background tasks and AI agents |
 | Interface | NocoBase | Low-code admin UI |
@@ -21,11 +23,13 @@ Composable Stack v1 dev plugin for Agents Store. Integrates PostgreSQL, NocoDB, 
 | `n8n-mcp-external` | stdio | n8n workflow CRUD and node search |
 | `n8n-native-mcp` | HTTP | n8n native MCP operations |
 | `nocodb` | HTTP | NocoDB table and record operations |
+| `postgresql-mcp` | HTTP | PostgreSQL direct SQL and admin tools (27 tools) |
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
+| `postgresql-api` | PostgreSQL MCP tools and PostgREST API usage |
 | `init-project` | Set up environment, verify MCP connections |
 | `nocodb-to-n8n` | NocoDB → n8n integration patterns |
 | `nocodb-to-trigger` | NocoDB → Trigger.dev integration patterns |

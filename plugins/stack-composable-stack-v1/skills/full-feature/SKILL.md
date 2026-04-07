@@ -17,12 +17,25 @@ Follow these steps in order for every new feature.
 2. Include standard fields: `id`, `created_at`, `updated_at`
 3. Define relations (foreign keys, junction tables)
 4. Create the tables using the `postgresql-external-dev` plugin skills
+5. Alternatively, create tables directly using PostgreSQL MCP:
+
+```
+Tool: mcp__postgresql-mcp__execute_sql
+Input: { "sql": "CREATE TABLE orders (id SERIAL PRIMARY KEY, title TEXT NOT NULL, status TEXT DEFAULT 'pending', created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now())" }
+```
+
+6. Verify schema with PostgreSQL MCP:
+
+```
+Tool: mcp__postgresql-mcp__list_tables
+Input: { "table_names": "orders" }
+```
+
+Verify the tables also appear in NocoDB:
 
 ```
 Tool: mcp__nocodb__getTablesList
 ```
-
-Verify the tables appear in NocoDB after creation.
 
 ### Step 2: Set Up NocoDB Views (Data Layer)
 
@@ -64,7 +77,9 @@ Wire up the integration points:
 1. **Data → Logic**: NocoDB webhook → n8n/Trigger.dev
 2. **Interface → Logic**: NocoBase button/workflow → n8n webhook
 3. **Logic → Data**: n8n/Trigger.dev → NocoDB MCP (read/write records)
-4. **Logic → Interface**: n8n → NocoBase API (update UI state)
+4. **Logic → Data (direct)**: n8n HTTP Request → PostgREST API (REST CRUD)
+5. **Logic → Data (SQL)**: Trigger.dev/n8n → PostgreSQL MCP `execute_sql` (complex queries)
+6. **Logic → Interface**: n8n → NocoBase API (update UI state)
 
 ### Step 6: Verify End-to-End
 

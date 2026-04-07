@@ -12,6 +12,7 @@ Set up environment variables, verify all MCP connections, and create project con
 | Layer | Service | MCP Server | Transport |
 |-------|---------|------------|-----------|
 | Data | PostgreSQL + NocoDB | `nocodb` | HTTP |
+| Data | PostgreSQL (direct) | `postgresql-mcp` | HTTP |
 | Logic | n8n | `n8n-mcp-external` + `n8n-native-mcp` | stdio + HTTP |
 | Logic | Trigger.dev | `trigger-dev` | stdio |
 | Interface | NocoBase + NocoDB | — (via NocoBase API + NocoDB MCP) | — |
@@ -48,6 +49,10 @@ Required variables:
 | `N8N_MCP_TOKEN` | n8n | Native MCP bearer token |
 | `NOCODB_MCP_URL` | NocoDB | MCP server URL (full URL with `/mcp` path) |
 | `NOCODB_TOKEN` | NocoDB | MCP authentication token |
+| `POSTGRESQL_MCP_URL` | PostgreSQL MCP | MCP server URL (full URL with `/mcp` path) |
+| `POSTGRESQL_MCP_TOKEN` | PostgreSQL MCP | MCP bearer token |
+| `POSTGRESQL_API_URL` | PostgREST | PostgREST base URL (no trailing slash) |
+| `POSTGRESQL_API_TOKEN` | PostgREST | PostgREST bearer token |
 | `NOCOBASE_URL` | NocoBase | Instance URL |
 | `NOCOBASE_API_KEY` | NocoBase | API key for NocoBase operations |
 
@@ -88,7 +93,27 @@ Tool: mcp__trigger-dev__list_runs
 
 Expected: returns recent task runs.
 
-### 2e. NocoBase (Interface layer)
+### 2e. PostgreSQL MCP (Data layer — direct)
+
+```
+Tool: mcp__postgresql-mcp__database_overview
+```
+
+Expected: returns PostgreSQL server version, uptime, connection counts, and replica status.
+
+### 2f. PostgREST API (Data layer — REST)
+
+Verify with a direct HTTP call:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer ${POSTGRESQL_API_TOKEN}" \
+  "${POSTGRESQL_API_URL}/"
+```
+
+Expected: HTTP 200 with OpenAPI spec of available endpoints.
+
+### 2g. NocoBase (Interface layer)
 
 NocoBase uses its own MCP from the `nocobase-dev` technology plugin. Verify with:
 
@@ -130,3 +155,5 @@ These provide tool-specific knowledge. The stack plugin provides integration pat
 | 401 on n8n | Expired API key | Create new API key in n8n settings |
 | Trigger.dev timeout | Wrong `TRIGGER_API_URL` | Verify the self-hosted instance URL |
 | n8n native MCP 403 | Wrong MCP token | Generate new MCP token in n8n → Settings → API |
+| 401 on PostgreSQL MCP | Invalid MCP token | Regenerate bearer token in MCP server settings |
+| 401 on PostgREST | Invalid API token | Check PostgREST JWT secret and regenerate token |

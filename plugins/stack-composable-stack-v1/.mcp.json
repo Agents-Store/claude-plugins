@@ -32,6 +32,13 @@
       "headers": {
         "xc-mcp-token": "${NOCODB_TOKEN}"
       }
+    },
+    "postgresql-mcp": {
+      "type": "http",
+      "url": "${POSTGRESQL_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer ${POSTGRESQL_MCP_TOKEN}"
+      }
     }
   }
 }

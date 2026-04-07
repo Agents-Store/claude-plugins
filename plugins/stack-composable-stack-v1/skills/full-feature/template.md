@@ -52,6 +52,8 @@
 | Resource | ID | Service |
 |----------|----|---------|
 | Table | `tbl_xxx` | NocoDB |
+| Table (PostgreSQL) | `{{table_name}}` | PostgreSQL MCP |
 | Workflow | `wf_xxx` | n8n |
 | Task | `{{task-id}}` | Trigger.dev |
 | Webhook | `{{webhook_url}}` | n8n |
+| PostgREST endpoint | `${POSTGRESQL_API_URL}/{{table_name}}` | PostgREST |
