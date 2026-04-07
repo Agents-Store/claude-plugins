@@ -1,0 +1,54 @@
+# Project: {{PROJECT_NAME}}
+
+## Tech Stack
+
+| Layer | Service | Purpose |
+|-------|---------|---------|
+| Data | PostgreSQL | Relational database |
+| Data | NocoDB | Spreadsheet interface over PostgreSQL |
+| Logic | n8n | Workflow automation |
+| Logic | Trigger.dev | Background tasks and AI agents |
+| Interface | NocoBase | Low-code admin UI and collections |
+| Interface | NocoDB | Data views and forms |
+
+## Quick Commands
+- `pnpm dev` — Start development server
+- `pnpm test` — Run tests
+- `pnpm build` — Production build
+
+## MCP Services
+
+All MCP connections are configured via the `stack-composable-stack-v1` plugin.
+Environment variables are managed through Infisical.
+
+### Available MCP tools
+- `trigger-dev` — Task management, deployment, run monitoring
+- `n8n-mcp-external` — Workflow CRUD, execution, node search
+- `n8n-native-mcp` — n8n native MCP operations
+- `nocodb` — Table CRUD, record operations, views
+
+## Architecture Rules
+
+### Data Flow
+1. **PostgreSQL** stores all persistent data
+2. **NocoDB** provides spreadsheet views and MCP access to PostgreSQL tables
+3. **n8n** handles workflow automation triggered by webhooks or schedules
+4. **Trigger.dev** handles long-running background tasks and AI agent workflows
+5. **NocoBase** provides the admin UI with collections, forms, and dashboards
+
+### Integration Patterns
+- NocoDB webhook → n8n workflow (data change triggers automation)
+- NocoDB webhook → Trigger.dev task (data change triggers background job)
+- n8n workflow → NocoDB MCP (workflow reads/writes data)
+- NocoBase action → n8n webhook (UI action triggers workflow)
+
+## Code Style
+- TypeScript strict mode
+- 2 spaces indentation, single quotes
+- DB tables/fields: `snake_case`
+- Workflows: `[Domain] - [Action] - [Trigger]`
+
+## Critical Rules
+- NEVER commit `.env`, API tokens, or `.mcp.json`
+- ALWAYS use resource IDs (not display names) with MCP tools
+- ALWAYS use environment variables for credentials and URLs
