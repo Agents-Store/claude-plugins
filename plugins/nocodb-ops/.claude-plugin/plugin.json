@@ -1,6 +1,6 @@
 {
   "name": "nocodb-ops",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "NocoDB ops plugin for Agents Store. Record management, views, reports, filtering, search, and data import/export for business users via MCP tools and CLI.",
   "author": {
     "name": "AGENTS.STORE"

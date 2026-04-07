@@ -17,11 +17,11 @@ Before running verification, confirm these environment variables are set:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NOCODB_URL` | Yes | Base URL of the NocoDB instance (e.g., `https://your-instance.com`). The plugin appends `/mcp` automatically. |
-| `NOCODB_TOKEN` | Yes | NocoDB `xc-mcp-token` for authentication |
+| `NOCODB_URL` | Yes | Full NocoDB MCP endpoint URL including path (e.g., `https://your-instance.com/mcp/your-path-id`). Get this from NocoDB → Integrations → MCP. |
+| `NOCODB_TOKEN` | Yes | NocoDB `xc-mcp-token` for authentication. Generate in NocoDB → Account Settings → API Tokens. |
 | `NOCODB_VERBOSE` | No | Set to `1` to show resolved IDs |
 
-The plugin's `.mcp.json` uses `${NOCODB_URL}` and `${NOCODB_TOKEN}` to configure the `nocodb` HTTP MCP server.
+The plugin's `.mcp.json` uses `${NOCODB_URL}` and `${NOCODB_TOKEN}` (via `xc-mcp-token` header) to configure the `nocodb` HTTP MCP server.
 
 Also confirm:
 1. **MCP server connected** -- the `nocodb` entry is active
@@ -63,9 +63,9 @@ Call `mcp__nocodb__getBaseInfo` with no parameters.
 
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
-| "Protected resource does not match" | `NOCODB_URL` contains `/mcp` path (plugin adds it automatically) | Remove `/mcp` from URL — use just `https://host` |
+| "Protected resource does not match" | `NOCODB_URL` is missing the `/mcp/{path-id}` suffix | Use full MCP endpoint URL from NocoDB Integrations page |
 | Connection refused | MCP server not running or wrong URL | Check `.mcp.json` URL and restart MCP |
-| 401 Unauthorized | Invalid or expired API token | Regenerate token in NocoDB settings |
+| 401 Unauthorized | Invalid or expired `xc-mcp-token` | Regenerate token in NocoDB Account Settings |
 | 403 Forbidden | Token lacks permission for this base | Share the base with your token's user |
 | Timeout | Network issue or server overloaded | Check server status, try again |
 | Empty table list | No tables in the base, or wrong base | Verify base ID in MCP config |
