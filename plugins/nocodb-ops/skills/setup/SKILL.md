@@ -17,14 +17,14 @@ Before running verification, confirm these environment variables are set:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NOCODB_URL` | Yes | NocoDB MCP endpoint URL (e.g., `https://your-instance.com/mcp/your-path`) |
+| `NOCODB_URL` | Yes | NocoDB MCP endpoint URL — must include the `/mcp` path (e.g., `https://your-instance.com/mcp`). Using the base URL without `/mcp` causes a "Protected resource does not match" auth error. |
 | `NOCODB_TOKEN` | Yes | NocoDB `xc-mcp-token` for authentication |
 | `NOCODB_VERBOSE` | No | Set to `1` to show resolved IDs |
 
-The plugin's `.mcp.json` uses `${NOCODB_URL}` and `${NOCODB_TOKEN}` to configure the `nocodb-1` HTTP MCP server.
+The plugin's `.mcp.json` uses `${NOCODB_URL}` and `${NOCODB_TOKEN}` to configure the `nocodb` HTTP MCP server.
 
 Also confirm:
-1. **MCP server connected** -- the `nocodb-1` entry is active
+1. **MCP server connected** -- the `nocodb` entry is active
 2. **Base accessible** -- at least one NocoDB base is shared with your token
 
 ## Verification Steps
@@ -33,28 +33,28 @@ Run these checks in order. Stop at the first failure and check the troubleshooti
 
 ### Step 1 -- Test connection
 
-Call `mcp__nocodb-1__getTablesList` with no parameters.
+Call `mcp__nocodb__getTablesList` with no parameters.
 
 - **Pass:** Returns a list of table names and IDs.
 - **Fail:** Connection error or authentication error. See troubleshooting.
 
 ### Step 2 -- Verify read access
 
-Pick any table ID from Step 1. Call `mcp__nocodb-1__queryRecords` with that `tableId` and `pageSize: 1`.
+Pick any table ID from Step 1. Call `mcp__nocodb__queryRecords` with that `tableId` and `pageSize: 1`.
 
 - **Pass:** Returns one record (or an empty list if the table has no data).
 - **Fail:** Permission error or invalid table ID.
 
 ### Step 3 -- Verify count access
 
-Call `mcp__nocodb-1__countRecords` with the same `tableId`.
+Call `mcp__nocodb__countRecords` with the same `tableId`.
 
 - **Pass:** Returns a number (even zero is fine).
 - **Fail:** Aggregation permissions may be restricted.
 
 ### Step 4 -- Verify base info
 
-Call `mcp__nocodb-1__getBaseInfo` with no parameters.
+Call `mcp__nocodb__getBaseInfo` with no parameters.
 
 - **Pass:** Returns base name, ID, and metadata.
 - **Fail:** Token may lack base-level access.
@@ -63,6 +63,7 @@ Call `mcp__nocodb-1__getBaseInfo` with no parameters.
 
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
+| "Protected resource does not match" | `NOCODB_URL` is missing the `/mcp` path | Change URL from `https://host` to `https://host/mcp` |
 | Connection refused | MCP server not running or wrong URL | Check `.mcp.json` URL and restart MCP |
 | 401 Unauthorized | Invalid or expired API token | Regenerate token in NocoDB settings |
 | 403 Forbidden | Token lacks permission for this base | Share the base with your token's user |

@@ -1,6 +1,6 @@
 ---
 description: Search records in a NocoDB table by keyword
-allowed-tools: ["mcp__nocodb-1__queryRecords", "mcp__nocodb-1__getTablesList", "mcp__nocodb-1__getTableSchema"]
+allowed-tools: ["mcp__nocodb__queryRecords", "mcp__nocodb__getTablesList", "mcp__nocodb__getTableSchema"]
 argument-hint: <table-name> <query>
 ---
 

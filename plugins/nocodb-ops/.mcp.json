@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "nocodb-1": {
+    "nocodb": {
       "type": "http",
       "url": "${NOCODB_URL}",
       "headers": {

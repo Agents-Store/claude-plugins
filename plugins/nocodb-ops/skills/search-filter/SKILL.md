@@ -344,7 +344,7 @@ where: "(Date,gte,exactDate,2025-01-01)~and(Date,lte,exactDate,2025-03-31)"
 
 When building a filter:
 
-1. Get the exact field names from `mcp__nocodb-1__getTableSchema`.
+1. Get the exact field names from `mcp__nocodb__getTableSchema`.
 2. Pick the right operator for the field type (text, number, date, checkbox, multi-select).
 3. Combine conditions with `~and` or `~or` (always with tilde).
 4. Test with a small `pageSize` first to verify results before running large queries.

@@ -14,14 +14,14 @@ You have three tables in your NocoDB base:
 Before any operation, confirm table names and field structure.
 
 ```
-Tool: mcp__nocodb-1__getTablesList
+Tool: mcp__nocodb__getTablesList
 Parameters: (none)
 ```
 
 Then get the schema for each table:
 
 ```
-Tool: mcp__nocodb-1__getTableSchema
+Tool: mcp__nocodb__getTableSchema
 Parameters:
   tableId: "m_contacts"
 ```
@@ -31,7 +31,7 @@ Parameters:
 Pull all active leads created in the past month.
 
 ```
-Tool: mcp__nocodb-1__queryRecords
+Tool: mcp__nocodb__queryRecords
 Parameters:
   tableId: "m_contacts"
   where: "(Status,eq,Lead)~and(Created,isWithin,pastMonth)"
@@ -45,7 +45,7 @@ Parameters:
 After qualifying a lead, create a deal record.
 
 ```
-Tool: mcp__nocodb-1__createRecords
+Tool: mcp__nocodb__createRecords
 Parameters:
   tableId: "m_deals"
   records: [
@@ -64,7 +64,7 @@ Parameters:
 Move a deal forward in the pipeline after a successful demo.
 
 ```
-Tool: mcp__nocodb-1__updateRecords
+Tool: mcp__nocodb__updateRecords
 Parameters:
   tableId: "m_deals"
   records: [
@@ -81,7 +81,7 @@ Parameters:
 Record a follow-up call against the deal.
 
 ```
-Tool: mcp__nocodb-1__createRecords
+Tool: mcp__nocodb__createRecords
 Parameters:
   tableId: "m_activities"
   records: [
@@ -100,7 +100,7 @@ Parameters:
 Calculate total value of deals in active stages.
 
 ```
-Tool: mcp__nocodb-1__aggregate
+Tool: mcp__nocodb__aggregate
 Parameters:
   tableId: "m_deals"
   aggregation: [{"field": "Value", "type": "sum"}]
@@ -112,7 +112,7 @@ Parameters:
 Check how many deals are at each pipeline stage.
 
 ```
-Tool: mcp__nocodb-1__countRecords
+Tool: mcp__nocodb__countRecords
 Parameters:
   tableId: "m_deals"
   where: "(Stage,eq,Qualification)"
@@ -125,7 +125,7 @@ Repeat for each stage: Qualification, Proposal, Negotiation, Closed Won, Closed 
 Identify deals that have not been updated in 30 days.
 
 ```
-Tool: mcp__nocodb-1__queryRecords
+Tool: mcp__nocodb__queryRecords
 Parameters:
   tableId: "m_deals"
   where: "(Stage,neq,Closed Won)~and(Stage,neq,Closed Lost)~and(Updated,isWithin,pastNumberOfDays,30)"

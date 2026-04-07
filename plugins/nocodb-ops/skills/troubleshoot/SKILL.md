@@ -29,7 +29,7 @@ Verify these are set correctly before debugging further:
 
 Run these checks first to isolate the problem:
 
-1. **Test MCP connection** -- call `mcp__nocodb-1__getTablesList` with no parameters. If it returns tables, the connection is healthy.
+1. **Test MCP connection** -- call `mcp__nocodb__getTablesList` with no parameters. If it returns tables, the connection is healthy.
 2. **Test authentication** -- a 401 response means `NOCODB_TOKEN` is invalid or expired. Regenerate it in NocoDB Account Settings.
 3. **Check API version** -- confirm your NocoDB instance version supports the operations you need. View/filter/sort management requires v0.200+ or Enterprise.
 

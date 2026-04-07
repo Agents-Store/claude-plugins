@@ -11,7 +11,7 @@ description: |
 
 # NocoDB MCP Tools Reference
 
-All tools use the `mcp__nocodb-1__` prefix. Every tool call goes through the NocoDB MCP server.
+All tools use the `mcp__nocodb__` prefix. Every tool call goes through the NocoDB MCP server.
 
 ## Discovery Tools
 
@@ -93,7 +93,7 @@ Filters use the format: `(field,operator,value)`
 Find all active orders sorted by date, showing only key fields:
 
 ```
-Tool: mcp__nocodb-1__queryRecords
+Tool: mcp__nocodb__queryRecords
 Params:
   tableId: <orders_table_id>
   where: "(Status,eq,Active)"
@@ -109,12 +109,12 @@ Prefix a field name with `-` to sort descending.
 Add a new record, then confirm it was saved:
 
 ```
-Step 1 - Tool: mcp__nocodb-1__createRecords
+Step 1 - Tool: mcp__nocodb__createRecords
 Params:
   tableId: <contacts_table_id>
   records: [{ "fields": { "Name": "Jane Smith", "Email": "jane@example.com" } }]
 
-Step 2 - Tool: mcp__nocodb-1__queryRecords
+Step 2 - Tool: mcp__nocodb__queryRecords
 Params:
   tableId: <contacts_table_id>
   where: "(Email,eq,jane@example.com)"
@@ -125,7 +125,7 @@ Params:
 Get total revenue and order count, split by status:
 
 ```
-Tool: mcp__nocodb-1__aggregate
+Tool: mcp__nocodb__aggregate
 Params:
   tableId: <orders_table_id>
   aggregations: [

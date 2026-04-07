@@ -28,7 +28,7 @@ Every import follows the same four steps:
 Before importing anything, retrieve the target table's structure:
 
 ```
-mcp__nocodb-1__getTableSchema  tableId: "tbl_abc123"
+mcp__nocodb__getTableSchema  tableId: "tbl_abc123"
 ```
 
 From the response, note:
@@ -57,7 +57,7 @@ When the user provides a CSV file or CSV-formatted text:
 Send records in batches of 100 to 500. Larger batches (up to 2000) are possible but risk timeouts on slower connections.
 
 ```
-mcp__nocodb-1__createRecords
+mcp__nocodb__createRecords
   tableId: "tbl_abc123"
   records: [
     { "fields": { "Name": "Alice", "Email": "alice@example.com", "Amount": 150 } },
@@ -98,7 +98,7 @@ Example -- source JSON:
 Mapped for NocoDB:
 
 ```
-mcp__nocodb-1__createRecords
+mcp__nocodb__createRecords
   tableId: "tbl_products"
   records: [
     { "fields": { "Product Name": "Widget A", "Price": 29.99, "Category": "Tools" } },
@@ -127,7 +127,7 @@ To export records from a NocoDB table:
 Use pagination to fetch every record:
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_abc123"
   page: 1
   pageSize: 200
@@ -140,7 +140,7 @@ If the table has more than 200 records, continue with page 2, 3, and so on until
 Export only a subset:
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_orders"
   where: "(Status,eq,Completed)~and(OrderDate,isWithin,pastMonth)"
   page: 1
@@ -152,7 +152,7 @@ mcp__nocodb-1__queryRecords
 Select only the columns needed:
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_contacts"
   fields: ["Name", "Email", "Phone"]
   page: 1
@@ -167,7 +167,7 @@ After fetching records, present them in the format the user needs:
 - **CSV** -- comma-separated values the user can copy-paste or save.
 - **Summary** -- bullet points or grouped lists for reports.
 
-Always state the total record count. Use `mcp__nocodb-1__countRecords` to get the total before paginating, so you can tell the user how many pages to expect.
+Always state the total record count. Use `mcp__nocodb__countRecords` to get the total before paginating, so you can tell the user how many pages to expect.
 
 ## Deduplication Before Import
 
@@ -177,7 +177,7 @@ Before importing records that might already exist, check for duplicates:
 2. Query the table for existing values:
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_contacts"
   where: "(Email,eq,alice@example.com)"
   fields: ["Email"]
@@ -188,7 +188,7 @@ mcp__nocodb-1__queryRecords
 4. For bulk deduplication, query all existing values first:
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_contacts"
   fields: ["Email"]
   pageSize: 1000
@@ -203,7 +203,7 @@ To move or copy data from one table to another within NocoDB:
 1. **Query the source table:**
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_source"
   page: 1
   pageSize: 200
@@ -214,7 +214,7 @@ mcp__nocodb-1__queryRecords
 3. **Create records in the target table:**
 
 ```
-mcp__nocodb-1__createRecords
+mcp__nocodb__createRecords
   tableId: "tbl_target"
   records: [ ... transformed records ... ]
 ```
@@ -222,7 +222,7 @@ mcp__nocodb-1__createRecords
 4. **Verify** by counting records in the target:
 
 ```
-mcp__nocodb-1__countRecords  tableId: "tbl_target"
+mcp__nocodb__countRecords  tableId: "tbl_target"
 ```
 
 ## Best Practices

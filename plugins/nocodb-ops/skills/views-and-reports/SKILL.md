@@ -18,10 +18,10 @@ description: |
 
 ## Discovering Existing Views
 
-NocoDB tables can have multiple views. To see what views already exist on a table, call `mcp__nocodb-1__getTableSchema` with the `tableId`. The response includes a list of views with their names and types.
+NocoDB tables can have multiple views. To see what views already exist on a table, call `mcp__nocodb__getTableSchema` with the `tableId`. The response includes a list of views with their names and types.
 
 ```
-mcp__nocodb-1__getTableSchema  tableId: "tbl_abc123"
+mcp__nocodb__getTableSchema  tableId: "tbl_abc123"
 ```
 
 The schema response contains a `views` section listing every view configured on that table. Each view has a name, type, and ID.
@@ -42,7 +42,7 @@ When a user asks about a kanban board or calendar view, explain what the view do
 
 ## Building Reports with Aggregate
 
-The `mcp__nocodb-1__aggregate` tool is the primary way to build numeric reports. It computes calculations across an entire table or within filtered segments.
+The `mcp__nocodb__aggregate` tool is the primary way to build numeric reports. It computes calculations across an entire table or within filtered segments.
 
 ### Aggregation Types
 
@@ -62,7 +62,7 @@ The `mcp__nocodb-1__aggregate` tool is the primary way to build numeric reports.
 Calculate a single number across the whole table:
 
 ```
-mcp__nocodb-1__aggregate
+mcp__nocodb__aggregate
   tableId: "tbl_abc123"
   aggregations: [
     { "field": "Amount", "type": "sum" },
@@ -78,7 +78,7 @@ This returns the total amount, average amount, and record count for the entire t
 Filter groups let you break down numbers by category. Each filter group has an alias (the label) and a where clause (the filter).
 
 ```
-mcp__nocodb-1__aggregate
+mcp__nocodb__aggregate
   tableId: "tbl_abc123"
   aggregations: [
     { "field": "Revenue", "type": "sum" },
@@ -99,7 +99,7 @@ This returns sum and count for each region separately -- one result per filter g
 ### Sales Summary by Region
 
 ```
-mcp__nocodb-1__aggregate
+mcp__nocodb__aggregate
   tableId: "tbl_orders"
   aggregations: [
     { "field": "Total", "type": "sum" },
@@ -120,7 +120,7 @@ Present the results as a formatted table with columns for Region, Total Sales, A
 Use date filters in filter groups to segment by time period:
 
 ```
-mcp__nocodb-1__aggregate
+mcp__nocodb__aggregate
   tableId: "tbl_activities"
   aggregations: [
     { "field": "Id", "type": "count" }
@@ -135,7 +135,7 @@ mcp__nocodb-1__aggregate
 ### Inventory Counts by Category
 
 ```
-mcp__nocodb-1__aggregate
+mcp__nocodb__aggregate
   tableId: "tbl_inventory"
   aggregations: [
     { "field": "Quantity", "type": "sum" },
@@ -151,12 +151,12 @@ mcp__nocodb-1__aggregate
 
 ## Quick Data Summaries with Query
 
-When you need the actual records behind a number (not just aggregates), use `mcp__nocodb-1__queryRecords` with sorting and field selection.
+When you need the actual records behind a number (not just aggregates), use `mcp__nocodb__queryRecords` with sorting and field selection.
 
 ### Top 10 Highest-Value Orders
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_orders"
   fields: ["Customer", "Total", "Date"]
   sort: [{ "field": "Total", "direction": "desc" }]
@@ -166,7 +166,7 @@ mcp__nocodb-1__queryRecords
 ### Most Recent Activity
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_activities"
   fields: ["Name", "Status", "UpdatedAt"]
   sort: [{ "field": "UpdatedAt", "direction": "desc" }]
@@ -176,7 +176,7 @@ mcp__nocodb-1__queryRecords
 ### Records in a Specific Status
 
 ```
-mcp__nocodb-1__queryRecords
+mcp__nocodb__queryRecords
   tableId: "tbl_tasks"
   where: "(Status,eq,Overdue)"
   fields: ["Title", "AssignedTo", "DueDate"]
@@ -190,20 +190,20 @@ A dashboard combines multiple calls to paint a complete picture. Run these calls
 **Step 1 -- Get totals and breakdown:**
 
 ```
-mcp__nocodb-1__aggregate  (overall totals + filter groups by category)
+mcp__nocodb__aggregate  (overall totals + filter groups by category)
 ```
 
 **Step 2 -- Get record count:**
 
 ```
-mcp__nocodb-1__countRecords  (total records, plus filtered counts for key segments)
+mcp__nocodb__countRecords  (total records, plus filtered counts for key segments)
 ```
 
 **Step 3 -- Get recent and notable items:**
 
 ```
-mcp__nocodb-1__queryRecords  (latest 5 records, sorted by date)
-mcp__nocodb-1__queryRecords  (top 5 by value, sorted descending)
+mcp__nocodb__queryRecords  (latest 5 records, sorted by date)
+mcp__nocodb__queryRecords  (top 5 by value, sorted descending)
 ```
 
 **Step 4 -- Present everything together** as a formatted summary:
@@ -221,4 +221,4 @@ mcp__nocodb-1__queryRecords  (top 5 by value, sorted descending)
 - **Select only needed fields.** When querying records for a report, specify the `fields` parameter to return only the columns that matter. This keeps the output clean and readable.
 - **Combine calls for dashboards.** A good dashboard is 2-4 calls: one aggregate for the big numbers, one or two queries for detail lists, and optionally a count for a headline figure.
 - **Format results for readability.** Always present report data in tables, bullet lists, or structured summaries. Raw tool output is hard to read.
-- **Check the schema first.** Before building a report, call `mcp__nocodb-1__getTableSchema` to confirm field names, types, and available values. Wrong field names produce empty results, not errors.
+- **Check the schema first.** Before building a report, call `mcp__nocodb__getTableSchema` to confirm field names, types, and available values. Wrong field names produce empty results, not errors.

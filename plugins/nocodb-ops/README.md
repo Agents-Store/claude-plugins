@@ -41,7 +41,7 @@ export NOCODB_TOKEN="your-xc-mcp-token"
 export NOCODB_VERBOSE=1  # optional — show resolved IDs
 ```
 
-The `.mcp.json` uses `${NOCODB_URL}` and `${NOCODB_TOKEN}` to configure the `nocodb-1` HTTP MCP server with `xc-mcp-token` header authentication.
+The `.mcp.json` uses `${NOCODB_URL}` and `${NOCODB_TOKEN}` to configure the `nocodb` HTTP MCP server with `xc-mcp-token` header authentication.
 
 ## Prerequisites
 

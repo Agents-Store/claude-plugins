@@ -16,8 +16,8 @@ description: |
 All record operations require a `tableId`. Always resolve it first:
 
 ```
-Step 0: mcp__nocodb-1__getTablesList  -->  get table IDs
-Step 0b: mcp__nocodb-1__getTableSchema  -->  get exact field names and types
+Step 0: mcp__nocodb__getTablesList  -->  get table IDs
+Step 0b: mcp__nocodb__getTableSchema  -->  get exact field names and types
 ```
 
 Never guess table IDs or field names. Always look them up.
@@ -26,7 +26,7 @@ Never guess table IDs or field names. Always look them up.
 
 ## List Records
 
-Use `mcp__nocodb-1__queryRecords` to search, filter, sort, and paginate.
+Use `mcp__nocodb__queryRecords` to search, filter, sort, and paginate.
 
 **Parameters:**
 
@@ -83,7 +83,7 @@ Always set a reasonable `pageSize`. For large tables, fetch in pages rather than
 
 ## Get a Single Record
 
-Use `mcp__nocodb-1__getRecord` when you know the exact record ID.
+Use `mcp__nocodb__getRecord` when you know the exact record ID.
 
 **Parameters:**
 
@@ -99,7 +99,7 @@ Use this after finding a record via `queryRecords`, or when you have the ID from
 
 ## Create Records
 
-Use `mcp__nocodb-1__createRecords` to add one or many records at once.
+Use `mcp__nocodb__createRecords` to add one or many records at once.
 
 **Parameters:**
 
@@ -143,7 +143,7 @@ records: [
 
 ## Update Records
 
-Use `mcp__nocodb-1__updateRecords` to change existing records.
+Use `mcp__nocodb__updateRecords` to change existing records.
 
 **Parameters:**
 
@@ -184,7 +184,7 @@ records: [
 
 ## Delete Records
 
-Use `mcp__nocodb-1__deleteRecords` to permanently remove records.
+Use `mcp__nocodb__deleteRecords` to permanently remove records.
 
 **Parameters:**
 
@@ -211,7 +211,7 @@ records: [
 
 ## Count Records
 
-Use `mcp__nocodb-1__countRecords` to count without fetching data.
+Use `mcp__nocodb__countRecords` to count without fetching data.
 
 **Parameters:**
 

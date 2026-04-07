@@ -1,6 +1,6 @@
 ---
 description: Create a new view for a NocoDB table
-allowed-tools: ["mcp__nocodb-1__getTablesList", "mcp__nocodb-1__getTableSchema", "mcp__nocodb-1__queryRecords"]
+allowed-tools: ["mcp__nocodb__getTablesList", "mcp__nocodb__getTableSchema", "mcp__nocodb__queryRecords"]
 argument-hint: <table-name> <view-type> [title]
 ---
 

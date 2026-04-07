@@ -13,12 +13,12 @@ You have two tables in your NocoDB base:
 Confirm table structure before running queries.
 
 ```
-Tool: mcp__nocodb-1__getTablesList
+Tool: mcp__nocodb__getTablesList
 Parameters: (none)
 ```
 
 ```
-Tool: mcp__nocodb-1__getTableSchema
+Tool: mcp__nocodb__getTableSchema
 Parameters:
   tableId: "m_products"
 ```
@@ -28,7 +28,7 @@ Parameters:
 List all products with their stock levels, sorted by quantity ascending (lowest stock first).
 
 ```
-Tool: mcp__nocodb-1__queryRecords
+Tool: mcp__nocodb__queryRecords
 Parameters:
   tableId: "m_products"
   fields: "Name,SKU,Category,Quantity,ReorderLevel,Price"
@@ -41,7 +41,7 @@ Parameters:
 Find how many products are below their reorder level. Use a filter to compare quantity against a threshold.
 
 ```
-Tool: mcp__nocodb-1__countRecords
+Tool: mcp__nocodb__countRecords
 Parameters:
   tableId: "m_products"
   where: "(Quantity,lte,10)"
@@ -50,7 +50,7 @@ Parameters:
 For a more precise check against each product's own reorder level, query and compare:
 
 ```
-Tool: mcp__nocodb-1__queryRecords
+Tool: mcp__nocodb__queryRecords
 Parameters:
   tableId: "m_products"
   where: "(Quantity,lte,10)"
@@ -63,7 +63,7 @@ Parameters:
 Calculate total inventory value grouped by product category.
 
 ```
-Tool: mcp__nocodb-1__aggregate
+Tool: mcp__nocodb__aggregate
 Parameters:
   tableId: "m_products"
   aggregation: [{"field": "Price", "type": "sum"}]
@@ -77,7 +77,7 @@ Repeat for each category: Electronics, Clothing, Food, Office Supplies, etc.
 Get the number of distinct products in each category.
 
 ```
-Tool: mcp__nocodb-1__countRecords
+Tool: mcp__nocodb__countRecords
 Parameters:
   tableId: "m_products"
   where: "(Category,eq,Electronics)"
@@ -88,7 +88,7 @@ Parameters:
 Pull the last 50 stock transactions to check for anomalies.
 
 ```
-Tool: mcp__nocodb-1__queryRecords
+Tool: mcp__nocodb__queryRecords
 Parameters:
   tableId: "m_stock_movements"
   fields: "Product,Type,Quantity,Date,Reference,Notes"
@@ -101,7 +101,7 @@ Parameters:
 Identify dead stock -- products that have not had any movement in 90 days.
 
 ```
-Tool: mcp__nocodb-1__queryRecords
+Tool: mcp__nocodb__queryRecords
 Parameters:
   tableId: "m_products"
   where: "(LastMovement,isWithin,pastNumberOfDays,90)"
@@ -122,13 +122,13 @@ Combine the results from previous steps into a structured report:
 5. **Recent activity:** Summarize last 7 days of stock movements
 
 ```
-Tool: mcp__nocodb-1__countRecords
+Tool: mcp__nocodb__countRecords
 Parameters:
   tableId: "m_products"
 ```
 
 ```
-Tool: mcp__nocodb-1__countRecords
+Tool: mcp__nocodb__countRecords
 Parameters:
   tableId: "m_stock_movements"
   where: "(Date,isWithin,pastWeek)"
