@@ -17,7 +17,7 @@ Before running verification, confirm these environment variables are set:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NOCODB_URL` | Yes | NocoDB MCP endpoint URL — must include the `/mcp` path (e.g., `https://your-instance.com/mcp`). Using the base URL without `/mcp` causes a "Protected resource does not match" auth error. |
+| `NOCODB_URL` | Yes | Base URL of the NocoDB instance (e.g., `https://your-instance.com`). The plugin appends `/mcp` automatically. |
 | `NOCODB_TOKEN` | Yes | NocoDB `xc-mcp-token` for authentication |
 | `NOCODB_VERBOSE` | No | Set to `1` to show resolved IDs |
 
@@ -63,7 +63,7 @@ Call `mcp__nocodb__getBaseInfo` with no parameters.
 
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
-| "Protected resource does not match" | `NOCODB_URL` is missing the `/mcp` path | Change URL from `https://host` to `https://host/mcp` |
+| "Protected resource does not match" | `NOCODB_URL` contains `/mcp` path (plugin adds it automatically) | Remove `/mcp` from URL — use just `https://host` |
 | Connection refused | MCP server not running or wrong URL | Check `.mcp.json` URL and restart MCP |
 | 401 Unauthorized | Invalid or expired API token | Regenerate token in NocoDB settings |
 | 403 Forbidden | Token lacks permission for this base | Share the base with your token's user |
