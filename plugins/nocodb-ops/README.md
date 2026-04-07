@@ -36,12 +36,13 @@ NocoDB operations plugin for business users. Manage records, build reports, sear
 Enable the plugin in Claude Code. Set these environment variables:
 
 ```bash
-export NOCODB_URL="https://your-nocodb-instance.com/mcp/your-path-id"
+export NOCODB_MCP_URL="https://your-nocodb-instance.com/mcp/your-path-id"
+export NOCODB_URL="https://your-nocodb-instance.com"
 export NOCODB_TOKEN="your-xc-mcp-token"
 export NOCODB_VERBOSE=1  # optional — show resolved IDs
 ```
 
-The `.mcp.json` uses `${NOCODB_URL}` and `${NOCODB_TOKEN}` to configure the `nocodb` HTTP MCP server with `xc-mcp-token` header authentication.
+The `.mcp.json` uses `${NOCODB_MCP_URL}` and `${NOCODB_TOKEN}` to configure the `nocodb` HTTP MCP server with `xc-mcp-token` header authentication. `NOCODB_URL` is the base instance URL used by CLI and future plugin features.
 
 ## Prerequisites
 
@@ -57,7 +58,7 @@ Install the official NocoDB CLI for additional capabilities:
 npx skills add nocodb/agent-skills
 ```
 
-The CLI uses the same environment variables (`NOCODB_URL`, `NOCODB_TOKEN`, `NOCODB_VERBOSE`).
+The CLI uses the same environment variables (`NOCODB_URL`, `NOCODB_TOKEN`, `NOCODB_MCP_URL`, `NOCODB_VERBOSE`).
 
 ## Related Plugins
 

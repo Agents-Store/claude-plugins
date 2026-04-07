@@ -21,7 +21,8 @@ Verify these are set correctly before debugging further:
 
 | Variable | Check |
 |----------|-------|
-| `NOCODB_URL` | Must be the full MCP endpoint URL (e.g., `https://your-instance.com/mcp/your-path`) |
+| `NOCODB_MCP_URL` | Must be the full MCP endpoint URL (e.g., `https://your-instance.com/mcp/your-path`) |
+| `NOCODB_URL` | Base instance URL (e.g., `https://your-instance.com`) |
 | `NOCODB_TOKEN` | Must be a valid `xc-mcp-token` value |
 | `NOCODB_VERBOSE` | Optional — set to `1` to see resolved IDs in CLI output |
 

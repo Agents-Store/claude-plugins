@@ -2,7 +2,7 @@
   "mcpServers": {
     "nocodb": {
       "type": "http",
-      "url": "${NOCODB_URL}",
+      "url": "${NOCODB_MCP_URL}",
       "headers": {
         "xc-mcp-token": "${NOCODB_TOKEN}"
       }
