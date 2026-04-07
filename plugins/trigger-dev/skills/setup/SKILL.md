@@ -142,18 +142,30 @@ Or use the **Test** tab in the Trigger.dev dashboard.
 
 ## Environment Variables
 
-| Variable | Description | Format |
-|----------|-------------|--------|
-| `TRIGGER_SECRET_KEY` | Per-environment secret key | `tr_dev_xxx` (dev), `tr_prod_xxx` (prod) |
-| `TRIGGER_API_URL` | Self-hosted instance URL | `https://trigger.example.com` |
-| `TRIGGER_ACCESS_TOKEN` | Personal access token for CI/CD | `tr_pat_xxx` |
+| Variable | Type | Description | Format |
+|----------|------|-------------|--------|
+| `TRIGGER_SECRET_KEY` | Official | The key the SDK reads at runtime | `tr_dev_xxx` / `tr_prod_xxx` |
+| `TRIGGER_DEV_SECRET_KEY` | Convention | Store dev environment key | `tr_dev_xxx` |
+| `TRIGGER_STAGE_SECRET_KEY` | Convention | Store staging environment key | `tr_dev_xxx` (different key) |
+| `TRIGGER_PROD_SECRET_KEY` | Convention | Store production environment key | `tr_prod_xxx` |
+| `TRIGGER_API_URL` | Official | Self-hosted instance URL | `https://trigger.example.com` |
+| `TRIGGER_PROJECT_REF` | Convention | Project identifier from dashboard | `proj_xxxxx` |
+| `TRIGGER_ACCESS_TOKEN` | Official | Personal access token for CI/CD | `tr_pat_xxx` |
 
-Set in `.env` or your environment:
+The SDK reads `TRIGGER_SECRET_KEY`. Use the per-env convention vars to store each environment's key separately, then map the active one to `TRIGGER_SECRET_KEY`.
+
+Set in `.env`:
 
 ```bash
-TRIGGER_SECRET_KEY=tr_dev_xxxxxxxxxxxxxx
+TRIGGER_PROJECT_REF=proj_xxxxx
+TRIGGER_DEV_SECRET_KEY=tr_dev_xxxxxxxxxxxxxx
+TRIGGER_STAGE_SECRET_KEY=tr_dev_yyyyyyyyyyyyyy
+TRIGGER_PROD_SECRET_KEY=tr_prod_zzzzzzzzzzzzzz
+TRIGGER_SECRET_KEY=${TRIGGER_DEV_SECRET_KEY}
 TRIGGER_API_URL=https://trigger.your-domain.com
 ```
+
+For the full reference, see @references/environment-setup.md.
 
 ## MCP Server Setup
 

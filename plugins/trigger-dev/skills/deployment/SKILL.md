@@ -62,12 +62,14 @@ docker login -u <username> <registry-url>
 
 ## Environments
 
-| Environment | Key Format | Purpose |
-|-------------|-----------|---------|
-| dev | `tr_dev_xxx` | Local development |
-| staging | `tr_dev_xxx` (staging key) | Testing before prod |
-| production | `tr_prod_xxx` | Live traffic |
-| preview | `tr_dev_xxx` | Feature branch testing |
+| Environment | Key Format | Convention Var | Purpose |
+|-------------|-----------|----------------|---------|
+| dev | `tr_dev_xxx` | `TRIGGER_DEV_SECRET_KEY` | Local development |
+| staging | `tr_dev_xxx` (different key) | `TRIGGER_STAGE_SECRET_KEY` | Testing before prod |
+| production | `tr_prod_xxx` | `TRIGGER_PROD_SECRET_KEY` | Live traffic |
+| preview | `tr_dev_xxx` | — | Feature branch testing |
+
+Each environment has its own unique secret key. Staging uses the `tr_dev_` prefix but it is NOT the same key as development. Store each key in a separate env var and map the active one to `TRIGGER_SECRET_KEY`.
 
 ## CI/CD (GitHub Actions)
 

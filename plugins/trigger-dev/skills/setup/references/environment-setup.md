@@ -4,28 +4,73 @@ Complete guide to environment variables and self-hosted configuration.
 
 ## Environment Variables
 
-### Required
+### Official (SDK / CLI)
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `TRIGGER_SECRET_KEY` | Per-environment secret key | `tr_dev_xxx` or `tr_prod_xxx` |
-
-### Self-Hosted
-
-| Variable | Description | Example |
-|----------|-------------|---------|
+| `TRIGGER_SECRET_KEY` | The key the SDK reads at runtime (one env at a time) | `tr_dev_xxx` or `tr_prod_xxx` |
 | `TRIGGER_API_URL` | Self-hosted instance URL | `https://trigger.example.com` |
-| `TRIGGER_ACCESS_TOKEN` | Personal access token (CI/CD) | `tr_pat_xxx` |
+| `TRIGGER_ACCESS_TOKEN` | Personal access token for CI/CD and Management API | `tr_pat_xxx` |
 | `TRIGGER_PREVIEW_BRANCH` | Preview branch name (optional) | `feature/my-task` |
+
+### Per-Environment Keys (recommended convention)
+
+The SDK reads a single `TRIGGER_SECRET_KEY`. To manage multiple environments in one `.env` or CI/CD secrets, store each key under a distinct name:
+
+| Variable | Environment | Format |
+|----------|-------------|--------|
+| `TRIGGER_DEV_SECRET_KEY` | Development | `tr_dev_xxx` |
+| `TRIGGER_STAGE_SECRET_KEY` | Staging | `tr_dev_xxx` (different key than dev) |
+| `TRIGGER_PROD_SECRET_KEY` | Production | `tr_prod_xxx` |
+
+Then map the appropriate key to `TRIGGER_SECRET_KEY` at runtime or in CI/CD.
+
+### Project Ref (recommended convention)
+
+| Variable | Description | Format |
+|----------|-------------|--------|
+| `TRIGGER_PROJECT_REF` | Project identifier from the dashboard | `proj_xxxxx` |
+
+The SDK reads the project ref from `trigger.config.ts` (`project` field), not from env. Store it as `TRIGGER_PROJECT_REF` for CI/CD scripts and tooling, then reference it in config:
+
+```ts
+export default defineConfig({
+  project: process.env.TRIGGER_PROJECT_REF ?? "proj_xxxxx",
+  dirs: ["./src/trigger"],
+});
+```
+
+Find your project ref in the dashboard under **Project Settings**.
 
 ### Key Formats
 
 | Format | Environment | Usage |
 |--------|-------------|-------|
-| `tr_dev_xxx` | Development | Local dev, dev environment tasks |
+| `tr_dev_xxx` | Development / Staging | Dev and staging environment tasks |
 | `tr_prod_xxx` | Production | Production tasks |
 | `tr_pat_xxx` | All environments | CI/CD, Management API |
 | `tr_wgt_xxx` | Worker | Worker token for separate machine setup |
+
+### .env Example (all environments)
+
+```bash
+# Project
+TRIGGER_PROJECT_REF=proj_xxxxx
+
+# Per-environment secret keys
+TRIGGER_DEV_SECRET_KEY=tr_dev_xxxxxxxxxxxxxx
+TRIGGER_STAGE_SECRET_KEY=tr_dev_yyyyyyyyyyyyyy
+TRIGGER_PROD_SECRET_KEY=tr_prod_zzzzzzzzzzzzzz
+
+# Active key — set to the environment you're targeting
+TRIGGER_SECRET_KEY=${TRIGGER_DEV_SECRET_KEY}
+
+# Self-hosted instance URL (omit for cloud)
+TRIGGER_API_URL=https://trigger.your-domain.com
+
+# CI/CD deploy token
+TRIGGER_ACCESS_TOKEN=tr_pat_xxxxxxxxxxxxxx
+```
 
 ## Self-Hosted v4 Architecture
 

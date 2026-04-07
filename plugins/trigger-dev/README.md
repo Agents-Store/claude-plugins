@@ -42,11 +42,17 @@ Trigger.dev development plugin for Agents Store. Comprehensive knowledge for dev
 
 ## Environment Variables
 
-| Variable | Description | Format |
-|----------|-------------|--------|
-| `TRIGGER_SECRET_KEY` | Per-environment secret key | `tr_dev_xxx` / `tr_prod_xxx` |
-| `TRIGGER_API_URL` | Self-hosted instance URL | `https://trigger.example.com` |
-| `TRIGGER_ACCESS_TOKEN` | Personal access token (CI/CD) | `tr_pat_xxx` |
+| Variable | Type | Description | Format |
+|----------|------|-------------|--------|
+| `TRIGGER_SECRET_KEY` | Official | The key the SDK reads at runtime | `tr_dev_xxx` / `tr_prod_xxx` |
+| `TRIGGER_DEV_SECRET_KEY` | Convention | Dev environment key | `tr_dev_xxx` |
+| `TRIGGER_STAGE_SECRET_KEY` | Convention | Staging environment key | `tr_dev_xxx` (different key) |
+| `TRIGGER_PROD_SECRET_KEY` | Convention | Production environment key | `tr_prod_xxx` |
+| `TRIGGER_API_URL` | Official | Self-hosted instance URL | `https://trigger.example.com` |
+| `TRIGGER_PROJECT_REF` | Convention | Project ref from dashboard | `proj_xxxxx` |
+| `TRIGGER_ACCESS_TOKEN` | Official | Personal access token (CI/CD) | `tr_pat_xxx` |
+
+Store per-env keys separately, map the active one to `TRIGGER_SECRET_KEY`. Project ref goes in `trigger.config.ts` (`project` field) — use `TRIGGER_PROJECT_REF` env var for CI/CD.
 
 ## Key Technologies
 
