@@ -1,6 +1,5 @@
 ---
 description: Break down a work item into smaller stories/tasks using INVEST criteria
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <work-item-identifier>
 ---
 

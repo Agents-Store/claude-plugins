@@ -89,10 +89,10 @@
       "category": "development"
     },
     {
-      "name": "plane",
-      "source": "./plugins/plane",
-      "description": "Plane Agile Coach plugin for startups. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, and daily standups using Agile best practices via 98 Plane MCP tools.",
-      "version": "1.0.0",
+      "name": "plane-ops",
+      "source": "./plugins/plane-ops",
+      "description": "Plane Agile Ops knowledge plugin. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, standups, and page publishing — instance-agnostic, works with any Plane MCP server the user has connected.",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },

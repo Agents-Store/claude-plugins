@@ -1,6 +1,5 @@
 ---
 description: Close current sprint — review completion, transfer incomplete items, archive
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project> [--transfer-to <next-cycle-name>]
 ---
 

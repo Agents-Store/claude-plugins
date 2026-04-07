@@ -7,6 +7,8 @@ description: Sprint review and retrospective — completion metrics, previous re
 
 This skill covers sprint review (what was built), retrospective (how to improve), and sprint close (cleanup and transfer).
 
+> **Page formatting:** when saving retro notes via `create_project_page`, follow the HTML rules in [`examples/references/page-formatting.md`](../examples/references/page-formatting.md). Plane pages use `description_html` — wrap every text block in `<p>`, use `<h2>`/`<h3>` for sections, and prefer `<details>` for long raw notes.
+
 ## Tool Name Resolution
 
 Tools below are referenced by their **action name** (e.g., `list_cycle_work_items`). The actual MCP tool name follows a pattern like `mcp__<provider>__plane-i-<action>`. Discover the exact prefix by listing available tools, then match by action suffix.

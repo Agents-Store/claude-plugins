@@ -18,7 +18,6 @@ description: |
   <example>
   user: "Set up a new Agile project in Plane"
   </example>
-tools: mcp__*plane*
 model: sonnet
 color: green
 ---

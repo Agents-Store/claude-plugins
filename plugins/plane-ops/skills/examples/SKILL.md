@@ -11,8 +11,9 @@ This skill provides reference implementations, tool call patterns, and complete 
 
 | File | Description |
 |------|-------------|
-| [tool-patterns.md](references/mcp/tool-patterns.md) | MCP tool call patterns with exact parameter formats |
+| [tool-patterns.md](references/mcp/tool-patterns.md) | Tool call patterns with exact parameter formats |
 | [workflow-examples.md](references/mcp/workflow-examples.md) | Multi-step workflow examples combining multiple tools |
+| [page-formatting.md](references/page-formatting.md) | HTML formatting rules and templates for Plane pages (`description_html`) |
 | [sprint-lifecycle.md](references/scenarios/sprint-lifecycle.md) | End-to-end sprint lifecycle scenario |
 | [backlog-grooming.md](references/scenarios/backlog-grooming.md) | Backlog grooming session scenario |
 

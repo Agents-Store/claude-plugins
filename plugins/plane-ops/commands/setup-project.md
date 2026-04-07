@@ -1,6 +1,5 @@
 ---
 description: Set up a new Agile-ready project with recommended states, labels, and work item types
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project-name> [--template lean|standard]
 ---
 

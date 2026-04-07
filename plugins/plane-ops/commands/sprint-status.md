@@ -1,6 +1,5 @@
 ---
 description: Show current sprint status — progress, burndown, at-risk items
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project>
 ---
 

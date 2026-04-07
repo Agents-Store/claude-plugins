@@ -1,6 +1,5 @@
 ---
 description: Estimate unestimated work items using Fibonacci story points
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project> [--cycle <cycle-name>] [--scale fibonacci|tshirt]
 ---
 

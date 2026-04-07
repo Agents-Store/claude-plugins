@@ -1,6 +1,5 @@
 ---
 description: Analyze backlog health — unestimated items, stale items, missing details
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project>
 ---
 

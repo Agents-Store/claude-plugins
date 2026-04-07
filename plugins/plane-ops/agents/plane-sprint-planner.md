@@ -12,7 +12,6 @@ description: |
   <example>
   user: "What should we include in the next sprint based on our velocity?"
   </example>
-tools: mcp__*plane*
 model: sonnet
 color: cyan
 ---

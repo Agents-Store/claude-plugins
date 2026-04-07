@@ -1,6 +1,5 @@
 ---
 description: Generate daily standup summary for current sprint
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project>
 ---
 

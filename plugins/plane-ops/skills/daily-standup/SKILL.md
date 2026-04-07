@@ -7,6 +7,8 @@ description: Daily standup support — progress summary, blocker identification,
 
 This skill covers generating daily standup summaries — per-person progress, blockers, and sprint-level status from Plane data.
 
+> **Page formatting:** when publishing the standup as a project page, follow the HTML rules in [`examples/references/page-formatting.md`](../examples/references/page-formatting.md). Use one new dated page per standup (`Standup — YYYY-MM-DD`) so history stays browsable.
+
 ## Tool Name Resolution
 
 Tools below are referenced by their **action name** (e.g., `list_cycle_work_items`). The actual MCP tool name follows a pattern like `mcp__<provider>__plane-i-<action>`. Discover the exact prefix by listing available tools, then match by action suffix.

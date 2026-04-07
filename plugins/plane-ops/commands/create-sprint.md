@@ -1,6 +1,5 @@
 ---
 description: Create a new sprint cycle in Plane
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project> <name> --start <YYYY-MM-DD> --end <YYYY-MM-DD>
 ---
 

@@ -1,6 +1,5 @@
 ---
 description: Plan a new sprint — calculate capacity, select items from backlog, set sprint goal
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project> [--duration <days>] [--goal <sprint goal>]
 ---
 

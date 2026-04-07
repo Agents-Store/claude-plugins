@@ -1,6 +1,5 @@
 ---
 description: Prioritize backlog items using Weighted Shortest Job First (WSJF) scoring
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project>
 ---
 

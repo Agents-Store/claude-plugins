@@ -1,6 +1,5 @@
 ---
 description: Calculate team velocity from historical sprint data
-allowed-tools: ["mcp__*plane*"]
 argument-hint: <project> [--sprints <count>]
 ---
 
