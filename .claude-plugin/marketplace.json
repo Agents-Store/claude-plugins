@@ -246,7 +246,7 @@
       "name": "trigger-dev",
       "source": "./plugins/trigger-dev",
       "description": "Trigger.dev dev plugin for Agents Store. Comprehensive development knowledge for building background tasks, AI agent workflows, and durable execution on self-hosted Trigger.dev v4 — SDK patterns, CLI recipes, deployment, MCP tools reference, realtime API, and troubleshooting.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -361,6 +361,17 @@
         "name": "AGENTS.STORE"
       },
       "keywords": ["n8n", "workflow", "automation", "dev", "mcp", "agents-store"],
+      "category": "automation"
+    },
+    {
+      "name": "n8n-provision",
+      "source": "./plugins/n8n-provision",
+      "description": "n8n instance provisioning plugin. Discover workflows from the official template library (9,166+ templates), GitHub repos, and community platforms, then analyze, import, and batch-deploy them to provision an n8n instance.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["n8n", "workflow", "automation", "provision", "templates", "import", "deploy", "batch", "community", "agents-store"],
       "category": "automation"
     },
     {
