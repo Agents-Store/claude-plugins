@@ -69,7 +69,7 @@ docker login -u <username> <registry-url>
 | production | `tr_prod_xxx` | `TRIGGER_PROD_SECRET_KEY` | Live traffic |
 | preview | `tr_dev_xxx` | — | Feature branch testing |
 
-Each environment has its own unique secret key. Staging uses the `tr_dev_` prefix but it is NOT the same key as development. Store each key in a separate env var and map the active one to `TRIGGER_SECRET_KEY`.
+Each environment has its own unique secret key. Staging uses the `tr_dev_` prefix but it is NOT the same key as development. Pass the appropriate per-env key to the SDK via `configure()`.
 
 ## CI/CD (GitHub Actions)
 

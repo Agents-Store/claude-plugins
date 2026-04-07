@@ -8,14 +8,13 @@ Complete guide to environment variables and self-hosted configuration.
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `TRIGGER_SECRET_KEY` | The key the SDK reads at runtime (one env at a time) | `tr_dev_xxx` or `tr_prod_xxx` |
 | `TRIGGER_API_URL` | Self-hosted instance URL | `https://trigger.example.com` |
 | `TRIGGER_ACCESS_TOKEN` | Personal access token for CI/CD and Management API | `tr_pat_xxx` |
 | `TRIGGER_PREVIEW_BRANCH` | Preview branch name (optional) | `feature/my-task` |
 
-### Per-Environment Keys (recommended convention)
+### Per-Environment Secret Keys
 
-The SDK reads a single `TRIGGER_SECRET_KEY`. To manage multiple environments in one `.env` or CI/CD secrets, store each key under a distinct name:
+Each environment has its own secret key. Use the environment-specific variable that matches your target:
 
 | Variable | Environment | Format |
 |----------|-------------|--------|
@@ -23,7 +22,15 @@ The SDK reads a single `TRIGGER_SECRET_KEY`. To manage multiple environments in 
 | `TRIGGER_STAGE_SECRET_KEY` | Staging | `tr_dev_xxx` (different key than dev) |
 | `TRIGGER_PROD_SECRET_KEY` | Production | `tr_prod_xxx` |
 
-Then map the appropriate key to `TRIGGER_SECRET_KEY` at runtime or in CI/CD.
+Pass the appropriate key to the SDK via `configure()`:
+
+```ts
+import { configure } from "@trigger.dev/sdk";
+
+configure({
+  secretKey: process.env.TRIGGER_DEV_SECRET_KEY, // or STAGE/PROD depending on environment
+});
+```
 
 ### Project Ref (recommended convention)
 
@@ -61,9 +68,6 @@ TRIGGER_PROJECT_REF=proj_xxxxx
 TRIGGER_DEV_SECRET_KEY=tr_dev_xxxxxxxxxxxxxx
 TRIGGER_STAGE_SECRET_KEY=tr_dev_yyyyyyyyyyyyyy
 TRIGGER_PROD_SECRET_KEY=tr_prod_zzzzzzzzzzzzzz
-
-# Active key — set to the environment you're targeting
-TRIGGER_SECRET_KEY=${TRIGGER_DEV_SECRET_KEY}
 
 # Self-hosted instance URL (omit for cloud)
 TRIGGER_API_URL=https://trigger.your-domain.com
@@ -163,7 +167,7 @@ services:
 import { configure } from "@trigger.dev/sdk";
 
 configure({
-  secretKey: process.env.TRIGGER_SECRET_KEY,
+  secretKey: process.env.TRIGGER_DEV_SECRET_KEY, // or TRIGGER_STAGE_SECRET_KEY / TRIGGER_PROD_SECRET_KEY
   baseURL: process.env.TRIGGER_API_URL,
 });
 ```
