@@ -133,6 +133,28 @@ npx shadcn@latest add button --registry @ss-components --yes
 
 See `references/shadcn-studio-components.md` and `references/shadcn-studio-blocks.md` for detailed catalogs.
 
+## Community Registries (30+ Free)
+
+Beyond the standard shadcn/ui and shadcn studio registries, 30+ free community registries provide specialized components:
+
+| Category | Example Registries | Component Types |
+|----------|-------------------|-----------------|
+| Animation & Motion | @magicui, @aceternity, @animate-ui, @cult-ui | Animated buttons, scroll effects, parallax, globe, beams |
+| Extended Components | @originui, @diceui, @basecn, @8bitcn, @boldkit | Multi-select, file upload, retro/pixel style, card variants |
+| Blocks & Sections | @bundui, @blocks-so, @efferd, @creative-tim | Landing page sections, marketing blocks, dashboards |
+| E-Commerce | @commerce-ui | Product cards, cart, checkout, reviews |
+| AI / Chat | @ai-elements, @assistant-ui, @tool-ui | Chat bubbles, prompt inputs, AI response streams |
+
+Install from a community registry:
+
+```bash
+npx shadcn@latest add @magicui/shimmer-button
+npx shadcn@latest add @aceternity/moving-border
+npx shadcn@latest add @commerce-ui/product-card
+```
+
+See the `component-search` skill for the full registry reference with URLs, setup instructions, and search workflow.
+
 ## Where Components Are Installed
 
 ```
@@ -274,3 +296,4 @@ This replaces the component file entirely. If you customized the component, back
 - MCP-based component discovery -- see `mcp-tools` skill
 - Theme and color configuration -- see `theme-configuration` skill
 - Project structure and architecture -- see `project-scaffolding` skill
+- Community registry search and catalog -- see `component-search` skill

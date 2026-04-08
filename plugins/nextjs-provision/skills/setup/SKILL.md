@@ -171,6 +171,40 @@ Check that:
 - No import errors when building: `npm run build`
 - Component renders correctly in the browser
 
+## Step 6: Configure Community Registries (Optional)
+
+To search and install components from 30+ free community registries (MagicUI, Aceternity, Origin UI, etc.), add them to the `"registries"` field in `components.json`:
+
+```json
+{
+  "registries": {
+    "ss-components": { "url": "https://shadcnstudio.com/registry" },
+    "ss-blocks": { "url": "https://shadcnstudio.com/registry" },
+    "ss-themes": { "url": "https://shadcnstudio.com/registry" },
+    "@magicui": "https://magicui.design/r/{name}",
+    "@aceternity": "https://ui.aceternity.com/r/{name}",
+    "@originui": "https://originui.com/r/{name}",
+    "@animate-ui": "https://animate-ui.com/r/{name}",
+    "@bundui": "https://bundui.io/r/{name}",
+    "@commerce-ui": "https://commerce-ui.com/r/{name}"
+  }
+}
+```
+
+This enables the official shadcn MCP to search across these registries. The CLI can install from any registry without configuration, but MCP search requires them in `components.json`.
+
+To add all 30+ registries at once, use the `/setup-registries --all` command or see the `component-search` skill for the full list.
+
+### Install the Official shadcn Skill
+
+The official shadcn skill reads `components.json` and enables Claude to discover components from configured registries:
+
+```bash
+pnpm dlx skills add shadcn/ui
+```
+
+This creates skill files that Claude Code loads automatically when `components.json` is detected.
+
 ## Tailwind v3 vs v4 Notes
 
 | Aspect | Tailwind v3 | Tailwind v4 |
@@ -196,3 +230,4 @@ export default {
 - MCP server configuration -- see `mcp-tools` skill
 - Theme customization beyond initial setup -- see `theme-configuration` skill
 - Browsing and installing specific components -- see `component-registry` skill
+- Searching and installing from community registries -- see `component-search` skill

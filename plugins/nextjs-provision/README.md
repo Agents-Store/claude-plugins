@@ -1,10 +1,10 @@
 # nextjs-provision
 
-Next.js provisioning plugin for the Agents Store marketplace. Knowledge base for setting up shadcn/ui and shadcn studio in Next.js projects -- component installation, theme configuration, project scaffolding, and MCP server integration.
+Next.js provisioning plugin for the Agents Store marketplace. Knowledge base for setting up shadcn/ui and shadcn studio in Next.js projects -- component installation, theme configuration, project scaffolding, MCP server integration, and multi-registry component search across 30+ free community registries.
 
 ## Type
 
-Technology (Level 1) -- knowledge-only, no MCP server bundled.
+Technology (Level 1) with MCP -- two stdio-based MCP servers for component search (official shadcn + Jpisnice community).
 
 ## Skills
 
@@ -17,6 +17,14 @@ Technology (Level 1) -- knowledge-only, no MCP server bundled.
 | `project-scaffolding` | Templates, starter kits, component architecture patterns |
 | `troubleshoot` | Debug shadcn setup issues, dependency conflicts, Tailwind config |
 | `examples` | End-to-end setup walkthroughs (new project, adding to existing) |
+| `component-search` | Search and install components from 30+ free community registries |
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `/search-components` | Search across 30+ community registries for UI components |
+| `/setup-registries` | Add community registries to components.json and configure MCP |
 
 ## Agent
 
@@ -46,6 +54,19 @@ claude mcp add shadcn -- bunx -y @jpisnice/shadcn-ui-mcp-server
 ```
 
 See the `mcp-tools` skill for detailed setup instructions.
+
+## Community Registries
+
+This plugin includes knowledge of 30+ free community shadcn registries:
+
+- **Animation**: MagicUI, Aceternity UI, Animate UI, Cult UI, Motion Primitives
+- **Extended UI**: Origin UI, DiceUI, BaseCN, 8bitCN, BoldKit
+- **Blocks**: BundUI, Blocks.so, Efferd, Creative Tim
+- **E-Commerce**: Commerce UI
+- **AI/Chat**: AI Elements, Assistant UI, Tool UI, AI Blocks
+- **File Upload**: Better Upload
+
+Use the `component-search` skill or `/search-components` command to find and install components across all registries.
 
 ## Related
 

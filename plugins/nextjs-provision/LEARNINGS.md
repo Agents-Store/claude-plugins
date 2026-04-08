@@ -15,3 +15,9 @@ Accumulated fixes, discoveries, and improvements for the nextjs-provision plugin
 **Fix:** Renamed section to "shadcn v4: `render` Prop Instead of `asChild`". Added explicit note that `asChild` doesn't exist on ANY shadcn v4 component. Added SheetTrigger + Button composition example alongside the existing Button-as-link pattern.
 **Root cause:** Previous fix (2026-03-28) only addressed the Button-specific case. The `render` prop pattern applies to all `@base-ui/react` components, not just Button.
 **Severity:** Major
+
+## 2026-04-08 — Enhancement: Add multi-registry component search (v1.1.0)
+
+**Feature:** Added `component-search` skill with full reference of 30+ free community registries, MCP config templates, CLAUDE.md section template, and two commands (`search-components`, `setup-registries`). Extended `setup`, `mcp-tools`, and `component-registry` skills with community registry sections. Added `.mcp.json` with official shadcn MCP and Jpisnice community MCP servers.
+**Implementation:** New skill (component-search) + 4 reference files, 2 new commands, extended 3 existing skills, updated agent, added .mcp.json
+**Rationale:** Plugin only covered standard shadcn/ui and shadcn studio registries. Users had no guidance on discovering and installing components from the 30+ free community registries (MagicUI, Aceternity, etc.) available for shadcn v4.

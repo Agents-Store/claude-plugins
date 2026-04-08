@@ -130,6 +130,7 @@ MCP_TRANSPORT_MODE=sse MCP_PORT=7423 bunx -y @jpisnice/shadcn-ui-mcp-server
 | Custom/private registries | Official MCP |
 | Multi-framework projects | Jpisnice MCP |
 | shadcn studio premium components | Official MCP (works with registries in components.json) |
+| Multi-registry search (30+ community registries) | Both (Official reads components.json registries; Jpisnice searches GitHub) |
 
 Both servers can coexist. The official MCP integrates with `components.json` registries (including shadcn studio), while the Jpisnice server provides richer browsing tools from GitHub source.
 
@@ -149,6 +150,32 @@ Both servers can coexist. The official MCP integrates with `components.json` reg
 6. AI customizes the installed component for the user's needs
 ```
 
+## Multi-Registry Search with MCP
+
+When community registries are configured in `components.json`, the official shadcn MCP automatically discovers and searches them. This enables a combined workflow:
+
+1. **Official MCP** resolves components from all configured registries (standard shadcn/ui + shadcn studio + 30+ community registries)
+2. **Jpisnice MCP** provides deeper GitHub-based search across the shadcn ecosystem — component source code, demos, and block implementations
+
+### Recommended Dual Setup for User Projects
+
+```bash
+# Official MCP (reads registries from components.json)
+pnpm dlx shadcn@latest mcp init --client claude
+
+# Community MCP (GitHub-based search, richer browsing)
+claude mcp add shadcn-community -- npx -y @jpisnice/shadcn-ui-mcp-server
+```
+
+For a ready-to-use `.mcp.json` template with both servers, see the `component-search` skill's `references/mcp-config-template.json`.
+
+### Adding Community Registries for MCP Search
+
+The official MCP only searches registries listed in `components.json`. To unlock search across 30+ community registries:
+
+1. Add registries to `components.json` (see `component-search` skill for the full list)
+2. Or use the `/setup-registries --all` command to add all registries at once
+
 ## Rate Limiting
 
 The Jpisnice MCP server uses GitHub's public API. Without a token, you get 60 requests/hour. With a GitHub Personal Access Token, you get 5000 requests/hour.
@@ -163,3 +190,4 @@ To create a token:
 - General Next.js MCP devtools -- see `nextjs-dev` plugin's `mcp-tools` skill
 - Component installation details -- see `component-registry` skill
 - shadcn/ui initialization -- see `setup` skill
+- Community registry search and catalog -- see `component-search` skill
