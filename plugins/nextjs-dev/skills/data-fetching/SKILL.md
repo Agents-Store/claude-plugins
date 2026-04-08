@@ -138,6 +138,8 @@ export function Posts({ postsPromise }: { postsPromise: Promise<Post[]> }) {
 
 ## Server Actions & Mutations
 
+> For form validation with Zod, `useActionState` patterns, `useFormStatus`, and optimistic UI, see the `form-handling` skill.
+
 Define server-side mutations with `'use server'`:
 
 ```tsx

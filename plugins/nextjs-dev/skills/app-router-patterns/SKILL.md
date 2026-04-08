@@ -22,6 +22,8 @@ Every route segment can define these special files:
 | `default.tsx` | Fallback for parallel routes when no match | No |
 | `route.ts` | API endpoint (cannot coexist with `page.tsx` in same segment) | No |
 
+> For detailed error handling, loading state, and not-found patterns, see the `error-handling` skill. For Route Handler design patterns, see `api-design`.
+
 ## Root Layout (Required)
 
 Every Next.js app must have a root `app/layout.tsx`. It replaces `_app.tsx` and `_document.tsx`:

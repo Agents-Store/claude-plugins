@@ -157,12 +157,12 @@
     {
       "name": "nextjs-dev",
       "source": "./plugins/nextjs-dev",
-      "description": "Next.js development plugin. Knowledge base for building modern Next.js applications with App Router, Server/Client Components, data fetching, caching, performance optimization, Docker containerization, and the next-devtools-mcp toolchain.",
-      "version": "1.2.1",
+      "description": "Next.js development plugin. Knowledge base for building modern Next.js applications with App Router, Server/Client Components, data fetching, caching, performance optimization, project architecture, error handling, forms, security, authentication, API design, testing, Docker containerization, and the next-devtools-mcp toolchain.",
+      "version": "1.3.0",
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nextjs", "next.js", "react", "app-router", "server-components", "typescript", "vercel", "dev", "agents-store"],
+      "keywords": ["nextjs", "next.js", "react", "app-router", "server-components", "typescript", "vercel", "dev", "agents-store", "testing", "security", "authentication", "forms"],
       "category": "development"
     },
     {
