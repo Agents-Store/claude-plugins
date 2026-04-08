@@ -11,7 +11,7 @@ This skill covers sprint review (what was built), retrospective (how to improve)
 
 ## Tool Name Resolution
 
-Tools below are referenced by their **action name** (e.g., `list_cycle_work_items`). The actual MCP tool name follows a pattern like `mcp__<provider>__plane-i-<action>`. Discover the exact prefix by listing available tools, then match by action suffix.
+Tools below are referenced by their **action name** only (e.g., `list_cycle_work_items`). Resolve the real tool names for your current Plane MCP server or connector through the `connector-bootstrap` skill. Match by action suffix — never assume a prefix.
 
 ## Available Tools
 

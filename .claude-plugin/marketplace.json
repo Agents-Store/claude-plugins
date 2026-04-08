@@ -91,12 +91,12 @@
     {
       "name": "plane-ops",
       "source": "./plugins/plane-ops",
-      "description": "Plane Agile Ops knowledge plugin. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, standups, and page publishing — instance-agnostic, works with any Plane MCP server the user has connected.",
-      "version": "1.1.0",
+      "description": "Plane Agile Ops knowledge plugin. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, standups, intake triage, modules, epics, milestones, roadmaps, dependencies, burndown, and page publishing. Tool- and instance-agnostic: works with any Plane MCP server or connector via a bootstrap skill that discovers tools across naming conventions.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["plane", "agile", "scrum", "sprint-planning", "retrospective", "velocity", "standup", "estimation", "backlog", "project-management", "kanban", "wsjf", "invest"],
+      "keywords": ["plane", "agile", "scrum", "sprint", "backlog", "kanban", "project-management", "estimation", "retrospective", "roadmap", "knowledge"],
       "category": "project-management"
     },
     {

@@ -7,6 +7,28 @@ description: Tool call patterns, end-to-end workflow examples, and scenario refe
 
 This skill provides reference implementations, tool call patterns, and complete workflow scenarios for Plane Agile workflows.
 
+## Related Skills
+
+For day-to-day operations, route through the dedicated skills rather than this reference:
+
+| Domain | Skill |
+|--------|-------|
+| Tool discovery across any MCP/connector/instance | **connector-bootstrap** |
+| Formulas, DoR/DoD, MoSCoW, WSJF, Fibonacci | **agile-fundamentals** |
+| Sprint planning ceremony | **sprint-planning** |
+| Work item CRUD, relations, comments, logs | **work-items** |
+| Feature/workstream grouping | **modules** |
+| Long-horizon planning (epic, initiative, milestone) | **epics-initiatives-milestones** |
+| Triage incoming requests | **intake-triage** |
+| Publish reports and pages | **pages-publishing** |
+| Backlog grooming, WSJF | **backlog-management** |
+| Estimation | **estimation** |
+| Task decomposition | **task-decomposition** |
+| Velocity and burndown | **velocity-metrics** |
+| Daily standup | **daily-standup** |
+| Sprint review and retro | **sprint-review-retro** |
+| New project setup | **project-setup** |
+
 ## Reference Files
 
 | File | Description |
@@ -80,12 +102,6 @@ This skill provides reference implementations, tool call patterns, and complete 
 
 ## Tool Name Resolution
 
-All tool names above are **generic action names**. The actual MCP tool name depends on how Plane is connected and follows a pattern like:
-```
-mcp__<provider>__plane-i-<action>
-```
+All tool names above are **generic action names**. The actual MCP tool name depends on how Plane is connected — the prefix and structure vary across MCP servers, connectors, self-hosted instances, and cloud deployments. Never assume a specific prefix in this plugin.
 
-To find the actual tool name:
-1. List all available MCP tools
-2. Find tools containing "plane" in the name
-3. Match by the action suffix (e.g., `create_cycle` → tool ending with `create_cycle`)
+To discover the real tool names for the current environment, follow the `connector-bootstrap` skill. In short: use `ToolSearch` with multiple queries (`plane`, `work_item`, `create_cycle`, domain keywords), match tools by the action suffix, and handle multiple instances when present.

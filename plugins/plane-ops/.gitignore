@@ -1,0 +1,9 @@
+# Local test artifacts from skill-creator eval runs — not part of plugin distribution.
+# These contain instance-specific tool prefixes (e.g. resolved via ToolSearch during testing)
+# and must never be shipped with the plugin, which must stay tool-agnostic.
+skills/*-workspace/
+
+# Local settings
+.claude/*.local.md
+.env
+.env.local

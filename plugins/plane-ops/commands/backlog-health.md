@@ -15,6 +15,8 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+
 1. **Resolve project:**
    ```
    list_projects()

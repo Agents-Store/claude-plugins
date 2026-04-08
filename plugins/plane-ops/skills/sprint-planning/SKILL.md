@@ -9,7 +9,7 @@ This skill covers the complete sprint planning ceremony — from capacity calcul
 
 ## Tool Name Resolution
 
-Tools below are referenced by their **action name** (e.g., `create_cycle`). The actual MCP tool name follows a pattern like `mcp__<provider>__plane-i-<action>`. Discover the exact prefix by listing available tools, then match by action suffix.
+Tools below are referenced by their **action name** only (e.g., `create_cycle`). Resolve the real tool names for your current Plane MCP server or connector through the `connector-bootstrap` skill. Match by action suffix — never assume a prefix.
 
 ## Available Tools
 
@@ -108,6 +108,11 @@ capacity = effective_days × 0.85       (15% buffer)
    | 1 | ... | high | 5 | @name |
    Total: X/Y points (Z% of capacity)
 ```
+
+### Caveats
+
+- `archive_cycle` typically rejects active cycles (HTTP 400). Archive is only allowed after the cycle is completed or its `end_date` is in the past. To remove an active cycle, use `delete_cycle` directly.
+- `add_work_items_to_cycle` uses `issue_ids` (plural, array). Some MCP bridges have issues serializing list parameters — see the Known Limitations section in the `work-items` skill for workarounds.
 
 ### Step 5: Create the Sprint
 
