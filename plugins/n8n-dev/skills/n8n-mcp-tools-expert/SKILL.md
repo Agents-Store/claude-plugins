@@ -576,6 +576,39 @@ n8n_manage_credentials({action: "delete", id: "123"})
 - The `data` field contains the actual secret values — provide it only on create/update
 - Always verify credential creation by listing afterward
 
+### Assigning Credentials to Workflow Nodes
+
+After creating credentials, assign them to workflow nodes using `n8n_update_partial_workflow` with `updateNode`:
+
+```javascript
+// 1. Create the credential
+n8n_manage_credentials({
+  action: "create",
+  name: "NocoBase API",
+  type: "httpBearerAuth",
+  data: { token: "eyJ..." }
+})
+// → Returns: { id: "abc123", name: "NocoBase API" }
+
+// 2. Assign credential to workflow nodes
+n8n_update_partial_workflow({
+  id: "workflow-id",
+  operations: [
+    {
+      type: "updateNode",
+      nodeName: "Fetch Data",
+      updates: {
+        credentials: {
+          httpBearerAuth: { id: "abc123", name: "NocoBase API" }
+        }
+      }
+    }
+  ]
+})
+```
+
+The credential `type` in the `updates.credentials` object must match the node's expected credential type (e.g., `httpBearerAuth`, `telegramApi`, `openAiApi`). Get the expected type from `get_node_types` results or from `search_nodes` output.
+
 ---
 
 ## Security & Audit

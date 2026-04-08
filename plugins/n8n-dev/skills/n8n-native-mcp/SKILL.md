@@ -433,6 +433,8 @@ Returns exact TypeScript parameter names and types for each node. Use these — 
 
 Using the SDK patterns from step 1 and the exact parameter names from step 3, write the TypeScript workflow code.
 
+**Follow `@builderHint` annotations from type definitions** — they indicate recommended defaults. For example, if `get_node_types` returns `@builderHint Always default to latest mini model gpt-5-mini` for an OpenAI node, use that model, not an older one. Hints reflect the current best practice from n8n and the service provider.
+
 ### Step 5: Validate
 
 ```
@@ -501,6 +503,33 @@ mcp__n8n-native-mcp__publish_workflow(workflowId: "<workflow ID>")
 - Always re-validate new code before calling `update_workflow`
 - `update_workflow` replaces the entire workflow — make sure the new code includes all nodes
 - If you only need to change one node, consider using the external MCP's `n8n_update_partial_workflow` instead
+
+### IF / Switch Node Metadata
+
+Filter-based nodes (IF v2.2+, Switch v3.2+) require a `conditions.options` metadata object — without it, the workflow saves via native MCP but fails when edited via external MCP or n8n UI. Always include it:
+
+```javascript
+const checkCondition = ifElse({
+  version: 2.3,
+  config: {
+    name: 'Is Active?',
+    parameters: {
+      conditions: {
+        options: { version: 2, leftValue: '', caseSensitive: true, typeValidation: 'strict' },
+        conditions: [
+          {
+            leftValue: expr('={{ $json.status }}'),
+            operator: { type: 'string', operation: 'equals' },
+            rightValue: 'active'
+          }
+        ]
+      }
+    }
+  }
+});
+```
+
+For unary operators (`empty`, `notEmpty`, `true`, `false`), add `singleValue: true` to the operator object and omit `rightValue`.
 
 ### Error Handling
 
