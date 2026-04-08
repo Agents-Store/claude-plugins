@@ -15,6 +15,8 @@ description: |
 
 Manage the NocoBase data model through the API. Collections are the equivalent of database tables, and fields define the columns within them. This skill covers creating, reading, updating, and deleting collections and their fields, plus database views and collection categories.
 
+> **Note:** The paths in this skill (e.g. `collections/products/fields:list`) work for the default `main` data source. For external data sources, use the data-source-scoped paths documented in the **data-sources** skill (e.g. `dataSources/<key>/collections:list` and `dataSourcesCollections/<key>.<name>/fields:list`).
+
 ## Collection Management
 
 ### List All Collections
@@ -24,6 +26,13 @@ Retrieve all collections with their field definitions.
 ```bash
 curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
   "${NOCOBASE_URL}/api/collections:list?page=1&pageSize=50"
+```
+
+For non-paginated results, add `paginate=false`:
+
+```bash
+curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  "${NOCOBASE_URL}/api/collections:list?paginate=false"
 ```
 
 Response includes each collection's `name`, `title`, `fields`, and configuration.

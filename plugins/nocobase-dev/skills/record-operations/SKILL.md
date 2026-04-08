@@ -1,7 +1,7 @@
 ---
 name: record-operations
 description: |
-  CRUD operations on NocoBase records: create, read, update, delete, filter, sort, paginate, import, export, and file uploads. Use when:
+  CRUD operations on NocoBase records: create, read, update, delete, filter, sort, paginate, import, export, file uploads, firstOrCreate, updateOrCreate. Use when:
   - "create a record in NocoBase"
   - "query NocoBase records"
   - "update NocoBase data"
@@ -10,6 +10,10 @@ description: |
   - "export NocoBase records"
   - "upload a file to NocoBase"
   - "NocoBase record CRUD"
+  - "first or create"
+  - "update or create"
+  - "upsert record"
+  - "toggle association"
 ---
 
 # Record Operations
@@ -82,6 +86,37 @@ Response:
 }
 ```
 
+### Non-Paginated and Tree Lists
+
+For non-paginated results, add `paginate=false`:
+
+```bash
+curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  "${NOCOBASE_URL}/api/categories:list?paginate=false"
+```
+
+For tree collections, add `tree=true` to get nested structure:
+
+```bash
+curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  "${NOCOBASE_URL}/api/categories:list?tree=true"
+```
+
+### Simple Pagination (Large Tables)
+
+For collections with >1000 rows, NocoBase may return a simplified pagination response with `hasNext` instead of `totalPage`:
+
+```json
+{
+  "data": {
+    "rows": [...],
+    "hasNext": true,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+```
+
 ## Get a Single Record
 
 Retrieve one record by its primary key using `filterByTk`.
@@ -147,6 +182,8 @@ curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
   }'
 ```
 
+To update association fields inline during creation, pass `updateAssociationValues` as a query parameter listing the association field names.
+
 ## Update a Record
 
 Update specific fields of an existing record. Only the fields included in the body are modified.
@@ -174,6 +211,8 @@ curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
     "cancelReason": "Expired"
   }'
 ```
+
+Additional update parameters: `updateAssociationValues` (array of association field names to update inline) and `forceUpdate=true` to force update even when no fields changed.
 
 **Warning:** Bulk updates without a filter or with a broad filter can modify many records. Always test the filter with a `list` call first.
 
@@ -324,6 +363,44 @@ curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
   -F "storageId=s3-storage" \
   "${NOCOBASE_URL}/api/attachments:create"
 ```
+
+## First Or Create
+
+Finds the first matching record or creates a new one. Use `filterKeys` to specify which fields to match on.
+
+```bash
+curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  "${NOCOBASE_URL}/api/tags:firstOrCreate" \
+  -d '{
+    "filterKeys": ["name"],
+    "values": {
+      "name": "urgent",
+      "color": "red"
+    }
+  }'
+```
+
+If a tag with `name=urgent` exists, returns it. Otherwise creates a new tag with both `name` and `color`.
+
+## Update Or Create
+
+Finds a matching record and updates it, or creates a new one if no match is found.
+
+```bash
+curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  "${NOCOBASE_URL}/api/settings:updateOrCreate" \
+  -d '{
+    "filterKeys": ["key"],
+    "values": {
+      "key": "site_title",
+      "value": "My Application"
+    }
+  }'
+```
+
+Matches on `key=site_title`. If found, updates the `value`. If not found, creates a new record with both fields.
 
 ## Association Operations
 

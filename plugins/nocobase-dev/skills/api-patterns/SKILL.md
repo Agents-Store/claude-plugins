@@ -102,6 +102,20 @@ curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
   "${NOCOBASE_URL}/api/posts:list?filter={\"$or\":[{\"status\":{\"$eq\":\"draft\"}},{\"status\":{\"$eq\":\"review\"}}]}"
 ```
 
+**Association filtering** — filter by related record fields using dot notation:
+
+```bash
+curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  "${NOCOBASE_URL}/api/posts:list?filter={\"author.role\":{\"$eq\":\"admin\"}}"
+```
+
+**Date filtering** — use date-specific operators like `$dateOn`, `$dateBefore`, `$dateAfter`:
+
+```bash
+curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  "${NOCOBASE_URL}/api/orders:list?filter={\"createdAt\":{\"$dateOn\":\"2025-01-15\"}}"
+```
+
 See `references/filter-operators.md` for the complete list of 50+ filter operators.
 
 ### filterByTk
@@ -161,6 +175,35 @@ curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
   "${NOCOBASE_URL}/api/posts:list?except=[content,internalNotes]"
 ```
 
+### paginate
+
+Set to `false` to get all records without pagination. The response is a direct array instead of the paginated structure.
+
+```bash
+curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  "${NOCOBASE_URL}/api/categories:list?paginate=false"
+```
+
+### tree
+
+For tree-type collections, set `tree=true` to get a nested parent-child structure instead of a flat list.
+
+```bash
+curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  "${NOCOBASE_URL}/api/categories:list?tree=true"
+```
+
+### updateAssociationValues
+
+When creating or updating records with association fields, list the association names that should be updated inline.
+
+```bash
+curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -g "${NOCOBASE_URL}/api/orders:create?updateAssociationValues=[items,tags]" \
+  -d '{ "title": "Order", "items": [{ "product": "A" }], "tags": [1, 2] }'
+```
+
 ### whitelist and blacklist
 
 Restrict which fields can be written during create or update operations.
@@ -200,6 +243,21 @@ Single-record responses (`get`, `create`, `update`) return:
 ```
 
 Destroy responses return an empty body or the count of deleted records.
+
+For large tables (>1000 rows), NocoBase may return a simplified pagination response:
+
+```json
+{
+  "data": {
+    "rows": [...],
+    "hasNext": true,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+```
+
+This uses `hasNext` instead of `count`/`totalPage` for better performance.
 
 ## Association Access Pattern
 

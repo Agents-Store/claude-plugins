@@ -1,6 +1,18 @@
 ---
 name: ui-schemas
-description: UI schema operations — JSON-based UI definitions, component trees, themes, maps. This skill should be used when the user asks to "read UI schema", "modify page layout", "insert UI components", "manage themes", "save schema templates", or "configure map settings" in NocoBase.
+description: |
+  UI schema operations — JSON-based UI definitions, component trees, themes, maps, and block templates. Use when:
+  - "read UI schema"
+  - "modify page layout"
+  - "insert UI components"
+  - "manage themes"
+  - "save schema templates"
+  - "configure map settings"
+  - "get parent schema"
+  - "flow model templates"
+  - "block templates"
+  - "initialize action context"
+  - "insert before/after"
 ---
 
 # UI Schemas
@@ -28,8 +40,22 @@ NocoBase stores its entire user interface as a tree of JSON schema nodes. Each n
 - `x-decorator-props` — props for the wrapper
 - `properties` — child schema nodes (nested components)
 - `x-uid` — unique identifier for addressing this node
+- `x-designer` — design-time configurator component
+- `x-initializer` — initializer component for adding child blocks
+- `x-settings` — settings configurator component
+- `x-toolbar` — toolbar component
+- `x-async` — whether to load this node asynchronously (lazy load)
+- `x-index` — sort order among siblings
+- `x-server-hooks` — server-side hook definitions (array)
+- `x-action` — action identifier (for action buttons)
+- `x-action-context` — context data for action execution
+- `x-collection-field` — associated collection field path (e.g. `orders.status`)
 
 Every page, menu item, form field, table column, and button in the NocoBase UI corresponds to a schema node.
+
+## V2.x Migration Note
+
+In NocoBase v2.x, the new **Flow Models** system (`flowModels` resource) replaces `uiSchemas` for block-level UI storage. Flow models use the same tree structure but store data in a separate collection with `uid` as primary key and `options` as the main JSON attribute. The `flowModels` resource inherits all tree-manipulation actions from `uiSchemas` but uses `options` instead of `schema` in request payloads. For flow model operations, see the **flow-models** skill.
 
 ## Core Operations
 
@@ -41,6 +67,15 @@ Retrieve the full schema tree starting from a given node.
 curl -X GET "${NOCOBASE_URL}/api/uiSchemas:getJsonSchema/abc123uid" \
   -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
 ```
+
+To include nodes marked as `x-async` (lazy-loaded), add `includeAsyncNode=true`:
+
+```bash
+curl -X GET "${NOCOBASE_URL}/api/uiSchemas:getJsonSchema/abc123uid?includeAsyncNode=true" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
+```
+
+Without `includeAsyncNode`, results are cached. With it, you get the complete tree including lazy nodes.
 
 Returns the complete nested JSON schema from the specified `uid` downward, including all child properties.
 
@@ -54,6 +89,24 @@ curl -X GET "${NOCOBASE_URL}/api/uiSchemas:getProperties/abc123uid" \
 ```
 
 Use this when you only need the direct children, not the full nested tree.
+
+### Get Parent JSON Schema
+
+Retrieve the full schema of a node's parent. Returns `null` if the node is a root node.
+
+```bash
+curl -X GET "${NOCOBASE_URL}/api/uiSchemas:getParentJsonSchema/abc123uid" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
+```
+
+### Get Parent Property
+
+Retrieve the parent property metadata for a given node.
+
+```bash
+curl -X GET "${NOCOBASE_URL}/api/uiSchemas:getParentProperty/abc123uid" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
+```
 
 ### Insert Root Schema
 
@@ -74,6 +127,26 @@ curl -X POST "${NOCOBASE_URL}/api/uiSchemas:insert" \
 ```
 
 Creates a new top-level schema node. The system assigns a `x-uid` automatically.
+
+### Insert New Schema (Bulk)
+
+Optimized bulk-insert approach using SQL batch insert. Similar to `insert` but faster for large schemas.
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/uiSchemas:insertNewSchema" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "void",
+    "x-component": "Table",
+    "properties": {
+      "actions": {
+        "type": "void",
+        "x-component": "ActionBar"
+      }
+    }
+  }'
+```
 
 ### Remove Schema
 
@@ -156,6 +229,63 @@ Position options:
 - `afterEnd` — insert as a sibling **after** the target node
 
 This is the primary method for adding new components to an existing page layout.
+
+**Advanced parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `wrap` | object | Optional wrapper schema; the new schema is inserted inside the wrapper |
+| `removeParentsIfNoChildren` | boolean | If `true`, removes parent nodes that become empty after a move |
+| `breakRemoveOn` | object | Stop criteria for parent removal (matched against schema properties) |
+
+### Convenience Insert Shorthands
+
+These are shorthand equivalents for `insertAdjacent` with a fixed position:
+
+```bash
+# Insert before the target (as sibling)
+curl -X POST "${NOCOBASE_URL}/api/uiSchemas:insertBeforeBegin/targetUid" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{ "schema": { "type": "void", "x-component": "Divider" } }'
+
+# Insert as first child of the target
+curl -X POST "${NOCOBASE_URL}/api/uiSchemas:insertAfterBegin/targetUid" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{ "schema": { "type": "void", "x-component": "FormItem" } }'
+
+# Insert as last child of the target (most common for appending blocks)
+curl -X POST "${NOCOBASE_URL}/api/uiSchemas:insertBeforeEnd/targetUid" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{ "schema": { "type": "void", "x-component": "Grid.Row" } }'
+
+# Insert after the target (as sibling)
+curl -X POST "${NOCOBASE_URL}/api/uiSchemas:insertAfterEnd/targetUid" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{ "type": "void", "x-component": "Action", "title": "Add New" }'
+```
+
+### Initialize Action Context
+
+Sets the `x-action-context` on a schema node, but only if it is not already set. Used to lazily initialize action popup contexts.
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/uiSchemas:initializeActionContext" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "x-uid": "action-btn-uid",
+    "x-action-context": {
+      "dataSource": "main",
+      "collection": "users"
+    }
+  }'
+```
+
+Only initializes if the `x-action-context` is currently empty — will not overwrite an existing value.
 
 ### Save as Template
 
@@ -303,6 +433,80 @@ Supported map types: `amap` (AMap/Gaode), `google` (Google Maps).
 ```
 
 For detailed reference on each operation with full request/response formats, see `references/ui-schema-operations.md`.
+
+## Block Templates
+
+NocoBase has two template systems for reusable UI blocks.
+
+### Legacy Templates (uiSchemaTemplates)
+
+The original template system. Templates reference schema nodes by `uid`.
+
+```bash
+# List all templates
+curl -X GET "${NOCOBASE_URL}/api/uiSchemaTemplates:list" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
+
+# Get a specific template
+curl -X GET "${NOCOBASE_URL}/api/uiSchemaTemplates:get?filterByTk=template-key" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
+```
+
+Template fields: `key` (primary key), `name`, `componentName`, `associationName`, `resourceName`, `collectionName`, `dataSourceKey`, `uid` (foreign key to `uiSchemas.x-uid`).
+
+### Flow Model Templates (v2.x+)
+
+The new template system with usage tracking and reference block support.
+
+**List templates** (with search and pagination):
+
+```bash
+curl -X GET "${NOCOBASE_URL}/api/flowModelTemplates:list?page=1&pageSize=20&search=my+template" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
+```
+
+**Create a template** from an existing block:
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/flowModelTemplates:create" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "User Form Template",
+    "description": "Reusable form block for user creation",
+    "targetUid": "block_uid_to_template",
+    "useModel": "FormBlockModel",
+    "type": "block",
+    "dataSourceKey": "main",
+    "collectionName": "users",
+    "detachParent": true
+  }'
+```
+
+**Update a template:**
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/flowModelTemplates:update?filterByTk=tpl-uid" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Template Name",
+    "description": "Updated description"
+  }'
+```
+
+Updating syncs template metadata to all reference blocks using this template.
+
+**Destroy a template:**
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/flowModelTemplates:destroy?filterByTk=tpl-uid" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
+```
+
+Fails with HTTP 400 and code `TEMPLATE_IN_USE` if `usageCount > 0`. You must remove all blocks using the template before deleting it.
+
+Key fields: `uid`, `name`, `description`, `targetUid`, `useModel` (e.g. `TableBlockModel`, `FormBlockModel`), `type`, `dataSourceKey`, `collectionName`, `usageCount`.
 
 ## Best Practices
 

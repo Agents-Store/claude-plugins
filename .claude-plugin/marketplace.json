@@ -377,12 +377,12 @@
     {
       "name": "nocobase-dev",
       "source": "./plugins/nocobase-dev",
-      "description": "NocoBase V2 dev plugin. Complete API reference for customizing collections, fields, records, workflows, UI schemas, authentication, localization, and system configuration through the NocoBase HTTP API.",
-      "version": "1.0.0",
+      "description": "NocoBase V2 dev plugin. Complete API reference for collections, fields, records, workflows, UI schemas, flow models (v2.x block engine), routes, menus, data sources, charts, templates, authentication, localization, and system configuration through the NocoBase HTTP API.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nocobase", "no-code", "low-code", "api", "collections", "workflows", "ui-schemas", "dev", "agents-store"],
+      "keywords": ["nocobase", "no-code", "low-code", "api", "collections", "workflows", "ui-schemas", "flow-models", "flow-sql", "routes", "menus", "data-sources", "charts", "templates", "variables", "dev", "agents-store"],
       "category": "development"
     },
     {

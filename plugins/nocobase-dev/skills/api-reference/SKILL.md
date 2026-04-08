@@ -31,7 +31,19 @@ curl -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
 | **Workflow Nodes** | `flow_nodes` | get, create, update, destroy, duplicate, move, test | `references/endpoints-workflows.md` |
 | **Executions** | `executions` | list, get, cancel, destroy | `references/endpoints-workflows.md` |
 | **Jobs** | `jobs` | list, get, resume | `references/endpoints-workflows.md` |
-| **UI Schemas** | `uiSchemas` | getJsonSchema, getProperties, insert, remove, patch, batchPatch | `references/endpoints-ui-auth.md` |
+| **UI Schemas** | `uiSchemas` | getJsonSchema, getProperties, getParentJsonSchema, getParentProperty, insert, insertNewSchema, remove, patch, batchPatch, insertAdjacent, insertBeforeBegin, insertAfterBegin, insertBeforeEnd, insertAfterEnd, initializeActionContext, saveAsTemplate, clearAncestor | `references/endpoints-ui-auth.md` |
+| **Schema Templates (Legacy)** | `uiSchemaTemplates` | list, get | `references/endpoints-ui-auth.md` |
+| **Flow Model Templates** | `flowModelTemplates` | list, get, create, update, destroy | `references/endpoints-ui-auth.md` |
+| **Desktop Routes** | `desktopRoutes` | listAccessible, getAccessible, create, update, move, destroy | `references/endpoints-routes.md` |
+| **Mobile Routes** | `mobileRoutes` | listAccessible, create, update, move, destroy | `references/endpoints-routes.md` |
+| **Role Routes** | `roles/{name}/desktopRoutes` | set | `references/endpoints-routes.md` |
+| **Data Sources** | `dataSources` | listEnabled, testConnection, refresh, readTables, loadTables | `references/endpoints-data-sources.md` |
+| **DS Collections** | `dataSources/{key}/collections` | list, update | `references/endpoints-data-sources.md` |
+| **DS Fields** | `dataSourcesCollections/{key}.{coll}/fields` | list, get, create, update, destroy | `references/endpoints-data-sources.md` |
+| **Charts** | `charts` | query | `references/endpoints-charts.md` |
+| **Flow Models** | `flowModels` | findOne, save, duplicate, attach, move, destroy + 16 inherited schema actions | `references/endpoints-flow-models.md` |
+| **Flow SQL** | `flowSql` | save, runById, getBind | `references/endpoints-flow-models.md` |
+| **Variables** | `variables` | resolve | `references/endpoints-flow-models.md` |
 | **Auth** | `auth` | check, signIn, signUp, signOut, changePassword | `references/endpoints-ui-auth.md` |
 | **Users** | `users` | list, get, create, update, destroy | `references/endpoints-ui-auth.md` |
 | **Roles** | `roles` | list, get, create, update, destroy, check, setDefaultRole | `references/endpoints-ui-auth.md` |
@@ -61,4 +73,8 @@ The complete machine-readable OpenAPI 3.0 specification is available at `referen
 - `references/endpoints-workflows.md` — Workflows, nodes, executions, jobs
 - `references/endpoints-ui-auth.md` — UI schemas, auth, users, roles, API keys, authenticators, SSO
 - `references/endpoints-system.md` — System settings, storage, plugins, localization, themes, utilities
+- `references/endpoints-routes.md` — Desktop routes, mobile routes, role route access
+- `references/endpoints-data-sources.md` — Data sources, data-source-scoped collections and fields
+- `references/endpoints-charts.md` — Data visualization / chart queries
+- `references/endpoints-flow-models.md` — Flow models (v2.x block engine), Flow SQL, template variables
 - `references/nocobase-openapi.json` — Full OpenAPI 3.0 specification

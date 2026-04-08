@@ -5,9 +5,13 @@ NocoBase V2 development plugin for the Agents Store. Complete API reference and 
 ## What This Plugin Covers
 
 - **Collections & Fields** -- Create, modify, and manage data collections and their fields
-- **Record Operations** -- CRUD operations, filtering, pagination, associations, import/export
+- **Record Operations** -- CRUD operations, filtering, pagination, associations, import/export, firstOrCreate, updateOrCreate
 - **Workflow Automation** -- Create workflows, configure nodes, monitor executions
-- **UI Schemas** -- Customize pages, forms, tables, and themes via API
+- **UI Schemas** -- Customize pages, forms, tables, themes, and block templates via API
+- **Flow Models** -- V2.x block engine: model CRUD, tree operations, Flow SQL, template variables
+- **Routes & Menus** -- Desktop and mobile page/menu structure, tabs, role-based route access
+- **Data Sources** -- External database connections, table import, data-source-scoped collections
+- **Data Visualization** -- Chart queries with aggregation, grouping, and caching
 - **Authentication & Users** -- Manage users, roles, permissions, API keys, SSO
 - **Localization** -- Multi-language support and translation management
 - **System Administration** -- Settings, storage, plugins, app management
@@ -21,7 +25,11 @@ NocoBase V2 development plugin for the Agents Store. Complete API reference and 
 | `collections-and-fields` | Collection and field management via API |
 | `record-operations` | Data CRUD, associations, import/export |
 | `workflow-automation` | Workflow creation, nodes, execution monitoring |
-| `ui-schemas` | UI schema management and themes |
+| `ui-schemas` | UI schema management, themes, and block templates |
+| `flow-models` | V2.x block engine — flow model CRUD, SQL queries, variables |
+| `routes-and-menus` | Desktop and mobile page routing, menus, role-based access |
+| `data-sources` | External database connections, multi-DB collections and fields |
+| `data-visualization` | Chart queries, aggregations, dashboard data |
 | `auth-and-users` | Authentication, users, roles, API keys |
 | `localization` | Multi-language support |
 | `system-admin` | System settings, storage, plugins |

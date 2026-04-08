@@ -8,12 +8,20 @@ Detailed request/response formats, position semantics, and worked examples for a
 |-----------|--------|------|---------|
 | getJsonSchema | GET | `/api/uiSchemas:getJsonSchema/{uid}` | Full nested schema tree |
 | getProperties | GET | `/api/uiSchemas:getProperties/{uid}` | Immediate children only |
+| getParentJsonSchema | GET | `/api/uiSchemas:getParentJsonSchema/{uid}` | Parent node schema tree |
+| getParentProperty | GET | `/api/uiSchemas:getParentProperty/{uid}` | Parent property metadata |
 | insert | POST | `/api/uiSchemas:insert` | Create root-level node |
+| insertNewSchema | POST | `/api/uiSchemas:insertNewSchema` | Bulk-insert (SQL optimized) |
 | remove | POST | `/api/uiSchemas:remove/{uid}` | Delete node and descendants |
 | patch | POST | `/api/uiSchemas:patch` | Update single node |
 | batchPatch | POST | `/api/uiSchemas:batchPatch` | Update multiple nodes |
 | insertAdjacent | POST | `/api/uiSchemas:insertAdjacent/{uid}?position=X` | Insert relative to node |
-| saveAsTemplate | POST | `/api/uiSchemas:saveAsTemplate` | Save subtree as template |
+| insertBeforeBegin | POST | `/api/uiSchemas:insertBeforeBegin/{uid}` | Insert as sibling before |
+| insertAfterBegin | POST | `/api/uiSchemas:insertAfterBegin/{uid}` | Insert as first child |
+| insertBeforeEnd | POST | `/api/uiSchemas:insertBeforeEnd/{uid}` | Insert as last child |
+| insertAfterEnd | POST | `/api/uiSchemas:insertAfterEnd/{uid}` | Insert as sibling after |
+| initializeActionContext | POST | `/api/uiSchemas:initializeActionContext` | Lazy-init action context |
+| saveAsTemplate | POST | `/api/uiSchemas:saveAsTemplate?filterByTk={uid}` | Save subtree as template |
 | clearAncestor | POST | `/api/uiSchemas:clearAncestor/{uid}` | Detach from parent |
 
 ## getJsonSchema
@@ -345,3 +353,57 @@ Set `"default": true` on a theme to apply it globally. Only one theme can be the
 3. **Check x-collection-field** — this tells you which collection field a UI element is bound to.
 4. **Use x-hidden** — set `"x-hidden": true` to hide a component without removing it.
 5. **Respect the Grid** — all blocks live inside `Grid > Grid.Row > Grid.Col` hierarchy.
+
+## Legacy Templates (uiSchemaTemplates)
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/uiSchemaTemplates:list` | List all block templates |
+| GET | `/api/uiSchemaTemplates:get?filterByTk={key}` | Get a template by key |
+
+Template fields: `key` (PK), `name`, `componentName`, `associationName`, `resourceName`, `collectionName`, `dataSourceKey`, `uid` (FK to `uiSchemas.x-uid`).
+
+## Flow Model Templates (v2.x+)
+
+New template system with usage tracking and reference block support.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/flowModelTemplates:list` | List templates (paginated, searchable) |
+| GET | `/api/flowModelTemplates:get?filterByTk={uid}` | Get template by uid |
+| POST | `/api/flowModelTemplates:create` | Create template from block |
+| POST | `/api/flowModelTemplates:update?filterByTk={uid}` | Update template metadata |
+| POST | `/api/flowModelTemplates:destroy?filterByTk={uid}` | Delete template (if unused) |
+
+### Create Flow Model Template
+
+```json
+{
+  "name": "User Form Template",
+  "description": "Reusable form block",
+  "targetUid": "block_uid",
+  "useModel": "FormBlockModel",
+  "type": "block",
+  "dataSourceKey": "main",
+  "collectionName": "users",
+  "detachParent": true
+}
+```
+
+Fields: `uid`, `name`, `description`, `targetUid`, `useModel` (`TableBlockModel`, `FormBlockModel`, etc.), `type`, `dataSourceKey`, `collectionName`, `associationName`, `detachParent`, `usageCount`.
+
+### Destroy Validation
+
+Fails with HTTP 400 if `usageCount > 0`:
+
+```json
+{
+  "errors": [{
+    "code": "TEMPLATE_IN_USE",
+    "message": "Template is in use and cannot be deleted",
+    "data": { "usageCount": 3 }
+  }]
+}
+```
+
+Remove all blocks using the template before deletion.
