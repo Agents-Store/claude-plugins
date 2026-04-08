@@ -61,12 +61,16 @@ Connect an application to a Git source. Only one provider can be active at a tim
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__application-saveGithubProvider` | Connect to GitHub | `applicationId`, `repository`, `branch`, `owner` |
+| `mcp__dokploy__application-saveGithubProvider` | Connect to GitHub | `applicationId`, `repository` (repo name only — NOT full URL), `branch`, `owner`, `githubId`, `enableSubmodules` |
 | `mcp__dokploy__application-saveGitlabProvider` | Connect to GitLab | `applicationId`, `repository`, `branch`, `gitlabProjectId` |
 | `mcp__dokploy__application-saveBitbucketProvider` | Connect to Bitbucket | `applicationId`, `repository`, `branch`, `owner` |
 | `mcp__dokploy__application-saveGiteaProvider` | Connect to Gitea | `applicationId`, `repository`, `branch`, `owner` |
-| `mcp__dokploy__application-saveGitProvider` | Connect to any Git URL | `applicationId`, `repositoryURL`, `branch` |
+| `mcp__dokploy__application-saveGitProvider` | Connect to any Git URL | `applicationId`, `customGitUrl`, `customGitBranch`, `customGitBuildPath`, `enableSubmodules`, `watchPaths` |
 | `mcp__dokploy__application-disconnectGitProvider` | Remove Git connection | `applicationId` |
+
+**GitHub provider critical note:** The `repository` parameter for `saveGithubProvider` must be the **repository name only** (e.g. `"my-repo"`), NOT the full URL. Dokploy constructs the clone URL as `github.com/{owner}/{repository}` — passing a full URL like `https://github.com/org/repo` causes a broken double-URL (`github.com/org/https://github.com/org/repo`). You also need the `githubId` — get it from `gitProvider.getAll` endpoint. Required fields: `applicationId`, `repository`, `branch`, `owner`, `githubId`, `enableSubmodules`, `triggerType` (default `"push"`), `watchPaths` (array, use `[]` if none), `buildPath` (default `"/"`).
+
+**Generic Git provider note:** `saveGitProvider` requires ALL of: `applicationId`, `customGitUrl` (full SSH/HTTPS URL), `customGitBranch`, `customGitBuildPath` (e.g. `"/"`), `enableSubmodules` (boolean), `watchPaths` (array). Optionally `customGitSSHKeyId` for private repos. Omitting any required field causes a 400 validation error.
 
 ### Build & Environment Configuration (3 tools)
 
@@ -367,6 +371,7 @@ If validation fails, the DNS A record for `api.example.com` is not pointing to t
 | `"Database connection refused"` | Database not deployed or port not exposed | Call `{type}-deploy` first, then `{type}-saveExternalPort` if external access is needed |
 | MCP timeout | Network issue or Dokploy server overloaded | Retry the call; check server health with `curl ${dokploy_url}/settings.health` |
 | `"Unauthorized"` | Invalid or expired API key | Regenerate the API key in the Dokploy dashboard and update `userConfig` |
+| `"UNAUTHORIZED"` from REST API | Wrong auth header format | Dokploy uses `x-api-key: <token>` header, NOT `Authorization: Bearer <token>`. This applies to both trpc endpoints and direct REST calls |
 
 ---
 
@@ -386,3 +391,45 @@ If validation fails, the DNS A record for `api.example.com` is not pointing to t
 | **Total** | **117** | |
 
 > Note: The plugin description references 67 MCP tools. The actual count depends on which database types and compose tools are exposed by your Dokploy MCP server version. The table above lists all possible tools. Use `project-all` as a connectivity test — if it works, all other tools in the same category are available.
+
+---
+
+## REST API Fallback
+
+If MCP tools fail (e.g. "Resource not found" errors), use the Dokploy trpc REST API directly via `curl`. Dokploy uses **`x-api-key`** header for authentication (NOT `Authorization: Bearer`).
+
+### Authentication
+
+```bash
+# Correct — use x-api-key header
+curl -s "https://$DOKPLOY_HOST/api/trpc/project.all" \
+  -H "x-api-key: $DOKPLOY_API_KEY"
+
+# Wrong — Bearer auth returns 401
+curl -s "https://$DOKPLOY_HOST/api/trpc/project.all" \
+  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+```
+
+### Read operations (GET with input)
+
+URL-encode the JSON input as a query parameter:
+
+```bash
+curl -s "https://$DOKPLOY_HOST/api/trpc/application.one?input=%7B%22json%22%3A%7B%22applicationId%22%3A%22abc123%22%7D%7D" \
+  -H "x-api-key: $DOKPLOY_API_KEY"
+```
+
+### Write operations (POST with JSON body)
+
+```bash
+curl -s -X POST "https://$DOKPLOY_HOST/api/trpc/application.deploy" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"json":{"applicationId":"abc123"}}'
+```
+
+### Health check (no auth required)
+
+```bash
+curl -s "https://$DOKPLOY_HOST/api/trpc/settings.health"
+```

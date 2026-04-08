@@ -1,5 +1,12 @@
 # LEARNINGS.md — dokploy-dev
 
+## 2026-04-09 — mcp-patterns: Auth header, GitHub provider repo field, Git provider required fields
+
+**Problem:** (1) REST API fallback section was missing — when MCP tools fail, users need curl examples with correct `x-api-key` header (not Bearer). (2) `saveGithubProvider` `repository` field was ambiguous — passing a full URL (`https://github.com/org/repo`) caused Dokploy to create a broken double-URL clone path (`github.com/org/https://github.com/org/repo`). This caused 4 failed deployments before root cause was found. (3) `saveGitProvider` table was missing required fields `customGitBuildPath` and `watchPaths`, causing 400 validation errors.
+**Fix:** Added REST API fallback section with `x-api-key` auth examples (GET/POST/health). Added explicit warning that `repository` for GitHub provider must be repo name only, never full URL. Documented all required fields for `saveGitProvider` and `saveGithubProvider` including `githubId` (from `gitProvider.getAll`), `enableSubmodules`, `triggerType`, `watchPaths`, `buildPath`. Added `x-api-key` vs Bearer error to error handling table.
+**Root cause:** GitHub provider constructs clone URL from `{owner}/{repository}` — the API schema says "URL or name" which is misleading. Auth header was documented as Bearer in earlier version but Dokploy uses x-api-key. Git provider required fields were not tested end-to-end.
+**Severity:** Critical
+
 ## 2026-04-06 — deploy command + mcp-patterns + troubleshoot: 5 fixes from real deployment session
 
 **Problem:** (1) MCP tools failed with "Invalid URL" when env vars weren't passed through — no fallback guidance. (2) Deploy command didn't mention setting env vars or build args. (3) Deploy command didn't monitor deployment to completion or iterate on failures. (4) No guidance on reading deployment logs (had to use Beszel as workaround). (5) Default build type was nixpacks but project had Dockerfile — should ask user and default to dockerfile.
