@@ -1,45 +1,36 @@
 ---
-description: Add community shadcn registries to components.json and optionally configure MCP servers
-argument-hint: [--all | --category <name> | <registry-name>]
-allowed-tools: [Read, Write, Edit, Bash]
+description: Set up community shadcn registries, MCP servers, and CLAUDE.md section for a project
+argument-hint: [--mcp | --claudemd | --skill]
+allowed-tools: [Read, Write, Edit, Bash, WebFetch]
 ---
 
 # Setup Registries
 
-Add community shadcn registries to the project's `components.json` for MCP-assisted search and CLI installation.
+Full project setup for shadcn community registry search — registries, MCP, CLAUDE.md section, and official skill.
 
 ## Instructions
 
 1. Read the skill at `${CLAUDE_PLUGIN_ROOT}/skills/component-search/SKILL.md`
-2. Read the registry reference at `${CLAUDE_PLUGIN_ROOT}/skills/component-search/references/community-registries.md`
 
-3. Parse arguments from "$ARGUMENTS":
-   - `--all` — add all 30+ registries
-   - `--category animation` — add only animation registries
-   - `--category extended` — add only extended UI registries
-   - `--category blocks` — add only blocks & sections registries
-   - `--category ai` — add only AI component registries
-   - `--category ecommerce` — add only e-commerce registries
-   - `<registry-name>` — add a specific registry (e.g., `magicui`)
-   - (no args) — show available categories and let user pick
-
-4. Verify `components.json` exists in the project root. If not:
+2. Verify `components.json` exists in the project root. If not:
    - Ask the user if they want to initialize shadcn/ui first
    - Run `npx shadcn@latest init` if approved
 
-5. Read the current `components.json` and check existing registries
+3. Parse arguments from "$ARGUMENTS":
+   - (no args) — full setup: registries + MCP + CLAUDE.md + skill
+   - `--mcp` — only configure MCP servers
+   - `--claudemd` — only add CLAUDE.md section
+   - `--skill` — only install official shadcn skill
 
-6. Add the selected registries to the `"registries"` field — merge, do not overwrite existing entries
+4. **Add registries** — Run `/add-registries` to fetch all 180+ registries from `https://ui.shadcn.com/r/registries.json` and add them to `components.json`
 
-7. Offer to configure MCP servers:
-   - Show the template from `${CLAUDE_PLUGIN_ROOT}/skills/component-search/references/mcp-config-template.json`
-   - If the user accepts, create or update the project's `.mcp.json`
+5. **Configure MCP servers** — Show the template from `${CLAUDE_PLUGIN_ROOT}/skills/component-search/references/mcp-config-template.json` and create/update the project's `.mcp.json`
 
-8. Offer to install the official shadcn skill:
+6. **Install the official shadcn skill**:
    ```bash
    pnpm dlx skills add shadcn/ui
    ```
 
-9. Offer to add the CLAUDE.md section from `${CLAUDE_PLUGIN_ROOT}/skills/component-search/references/claude-md-section.md`
+7. **Add CLAUDE.md section** — Append the content from `${CLAUDE_PLUGIN_ROOT}/skills/component-search/references/claude-md-section.md` to the project's CLAUDE.md
 
-10. Test by installing one component from a newly added registry to verify it works
+8. Test by installing one component from a community registry to verify it works

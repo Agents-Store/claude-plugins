@@ -11,7 +11,7 @@ description: >
 
 ## How Community Registries Work
 
-shadcn v4 supports custom registries via the `"registries"` field in `components.json`. Any registry that implements the shadcn registry protocol can be added. Over 170 registries exist — 30+ provide free UI components, blocks, and templates.
+shadcn v4 supports custom registries via the `"registries"` field in `components.json`. Any registry that implements the shadcn registry protocol can be added. The official registry directory at `https://ui.shadcn.com/r/registries.json` contains 180+ registries — always up to date.
 
 The CLI can install from any registry without configuration:
 
@@ -19,49 +19,77 @@ The CLI can install from any registry without configuration:
 npx shadcn@latest add @magicui/shimmer-button
 ```
 
-But the **official shadcn MCP server** only searches registries listed in `components.json`. To enable MCP-assisted search across community registries, they must be added to the config.
+But the **official shadcn MCP server** only searches registries listed in `components.json`. To enable MCP-assisted search across all registries, populate them from the official endpoint.
+
+## Dynamic Registry Source
+
+The authoritative list of all shadcn-compatible registries:
+
+```
+https://ui.shadcn.com/r/registries.json
+```
+
+Returns a JSON array. Each entry has:
+- `name` — Registry identifier (e.g., `"@magicui"`)
+- `url` — Registry endpoint with `{name}` placeholder (e.g., `"https://magicui.design/r/{name}.json"`)
+- `homepage` — Project website
+- `description` — Brief description
+
+Always fetch this endpoint instead of using a hardcoded list — it's maintained by the shadcn team and always current.
 
 ## Search Workflow
 
 ```
 1. User describes what they need ("animated button", "pricing section", "chat component")
      ↓
-2. Identify the category: animation, extended UI, blocks, e-commerce, AI, etc.
+2. Fetch https://ui.shadcn.com/r/registries.json — scan descriptions for matches
      ↓
-3. Consult references/community-registries.md for matching registries
+3. Consult references/community-registries.md for category-based recommendations
      ↓
-4. Check user's components.json — is the registry already configured?
+4. Check user's components.json — are registries configured?
+   If not → run /add-registries to populate all registries
      ↓
-5a. If configured → use MCP tools to search, or install directly via CLI
-5b. If not configured → add registry to components.json first
+5. Use MCP tools to search, or install directly via CLI
      ↓
 6. Install: npx shadcn@latest add @[registry]/[component]
      ↓
 7. Verify the component renders correctly
 ```
 
-## Adding a Registry to components.json
+## Adding Registries to components.json
 
-Open `components.json` and add entries to the `"registries"` field:
+### Add all registries (recommended)
+
+Use the `/add-registries` command to fetch all 180+ registries from the official endpoint and add them to `components.json` automatically.
+
+Or manually:
+
+1. Fetch the registry list:
+   ```bash
+   curl -s https://ui.shadcn.com/r/registries.json
+   ```
+
+2. For each entry, add to `components.json` `"registries"` field using the `name` as key and `url` as value:
+   ```json
+   {
+     "registries": {
+       "@magicui": "https://magicui.design/r/{name}.json",
+       "@aceternity": "https://ui.aceternity.com/r/{name}.json"
+     }
+   }
+   ```
+
+3. Merge with existing registries — do not overwrite the `"registries"` object, add to it.
+
+### Add a single registry
 
 ```json
 {
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
   "registries": {
-    "magicui": {
-      "url": "https://magicui.design/r"
-    },
-    "aceternity": {
-      "url": "https://ui.aceternity.com/r"
-    }
+    "@registryname": "https://domain.com/r/{name}.json"
   }
 }
 ```
-
-Merge with existing registries — do not overwrite the `"registries"` object, add to it.
-
-To add all 30+ community registries at once, use the `/setup-registries --all` command.
 
 ## Installing from a Community Registry
 

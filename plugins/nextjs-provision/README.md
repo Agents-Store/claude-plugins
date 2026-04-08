@@ -23,8 +23,9 @@ Technology (Level 1) with MCP -- two stdio-based MCP servers for component searc
 
 | Command | Description |
 |---------|-------------|
-| `/search-components` | Search across 30+ community registries for UI components |
-| `/setup-registries` | Add community registries to components.json and configure MCP |
+| `/search-components` | Search across community registries for UI components |
+| `/add-registries` | Fetch all 180+ registries from official endpoint and add to components.json |
+| `/setup-registries` | Full project setup: registries + MCP + CLAUDE.md + shadcn skill |
 
 ## Agent
 

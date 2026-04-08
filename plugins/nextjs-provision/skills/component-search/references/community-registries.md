@@ -1,10 +1,24 @@
 # Community shadcn Registries
 
-30+ free registries that provide UI components, blocks, and templates compatible with shadcn/ui v4.
+## Dynamic Source (Always Current)
 
-**URL convention**: Most registries follow `https://domain.com/r/{name}`. The easiest way to verify a URL is to install one component: `npx shadcn@latest add @registry/component` — the CLI auto-resolves known registries.
+The authoritative, always-up-to-date list of all shadcn-compatible registries:
 
-**Full directory**: https://ui.shadcn.com/docs/directory (170+ registries total, including auth, infrastructure, and paid registries not listed here)
+```
+https://ui.shadcn.com/r/registries.json
+```
+
+Returns a JSON array of 180+ registries. Each entry: `name`, `url`, `homepage`, `description`.
+
+**To populate components.json with all registries**, use the `/add-registries` command — it fetches this endpoint and adds every registry automatically.
+
+**Browse online**: https://ui.shadcn.com/docs/directory
+
+---
+
+## Category Guide (For Quick Reference)
+
+The tables below organize notable registries by category. This is a curated subset — the dynamic endpoint above has the complete list.
 
 ---
 
@@ -75,45 +89,12 @@
 
 ---
 
-## components.json Configuration
+## Populating components.json
 
-To add all registries to `components.json` for MCP search:
+Use the `/add-registries` command to automatically fetch all 180+ registries from `https://ui.shadcn.com/r/registries.json` and add them to `components.json`.
 
-```json
-{
-  "registries": {
-    "@magicui": "https://magicui.design/r/{name}",
-    "@aceternity": "https://ui.aceternity.com/r/{name}",
-    "@animate-ui": "https://animate-ui.com/r/{name}",
-    "@originui": "https://originui.com/r/{name}",
-    "@cult-ui": "https://www.cult-ui.com/r/{name}",
-    "@motion-primitives": "https://motion-primitives.com/r/{name}",
-    "@bundui": "https://bundui.io/r/{name}",
-    "@blocks-so": "https://blocks.so/r/{name}",
-    "@efferd": "https://efferd.com/r/{name}",
-    "@doras-ui": "https://ui.doras.to/r/{name}",
-    "@8bitcn": "https://www.8bitcn.com/r/{name}",
-    "@boldkit": "https://boldkit.dev/r/{name}",
-    "@basecn": "https://basecn.dev/r/{name}",
-    "@diceui": "https://www.diceui.com/r/{name}",
-    "@cardcn": "https://cardcn.dev/r/{name}",
-    "@chamaac": "https://chamaac.com/r/{name}",
-    "@commerce-ui": "https://commerce-ui.com/r/{name}",
-    "@ai-elements": "https://ai-sdk.dev/elements/r/{name}",
-    "@assistant-ui": "https://www.assistant-ui.com/r/{name}",
-    "@tool-ui": "https://www.tool-ui.com/r/{name}",
-    "@creative-tim": "https://www.creative-tim.com/ui/r/{name}",
-    "@better-upload": "https://better-upload.com/r/{name}",
-    "@8starlabs-ui": "https://ui.8starlabs.com/r/{name}",
-    "@unlumen-ui": "https://ui.unlumen.com/r/{name}",
-    "@arc": "https://witharc.co/components/r/{name}",
-    "@abui": "https://abui.io/r/{name}",
-    "@aevr": "https://ui.aevr.space/r/{name}",
-    "@ai-blocks": "https://webllm.org/blocks/r/{name}",
-    "@einui": "https://ui.eindev.ir/r/{name}",
-    "@billingsdk": "https://billingsdk.com/r/{name}"
-  }
-}
-```
-
-Merge this with existing registries in `components.json` — do not replace the entire file.
+The command:
+1. Fetches the JSON endpoint
+2. Parses each entry's `name` and `url`
+3. Adds them to the `"registries"` field in `components.json`
+4. Merges with existing entries — never overwrites

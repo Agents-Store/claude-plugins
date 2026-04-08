@@ -173,27 +173,24 @@ Check that:
 
 ## Step 6: Configure Community Registries (Optional)
 
-To search and install components from 30+ free community registries (MagicUI, Aceternity, Origin UI, etc.), add them to the `"registries"` field in `components.json`:
+The official shadcn MCP only searches registries listed in `components.json`. To unlock search across all 180+ community registries, populate them from the official endpoint:
+
+```bash
+curl -s https://ui.shadcn.com/r/registries.json
+```
+
+This returns a JSON array with `name`, `url`, `homepage`, `description` for every registry. Add each entry to the `"registries"` field in `components.json`:
 
 ```json
 {
   "registries": {
-    "ss-components": { "url": "https://shadcnstudio.com/registry" },
-    "ss-blocks": { "url": "https://shadcnstudio.com/registry" },
-    "ss-themes": { "url": "https://shadcnstudio.com/registry" },
-    "@magicui": "https://magicui.design/r/{name}",
-    "@aceternity": "https://ui.aceternity.com/r/{name}",
-    "@originui": "https://originui.com/r/{name}",
-    "@animate-ui": "https://animate-ui.com/r/{name}",
-    "@bundui": "https://bundui.io/r/{name}",
-    "@commerce-ui": "https://commerce-ui.com/r/{name}"
+    "@magicui": "https://magicui.design/r/{name}.json",
+    "@aceternity": "https://ui.aceternity.com/r/{name}.json"
   }
 }
 ```
 
-This enables the official shadcn MCP to search across these registries. The CLI can install from any registry without configuration, but MCP search requires them in `components.json`.
-
-To add all 30+ registries at once, use the `/setup-registries --all` command or see the `component-search` skill for the full list.
+Use the `/add-registries` command to do this automatically — it fetches the endpoint, parses all entries, and merges them into `components.json`.
 
 ### Install the Official shadcn Skill
 

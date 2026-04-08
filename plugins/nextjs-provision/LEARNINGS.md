@@ -21,3 +21,10 @@ Accumulated fixes, discoveries, and improvements for the nextjs-provision plugin
 **Feature:** Added `component-search` skill with full reference of 30+ free community registries, MCP config templates, CLAUDE.md section template, and two commands (`search-components`, `setup-registries`). Extended `setup`, `mcp-tools`, and `component-registry` skills with community registry sections. Added `.mcp.json` with official shadcn MCP and Jpisnice community MCP servers.
 **Implementation:** New skill (component-search) + 4 reference files, 2 new commands, extended 3 existing skills, updated agent, added .mcp.json
 **Rationale:** Plugin only covered standard shadcn/ui and shadcn studio registries. Users had no guidance on discovering and installing components from the 30+ free community registries (MagicUI, Aceternity, etc.) available for shadcn v4.
+
+## 2026-04-08 — component-search: Replace hardcoded registries with dynamic fetch
+
+**Problem:** The community-registries.md reference and setup instructions used a hardcoded list of 30 registries. This becomes stale as registries are added/removed.
+**Fix:** Added dynamic fetch from `https://ui.shadcn.com/r/registries.json` (official endpoint, 180+ registries, always current). Created `/add-registries` command that fetches and populates components.json automatically. Updated component-search skill, setup skill, and setup-registries command to use dynamic source. Kept category guide as curated reference.
+**Root cause:** Original implementation used a static list instead of the official API endpoint.
+**Severity:** Major
