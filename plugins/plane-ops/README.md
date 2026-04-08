@@ -1,6 +1,8 @@
 # plane-ops
 
-Agile operations knowledge plugin for [Plane](https://plane.so). Sprint planning, backlog management, estimation, retrospectives, daily standups, roadmaps, dependencies, page publishing, and everything in between.
+Agile operations knowledge plugin for [Plane](https://plane.so). Full coverage of the Plane MCP surface: sprint planning, backlog management, estimation, retrospectives, daily standups, work items, labels/states/types/properties, pages (sprint reports, retros, ADRs, runbooks, specs), roadmaps, dependencies, and more.
+
+**Current version: 1.3.0** — adds 22 new commands, `labels-states-properties` skill, extended `pages-publishing` with 5 general-purpose page templates, destructive-operation safety hooks, and 27 new evals (36 total across 9 skills, 100% pass rate).
 
 ## What this plugin does
 
@@ -40,20 +42,25 @@ Every other skill in the plugin references action names only (`list_projects`, `
 - **sprint-review-retro** — review, retrospective formats, action item tracking
 - **project-setup** — bootstrapping a new Agile-ready project
 - **intake-triage** — triaging incoming requests into the backlog
-- **pages-publishing** — publishing sprint reports, retros, release notes, roadmap pages; includes HTML templates and list-rendering gotchas specific to the Plane editor
-- **examples** — end-to-end workflow references and related-skill catalog
+- **labels-states-properties** — taxonomy design: when to use labels vs work item types vs custom properties, state group rules, naming conventions, quarterly audit workflow
+- **pages-publishing** — publishing sprint reports, retros, release notes, ADRs, runbooks, specs, meeting notes, roadmap pages; includes HTML templates, list-rendering gotchas, and verified workarounds for Plane editor quirks
+- **examples** — end-to-end workflow references, tool-call patterns, everyday command scenarios
 
-### Commands
+### Commands (44 total)
 
-Sprint lifecycle: `/plan-sprint`, `/create-sprint`, `/sprint-status`, `/close-sprint`, `/burndown`, `/standup`, `/retro`, `/velocity`
+**Sprint lifecycle:** `/plan-sprint`, `/create-sprint`, `/sprint-status`, `/close-sprint`, `/burndown`, `/standup`, `/retro`, `/velocity`, `/cycles`
 
-Work management: `/work-item`, `/groom-backlog`, `/backlog-health`, `/wsjf-prioritize`, `/estimate`, `/decompose`, `/dependencies`, `/triage-intake`
+**Work items:** `/work-item`, `/find`, `/my-work`, `/assign`, `/comment`, `/link`, `/log-time`, `/relate`, `/history`, `/bulk-update`
 
-Long-horizon planning: `/create-module`, `/create-epic`, `/milestone-status`, `/roadmap`
+**Backlog & grooming:** `/groom-backlog`, `/backlog-health`, `/wsjf-prioritize`, `/estimate`, `/decompose`, `/dependencies`, `/triage-intake`
 
-Publishing: `/publish-report`
+**Long-horizon planning:** `/create-module`, `/module`, `/create-epic`, `/epic`, `/create-milestone` (via `/milestone`), `/milestone`, `/milestone-status`, `/initiative`, `/roadmap`
 
-Setup: `/setup-project`
+**Taxonomy & config:** `/label`, `/state`, `/work-item-type`, `/property`
+
+**Publishing & pages:** `/publish-report`, `/page`
+
+**Project & workspace:** `/setup-project`, `/projects`, `/members`, `/whoami`
 
 ### Agents
 
@@ -63,7 +70,7 @@ Setup: `/setup-project`
 ### Hooks
 
 - `SessionStart` — reminds Claude to consult `connector-bootstrap` if the session will involve Plane
-- `UserPromptSubmit` — regex matcher on Plane-related keywords; forces bootstrap protocol before answering
+- `PreToolUse` — intercepts destructive Plane operations (delete, archive-forced, bulk-update >50 items) and requires explicit user confirmation before the call proceeds
 
 ## Prerequisites
 

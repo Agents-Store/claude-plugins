@@ -9,6 +9,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "delete_(project|cycle|state|work_item|work_item_type|work_item_property|label|module|epic|milestone|initiative|work_log|work_item_comment|work_item_link)",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "DESTRUCTIVE PLANE OPERATION DETECTED. Before proceeding with this delete call, verify with the user: (1) Show the user the exact resource being deleted (name, ID, and a one-line description of what it contains). (2) Explicitly state what will be lost and what will be unlinked but preserved — e.g., `delete_cycle` unlinks items but preserves them; `delete_project` is catastrophic; `delete_state` requires migrating items first. (3) Ask the user 'Proceed with the delete? (yes/no)' and WAIT for 'yes'. Only continue after explicit confirmation. If the user says no or is ambiguous, abort and offer a safer alternative (archive instead of delete, migrate state first, etc.). Never delete production data without this confirmation even if the user previously approved a related operation — each destructive call needs its own confirmation."
+          }
+        ]
+      }
     ]
   }
 }

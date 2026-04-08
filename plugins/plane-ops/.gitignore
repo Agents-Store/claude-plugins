@@ -2,6 +2,7 @@
 # These contain instance-specific tool prefixes (e.g. resolved via ToolSearch during testing)
 # and must never be shipped with the plugin, which must stay tool-agnostic.
 skills/*-workspace/
+.skill-workspaces/
 
 # Local settings
 .claude/*.local.md

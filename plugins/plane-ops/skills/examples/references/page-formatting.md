@@ -132,6 +132,30 @@ When generating page content from data (sprint metrics, retro notes, etc.):
 3. **Avoid raw newlines as spacing** — they're collapsed by the editor; use `<p>` blocks instead.
 4. **Keep one page per ritual** — don't append to old pages; create a new dated one each time so history stays browsable.
 
+## List Rendering Gotchas — Critical
+
+Plane's editor silently transforms several "valid HTML" patterns into broken output. The **canonical documentation with full explanations, roundtrip verification, and remediation examples** lives in the `pages-publishing` skill (`skills/pages-publishing/SKILL.md`, section "List Rendering Gotchas — Critical"). This file keeps a short summary so you can catch the most common breakage without loading the full skill.
+
+### Quick checklist before publishing any list
+
+1. **`<li>` must start with text, not a nested list.** A `<li>` whose first child is `<ul>`/`<ol>` gets torn into 3 disjointed lists. Put leading text in the parent `<li>` before the nested list. (Gotcha 1)
+2. **No `data-checked` or `data-*` attributes.** Plane strips them. Use Unicode markers `✅ ⏳ ⬜` in the text instead. (Gotcha 2)
+3. **Never emit empty `<li></li>`.** Produces a visible empty bullet. For empty template placeholders, conditionally omit the `<ul>` block or substitute `<li><em>None</em></li>`. (Gotcha 3)
+4. **No mixed text + `<p>` inside a single `<li>`.** They stack as separate paragraphs. Use `<br>` for multi-line within one bullet. (Gotcha 4)
+5. **Nested lists: max 3 levels.** Deeper works but becomes unreadable.
+
+### Minimal correct pattern
+
+```html
+<ul>
+  <li>Topic<ul><li>Sub-point</li></ul></li>
+  <li>✅ Done action</li>
+  <li>⏳ In progress action</li>
+</ul>
+```
+
+**When in doubt, open `pages-publishing` skill** — it has the full breakage examples with HTML-in/ProseMirror-out comparisons, additional edge cases, and the full template catalog (sprint-report, retro, release-notes, roadmap, milestone-update, meeting-notes, decision-log, spec, runbook).
+
 ## Pitfalls
 
 | Symptom | Cause | Fix |
@@ -141,3 +165,6 @@ When generating page content from data (sprint metrics, retro notes, etc.):
 | Headings missing | Used `# Heading` | Use `<h2>Heading</h2>` |
 | Tables look broken | Used colspan/rowspan or nested tables | Flatten to simple `<tr>/<td>` |
 | Links not clickable | Used bare URL text | Wrap in `<a href="…">…</a>` |
+| List has gaps / torn apart | `<li>` starts with nested `<ul>` | Add leading text in parent `<li>` (Gotcha 1) |
+| Checkboxes render as plain bullets | Used `data-checked` attribute | Use `✅ ⏳ ⬜` Unicode markers (Gotcha 2) |
+| Empty bullet line visible | Empty `<li></li>` from template placeholder | Conditional render the `<ul>` block (Gotcha 3) |

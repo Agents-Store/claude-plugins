@@ -20,7 +20,8 @@ For day-to-day operations, route through the dedicated skills rather than this r
 | Feature/workstream grouping | **modules** |
 | Long-horizon planning (epic, initiative, milestone) | **epics-initiatives-milestones** |
 | Triage incoming requests | **intake-triage** |
-| Publish reports and pages | **pages-publishing** |
+| Publish reports and pages (sprint, retro, ADR, runbook, spec) | **pages-publishing** |
+| Labels, states, work item types, custom properties | **labels-states-properties** |
 | Backlog grooming, WSJF | **backlog-management** |
 | Estimation | **estimation** |
 | Task decomposition | **task-decomposition** |
@@ -38,6 +39,7 @@ For day-to-day operations, route through the dedicated skills rather than this r
 | [page-formatting.md](references/page-formatting.md) | HTML formatting rules and templates for Plane pages (`description_html`) |
 | [sprint-lifecycle.md](references/scenarios/sprint-lifecycle.md) | End-to-end sprint lifecycle scenario |
 | [backlog-grooming.md](references/scenarios/backlog-grooming.md) | Backlog grooming session scenario |
+| [everyday-commands.md](references/scenarios/everyday-commands.md) | Common day-to-day flows: page creation, time logging, PR linking, bulk edits, label/state setup |
 
 ## Quick Reference: All Tools by Group
 

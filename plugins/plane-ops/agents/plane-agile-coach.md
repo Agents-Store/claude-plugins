@@ -60,7 +60,8 @@ All Agile formulas, the Definition of Ready, the Definition of Done, MoSCoW mapp
 | Feature/workstream grouping across sprints | **modules** |
 | Epics, initiatives, milestones, long-horizon | **epics-initiatives-milestones** |
 | Triage incoming requests and bug reports | **intake-triage** |
-| Publish sprint reports, retros, release notes, roadmap | **pages-publishing** |
+| Publish sprint reports, retros, ADRs, specs, runbooks, roadmap | **pages-publishing** |
+| Labels, states, work item types, custom properties | **labels-states-properties** |
 | Tool call patterns, end-to-end examples | **examples** |
 
 ## Resolving IDs

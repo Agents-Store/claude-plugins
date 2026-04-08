@@ -1,6 +1,6 @@
 ---
 name: pages-publishing
-description: Create and publish Plane pages — sprint reports, retro notes, release notes, roadmap pages, meeting notes, and stakeholder updates as formatted HTML. Use when the user wants to publish a report, write a sprint summary, create a retro page, generate release notes, or share a roadmap. Includes reusable HTML templates.
+description: Create and publish Plane pages — sprint reports, retro notes, release notes, roadmap, meeting notes, decision logs (ADRs), specs, runbooks, and any general-purpose page as formatted HTML. Use when the user wants to publish a report, write a sprint summary, create a retro page, generate release notes, share a roadmap, document a decision, write a spec, capture meeting notes, or create any Plane page. Includes reusable HTML templates and Plane editor compatibility rules.
 ---
 
 # Pages Publishing
@@ -276,6 +276,160 @@ Each template uses `{{PLACEHOLDER}}` tokens. Render by replacing tokens with con
 6. Share the page URL with stakeholders
 ```
 
+## General-Purpose Page Templates
+
+The templates above are tied to specific reporting workflows. The `/page` command also supports general-purpose templates for everyday documentation needs. Use these when the user wants any Plane page that is not a sprint/retro/release/roadmap/milestone report.
+
+### Meeting Notes
+
+```html
+<h1>{{MEETING_TITLE}}</h1>
+<p><strong>Date:</strong> {{DATE}} &middot; <strong>Attendees:</strong> {{ATTENDEES}}</p>
+
+<h2>Agenda</h2>
+<ol>
+  <li>{{AGENDA_ITEM_1}}</li>
+</ol>
+
+<h2>Discussion</h2>
+<p>{{NOTES}}</p>
+
+<h2>Decisions</h2>
+<ul>
+  <li>{{DECISION_1}}</li>
+</ul>
+
+<h2>Action Items</h2>
+<table>
+  <thead><tr><th>Action</th><th>Owner</th><th>Due</th></tr></thead>
+  <tbody>
+    <tr><td>{{ACTION_1}}</td><td>{{OWNER_1}}</td><td>{{DUE_1}}</td></tr>
+  </tbody>
+</table>
+```
+
+### Decision Log (ADR)
+
+```html
+<h1>ADR-{{NUMBER}} — {{TITLE}}</h1>
+<p><strong>Status:</strong> {{STATUS}} &middot; <strong>Date:</strong> {{DATE}} &middot; <strong>Deciders:</strong> {{DECIDERS}}</p>
+
+<h2>Context</h2>
+<p>{{CONTEXT}}</p>
+
+<h2>Decision</h2>
+<p>{{DECISION}}</p>
+
+<h2>Alternatives Considered</h2>
+<ul>
+  <li><strong>{{ALT_1}}</strong> — {{ALT_1_REASON}}</li>
+</ul>
+
+<h2>Consequences</h2>
+<p><strong>Positive:</strong> {{POSITIVE}}</p>
+<p><strong>Negative:</strong> {{NEGATIVE}}</p>
+<p><strong>Risks:</strong> {{RISKS}}</p>
+```
+
+Use ADR status values: `Proposed`, `Accepted`, `Deprecated`, `Superseded by ADR-N`.
+
+### Spec / Design Doc
+
+```html
+<h1>{{FEATURE_NAME}} — Design Doc</h1>
+<p><strong>Author:</strong> {{AUTHOR}} &middot; <strong>Status:</strong> {{STATUS}} &middot; <strong>Last updated:</strong> {{DATE}}</p>
+
+<h2>Problem</h2>
+<p>{{PROBLEM_STATEMENT}}</p>
+
+<h2>Goals</h2>
+<ul><li>{{GOAL_1}}</li></ul>
+
+<h2>Non-goals</h2>
+<ul><li>{{NON_GOAL_1}}</li></ul>
+
+<h2>Proposed Solution</h2>
+<p>{{SOLUTION}}</p>
+
+<h2>API Changes</h2>
+<pre><code>{{API_SAMPLE}}</code></pre>
+
+<h2>Rollout Plan</h2>
+<ol>
+  <li>{{ROLLOUT_STEP_1}}</li>
+</ol>
+
+<h2>Open Questions</h2>
+<ul><li>{{QUESTION_1}}</li></ul>
+
+<h2>Linked Work</h2>
+<ul>
+  <li>Epic: {{EPIC_LINK}}</li>
+  <li>Tracking issues: {{ISSUE_LINKS}}</li>
+</ul>
+```
+
+### Runbook
+
+```html
+<h1>Runbook — {{SCENARIO}}</h1>
+<p><strong>Owner:</strong> {{OWNER}} &middot; <strong>Severity:</strong> {{SEVERITY}} &middot; <strong>Last verified:</strong> {{DATE}}</p>
+
+<h2>Symptoms</h2>
+<ul><li>{{SYMPTOM_1}}</li></ul>
+
+<h2>Diagnosis</h2>
+<ol>
+  <li>{{DIAGNOSIS_STEP_1}}</li>
+</ol>
+
+<h2>Mitigation</h2>
+<ol>
+  <li>{{MITIGATION_STEP_1}}</li>
+</ol>
+
+<h2>Recovery</h2>
+<ol>
+  <li>{{RECOVERY_STEP_1}}</li>
+</ol>
+
+<h2>Postmortem Trigger</h2>
+<p>{{WHEN_TO_FILE_POSTMORTEM}}</p>
+
+<h2>Related Dashboards</h2>
+<ul><li><a href="{{DASHBOARD_URL}}">{{DASHBOARD_NAME}}</a></li></ul>
+```
+
+Runbook discipline: every action in Mitigation/Recovery is a single, copy-paste-runnable command — no "configure the thing" sentences.
+
+### Blank
+
+```html
+<h1>{{TITLE}}</h1>
+<p><em>Last updated: {{DATE}}</em></p>
+
+<p>{{BODY}}</p>
+```
+
+The `blank` template is for when the user wants control of the body. Always include the "Last updated" line at the top — Plane does not surface page freshness in the sidebar.
+
+## Template Selection Map
+
+`/page create ... --from-template <name>` resolves these template names:
+
+| Name | Template | Best for |
+|---|---|---|
+| `sprint-report` | Sprint Report | end-of-cycle summary |
+| `retro` | Retrospective | sprint retro notes |
+| `release-notes` | Release Notes | version release |
+| `roadmap` | Roadmap | quarterly planning |
+| `milestone-update` | Milestone Update | release tracking |
+| `meeting-notes` | Meeting Notes | any meeting |
+| `decision-log` | Decision Log (ADR) | architectural decisions |
+| `spec` | Spec / Design Doc | feature design before build |
+| `runbook` | Runbook | incident response |
+| `blank` | Blank | freeform content |
+
 ## Best Practices
 
 1. Publish the sprint report within 24 hours of sprint close — memory fades fast.
@@ -283,3 +437,5 @@ Each template uses `{{PLACEHOLDER}}` tokens. Render by replacing tokens with con
 3. Keep release notes audience-appropriate: customer-facing pages omit internal work items.
 4. Roadmap pages should be updated weekly, not created from scratch.
 5. Never publish PII or secrets on workspace pages — they may be broadly visible.
+6. Always include a "Last updated" line — Plane does not show page freshness in the sidebar.
+7. For ADRs, use a numbered prefix (`ADR-001`, `ADR-002`) so they sort naturally.
