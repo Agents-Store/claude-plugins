@@ -9,17 +9,6 @@
           }
         ]
       }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "(?i)(sprint|backlog|work item|work-item|\\bcycle\\b|\\bepic\\b|\\bmodule\\b|milestone|initiative|roadmap|standup|retro|estimate|\\bplane\\b|\\bticket\\b|scrum|kanban|burndown|velocity|grooming|triage)",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "The user's prompt matches a Plane-ops trigger. Before answering: (1) consult the `connector-bootstrap` skill, (2) probe `ToolSearch` with relevant queries to discover Plane tools across any MCP/connector naming convention, (3) if multiple Plane instances are connected, ask which one to use, (4) NEVER say 'Plane tools are not available' without having run at least 4 distinct ToolSearch probes first. Then route to the matching skill (sprint-planning, work-items, modules, epics-initiatives-milestones, intake-triage, pages-publishing, backlog-management, etc.)."
-          }
-        ]
-      }
     ]
   }
 }
