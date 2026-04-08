@@ -79,11 +79,13 @@ export function createWebSite(url: string, name: string): WithContext<WebSite> {
     '@type': 'WebSite',
     url,
     name,
+    // SearchAction with query-input requires a type assertion because schema-dts
+    // does not include the 'query-input' property in its SearchAction type.
+    // The JSON-LD output is valid — Google requires this exact format.
     potentialAction: {
       '@type': 'SearchAction',
-      target: { '@type': 'EntryPoint', urlTemplate: `${url}/search?q={search_term_string}` },
-      'query-input': 'required name=search_term_string',
-    },
+      target: `${url}/search?q={search_term_string}`,
+    } as WithContext<WebSite>['potentialAction'],
   }
 }
 
@@ -134,7 +136,7 @@ export function createProduct(product: {
   sku?: string
   brand?: string
   ratingValue?: string
-  reviewCount?: string
+  reviewCount?: number
   url: string
 }): WithContext<Product> {
   return {
@@ -152,9 +154,10 @@ export function createProduct(product: {
       availability: `https://schema.org/${product.availability}`,
       url: product.url,
     },
+    // schema-dts expects ratingCount/reviewCount as number, not string
     aggregateRating: product.ratingValue
       ? {
-          '@type': 'AggregateRating',
+          '@type': 'AggregateRating' as const,
           ratingValue: product.ratingValue,
           reviewCount: product.reviewCount,
         }

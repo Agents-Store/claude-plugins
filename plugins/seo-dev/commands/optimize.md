@@ -27,9 +27,9 @@ This command orchestrates all seo-dev skills plus Directus MCP tools:
 | `seo-dev:technical-seo` | Phase 6: Technical SEO |
 | `seo-dev:content-seo` | Phase 7: Content optimization |
 | `seo-dev:audit` | Phase 1 & Phase 8: Audit & Report |
-| `directus-dev:schema-design` | Phase 3D: Directus SEO fields |
-| `directus-dev:field-relations` | Phase 3D: Field creation |
-| `stack-directus-nextjs-dev:directus-to-nextjs` | Phase 3D: Data fetching |
+| `directus-dev:schema-design` | Phase 1g: Schema audit |
+| `directus-dev:mcp-tools` | Phase 3D: Field creation & item population |
+| `stack-directus-nextjs-dev:directus-to-nextjs` | Phase 3D-4: Data fetching updates |
 
 ## Process
 
@@ -120,18 +120,37 @@ done
 
 #### 1g. Directus Schema Audit (skip if --skip-directus)
 
-Use Directus MCP tools to check existing collections for SEO fields:
+Use Directus MCP tools to discover content collections and check for SEO fields.
 
-For each content collection (blog posts, pages, products, etc.):
+**Step 1: Discover all collections**
 
-1. Call `schema` tool with `keys: ["<collection>"]` to list all fields
-2. Check if these SEO fields exist:
-   - `meta_title` (string, input)
-   - `meta_description` (text, textarea)
-   - `og_image` (file, single image)
-   - `slug` (string, input — may already exist)
-   - `canonical_url` (string, input)
-3. Record which collections need SEO fields added
+Call the `schema` tool with no parameters to get the full collection list:
+
+```
+Tool: schema
+Input: {}
+```
+
+**Step 2: Identify content collections**
+
+From the schema response, identify content collections — those that have a `slug` or `name`/`title` field and represent public-facing content (e.g., `components`, `posts`, `pages`, `products`). Skip system collections and junction tables.
+
+**Step 3: Get detailed schema for each content collection**
+
+```
+Tool: schema
+Input: { "keys": ["components", "posts"] }
+```
+
+**Step 4: Check for SEO fields**
+
+For each content collection, check if these fields exist:
+- `meta_title` (string) — SEO title override
+- `meta_description` (text) — SEO description override
+- `og_image_url` (string) — Open Graph image URL
+- `canonical_url` (string) — Custom canonical URL
+
+Record which collections need SEO fields added vs. which already have them.
 
 #### 1h. Compile Audit Report
 
@@ -167,9 +186,11 @@ Present findings in this format before proceeding:
 ### Headings
 - Pages with wrong H1 count: [list]
 
-### Directus
-- Collections needing SEO fields: [list]
-- Collections with SEO fields: [list]
+### Directus SEO Fields
+- Content collections found: [list]
+- Collections with all 4 SEO fields (meta_title, meta_description, og_image_url, canonical_url): [list]
+- Collections missing SEO fields: [list with which fields are missing]
+- Items with empty meta_title: X/Y total
 
 ### Estimated changes: X files to create/modify
 ```
@@ -315,82 +336,224 @@ For each content page type discovered in Phase 1:
 
 ### Phase 3D: Directus SEO Fields (skip if --skip-directus)
 
-For each content collection that lacks SEO fields:
+**This phase is MANDATORY unless `--skip-directus` is passed.** It creates SEO fields in Directus content collections via MCP tools and auto-populates existing records. Do NOT skip this or defer it to a separate request.
 
-1. **Add fields via MCP** — Call the Directus `fields` tool:
+#### 3D-1. Create SEO fields via MCP
 
-   ```
-   Tool: fields
-   Input: {
-     "action": "create",
-     "collection": "<collection_name>",
-     "field": "meta_title",
-     "type": "string",
-     "meta": {
-       "interface": "input",
-       "display": "raw",
-       "note": "SEO title for search engines (50-60 chars). Falls back to main title if empty.",
-       "options": { "trim": true },
-       "group": null,
-       "sort": 100,
-       "width": "half"
-     }
-   }
-   ```
+For each content collection identified in Phase 1g that lacks SEO fields, call the `fields` tool to create all four fields in a single batch.
 
-   Repeat for each field:
+**IMPORTANT**: The `data` parameter must always be an **array** of field objects, even for a single field. Each field object must include `field`, `type`, `meta`, and `schema`.
 
-   | Field | Type | Interface | Width | Note |
-   |-------|------|-----------|-------|------|
-   | `meta_title` | string | input | half | SEO title (50-60 chars) |
-   | `meta_description` | text | textarea | full | SEO description (150-160 chars) |
-   | `og_image` | uuid | file-image | half | Open Graph image (1200x630) |
-   | `canonical_url` | string | input | half | Custom canonical URL (optional) |
+```
+Tool: fields
+Input: {
+  "action": "create",
+  "collection": "<collection_name>",
+  "data": [
+    {
+      "field": "meta_title",
+      "type": "string",
+      "meta": {
+        "interface": "input",
+        "display": "raw",
+        "note": "SEO title for search engines (50-60 chars). Falls back to main title if empty.",
+        "options": { "trim": true, "placeholder": "Override page title for search results..." },
+        "width": "half",
+        "sort": 100
+      },
+      "schema": {
+        "data_type": "varchar",
+        "max_length": 70,
+        "is_nullable": true
+      }
+    },
+    {
+      "field": "meta_description",
+      "type": "text",
+      "meta": {
+        "interface": "input-multiline",
+        "display": "raw",
+        "note": "SEO description (150-160 chars). Falls back to main description if empty.",
+        "options": { "trim": true, "placeholder": "Override description for search results..." },
+        "width": "full",
+        "sort": 101
+      },
+      "schema": {
+        "data_type": "text",
+        "is_nullable": true
+      }
+    },
+    {
+      "field": "og_image_url",
+      "type": "string",
+      "meta": {
+        "interface": "input",
+        "display": "raw",
+        "note": "Open Graph image URL (1200x630 recommended). Used for social media previews.",
+        "options": { "trim": true, "placeholder": "https://..." },
+        "width": "half",
+        "sort": 102
+      },
+      "schema": {
+        "data_type": "varchar",
+        "max_length": 500,
+        "is_nullable": true
+      }
+    },
+    {
+      "field": "canonical_url",
+      "type": "string",
+      "meta": {
+        "interface": "input",
+        "display": "raw",
+        "note": "Custom canonical URL. Leave empty to use the default page URL.",
+        "options": { "trim": true, "placeholder": "https://..." },
+        "width": "half",
+        "sort": 103
+      },
+      "schema": {
+        "data_type": "varchar",
+        "max_length": 500,
+        "is_nullable": true
+      }
+    }
+  ]
+}
+```
 
-   Only create fields that do not already exist. Skip `slug` if the collection already has one.
+**Rules:**
+- Only create fields that do not already exist (check Phase 1g results)
+- Process ALL content collections, not just one
+- If a collection already has some SEO fields (e.g., `meta_title` exists but `og_image_url` doesn't), only add the missing ones
+- Log every field created: `Created <field> on <collection>`
 
-2. **Auto-populate SEO fields** for existing items that have empty SEO fields:
+#### 3D-2. Auto-populate SEO fields from existing data
 
-   - Read all items with empty `meta_title`
-   - For each, derive `meta_title` from the item's main title field (truncate to 60 chars)
-   - Derive `meta_description` from the item's content/description field (truncate to 160 chars)
-   - Call `items` tool with `action: "update"` to save
+For each content collection that received new SEO fields, read all items that have empty SEO fields and derive values from existing content.
 
-3. **Update Next.js data fetching** to include SEO fields in `readItems` calls:
+**Step 1: Read items with empty meta_title**
 
-   ```tsx
-   const post = await directus.request(
-     readItems('posts', {
-       fields: ['*', 'meta_title', 'meta_description', 'og_image', 'canonical_url'],
-       filter: { slug: { _eq: slug } },
-       limit: 1,
-     })
-   )
-   ```
+```
+Tool: items
+Input: {
+  "action": "read",
+  "collection": "<collection_name>",
+  "query": {
+    "fields": ["id", "name", "description"],
+    "filter": {
+      "meta_title": { "_null": true }
+    },
+    "limit": -1
+  }
+}
+```
 
-4. **Update generateMetadata** on dynamic pages to use Directus SEO fields:
+Adapt field names to the collection's actual schema — the "title" field may be called `name`, `title`, `heading`, etc. The "description" field may be `description`, `excerpt`, `content`, `body`, etc. Use the schema from Phase 1g to determine correct field names.
 
-   ```tsx
-   export async function generateMetadata({ params }: Props): Promise<Metadata> {
-     const { slug } = await params
-     const post = await getPost(slug)
+**Step 2: Batch update items with derived SEO values**
 
-     return {
-       title: post.meta_title || post.title,
-       description: post.meta_description || post.excerpt,
-       openGraph: {
-         title: post.meta_title || post.title,
-         description: post.meta_description || post.excerpt,
-         images: post.og_image
-           ? [{ url: getDirectusAssetUrl(post.og_image), width: 1200, height: 630 }]
-           : undefined,
-       },
-       alternates: {
-         canonical: post.canonical_url || `/blog/${slug}`,
-       },
-     }
-   }
-   ```
+```
+Tool: items
+Input: {
+  "action": "update",
+  "collection": "<collection_name>",
+  "keys": [1, 2, 3],
+  "data": {
+    "meta_title": null
+  }
+}
+```
+
+Since batch update applies the same data to all keys, process items **individually** or in groups with identical derived values:
+
+```
+Tool: items
+Input: {
+  "action": "update",
+  "collection": "<collection_name>",
+  "keys": [<item_id>],
+  "data": {
+    "meta_title": "<derived from name/title, truncated to 60 chars>",
+    "meta_description": "<derived from description, truncated to 160 chars>"
+  }
+}
+```
+
+**Derivation rules:**
+- `meta_title`: Take the item's primary title/name field. Truncate to 60 chars. If > 57 chars, truncate at the last word boundary and append "..."
+- `meta_description`: Take the item's description/content/excerpt field. Strip HTML/markdown if present. Truncate to 160 chars at word boundary.
+- `og_image_url`: Use the item's `image_url` field if one exists. Otherwise leave null.
+- `canonical_url`: Leave null (auto-derived from slug in Next.js)
+- For **10+ items**, process in batches of 10 to avoid timeouts. Log progress: `Updated X/Y items in <collection>`
+
+#### 3D-3. Update TypeScript types
+
+Add SEO fields to the relevant TypeScript interface in the project's types file:
+
+```tsx
+export interface DirectusComponent {
+  // ... existing fields ...
+  meta_title: string | null
+  meta_description: string | null
+  og_image_url: string | null
+  canonical_url: string | null
+}
+```
+
+#### 3D-4. Update data fetching functions
+
+Add SEO fields to all `readItems` calls that fetch content for pages with `generateMetadata`:
+
+```tsx
+const item = await directus.request(
+  readItems('components', {
+    fields: [
+      // ... existing fields ...
+      'meta_title', 'meta_description', 'og_image_url', 'canonical_url',
+    ],
+    filter: { slug: { _eq: slug } },
+    limit: 1,
+  })
+)
+```
+
+#### 3D-5. Update generateMetadata to use Directus SEO fields
+
+On every dynamic page with `generateMetadata`, use Directus SEO fields with fallback to existing data:
+
+```tsx
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const item = await getComponentBySlug(slug)
+  if (!item) return { title: 'Not Found' }
+
+  const title = item.meta_title || item.name
+  const description = item.meta_description || item.description || ''
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: item.og_image_url
+        ? [{ url: item.og_image_url, width: 1200, height: 630 }]
+        : undefined,
+    },
+    alternates: {
+      canonical: item.canonical_url || `/catalog/${slug}`,
+    },
+  }
+}
+```
+
+#### 3D-6. Verify Directus changes
+
+After all fields are created and items populated:
+
+1. Call `schema` tool with `keys: ["<collection>"]` to confirm fields exist
+2. Call `items` tool to read a sample item and verify SEO fields are populated
+3. Log summary: `Directus SEO fields: X collections updated, Y fields created, Z items auto-populated`
 
 ### Phase 4: Meta Tags & OG Images
 
@@ -486,6 +649,8 @@ Present the complete report:
 | metadataBase | missing/set | set |
 | Security headers | missing/set | set |
 | AVIF/WebP | disabled/enabled | enabled |
+| Directus SEO fields | X/Y collections | Y/Y collections |
+| Items with meta_title | 0/X | X/X |
 
 ### Files Created
 - [list of new files]
@@ -495,15 +660,18 @@ Present the complete report:
 
 ### Directus Changes (if applied)
 - Collections updated: [list]
-- SEO fields added: [list]
-- Items auto-populated: X items
+- SEO fields created: [X fields across Y collections]
+  - Per collection: `<collection>`: meta_title, meta_description, og_image_url, canonical_url
+- Items auto-populated: X/Y items received derived meta_title + meta_description
+- Verification: [PASS/FAIL — schema confirmed, sample item checked]
 
 ### Remaining Manual Tasks
 - [ ] Set NEXT_PUBLIC_SITE_URL to production domain
 - [ ] Submit sitemap in Google Search Console
 - [ ] Add Google Search Console verification code
 - [ ] Create custom OG images for key pages
-- [ ] Review auto-generated meta_description values in Directus
+- [ ] Review auto-generated meta_title/meta_description values in Directus Admin
+- [ ] Add og_image_url for key items via Directus Admin
 - [ ] Test with Google Rich Results Test after deployment
 
 ### Build Status

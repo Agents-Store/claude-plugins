@@ -205,7 +205,7 @@ export default async function ProductPage({ params }: Props) {
         sku: product.sku,
         brand: product.brand,
         ratingValue: product.rating?.toString(),
-        reviewCount: product.reviewCount?.toString(),
+        reviewCount: product.reviewCount,
         url: `${SITE_URL}/products/${slug}`,
       })} />
       <JsonLd data={createBreadcrumbList([

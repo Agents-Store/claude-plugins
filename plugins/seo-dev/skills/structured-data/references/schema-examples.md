@@ -44,14 +44,12 @@ Enables the sitelinks searchbox in Google for brand queries:
   "name": "Your Site Name",
   "potentialAction": {
     "@type": "SearchAction",
-    "target": {
-      "@type": "EntryPoint",
-      "urlTemplate": "https://example.com/search?q={search_term_string}"
-    },
-    "query-input": "required name=search_term_string"
+    "target": "https://example.com/search?q={search_term_string}"
   }
 }
 ```
+
+> **Note**: Google also accepts `target` as an `EntryPoint` object with `urlTemplate` and `query-input`, but `schema-dts` types do not include `query-input`. Use the simplified `target` string format above for type-safe TypeScript, or use a type assertion if you need the full format.
 
 ## BreadcrumbList (All Inner Pages)
 
@@ -296,7 +294,7 @@ Only for genuine, publicly verifiable events:
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "4.8",
-    "ratingCount": "1024"
+    "ratingCount": 1024
   }
 }
 ```
