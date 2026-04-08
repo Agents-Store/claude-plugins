@@ -4,7 +4,7 @@
       "command": "npx",
       "args": ["-y", "@ahdev/dokploy-mcp"],
       "env": {
-        "DOKPLOY_URL": "${DOKPLOY_URL}",
+        "DOKPLOY_URL": "${DOKPLOY_URL}/api",
         "DOKPLOY_API_KEY": "${DOKPLOY_API_KEY}"
       }
     }
