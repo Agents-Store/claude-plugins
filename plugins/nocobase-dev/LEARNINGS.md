@@ -8,6 +8,12 @@ Accumulated fixes and discoveries from usage and feedback.
 **Implementation:** Created skills with reference files covering desktop/mobile routes, external data sources, chart queries, flow model templates, parent schema navigation, insert shorthands, initializeActionContext, firstOrCreate, updateOrCreate, tree/paginate params, association filters. Updated api-reference with 3 new endpoint reference files.
 **Rationale:** Plugin v1.0.0 was missing 5 major API domains critical for UX development: page routing, mobile navigation, block templates, data visualization, and multi-database support. Coverage gap identified via comprehensive ux-api.md document.
 
+## 2026-04-09 — ux-constructor: Modern Page (v2) creation algorithm
+
+**Feature:** New skill documenting the verified algorithm for creating Modern Page (v2) pages with table blocks and columns via API
+**Implementation:** Algorithm captured by intercepting browser network traffic during manual page creation. Sequence: `desktopRoutes:create` (type=flowPage) -> `uiSchemas:insert` (FlowRoute) -> `flowModels:save` (RootPageModel -> BlockGridModel -> TableBlockModel -> TableColumnModel). Includes display model mapping table and troubleshooting guide.
+**Rationale:** The existing skills documented individual API endpoints but not the correct multi-step workflow. Previous attempts to create pages programmatically used the wrong algorithm (Classic v1 with uiSchemas:insertAdjacent). The key discovery: Modern pages use `type: "flowPage"`, `x-component: "FlowRoute"`, and `flowModels:save` instead of uiSchemas for block creation. Verified by successfully creating 12 pages with table blocks for all database collections.
+
 ## 2026-04-09 — flow-models: v2.x block engine coverage
 
 **Feature:** Added flow-models skill covering the v2.x block engine (flowModels, flowSql, variables resources)

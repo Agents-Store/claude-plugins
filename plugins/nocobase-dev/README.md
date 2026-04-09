@@ -27,6 +27,7 @@ NocoBase V2 development plugin for the Agents Store. Complete API reference and 
 | `workflow-automation` | Workflow creation, nodes, execution monitoring |
 | `ui-schemas` | UI schema management, themes, and block templates |
 | `flow-models` | V2.x block engine — flow model CRUD, SQL queries, variables |
+| `ux-constructor` | Modern Page (v2) creation — verified algorithm for pages, table/form blocks, columns |
 | `routes-and-menus` | Desktop and mobile page routing, menus, role-based access |
 | `data-sources` | External database connections, multi-DB collections and fields |
 | `data-visualization` | Chart queries, aggregations, dashboard data |
