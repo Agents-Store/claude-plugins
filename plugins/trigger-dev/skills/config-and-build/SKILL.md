@@ -37,6 +37,15 @@ export default defineConfig({
 
 ## Build Extensions
 
+Build extensions require the `@trigger.dev/build` package. Install it before adding any extensions to `trigger.config.ts`:
+
+```bash
+# Install matching the SDK version
+pnpm add @trigger.dev/build@4.4.3
+```
+
+Without this package, deploy will fail with `Cannot find module '@trigger.dev/build/extensions/core'`.
+
 ### Prisma
 
 ```ts
@@ -120,9 +129,25 @@ extensions: [
 
 ### Environment Variable Sync
 
+**This is required whenever tasks use `process.env` at runtime.** Local `.env` files are NOT automatically available in deployed environments. Without `syncEnvVars`, any `process.env.X` in task code will be `undefined` at runtime, causing silent failures like `Failed to parse URL from undefined/api/...`.
+
 ```ts
 import { syncEnvVars } from "@trigger.dev/build/extensions/core";
 
+// Sync specific vars from the CLI process env (loaded via --env-file .env)
+const SYNC_VARS = ["DATABASE_URL", "API_KEY", "OPENAI_API_KEY"];
+
+extensions: [
+  syncEnvVars(async () =>
+    SYNC_VARS
+      .filter((name) => process.env[name])
+      .map((name) => ({ name, value: process.env[name]! }))
+  ),
+]
+```
+
+With a secret manager:
+```ts
 extensions: [
   syncEnvVars(async (ctx) => {
     return [
@@ -132,6 +157,8 @@ extensions: [
   }),
 ]
 ```
+
+Always deploy with `--env-file .env` so the CLI process has the variables available for `syncEnvVars` to read.
 
 ## Common Extension Combinations
 

@@ -13,3 +13,17 @@
 **Fix:** Removed TRIGGER_SECRET_KEY from all tables and .env examples. Updated SDK configure() examples to use per-env vars directly.
 **Root cause:** First iteration kept the official var alongside convention vars; the convention vars fully replace it.
 **Severity:** Minor
+
+## 2026-04-09 — deployment: Missing --api-url flag and post-deploy verification
+
+**Problem:** Self-hosted deploy section said "ensure you're logged in" but didn't show the `--api-url` flag. Agent tried non-existent `--self-hosted` flag. Also, no guidance to verify tasks after deploy — env var issues caused silent runtime failures (`undefined` in URLs).
+**Fix:** Rewrote self-hosted deploy section with explicit `--api-url` and `TRIGGER_ACCESS_TOKEN` examples. Added complete deploy flags table. Added "Post-Deploy Verification" section requiring trigger + log check for every deploy.
+**Root cause:** Skill assumed cloud-centric workflow where login profiles handle routing. Self-hosted needs explicit `--api-url`. Skill also had no verification step — deploy success != runtime success.
+**Severity:** Major
+
+## 2026-04-09 — config-and-build: syncEnvVars not flagged as required, missing @trigger.dev/build dependency
+
+**Problem:** `syncEnvVars` was documented as just another optional extension. No warning that without it, `process.env` vars are `undefined` at runtime. Also, no mention that `@trigger.dev/build` package must be installed before using any extensions — deploy fails with module not found error.
+**Fix:** Added install instruction for `@trigger.dev/build` at top of Build Extensions section. Rewrote syncEnvVars section with bold warning that it's required for any task using `process.env`, added practical pattern for syncing from `.env` file.
+**Root cause:** Skill treated env var sync as a nice-to-have rather than a deployment prerequisite. The `@trigger.dev/build` dependency was assumed to be pre-installed.
+**Severity:** Critical

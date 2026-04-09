@@ -35,30 +35,42 @@ npx trigger.dev@latest deploy --skip-promotion
 
 | Flag | Description |
 |------|-------------|
-| `--env <environment>` | Target: staging, production, preview |
+| `--env <environment>` | Target: staging, prod, preview |
+| `--api-url <url>` | Self-hosted server URL (default: `https://api.trigger.dev`) |
+| `--env-file <path>` | Load .env file into CLI process (default: `.env`) |
 | `--branch <name>` | Branch name (required for preview) |
 | `--skip-promotion` | Deploy without making it active |
 | `--skip-update-check` | Skip package version check |
+| `--skip-sync-env-vars` | Skip syncEnvVars extension |
 | `--config <path>` | Custom trigger.config.ts path |
 | `--project-ref <ref>` | Override project ref |
+| `--dry-run` | Show what would be deployed without deploying |
+| `--local-build` | Build Docker image locally |
 
 ## Self-Hosted Deploy
 
-For self-hosted instances, ensure you're logged in to the correct profile:
+For self-hosted instances, pass `--api-url` pointing to your Trigger.dev server and authenticate with `TRIGGER_ACCESS_TOKEN` (a PAT token):
 
 ```bash
-# Already logged in via: login -a <url>
-npx trigger.dev@latest deploy --env production
+# Set access token and deploy
+TRIGGER_ACCESS_TOKEN=tr_pat_xxx \
+npx trigger.dev@latest deploy \
+  --env prod \
+  --api-url https://your-trigger-instance.example.com \
+  --env-file .env
+
+# Or with project ref override
+TRIGGER_ACCESS_TOKEN=tr_pat_xxx \
+npx trigger.dev@latest deploy \
+  --env prod \
+  --api-url https://your-trigger-instance.example.com \
+  --project-ref proj_xxx \
+  --env-file .env
 ```
 
-The CLI builds locally and pushes to the self-hosted container registry.
+There is no `--self-hosted` flag — self-hosted and cloud deploys use the same CLI command, only `--api-url` differs (cloud default: `https://api.trigger.dev`).
 
-### Registry Login
-
-```bash
-docker login -u <username> <registry-url>
-# Default: localhost:5000, user: registry-user
-```
+The CLI automatically discovers the container registry from the server and handles Docker build + push internally.
 
 ## Environments
 
@@ -119,6 +131,20 @@ jobs:
   }
 }
 ```
+
+## Post-Deploy Verification
+
+After every deploy, verify tasks actually work — a successful deploy does NOT mean tasks run correctly. Environment variables, API endpoints, and data dependencies can all fail silently at runtime.
+
+1. **Check recent runs** — use `list_runs` MCP tool (or dashboard) to see if tasks are failing
+2. **Trigger each task** — use `trigger_task` MCP tool with test payloads to exercise all deployed tasks
+3. **Wait and inspect** — use `wait_for_run_to_complete` and `get_run_details` to check for errors
+4. **Common post-deploy failures:**
+   - `undefined` in URLs → missing env vars (need `syncEnvVars` extension)
+   - `401 Unauthorized` → expired or wrong API tokens in env vars
+   - `Cannot read properties of null` → task code expects data that doesn't exist yet
+
+Never declare a deploy done without triggering at least one test run per task.
 
 ## Deeper Reference
 
