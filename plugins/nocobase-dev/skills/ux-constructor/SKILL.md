@@ -1,7 +1,7 @@
 ---
 name: ux-constructor
 description: |
-  Modern Page (v2) creation — the correct algorithm for building pages, adding blocks (table, form), and configuring columns via the NocoBase API. Use when:
+  Modern Page (v2) creation and editing — the correct algorithm for building pages, adding blocks (table, form), configuring columns, and editing existing UX components via the NocoBase API. Use when:
   - "create a NocoBase page"
   - "add a modern page"
   - "build a page with a table block"
@@ -13,6 +13,14 @@ description: |
   - "add table block with columns"
   - "programmatic page creation"
   - "create UI via API"
+  - "hide a column"
+  - "show a column"
+  - "remove a column from table"
+  - "change column width"
+  - "enable inline editing"
+  - "edit table column settings"
+  - "remove row action"
+  - "modify existing page blocks"
 ---
 
 # UX Constructor — Modern Page (v2)
@@ -545,16 +553,128 @@ curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
 
 Key difference: `fieldPath` uses dot notation (`post.title`), and `associationPathName` specifies the association name.
 
-## Column Width
+## Editing Existing UX Components
 
-To set a column width, include `width` in `tableColumnSettings`:
+The `flowModels:save` endpoint handles both **create** and **update**. If you pass a `uid` that already exists, it updates the existing flow model. If the `uid` is new, it creates a new one.
 
-```json
-"tableColumnSettings": {
-  "model": { "use": "DisplayTextFieldModel" },
-  "width": { "width": 100 }
-}
+### Hide/Remove a Table Column
+
+Hiding a column in the Fields toggle **deletes** the flow model entirely:
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/flowModels:destroy?filterByTk=<COLUMN_UID>" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
 ```
+
+- No request body — the column UID is passed as `filterByTk` query parameter
+- This permanently removes the `TableColumnModel` and its child `field` subModel
+- To show the column again, you must create a new `TableColumnModel` (Phase 4)
+- After destroying, refresh table data: `GET <COLLECTION>:list?page=1&pageSize=20&tree=false`
+
+### Show a Hidden Column (re-add)
+
+Toggling a field ON in the Fields dropdown creates a new `TableColumnModel` — identical to Phase 4 but with a new UID:
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "uid": "<NEW_COLUMN_UID>",
+    "use": "TableColumnModel",
+    "stepParams": {
+      "fieldSettings": {
+        "init": {
+          "dataSourceKey": "main",
+          "collectionName": "<COLLECTION_NAME>",
+          "fieldPath": "<FIELD_NAME>"
+        }
+      },
+      "tableColumnSettings": {
+        "model": { "use": "<DISPLAY_MODEL>" }
+      }
+    },
+    "subModels": {
+      "field": {
+        "uid": "<NEW_FIELD_UID>",
+        "use": "<DISPLAY_MODEL>",
+        "props": null,
+        "parentId": "<NEW_COLUMN_UID>",
+        "subKey": "field",
+        "subType": "object",
+        "stepParams": {
+          "popupSettings": {
+            "openView": {
+              "collectionName": "<COLLECTION_NAME>",
+              "dataSourceKey": "main"
+            }
+          }
+        },
+        "sortIndex": 0,
+        "flowRegistry": {}
+      }
+    },
+    "parentId": "<TABLE_BLOCK_UID>",
+    "subKey": "columns",
+    "subType": "array",
+    "sortIndex": <N>,
+    "flowRegistry": {}
+  }'
+```
+
+### Update Column Settings
+
+To change column width, enable inline editing, or modify other settings, send `flowModels:save` with the **existing column UID** and only the fields you want to update. The `subModels.field` can be omitted for settings-only updates:
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "uid": "<EXISTING_COLUMN_UID>",
+    "use": "TableColumnModel",
+    "stepParams": {
+      "fieldSettings": {
+        "init": {
+          "dataSourceKey": "main",
+          "collectionName": "<COLLECTION_NAME>",
+          "fieldPath": "<FIELD_NAME>"
+        }
+      },
+      "tableColumnSettings": {
+        "model": { "use": "<DISPLAY_MODEL>" },
+        "width": { "width": 150 },
+        "quickEdit": { "editable": true }
+      }
+    },
+    "parentId": "<TABLE_BLOCK_UID>",
+    "subKey": "columns",
+    "subType": "array",
+    "sortIndex": <CURRENT_SORT_INDEX>,
+    "flowRegistry": {}
+  }'
+```
+
+### Column Settings Reference
+
+Available keys inside `tableColumnSettings`:
+
+| Key | Format | Description |
+|-----|--------|-------------|
+| `model` | `{ "use": "<DisplayModel>" }` | Display model class (required) |
+| `width` | `{ "width": <pixels> }` | Fixed column width in pixels |
+| `quickEdit` | `{ "editable": true }` | Enable inline editing in table cells |
+
+### Remove a Row Action
+
+Same as hiding a column — destroy the action's flow model:
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/flowModels:destroy?filterByTk=<ACTION_UID>" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
+```
+
+Works for `ViewActionModel`, `EditActionModel`, `DeleteActionModel`, `AddNewActionModel`.
 
 ## Known Block Model Types
 
