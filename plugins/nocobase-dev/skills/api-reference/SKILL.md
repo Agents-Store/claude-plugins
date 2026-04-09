@@ -34,14 +34,14 @@ curl -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
 | **UI Schemas** | `uiSchemas` | getJsonSchema, getProperties, getParentJsonSchema, getParentProperty, insert, insertNewSchema, remove, patch, batchPatch, insertAdjacent, insertBeforeBegin, insertAfterBegin, insertBeforeEnd, insertAfterEnd, initializeActionContext, saveAsTemplate, clearAncestor | `references/endpoints-ui-auth.md` |
 | **Schema Templates (Legacy)** | `uiSchemaTemplates` | list, get | `references/endpoints-ui-auth.md` |
 | **Flow Model Templates** | `flowModelTemplates` | list, get, create, update, destroy | `references/endpoints-ui-auth.md` |
-| **Desktop Routes** | `desktopRoutes` | listAccessible, getAccessible, create, update, move, destroy | `references/endpoints-routes.md` |
+| **Desktop Routes** *(v2.x — use type "flowPage" for modern pages)* | `desktopRoutes` | listAccessible, getAccessible, create, update, move, destroy | `references/endpoints-routes.md` |
 | **Mobile Routes** | `mobileRoutes` | listAccessible, create, update, move, destroy | `references/endpoints-routes.md` |
 | **Role Routes** | `roles/{name}/desktopRoutes` | set | `references/endpoints-routes.md` |
 | **Data Sources** | `dataSources` | listEnabled, testConnection, refresh, readTables, loadTables | `references/endpoints-data-sources.md` |
 | **DS Collections** | `dataSources/{key}/collections` | list, update | `references/endpoints-data-sources.md` |
 | **DS Fields** | `dataSourcesCollections/{key}.{coll}/fields` | list, get, create, update, destroy | `references/endpoints-data-sources.md` |
 | **Charts** | `charts` | query | `references/endpoints-charts.md` |
-| **Flow Models** | `flowModels` | findOne, save, duplicate, attach, move, destroy + 16 inherited schema actions | `references/endpoints-flow-models.md` |
+| **Flow Models** *(v2.x — see ux-constructor for page creation workflows)* | `flowModels` | findOne, save, duplicate, attach, move, destroy + 16 inherited schema actions | `references/endpoints-flow-models.md` |
 | **Flow SQL** | `flowSql` | save, runById, getBind | `references/endpoints-flow-models.md` |
 | **Variables** | `variables` | resolve | `references/endpoints-flow-models.md` |
 | **Auth** | `auth` | check, signIn, signUp, signOut, changePassword | `references/endpoints-ui-auth.md` |

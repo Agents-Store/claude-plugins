@@ -53,9 +53,11 @@ NocoBase stores its entire user interface as a tree of JSON schema nodes. Each n
 
 Every page, menu item, form field, table column, and button in the NocoBase UI corresponds to a schema node.
 
-## V2.x Migration Note
+## V2.x Migration — Use ux-constructor for New Pages
 
-In NocoBase v2.x, the new **Flow Models** system (`flowModels` resource) replaces `uiSchemas` for block-level UI storage. Flow models use the same tree structure but store data in a separate collection with `uid` as primary key and `options` as the main JSON attribute. The `flowModels` resource inherits all tree-manipulation actions from `uiSchemas` but uses `options` instead of `schema` in request payloads. For flow model operations, see the **flow-models** skill.
+In NocoBase v2.x, the new **Flow Models** system (`flowModels` resource) replaces `uiSchemas` for block-level UI storage. **For creating new pages, table blocks, form blocks, and columns, use the ux-constructor skill** — it documents the verified Modern Page (v2) workflow using `flowPage` routes and `flowModels:save`.
+
+The `uiSchemas` resource is still used for the page-level schema node (`x-component: "FlowRoute"`) but blocks are managed via flow models. See the **flow-models** skill for low-level flow model operations, or the **ux-constructor** skill for complete page creation workflows.
 
 ## Core Operations
 

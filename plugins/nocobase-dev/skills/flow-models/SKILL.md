@@ -21,6 +21,8 @@ description: |
 
 The new block engine in NocoBase v2.x. Flow models replace the legacy `uiSchemas` for block-level UI storage. They use the same tree structure (Closure Table) but store data in the `flowModels` collection with `uid` as primary key and `options` as the magic JSON attribute.
 
+> **For step-by-step page and block creation workflows** (creating Modern Pages, adding table/form blocks, configuring columns and buttons), see the **ux-constructor** skill. This skill covers the low-level flow model CRUD operations.
+
 ## Authentication
 
 All requests require the API key header:

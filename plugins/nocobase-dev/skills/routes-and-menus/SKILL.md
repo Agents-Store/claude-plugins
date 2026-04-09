@@ -56,7 +56,8 @@ Desktop routes define the main application's page and menu structure. They are s
 
 ### Route Types
 
-- **`page`** — Standard page with a UI schema body
+- **`page`** — Classic page (v1) with a UI schema body
+- **`flowPage`** — Modern page (v2) using the Flow Models block engine. **Use this for all new pages.** See the **ux-constructor** skill for the verified creation workflow.
 - **`link`** — External URL link in the menu
 - **`group`** — Menu group/folder containing child routes
 - **`tabs`** — Tabbed page with tab children

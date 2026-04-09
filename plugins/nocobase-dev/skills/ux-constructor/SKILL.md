@@ -621,3 +621,5 @@ To set a column width, include `width` in `tableColumnSettings`:
 | Page not in menu | Route created but `listAccessible` not called | Call Step 2 |
 | 404 when navigating to page | Schema node missing | Ensure Step 3 created the FlowRoute schema |
 | Wrong block type | Used `"page"` instead of `"flowPage"` | Route type must be `"flowPage"` for v2 |
+
+For the complete backend API reference with all endpoint signatures, request/response formats, and edge cases, see `references/ux-api-reference.md`. It covers every API used by the visual constructor: uiSchemas, flowModels, desktopRoutes, flowModelTemplates, collections, fields, and more.
