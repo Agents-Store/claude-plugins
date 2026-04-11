@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "directus": {
+      "type": "http",
+      "url": "${NEXT_PUBLIC_DIRECTUS_URL}/mcp",
+      "headers": {
+        "Authorization": "Bearer ${DIRECTUS_ADMIN_TOKEN}"
+      }
+    },
+    "trigger-dev": {
+      "command": "npx",
+      "args": ["trigger.dev@latest", "mcp"],
+      "env": {
+        "TRIGGER_ACCESS_TOKEN": "${TRIGGER_SECRET_KEY}",
+        "TRIGGER_API_URL": "${TRIGGER_API_URL}"
+      }
+    }
+  }
+}

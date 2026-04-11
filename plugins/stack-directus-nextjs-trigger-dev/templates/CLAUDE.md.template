@@ -1,0 +1,36 @@
+# CLAUDE.md
+
+## Project: [PROJECT_NAME]
+
+Stack: Directus + Next.js (App Router) + Trigger.dev (self-hosted)
+
+## Architecture
+
+- **Data Layer**: Directus at [DIRECTUS_URL]
+- **Interface + Logic Layer**: Next.js App Router
+- **Background Layer**: Trigger.dev (self-hosted) at [TRIGGER_API_URL] — durable tasks, cron jobs, long-running work
+- **Deployment**: Vercel or Dokploy (Next.js) + Docker Compose (Directus + Trigger.dev webapp/supervisor, local)
+
+## Key Files
+
+- `lib/directus.ts` — Directus SDK client (singleton)
+- `types/directus.ts` — TypeScript schema matching Directus collections
+- `app/` — Next.js App Router pages
+- `trigger/` — Trigger.dev task definitions (tasks, schedules)
+- `trigger.config.ts` — Trigger.dev runtime config
+- `docker-compose.yml` — Local Directus instance (and optional local Trigger.dev webapp)
+
+## Conventions
+
+- Fetch data in Server Components using Directus SDK with `cache: 'no-store'`
+- Use `NEXT_PUBLIC_DIRECTUS_URL` for client-side image URLs
+- Use `DIRECTUS_ADMIN_TOKEN` server-side only (protected by `server-only` package)
+- All mutations go through Server Actions that call Directus SDK
+- Revalidation: use `revalidateTag()` or `revalidatePath()` after mutations
+- **Delegate to Trigger.dev** for: AI/LLM calls, webhook processing, image transformation, third-party API calls, bulk imports, anything slow or flaky
+- **Use `schedules.task()`** for cron jobs; read/write Directus from inside the task with a server-side SDK client
+- Route handlers that call `tasks.trigger()` MUST set `export const dynamic = 'force-dynamic'` — otherwise CI builds fail when `TRIGGER_SECRET_KEY` is missing at static-generation time
+
+## Environment Variables
+
+See `.env.example` for all required variables (Directus, Next.js, Trigger.dev).
