@@ -1,6 +1,6 @@
 # stack-directus-nextjs-dev
 
-Directus + Next.js stack development plugin for Claude Code. Integrates Directus headless CMS with Next.js App Router for building content-driven applications, with Vercel deployment and Docker local dev.
+Directus + Next.js stack development plugin for Claude Code. Integrates Directus headless CMS with Next.js App Router for building content-driven applications.
 
 ## Type
 
@@ -12,7 +12,8 @@ Stack (Level 2) — project scope with MCP connections.
 |-------|---------|------|
 | Data | Directus | Content management, REST API, file storage |
 | Interface + Logic | Next.js | App Router, Server Components, Server Actions |
-| Deployment | Vercel (prod) / Docker (local) | Hosting, CI/CD |
+
+Deployment is handled by a separate plugin (e.g. `dokploy-dev`, `vercel-dev`).
 
 ## Prerequisites
 
@@ -37,9 +38,7 @@ Copy `templates/.env.example` to your project root as `.env.local`:
 | `DIRECTUS_ADMIN_TOKEN` | Directus static access token | No |
 | `NEXTAUTH_URL` | NextAuth base URL | No |
 | `NEXTAUTH_SECRET` | NextAuth encryption secret | No |
-| `VERCEL_TOKEN` | Vercel API token | No |
-| `VERCEL_ORG_ID` | Vercel organization ID | No |
-| `VERCEL_PROJECT_ID` | Vercel project ID | No |
+| `REVALIDATION_SECRET` | Shared secret for `/api/revalidate` (Directus webhooks) | No |
 
 ## Skills
 
@@ -48,7 +47,7 @@ Copy `templates/.env.example` to your project root as `.env.local`:
 | `init-project` | Set up environment, install Directus SDK, verify connections |
 | `directus-to-nextjs` | Fetch data, render images, TypeScript types, revalidation |
 | `authentication` | Directus auth + NextAuth, middleware, session management |
-| `deployment` | Vercel production, Docker local, webhooks, auto-rebuild |
+| `deployment` | Docker local dev, ISR revalidation webhooks, production checklist |
 | `full-feature` | Step-by-step recipe for building features across the stack |
 | `examples` | Scenario walkthroughs (blog, product catalog) |
 
@@ -63,4 +62,5 @@ Install these Technology Plugins alongside for deep per-tool knowledge:
 - `directus-dev@agents-store-claude-plugins` — Directus MCP tools, SDK, API, schema design
 - `nextjs-dev@agents-store-claude-plugins` — Next.js App Router, components, data fetching
 - `nextjs-provision@agents-store-claude-plugins` — shadcn/ui setup, component scaffolding
-- `vercel@claude-plugins-official` — Vercel deployment and management
+
+For deployment, install the plugin matching your hosting platform (e.g. `dokploy-dev`, `vercel-dev`).

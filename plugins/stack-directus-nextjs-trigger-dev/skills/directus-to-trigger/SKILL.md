@@ -350,5 +350,5 @@ Response: "Add a Flow condition that checks `{{ $trigger.payload.ai_summary }} =
 
 <example>
 User: "The webhook route is returning 401 but my secret is correct. What's wrong?"
-Response: "Three common causes: (1) The Directus Flow's `{{ $env.REVALIDATION_SECRET }}` interpolation isn't set — check Directus Settings → Environment Variables and confirm `REVALIDATION_SECRET` is there. (2) The secret in `.env.local` / Vercel doesn't match Directus. (3) You're using URL-encoded characters that aren't decoding — use `request.nextUrl.searchParams.get('secret')` which decodes automatically. If logging the received secret shows `null`, the query string isn't being sent at all — check the Flow's URL field."
+Response: "Three common causes: (1) The Directus Flow's `{{ $env.REVALIDATION_SECRET }}` interpolation isn't set — check Directus Settings → Environment Variables and confirm `REVALIDATION_SECRET` is there. (2) The secret in `.env.local` / your hosting platform doesn't match Directus. (3) You're using URL-encoded characters that aren't decoding — use `request.nextUrl.searchParams.get('secret')` which decodes automatically. If logging the received secret shows `null`, the query string isn't being sent at all — check the Flow's URL field."
 </example>

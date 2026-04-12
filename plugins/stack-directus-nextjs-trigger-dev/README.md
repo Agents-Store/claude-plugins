@@ -15,7 +15,9 @@ Stack (Level 2) — 3-service architecture with MCP connections to Directus AND 
 | Data | Directus | Content management, REST API, file storage, Flows |
 | Logic | Next.js + Trigger.dev (self-hosted) | Next.js: sync logic (API routes, Server Actions, webhook receivers). Trigger.dev: async/durable logic (AI agent workflows, scheduled jobs, long-running tasks, retries) |
 | Interface | Next.js | App Router, Server Components, rendering |
-| Deployment | Vercel / Dokploy (Next.js) + Docker (Directus + Trigger webapp/supervisor) | Hosting, edge functions, auto-builds |
+
+
+Deployment is handled by a separate plugin (e.g. `dokploy-dev`, `vercel-dev`).
 
 ## Prerequisites
 
@@ -42,9 +44,6 @@ Copy `templates/.env.example` to your project root as `.env.local`:
 | `NEXTAUTH_URL` | NextAuth base URL | No |
 | `NEXTAUTH_SECRET` | NextAuth encryption secret | No |
 | `REVALIDATION_SECRET` | Shared secret for `/api/revalidate` (Directus webhooks + Trigger callbacks) | No |
-| `VERCEL_TOKEN` | Vercel API token (optional if using Dokploy) | No |
-| `VERCEL_ORG_ID` | Vercel organization ID | No |
-| `VERCEL_PROJECT_ID` | Vercel project ID | No |
 | `TRIGGER_SECRET_KEY` | Trigger.dev env secret OR PAT (also used by the MCP server — see note below) | No |
 | `TRIGGER_API_URL` | Self-hosted Trigger.dev URL | No |
 | `TRIGGER_PROJECT_REF` | Trigger.dev project ref | No |
@@ -67,7 +66,7 @@ Values interpolate from your project `.env.local` automatically.
 | `init-project` | Set up environment, install Directus SDK + Trigger SDK, initialize trigger.dev, verify all three service connections |
 | `directus-to-nextjs` | Fetch data, render images, TypeScript types, revalidation patterns |
 | `authentication` | Directus auth + NextAuth, middleware, session management, per-user clients in tasks |
-| `deployment` | Vercel/Dokploy production, Docker local, Directus webhooks, Trigger task deploys, CI/CD |
+| `deployment` | Docker local dev, Trigger task deploys, ISR revalidation, CI/CD for tasks, production checklist |
 | `full-feature` | 6-step recipe for building features across Directus, Next.js, and Trigger.dev |
 | `examples` | Scenario walkthroughs (blog, product catalog, AI enrichment pipeline, scheduled data sync) |
 | `background-tasks` | Offload work from Next.js to Trigger.dev — Server Actions, route handlers, `force-dynamic`, `useRealtimeRun` |
@@ -76,7 +75,7 @@ Values interpolate from your project `.env.local` automatically.
 
 ## Agent
 
-**stack-orchestrator** — Coordinates work across Directus, Next.js, and Trigger.dev for building content-driven features, offloading slow operations to durable tasks, wiring event-driven pipelines from Directus Flows, defining scheduled jobs, debugging cross-service issues, and configuring deployment.
+**stack-orchestrator** — Coordinates work across Directus, Next.js, and Trigger.dev for building content-driven features, offloading slow operations to durable tasks, wiring event-driven pipelines from Directus Flows, defining scheduled jobs, and debugging cross-service issues.
 
 ## Companion Plugins
 
@@ -86,8 +85,8 @@ Install these Technology Plugins alongside for deep per-tool knowledge:
 - `nextjs-dev@agents-store-claude-plugins` — Next.js App Router, components, data fetching
 - `nextjs-provision@agents-store-claude-plugins` — shadcn/ui setup, component scaffolding
 - `trigger-dev@agents-store-claude-plugins` — Trigger.dev task API, retries/queues/waits, realtime, CLI, MCP patterns, self-hosted deployment
-- `dokploy-dev@agents-store-claude-plugins` — Dokploy deployments, self-hosted Trigger.dev webapp + supervisor
-- `vercel@claude-plugins-official` — Vercel deployment (if not self-hosting Next.js)
+
+For deployment, install the plugin matching your hosting platform (e.g. `dokploy-dev`, `vercel-dev`).
 
 ## What This Plugin Does NOT Cover
 
@@ -97,6 +96,6 @@ To keep skills focused and avoid duplication, this plugin delegates to the compa
 - **Next.js internals** (App Router dynamic features, caching layers, middleware config, Server Component rules) → `nextjs-dev`
 - **Trigger.dev task API depth** (retry configs, queues, waits, metadata, tags, Zod schemas, AI agent patterns, build extensions, realtime hooks API) → `trigger-dev`
 - **shadcn/ui setup** → `nextjs-provision`
-- **Dokploy compose/infra** for self-hosted Trigger → `dokploy-dev`
+- **Hosting platform specifics** (Vercel, Dokploy, etc.) → respective deployment plugin
 
 This plugin covers the **integration seams**: how to wire all three services together, the gotchas unique to each boundary, and end-to-end recipes that span all layers.

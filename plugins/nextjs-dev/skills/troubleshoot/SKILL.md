@@ -192,20 +192,15 @@ Only use `suppressHydrationWarning` for leaf elements where the mismatch is cosm
 
 ## Deployment Issues
 
-### Vercel
+For platform-specific deployment issues (Vercel, Dokploy, Netlify, etc.), see the respective deployment plugin (`vercel-dev`, `dokploy-dev`). Common cross-platform issues:
 
 | Issue | Fix |
 |-------|-----|
 | Build fails with memory error | Add `NODE_OPTIONS=--max_old_space_size=4096` to build env |
-| Environment variables not available | Use `NEXT_PUBLIC_` prefix for client-side vars; redeploy after adding env vars |
-| API routes timing out | Move to Edge Runtime: `export const runtime = 'edge'` or increase timeout |
-
-### Self-Hosted (Docker/Node.js)
-
-| Issue | Fix |
-|-------|-----|
+| Environment variables not available at build | Use `NEXT_PUBLIC_` prefix for client-side vars; redeploy after adding env vars |
+| API routes timing out | Move to Edge Runtime: `export const runtime = 'edge'` or increase function timeout in your platform settings |
 | `output: 'standalone'` not generating `server.js` | Verify config, clear `.next/`, rebuild |
-| Static files not found | Copy `public/` and `.next/static/` to the standalone output |
+| Static files not found in standalone | Copy `public/` and `.next/static/` to the standalone output |
 | Port conflicts | Set `PORT` env var or use `-p` flag |
 | CORS errors | Add headers in `next.config.ts` `headers()` or middleware |
 

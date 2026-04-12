@@ -23,7 +23,7 @@ Delegate to a Trigger.dev task when **any** of these apply:
 | Third-party API call that can fail (payment, webhook, email) | Retries + observability are free from Trigger |
 | Webhook receiver that does non-trivial work | Return 200 fast so the sender doesn't retry; do the real work async |
 | Bulk operation over many records | Batch processing + fan-out |
-| Work that must outlive the HTTP request (Vercel has a 10–60s function limit) | Trigger runs independently |
+| Work that must outlive the HTTP request (serverless platforms often have 10–60s limits) | Trigger runs independently |
 | Needs idempotency / retries / schedules / observability | Trigger provides all of these |
 
 ## Triggering from a Route Handler
@@ -242,7 +242,7 @@ If the task writes to Directus and Directus has a Flow listening for `items.upda
 
 ## Task Env Vars vs Next.js Env Vars
 
-Tasks run **on the Trigger.dev platform**, not on Vercel/Dokploy. They need their own copy of env vars set in the Trigger.dev dashboard (or synced via `syncVercelEnvVars`). A `.env.local` variable consumed by Next.js is NOT automatically visible to a task — set it separately in the Trigger dashboard.
+Tasks run **on the Trigger.dev platform**, not on your Next.js hosting. They need their own copy of env vars set in the Trigger.dev dashboard. A `.env.local` variable consumed by Next.js is NOT automatically visible to a task — set it separately in the Trigger dashboard.
 
 Typical task env vars:
 - `NEXT_PUBLIC_DIRECTUS_URL`, `DIRECTUS_ADMIN_TOKEN` — for writes back to Directus
@@ -259,13 +259,13 @@ Typical task env vars:
 | Skip `force-dynamic` on route handlers that call `tasks.trigger()` | Always add it |
 | Pass `TRIGGER_SECRET_KEY` to client code | Pass only the scoped `publicAccessToken` per run |
 | Retry failed triggers in a loop inside the route handler | Let Trigger's `retry` config handle it — keep the route handler thin |
-| Forget to set env vars in the Trigger.dev dashboard | Set them per environment (dev/staging/prod), or use `syncVercelEnvVars` |
+| Forget to set env vars in the Trigger.dev dashboard | Set them per environment (dev/staging/prod) in the Trigger.dev dashboard |
 
 ## Examples
 
 <example>
 User: "I need a Server Action that transcodes an uploaded video — can I just await ffmpeg in the action?"
-Response: "Video transcoding is exactly the kind of work to offload — FFmpeg can take minutes, and Vercel Server Actions time out at 60s. Create a Trigger.dev task `transcode-video` that does the FFmpeg work, then have the Server Action call `tasks.trigger<typeof transcodeVideoTask>('transcode-video', { fileId })` and return the run ID. Show progress in a Client Component with `useRealtimeRun`. Remember to `import type` the task, not the runtime code — otherwise FFmpeg pulls into the Next.js bundle."
+Response: "Video transcoding is exactly the kind of work to offload — FFmpeg can take minutes, and serverless Server Actions typically time out at 10-60s. Create a Trigger.dev task `transcode-video` that does the FFmpeg work, then have the Server Action call `tasks.trigger<typeof transcodeVideoTask>('transcode-video', { fileId })` and return the run ID. Show progress in a Client Component with `useRealtimeRun`. Remember to `import type` the task, not the runtime code — otherwise FFmpeg pulls into the Next.js bundle."
 </example>
 
 <example>

@@ -22,9 +22,6 @@ cp templates/.env.example .env.local
 | `NEXTAUTH_URL` | `http://localhost:3000` for local dev |
 | `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` |
 | `REVALIDATION_SECRET` | Run `openssl rand -base64 32` (used by Directus webhooks and Trigger tasks) |
-| `VERCEL_TOKEN` | Vercel dashboard → Settings → Tokens (optional if using Dokploy) |
-| `VERCEL_ORG_ID` | Vercel dashboard → Settings → General |
-| `VERCEL_PROJECT_ID` | Vercel project → Settings → General |
 | `TRIGGER_SECRET_KEY` | Trigger.dev dashboard → API Keys → DEV secret key (or a Personal Access Token — see `.env.example` note) |
 | `TRIGGER_API_URL` | Self-hosted Trigger.dev URL (e.g. `https://trigger.your-domain.com`) |
 | `TRIGGER_PROJECT_REF` | Trigger.dev project page → `proj_xxxxx` ref |

@@ -158,11 +158,11 @@
       "name": "nextjs-dev",
       "source": "./plugins/nextjs-dev",
       "description": "Next.js development plugin. Knowledge base for building modern Next.js applications with App Router, Server/Client Components, data fetching, caching, performance optimization, project architecture, error handling, forms, security, authentication, API design, testing, Docker containerization, and the next-devtools-mcp toolchain.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nextjs", "next.js", "react", "app-router", "server-components", "typescript", "vercel", "dev", "agents-store", "testing", "security", "authentication", "forms"],
+      "keywords": ["nextjs", "next.js", "react", "app-router", "server-components", "typescript", "dev", "agents-store", "testing", "security", "authentication", "forms"],
       "category": "development"
     },
     {
@@ -190,19 +190,19 @@
     {
       "name": "stack-directus-nextjs-dev",
       "source": "./plugins/stack-directus-nextjs-dev",
-      "description": "Directus + Next.js stack dev plugin. Integrates Directus headless CMS with Next.js App Router for content-driven applications, with Vercel deployment and Docker local dev.",
-      "version": "1.0.1",
+      "description": "Directus + Next.js stack dev plugin. Integrates Directus headless CMS with Next.js App Router for content-driven applications.",
+      "version": "1.0.2",
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["stack", "directus-nextjs", "dev", "agents-store", "directus", "nextjs", "vercel", "headless-cms", "app-router"],
+      "keywords": ["stack", "directus-nextjs", "dev", "agents-store", "directus", "nextjs", "headless-cms", "app-router"],
       "category": "development"
     },
     {
       "name": "stack-directus-nextjs-trigger-dev",
       "source": "./plugins/stack-directus-nextjs-trigger-dev",
       "description": "Directus + Next.js + Trigger.dev stack dev plugin. Adds self-hosted Trigger.dev as a workflow engine for AI agents, durable async logic, and scheduled jobs on top of the Directus + Next.js App Router stack.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "author": {
         "name": "AGENTS.STORE"
       },

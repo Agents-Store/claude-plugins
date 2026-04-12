@@ -1,11 +1,11 @@
 ---
 name: deployment
-description: This skill should be used when the user wants to "deploy Directus + Next.js", "set up Docker for Directus", "deploy to Vercel", "run Directus locally with Docker", "configure Vercel deploy hooks", "set up production deployment", "auto-rebuild on content change", or needs deployment patterns for the Directus + Next.js stack.
+description: This skill should be used when the user wants to "set up Docker for Directus", "run Directus locally with Docker", "configure content-change webhooks", "set up ISR revalidation with Directus", "auto-rebuild on content change", "production checklist for Directus + Next.js", or needs local dev and integration patterns for the Directus + Next.js stack. For platform-specific deployment (Vercel, Dokploy, etc.), see the respective deployment plugin.
 ---
 
-# Deployment: Vercel (Production) + Docker (Local)
+# Deployment: Local Dev + Integration Patterns
 
-Deploy the Next.js frontend to Vercel and run Directus locally via Docker Compose. Automate production rebuilds when Directus content changes.
+Set up local development with Docker Compose for Directus, configure content-change revalidation, and prepare for production. For hosting platform specifics (Vercel, Dokploy, Netlify, etc.), see the respective deployment plugin — this skill covers local dev and cross-service integration patterns only.
 
 ## Docker Compose for Local Directus
 
@@ -79,83 +79,14 @@ NEXT_PUBLIC_DIRECTUS_URL=http://localhost:8055
 DIRECTUS_ADMIN_TOKEN=your-local-static-token
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=dev-secret-change-in-production
+REVALIDATION_SECRET=dev-revalidation-secret
 ```
 
 Create the admin static token in Directus Admin → Settings → Access Tokens after first startup.
 
-## Vercel Production Deployment
+## On-Demand ISR Revalidation
 
-### Set Environment Variables
-
-In Vercel project dashboard → Settings → Environment Variables, add:
-
-| Variable | Value | Environment |
-|----------|-------|-------------|
-| `NEXT_PUBLIC_DIRECTUS_URL` | `https://cms.yourdomain.com` | Production, Preview |
-| `DIRECTUS_ADMIN_TOKEN` | Your production static token | Production, Preview |
-| `NEXTAUTH_URL` | `https://yourdomain.com` | Production |
-| `NEXTAUTH_SECRET` | Result of `openssl rand -base64 32` | Production, Preview |
-
-### Deploy via Vercel CLI
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Link project (first time)
-vercel link
-
-# Deploy to preview
-vercel
-
-# Deploy to production
-vercel --prod
-```
-
-Set `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` in `.env.local` for CI/CD or programmatic deploys:
-
-```bash
-vercel --prod --token=$VERCEL_TOKEN
-```
-
-### next.config.ts for Production
-
-Ensure the production Directus domain is in `images.remotePatterns`:
-
-```typescript
-const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cms.yourdomain.com',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8055',
-      },
-    ],
-  },
-};
-```
-
-## Auto-Rebuild on Content Changes
-
-### Vercel Deploy Hooks
-
-1. In Vercel: project Settings → Git → Deploy Hooks → create a hook (e.g. "Directus Content Update"). Copy the hook URL.
-
-2. In Directus: Settings → Flows → create a new Flow:
-   - **Trigger**: Event Hook → `items.create`, `items.update` on content collections (e.g. `posts`, `pages`)
-   - **Condition** (optional): Check `{{ $trigger.payload.status }} == "published"` to only rebuild on publish
-   - **Operation**: Webhook → POST to the Vercel Deploy Hook URL
-
-This triggers a Vercel rebuild whenever content is published in Directus.
-
-### On-Demand ISR Revalidation
-
-For faster updates without a full rebuild, use Next.js on-demand revalidation:
+For instant content updates without a full rebuild, use Next.js on-demand revalidation triggered by Directus:
 
 1. Create `app/api/revalidate/route.ts`:
 
@@ -187,29 +118,40 @@ export async function POST(request: NextRequest) {
    ```
    With body: `{ "collection": "{{ $trigger.collection }}" }`
 
-3. Add `REVALIDATION_SECRET` to Vercel environment variables.
+3. Add `REVALIDATION_SECRET` to your hosting platform's environment variables.
+
+## Content-Change Webhooks (Directus Automate)
+
+Set up a Directus Flow to notify the Next.js app when content changes:
+
+1. In Directus: Settings → Flows → create a new Flow:
+   - **Trigger**: Event Hook → `items.create`, `items.update` on content collections (e.g. `posts`, `pages`)
+   - **Condition** (optional): Check `{{ $trigger.payload.status }} == "published"` to only trigger on publish
+   - **Operation**: Webhook → POST to the ISR revalidation endpoint (above)
+
+This gives instant content updates: editor publishes in Directus → Flow fires → `/api/revalidate` invalidates the cache → next visitor sees fresh content.
+
+For hosting platforms that support deploy hooks (full rebuild on content change), configure those via the platform's deployment plugin.
 
 ## Production Directus Hosting
 
-Directus in production can run on:
-- **Docker on a VPS** (DigitalOcean, Hetzner, etc.) — same docker-compose with production secrets and a reverse proxy (nginx/Caddy)
-- **Directus Cloud** — managed hosting at `directus.cloud`
-- **Railway / Render** — container hosting platforms
-
-Ensure production Directus has:
-- `CORS_ORIGIN` set to your Vercel domain
-- A static access token for the Next.js backend
-- SSL/TLS enabled (required for Vercel → Directus communication)
+Directus in production needs:
+- SSL/TLS enabled
+- `CORS_ORIGIN` set to your production Next.js domain
+- A static access token with minimum necessary permissions (not full admin)
 - File storage configured (S3, Cloudflare R2, or local with persistent volume)
+- Persistent PostgreSQL with backups
+
+The hosting approach (Docker on VPS, managed cloud, container platform) depends on your infrastructure — see your deployment plugin for platform-specific setup.
 
 ## Production Checklist
 
 - [ ] Directus running with SSL and persistent storage
-- [ ] `CORS_ORIGIN` includes the production Vercel domain
+- [ ] `CORS_ORIGIN` on Directus includes the production Next.js domain
 - [ ] Static token created with appropriate permissions (not full admin for production)
-- [ ] All environment variables set in Vercel dashboard
+- [ ] All environment variables set in your hosting platform (Directus URL, admin token, NextAuth secrets)
 - [ ] `next.config.ts` `images.remotePatterns` includes the production Directus hostname
-- [ ] Deploy hook configured for auto-rebuild on content changes
-- [ ] ISR revalidation webhook set up for instant updates
+- [ ] ISR revalidation webhook set up for instant content updates
 - [ ] `NEXTAUTH_SECRET` is a strong random value (not the dev placeholder)
 - [ ] Docker volumes backed up for Directus uploads
+- [ ] `REVALIDATION_SECRET` set in both Directus env and Next.js hosting env

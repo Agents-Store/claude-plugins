@@ -7,8 +7,9 @@ Stack: Directus + Next.js (App Router)
 ## Architecture
 
 - **Data Layer**: Directus at [DIRECTUS_URL]
-- **Frontend**: Next.js App Router
-- **Deployment**: Vercel (production) + Docker Compose (local Directus)
+- **Interface + Logic Layer**: Next.js App Router
+- **Local Dev**: Docker Compose (Directus + PostgreSQL)
+- **Deployment**: see project deployment plugin (e.g. `dokploy-dev`, `vercel-dev`)
 
 ## Key Files
 

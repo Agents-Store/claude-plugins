@@ -21,9 +21,7 @@ cp templates/.env.example .env.local
 | `DIRECTUS_ADMIN_TOKEN` | Directus Settings → Access Tokens → create a static token |
 | `NEXTAUTH_URL` | `http://localhost:3000` for local dev |
 | `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` |
-| `VERCEL_TOKEN` | Vercel dashboard → Settings → Tokens |
-| `VERCEL_ORG_ID` | Vercel dashboard → Settings → General |
-| `VERCEL_PROJECT_ID` | Vercel project → Settings → General |
+| `REVALIDATION_SECRET` | Run `openssl rand -base64 32` (used by Directus webhooks for ISR) |
 
 ## 2. Install Dependencies
 

@@ -1,11 +1,11 @@
 ---
 name: deployment
-description: This skill should be used when the user wants to "deploy Directus + Next.js + Trigger.dev", "set up Docker for the full stack", "deploy to Vercel with trigger.dev", "run self-hosted trigger.dev locally", "deploy trigger tasks", "configure dokploy for the stack", "auto-rebuild on content change with background tasks", or needs deployment patterns for the Directus + Next.js + Trigger.dev stack.
+description: This skill should be used when the user wants to "set up Docker for Directus locally", "deploy trigger.dev tasks", "run local dev for the 3-service stack", "configure content-change webhooks with trigger.dev", "CI/CD for trigger tasks", "production checklist for directus + nextjs + trigger.dev", or needs local dev and integration deployment patterns. For platform-specific hosting (Vercel, Dokploy, etc.), see the respective deployment plugin.
 ---
 
-# Deployment: Next.js + Directus + Self-Hosted Trigger.dev
+# Deployment: Local Dev + Trigger Task Deploys + Integration Patterns
 
-Deploy three services together: the Next.js frontend (Vercel or Dokploy), Directus (Docker/Dokploy), and self-hosted Trigger.dev (Docker webapp + supervisor). Automate production rebuilds when Directus content changes, and deploy Trigger.dev tasks separately from the Next.js app.
+Set up local development with Docker Compose for Directus, deploy Trigger.dev tasks, configure content-change revalidation, and prepare for production. For hosting platform specifics (Vercel, Dokploy, Netlify, etc.), see the respective deployment plugin — this skill covers local dev, Trigger.dev task deployment, and cross-service integration patterns.
 
 ## Docker Compose for Local Directus
 
@@ -57,24 +57,24 @@ volumes:
 
 ### Start Local Development
 
-```bash
-# Start Directus + PostgreSQL
-docker compose up -d
+Three terminals:
 
-# Verify Directus is running
+```bash
+# Terminal 1: Start Directus + PostgreSQL
+docker compose up -d
 curl http://localhost:8055/server/health
 
-# Start the Trigger.dev dev server (watches /trigger)
+# Terminal 2: Start the Trigger.dev dev server (watches /trigger)
 npx trigger.dev@latest dev
 
-# Start Next.js dev server (in a third terminal)
+# Terminal 3: Start Next.js dev server
 npm run dev
 ```
 
 Access points:
 - Directus Admin: `http://localhost:8055`
 - Next.js App: `http://localhost:3000`
-- Trigger.dev dashboard: whatever `TRIGGER_API_URL` points at (usually a separate self-hosted instance, not local)
+- Trigger.dev dashboard: whatever `TRIGGER_API_URL` points at (usually a separate self-hosted instance)
 
 ### Local .env.local
 
@@ -83,6 +83,7 @@ NEXT_PUBLIC_DIRECTUS_URL=http://localhost:8055
 DIRECTUS_ADMIN_TOKEN=your-local-static-token
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=dev-secret-change-in-production
+REVALIDATION_SECRET=dev-revalidation-secret
 TRIGGER_SECRET_KEY=tr_dev_local_or_shared_dev_env_secret
 TRIGGER_API_URL=https://trigger.your-domain.com
 TRIGGER_PROJECT_REF=proj_xxxxxxxxxxx
@@ -92,56 +93,20 @@ Create the Directus admin static token after first startup. Re-use a shared dev 
 
 ## Next.js Production Deployment
 
-### Option A: Vercel
+Deploy the Next.js frontend using your hosting platform of choice. Set these env vars in your platform's environment management:
 
-#### Set Environment Variables
+| Variable | Value |
+|----------|-------|
+| `NEXT_PUBLIC_DIRECTUS_URL` | Production Directus URL |
+| `DIRECTUS_ADMIN_TOKEN` | Production static token |
+| `NEXTAUTH_URL` | Production Next.js URL |
+| `NEXTAUTH_SECRET` | Strong random secret |
+| `REVALIDATION_SECRET` | Shared secret for ISR webhook |
+| `TRIGGER_SECRET_KEY` | Production env secret key `tr_prod_xxx` |
+| `TRIGGER_API_URL` | Self-hosted Trigger.dev URL |
+| `TRIGGER_PROJECT_REF` | Project ref from Trigger.dev dashboard |
 
-In Vercel project dashboard → Settings → Environment Variables, add:
-
-| Variable | Value | Environment |
-|----------|-------|-------------|
-| `NEXT_PUBLIC_DIRECTUS_URL` | `https://cms.yourdomain.com` | Production, Preview |
-| `DIRECTUS_ADMIN_TOKEN` | Production static token | Production, Preview |
-| `NEXTAUTH_URL` | `https://yourdomain.com` | Production |
-| `NEXTAUTH_SECRET` | Result of `openssl rand -base64 32` | Production, Preview |
-| `REVALIDATION_SECRET` | Random secret | Production, Preview |
-| `TRIGGER_SECRET_KEY` | Production env secret key `tr_prod_xxx` | Production |
-| `TRIGGER_SECRET_KEY` | Staging env secret key `tr_dev_xxx` | Preview |
-| `TRIGGER_API_URL` | `https://trigger.your-domain.com` | Production, Preview |
-| `TRIGGER_PROJECT_REF` | `proj_xxxxx` | Production, Preview |
-
-#### Deploy via Vercel CLI
-
-```bash
-npm i -g vercel
-vercel link
-vercel          # preview
-vercel --prod   # production
-```
-
-#### syncVercelEnvVars Build Extension (Optional)
-
-Trigger.dev can automatically sync Vercel env vars so deployed tasks pick up the same values the Next.js app uses. In `trigger.config.ts`:
-
-```typescript
-import { defineConfig } from '@trigger.dev/sdk/v3';
-import { syncVercelEnvVars } from '@trigger.dev/build/extensions/core';
-
-export default defineConfig({
-  project: process.env.TRIGGER_PROJECT_REF!,
-  runtime: 'node',
-  dirs: ['./trigger'],
-  build: {
-    extensions: [syncVercelEnvVars()],
-  },
-});
-```
-
-Set `VERCEL_ACCESS_TOKEN`, `VERCEL_PROJECT_ID`, and `VERCEL_TEAM_ID` in the Trigger.dev project's environment variables page — then `npx trigger.dev@latest deploy` pulls Vercel env vars into the task runtime.
-
-### Option B: Dokploy (Self-Hosted)
-
-If you're already running Directus and Trigger.dev on a self-hosted Dokploy instance, deploy Next.js there too for a fully on-prem stack. See the `dokploy-dev` plugin for application creation, domain binding, and auto-deploy-on-push. Set the same env vars listed above in Dokploy's application environment page.
+For platform-specific deployment steps, see your deployment plugin (`dokploy-dev`, `vercel-dev`, etc.).
 
 ### next.config.ts for Production
 
@@ -160,7 +125,7 @@ const nextConfig = {
 
 ## Deploying Trigger.dev Tasks
 
-Trigger.dev tasks deploy **separately** from the Next.js app. The task code lives in `/trigger/` and runs on the Trigger.dev platform — not on Vercel.
+Trigger.dev tasks deploy **separately** from the Next.js app. The task code lives in `/trigger/` and runs on the Trigger.dev platform — not on your Next.js hosting.
 
 ### Production Deploy
 
@@ -204,42 +169,21 @@ jobs:
           TRIGGER_API_URL: ${{ secrets.TRIGGER_API_URL }}
 ```
 
-**Important:** `TRIGGER_ACCESS_TOKEN` in CI must be a Personal Access Token (`tr_pat_...`), not an environment secret key. Create it in the Trigger.dev dashboard → Personal Access Tokens. The PAT is what lets the deploy command push new versions.
+**Important:** `TRIGGER_ACCESS_TOKEN` in CI must be a Personal Access Token (`tr_pat_...`), not an environment secret key. Create it in the Trigger.dev dashboard → Personal Access Tokens.
 
 ### Environment Variables for Deployed Tasks
 
-Set environment variables that tasks need (e.g. `DIRECTUS_ADMIN_TOKEN`, `NEXT_PUBLIC_DIRECTUS_URL`, third-party API keys) in the Trigger.dev dashboard:
+Tasks run on the Trigger.dev platform, not on your Next.js hosting — they need their own env vars. Set them in the Trigger.dev dashboard:
 
 - Go to the project → Environment Variables
 - Add each variable per environment (development / staging / production)
-- Deployed tasks read them via `process.env.*` inside the `run()` function
-
-Alternatively, use the `syncVercelEnvVars` build extension (see Option A above) to pull from Vercel automatically.
+- Key vars tasks typically need: `NEXT_PUBLIC_DIRECTUS_URL`, `DIRECTUS_ADMIN_TOKEN`, `NEXT_PUBLIC_SITE_URL`, `REVALIDATION_SECRET`, plus any third-party API keys
 
 ## Self-Hosted Trigger.dev Infrastructure
 
 The Trigger.dev webapp + supervisor run on your own server. For the compose files, network topology, and update procedure, **defer to the `trigger-dev` plugin's `deployment` skill** — do not re-derive that content here. This stack plugin only covers integration with a self-hosted instance that is already running.
 
-A typical self-hosted setup:
-- `webapp` container (Next.js app serving the dashboard + API)
-- `supervisor` container (orchestrates task workers)
-- PostgreSQL for the platform's state
-- Redis for the job queue
-- Docker registry for task deploy images (self-hosted via `registry:2` or a managed one)
-
-Run all of the above via Dokploy for a clean HTTPS-terminated setup — the `dokploy-dev` plugin covers the application/service creation flow.
-
-## Auto-Rebuild on Content Changes
-
-### Vercel Deploy Hooks (full rebuild)
-
-1. In Vercel: project Settings → Git → Deploy Hooks → create a hook (e.g. "Directus Content Update"). Copy the hook URL.
-2. In Directus: Settings → Flows → create a new Flow:
-   - **Trigger**: Event Hook → `items.create`, `items.update` on content collections
-   - **Condition** (optional): `{{ $trigger.payload.status }} == "published"`
-   - **Operation**: Webhook → POST to the Vercel Deploy Hook URL
-
-### On-Demand ISR Revalidation (recommended — faster)
+## On-Demand ISR Revalidation
 
 1. Create `app/api/revalidate/route.ts`:
 
@@ -268,7 +212,7 @@ export async function POST(request: NextRequest) {
    ```
    Body: `{ "collection": "{{ $trigger.collection }}" }`
 
-3. Add `REVALIDATION_SECRET` to Vercel/Dokploy environment variables.
+3. Add `REVALIDATION_SECRET` to your hosting platform's environment variables.
 
 ### Trigger Task → Revalidate
 
@@ -290,13 +234,14 @@ This closes the loop: task writes → revalidation → users see fresh content.
 - [ ] Directus running with SSL and persistent storage
 - [ ] `CORS_ORIGIN` on Directus includes the production Next.js domain
 - [ ] Directus static token created with appropriate permissions (not full admin)
-- [ ] All Next.js env vars set in Vercel/Dokploy dashboard (including 3 Trigger vars)
+- [ ] All Next.js env vars set in your hosting platform
 - [ ] `next.config.ts` `images.remotePatterns` includes the production Directus hostname
-- [ ] Deploy hook OR `/api/revalidate` configured for content-change rebuilds
+- [ ] ISR revalidation webhook set up (Directus Flow → `/api/revalidate`)
 - [ ] Self-hosted Trigger.dev webapp + supervisor running (separate infra)
-- [ ] `TRIGGER_ACCESS_TOKEN` (PAT) stored as a CI secret for task deploys
-- [ ] Task env vars set in Trigger.dev dashboard (Directus URL, admin token, revalidation secret, any third-party keys)
+- [ ] Trigger.dev tasks deployed (`npx trigger.dev@latest deploy --self-hosted`)
+- [ ] `TRIGGER_ACCESS_TOKEN` (PAT) stored as a CI secret for automated task deploys
+- [ ] Task env vars set in Trigger.dev dashboard (Directus URL, admin token, revalidation secret, API keys)
 - [ ] Route handlers that call `tasks.trigger()` have `export const dynamic = 'force-dynamic'`
 - [ ] Scheduled tasks attached to production environment in the Trigger.dev dashboard
 - [ ] `NEXTAUTH_SECRET` is a strong random value (not the dev placeholder)
-- [ ] Docker volumes backed up for Directus uploads AND the Trigger.dev postgres/redis state
+- [ ] Docker volumes backed up for Directus uploads
