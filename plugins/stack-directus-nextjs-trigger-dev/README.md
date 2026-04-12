@@ -1,8 +1,8 @@
 # stack-directus-nextjs-trigger-dev
 
-Directus + Next.js + Trigger.dev stack development plugin for Claude Code. Extends the Directus + Next.js App Router stack with a self-hosted Trigger.dev platform for durable background tasks, scheduled jobs, and long-running work.
+Directus + Next.js + Trigger.dev stack development plugin for Claude Code. Extends the Directus + Next.js App Router stack with a self-hosted Trigger.dev platform — a workflow engine for AI agents, durable long-running logic, and scheduled jobs.
 
-Delegates complex async work (AI calls, webhook processing, image transforms, third-party API calls, bulk operations) out of Next.js Server Actions and route handlers and into durable Trigger.dev tasks that can retry, be observed, and write results back to Directus.
+Delegates complex async logic (AI agent workflows, webhook processing, image transforms, third-party API calls, bulk operations) out of Next.js Server Actions and route handlers and into durable Trigger.dev tasks that can retry, be observed, and write results back to Directus.
 
 ## Type
 
@@ -13,8 +13,8 @@ Stack (Level 2) — 3-service architecture with MCP connections to Directus AND 
 | Layer | Service | Role |
 |-------|---------|------|
 | Data | Directus | Content management, REST API, file storage, Flows |
-| Interface + Logic | Next.js | App Router, Server Components, Server Actions, webhook receivers |
-| Background | Trigger.dev (self-hosted) | Durable task execution, scheduled jobs, long-running work, retries |
+| Logic | Next.js + Trigger.dev (self-hosted) | Next.js: sync logic (API routes, Server Actions, webhook receivers). Trigger.dev: async/durable logic (AI agent workflows, scheduled jobs, long-running tasks, retries) |
+| Interface | Next.js | App Router, Server Components, rendering |
 | Deployment | Vercel / Dokploy (Next.js) + Docker (Directus + Trigger webapp/supervisor) | Hosting, edge functions, auto-builds |
 
 ## Prerequisites

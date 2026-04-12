@@ -7,8 +7,8 @@ Stack: Directus + Next.js (App Router) + Trigger.dev (self-hosted)
 ## Architecture
 
 - **Data Layer**: Directus at [DIRECTUS_URL]
-- **Interface + Logic Layer**: Next.js App Router
-- **Background Layer**: Trigger.dev (self-hosted) at [TRIGGER_API_URL] — durable tasks, cron jobs, long-running work
+- **Logic Layer**: Next.js App Router (sync logic) + Trigger.dev (self-hosted) at [TRIGGER_API_URL] (async/durable logic — AI agent workflows, scheduled jobs, long-running tasks)
+- **Interface Layer**: Next.js App Router (Server Components, rendering)
 - **Deployment**: Vercel or Dokploy (Next.js) + Docker Compose (Directus + Trigger.dev webapp/supervisor, local)
 
 ## Key Files

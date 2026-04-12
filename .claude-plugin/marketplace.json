@@ -201,12 +201,12 @@
     {
       "name": "stack-directus-nextjs-trigger-dev",
       "source": "./plugins/stack-directus-nextjs-trigger-dev",
-      "description": "Directus + Next.js + Trigger.dev stack dev plugin. Adds self-hosted Trigger.dev for background task processing and scheduled jobs on top of the Directus + Next.js App Router stack. Delegates complex async work from Next.js Server Components/Actions to durable Trigger.dev tasks.",
-      "version": "1.0.0",
+      "description": "Directus + Next.js + Trigger.dev stack dev plugin. Adds self-hosted Trigger.dev as a workflow engine for AI agents, durable async logic, and scheduled jobs on top of the Directus + Next.js App Router stack.",
+      "version": "1.0.1",
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["stack", "directus-nextjs-trigger", "dev", "agents-store", "directus", "nextjs", "trigger.dev", "background-jobs", "scheduled-tasks", "self-hosted", "durable-execution", "app-router"],
+      "keywords": ["stack", "directus-nextjs-trigger", "dev", "agents-store", "directus", "nextjs", "trigger.dev", "ai-agents", "workflows", "scheduled-tasks", "self-hosted", "durable-execution", "app-router"],
       "category": "development"
     },
     {
