@@ -413,9 +413,53 @@ source .env.local && vercel deploy \
 
 Use `-b` for build-time vars and `-e` for runtime vars. `NEXT_PUBLIC_*` vars need both.
 
+## Deploy Hooks (CMS / External Trigger Rebuilds)
+
+Deploy Hooks let external services trigger a full production rebuild via a POST request — useful for headless CMS content changes (Directus, Sanity, Contentful, Strapi, etc.).
+
+### Create a Deploy Hook
+
+1. Vercel dashboard → project Settings → Git → **Deploy Hooks**
+2. Name: e.g. "CMS Content Update"
+3. Branch: `main` (or your production branch)
+4. Copy the generated URL (format: `https://api.vercel.com/v1/integrations/deploy/prj_xxx/xxx`)
+
+### Wire to a Headless CMS
+
+Point your CMS webhook at the deploy hook URL. Examples:
+
+**Directus (via Automate Flows):**
+1. Settings → Flows → Create Flow
+2. Trigger: Event Hook → `items.create`, `items.update` on content collections
+3. Condition (optional): `{{ $trigger.payload.status }} == "published"`
+4. Operation: Webhook → POST to the deploy hook URL (no body needed)
+
+**Sanity:** Settings → API → Webhooks → add the hook URL, filter by document type.
+
+**Contentful:** Settings → Webhooks → add URL, trigger on Entry publish.
+
+### Deploy Hooks vs ISR Revalidation
+
+| Approach | When to use |
+|----------|-------------|
+| **Deploy Hook** (full rebuild) | Static sites, infrequent content updates, need guaranteed fresh build |
+| **ISR on-demand revalidation** (`revalidateTag`/`revalidatePath`) | Dynamic sites, frequent updates, instant refresh without full rebuild |
+
+For most Next.js App Router projects, **ISR revalidation is preferred** — it's faster (seconds vs minutes) and doesn't burn a build. Deploy hooks are simpler but trigger a full redeploy. You can use both: ISR for instant cache invalidation + deploy hook as a safety net for daily full rebuilds.
+
+### Programmatic Trigger
+
+```bash
+# Trigger a deploy hook from CLI or CI
+curl -X POST "https://api.vercel.com/v1/integrations/deploy/prj_xxx/xxx"
+```
+
+No authentication needed — the URL itself is the secret. Keep it private.
+
 ## Official Documentation
 
 - [Deployments](https://vercel.com/docs/deployments)
+- [Deploy Hooks](https://vercel.com/docs/deployments/deploy-hooks)
 - [Vercel CLI](https://vercel.com/docs/cli)
 - [GitHub Actions](https://vercel.com/docs/deployments/git/vercel-for-github)
 - [GitLab CI](https://vercel.com/docs/deployments/git/vercel-for-gitlab)

@@ -84,6 +84,28 @@ REVALIDATION_SECRET=dev-revalidation-secret
 
 Create the admin static token in Directus Admin → Settings → Access Tokens after first startup.
 
+## next.config.ts for Production
+
+Ensure the production Directus domain is in `images.remotePatterns` so `next/image` can optimize Directus assets:
+
+```typescript
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cms.yourdomain.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8055',
+      },
+    ],
+  },
+};
+```
+
 ## On-Demand ISR Revalidation
 
 For instant content updates without a full rebuild, use Next.js on-demand revalidation triggered by Directus:
