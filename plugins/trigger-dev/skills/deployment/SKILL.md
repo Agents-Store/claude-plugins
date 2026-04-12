@@ -49,18 +49,19 @@ npx trigger.dev@latest deploy --skip-promotion
 
 ## Self-Hosted Deploy
 
-For self-hosted instances, pass `--api-url` pointing to your Trigger.dev server and authenticate with `TRIGGER_ACCESS_TOKEN` (a PAT token):
+For self-hosted instances, pass `--api-url` pointing to your Trigger.dev server and authenticate with `TRIGGER_ACCESS_TOKEN`:
 
 ```bash
-# Set access token and deploy
+# Option A: Use a Personal Access Token (from `trigger.dev login`)
 TRIGGER_ACCESS_TOKEN=tr_pat_xxx \
 npx trigger.dev@latest deploy \
   --env prod \
   --api-url https://your-trigger-instance.example.com \
   --env-file .env
 
-# Or with project ref override
-TRIGGER_ACCESS_TOKEN=tr_pat_xxx \
+# Option B: Use the project secret key as access token
+# This works when the CLI profile token doesn't have access to the project
+TRIGGER_ACCESS_TOKEN=$TRIGGER_SECRET_KEY \
 npx trigger.dev@latest deploy \
   --env prod \
   --api-url https://your-trigger-instance.example.com \
@@ -68,9 +69,44 @@ npx trigger.dev@latest deploy \
   --env-file .env
 ```
 
+If the CLI says "Project not found" even though the project exists, the CLI profile token likely lacks access to the project's organization. Use Option B (`TRIGGER_SECRET_KEY` as `TRIGGER_ACCESS_TOKEN`) to authenticate with the project-scoped key instead.
+
 There is no `--self-hosted` flag — self-hosted and cloud deploys use the same CLI command, only `--api-url` differs (cloud default: `https://api.trigger.dev`).
 
 The CLI automatically discovers the container registry from the server and handles Docker build + push internally.
+
+## Self-Hosted Runtime Environment Variables
+
+Deployed tasks run in isolated Docker containers that do **not** have access to your local `.env` file. The `--env-file` flag only loads env vars into the CLI process during build — they are NOT available at runtime.
+
+The `deploy.env` option in `trigger.config.ts` may not propagate env vars to self-hosted runtime containers. To reliably set runtime env vars, use one of these methods:
+
+### Method 1: REST API (recommended for automation)
+
+```bash
+# Set a single env var for the prod environment
+curl -X POST "$TRIGGER_API_URL/api/v1/projects/$TRIGGER_PROJECT_REF/envvars/prod" \
+  -H "Authorization: Bearer $TRIGGER_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "MY_API_KEY", "value": "sk-xxx"}'
+
+# Script to sync all required vars from .env.local
+for var_name in DIRECTUS_URL API_KEY OTHER_VAR; do
+  eval var_value=\$$var_name
+  curl -s -X POST "$TRIGGER_API_URL/api/v1/projects/$TRIGGER_PROJECT_REF/envvars/prod" \
+    -H "Authorization: Bearer $TRIGGER_SECRET_KEY" \
+    -H "Content-Type: application/json" \
+    -d "{\"name\": \"$var_name\", \"value\": \"$var_value\"}"
+done
+```
+
+### Method 2: Dashboard UI
+
+Navigate to `$TRIGGER_API_URL/projects/v3/$PROJECT_REF/environment-variables` and add vars manually.
+
+### Common symptom
+
+If a deployed task fails with `TypeError: Failed to parse URL from undefined/...`, the env var providing the base URL is missing from the runtime environment. Set it via the API or dashboard.
 
 ## Environments
 

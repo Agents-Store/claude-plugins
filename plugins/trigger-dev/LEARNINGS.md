@@ -27,3 +27,24 @@
 **Fix:** Added install instruction for `@trigger.dev/build` at top of Build Extensions section. Rewrote syncEnvVars section with bold warning that it's required for any task using `process.env`, added practical pattern for syncing from `.env` file.
 **Root cause:** Skill treated env var sync as a nice-to-have rather than a deployment prerequisite. The `@trigger.dev/build` dependency was assumed to be pre-installed.
 **Severity:** Critical
+
+## 2026-04-13 — deployment: TRIGGER_SECRET_KEY as TRIGGER_ACCESS_TOKEN fallback for self-hosted
+
+**Problem:** CLI profile token (PAT) couldn't find a project that exists on the self-hosted instance. MCP tools (using TRIGGER_SECRET_KEY) could see it. Agent spent multiple iterations debugging auth.
+**Fix:** Added Option B to self-hosted deploy: use `TRIGGER_ACCESS_TOKEN=$TRIGGER_SECRET_KEY` when the CLI profile token lacks project access. Added diagnostic tip for "Project not found" error.
+**Root cause:** Skill only documented PAT tokens for TRIGGER_ACCESS_TOKEN. On self-hosted instances, the project secret key also works as an access token and avoids org/permission mismatches.
+**Severity:** Major
+
+## 2026-04-13 — deployment: Runtime env vars not propagated by deploy.env on self-hosted
+
+**Problem:** `deploy.env` in trigger.config.ts did not propagate env vars to self-hosted runtime containers. Tasks failed with `TypeError: Failed to parse URL from undefined/...`. Agent had to discover the REST API endpoint manually.
+**Fix:** Added "Self-Hosted Runtime Environment Variables" section with REST API method (`POST /api/v1/projects/{ref}/envvars/{env}`) and dashboard UI alternative. Documented the common `undefined` URL symptom.
+**Root cause:** Skill assumed `deploy.env` or `syncEnvVars` always works. On self-hosted, runtime env vars may need to be set via API or dashboard separately.
+**Severity:** Critical
+
+## 2026-04-13 — task-development: External SDK clients crash deploy when initialized at module top level
+
+**Problem:** `const openai = new OpenAI()` at module level caused deploy to fail with "Missing credentials" because `OPENAI_API_KEY` is not available during the Docker build phase.
+**Fix:** Added Critical Rule #6: lazy-initialize external SDK clients. Included bad/good code examples showing the singleton getter pattern.
+**Root cause:** Trigger.dev imports and validates task files during the Docker build step. Any top-level code that reads env vars will fail because build-time env != runtime env.
+**Severity:** Major

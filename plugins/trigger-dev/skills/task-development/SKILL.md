@@ -14,6 +14,21 @@ Build durable background tasks that run reliably with automatic retries, queuing
 3. **Never use `Promise.all`** with `triggerAndWait()` or `wait.*` calls — use `batchTriggerAndWait` instead
 4. **Export every task** from files in your `trigger/` directory — unexported tasks are invisible
 5. **Use `logger`** for structured logs — `import { logger } from "@trigger.dev/sdk"`, not just `console.log`
+6. **Lazy-initialize external SDK clients** — never instantiate clients (e.g. `new OpenAI()`, `new S3Client()`) at the module top level because env vars like `OPENAI_API_KEY` are not available during the Docker build phase, causing the deploy to fail with "Missing credentials"
+
+```ts
+// BAD — fails during deploy build
+import OpenAI from "openai";
+const openai = new OpenAI(); // ← crashes: OPENAI_API_KEY undefined at build time
+
+// GOOD — initialized on first use at runtime
+import OpenAI from "openai";
+let _openai: OpenAI | null = null;
+function getClient(): OpenAI {
+  if (!_openai) _openai = new OpenAI();
+  return _openai;
+}
+```
 
 ## Basic Task
 
