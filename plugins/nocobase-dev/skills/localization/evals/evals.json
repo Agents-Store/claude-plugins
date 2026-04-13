@@ -1,0 +1,18 @@
+{
+  "skill_name": "localization",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add Ukrainian translations for NocoBase collection names and field labels",
+      "expected_output": "Curl commands for localization:sync, localizationTexts:list, localizationTranslations:create, localization:publish",
+      "files": [],
+      "expectations": [
+        "Uses localization:sync to discover translatable texts",
+        "Uses localizationTexts:list to find text IDs",
+        "Uses localizationTranslations:create with locale uk-UA",
+        "Uses localization:publish to apply translations",
+        "Shows the correct sync-list-translate-publish workflow order"
+      ]
+    }
+  ]
+}

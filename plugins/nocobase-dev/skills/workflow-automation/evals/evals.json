@@ -1,0 +1,31 @@
+{
+  "skill_name": "workflow-automation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a workflow that sends a Slack notification when a new high-value order (over $1000) is created",
+      "expected_output": "curl commands to create workflow with collection trigger, condition node, and request node",
+      "files": [],
+      "expectations": [
+        "Creates workflow with type collection and mode 1 (afterCreate)",
+        "Starts with enabled: false",
+        "Adds condition node checking amount > 1000",
+        "Adds request node with POST to webhook URL",
+        "Uses $context.data variables in request body"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Set up a scheduled workflow that runs daily at 2 AM to clean up draft records older than 90 days",
+      "expected_output": "curl commands for schedule workflow with query and destroy nodes",
+      "files": [],
+      "expectations": [
+        "Creates workflow with type schedule",
+        "Uses cron expression 0 2 * * *",
+        "Adds query node with date filter",
+        "Includes destroy or loop+destroy pattern",
+        "Mentions DATEADD function for date math"
+      ]
+    }
+  ]
+}

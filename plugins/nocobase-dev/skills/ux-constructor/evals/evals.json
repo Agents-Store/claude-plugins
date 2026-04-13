@@ -1,0 +1,33 @@
+{
+  "skill_name": "ux-constructor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a Modern Page (v2) for the contacts collection with a table block showing name, email, and status columns",
+      "expected_output": "Multi-step curl sequence: desktopRoutes:create, uiSchemas:insert, flowModels:save for RootPageModel, BlockGridModel, TableBlockModel, and TableColumnModels",
+      "files": [],
+      "expectations": [
+        "Uses type flowPage (not page)",
+        "Creates FlowRoute schema with uiSchemas:insert",
+        "Creates RootPageModel and BlockGridModel via flowModels:save",
+        "Creates TableBlockModel with collectionName in stepParams",
+        "Creates TableColumnModel for each field with correct display model mapping",
+        "Generates 11-character alphanumeric UIDs",
+        "Includes TableActionsColumnModel as first column"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add an 'Add New' button with a creation form to an existing table block",
+      "expected_output": "curl commands creating AddNewActionModel, ChildPageModel, BlockGridModel, CreateFormModel, and FormItemModels",
+      "files": [],
+      "expectations": [
+        "Creates AddNewActionModel with parentId of table block",
+        "Creates ChildPageModel with ChildPageTabModel",
+        "Creates BlockGridModel inside the tab",
+        "Creates CreateFormModel with FormGridModel",
+        "Creates FormItemModel for each form field with correct edit field model"
+      ]
+    }
+  ]
+}

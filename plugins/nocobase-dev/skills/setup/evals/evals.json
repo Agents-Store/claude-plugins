@@ -1,0 +1,18 @@
+{
+  "skill_name": "setup",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Verify my NocoBase API connection is working — check health, auth, and read access",
+      "expected_output": "Three-step verification sequence: app:getInfo, auth:check, collections:list with expected responses and troubleshooting",
+      "files": [],
+      "expectations": [
+        "Includes app:getInfo health check as first step",
+        "Includes auth:check with Bearer token as second step",
+        "Includes collections:list as third step",
+        "Uses ${NOCOBASE_URL} and ${NOCOBASE_API_KEY} placeholders",
+        "Provides troubleshooting table for common failures"
+      ]
+    }
+  ]
+}

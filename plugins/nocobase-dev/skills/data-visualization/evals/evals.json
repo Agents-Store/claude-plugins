@@ -1,0 +1,18 @@
+{
+  "skill_name": "data-visualization",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Query monthly revenue totals from the orders collection grouped by month for 2024",
+      "expected_output": "Curl command using charts:query with sum aggregation on amount, date dimension with YYYY-MM format, and date filter",
+      "files": [],
+      "expectations": [
+        "Uses POST charts:query endpoint",
+        "Includes measures with sum aggregation on amount field",
+        "Includes dimensions with date format YYYY-MM",
+        "Includes date filter for 2024",
+        "Includes orders sorting by month ascending"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "skill_name": "examples",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Show me an end-to-end example of building a CRM with collections and relationships in NocoBase",
+      "expected_output": "Points to CRM scenario with entity model, collection definitions, relation setup, and sample data",
+      "files": [],
+      "expectations": [
+        "References the CRM scenario file or describes entity model",
+        "Shows companies, contacts, deals collections",
+        "Includes relation setup (belongsTo, hasMany, belongsToMany)",
+        "Mentions creation order (independent tables first)",
+        "Includes sample curl commands for creating collections"
+      ]
+    }
+  ]
+}

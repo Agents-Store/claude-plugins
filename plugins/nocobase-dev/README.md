@@ -14,6 +14,7 @@ NocoBase V2 development plugin for the Agents Store. Complete API reference and 
 - **Data Visualization** -- Chart queries with aggregation, grouping, and caching
 - **Authentication & Users** -- Manage users, roles, permissions, API keys, SSO
 - **Localization** -- Multi-language support and translation management
+- **Plugin Development** -- Scaffold plugins, lifecycle hooks, server/client classes, migrations, custom actions
 - **System Administration** -- Settings, storage, plugins, app management
 
 ## Skills
@@ -33,10 +34,11 @@ NocoBase V2 development plugin for the Agents Store. Complete API reference and 
 | `data-visualization` | Chart queries, aggregations, dashboard data |
 | `auth-and-users` | Authentication, users, roles, API keys |
 | `localization` | Multi-language support |
+| `plugin-development` | NocoBase plugin scaffolding, lifecycle, migrations, custom actions |
 | `system-admin` | System settings, storage, plugins |
 | `api-reference` | Complete HTTP endpoint reference |
 | `troubleshoot` | Error diagnosis and fixes |
-| `examples` | End-to-end scenario walkthroughs |
+| `examples` | End-to-end scenario walkthroughs (CRM, workflows, project management, i18n) |
 
 ## Agent
 

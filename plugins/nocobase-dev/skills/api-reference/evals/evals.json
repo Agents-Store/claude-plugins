@@ -1,0 +1,18 @@
+{
+  "skill_name": "api-reference",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "What NocoBase API endpoints are available for managing workflows and their nodes?",
+      "expected_output": "List of workflow endpoints (workflows:list/get/create/update/destroy/execute/revision) and node endpoints (flow_nodes:create/update/destroy/duplicate)",
+      "files": [],
+      "expectations": [
+        "Lists workflows resource actions (list, get, create, update, destroy)",
+        "Lists flow_nodes resource actions",
+        "Lists executions resource for monitoring",
+        "Uses Resource:Action URL format",
+        "Mentions workflow revision/versioning endpoint"
+      ]
+    }
+  ]
+}

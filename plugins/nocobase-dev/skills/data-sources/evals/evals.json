@@ -1,0 +1,18 @@
+{
+  "skill_name": "data-sources",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Connect an external PostgreSQL database to NocoBase and import its users table",
+      "expected_output": "Curl commands for dataSources:testConnection, dataSources:create or add, dataSources:readTables, dataSources:loadTables",
+      "files": [],
+      "expectations": [
+        "Uses dataSources:testConnection to validate credentials",
+        "Shows connection options (host, port, database, username, password)",
+        "Uses dataSources:readTables or dataSources:loadTables to import",
+        "Explains data-source-scoped collection paths",
+        "Mentions the difference between main and external data source paths"
+      ]
+    }
+  ]
+}

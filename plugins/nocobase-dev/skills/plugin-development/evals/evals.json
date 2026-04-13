@@ -1,0 +1,32 @@
+{
+  "skill_name": "plugin-development",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Scaffold a NocoBase plugin that adds a custom 'publish' action to an articles collection",
+      "expected_output": "Plugin directory structure, server plugin class with custom action registration, ACL configuration",
+      "files": [],
+      "expectations": [
+        "Shows complete plugin directory structure",
+        "Includes server plugin class extending Plugin",
+        "Registers custom action in load() method",
+        "Configures ACL permissions for the action",
+        "Shows how to call the action via API (curl with Resource:Action pattern)",
+        "Includes package.json template"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Write a migration that adds a priority field to an existing tasks collection",
+      "expected_output": "Migration class with up/down methods using collection API",
+      "files": [],
+      "expectations": [
+        "Uses date-based migration file naming",
+        "Extends Migration class",
+        "Checks if field exists before adding",
+        "Includes up and down methods",
+        "Calls db.sync() after schema change"
+      ]
+    }
+  ]
+}

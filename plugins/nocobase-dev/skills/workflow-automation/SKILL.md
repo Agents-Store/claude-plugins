@@ -387,6 +387,141 @@ Workflow pattern for safe updates:
 5. Add a "request" node to send notifications
 ```
 
+## Action Trigger (Button Click)
+
+Fires when a user clicks a workflow-bound action button in the UI.
+
+```json
+{
+  "type": "action",
+  "title": "Submit for Approval",
+  "config": {
+    "collection": "purchase_requests",
+    "appends": []
+  }
+}
+```
+
+```bash
+curl -X POST "${NOCOBASE_URL}/api/workflows:create" \
+  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "action",
+    "title": "Submit for Approval",
+    "enabled": false,
+    "config": {
+      "collection": "purchase_requests"
+    }
+  }'
+```
+
+Action triggers are useful for manual approval workflows, batch processing, and any user-initiated automation.
+
+## Variable System
+
+### Context Variables
+
+| Variable | Description |
+|----------|-------------|
+| `$context.data` | Trigger record data (all fields) |
+| `$context.data.id` | Record ID |
+| `$context.data.fieldName` | Specific field value |
+| `$context.user` | Current user who triggered the workflow |
+| `$context.params` | Action parameters (for action triggers) |
+
+### Job Variables
+
+| Variable | Description |
+|----------|-------------|
+| `$jobsData.nodeKey` | Output from a specific node |
+| `$jobsData.queryResult` | Result of Query node |
+| `$jobsData.calculationResult` | Result of Calculation node |
+
+### System Functions
+
+| Function | Description |
+|----------|-------------|
+| `NOW()` | Current datetime |
+| `DATEADD(date, n, unit)` | Add time to date |
+| `DATEDIFF(date1, date2, unit)` | Difference between dates |
+
+### Variable Passing Between Nodes
+
+Access trigger record:
+```
+{{$context.data.id}}          → Record ID
+{{$context.data.status}}      → Field value
+{{$context.data.createdBy}}   → Creator reference
+```
+
+Access output from previous nodes:
+```
+{{$jobsData.queryNodeKey}}              → Full query result
+{{$jobsData.queryNodeKey[0].name}}      → First result's name field
+{{$jobsData.calculationNodeKey}}        → Calculation result
+```
+
+## Execution Modes
+
+| Mode | Description | Use When |
+|------|-------------|----------|
+| Sync | Blocks until complete | Before-event validation, data must be ready |
+| Async | Non-blocking (recommended) | After-event notifications, heavy processing |
+
+## Error Handling Patterns
+
+### HTTP Request Retry
+
+```
+Trigger: orders.afterCreate
+1. Request: POST to external API
+2. Condition: Check request result
+   - Success → Continue normal flow
+   - Failure → Create: Log error to error_logs
+              → Delay: 5 minutes
+              → Request: Retry the original request
+```
+
+### Missing Data Guard
+
+```
+Trigger: contacts.afterCreate
+1. Condition: {{$context.data.email != null}}
+   - True → Request: Send welcome email
+   - False → Create: Log "missing email" to audit_logs
+```
+
+### Cascading Update Safety
+
+```
+Trigger: orders.afterUpdate
+1. Query: Get related order_items
+2. Condition: {{$jobsData.queryResult.length > 0}}
+   - True → Loop: Update each item
+   - False → (skip, no items to update)
+```
+
+### Chaining Multiple Conditions
+
+```
+Trigger: deals.afterUpdate
+1. Condition: status changed?
+   Yes:
+     2. Condition: new status == "Won"?
+        Yes:
+          3. Calculate: commission = amount * 0.05
+          4. Create: commission_record
+          5. Request: Notify sales team
+        No:
+          2b. Condition: new status == "Lost"?
+              Yes:
+                3b. Create: lost_reason_record
+                4b. Request: Notify manager
+              No: (skip)
+   No: (skip)
+```
+
 ## Best Practices
 
 1. **Start disabled** — create workflows with `enabled: false` and test before activating.
@@ -396,3 +531,8 @@ Workflow pattern for safe updates:
 5. **Test nodes individually** — use `flow_nodes:test` to verify node logic before running the full workflow.
 6. **Clean up executions** — destroy old execution records to keep the database clean.
 7. **Resume stuck jobs** — check `userWorkflowTasks:listMine` for pending approvals.
+8. **Use async mode** — unless you need to block the user operation (before-event validation).
+9. **Guard against nulls** — always check query results are not empty before accessing fields.
+10. **Retry HTTP requests** — for external calls, add retry logic with delay nodes.
+11. **Log important events** — create audit trail records in critical workflows.
+12. **Use parallel branches** — for independent actions (notify + log simultaneously).

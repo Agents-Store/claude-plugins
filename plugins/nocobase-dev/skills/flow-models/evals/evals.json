@@ -1,0 +1,30 @@
+{
+  "skill_name": "flow-models",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Save a flow model for a form block bound to the users collection",
+      "expected_output": "curl command using flowModels:save with use, stepParams, and parentId",
+      "files": [],
+      "expectations": [
+        "Uses POST flowModels:save endpoint",
+        "Includes use field with model class name",
+        "Includes stepParams with dataSource and collectionName",
+        "Includes parentId for tree attachment",
+        "Explains upsert behavior (create or update by uid)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Execute a SQL query using Flow SQL with bind parameters",
+      "expected_output": "curl commands using flowSql:save and flowSql:runById",
+      "files": [],
+      "expectations": [
+        "Uses flowSql:save to store the query",
+        "Uses flowSql:runById to execute with bind params",
+        "Shows Liquid template syntax for table references",
+        "Includes bind object for parameterized values"
+      ]
+    }
+  ]
+}

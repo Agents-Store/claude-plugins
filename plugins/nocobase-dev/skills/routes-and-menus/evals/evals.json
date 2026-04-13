@@ -1,0 +1,18 @@
+{
+  "skill_name": "routes-and-menus",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a menu group called CRM with child pages for Contacts and Deals, and restrict access to the editor role only",
+      "expected_output": "Curl commands for desktopRoutes:create (group + children) and roles/editor/desktopRoutes:set",
+      "files": [],
+      "expectations": [
+        "Creates group route with type group",
+        "Creates child routes with parentId pointing to group",
+        "Uses desktopRoutes:create for each route",
+        "Uses roles/{role}/desktopRoutes:set for role restriction",
+        "Mentions auto-granted access (allowNewMenu) or how to remove access from other roles"
+      ]
+    }
+  ]
+}

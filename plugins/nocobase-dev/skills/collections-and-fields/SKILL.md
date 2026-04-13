@@ -381,3 +381,40 @@ curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
   "${NOCOBASE_URL}/api/collectionCategories:create" \
   -d '{"name": "E-Commerce", "color": "#1890ff"}'
 ```
+
+## System Fields
+
+Every collection should include these standard fields. NocoBase adds them automatically when enabled in collection settings:
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `id` | bigInt (auto) | Primary key |
+| `createdAt` | datetime | Record creation time |
+| `updatedAt` | datetime | Last modification time |
+| `createdBy` | belongsTo (users) | Who created the record |
+| `updatedBy` | belongsTo (users) | Who last modified |
+
+Always enable system fields when creating collections via API:
+
+```bash
+curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  -H "Content-Type: application/json" \
+  "${NOCOBASE_URL}/api/collections:create" \
+  -d '{
+    "name": "orders",
+    "title": "Orders",
+    "createdBy": true,
+    "updatedBy": true,
+    "fields": [...]
+  }'
+```
+
+## Collection Design, Architecture Patterns & Advanced Fields
+
+For detailed guidance on designing collections from scratch, see `references/design-patterns.md`. It covers:
+
+- **4-step design process** — identify entities, define fields, map relations, create in dependency order
+- **Architecture patterns** — master-detail, self-referencing tree, soft delete, polymorphic
+- **Collection inheritance** — child collections that share base fields via `inherits`
+- **Advanced field types** — formula, sequence, snapshot, nanoid, uuid, sort (with curl examples)
+- **Field validation** — required, unique, min/max, pattern, enum with x-validator syntax

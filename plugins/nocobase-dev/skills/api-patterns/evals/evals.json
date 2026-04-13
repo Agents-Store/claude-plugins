@@ -1,0 +1,18 @@
+{
+  "skill_name": "api-patterns",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Explain the NocoBase API URL pattern and show how to filter, sort, and paginate a list of orders",
+      "expected_output": "Resource:Action pattern explanation with curl example combining filter, sort, page, pageSize, and appends",
+      "files": [],
+      "expectations": [
+        "Explains Resource:Action URL pattern (resource:action)",
+        "Shows filter with $-prefixed operators in JSON",
+        "Shows sort with - prefix for descending",
+        "Includes page and pageSize parameters",
+        "Shows appends for association data"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "name": "nocobase-dev",
-  "version": "1.3.1",
-  "description": "NocoBase V2 dev plugin for Agents Store. Complete API reference for collections, fields, records, workflows, UI schemas, flow models (v2.x block engine), routes, menus, data sources, charts, templates, authentication, localization, and system configuration through the NocoBase HTTP API.",
+  "version": "1.4.0",
+  "description": "NocoBase V2 dev plugin for Agents Store. Complete API reference for collections, fields, records, workflows, UI schemas, flow models (v2.x block engine), routes, menus, data sources, charts, templates, authentication, localization, plugin development, and system configuration through the NocoBase HTTP API.",
   "author": {
     "name": "AGENTS.STORE"
   },

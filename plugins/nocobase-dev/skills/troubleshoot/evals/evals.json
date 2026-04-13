@@ -1,0 +1,18 @@
+{
+  "skill_name": "troubleshoot",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "My NocoBase API returns 401 Unauthorized. Help me diagnose and fix the issue",
+      "expected_output": "Diagnostic sequence starting with health check, then auth:check, with 401 causes and fixes",
+      "files": [],
+      "expectations": [
+        "Starts with health check (app:getInfo) before auth",
+        "Uses auth:check to verify token validity",
+        "Lists 401 causes: invalid key, expired, wrong format, wrong instance",
+        "Suggests regenerating API key as a fix",
+        "Mentions X-Authenticator header for multi-auth setups"
+      ]
+    }
+  ]
+}

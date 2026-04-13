@@ -20,6 +20,13 @@ Accumulated fixes and discoveries from usage and feedback.
 **Implementation:** Algorithm captured by intercepting browser network traffic during manual page creation. Sequence: `desktopRoutes:create` (type=flowPage) -> `uiSchemas:insert` (FlowRoute) -> `flowModels:save` (RootPageModel -> BlockGridModel -> TableBlockModel -> TableColumnModel). Includes display model mapping table and troubleshooting guide.
 **Rationale:** The existing skills documented individual API endpoints but not the correct multi-step workflow. Previous attempts to create pages programmatically used the wrong algorithm (Classic v1 with uiSchemas:insertAdjacent). The key discovery: Modern pages use `type: "flowPage"`, `x-component: "FlowRoute"`, and `flowModels:save` instead of uiSchemas for block creation. Verified by successfully creating 12 pages with table blocks for all database collections.
 
+## 2026-04-13 — plugin-wide: enrichment from nocobase ops plugin
+
+**Feature:** Added plugin-development skill, enriched collections-and-fields (design patterns, inheritance, advanced fields, validation), enriched workflow-automation (action trigger, variable system, error handling patterns), added project-management example scenario, added evals for 7 key skills
+**Implementation:** New plugin-development skill with TypeScript scaffold, lifecycle, migrations, custom actions, ACL, plugin management API. Extended collections-and-fields with system fields, 4-step design process, architecture patterns (master-detail, tree, soft delete, polymorphic), inheritance, formula/sequence fields, validation. Extended workflow-automation with action trigger type, $context/$jobsData variables, execution modes, error handling patterns. New project-management scenario with full curl examples. Created evals/evals.json for collections-and-fields, record-operations, workflow-automation, ui-schemas, ux-constructor, flow-models, plugin-development.
+**Rationale:** Cross-pollination from the nocobase (ops) plugin which had strong design-pattern and plugin-development coverage absent in nocobase-dev. Selectively merged only content that adds value to a dev-oriented HTTP API plugin — excluded MCP-specific content and commands.
+**Severity:** Major
+
 ## 2026-04-09 — flow-models: v2.x block engine coverage
 
 **Feature:** Added flow-models skill covering the v2.x block engine (flowModels, flowSql, variables resources)

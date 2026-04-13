@@ -1,0 +1,28 @@
+{
+  "skill_name": "ui-schemas",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Read the current UI schema for a page and update its title",
+      "expected_output": "curl commands using getJsonSchema to read and patch to update",
+      "files": [],
+      "expectations": [
+        "Uses GET uiSchemas:getJsonSchema with the page uid",
+        "Uses POST uiSchemas:patch with x-uid and new x-component-props",
+        "Mentions reading before modifying as best practice"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create a custom theme with dark blue primary color and large border radius",
+      "expected_output": "curl command using themeConfig:create with Ant Design tokens",
+      "files": [],
+      "expectations": [
+        "Uses POST themeConfig:create",
+        "Includes config.token with colorPrimary",
+        "Includes borderRadius token",
+        "Mentions Ant Design token system"
+      ]
+    }
+  ]
+}

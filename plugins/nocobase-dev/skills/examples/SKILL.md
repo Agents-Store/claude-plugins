@@ -29,7 +29,17 @@ Automate a deal-to-task pipeline where high-value deals automatically generate f
 
 **Complexity:** Intermediate
 
-### 3. Setting Up Multi-Language Support
+### 3. Building a Project Management Application
+
+**File:** `references/scenarios/project-management.md`
+
+Build a project management app with tasks, milestones, assignments, and kanban boards. Covers creating collections with self-referencing trees (subtasks), many-to-many assignments via through tables, sequence fields for task numbers, scheduled workflows for overdue alerts, auto-completing milestones, and chart queries for dashboards.
+
+**Skills used:** collections-and-fields, record-operations, workflow-automation, data-visualization, api-patterns
+
+**Complexity:** Advanced
+
+### 4. Setting Up Multi-Language Support
 
 **File:** `references/scenarios/multi-language-setup.md`
 
@@ -45,6 +55,7 @@ Configure NocoBase for multilingual use, adding Ukrainian translations for colle
 |----------|---------------|----------------|------------|-------------------|
 | CRM Collections | Data modeling | collections-and-fields, record-operations, api-patterns | Intermediate | collections, fields, collectionCategories, records |
 | Workflow Automation | Business logic | workflow-automation, record-operations, collections-and-fields | Intermediate | workflows, flow_nodes, executions, records |
+| Project Management | Full application | collections-and-fields, record-operations, workflow-automation, data-visualization | Advanced | collections, fields, workflows, charts, records |
 | Multi-Language Setup | Localization | localization, system-admin | Beginner | localization, localizationTexts, localizationTranslations, app |
 
 ## How to Use These Scenarios

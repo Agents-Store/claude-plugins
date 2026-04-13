@@ -1,0 +1,18 @@
+{
+  "skill_name": "system-admin",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Check NocoBase version, list installed plugins, and clear the application cache",
+      "expected_output": "Curl commands for app:getInfo, app:getPlugins, and app:clearCache",
+      "files": [],
+      "expectations": [
+        "Uses app:getInfo to check version",
+        "Uses app:getPlugins to list plugins",
+        "Uses app:clearCache to clear cache",
+        "All requests use Bearer auth header",
+        "Uses ${NOCOBASE_URL} placeholder"
+      ]
+    }
+  ]
+}
