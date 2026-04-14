@@ -1,5 +1,12 @@
 # LEARNINGS.md — dokploy-dev
 
+## 2026-04-14 — deploy + status commands: Docker Compose build mode not detected
+
+**Problem:** When a Dokploy project uses Docker Compose build mode (production runs from a compose service, not the standalone application), the deploy command only deployed the standalone application. The push auto-deploy webhook was also connected to the application, not the compose service. This caused the deployment to report "done" while the production site remained unchanged — a silent failure.
+**Fix:** Updated `deploy.md` to detect Docker Compose build mode by checking if the project has a compose service alongside the application. If compose exists, it warns the user and deploys the compose service using `compose-deploy` MCP tool or REST API fallback. Updated `status.md` to show both application and compose service status, and flag auto-deploy misconfiguration.
+**Root cause:** The deploy command assumed all projects use standalone application mode. Projects using `docker-compose.prod.yml` need compose-level deployment, not application-level.
+**Severity:** Critical
+
 ## 2026-04-09 — mcp-patterns: Auth header, GitHub provider repo field, Git provider required fields
 
 **Problem:** (1) REST API fallback section was missing — when MCP tools fail, users need curl examples with correct `x-api-key` header (not Bearer). (2) `saveGithubProvider` `repository` field was ambiguous — passing a full URL (`https://github.com/org/repo`) caused Dokploy to create a broken double-URL clone path (`github.com/org/https://github.com/org/repo`). This caused 4 failed deployments before root cause was found. (3) `saveGitProvider` table was missing required fields `customGitBuildPath` and `watchPaths`, causing 400 validation errors.
