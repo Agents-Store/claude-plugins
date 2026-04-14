@@ -187,8 +187,15 @@ CREATE UNIQUE INDEX "uq_table_column" ON "public"."table_name" ("column_name");
 DROP INDEX IF EXISTS "public"."idx_table_column";
 ```
 
+## One Relation Per Table Pair
+
+Between any two tables, use exactly **one** relation type — either a direct FK (One-to-Many) or a M2M junction table, never both. Having both a FK column and a junction table between the same two tables creates duplicate link columns in the UI, because both NocoDB and NocoBase auto-detect FK constraints and junction tables independently.
+
+If you need both a "primary" link (single value) and a "uses many" link between the same tables, model it as a single M2M junction — the "primary" is just one row in the junction.
+
 ## Relation Checklist
 
+- **One relation type per table pair** — FK or junction, not both
 - FK column type matches parent PK type (`int4` for `serial`, `int8` for `bigserial`)
 - FK constraint uses `ON DELETE NO ACTION ON UPDATE NO ACTION`
 - Index created on every FK column
