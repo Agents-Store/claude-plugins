@@ -5,7 +5,20 @@ description: System administration — settings, storage, backups, plugins, app 
 
 # System Administration
 
-Manage NocoBase V2 system settings, storage providers, backups, plugins, application lifecycle, multi-app instances, and verification providers through the HTTP API.
+Manage NocoBase system settings, storage providers, backups, plugins, application lifecycle, multi-app instances, and background jobs across MCP, CLI, and HTTP.
+
+## MCP operational tools
+
+| Task | MCP tool |
+|------|----------|
+| List background jobs (imports, exports, long tasks) | `jobs_list` |
+| Get one job's status | `jobs_get` |
+| Resume a paused job | `jobs_resume` |
+| List canonical ACL actions | `available_actions_list` |
+
+Most system admin is still HTTP/CLI-first — plugin management, settings, storage, restart. See sections below for `pm:*`, `systemSettings:*`, and `app:*`.
+
+For plugin management details, see `plugin-development` (pm CLI reference) and `publish-manage` (cross-env migrations).
 
 ## Authentication
 
@@ -456,4 +469,12 @@ Returns all registered resource actions, including built-in CRUD operations and 
 7. **Keep default language consistent** — set `appLang` to match your primary user base.
 8. **Limit multi-app usage** — each sub-application consumes database and memory resources; plan capacity accordingly.
 9. **Secure verification providers** — store SMS/email provider credentials securely and rotate them periodically.
-10. **Use availableActions for discovery** — call `availableActions:list` to understand what API endpoints are registered, especially after enabling new plugins.
+10. **Use availableActions for discovery** — call `availableActions:list` (HTTP) or `available_actions_list` (MCP) to understand what API endpoints are registered, especially after enabling new plugins.
+
+## See also
+
+- `plugin-development` — plugin lifecycle and `pm` CLI
+- `publish-manage` — cross-environment publishing (risk-gated)
+- `auth-and-users` — user/role admin
+- `data-sources` — external-database admin
+- `troubleshoot` — error-mode diagnosis

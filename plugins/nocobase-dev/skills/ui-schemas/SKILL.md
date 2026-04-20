@@ -17,7 +17,15 @@ description: |
 
 # UI Schemas
 
-Manage NocoBase V2 user interface definitions through the HTTP API. UI schemas are JSON-based structures that define every visual component — pages, forms, tables, menus, blocks, and their layout.
+Manage NocoBase Classic (v1) user interface definitions through the HTTP API. UI schemas are JSON-based structures that define visual components for legacy v1 pages — `type: "page"`, `x-component: "Page"`, and `uiSchemas:insertAdjacent`-based block insertion.
+
+> **⚠️ Legacy (v1) surface.** For new NocoBase work, use `ux-constructor` (Modern v2) with `flow_surfaces_apply_blueprint` and related MCP tools — v2 is simpler, idempotent, and the default for current NocoBase versions. Use `ui-schemas` only when:
+> - maintaining an existing v1 page that cannot be migrated yet
+> - working with themes (`uiSchemaTemplates` for themes lives here)
+> - managing block templates (legacy `uiSchemaTemplates` resource)
+> - the `initializeActionContext` action is needed for a v1 block
+>
+> There is no MCP path for v1 UI schemas. HTTP is the only transport.
 
 ## Authentication
 
@@ -520,3 +528,11 @@ Key fields: `uid`, `name`, `description`, `targetUid`, `useModel` (e.g. `TableBl
 6. **Test on non-production** — UI schema changes are immediate and affect all users; test in a staging environment first.
 7. **Save templates** — use `saveAsTemplate` for reusable page layouts.
 8. **Theme tokens** — use standard Ant Design tokens for consistent theming.
+
+## See also
+
+- `ux-constructor` — Modern v2 UI authoring (preferred for all new work)
+- `ui-builder-index` — router between UI authoring skills
+- `flow-models` — v2 block engine (replaces `uiSchemas` for block-level storage in v2)
+- `mcp-patterns` — note that there is no MCP path for legacy v1 UI schemas
+- `troubleshoot` — debugging v1 rendering issues

@@ -5,9 +5,53 @@ description: This skill should be used when the user encounters "NocoBase errors
 
 # Troubleshoot NocoBase
 
-Diagnose and resolve common NocoBase API errors, connection failures, authentication problems, data issues, and performance bottlenecks.
+Diagnose and resolve NocoBase errors across MCP, CLI, and HTTP transports.
 
-## Quick Diagnostics
+## Transport-aware diagnosis
+
+Pick the right layer to poke at first:
+
+| Symptom | First check |
+|---------|-------------|
+| `InputValidationError` on MCP tool call | `ToolSearch(query: "nc-mcp", max_results: 30)` — schemas probably not loaded yet |
+| MCP tool returns error body | Parse the response `error`/`errors` field; NocoBase validation surfaces there, not in the HTTP status |
+| MCP tool unavailable at all | Fall back to `nocobase-ctl` CLI or HTTP |
+| CLI command "not found" | Install `nocobase-ctl` or use HTTP fallback |
+| HTTP 401 | API key expired, wrong `X-Role`, or user deactivated |
+| HTTP 403 | Role lacks ACL scope on the resource — check `roles_check` or `available_actions_list` |
+| HTTP 404 | Wrong URL (Resource:Action format) or wrong `filterByTk` |
+| HTTP 400 with "filter invalid" | Malformed JSON filter; see `api-patterns/references/utils/filter-syntax.md` |
+| HTTP 500 + `error: "Cannot read properties of undefined"` | Server-side bug — check server logs |
+
+## MCP error signatures
+
+Common MCP response shapes:
+
+```json
+// Schema not loaded
+{ "error": "InputValidationError", "details": "..." }
+
+// NocoBase validation error — shape depends on tool
+{ "data": null, "errors": [{ "message": "...", "code": "..." }] }
+
+// ACL denial
+{ "error": "Forbidden", "message": "Role '<name>' cannot <action> on <resource>" }
+
+// Session expired
+{ "error": "Unauthorized", "message": "Token expired" }
+```
+
+Always read the error body, not just the HTTP status code. MCP surfaces backend errors in the tool response — silent retries mask real problems.
+
+## Fallback-chain debugging
+
+When something fails via MCP:
+1. **Confirm MCP connection.** `auth_check()` — if this fails, MCP transport is the problem. Move to CLI/HTTP.
+2. **Try the same operation via CLI.** `nocobase-ctl <...>` — if this also fails, it's a backend problem, not transport.
+3. **Try via HTTP.** `curl -H "Authorization: Bearer ${NOCOBASE_API_KEY}" ...` — if this also fails with the same error, the backend is the problem.
+4. **If HTTP succeeds but MCP/CLI fails:** it's a transport bug or a permission discrepancy. Check auth scopes on the MCP user vs HTTP user.
+
+## Quick Diagnostics (HTTP path)
 
 Run these four checks in order to isolate the problem category. Stop at the first failure.
 
@@ -419,3 +463,11 @@ These situations indicate deeper problems that may require direct server access 
 | Available actions | `GET /api/availableActions:list` |
 | Clear cache | `POST /api/app:clearCache` |
 | Restart app | `POST /api/app:restart` |
+
+## See also
+
+- `mcp-patterns` — transport fallback chain and ToolSearch bulk-load recipe
+- `setup` — initial connectivity verification
+- `auth-and-users` — ACL permission denial debugging
+- `api-patterns` — filter-syntax and pagination gotchas
+- `workflow-automation` — execution failure diagnosis

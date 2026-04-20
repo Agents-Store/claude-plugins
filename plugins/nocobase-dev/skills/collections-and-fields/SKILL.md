@@ -1,7 +1,7 @@
 ---
 name: collections-and-fields
 description: |
-  Manage NocoBase collections, fields, database views, and collection categories via the API. Use when:
+  Operational CRUD on NocoBase collections, fields, database views, and collection categories across MCP, CLI, and HTTP transports. Use when:
   - "create a NocoBase collection"
   - "add fields to a collection"
   - "list NocoBase collections"
@@ -9,13 +9,73 @@ description: |
   - "manage collection schema"
   - "NocoBase database views"
   - "collection categories"
+  - "collections_apply"
+  - "fields_apply"
+  - "list_meta nocobase"
 ---
 
 # Collections and Fields
 
-Manage the NocoBase data model through the API. Collections are the equivalent of database tables, and fields define the columns within them. This skill covers creating, reading, updating, and deleting collections and their fields, plus database views and collection categories.
+Operational reference for CRUD on the NocoBase data model. For **design decisions** (which collection type, which field type, which relation, which archetype) use the `data-modeling` skill first. This skill covers the execution — creating, reading, updating, and deleting collections and their fields across MCP, CLI, and HTTP.
 
 > **Note:** The paths in this skill (e.g. `collections/products/fields:list`) work for the default `main` data source. For external data sources, use the data-source-scoped paths documented in the **data-sources** skill (e.g. `dataSources/<key>/collections:list` and `dataSourcesCollections/<key>.<name>/fields:list`).
+
+## MCP-first operations
+
+Prefer `*` when available. See `mcp-patterns` for the tool catalog.
+
+| Operation | MCP tool | CLI fallback | HTTP fallback |
+|-----------|----------|--------------|----------------|
+| List all collections | `collections_list` | `nocobase-ctl data-modeling collections list` | `GET /api/collections:list` |
+| Full schema dump | `collections_list_meta` | `nocobase-ctl data-modeling collections list --meta` | `GET /api/collections:list?paginate=false&appends=[fields]` |
+| Get one | `collections_get` | `nocobase-ctl data-modeling collections get --filter-by-tk <name>` | `GET /api/collections:get?filterByTk=<name>` |
+| Create | `collections_create` | `nocobase-ctl data-modeling collections create --body @file.json` | `POST /api/collections:create` |
+| **Declarative upsert** | `collections_apply` | `nocobase-ctl data-modeling collections apply --body @file.json` | `POST /api/collections:apply` |
+| Update options | `collections_update` | `nocobase-ctl data-modeling collections update --filter-by-tk <name>` | `POST /api/collections:update?filterByTk=<name>` |
+| Delete | `collections_destroy` | `nocobase-ctl data-modeling collections destroy --filter-by-tk <name>` | `POST /api/collections:destroy?filterByTk=<name>` |
+| Reorder | `collections_move` | — | `POST /api/collections:move` |
+| Replace fields | `collections_set_fields` | — | `POST /api/collections:setFields` |
+| **Field upsert** | `fields_apply` | `nocobase-ctl data-modeling fields apply --body @file.json` | `POST /api/fields:apply` |
+| List fields | `collections_fields_list` | `nocobase-ctl data-modeling collections fields list --collection <name>` | `GET /api/collections/<name>/fields:list` |
+| Get field | `collections_fields_get` | — | `GET /api/collections/<name>/fields:get?filterByTk=<field>` |
+| Create field | `collections_fields_create` | — | `POST /api/collections/<name>/fields:create` |
+| Update field | `collections_fields_update` | — | `POST /api/collections/<name>/fields:update?filterByTk=<field>` |
+| Delete field | `collections_fields_destroy` | — | `POST /api/collections/<name>/fields:destroy?filterByTk=<field>` |
+| Reorder field | `collections_fields_move` | — | `POST /api/collections/<name>/fields:move` |
+
+### Declarative-apply examples
+
+Prefer these over repeated CRUD calls. One call, idempotent.
+
+**`collections_apply`** — upsert a collection + its fields:
+
+```
+collections_apply({
+  name: "orders",
+  title: "Orders",
+  fields: [
+    { name: "id", type: "bigInt", interface: "integer", primaryKey: true, autoIncrement: true },
+    { name: "orderNumber", type: "string", interface: "input", uiSchema: { "x-component": "Input" } },
+    { name: "amount", type: "decimal", interface: "number" },
+    { name: "status", type: "string", interface: "select", uiSchema: { enum: [
+      { label: "Draft", value: "draft" },
+      { label: "Paid", value: "paid" }
+    ] }}
+  ]
+})
+```
+
+**`fields_apply`** — upsert fields in an existing collection:
+
+```
+fields_apply({
+  collectionName: "orders",
+  fields: [
+    { name: "priority", type: "integer", interface: "number" },
+    { name: "notes", type: "text", interface: "textarea" }
+  ]
+})
+```
 
 ## Collection Management
 
@@ -418,3 +478,13 @@ For detailed guidance on designing collections from scratch, see `references/des
 - **Collection inheritance** — child collections that share base fields via `inherits`
 - **Advanced field types** — formula, sequence, snapshot, nanoid, uuid, sort (with curl examples)
 - **Field validation** — required, unique, min/max, pattern, enum with x-validator syntax
+
+For deeper strategy-level guidance (which collection type, which relation, which archetype), see the `data-modeling` skill — it owns the decision matrix, relation design docs, and model-archetype packs.
+
+## See also
+
+- `data-modeling` — design decisions: pick collection type, relation, archetype
+- `mcp-patterns` — transport conventions and tool catalog
+- `record-operations` — CRUD on records inside these collections
+- `data-sources` — multi-database scoping for schema operations
+- `api-patterns` — HTTP URL conventions, filter syntax, pagination

@@ -2,6 +2,33 @@
 
 Accumulated fixes and discoveries from usage and feedback.
 
+## 2026-04-20 — v1.5.0: MCP coverage + upstream skill content merge
+
+**Feature:** Added full `nc-mcp` MCP tool coverage (~146 tools across 20 groups) and merged content from the official NocoBase skills repository into the existing 18-skill structure.
+
+**Implementation:**
+- New skill `mcp-patterns` documenting MCP transport conventions, tool catalog, declarative-apply family (`fields_apply`, `collections_apply`, `flow_surfaces_apply`, `flow_surfaces_apply_blueprint`), ToolSearch bulk-load recipe, and three-tier fallback chain (MCP → `nocobase-ctl` CLI → HTTP).
+- New skill `data-modeling` with the upstream design playbook merged wholesale: collection types (general/tree/file/calendar/view/sql/inherit), field types, relations (o2m/m2o/m2m/o2o/mbm), model-pack archetypes, decision matrix, MCP mutation sequences, and verification playbook. Triggers disambiguated from `collections-and-fields` (which owns CRUD) via design-intent wording.
+- New skill `ui-builder-index` — thin routing skill between `ux-constructor` (Modern v2), `flow-models` (low-level v2), and `ui-schemas` (legacy v1).
+- New skill `publish-manage` — risk-gated cross-environment publishing with `disable-model-invocation: true`; covers backup+restore vs migration methods, publishing templates (schema_only_all, full_overwrite, etc.), precheck gates.
+- Extended all 18 existing skills with MCP-first tool references, CLI fallback, and HTTP fallback sections. Added See also sections for cross-referencing.
+- Split `ux-constructor/SKILL.md` from 745 LOC → 286 LOC by moving the verified classic HTTP algorithm (phase-by-phase `desktopRoutes:create` → `uiSchemas:insert` → `flowModels:save` sequence with display model tables) into `references/verified-classic-algorithm.md` (638 LOC). Added upstream ui-builder reference tree under `references/ui-builder/` (51 files: blueprints, patterns, blocks, js-models, reactions, chart, templates).
+- Merged upstream content into domain skills:
+  - `auth-and-users/references/acl/` — acl-manage risk-gated governance (14 refs)
+  - `workflow-automation/references/workflow/` — nodes (27 node types), triggers (7 trigger types), conventions, modeling, http-api (40 refs)
+  - `plugin-development/references/upstream/` — server (11 refs) + client-v2 (10 refs) playbook; `references/pm/` for pm CLI
+  - `setup/references/env-bootstrap/` — install, upgrade, MCP runbook, troubleshooting (12 refs)
+  - `api-patterns/references/utils/` — formulajs, mathjs, filter-syntax, UID, evaluators
+- Updated `nocobase-developer` agent: added `*` to tools, MCP→CLI→HTTP fallback rule, upstream hard rules (never use `this.app.use()`, client-v2 only), and MCP example blocks.
+- Bumped plugin and marketplace to 1.5.0 with expanded description and new keywords (mcp, nc-mcp, flow-surfaces, blueprints, reactions, data-modeling, acl, publish).
+
+**Rationale:** NocoBase published an official MCP server (`nc-mcp`) and skills repository (github.com/nocobase/skills) since v1.4.0. The plugin previously covered only the HTTP API; this upgrade brings it to parity with the modern NocoBase authoring surface (blueprints, flow-surfaces, RBAC governance, publishing) and documents all three transports in one place.
+
+**Audit trail:** Upstream content merged from github.com/nocobase/skills on 2026-04-20. Upstream has no LICENSE file at time of merge; user authorized copy-as-is per "upstream is open source" directive. Total upstream content merged: ~220 markdown reference files across 8 upstream skills (data-modeling, ui-builder, acl-manage, workflow-manage, plugin-development, plugin-manage, env-bootstrap, utils, publish-manage). `dsl-reconciler` explicitly deferred to v1.6.0 (upstream marks it opt-in / actively developed).
+
+**Severity:** Major feature addition (4 new skills, 18 skills extended, 1 agent updated, ~220 reference files added).
+
+
 ## 2026-04-09 — routes-and-menus, data-sources, data-visualization, ui-schemas, record-operations, api-patterns: UX API enrichment
 
 **Feature:** Added 3 new skills (routes-and-menus, data-sources, data-visualization) and extended 4 existing skills (ui-schemas, record-operations, collections-and-fields, api-patterns) with missing UX constructor API coverage

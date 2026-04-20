@@ -49,6 +49,26 @@ Configure NocoBase for multilingual use, adding Ukrainian translations for colle
 
 **Complexity:** Beginner
 
+### 5. MCP-First Page Authoring
+
+**File:** `references/scenarios/mcp-page-authoring.md`
+
+Build a complete Customers page with table and filter-form blocks using `flow_surfaces_apply_blueprint` — a single MCP call instead of a multi-step HTTP algorithm. Covers introspecting schema with `collections_list_meta`, assembling a blueprint, applying it, and verifying the result.
+
+**Skills used:** ux-constructor, mcp-patterns, collections-and-fields
+
+**Complexity:** Intermediate (but fast — one blueprint call replaces a dozen HTTP calls)
+
+### 6. MCP-Driven Workflow Build
+
+**File:** `references/scenarios/mcp-workflow-build.md`
+
+Create a collection-triggered workflow with condition + create + mailer nodes using `workflows_create` + `workflows_nodes_create` + `flow_nodes_update` — all MCP. Covers versioning via `workflows_revision`, manual execution via `workflows_execute`, and execution inspection via `executions_get`.
+
+**Skills used:** workflow-automation, mcp-patterns, record-operations
+
+**Complexity:** Intermediate
+
 ## Scenario Reference Matrix
 
 | Scenario | Primary Domain | Skills Covered | Complexity | Key API Resources |

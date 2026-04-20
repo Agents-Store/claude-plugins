@@ -1,15 +1,133 @@
 ---
 name: auth-and-users
-description: Authentication, user management, API keys, SSO. This skill should be used when the user asks to "sign in", "create users", "manage roles", "generate API keys", "configure SSO", "check permissions", or "set up authentication" in NocoBase.
+description: |
+  Authentication, authenticators (SSO/OIDC/SAML), users, roles, RBAC resource scopes, route permissions, API keys, and ACL governance in NocoBase across MCP, CLI, and HTTP. Use when:
+  - "sign in"
+  - "create users"
+  - "manage roles"
+  - "generate API keys"
+  - "configure SSO"
+  - "check permissions"
+  - "set up authentication"
+  - "NocoBase ACL"
+  - "role resource scope"
+  - "grant role access"
+  - "desktop route access role"
+  - "role data source access"
+  - "authenticators NocoBase"
+  - "users_roles"
+  - "available_actions_list"
 ---
 
 # Auth & Users
 
-Manage authentication flows, users, API keys, and SSO configuration in NocoBase V2 through the HTTP API.
+Manage authentication, users, roles, ACL scopes, and API keys in NocoBase across three transports. This skill also owns **ACL governance** — the full RBAC surface (23 MCP tools) and the upstream acl-manage playbook for risk-gated permission changes.
 
-## Authentication
+## MCP tools
 
-All requests require the API key header:
+### Session lifecycle
+| Task | MCP tool |
+|------|----------|
+| Sign in | `auth_sign_in` |
+| Sign up | `auth_sign_up` |
+| Sign out | `auth_sign_out` |
+| Verify session | `auth_check` |
+| Change password | `auth_change_password` |
+
+### Authenticators (auth provider registry)
+| Task | MCP tool |
+|------|----------|
+| List all authenticators | `authenticators_list` |
+| Get one | `authenticators_get` |
+| Create new | `authenticators_create` |
+| Update | `authenticators_update` |
+| Delete | `authenticators_destroy` |
+| List types (OIDC, SAML, LDAP, etc.) | `authenticators_list_types` |
+| Public list (sign-in page) | `authenticators_public_list` |
+
+### Users
+| Task | MCP tool |
+|------|----------|
+| List users | `users_list` |
+| Get one | `users_get` |
+| Create | `users_create` |
+| Update | `users_update` |
+| Delete | `users_destroy` |
+
+### User ↔ role membership
+| Task | MCP tool |
+|------|----------|
+| List a user's roles | `users_roles_list` |
+| Add role to user | `users_roles_add` |
+| Remove role from user | `users_roles_remove` |
+
+### Roles
+| Task | MCP tool |
+|------|----------|
+| List | `roles_list` |
+| Get one | `roles_get` |
+| Create | `roles_create` |
+| Update | `roles_update` |
+| Delete | `roles_destroy` |
+| Check current permissions | `roles_check` |
+| Set default role for new users | `roles_set_default_role` |
+| Switch single-role / multi-role mode | `roles_set_system_role_mode` |
+| List users in a role | `roles_users_list` |
+| Add users to a role | `roles_users_add` |
+| Remove users from a role | `roles_users_remove` |
+
+### Role ↔ resource scopes (ACL)
+| Task | MCP tool |
+|------|----------|
+| List per-resource scopes for a role | `roles_resources_scopes_list` |
+| Get one | `roles_resources_scopes_get` |
+| Create scope on a data-source resource | `roles_data_source_resources_create` |
+| Get it | `roles_data_source_resources_get` |
+| Update | `roles_data_source_resources_update` |
+| List collections visible to a role in a data source | `roles_data_sources_collections_list` |
+
+### Role ↔ desktop-route access
+| Task | MCP tool |
+|------|----------|
+| List routes a role can access | `roles_desktop_routes_list` |
+| Grant route access | `roles_desktop_routes_add` |
+| Revoke route access | `roles_desktop_routes_remove` |
+| Replace full route-access list | `roles_desktop_routes_set` |
+
+### ACL action registry
+| Task | MCP tool |
+|------|----------|
+| List canonical ACL actions (`view`, `create`, `update`, `destroy`, `export`, `importXlsx`) | `available_actions_list` |
+
+**Call `available_actions_list` before writing any role resource scope** — the action names and aliases come from this authoritative registry.
+
+## ACL governance playbook
+
+Full upstream ACL governance content (risk-gated role changes, permission hierarchies, independent permissions, field/route/system permissions, scopes) lives in `references/acl/`. Highlights:
+
+- `references/acl/scopes.md` — per-role resource-scope design
+- `references/acl/field-permissions.md` — per-field ACL
+- `references/acl/route-permissions.md` — per-route access
+- `references/acl/global-table-permissions.md` — whole-collection grants
+- `references/acl/independent-permissions.md` — non-inheritable per-role scopes
+- `references/acl/system-permissions.md` — system-level (`view`, `create`, etc.) defaults
+- `references/acl/safety-and-debug.md` — debugging ACL denials
+- `references/acl/intent-to-tool-map-v1.md` — "user wants X, use tool Y" map
+- `references/acl/intent-presets-v1.md` — preset intent handlers
+- `references/acl/capability-test-plan.md` — end-to-end capability testing
+- `references/acl/configuration.md` — ACL global configuration
+- `references/acl/execution-guard-template.md` — risk-gated execution template
+- `references/acl/mcp-tool-shapes.md` — MCP tool parameter shapes for ACL
+- `references/acl/result-format-v1.md` — expected response shape for ACL ops
+
+**Hard rule:** treat any ACL change as risk-high. Always:
+1. Call `available_actions_list` first to confirm action names
+2. Use the declarative-apply family (`roles_data_source_resources_create/update`) over building scope trees by hand
+3. After writing, verify with `roles_check` in the new role's session
+
+## Authentication (HTTP path)
+
+All HTTP requests require the API key header:
 
 ```
 Authorization: Bearer ${NOCOBASE_API_KEY}
@@ -300,3 +418,11 @@ For detailed role management, permissions, and authenticator CRUD, see `referenc
 5. **Never store passwords** — use API keys or SSO tokens for programmatic access.
 6. **Assign roles immediately** — create users and assign roles in the same workflow to avoid orphaned accounts.
 7. **Monitor API key expiration** — list keys periodically and renew before they expire.
+
+## See also
+
+- `mcp-patterns` — transport and tool catalog
+- `data-sources` — per-datasource role scopes (`data_sources_roles_*`)
+- `routes-and-menus` — role-based desktop-route access
+- `system-admin` — system-level grants and `available_actions_list`
+- `troubleshoot` — ACL denial debugging

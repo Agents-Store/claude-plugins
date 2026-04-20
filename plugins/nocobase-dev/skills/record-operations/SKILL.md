@@ -1,7 +1,7 @@
 ---
 name: record-operations
 description: |
-  CRUD operations on NocoBase records: create, read, update, delete, filter, sort, paginate, import, export, file uploads, firstOrCreate, updateOrCreate. Use when:
+  CRUD operations on NocoBase records across MCP, CLI, and HTTP transports. Create, read, update, delete, filter, sort, paginate, aggregate, import, export, file uploads, firstOrCreate, updateOrCreate. Use when:
   - "create a record in NocoBase"
   - "query NocoBase records"
   - "update NocoBase data"
@@ -14,11 +14,96 @@ description: |
   - "update or create"
   - "upsert record"
   - "toggle association"
+  - "resource_list nocobase"
+  - "resource_query nocobase"
+  - "count records NocoBase"
+  - "aggregate records NocoBase"
+  - "group by in NocoBase"
 ---
 
 # Record Operations
 
-Perform all data operations on NocoBase collection records through the API. This skill covers listing, getting, creating, updating, destroying, reordering, importing, exporting, and uploading files.
+Perform all data operations on NocoBase collection records across three transports. This skill covers listing, getting, creating, updating, destroying, reordering, importing, exporting, uploading files, and server-side aggregation.
+
+## MCP `resource_*` family (generic CRUD)
+
+The `resource_*` tools operate uniformly against **any** collection. No collection-specific tool.
+
+| Operation | MCP tool | CLI fallback | HTTP |
+|-----------|----------|--------------|------|
+| List | `resource_list` | `nocobase-ctl resource list --resource <name> -j` | `GET /api/<name>:list` |
+| Query (aggregate) | `resource_query` | `nocobase-ctl resource query --resource <name> -j` | `GET /api/<name>:query` |
+| Get one | `resource_get` | `nocobase-ctl resource get --resource <name> --filter-by-tk <pk>` | `GET /api/<name>:get?filterByTk=<pk>` |
+| Create | `resource_create` | `nocobase-ctl resource create --resource <name> --body @rec.json` | `POST /api/<name>:create` |
+| Update | `resource_update` | `nocobase-ctl resource update --resource <name> --filter-by-tk <pk> --body @patch.json` | `POST /api/<name>:update?filterByTk=<pk>` |
+| Destroy | `resource_destroy` | `nocobase-ctl resource destroy --resource <name> --filter-by-tk <pk>` | `POST /api/<name>:destroy?filterByTk=<pk>` |
+
+`resource_list` accepts `{ resource, filter?, fields?, page?, pageSize?, sort?, appends?, dataSource? }` — same semantics as the HTTP query string.
+
+### Example: list + filter + paginate (MCP)
+
+```
+resource_list({
+  resource: "orders",
+  filter: { status: { $eq: "pending" } },
+  sort: ["-createdAt"],
+  page: 1,
+  pageSize: 20,
+  appends: ["customer"]
+})
+```
+
+## Aggregation via `resource_query`
+
+Server-side grouped queries without fetching all rows. Great for dashboards, reports, and counts without needing the chart plugin.
+
+```
+resource_query({
+  resource: "orders",
+  measures: [
+    { field: "amount", type: "sum", alias: "total" },
+    { field: "id", type: "count", alias: "orderCount" }
+  ],
+  dimensions: [
+    { field: "status" }
+  ],
+  filter: { createdAt: { $dateBetween: ["2026-01-01", "2026-04-30"] } }
+})
+```
+
+Returns one row per unique `status` with `total` and `orderCount`. Equivalent HTTP: `GET /api/orders:query`.
+
+### Common aggregations
+
+| Measure type | What it does |
+|--------------|--------------|
+| `count` | Row count (or distinct count if `distinct: true`) |
+| `sum` | Sum of a numeric field |
+| `avg` | Average |
+| `min`, `max` | Extrema |
+| `first`, `last` | First/last value by sort order |
+
+Dimensions group rows. Supports date bucketing via `{ field: "createdAt", type: "date", granularity: "day" }`.
+
+## Data analysis patterns
+
+- **Top-N list:** `resource_list` with `sort` + `pageSize:N`
+- **Total count by group:** `resource_query` with one measure (`count`) + one dimension
+- **Time series:** `resource_query` with a `date` dimension (granularity `day`/`week`/`month`)
+- **Segment health:** two `resource_query` calls with different filters; compute ratios client-side
+- **Raw DB view analytics:** `db_views_query` for read-only SQL views not managed by NocoBase
+
+## Multi-datasource
+
+Pass `dataSource: "<key>"` to target an external DB. Default is `"main"`.
+
+```
+resource_list({
+  resource: "external_logs",
+  dataSource: "analytics_db",
+  filter: { level: { $eq: "error" } }
+})
+```
 
 ## List Records
 
@@ -411,3 +496,20 @@ POST|GET  ${NOCOBASE_URL}/api/{collection}/{sourceId}/{association}:{action}
 ```
 
 See `references/association-operations.md` for the complete reference covering all four association types (one-to-one, many-to-one, one-to-many, many-to-many) with their specific actions: `get`, `list`, `create`, `update`, `destroy`, `set`, `add`, `remove`, `toggle`, and `move`.
+
+Via MCP, access associations by passing the association name as the `resource`:
+
+```
+resource_list({
+  resource: "posts.tags",
+  sourceId: 42
+})
+```
+
+## See also
+
+- `mcp-patterns` — MCP tool catalog and fallback chain
+- `collections-and-fields` — collection/field CRUD for the schema
+- `data-visualization` — chart plugin wrapping `resource_query` with UI
+- `api-patterns` — filter operator reference, pagination, sort syntax
+- `data-sources` — multi-DB scoping via `dataSource` parameter

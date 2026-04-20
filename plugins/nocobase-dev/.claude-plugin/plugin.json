@@ -1,9 +1,9 @@
 {
   "name": "nocobase-dev",
-  "version": "1.4.0",
-  "description": "NocoBase V2 dev plugin for Agents Store. Complete API reference for collections, fields, records, workflows, UI schemas, flow models (v2.x block engine), routes, menus, data sources, charts, templates, authentication, localization, plugin development, and system configuration through the NocoBase HTTP API.",
+  "version": "1.5.0",
+  "description": "NocoBase V2 dev plugin for Agents Store. Full customization + data management reference covering the nc-mcp MCP server (~146 tools: flow-surfaces, collections, resources, workflows, RBAC, data sources), the HTTP API, and the nocobase-ctl CLI. Includes data-modeling playbook, ui-builder blueprints, ACL governance, publish management, and official upstream skill content.",
   "author": {
     "name": "AGENTS.STORE"
   },
-  "keywords": ["nocobase", "no-code", "low-code", "api", "collections", "workflows", "ui-schemas", "flow-models", "flow-sql", "routes", "menus", "data-sources", "charts", "templates", "variables", "ux-constructor", "modern-page", "dev", "agents-store"]
+  "keywords": ["nocobase", "no-code", "low-code", "api", "mcp", "nc-mcp", "flow-surfaces", "blueprints", "reactions", "collections", "data-modeling", "workflows", "ui-schemas", "flow-models", "flow-sql", "routes", "menus", "data-sources", "charts", "templates", "acl", "publish", "ux-constructor", "modern-page", "dev", "agents-store"]
 }

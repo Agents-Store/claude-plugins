@@ -1,12 +1,20 @@
 ---
 name: api-reference
-description: This skill should be used when the user asks for "NocoBase API endpoints", "NocoBase REST API", "NocoBase curl examples", "NocoBase API documentation", "NocoBase HTTP API reference", or needs specific HTTP endpoint details for NocoBase.
+description: This skill should be used when the user asks for "NocoBase API endpoints", "NocoBase REST API", "NocoBase curl examples", "NocoBase API documentation", "NocoBase HTTP API reference", "nc-mcp tool list", "NocoBase MCP endpoint catalog", or needs specific HTTP endpoint or MCP tool details for NocoBase.
 disable-model-invocation: true
 ---
 
 # NocoBase API Reference
 
-Complete HTTP API endpoint reference for NocoBase. All endpoints use the Resource & Action model at `/api/{resource}:{action}`.
+Complete HTTP API endpoint reference + MCP tool catalog for NocoBase. All HTTP endpoints use the Resource & Action model at `/api/{resource}:{action}`. MCP tools use the `*` prefix.
+
+## MCP tool catalog
+
+Full catalog of the ~146 `*` tools grouped by prefix (auth, authenticators, collections, fields, resources, flow_surfaces, workflows, roles, users, data_sources, db_views, jobs, executions, flow_nodes) with per-tool purpose and signature lives in:
+
+→ `../mcp-patterns/references/nc-mcp-tool-map.md`
+
+See `mcp-patterns` skill for the declarative-apply family (`fields_apply`, `collections_apply`, `flow_surfaces_apply`, `flow_surfaces_apply_blueprint`), ToolSearch bulk-load recipe, and MCP ⇄ CLI ⇄ HTTP fallback chain.
 
 ## Authentication
 

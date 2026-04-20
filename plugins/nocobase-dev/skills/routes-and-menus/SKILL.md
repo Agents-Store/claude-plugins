@@ -15,9 +15,35 @@ description: |
 
 # Routes and Menus
 
-Manage the page/menu structure of NocoBase applications through desktop and mobile route APIs. Routes define the navigation tree — pages, menu groups, links, and tabbed layouts. Each route can point to a UI schema (via `schemaUid`) that holds the page content.
+Manage the page/menu structure of NocoBase applications across MCP, CLI, and HTTP. Routes define the navigation tree — pages, menu groups, links, and tabbed layouts. Each route can point to a UI schema (via `schemaUid`) that holds the page content.
 
-## Authentication
+## MCP tools
+
+| Task | MCP tool | Notes |
+|------|----------|-------|
+| Create a menu entry (group or item) | `flow_surfaces_create_menu` | For v2 — pick over HTTP `desktopRoutes:create` when creating the navigation node |
+| Update a menu (rename, re-icon) | `flow_surfaces_update_menu` | |
+| Create a Modern page | `flow_surfaces_create_page` | Shortcut for a blank page + route; for a full page with blocks, use `flow_surfaces_apply_blueprint` in `ux-constructor` |
+| Delete a page | `flow_surfaces_destroy_page` | Cascades to flow models and routes |
+| Add a tab to a page | `flow_surfaces_add_tab` | |
+| Rename / reorder / remove tab | `flow_surfaces_{update,move,remove}_tab` | |
+| Add tab inside a popup | `flow_surfaces_add_popup_tab` | |
+| Update / reorder / remove popup tab | `flow_surfaces_{update,move,remove}_popup_tab` | |
+| List routes for current user | `desktop_routes_list_accessible` | Respects role ACL |
+
+For role-based route access, see `auth-and-users` — `roles_desktop_routes_{list,add,remove,set}` tools.
+
+**When to pick MCP vs HTTP:** If you are creating a NEW page with content, prefer `flow_surfaces_apply_blueprint` (from `ux-constructor`) — it creates the route, menu, schema, and blocks in one call. Drop to `flow_surfaces_create_page` / `flow_surfaces_create_menu` only for bare-bones route/menu work. Fall back to `desktopRoutes:create` via HTTP only for legacy v1 pages (`type: "page"`, not `"flowPage"`).
+
+## Authentication (HTTP path)
+
+All HTTP requests require the API key header:
+
+```
+Authorization: Bearer ${NOCOBASE_API_KEY}
+```
+
+Base URL for all endpoints: `${NOCOBASE_URL}/api/`
 
 All requests require the API key header:
 
@@ -283,3 +309,10 @@ curl -X POST "${NOCOBASE_URL}/api/mobileRoutes:destroy?filterByTk=1" \
 ```
 
 For detailed endpoint reference with full response formats, see `references/route-operations.md`.
+
+## See also
+
+- `ux-constructor` — primary UI authoring skill (Modern v2 via `flow_surfaces_*`); whole-page blueprint creates route+menu+blocks in one call
+- `auth-and-users` — role-based route access (`roles_desktop_routes_{add,remove,set}`)
+- `mcp-patterns` — transport conventions
+- `ui-builder-index` — router when unsure which UI authoring skill to use

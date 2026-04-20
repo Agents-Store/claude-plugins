@@ -1,0 +1,38 @@
+{
+  "skill_name": "ui-builder-index",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to build a Customers page with a table block in NocoBase. Which skill should I use?",
+      "expected_output": "Should route to `ux-constructor` (Modern v2) and recommend `flow_surfaces_apply_blueprint` as the entry point.",
+      "files": [],
+      "expectations": [
+        "Recommends ux-constructor",
+        "Mentions flow_surfaces_apply_blueprint",
+        "Explains v2 as the default"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need to run a custom SQL query from a NocoBase page with a Liquid-templated date parameter. Which skill?",
+      "expected_output": "Should route to `flow-models` for `flowSql` operations.",
+      "files": [],
+      "expectations": [
+        "Recommends flow-models",
+        "Mentions flowSql",
+        "Notes it's the lower layer beneath ux-constructor"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I have an old NocoBase v1 page where a block isn't rendering. Which skill do I use?",
+      "expected_output": "Should route to `ui-schemas` (legacy v1) and suggest `uiSchemas:patch` for repairs.",
+      "files": [],
+      "expectations": [
+        "Recommends ui-schemas",
+        "Notes it's legacy v1",
+        "Mentions uiSchemas:patch"
+      ]
+    }
+  ]
+}

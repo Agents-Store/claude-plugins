@@ -1,34 +1,162 @@
 ---
 name: ux-constructor
 description: |
-  Modern Page (v2) creation and editing — the correct algorithm for building pages, adding blocks (table, form), configuring columns, and editing existing UX components via the NocoBase API. Use when:
+  NocoBase Modern Page (v2) creation and editing — pages, blocks (table, form, filter-form, details, edit-form, grid-card, chart), tabs, popups, record actions, and linkage/value reactions — via `flow_surfaces_*` MCP tools (42 tools), the `nocobase-ctl flow-surfaces` CLI, or the verified HTTP algorithm. Use when:
   - "create a NocoBase page"
   - "add a modern page"
   - "build a page with a table block"
-  - "create page for collection"
   - "add form block to page"
   - "NocoBase UX constructor"
-  - "flowPage creation"
-  - "Modern page v2 API"
-  - "add table block with columns"
-  - "programmatic page creation"
-  - "create UI via API"
+  - "flow surfaces NocoBase"
+  - "flow_surfaces_apply"
+  - "flow_surfaces_apply_blueprint"
+  - "applyBlueprint NocoBase"
+  - "NocoBase blueprint"
+  - "nocobase-ctl flow-surfaces"
+  - "reactions NocoBase"
+  - "linkage rules NocoBase"
+  - "field value rules NocoBase"
+  - "NocoBase popup tab"
+  - "record actions NocoBase"
+  - "modify existing page blocks"
   - "hide a column"
   - "show a column"
-  - "remove a column from table"
   - "change column width"
-  - "enable inline editing"
-  - "edit table column settings"
-  - "remove row action"
-  - "modify existing page blocks"
 ---
 
 # UX Constructor — Modern Page (v2)
 
-Build NocoBase pages and blocks programmatically using the correct API request sequence. This skill documents the **verified algorithm** captured from the NocoBase v2.x visual constructor's network traffic.
+Build and edit NocoBase Modern pages, blocks, popups, tabs, record actions, and reactions programmatically. This skill is the primary entry point for any NocoBase v2 UI authoring work. Prefer this skill over `ui-schemas` (legacy v1) and `flow-models` (low-level block engine).
+
+## Transport fallback chain
+
+1. **MCP first** — the 42 `flow_surfaces_*` tools. Most UI work goes through the declarative-apply family (`flow_surfaces_apply_blueprint` for whole pages, `flow_surfaces_apply` for subtree replacement) with low-level `add_block`/`add_field`/`add_action` as granular fallback.
+2. **CLI second** — `nocobase-ctl flow-surfaces <subcommand>`. Thin wrapper around the MCP tools. Good when MCP is not connected but the CLI is installed on the host.
+3. **HTTP third** — the verified `desktopRoutes:create` → `uiSchemas:insert` → `flowModels:save` sequence documented in `references/verified-classic-algorithm.md`. Use only when MCP and CLI are both unavailable.
+
+## MCP workflow — whole-page creation with `apply_blueprint`
+
+Create a complete page + menu entry + blocks in one declarative call. This is the default path.
+
+```
+flow_surfaces_apply_blueprint({
+  page: {
+    pageTitle: "Customers",
+    menuGroupTitle: "CRM"
+  },
+  navigation: {
+    item: { title: "Customers", icon: "TeamOutlined" }
+  },
+  tabs: [{
+    title: "All",
+    layout: { cols: 24 },
+    blocks: [
+      { use: "table", resource: "customers", fields: ["name", "email", "status"] },
+      { use: "filterForm", resource: "customers", fields: ["status", "name"] }
+    ]
+  }]
+})
+```
+
+Returns normalized identifiers including `page.pageSchemaUid` (use for later `flow_surfaces_get`) and `navigation.group.routeId` / `desktopRoute.id` (navigation locators only).
+
+**Before calling `apply_blueprint`:** read `references/ui-builder/whole-page-quick.md` for the full shape of the blueprint object and the hard rules (layout, filterForm handling, icons).
+
+## MCP workflow — localized edits
+
+For edits on an existing page, prefer low-level adders + reactions over another blueprint.
+
+| Task | Tool |
+|------|------|
+| Add one block | `flow_surfaces_add_block` |
+| Add multiple blocks atomically | `flow_surfaces_add_blocks` or `flow_surfaces_apply` with merged `subModels` |
+| Add a form field | `flow_surfaces_add_field` |
+| Add a toolbar action | `flow_surfaces_add_action` |
+| Add a per-row action | `flow_surfaces_add_record_action` |
+| Rearrange | `flow_surfaces_move_node` |
+| Remove | `flow_surfaces_remove_node` |
+| Edit settings on a node | `flow_surfaces_configure` / `flow_surfaces_update_settings` |
+
+Before any localized edit: call `flow_surfaces_get({ target: { uid } })` to read current state, `flow_surfaces_describe_surface` for structural dump, and `flow_surfaces_catalog` to see what block/field/action types are valid at the target.
+
+See `references/ui-builder/local-edit-quick.md` for the full localized-edit playbook.
+
+## MCP workflow — reactions (linkage + value rules)
+
+Reactions fire when a source changes and adjust a target (show/hide a block, compute a field value, enable an action).
+
+```
+# 1. Discover what reactions are available at this node
+flow_surfaces_get_reaction_meta({ target: { uid: "<nodeUid>" } })
+
+# 2. Write the rule (pick the family: block/field/action linkage, or field value)
+flow_surfaces_set_field_value_rules({
+  target: { uid: "<fieldUid>" },
+  rules: [{
+    when: { "form.priority": { $gte: 3 } },
+    value: "urgent"
+  }]
+})
+```
+
+Families:
+
+| Family | Tool |
+|--------|------|
+| Block show/hide | `flow_surfaces_set_block_linkage_rules` |
+| Action enable/disable | `flow_surfaces_set_action_linkage_rules` |
+| Field show/hide/require/disable | `flow_surfaces_set_field_linkage_rules` |
+| Field computed value | `flow_surfaces_set_field_value_rules` |
+| Event-flow wiring | `flow_surfaces_set_event_flows` |
+
+See `references/ui-builder/reaction-quick.md` and `references/ui-builder/reaction.md` for the full model.
+
+## MCP workflow — pages, menus, tabs, popups
+
+| Task | Tool |
+|------|------|
+| Create a blank page | `flow_surfaces_create_page` |
+| Delete a page | `flow_surfaces_destroy_page` |
+| Create a menu entry | `flow_surfaces_create_menu` |
+| Update menu (rename/icon) | `flow_surfaces_update_menu` |
+| Add tab to a page | `flow_surfaces_add_tab` |
+| Rename/reorder/remove tab | `flow_surfaces_{update,move,remove}_tab` |
+| Add tab inside a popup | `flow_surfaces_add_popup_tab` |
+| Update/reorder/remove popup tab | `flow_surfaces_{update,move,remove}_popup_tab` |
+
+See also `routes-and-menus` for route CRUD and role-based access to pages.
+
+## MCP workflow — templates
+
+| Task | Tool |
+|------|------|
+| List saved templates | `flow_surfaces_list_templates` |
+| Get one template | `flow_surfaces_get_template` |
+| Save current surface as template | `flow_surfaces_save_template` |
+| Update template body | `flow_surfaces_update_template` |
+| Delete template | `flow_surfaces_destroy_template` |
+| Detach reference → editable copy | `flow_surfaces_convert_template_to_copy` |
+
+See `references/ui-builder/templates.md` for the template decision matrix.
+
+## Hard rules (from upstream)
+
+1. **Field truth comes from live collection metadata.** Never guess field names. Run `collections_list_meta` or `flow_surfaces_catalog` first.
+2. **Default blueprint `fields[]` entries to simple strings.** Upgrade to an object only when `popup`, `target`, `renderer`, or a field-specific `type` is required.
+3. **`layout` belongs on tabs[] or inline `popup`, never on a block object.** For form-style blocks (`createForm`, `editForm`, `details`, `filterForm`), use `fieldsLayout`.
+4. **If a `filterForm` is part of the page request, include it in the first-pass blueprint** with stable filter items and `submit`/`reset` actions — don't leave it as an empty shell.
+5. **One real tab.** For a single-page request, default to exactly one tab; do not pad with empty tabs or markdown banners.
+6. **UIDs.** After `apply_blueprint`, normalize to `pageSchemaUid` for page-level `flow_surfaces_get`. Never pass a `desktopRoute.id` as `target.uid`.
+7. **Reactions.** Call `get_reaction_meta` first to prove the source path is available in the current scene. Don't guess configure keys.
+8. **Navigation icons.** Every newly created `navigation.group` and top-level `navigation.item` must have a valid Ant Design icon name.
+9. **Prefer apply-family over repeated granular calls.** One `flow_surfaces_apply` with combined `spec.subModels` beats a dozen `add_block`/`add_field` calls.
 
 ## Authentication
 
+### MCP
+Auth is handled by the MCP transport. No additional headers in the tool call.
+
+### HTTP fallback
 All requests require:
 
 ```
@@ -47,14 +175,15 @@ Base URL: `${NOCOBASE_URL}/api/`
 | Schema component | `"Page"` | `"FlowRoute"` |
 | Block storage | `uiSchemas:insertAdjacent` | `flowModels:save` |
 | Block definition | JSON schema nodes | Flow model objects with `use` class |
-| Model hierarchy | Flat schema tree | `RootPageModel` -> `BlockGridModel` -> `*BlockModel` |
+| Model hierarchy | Flat schema tree | `RootPageModel` → `BlockGridModel` → `*BlockModel` |
 | Tab support | Manual schema children | Built-in via `children` array in route |
+| MCP path | Not recommended | All `flow_surfaces_*` tools target v2 |
 
-**Always use Modern page (v2) for new pages.** Classic pages are legacy.
+**Always use Modern page (v2) for new pages.** Classic pages are legacy and only the `ui-schemas` skill should be used for them.
 
 ## UID Generation
 
-NocoBase uses 11-character random alphanumeric strings as UIDs. Generate them as:
+NocoBase uses 11-character random alphanumeric strings as UIDs.
 
 ```
 characters: a-z, 0-9
@@ -62,619 +191,7 @@ length: 11
 example: "6s65g65nq2f"
 ```
 
-All UIDs referenced below must be pre-generated before making API calls.
-
-## Algorithm: Create a Modern Page (v2) with Table Block
-
-### Phase 1: Create the Route
-
-**Step 1 — Create desktop route**
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/desktopRoutes:create" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "flowPage",
-    "title": "My Page",
-    "icon": "tableoutlined",
-    "parentId": null,
-    "schemaUid": "<PAGE_SCHEMA_UID>",
-    "menuSchemaUid": "<MENU_SCHEMA_UID>",
-    "enableTabs": false,
-    "children": [{
-      "type": "tabs",
-      "schemaUid": "<TAB_SCHEMA_UID>",
-      "tabSchemaName": "<TAB_SCHEMA_NAME>",
-      "hidden": true
-    }]
-  }'
-```
-
-Key fields:
-- `type`: must be `"flowPage"` (NOT `"page"`)
-- `parentId`: parent group route ID (null for root-level, or a group route ID)
-- `schemaUid`: random UID — becomes the page's URL slug (`/admin/<schemaUid>`)
-- `menuSchemaUid`: random UID for the menu item schema
-- `children[0]`: a hidden tab container — always include even for non-tabbed pages
-- `children[0].schemaUid`: random UID for the tab's content area (blocks go here)
-- `children[0].tabSchemaName`: random UID used as the tab name
-
-**Step 2 — Refresh routes** (ensure menu updates)
-
-```bash
-curl -X GET "${NOCOBASE_URL}/api/desktopRoutes:listAccessible" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "X-Role: root"
-```
-
-**Step 3 — Create the page schema node**
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/uiSchemas:insert" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "void",
-    "x-component": "FlowRoute",
-    "x-uid": "<PAGE_SCHEMA_UID>"
-  }'
-```
-
-Must use `"FlowRoute"` component (NOT `"Page"` or `"Grid"`). The `x-uid` must match `schemaUid` from Step 1.
-
-### Phase 2: Initialize Flow Models
-
-**Step 4 — Create the RootPageModel**
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<ROOT_PAGE_UID>",
-    "async": true,
-    "parentId": "<PAGE_SCHEMA_UID>",
-    "subKey": "page",
-    "subType": "object",
-    "use": "RootPageModel",
-    "stepParams": {},
-    "sortIndex": 0,
-    "flowRegistry": {}
-  }'
-```
-
-`parentId` = the page's `schemaUid` from Step 1.
-
-**Step 5 — Create the BlockGridModel** (container for blocks)
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<BLOCK_GRID_UID>",
-    "parentId": "<TAB_SCHEMA_UID>",
-    "subKey": "grid",
-    "async": true,
-    "subType": "object",
-    "use": "BlockGridModel",
-    "stepParams": {},
-    "sortIndex": 0,
-    "flowRegistry": {},
-    "filterManager": []
-  }'
-```
-
-`parentId` = the tab's `schemaUid` from Step 1 children[0]. This is where blocks are placed.
-
-### Phase 3: Add a Table Block
-
-**Step 6 — Create the TableBlockModel**
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<TABLE_BLOCK_UID>",
-    "use": "TableBlockModel",
-    "subModels": {
-      "columns": [{
-        "uid": "<ACTIONS_COLUMN_UID>",
-        "use": "TableActionsColumnModel",
-        "parentId": "<TABLE_BLOCK_UID>",
-        "subKey": "columns",
-        "subType": "array",
-        "stepParams": {},
-        "sortIndex": 0,
-        "flowRegistry": {}
-      }]
-    },
-    "stepParams": {
-      "resourceSettings": {
-        "init": {
-          "dataSourceKey": "main",
-          "collectionName": "<COLLECTION_NAME>"
-        }
-      }
-    },
-    "parentId": "<BLOCK_GRID_UID>",
-    "subKey": "items",
-    "subType": "array",
-    "sortIndex": 1,
-    "flowRegistry": {}
-  }'
-```
-
-Key:
-- `use`: `"TableBlockModel"` for tables
-- `subModels.columns[0]`: always include `TableActionsColumnModel` as the first column (row action buttons)
-- `stepParams.resourceSettings.init.collectionName`: the data collection to display
-- `parentId`: the `BlockGridModel` UID from Step 5
-
-### Phase 4: Add Table Columns
-
-For each field you want to display, create a `TableColumnModel`:
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<COLUMN_UID>",
-    "use": "TableColumnModel",
-    "stepParams": {
-      "fieldSettings": {
-        "init": {
-          "dataSourceKey": "main",
-          "collectionName": "<COLLECTION_NAME>",
-          "fieldPath": "<FIELD_NAME>"
-        }
-      },
-      "tableColumnSettings": {
-        "model": {
-          "use": "<DISPLAY_MODEL>"
-        }
-      }
-    },
-    "subModels": {
-      "field": {
-        "uid": "<FIELD_UID>",
-        "use": "<DISPLAY_MODEL>",
-        "props": null,
-        "parentId": "<COLUMN_UID>",
-        "subKey": "field",
-        "subType": "object",
-        "stepParams": {
-          "popupSettings": {
-            "openView": {
-              "collectionName": "<COLLECTION_NAME>",
-              "dataSourceKey": "main"
-            }
-          }
-        },
-        "sortIndex": 0,
-        "flowRegistry": {}
-      }
-    },
-    "parentId": "<TABLE_BLOCK_UID>",
-    "subKey": "columns",
-    "subType": "array",
-    "sortIndex": <N>,
-    "flowRegistry": {}
-  }'
-```
-
-- `sortIndex`: starts at 2 (0 = actions column, 1 = block itself), increment for each column
-- `parentId`: the `TableBlockModel` UID from Step 6
-- `<DISPLAY_MODEL>`: must match in both `tableColumnSettings.model.use` AND `subModels.field.use`
-
-### Display Model Mapping
-
-Map NocoBase field interfaces to display models:
-
-| Field Interface | Display Model |
-|----------------|---------------|
-| `input`, `textarea`, `url`, `email`, `phone` | `DisplayTextFieldModel` |
-| `select`, `radioGroup` | `DisplayEnumFieldModel` |
-| `password` | `DisplayPasswordFieldModel` |
-| `richText` | `DisplayRichTextFieldModel` |
-| `integer`, `number`, `percent`, `id` | `DisplayTextFieldModel` |
-| `datetime`, `createdAt`, `updatedAt` | `DisplayTextFieldModel` |
-| `json` | `DisplayTextFieldModel` |
-
-When unsure, default to `DisplayTextFieldModel` — it works for any field type.
-
-## Algorithm: Add "Add New" Button with Creation Form
-
-The "Add new" button opens a popup with a creation form. This requires a chain of models.
-
-**Step A — Create the AddNewActionModel** (button on the table toolbar)
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<ADD_NEW_ACTION_UID>",
-    "use": "AddNewActionModel",
-    "parentId": "<TABLE_BLOCK_UID>",
-    "subKey": "actions",
-    "subType": "array",
-    "stepParams": {
-      "popupSettings": {
-        "openView": {
-          "collectionName": "<COLLECTION_NAME>",
-          "dataSourceKey": "main"
-        }
-      }
-    },
-    "sortIndex": 1,
-    "flowRegistry": {}
-  }'
-```
-
-**Step B — Create ChildPageModel** (the popup container)
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<CHILD_PAGE_UID>",
-    "async": true,
-    "parentId": "<ADD_NEW_ACTION_UID>",
-    "subKey": "page",
-    "subType": "object",
-    "use": "ChildPageModel",
-    "subModels": {
-      "tabs": [{
-        "uid": "<CHILD_TAB_UID>",
-        "use": "ChildPageTabModel",
-        "stepParams": {
-          "pageTabSettings": {
-            "tab": { "title": "Add new" }
-          }
-        },
-        "parentId": "<CHILD_PAGE_UID>",
-        "subKey": "tabs",
-        "subType": "array",
-        "sortIndex": 0,
-        "flowRegistry": {}
-      }]
-    },
-    "stepParams": {
-      "pageSettings": {
-        "general": { "displayTitle": false, "enableTabs": true }
-      }
-    },
-    "sortIndex": 0,
-    "flowRegistry": {}
-  }'
-```
-
-**Step C — Create BlockGridModel inside the tab**
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<POPUP_GRID_UID>",
-    "parentId": "<CHILD_TAB_UID>",
-    "subKey": "grid",
-    "async": true,
-    "subType": "object",
-    "use": "BlockGridModel",
-    "stepParams": {},
-    "sortIndex": 0,
-    "flowRegistry": {},
-    "filterManager": []
-  }'
-```
-
-**Step D — Create CreateFormModel** (the actual form)
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<CREATE_FORM_UID>",
-    "use": "CreateFormModel",
-    "subModels": {
-      "grid": {
-        "uid": "<FORM_GRID_UID>",
-        "use": "FormGridModel",
-        "parentId": "<CREATE_FORM_UID>",
-        "subKey": "grid",
-        "subType": "object",
-        "stepParams": {},
-        "sortIndex": 0,
-        "flowRegistry": {}
-      }
-    },
-    "stepParams": {
-      "resourceSettings": {
-        "init": {
-          "dataSourceKey": "main",
-          "collectionName": "<COLLECTION_NAME>"
-        }
-      }
-    },
-    "parentId": "<POPUP_GRID_UID>",
-    "subKey": "items",
-    "subType": "array",
-    "sortIndex": 1,
-    "flowRegistry": {}
-  }'
-```
-
-**Step E — Add form fields** (one per field)
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<FORM_ITEM_UID>",
-    "use": "FormItemModel",
-    "stepParams": {
-      "fieldSettings": {
-        "init": {
-          "dataSourceKey": "main",
-          "collectionName": "<COLLECTION_NAME>",
-          "fieldPath": "<FIELD_NAME>"
-        }
-      }
-    },
-    "subModels": {
-      "field": {
-        "uid": "<FORM_FIELD_UID>",
-        "use": "<EDIT_FIELD_MODEL>",
-        "props": null,
-        "parentId": "<FORM_ITEM_UID>",
-        "subKey": "field",
-        "subType": "object",
-        "stepParams": {},
-        "sortIndex": 0,
-        "flowRegistry": {}
-      }
-    },
-    "parentId": "<FORM_GRID_UID>",
-    "subKey": "items",
-    "subType": "array",
-    "sortIndex": <N>,
-    "flowRegistry": {}
-  }'
-```
-
-### Edit Field Model Mapping (for forms)
-
-| Field Interface | Edit Field Model |
-|----------------|-----------------|
-| `input`, `url`, `email`, `phone` | `TextFieldModel` |
-| `textarea` | `TextAreaFieldModel` |
-| `select`, `radioGroup` | `SelectFieldModel` |
-| `datetime`, `createdAt` | `DateTimeTzFieldModel` |
-| `integer`, `number` | `NumberFieldModel` |
-| `richText` | `RichTextFieldModel` |
-| `password` | `PasswordFieldModel` |
-| `belongsTo` association | `RecordSelectFieldModel` |
-
-## Algorithm: Add Row Actions (View/Edit/Delete)
-
-Row actions are added to the `TableActionsColumnModel`'s parent (which has `subKey: "actions"`).
-
-```bash
-# View button
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<VIEW_ACTION_UID>",
-    "use": "ViewActionModel",
-    "parentId": "<TABLE_ACTIONS_COLUMN_UID>",
-    "subKey": "actions",
-    "subType": "array",
-    "stepParams": {
-      "popupSettings": {
-        "openView": {
-          "collectionName": "<COLLECTION_NAME>",
-          "dataSourceKey": "main"
-        }
-      },
-      "buttonSettings": {
-        "general": { "type": "link", "icon": null }
-      }
-    },
-    "sortIndex": 1,
-    "flowRegistry": {}
-  }'
-
-# Edit button (same structure, use EditActionModel, sortIndex 2)
-# Delete button (use DeleteActionModel, sortIndex 3)
-```
-
-Action models: `ViewActionModel`, `EditActionModel`, `DeleteActionModel`
-
-## Algorithm: Add Association Column
-
-To display a field from a related collection (e.g. show post title in calendar):
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<COLUMN_UID>",
-    "use": "TableColumnModel",
-    "stepParams": {
-      "fieldSettings": {
-        "init": {
-          "dataSourceKey": "main",
-          "collectionName": "<COLLECTION_NAME>",
-          "fieldPath": "<ASSOCIATION_NAME>.<FIELD_NAME>",
-          "associationPathName": "<ASSOCIATION_NAME>"
-        }
-      },
-      "tableColumnSettings": {
-        "model": { "use": "DisplayTextFieldModel" }
-      }
-    },
-    "subModels": {
-      "field": {
-        "uid": "<FIELD_UID>",
-        "use": "DisplayTextFieldModel",
-        "parentId": "<COLUMN_UID>",
-        "subKey": "field",
-        "subType": "object",
-        "stepParams": {
-          "popupSettings": {
-            "openView": {
-              "collectionName": "<RELATED_COLLECTION>",
-              "associationName": "<COLLECTION_NAME>.<ASSOCIATION_NAME>",
-              "dataSourceKey": "main"
-            }
-          }
-        },
-        "sortIndex": 0,
-        "flowRegistry": {}
-      }
-    },
-    "parentId": "<TABLE_BLOCK_UID>",
-    "subKey": "columns",
-    "subType": "array",
-    "sortIndex": <N>,
-    "flowRegistry": {}
-  }'
-```
-
-Key difference: `fieldPath` uses dot notation (`post.title`), and `associationPathName` specifies the association name.
-
-## Editing Existing UX Components
-
-The `flowModels:save` endpoint handles both **create** and **update**. If you pass a `uid` that already exists, it updates the existing flow model. If the `uid` is new, it creates a new one.
-
-### Hide/Remove a Table Column
-
-Hiding a column in the Fields toggle **deletes** the flow model entirely:
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:destroy?filterByTk=<COLUMN_UID>" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
-```
-
-- No request body — the column UID is passed as `filterByTk` query parameter
-- This permanently removes the `TableColumnModel` and its child `field` subModel
-- To show the column again, you must create a new `TableColumnModel` (Phase 4)
-- After destroying, refresh table data: `GET <COLLECTION>:list?page=1&pageSize=20&tree=false`
-
-### Show a Hidden Column (re-add)
-
-Toggling a field ON in the Fields dropdown creates a new `TableColumnModel` — identical to Phase 4 but with a new UID:
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<NEW_COLUMN_UID>",
-    "use": "TableColumnModel",
-    "stepParams": {
-      "fieldSettings": {
-        "init": {
-          "dataSourceKey": "main",
-          "collectionName": "<COLLECTION_NAME>",
-          "fieldPath": "<FIELD_NAME>"
-        }
-      },
-      "tableColumnSettings": {
-        "model": { "use": "<DISPLAY_MODEL>" }
-      }
-    },
-    "subModels": {
-      "field": {
-        "uid": "<NEW_FIELD_UID>",
-        "use": "<DISPLAY_MODEL>",
-        "props": null,
-        "parentId": "<NEW_COLUMN_UID>",
-        "subKey": "field",
-        "subType": "object",
-        "stepParams": {
-          "popupSettings": {
-            "openView": {
-              "collectionName": "<COLLECTION_NAME>",
-              "dataSourceKey": "main"
-            }
-          }
-        },
-        "sortIndex": 0,
-        "flowRegistry": {}
-      }
-    },
-    "parentId": "<TABLE_BLOCK_UID>",
-    "subKey": "columns",
-    "subType": "array",
-    "sortIndex": <N>,
-    "flowRegistry": {}
-  }'
-```
-
-### Update Column Settings
-
-To change column width, enable inline editing, or modify other settings, send `flowModels:save` with the **existing column UID** and only the fields you want to update. The `subModels.field` can be omitted for settings-only updates:
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:save" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uid": "<EXISTING_COLUMN_UID>",
-    "use": "TableColumnModel",
-    "stepParams": {
-      "fieldSettings": {
-        "init": {
-          "dataSourceKey": "main",
-          "collectionName": "<COLLECTION_NAME>",
-          "fieldPath": "<FIELD_NAME>"
-        }
-      },
-      "tableColumnSettings": {
-        "model": { "use": "<DISPLAY_MODEL>" },
-        "width": { "width": 150 },
-        "quickEdit": { "editable": true }
-      }
-    },
-    "parentId": "<TABLE_BLOCK_UID>",
-    "subKey": "columns",
-    "subType": "array",
-    "sortIndex": <CURRENT_SORT_INDEX>,
-    "flowRegistry": {}
-  }'
-```
-
-### Column Settings Reference
-
-Available keys inside `tableColumnSettings`:
-
-| Key | Format | Description |
-|-----|--------|-------------|
-| `model` | `{ "use": "<DisplayModel>" }` | Display model class (required) |
-| `width` | `{ "width": <pixels> }` | Fixed column width in pixels |
-| `quickEdit` | `{ "editable": true }` | Enable inline editing in table cells |
-
-### Remove a Row Action
-
-Same as hiding a column — destroy the action's flow model:
-
-```bash
-curl -X POST "${NOCOBASE_URL}/api/flowModels:destroy?filterByTk=<ACTION_UID>" \
-  -H "Authorization: Bearer ${NOCOBASE_API_KEY}"
-```
-
-Works for `ViewActionModel`, `EditActionModel`, `DeleteActionModel`, `AddNewActionModel`.
+When using `flow_surfaces_apply_blueprint`, UIDs are auto-generated server-side and returned. For HTTP fallback, pre-generate with any alphanumeric random function.
 
 ## Known Block Model Types
 
@@ -702,44 +219,68 @@ Works for `ViewActionModel`, `EditActionModel`, `DeleteActionModel`, `AddNewActi
 ### Create a page for each collection in the database
 
 ```
-1. GET collections:list?paginate=false&appends[]=fields  → get all collections with fields
-2. GET desktopRoutes:listAccessible  → find existing pages to avoid duplicates
+1. collections_list_meta() → get all collections with fields
+2. desktop_routes_list_accessible() → find existing pages to avoid duplicates
 3. For each collection without a page:
-   a. Generate 6 UIDs (page, menu, tab, tabName, rootPage, blockGrid)
-   b. Run Phase 1 (Steps 1-3) to create route + schema
-   c. Run Phase 2 (Steps 4-5) to initialize flow models
-   d. Generate UIDs for table block + actions column
-   e. Run Phase 3 (Step 6) to create table block
-   f. For each displayable field (skip belongsTo/hasMany/belongsToMany):
-      - Generate 2 UIDs (column, field)
-      - Map field interface to display model
-      - Run Phase 4 to add column
+   flow_surfaces_apply_blueprint({
+     page: { pageTitle: <title>, menuGroupTitle: "Data" },
+     navigation: { item: { title: <title>, icon: "tableoutlined" } },
+     tabs: [{ title: "All", blocks: [{ use: "table", resource: <collection>, fields: [<visible-fields>] }] }]
+   })
 ```
 
 ### Add a block to an existing page
 
 ```
-1. GET desktopRoutes:getAccessible?filterByTk=<routeId>  → get the route with tab schemaUid
-2. GET flowModels:findOne?parentId=<tabSchemaUid>&subKey=grid  → find BlockGridModel
-3. If no BlockGridModel exists, create one (Step 5)
-4. POST flowModels:save  → create the block (Step 6) with parentId = BlockGridModel uid
+1. flow_surfaces_get({ target: { uid: <pageSchemaUid> } }) → find the tab container
+2. flow_surfaces_add_block({ target: { uid: <tabContainerUid> }, spec: { use: <block-type>, resource: <collection> } })
 ```
 
 ### Delete a page
 
 ```
-1. POST desktopRoutes:destroy?filterByTk=<routeId>
-   (automatically cascades to delete associated flowModels and uiSchemas)
+flow_surfaces_destroy_page({ target: { uid: <pageSchemaUid> } })
 ```
+
+(Cascades to associated flow models, ui schemas, and the desktop route.)
 
 ## Troubleshooting
 
 | Problem | Cause | Fix |
 |---------|-------|-----|
-| Page shows "Add block" but no table | Missing BlockGridModel or TableBlockModel | Check Phase 2-3 were executed |
-| Table shows but no columns | Missing TableColumnModel entries | Run Phase 4 for each field |
-| Page not in menu | Route created but `listAccessible` not called | Call Step 2 |
-| 404 when navigating to page | Schema node missing | Ensure Step 3 created the FlowRoute schema |
-| Wrong block type | Used `"page"` instead of `"flowPage"` | Route type must be `"flowPage"` for v2 |
+| Page shows "Add block" but no table | Blueprint didn't include a block, or block creation failed | Re-run `flow_surfaces_apply_blueprint` with blocks[] non-empty |
+| Table shows but no columns | Default empty fields[] or invalid field names | Introspect with `collections_list_meta`, pass valid names in `fields[]` |
+| Page not in menu | Missing `navigation` in blueprint | Include `navigation.item` or `navigation.group` |
+| 404 when navigating to page | Returned `pageSchemaUid` not normalized | Refetch route via `desktop_routes_list_accessible` |
+| `x-component` wrong | Using v1 `Page` instead of v2 `FlowRoute` | Use `flow_surfaces_*` MCP tools (v2 by default); avoid mixing v1/v2 |
+| Reaction rule not firing | Source path not available at target | Call `flow_surfaces_get_reaction_meta` first to confirm sources |
 
-For the complete backend API reference with all endpoint signatures, request/response formats, and edge cases, see `references/ux-api-reference.md`. It covers every API used by the visual constructor: uiSchemas, flowModels, desktopRoutes, flowModelTemplates, collections, fields, and more.
+For the complete HTTP fallback algorithm (phase-by-phase `desktopRoutes:create` → `uiSchemas:insert` → `flowModels:save` sequence, display model tables, edit-field model mapping, row action chain), see `references/verified-classic-algorithm.md`. It is the verified path captured from the NocoBase v2.x visual constructor's network traffic and works when MCP and CLI are unavailable.
+
+For the full backend API reference with all endpoint signatures, request/response formats, and edge cases, see `references/ux-api-reference.md`.
+
+## Reference index
+
+- `references/verified-classic-algorithm.md` — HTTP fallback: full `desktopRoutes` → `uiSchemas` → `flowModels` phase-by-phase algorithm with display model table
+- `references/ux-api-reference.md` — complete backend API reference (2551 lines)
+- `references/ui-builder/index.md` — upstream routing map (which ref to open for which task)
+- `references/ui-builder/whole-page-quick.md` — whole-page blueprint quick start
+- `references/ui-builder/local-edit-quick.md` — localized edit quick start
+- `references/ui-builder/reaction-quick.md` — reactions quick start
+- `references/ui-builder/reaction.md` — reactions deep reference
+- `references/ui-builder/templates.md` — templates decision matrix
+- `references/ui-builder/blocks/{table,create-form,edit-form,details,filter-form,grid-card,chart}.md` — per-block recipes
+- `references/ui-builder/patterns/{popup-openview,record-actions,clickable-relation-column,many-to-many-and-through,relation-context,table-column-rendering,tree-table}.md` — common patterns
+- `references/ui-builder/js-models/` — embedded JS blocks (`jsBlock`, `jsField`, `jsColumn`, `jsItem`, `jsAction`)
+- `references/ui-builder/transport-crosswalk.md` — MCP ↔ CLI ↔ HTTP tool mapping
+- `references/ui-builder/verification.md` — post-mutation verification checklist
+- `references/ui-builder/page-archetypes.md` — archetype patterns (list page, detail page, dashboard)
+
+## See also
+
+- `mcp-patterns` — transport conventions and tool catalog
+- `ui-builder-index` — router between `ux-constructor`, `flow-models`, and `ui-schemas`
+- `flow-models` — low-level flow model CRUD (use only when flow_surfaces_* can't express what you need)
+- `ui-schemas` — legacy v1 UI schemas (avoid for new pages)
+- `routes-and-menus` — route/menu CRUD and role-based access
+- `data-modeling` — schema decisions that feed into block `fields[]`

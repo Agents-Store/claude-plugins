@@ -1,7 +1,7 @@
 ---
 name: plugin-development
 description: |
-  NocoBase plugin scaffolding, lifecycle, server/client APIs, migrations, custom actions, and ACL. Use when:
+  NocoBase plugin scaffolding, server/client-v2 APIs, lifecycle hooks, migrations, custom actions, ACL, i18n, and plugin management (pm list/enable/disable). Use when:
   - "create a NocoBase plugin"
   - "scaffold plugin structure"
   - "custom action endpoint"
@@ -11,11 +11,82 @@ description: |
   - "register a custom resource"
   - "plugin server-side API"
   - "plugin client-side component"
+  - "client-v2 NocoBase"
+  - "NocoBase plugin ACL"
+  - "NocoBase plugin i18n"
+  - "pm enable disable"
+  - "yarn pm create"
 ---
 
 # Plugin Development
 
-Develop custom NocoBase plugins — scaffold structure, lifecycle hooks, server-side actions, client-side components, migrations, and ACL configuration.
+Develop custom NocoBase plugins — scaffold structure, lifecycle hooks, server-side actions, client-v2 components, migrations, ACL configuration, i18n, and plugin management. Upstream playbook merged in `references/upstream/`.
+
+## Hard rules (MUST follow)
+
+1. **Client code in `client-v2` ONLY.** The legacy `client` package is deprecated. New blocks, fields, actions, and components must live under `src/client-v2/`. 
+2. **Never use `this.app.use()` in server plugins.** It corrupts middleware ordering. Use the resource-manager and middleware-registration APIs instead.
+3. **Never wrap the client in React Providers.** Compose flow models and resources instead.
+4. **Migrations are one-way.** Never edit an executed migration — write a new one.
+5. **Plugin scaffolding:** use `yarn pm create <namespace>/<name>` — do not hand-craft a plugin skeleton.
+
+## Scaffold (quick start)
+
+```bash
+# Create a new plugin skeleton under packages/plugins/@namespace/plugin-name
+yarn pm create @my-project/my-feature
+
+# Build watch for local iteration
+yarn build:p @my-project/my-feature --watch
+
+# Enable the plugin in the running app
+yarn nocobase pm enable @my-project/my-feature
+```
+
+Plugin management (pm):
+
+| Task | MCP | CLI | HTTP |
+|------|-----|-----|------|
+| List plugins | — | `yarn nocobase pm list` | `GET /api/pm:list` |
+| Enable plugin | — | `yarn nocobase pm enable <pkg>` | `POST /api/pm:enable` |
+| Disable plugin | — | `yarn nocobase pm disable <pkg>` | `POST /api/pm:disable` |
+| Remove plugin | — | `yarn nocobase pm remove <pkg>` | `POST /api/pm:remove` |
+
+`pm` is HTTP/CLI-only; no MCP equivalent. See `references/pm/v1-runtime-contract.md` for runtime-level behavior and `references/pm/test-playbook.md` for verification.
+
+## Upstream playbook structure
+
+Full upstream plugin-development playbook in `references/upstream/`:
+
+### Server reference (`references/upstream/server/`)
+- `plugin.md` — server `Plugin` class, lifecycle hooks (`load`, `install`, `enable`, `disable`, `remove`)
+- `collection.md` — server collection registration and extension
+- `database.md` — Sequelize database access
+- `data-source-manager.md` — registering and querying external data sources
+- `resource-manager.md` — action registration, custom endpoints
+- `middleware.md` — request/response middleware (do NOT use `this.app.use()`)
+- `acl.md` — ACL registration for custom resources/actions
+- `context.md` — request context shape
+- `migration.md` — migrations (one-way)
+- `i18n.md` — server-side i18n
+- `test.md` — unit/integration test helpers
+
+### Client reference (`references/upstream/client/`) — **client-v2 only**
+- `plugin.md` — client `Plugin` class
+- `component.md` — registering React components
+- `block.md` — registering new block types
+- `field.md` — registering new field types  
+- `action.md` — registering new actions
+- `flow.md` — registering flow models
+- `resource.md` — client-side resource wiring
+- `router.md` — routing
+- `ctx.md` — runjs / client context API
+- `i18n.md` — client-side i18n
+
+### Getting started
+- `references/upstream/getting-started.md` — scaffolding a new plugin
+- `references/upstream/build.md` — build system, watch mode, packaging
+- `references/upstream/index.md` — upstream index/overview
 
 ## Plugin Structure
 
@@ -358,3 +429,11 @@ ACL strategies: `public` (no auth), `loggedIn` (any authenticated user), or a ro
 8. **Version your migrations** -- use date-based naming (`20240101-description.ts`) for ordering
 9. **Use Repository API** -- leverage `ctx.db.getRepository()` instead of raw SQL
 10. **Document your plugin** -- README with setup instructions and configuration
+
+## See also
+
+- `collections-and-fields` — collection registration from within a plugin
+- `auth-and-users` — ACL for custom resources/actions
+- `workflow-automation` — registering custom workflow nodes/triggers in a plugin
+- `system-admin` — app lifecycle, pm verbs
+- `publish-manage` — moving a plugin's data/schema between environments

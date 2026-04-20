@@ -1,0 +1,39 @@
+{
+  "skill_name": "data-modeling",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to model a forum with posts, comments, and categories in NocoBase. Categories should be hierarchical. What collection types do I use?",
+      "expected_output": "Response should recommend `general` for posts and comments, `tree` for categories, and outline the relations (m2o posts→categories, o2m posts→comments). Should reference the decision-matrix and relation docs.",
+      "files": [],
+      "expectations": [
+        "Recommends tree collection for categories",
+        "Uses general for posts and comments",
+        "Names the relation types (m2o, o2m)",
+        "References data-modeling references"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Should I use a `view` collection type or a `sql` collection type for a reporting dashboard fed by a complex SQL query in NocoBase?",
+      "expected_output": "Response should explain: `view` wraps an existing DB view (managed outside NocoBase); `sql` is a NocoBase-managed read-only collection with the SQL stored in NocoBase metadata. Both are read-only. Should reference the collection-types docs.",
+      "files": [],
+      "expectations": [
+        "Clarifies view vs sql distinction",
+        "States both are read-only",
+        "Recommends one based on query-ownership criterion"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I've applied a collections_apply call and got 200 OK. Is my schema correct?",
+      "expected_output": "Response should reference the verification-playbook, and recommend calling `collections_list_meta` or `collections_get` to confirm the applied metadata matches intent (not just that the call returned success).",
+      "files": [],
+      "expectations": [
+        "Says 200 OK alone is not sufficient verification",
+        "Recommends reading back applied meta",
+        "References verification-playbook.md"
+      ]
+    }
+  ]
+}

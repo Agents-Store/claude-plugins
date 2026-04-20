@@ -14,7 +14,9 @@ description: |
 
 # Data Visualization
 
-Query aggregated data for charts and dashboards using the NocoBase charts API. The `charts:query` endpoint supports measures (aggregations), dimensions (grouping), filtering, sorting, and limits.
+Query aggregated data for charts and dashboards. The NocoBase `charts:query` HTTP endpoint supports measures (aggregations), dimensions (grouping), filtering, sorting, and limits.
+
+> **MCP note:** `nc-mcp` has no dedicated chart tools. For server-side aggregation via MCP, use `resource_query` (see `record-operations`). Fall back to the HTTP `charts:query` endpoint below for the full chart plugin's extra features (cache behavior, date-granularity bucketing, named-series output).
 
 ## Authentication
 
@@ -201,3 +203,10 @@ curl -X POST "${NOCOBASE_URL}/api/charts:query" \
 ## Caching
 
 Query results are cached in memory for 30 seconds with a maximum of 1000 cache entries. Repeated identical queries within 30 seconds return cached results. To get fresh data, wait for the cache to expire or modify the query slightly.
+
+## See also
+
+- `record-operations` — `resource_query` for MCP-native aggregation (simpler, no charts plugin dependency)
+- `mcp-patterns` — transport conventions
+- `api-patterns` — filter syntax (shared with `charts:query`)
+- `ux-constructor` — chart block authoring via `flow_surfaces_*` (see `ux-constructor/references/ui-builder/blocks/chart.md`)

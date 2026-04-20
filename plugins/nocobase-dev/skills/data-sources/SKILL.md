@@ -15,11 +15,40 @@ description: |
 
 # Data Sources
 
-Manage external database connections and their collections/fields through the NocoBase data source API. NocoBase supports connecting to multiple databases (PostgreSQL, MySQL, etc.) as external data sources alongside the default `main` database.
+Manage external database connections and their collections/fields across MCP, CLI, and HTTP. NocoBase supports connecting to multiple databases (PostgreSQL, MySQL, SQLite, etc.) as external data sources alongside the default `main` database.
 
-## Authentication
+## MCP tools
 
-All requests require the API key header:
+| Operation | MCP tool | Notes |
+|-----------|----------|-------|
+| List enabled datasources | `data_sources_list_enabled` | Excludes `main` |
+| List collections in datasource (per role) | `roles_data_sources_collections_list` | Role-scoped |
+| Get role config per-datasource | `data_sources_roles_get` | |
+| Update role config per-datasource | `data_sources_roles_update` | |
+| List resource scopes per-datasource-role | `data_sources_roles_resources_scopes_list` | |
+| Get/Create/Update/Delete scope | `data_sources_roles_resources_scopes_{get,create,update,destroy}` | |
+
+### Using `dataSource` parameter for record ops
+
+Every `resource_*` and `collections_*` MCP tool accepts an optional `dataSource` parameter to target a non-`main` database:
+
+```
+resource_list({
+  resource: "logs",
+  dataSource: "external-pg",
+  filter: { level: { $eq: "error" } }
+})
+```
+
+```
+collections_list_meta({ dataSource: "external-pg" })
+```
+
+Same pattern over HTTP: append `?dataSource=<key>` to any `/api/...` URL, or use the data-source-scoped paths below.
+
+## Authentication (HTTP path)
+
+All HTTP requests require the API key header:
 
 ```
 Authorization: Bearer ${NOCOBASE_API_KEY}
@@ -286,3 +315,10 @@ The default `main` data source uses the simple paths documented in the `collecti
 | Role permissions | `roles/<role>/collections:list` | `dataSources/<key>/roles:update` |
 
 For detailed endpoint reference, see `references/data-source-endpoints.md`.
+
+## See also
+
+- `mcp-patterns` — MCP tool conventions and fallback chain
+- `collections-and-fields` — schema CRUD (same tools with `dataSource` scope)
+- `record-operations` — record CRUD with `dataSource` parameter
+- `auth-and-users` — role-based access control, including per-datasource scopes

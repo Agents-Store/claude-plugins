@@ -1,13 +1,120 @@
 ---
 name: workflow-automation
-description: Workflow engine — triggers, nodes, executions, jobs, versioning. This skill should be used when the user asks to "create a workflow", "add workflow nodes", "monitor executions", "set up triggers", "manage workflow versions", or "automate business processes" in NocoBase.
+description: |
+  NocoBase workflow engine — triggers, nodes, executions, jobs, revisions, and approval inbox — across MCP, CLI, and HTTP transports. Use when:
+  - "create a workflow"
+  - "add workflow nodes"
+  - "monitor executions"
+  - "set up triggers"
+  - "manage workflow versions"
+  - "automate business processes"
+  - "workflows_execute"
+  - "workflows_revision"
+  - "flow_nodes_update"
+  - "executions_cancel"
+  - "jobs_resume"
+  - "approval workflow NocoBase"
+  - "workflow node types"
+  - "workflow trigger types"
 ---
 
 # Workflow Automation
 
-Manage NocoBase V2 workflows through the HTTP API — create and configure workflows, attach processing nodes, monitor executions, and handle versioning.
+Manage NocoBase workflows across three transports — create and configure workflows, attach processing nodes, monitor executions, handle versioning, and run manual-node tasks.
 
-## Authentication
+## MCP tools
+
+### Workflow CRUD + execute
+| Task | MCP tool |
+|------|----------|
+| List workflows | `workflows_list` |
+| Get one with nodes | `workflows_get` |
+| Create | `workflows_create` |
+| Update | `workflows_update` |
+| Delete | `workflows_destroy` |
+| **Execute manually** | `workflows_execute` (`filterByTk` + body → `{ execution, newVersionId? }`) |
+| Sync across envs | `workflows_sync` |
+| Create new revision | `workflows_revision` |
+| Create a node in a workflow | `workflows_nodes_create` |
+
+### Nodes (inside a workflow)
+| Task | MCP tool |
+|------|----------|
+| Get one node | `flow_nodes_get` |
+| Update node config | `flow_nodes_update` |
+| Delete node | `flow_nodes_destroy` |
+| Delete node + downstream branch | `flow_nodes_destroy_branch` |
+| Duplicate | `flow_nodes_duplicate` |
+| Reorder | `flow_nodes_move` |
+| Test with sample input | `flow_nodes_test` |
+
+### Executions (historical runs)
+| Task | MCP tool |
+|------|----------|
+| List | `executions_list` |
+| Get one with job tree | `executions_get` |
+| Cancel running | `executions_cancel` |
+| Delete history | `executions_destroy` |
+
+### Background jobs (long-running tasks outside the workflow engine)
+| Task | MCP tool |
+|------|----------|
+| List | `jobs_list` |
+| Get one | `jobs_get` |
+| Resume paused | `jobs_resume` |
+
+### Approval inbox
+| Task | MCP tool |
+|------|----------|
+| List manual-node tasks assigned to me | `user_workflow_tasks_list_mine` |
+
+## Node and trigger reference library
+
+Full upstream node/trigger reference tree lives in `references/workflow/`:
+
+- `references/workflow/nodes/` — per-node reference files: aggregate, approval, calculation, cc, condition, create, delay, destroy, end, json-query, json-variable-mapping, loop, mailer, manual, multi-conditions, notification, output, parallel, query, request, response-message, script, sql, subflow, update, webhook-response
+- `references/workflow/triggers/` — per-trigger reference files: action, approval, collection, custom-action, request-interception, schedule, webhook
+- `references/workflow/conventions/index.md` — workflow authoring conventions, variable system, error handling, context shape
+- `references/workflow/modeling/` — data model for workflows, nodes, executions, jobs
+- `references/workflow/http-api/` — HTTP endpoint reference for each resource
+
+### Node picker
+
+| Intent | Node |
+|--------|------|
+| Branch on condition | `condition.md` |
+| Compute a value | `calculation.md` |
+| Iterate a list | `loop.md` |
+| Run in parallel | `parallel.md` |
+| Call a database-write | `create.md` / `update.md` / `destroy.md` |
+| Query for records | `query.md` / `aggregate.md` |
+| Call an external HTTP API | `request.md` |
+| Wait for a user | `manual.md` / `approval.md` |
+| Send email | `mailer.md` |
+| Send notification | `notification.md` |
+| Run raw SQL | `sql.md` |
+| Run custom JS | `script.md` |
+| Call another workflow | `subflow.md` |
+| Wait N seconds | `delay.md` |
+| Finish the workflow with output | `end.md` / `output.md` |
+| Respond to HTTP trigger | `response-message.md` / `webhook-response.md` |
+| Query a JSON value | `json-query.md` |
+| Map JSON variables | `json-variable-mapping.md` |
+| CC someone | `cc.md` |
+| Multi-branch conditions | `multi-conditions.md` |
+
+### Trigger picker
+
+| Intent | Trigger |
+|--------|---------|
+| Fire on record create/update/destroy | `collection.md` |
+| Fire on a button click | `action.md` / `custom-action.md` |
+| Fire on schedule (cron) | `schedule.md` |
+| Fire via webhook | `webhook.md` |
+| Fire on approval step | `approval.md` |
+| Intercept an HTTP request | `request-interception.md` |
+
+## Authentication (HTTP path)
 
 All requests require the API key header:
 
@@ -536,3 +643,11 @@ Trigger: deals.afterUpdate
 10. **Retry HTTP requests** — for external calls, add retry logic with delay nodes.
 11. **Log important events** — create audit trail records in critical workflows.
 12. **Use parallel branches** — for independent actions (notify + log simultaneously).
+
+## See also
+
+- `mcp-patterns` — transport conventions
+- `record-operations` — data CRUD from inside query/create/update/destroy nodes
+- `auth-and-users` — role permissions that gate what a workflow can do
+- `system-admin` — jobs, app-level status, restart
+- `troubleshoot` — execution failure debugging

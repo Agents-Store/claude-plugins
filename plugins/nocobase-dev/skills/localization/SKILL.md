@@ -239,3 +239,21 @@ When you have a batch of translations (e.g., from an external translation servic
 5. **Sync after schema changes** — run sync after creating collections, fields, or modifying UI schemas.
 6. **Paginate text lists** — large installations can have hundreds of translatable texts; use pagination.
 7. **Track translation coverage** — compare `localizationTexts:list` count against translations per locale to find gaps.
+
+## MCP note
+
+The localization HTTP resources (`localization`, `localizationTexts`, `localizationTranslations`) have no dedicated `localization_*` tools. Access via the generic `resource_*` family:
+
+```
+resource_list({ resource: "localizationTexts", pageSize: 100 })
+resource_create({
+  resource: "localizationTranslations",
+  values: { textId: 42, locale: "uk-UA", translation: "..." }
+})
+```
+
+## See also
+
+- `mcp-patterns` — generic resource access via `resource_*`
+- `system-admin` — `app:getLang` and language-list endpoints
+- `ux-constructor` — i18n in blueprint titles/labels

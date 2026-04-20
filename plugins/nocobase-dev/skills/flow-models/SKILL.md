@@ -21,7 +21,25 @@ description: |
 
 The new block engine in NocoBase v2.x. Flow models replace the legacy `uiSchemas` for block-level UI storage. They use the same tree structure (Closure Table) but store data in the `flowModels` collection with `uid` as primary key and `options` as the magic JSON attribute.
 
-> **For step-by-step page and block creation workflows** (creating Modern Pages, adding table/form blocks, configuring columns and buttons), see the **ux-constructor** skill. This skill covers the low-level flow model CRUD operations.
+> **For step-by-step page and block creation workflows** (creating Modern Pages, adding table/form blocks, configuring columns and buttons), use the **ux-constructor** skill with `flow_surfaces_apply_blueprint`. This skill covers the low-level flow model operations for when the high-level surface tools aren't enough.
+
+## MCP tools for flow-model-level introspection
+
+When `flow_surfaces_apply_blueprint` / `flow_surfaces_add_*` don't fit, drop down to these MCP tools to read and shape flow models directly:
+
+| Task | MCP tool | Purpose |
+|------|----------|---------|
+| Get a subtree | `flow_surfaces_get` | Read one surface node and its subtree |
+| Enumerate available children | `flow_surfaces_catalog` | What can be added at this target |
+| Full structural dump | `flow_surfaces_describe_surface` | Everything about a surface |
+| Live context at a node | `flow_surfaces_context` | Scope (form, resource, filter) at a node — needed for reaction design |
+| Reaction meta | `flow_surfaces_get_reaction_meta` | Source/target paths available for reactions |
+| Compose partial input | `flow_surfaces_compose` | Build a subtree from partial inputs |
+| Low-level configure | `flow_surfaces_configure` | Apply a configure payload to a node |
+| Update surface settings | `flow_surfaces_update_settings` | Tab/popup settings |
+| Lowest-level mutation | `flow_surfaces_mutate` | Escape hatch for anything the higher tools can't do |
+
+For anything blueprint-shaped (whole pages, named blocks, reactions), stay in `ux-constructor`. Reach for this skill only when you need the raw flow model layer.
 
 ## Authentication
 
@@ -421,6 +439,14 @@ Batch response:
 
 ## Templates
 
-Flow model templates (`flowModelTemplates` resource) allow saving reusable block configurations. See the **ui-schemas** skill for template CRUD operations (list, get, create, update, destroy) and `TEMPLATE_IN_USE` validation.
+Flow model templates (`flowModelTemplates` resource) allow saving reusable block configurations. See the **ui-schemas** skill for template CRUD operations (list, get, create, update, destroy) and `TEMPLATE_IN_USE` validation. For flow-surfaces templates via MCP, see `ux-constructor` (`flow_surfaces_{list,get,save,update,destroy}_template`).
 
 For detailed endpoint reference, see `references/flow-model-endpoints.md`.
+
+## See also
+
+- `ux-constructor` — default v2 UI authoring (start here for most tasks)
+- `ui-builder-index` — router between UI authoring skills
+- `ui-schemas` — legacy v1 UI schemas
+- `mcp-patterns` — transport conventions
+- `routes-and-menus` — route/menu CRUD that anchors a page

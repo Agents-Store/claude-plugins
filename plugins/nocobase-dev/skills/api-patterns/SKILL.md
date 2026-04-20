@@ -1,7 +1,7 @@
 ---
 name: api-patterns
 description: |
-  NocoBase API URL patterns, query parameters, filtering, sorting, and pagination. Use when:
+  NocoBase transport conventions — HTTP Resource:Action URL pattern, MCP ⇄ HTTP mapping, query parameters, filtering, sorting, and pagination. Use when:
   - "how does the NocoBase API work"
   - "NocoBase API URL format"
   - "how to filter NocoBase records"
@@ -9,11 +9,42 @@ description: |
   - "NocoBase sort query"
   - "NocoBase API request format"
   - "resource action pattern"
+  - "map NocoBase MCP to HTTP"
+  - "NocoBase filter operators"
+  - "NocoBase $eq $in $dateOn"
 ---
 
 # NocoBase API Patterns
 
-The NocoBase HTTP API follows a Resource & Action model. Every endpoint is a combination of a resource name and an action name separated by a colon. Master this pattern and all NocoBase API operations become predictable.
+The NocoBase HTTP API follows a Resource & Action model. Every endpoint is a combination of a resource name and an action name separated by a colon. Master this pattern and all NocoBase operations become predictable — across MCP, CLI, and HTTP.
+
+## Transport fallback chain
+
+Three ways to talk to NocoBase, in preference order:
+
+1. **MCP first** — `*` tools. See `mcp-patterns` for the tool catalog and naming convention.
+2. **`nocobase-ctl` CLI** — upstream CLI wrapper. Example: `nocobase-ctl resource list --resource posts --filter '{"status":"published"}' -j`.
+3. **HTTP curl** — raw REST at `/api/{resource}:{action}`. Universal fallback documented below.
+
+All three reach the same backend. Pick the first available tier.
+
+## MCP ⇄ HTTP mapping
+
+Every HTTP Resource:Action endpoint has an equivalent MCP tool. The mapping is mechanical:
+
+| HTTP | MCP tool |
+|------|----------|
+| `GET  /api/collections:list` | `collections_list` |
+| `POST /api/collections:create` | `collections_create` |
+| `POST /api/collections:apply` | `collections_apply` |
+| `GET  /api/{collection}:list` | `resource_list` with `resource: "{collection}"` |
+| `POST /api/{collection}:create` | `resource_create` with `resource: "{collection}"` |
+| `POST /api/{collection}:update?filterByTk={id}` | `resource_update` with `resource, filterByTk` |
+| `POST /api/workflows:execute?filterByTk={id}` | `workflows_execute` with `filterByTk: {id}` |
+| `POST /api/roles/{name}/users:add` | `roles_users_add` with `roleName: "{name}"` |
+| `GET  /api/availableActions:list` | `available_actions_list` |
+
+Filter, sort, pagination, and `appends` parameters are identical in both transports — same JSON shape. See `mcp-patterns/references/nc-mcp-tool-map.md` for the complete mapping.
 
 ## Base URL and Authentication
 
@@ -347,3 +378,50 @@ curl -X POST -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
     "values": { "key": "site_title", "value": "My App" }
   }'
 ```
+
+## Same request — MCP vs CLI vs HTTP
+
+Three ways to list 10 posts ordered by newest, with the author appended:
+
+**MCP**
+```
+resource_list({
+  resource: "posts",
+  sort: ["-createdAt"],
+  page: 1,
+  pageSize: 10,
+  appends: ["author"]
+})
+```
+
+**CLI**
+```bash
+nocobase-ctl resource list \
+  --resource posts \
+  --sort '["-createdAt"]' \
+  --page 1 --page-size 10 \
+  --appends '["author"]' \
+  -j
+```
+
+**HTTP**
+```bash
+curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+  "${NOCOBASE_URL}/api/posts:list?sort=[-createdAt]&page=1&pageSize=10&appends=[author]"
+```
+
+## Expression and helper utilities
+
+For formulas, filter operators, and UID generation referenced throughout the API:
+
+- `references/utils/formulajs.md` — computed-field formulas (SUM, AVG, IF, DATE, STRING ops, full list)
+- `references/utils/mathjs.md` — advanced math expressions for numeric formulas
+- `references/utils/filter-syntax.md` — all `$` operators with examples
+- `references/utils/uid.md` — NocoBase UID generation (11-char alphanumeric)
+
+## See also
+
+- `mcp-patterns` — MCP tool catalog, `*` naming, declarative-apply family
+- `api-reference` — full HTTP endpoint catalog + MCP tool catalog
+- `record-operations` — CRUD patterns using these conventions
+- `troubleshoot` — diagnosing filter, pagination, and auth errors

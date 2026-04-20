@@ -1,0 +1,49 @@
+{
+  "skill_name": "mcp-patterns",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "What NocoBase MCP tools are available for listing collections?",
+      "expected_output": "Response should mention `collections_list` and `collections_list_meta`, noting that `collections_list_meta` returns a full schema dump in one call.",
+      "files": [],
+      "expectations": [
+        "Mentions `collections_list`",
+        "Mentions `collections_list_meta`",
+        "Explains the difference between paginated list and full-meta dump"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "How should I load schemas for the nc-mcp MCP tools before I call them?",
+      "expected_output": "Response should recommend a single `ToolSearch(query: \"nc-mcp\", max_results: 30)` call to bulk-load all schemas, not individual loads per tool.",
+      "files": [],
+      "expectations": [
+        "Recommends ToolSearch with query \"nc-mcp\"",
+        "Bulk-load pattern, not per-tool select",
+        "Explains why (one round-trip, keyword substring match)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "My nc-mcp MCP server is down. What are the fallback options?",
+      "expected_output": "Response should describe the three-tier fallback chain: MCP -> nocobase-ctl CLI -> HTTP curl, and give an example mapping.",
+      "files": [],
+      "expectations": [
+        "Lists MCP → CLI → HTTP fallback order",
+        "Mentions nocobase-ctl as the CLI",
+        "Example of mapping a tool call to curl"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I need to add 5 blocks to the same page in NocoBase. Should I call add_block five times?",
+      "expected_output": "Response should recommend the declarative-apply family (`flow_surfaces_apply` with combined `spec.subModels`, or `flow_surfaces_apply_blueprint` for a full page) instead of repeated low-level calls.",
+      "files": [],
+      "expectations": [
+        "Recommends flow_surfaces_apply over multiple add_block calls",
+        "Explains declarative-apply rationale (atomic, idempotent)",
+        "Mentions spec.subModels"
+      ]
+    }
+  ]
+}
