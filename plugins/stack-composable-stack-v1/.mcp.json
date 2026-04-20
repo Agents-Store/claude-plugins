@@ -39,6 +39,13 @@
       "headers": {
         "Authorization": "Bearer ${POSTGRESQL_MCP_TOKEN}"
       }
+    },
+    "nocobase-dev": {
+      "type": "http",
+      "url": "${NOCOBASE_DEV_URL}/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${NOCOBASE_DEV_API_KEY}"
+      }
     }
   }
 }

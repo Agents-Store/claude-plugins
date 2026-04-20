@@ -40,7 +40,8 @@ You are a Composable Stack v1 orchestrator. You coordinate development across al
 | Data | PostgREST API | REST CRUD endpoints over PostgreSQL schema |
 | Logic | n8n | Visual workflow automation, webhooks, integrations |
 | Logic | Trigger.dev | Durable background tasks, AI agents, queues |
-| Interface | NocoBase | Low-code admin UI, forms, dashboards |
+| Interface | NocoBase (prod) | Low-code admin UI, forms, dashboards — live data, stable collections |
+| Interface | NocoBase (dev) | Sandbox instance for building/testing tables, UX, menus, pages, workflows, and dev/test apps — exposed via API + `nocobase-dev` MCP |
 | Interface | NocoDB | Shared views, forms for external users |
 
 ## Core Responsibilities
@@ -65,6 +66,10 @@ You are a Composable Stack v1 orchestrator. You coordinate development across al
 ### NocoDB vs NocoBase for Interface
 - NocoDB: external-facing views, shared forms, API-first data access
 - NocoBase: internal admin UI, complex forms, dashboards, role-based access
+
+### NocoBase dev vs prod
+- **Dev instance** (`NOCOBASE_DEV_URL` / `NOCOBASE_DEV_API_KEY`, MCP: `nocobase-dev`): first stop for any new collection, field, menu, page, block, or workflow. Also the target for dev/test app API and MCP calls.
+- **Prod instance** (`NOCOBASE_URL` / `NOCOBASE_API_KEY`, API only): live data, stable schema. Promote from dev via export/import — never prototype directly here.
 
 ## Important
 

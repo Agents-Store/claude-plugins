@@ -7,6 +7,17 @@ description: This skill should be used when the user wants to "trigger n8n from 
 
 Patterns for connecting NocoBase UI actions and workflow events to n8n automation. Covers NocoBase webhooks, API triggers, and cross-service coordination.
 
+## Dev vs Production Instance
+
+This stack runs two NocoBase instances:
+
+| Instance | URL / API key | When to use |
+|----------|---------------|-------------|
+| **Prod** | `${NOCOBASE_URL}` / `${NOCOBASE_API_KEY}` | Live integrations, released collections |
+| **Dev** | `${NOCOBASE_DEV_URL}` / `${NOCOBASE_DEV_API_KEY}` | Wiring up new collection events, testing webhook payloads, prototyping button actions, and running dev/test apps |
+
+Build and iterate every new NocoBase → n8n integration on the **dev** instance first (it also has an `nocobase-dev` MCP server for fast Claude-driven authoring). Only swap the n8n HTTP node URLs and NocoBase credentials to prod once the workflow is stable.
+
 ## Integration Patterns
 
 ### Pattern 1: NocoBase Workflow → n8n Webhook

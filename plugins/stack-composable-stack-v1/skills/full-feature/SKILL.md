@@ -46,11 +46,14 @@ Tool: mcp__nocodb__getTablesList
 
 ### Step 3: Build NocoBase Interface (Interface Layer)
 
-1. Create or sync NocoBase collections from the PostgreSQL tables
+**Always build on the NocoBase dev instance first** (`${NOCOBASE_DEV_URL}` / `${NOCOBASE_DEV_API_KEY}`, also exposed through the `nocobase-dev` MCP server). The dev instance is a sandbox for new tables, fields, menus, pages, blocks, and UX — safe to break, fast to iterate.
+
+1. Create or sync NocoBase collections from the PostgreSQL tables on the **dev** instance
 2. Design form blocks for data entry
 3. Design table blocks for data display
 4. Add action buttons for triggering workflows
 5. Configure field permissions and validation rules
+6. Once validated, promote the schema and UI to the **prod** instance (`${NOCOBASE_URL}`) via export/import or migration
 
 ### Step 4: Create Automation Logic (Logic Layer)
 

@@ -12,7 +12,8 @@ Composable Stack v1 dev plugin for Agents Store. Integrates PostgreSQL (direct M
 | Data | PostgREST API | REST API over PostgreSQL schema |
 | Logic | n8n | Workflow automation |
 | Logic | Trigger.dev | Background tasks and AI agents |
-| Interface | NocoBase | Low-code admin UI |
+| Interface | NocoBase (prod) | Low-code admin UI — live data |
+| Interface | NocoBase (dev) | Sandbox for building/testing tables, UX, menus, pages, workflows, and dev/test apps (API + MCP) |
 | Interface | NocoDB | Data views and shared forms |
 
 ## MCP Servers
@@ -24,6 +25,7 @@ Composable Stack v1 dev plugin for Agents Store. Integrates PostgreSQL (direct M
 | `n8n-native-mcp` | HTTP | n8n native MCP operations |
 | `nocodb` | HTTP | NocoDB table and record operations |
 | `postgresql-mcp` | HTTP | PostgreSQL direct SQL and admin tools (27 tools) |
+| `nocobase-dev` | HTTP | NocoBase dev-instance `nc-mcp` (~146 tools: collections, fields, resources, workflows, flow-surfaces, RBAC) — targets `${NOCOBASE_DEV_URL}/api/mcp` |
 
 ## Skills
 
@@ -56,7 +58,10 @@ Composable Stack v1 dev plugin for Agents Store. Integrates PostgreSQL (direct M
 
 All managed via Infisical. Run `./scripts/setup.sh dev .env .claude/settings.local.json` to pull secrets.
 
-See `templates/.env.example` for the full list of required variables.
+See `templates/.env.example` for the full list of required variables. Notable additions:
+
+- `NOCOBASE_URL` / `NOCOBASE_API_KEY` — production NocoBase (live data)
+- `NOCOBASE_DEV_URL` / `NOCOBASE_DEV_API_KEY` — dev-sandbox NocoBase for building and testing tables, UX elements, menus, pages, and workflows; also the auth pair behind the `nocobase-dev` MCP server and usable for API calls from dev/test apps
 
 ## Installation
 

@@ -10,7 +10,8 @@
 | Data | PostgREST API | REST API over PostgreSQL schema |
 | Logic | n8n | Workflow automation |
 | Logic | Trigger.dev | Background tasks and AI agents |
-| Interface | NocoBase | Low-code admin UI and collections |
+| Interface | NocoBase (prod) | Low-code admin UI and collections — live data |
+| Interface | NocoBase (dev) | Sandbox instance for building/testing tables, UX, menus, pages, workflows, and dev/test apps (API + MCP) |
 | Interface | NocoDB | Data views and forms |
 
 ## Quick Commands
@@ -29,6 +30,7 @@ Environment variables are managed through Infisical.
 - `n8n-native-mcp` — n8n native MCP operations
 - `nocodb` — Table CRUD, record operations, views
 - `postgresql-mcp` — Direct SQL queries, schema inspection, performance analysis, database admin (27 tools)
+- `nocobase-dev` — NocoBase dev-instance `nc-mcp` (~146 tools across collections, fields, resources, workflows, flow-surfaces, RBAC, data sources) targeting `${NOCOBASE_DEV_URL}/api/mcp`. Use this for building/testing tables, UX elements, menus, pages, and workflows on the sandbox instance.
 
 ## Architecture Rules
 
@@ -39,7 +41,8 @@ Environment variables are managed through Infisical.
 4. **PostgREST API** provides REST endpoints auto-generated from PostgreSQL schema for use in workflows
 5. **n8n** handles workflow automation triggered by webhooks or schedules
 6. **Trigger.dev** handles long-running background tasks and AI agent workflows
-7. **NocoBase** provides the admin UI with collections, forms, and dashboards
+7. **NocoBase (prod)** provides the admin UI with collections, forms, and dashboards — live data
+8. **NocoBase (dev)** is a separate sandbox instance for designing new tables, UX elements, menus, pages, and workflows, and for hosting dev/test apps against its API/MCP. Always build and validate here before promoting to prod.
 
 ### Integration Patterns
 - NocoDB webhook → n8n workflow (data change triggers automation)
@@ -60,3 +63,4 @@ Environment variables are managed through Infisical.
 - NEVER commit `.env`, API tokens, or `.mcp.json`
 - ALWAYS use resource IDs (not display names) with MCP tools
 - ALWAYS use environment variables for credentials and URLs
+- ALWAYS prototype NocoBase collections, fields, menus, pages, and workflows on the **dev** instance (`NOCOBASE_DEV_URL`) first — never directly on prod
