@@ -406,6 +406,17 @@
       },
       "keywords": ["stack", "composable-stack", "dev", "agents-store", "postgresql", "postgrest", "nocodb", "n8n", "trigger-dev", "nocobase"],
       "category": "stack"
+    },
+    {
+      "name": "codemap-dev",
+      "source": "./plugins/codemap-dev",
+      "description": "Code understanding plugin for developers. Helps onboard to unfamiliar projects through beginner-friendly code review, step-by-step explanations, and visual diagrams (architecture, ERD, flows) via drawio-mcp.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["codemap", "onboarding", "code-review", "diagrams", "drawio", "architecture", "erd"],
+      "category": "development"
     }
   ]
 }

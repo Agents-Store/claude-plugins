@@ -1,0 +1,42 @@
+{
+  "skill_name": "codemap-explain",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Explain this file to me: models/user.py",
+      "expected_output": "4-layer explanation: Context (what it does, where it fits), Data Flow (inputs/outputs), Details (key sections), Pitfalls (edge cases, gotchas)",
+      "files": [],
+      "expectations": [
+        "Reads the target file and its immediate dependencies",
+        "Starts with Context layer — plain-language summary and architectural role",
+        "Includes Data Flow layer — what goes in, what comes out",
+        "Defines technical terms on first use",
+        "Suggests related files to explore next"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "How does the authentication system work in this project?",
+      "expected_output": "Module-level explanation covering auth components, data flow, and connections between files",
+      "files": [],
+      "expectations": [
+        "Identifies all auth-related files",
+        "Explains at module scope: purpose, file listing with roles, internal dependencies",
+        "Generates a mini-diagram if 3+ components interact",
+        "Uses concrete examples from actual code"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Walk me through the create_deal function",
+      "expected_output": "Function-level explanation with signature, parameters, return value, side effects, and edge cases",
+      "files": [],
+      "expectations": [
+        "Greps to find the function definition",
+        "Explains at function scope: signature, purpose, parameters, return value",
+        "Traces data flow through the function",
+        "Notes pitfalls and edge cases"
+      ]
+    }
+  ]
+}

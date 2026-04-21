@@ -1,0 +1,10 @@
+{
+  "name": "codemap-dev",
+  "version": "1.0.0",
+  "description": "Code understanding plugin for developers. Helps onboard to unfamiliar projects through beginner-friendly code review, step-by-step explanations, and visual diagrams (architecture, ERD, flows) via drawio-mcp.",
+  "author": {
+    "name": "AGENTS.STORE"
+  },
+  "keywords": ["codemap", "onboarding", "code-review", "diagrams", "drawio", "architecture", "erd"],
+  "mcpServers": "./.mcp.json"
+}
