@@ -1,3 +1,4 @@
 .env
 .claude/*.local.md
 skills/*/evals/workspace/
+.claude/settings.local.json
