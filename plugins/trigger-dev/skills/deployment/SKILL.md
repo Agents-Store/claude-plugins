@@ -75,6 +75,94 @@ There is no `--self-hosted` flag — self-hosted and cloud deploys use the same 
 
 The CLI automatically discovers the container registry from the server and handles Docker build + push internally.
 
+## Container Registry Login (Self-Hosted Only)
+
+When deploying to a self-hosted instance, the CLI builds the task image **locally** and pushes it to the instance's built-in container registry (served at `registry.<your-domain>` or `localhost:5000` in the default setup). The CLI does **not** prompt for registry credentials — it uses whatever Docker has in its credentials keychain from a prior `docker login`.
+
+If `docker login` was never run on the machine (fresh laptop, fresh CI runner), deploy fails at the push step with:
+```
+denied: requested access to the resource is denied
+# or
+unauthorized: authentication required
+# or
+no basic auth credentials
+```
+
+### Two separate sets of registry env vars
+
+| Scope | Var prefix | Who reads them | Purpose |
+|-------|-----------|----------------|---------|
+| **Server** (webapp docker-compose) | `DEPLOY_REGISTRY_*` | Trigger.dev webapp | Tells the server which registry to instruct CLIs to push to |
+| **Client** (dev machine / CI) | `DOCKER_REGISTRY_*` *(convention)* | `docker login` via a shell wrapper | Stores registry creds in `.env` / secrets manager for non-interactive login |
+
+The `DOCKER_REGISTRY_*` prefix is **not read by the Trigger.dev CLI** — it's a project convention for feeding `docker login` in a reproducible way (so secrets live in Infisical / .env alongside other service creds, not only in Docker's OS keychain).
+
+**Server-side variables** (official, set in webapp's `.env` on the host):
+
+| Var | Required | Default | Purpose |
+|-----|----------|---------|---------|
+| `DEPLOY_REGISTRY_HOST` | Yes | `localhost:5000` | Hostname CLIs will push to |
+| `DEPLOY_REGISTRY_USERNAME` | Optional | `registry-user` | Basic-auth username |
+| `DEPLOY_REGISTRY_PASSWORD` | Optional | `very-secure-indeed` | Basic-auth password (⚠️ CHANGE for prod — update `hosting/docker/registry/auth.htpasswd`) |
+| `DEPLOY_REGISTRY_NAMESPACE` | Optional | `trigger` | Image namespace; final image path: `{host}/{namespace}/{project-ref}` |
+
+**Client-side convention** (stored in project `.env` / Infisical alongside other creds):
+
+```bash
+DOCKER_REGISTRY_URL=registry.your-trigger-domain.com
+DOCKER_REGISTRY_USERNAME=registry-user
+DOCKER_REGISTRY_PASSWORD=<strong-password>
+DOCKER_REGISTRY_NAMESPACE=trigger
+```
+
+### Login — interactive (dev laptop, one-time)
+
+```bash
+docker login -u registry-user registry.your-trigger-domain.com
+# enter password at prompt
+# → Login Succeeded (credentials saved to ~/.docker/config.json or OS keychain)
+```
+
+Once done, `npm run deploy:staging` / `deploy:production` works for all future deploys on this machine until credentials change.
+
+### Login — non-interactive (CI, reproducible)
+
+Use `--password-stdin` so the password never appears in process lists or shell history:
+
+```bash
+echo "$DOCKER_REGISTRY_PASSWORD" | docker login \
+  "$DOCKER_REGISTRY_URL" \
+  -u "$DOCKER_REGISTRY_USERNAME" \
+  --password-stdin
+```
+
+Add this as a step **before** `trigger.dev deploy` in any CI pipeline.
+
+### Verify registry connectivity
+
+```bash
+# Should return HTTP 200 and {} when auth is correct
+curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+  -u "$DOCKER_REGISTRY_USERNAME:$DOCKER_REGISTRY_PASSWORD" \
+  "https://$DOCKER_REGISTRY_URL/v2/"
+
+# List repositories (expect: {"repositories":["trigger/proj_xxx", ...]})
+curl -s -u "$DOCKER_REGISTRY_USERNAME:$DOCKER_REGISTRY_PASSWORD" \
+  "https://$DOCKER_REGISTRY_URL/v2/_catalog"
+
+# List tags for a specific project
+curl -s -u "$DOCKER_REGISTRY_USERNAME:$DOCKER_REGISTRY_PASSWORD" \
+  "https://$DOCKER_REGISTRY_URL/v2/$DOCKER_REGISTRY_NAMESPACE/$TRIGGER_PROJECT_REF/tags/list"
+```
+
+If `/v2/` returns `401`, the credentials are wrong. If it returns `404`, `DOCKER_REGISTRY_URL` is wrong or the host is not a Docker registry.
+
+### When to re-login
+
+- Password rotated in `auth.htpasswd` on the server → `docker logout $URL` + fresh login with new password
+- New CI runner / fresh laptop → login step required
+- "credentials store" changed on the machine → re-login to populate it
+
 ## Self-Hosted Runtime Environment Variables
 
 Deployed tasks run in isolated Docker containers that do **not** have access to your local `.env` file. The `--env-file` flag only loads env vars into the CLI process during build — they are NOT available at runtime.
@@ -121,6 +209,8 @@ Each environment has its own unique secret key. Staging uses the `tr_dev_` prefi
 
 ## CI/CD (GitHub Actions)
 
+For **self-hosted**, add a `docker login` step before `deploy` — the runner has no Docker credentials by default and the push will fail with "unauthorized". For **cloud** (api.trigger.dev), skip the docker login step.
+
 ```yaml
 name: Deploy Trigger.dev
 on:
@@ -136,6 +226,11 @@ jobs:
         with:
           node-version: "20"
       - run: npm ci
+
+      # Required for self-hosted only — push target is the instance's built-in registry
+      - name: Login to Trigger.dev container registry
+        run: echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login "${{ secrets.DOCKER_REGISTRY_URL }}" -u "${{ secrets.DOCKER_REGISTRY_USERNAME }}" --password-stdin
+
       - name: Deploy to production
         run: npx trigger.dev@latest deploy --env production
         env:
@@ -143,6 +238,8 @@ jobs:
           # For self-hosted:
           TRIGGER_API_URL: ${{ secrets.TRIGGER_API_URL }}
 ```
+
+Required GitHub Actions secrets for self-hosted: `TRIGGER_ACCESS_TOKEN`, `TRIGGER_API_URL`, `DOCKER_REGISTRY_URL`, `DOCKER_REGISTRY_USERNAME`, `DOCKER_REGISTRY_PASSWORD`.
 
 ## Deployment Status Values
 

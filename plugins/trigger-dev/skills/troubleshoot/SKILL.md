@@ -51,9 +51,39 @@ Run these checks first:
 | Error | Cause | Fix |
 |-------|-------|-----|
 | Build failed | TypeScript errors | Fix compile errors in your task code |
-| Push failed | No registry access | `docker login -u <user> <registry-url>` |
+| `denied: requested access to the resource is denied` | Not logged into self-hosted registry | `docker login -u $DOCKER_REGISTRY_USERNAME $DOCKER_REGISTRY_URL` (see Registry Push Failures below) |
+| `unauthorized: authentication required` | Registry credentials wrong or expired | `docker logout $URL` + fresh login with current password |
+| `no basic auth credentials` | Docker credentials store empty for this host | Run `docker login` on the machine; in CI, add login step before deploy |
+| Push to `localhost:5000` fails on CI | `DEPLOY_REGISTRY_HOST` on server still set to default | Set public hostname in webapp `.env` + restart webapp |
 | "No tasks found" | Wrong `dirs` config | Check `dirs` in trigger.config.ts |
 | Version mismatch | SDK/CLI out of sync | `npm install @trigger.dev/sdk@latest` |
+
+### Registry Push Failures (Self-Hosted)
+
+When `trigger.dev deploy` fails at the push step, the developer/CI machine can't authenticate with the instance's built-in registry:
+
+```bash
+# Interactive (dev laptop)
+docker login -u registry-user registry.your-domain.com
+
+# Non-interactive (CI)
+echo "$DOCKER_REGISTRY_PASSWORD" | docker login \
+  "$DOCKER_REGISTRY_URL" \
+  -u "$DOCKER_REGISTRY_USERNAME" \
+  --password-stdin
+
+# Verify creds are valid
+curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+  -u "$DOCKER_REGISTRY_USERNAME:$DOCKER_REGISTRY_PASSWORD" \
+  "https://$DOCKER_REGISTRY_URL/v2/"
+# → HTTP 200 means login will succeed
+# → HTTP 401 means wrong username/password
+```
+
+Common root causes:
+- **CI runner has no persisted Docker credentials** → add `docker login` step before deploy
+- **Registry password rotated on server** but local docker keychain still has old password → `docker logout` + re-login
+- **Using `localhost:5000` publicly** → change `DEPLOY_REGISTRY_HOST` to public hostname in webapp `.env`, restart webapp, re-login clients
 
 ## Dev Server Issues
 
@@ -87,7 +117,7 @@ docker compose logs -f supervisor
 | Runs stuck QUEUED | Supervisor disconnected | Check worker token; restart supervisor |
 | Dashboard 502 | Webapp crashed | `docker compose restart webapp` |
 | Worker token missing | Separate machines | Check webapp logs for token on first start |
-| Registry auth fails | Wrong credentials | Check auth.htpasswd in registry config |
+| Registry auth fails | Wrong credentials or stale docker keychain | See "Registry Push Failures" above — verify via `curl -u user:pass https://$URL/v2/` returns 200 |
 | Object storage error | MinIO bucket missing | Create `packets` bucket via MinIO UI (:9001) |
 | Disk full | Old runs not cleaned | Configure retention, clean old data |
 

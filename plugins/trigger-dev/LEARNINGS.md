@@ -48,3 +48,14 @@
 **Fix:** Added Critical Rule #6: lazy-initialize external SDK clients. Included bad/good code examples showing the singleton getter pattern.
 **Root cause:** Trigger.dev imports and validates task files during the Docker build step. Any top-level code that reads env vars will fail because build-time env != runtime env.
 **Severity:** Major
+
+## 2026-04-22 — deployment/troubleshoot: Container registry login workflow missing for self-hosted staging/prod deploys
+
+**Feature:** Document the full container registry login workflow for self-hosted Trigger.dev deploys — `docker login` (interactive + non-interactive via `--password-stdin`), the distinction between server-side `DEPLOY_REGISTRY_*` env vars and the client-side `DOCKER_REGISTRY_*` convention, registry credential verification, and CI/CD patterns with a `docker login` step before `trigger.dev deploy`.
+**Implementation:**
+- `skills/deployment/SKILL.md` — new "Container Registry Login (Self-Hosted Only)" section between "Self-Hosted Deploy" and "Self-Hosted Runtime Environment Variables"; updated CI/CD GitHub Actions snippet to include docker login step; added required secrets list.
+- `skills/deployment/references/self-hosted-infrastructure.md` — expanded "Container Registry" section with server-side `DEPLOY_REGISTRY_*` table, client-side `DOCKER_REGISTRY_*` convention, htpasswd rotation steps, verification curl commands.
+- `skills/deployment/references/ci-cd-patterns.md` — added docker login step to self-hosted GitHub Actions and staging+prod examples; added registry vars rows to Generic CI table.
+- `skills/troubleshoot/SKILL.md` — replaced single "Push failed" row with four distinct error symptoms (`denied`, `unauthorized`, `no basic auth credentials`, `localhost:5000` pushes); added "Registry Push Failures (Self-Hosted)" sub-section with interactive + non-interactive login recipes and cred verification; updated Self-Hosted Issues row.
+- Version bumped `1.0.4` → `1.1.0` in plugin.json and marketplace.json.
+**Rationale:** Original deployment skill stated "The CLI automatically discovers the container registry from the server" but never explained that auth still depends on local Docker credentials. Users on fresh laptops and CI runners hit `unauthorized: authentication required` at the push step with no guidance. Also, the official `DEPLOY_REGISTRY_*` (server) vs ad-hoc `DOCKER_REGISTRY_*` (client) distinction was undocumented — leading users to think the CLI reads these env vars, which it doesn't. This gap was identified during a live deploy session (2026-04-22) where the agent had to research the workflow from scratch after the user asked what to do with `registry.trigger.multiagent.work` at staging/prod deploy time.

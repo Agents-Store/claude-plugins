@@ -48,15 +48,78 @@ When webapp and worker run on separate machines, a worker token is required:
 
 ## Container Registry
 
-Task deployments build Docker images locally and push to the built-in registry:
+Task deployments build Docker images locally (on the developer or CI machine) and push them to the instance's built-in registry. The Trigger.dev CLI discovers the registry URL from the server automatically but relies on **Docker's own credentials store** for auth — you must `docker login` once per machine (or provide non-interactive login in CI).
+
+### Server-side env vars (webapp docker-compose `.env`)
+
+These are read by the webapp container and determine what CLIs are told to push to:
+
+| Var | Required | Default | Notes |
+|-----|----------|---------|-------|
+| `DEPLOY_REGISTRY_HOST` | Yes | `localhost:5000` | Public hostname — e.g. `registry.your-domain.com` |
+| `DEPLOY_REGISTRY_USERNAME` | Optional | `registry-user` | Basic-auth user in `auth.htpasswd` |
+| `DEPLOY_REGISTRY_PASSWORD` | Optional | `very-secure-indeed` | Must match htpasswd entry |
+| `DEPLOY_REGISTRY_NAMESPACE` | Optional | `trigger` | Final image: `{host}/{namespace}/{project-ref}:{tag}` |
+
+### Client-side convention (developer + CI `.env`)
+
+The Trigger.dev CLI does **not** read `DOCKER_REGISTRY_*` vars — they are a project convention for storing registry creds alongside other service creds (Infisical, Vault, .env) and feeding `docker login` in a reproducible way:
 
 ```bash
-# Default credentials (CHANGE IN PRODUCTION!)
-docker login -u registry-user localhost:5000
-# Password: very-secure-indeed
+DOCKER_REGISTRY_URL=registry.your-domain.com
+DOCKER_REGISTRY_USERNAME=registry-user
+DOCKER_REGISTRY_PASSWORD=<strong-password>
+DOCKER_REGISTRY_NAMESPACE=trigger
+```
 
-# Update credentials in:
-# hosting/docker/registry/auth.htpasswd
+### Interactive login (dev laptop, one-time)
+
+```bash
+docker login -u registry-user registry.your-domain.com
+# enter password when prompted
+# → Login Succeeded
+```
+
+Credentials are saved to `~/.docker/config.json` or the OS keychain; no need to re-login until the password changes.
+
+### Non-interactive login (CI, scripts)
+
+```bash
+echo "$DOCKER_REGISTRY_PASSWORD" | docker login \
+  "$DOCKER_REGISTRY_URL" \
+  -u "$DOCKER_REGISTRY_USERNAME" \
+  --password-stdin
+```
+
+`--password-stdin` keeps the secret out of process lists and shell history.
+
+### Default credentials — CHANGE IN PRODUCTION
+
+The shipped defaults (`registry-user` / `very-secure-indeed` at `localhost:5000`) are for local testing only. To rotate:
+
+```bash
+# 1. Generate new htpasswd entry (bcrypt)
+docker run --rm -it httpd:alpine htpasswd -nbB registry-user 'new-strong-password'
+# → registry-user:$2y$05$...
+
+# 2. Replace line in hosting/docker/registry/auth.htpasswd
+
+# 3. Update DEPLOY_REGISTRY_PASSWORD in webapp .env to the plaintext password
+
+# 4. Restart registry container
+docker compose restart registry
+
+# 5. docker logout + docker login on every machine that deploys
+```
+
+### Verify registry is reachable
+
+```bash
+curl -s -u "$DOCKER_REGISTRY_USERNAME:$DOCKER_REGISTRY_PASSWORD" \
+  "https://$DOCKER_REGISTRY_URL/v2/"                      # → {} (HTTP 200)
+
+curl -s -u "$DOCKER_REGISTRY_USERNAME:$DOCKER_REGISTRY_PASSWORD" \
+  "https://$DOCKER_REGISTRY_URL/v2/_catalog"              # → {"repositories":["trigger/proj_xxx", ...]}
 ```
 
 ## MinIO Object Storage
