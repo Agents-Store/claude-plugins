@@ -47,7 +47,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/project.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "database-services", "description": "Databases for production applications"}'
 ```
@@ -78,7 +78,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/postgres.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "main-db", "projectId": "<projectId>", "databasePassword": "secure-password-here", "dockerImage": "postgres:16-alpine"}'
 ```
@@ -117,7 +117,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/postgres.deploy" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"postgresId": "<postgresId>"}'
 ```
@@ -146,7 +146,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/postgres.saveExternalPort" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"postgresId": "<postgresId>", "externalPort": 5433}'
 ```
@@ -163,7 +163,7 @@ Create a backup schedule using the backup API.
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/backup.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "postgresId": "<postgresId>",
@@ -189,7 +189,7 @@ List available destinations:
 
 ```bash
 curl -s "$DOKPLOY_URL/destination.all" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+  -H "x-api-key: $DOKPLOY_API_KEY"
 ```
 
 Destinations can be S3-compatible storage (AWS S3, MinIO, etc.) configured in the Dokploy dashboard under **Settings > Destinations**.

@@ -46,7 +46,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/project.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "my-stack", "description": "Multi-container application stack"}'
 ```
@@ -76,7 +76,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/compose.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"projectId": "<projectId>", "name": "my-stack", "appName": "my-stack"}'
 ```
@@ -107,7 +107,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/compose.update" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"composeId": "<composeId>", "composeFile": "version: '\''3.8'\''\n\nservices:\n  web:\n    image: nginx:alpine\n    ports:\n      - \"80\"\n    depends_on:\n      - api\n\n  api:\n    image: node:20-alpine\n    ports:\n      - \"3000\"\n    environment:\n      - DATABASE_URL=postgresql://postgres:secret@db:5432/mydb\n    depends_on:\n      - db\n\n  db:\n    image: postgres:16-alpine\n    environment:\n      - POSTGRES_PASSWORD=secret\n      - POSTGRES_DB=mydb\n    volumes:\n      - ../files/pgdata:/var/lib/postgresql/data"}'
 ```
@@ -149,7 +149,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/compose.saveEnvironment" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"composeId": "<composeId>", "env": "POSTGRES_PASSWORD=secret\nAPP_SECRET=my-secret-key"}'
 ```
@@ -175,7 +175,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/compose.deploy" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"composeId": "<composeId>"}'
 ```
@@ -223,7 +223,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/domain.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"composeId": "<composeId>", "host": "app.example.com", "port": 80, "https": true, "serviceName": "web"}'
 ```

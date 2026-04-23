@@ -11,9 +11,12 @@ API version: **v0.28.8** | 463 endpoints
 ## Connection
 | Setting | Value |
 |---------|-------|
-| Base URL | `$DOKPLOY_URL` (ends with `/api`) |
-| Auth header | `Authorization: Bearer $DOKPLOY_API_KEY` |
+| Base URL | `$DOKPLOY_URL` (base server URL, no `/api` suffix) |
+| Endpoint path | `$DOKPLOY_URL/api/{tag}.{operationName}` |
+| Auth header | `x-api-key: $DOKPLOY_API_KEY` (NOT `Authorization: Bearer`) |
 | Content-Type | `application/json` (for POST requests) |
+
+`DOKPLOY_URL` is the Dokploy server's base URL (e.g. `https://dokploy.example.com`). The REST API lives under `/api/…` on that host.
 
 ## Endpoint naming convention
 All endpoints follow: `{METHOD} /api/{tag}.{operationName}`
@@ -26,14 +29,14 @@ Tags: `project`, `application`, `compose`, `postgres`, `domain`, `settings`, etc
 
 **GET — list all projects:**
 ```bash
-curl -s "$DOKPLOY_URL/project.all" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+curl -s "$DOKPLOY_URL/api/project.all" \
+  -H "x-api-key: $DOKPLOY_API_KEY"
 ```
 
 **POST — create a project:**
 ```bash
-curl -s -X POST "$DOKPLOY_URL/project.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+curl -s -X POST "$DOKPLOY_URL/api/project.create" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "my-project", "description": "New project"}'
 ```
@@ -57,6 +60,6 @@ The full 463 endpoints are split across 5 reference files by domain:
 
 **GET with parameters:**
 ```bash
-curl -s "$DOKPLOY_URL/project.one?projectId=uuid-here" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+curl -s "$DOKPLOY_URL/api/project.one?projectId=uuid-here" \
+  -H "x-api-key: $DOKPLOY_API_KEY"
 ```

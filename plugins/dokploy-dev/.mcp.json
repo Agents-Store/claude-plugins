@@ -2,9 +2,9 @@
   "mcpServers": {
     "dokploy": {
       "command": "npx",
-      "args": ["-y", "@ahdev/dokploy-mcp"],
+      "args": ["-y", "@dokploy/mcp"],
       "env": {
-        "DOKPLOY_URL": "${DOKPLOY_URL}/api",
+        "DOKPLOY_URL": "${DOKPLOY_URL}",
         "DOKPLOY_API_KEY": "${DOKPLOY_API_KEY}"
       }
     }

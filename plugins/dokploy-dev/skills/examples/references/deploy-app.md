@@ -47,7 +47,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/project.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "my-web-app", "description": "Production web application"}'
 ```
@@ -79,7 +79,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/application.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"projectId": "<projectId>", "name": "my-web-app", "appName": "my-web-app"}'
 ```
@@ -112,7 +112,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/application.saveGithubProvider" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>", "repository": "https://github.com/owner/repo", "branch": "main", "owner": "owner"}'
 ```
@@ -141,7 +141,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/application.saveBuildType" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>", "buildType": "nixpacks"}'
 ```
@@ -172,7 +172,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/application.saveEnvironment" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>", "env": "NODE_ENV=production\nDATABASE_URL=postgresql://user:pass@db:5432/mydb\nPORT=3000"}'
 ```
@@ -203,7 +203,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/domain.create" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>", "host": "app.example.com", "port": 3000, "https": true}'
 ```
@@ -238,7 +238,7 @@ Parameters:
 
 ```bash
 curl -s -X POST "$DOKPLOY_URL/application.deploy" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>"}'
 ```

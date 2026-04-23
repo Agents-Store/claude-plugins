@@ -1,7 +1,7 @@
 {
   "name": "dokploy-dev",
-  "version": "1.1.4",
-  "description": "Dokploy self-hosted PaaS development plugin. Deploy applications, provision databases, manage domains, Docker Compose stacks, backups, and server operations via 67 MCP tools, 463 REST API endpoints, and CLI.",
+  "version": "1.2.0",
+  "description": "Dokploy self-hosted PaaS development plugin. Deploy applications, provision databases (Postgres, MySQL, MariaDB, MongoDB, Redis, LibSQL), manage domains, Docker Compose stacks, backups, and server operations via the official @dokploy/mcp server (500+ tools across 49 categories), 463 REST API endpoints, and CLI.",
   "author": {
     "name": "AGENTS.STORE"
   },

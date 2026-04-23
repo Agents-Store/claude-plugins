@@ -2,11 +2,13 @@
 
 Dokploy self-hosted PaaS development plugin for Claude Code. Deploy applications, provision databases, manage domains, Docker Compose stacks, backups, and server operations.
 
+Uses the **official** `@dokploy/mcp` server (maintained by the Dokploy team).
+
 ## Interfaces
 
 | Interface | Package | Tools/Endpoints |
 |-----------|---------|-----------------|
-| MCP Server | `@ahdev/dokploy-mcp` | 67 tools |
+| MCP Server | `@dokploy/mcp` | 500+ tools across 49 categories |
 | REST API | — | 463 endpoints |
 | CLI | `@dokploy/cli` | 40+ commands |
 
@@ -15,7 +17,7 @@ Dokploy self-hosted PaaS development plugin for Claude Code. Deploy applications
 | Skill | Description |
 |-------|-------------|
 | `setup` | Verify MCP connection, CLI installation, and API access |
-| `mcp-patterns` | All 67 MCP tools organized by category with usage patterns |
+| `mcp-patterns` | Core MCP tools by category with usage patterns (filterable via `DOKPLOY_ENABLED_TAGS`) |
 | `api-reference` | REST API endpoint reference (463 endpoints across 30+ tags) |
 | `cli-recipes` | CLI commands and workflow recipes |
 | `troubleshoot` | Diagnose deployment failures, domain issues, database problems |
@@ -34,8 +36,17 @@ Dokploy self-hosted PaaS development plugin for Claude Code. Deploy applications
 
 When enabling this plugin, you will be prompted for:
 
-- **dokploy_url** — Your Dokploy server API URL (e.g., `https://dokploy.example.com/api`)
+- **dokploy_url** — Your Dokploy server base URL **without** `/api` (e.g., `https://dokploy.example.com`). The MCP server and REST API are served from `/api/…` under this URL.
 - **dokploy_api_key** — Your Dokploy API authentication token
+
+### Optional env vars (set in `.mcp.json` `env` block)
+
+| Variable | Purpose |
+|----------|---------|
+| `DOKPLOY_ENABLED_TAGS` | Comma-separated category filter (e.g. `project,application,domain,compose,postgres`) to reduce the exposed tool surface from 500+ down to what you actually need |
+| `DOKPLOY_TIMEOUT` | Per-request timeout in ms (default `30000`) |
+| `DOKPLOY_RETRY_ATTEMPTS` | Retry count on transient failure (default `3`) |
+| `DOKPLOY_RETRY_DELAY` | Retry backoff in ms (default `1000`) |
 
 ## Optional: CLI
 

@@ -15,12 +15,16 @@ The `dokploy-dev` plugin requires two configuration values set via `userConfig` 
 
 | Config Key | Description | Example |
 |---|---|---|
-| `dokploy_url` | Dokploy server API URL | `https://dokploy.example.com/api` |
+| `dokploy_url` | Dokploy server **base URL** (no `/api` suffix) | `https://dokploy.example.com` |
 | `dokploy_api_key` | API authentication token | `dk_abc123...` |
 
-These values are referenced as `$DOKPLOY_URL` and `$DOKPLOY_API_KEY` throughout the plugin.
+These values are referenced as `$DOKPLOY_URL` and `$DOKPLOY_API_KEY` throughout the plugin. The MCP server and REST API are served from `/api/…` under the base URL.
 
 Before running verification, confirm both values are configured. If either is missing, instruct the user to set them in their Claude Code plugin settings.
+
+### Optional: reduce the exposed tool surface
+
+The official `@dokploy/mcp` server exposes 500+ tools across 49 categories. If that is more than you need, set `DOKPLOY_ENABLED_TAGS` in the plugin's `.mcp.json` `env` block to a comma-separated list of categories (e.g. `project,application,domain,compose,postgres,settings,deployment,docker`). The server will then only expose tools from those categories.
 
 ### How to obtain an API key
 
@@ -121,11 +125,11 @@ Make a direct HTTP request to the health endpoint:
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" \
-  "$DOKPLOY_URL/settings.health" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY"
+  "$DOKPLOY_URL/api/settings.health" \
+  -H "x-api-key: $DOKPLOY_API_KEY"
 ```
 
-Replace `$DOKPLOY_URL` and `$DOKPLOY_API_KEY` with the actual configured values.
+Replace `$DOKPLOY_URL` (base URL, no `/api`) and `$DOKPLOY_API_KEY` with the actual configured values.
 
 ### Expected result
 
@@ -139,9 +143,9 @@ Report: "API access verified. Dokploy server is healthy."
 
 | Status Code | Cause | Fix |
 |---|---|---|
-| `401` | Invalid or expired API key | Generate a new token in **Settings > API/Tokens** |
+| `401` | Invalid or expired API key | Generate a new token in **Settings > API/Tokens**. Also verify you used the `x-api-key` header (NOT `Authorization: Bearer`) |
 | `403` | Token lacks required permissions | Check token scope — it must have admin access |
-| `404` | Wrong URL path | Verify `dokploy_url` ends with `/api` (e.g. `https://dokploy.example.com/api`) |
+| `404` | Wrong URL path | `dokploy_url` must be the base URL **without** `/api` (e.g. `https://dokploy.example.com`). Append `/api/<endpoint>` in curl calls |
 | `000` or connection refused | Server unreachable | Check URL, DNS, firewall rules, and that Dokploy is running |
 | `502` / `503` | Server is starting or overloaded | Wait 30 seconds and retry |
 
@@ -150,8 +154,8 @@ Report: "API access verified. Dokploy server is healthy."
 To confirm full read/write access, call a non-destructive endpoint:
 
 ```bash
-curl -s "$DOKPLOY_URL/project.all" \
-  -H "Authorization: Bearer $DOKPLOY_API_KEY" \
+curl -s "$DOKPLOY_URL/api/project.all" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json"
 ```
 
@@ -184,7 +188,7 @@ If any step fails, provide the specific fix instructions from the relevant secti
 | API 401 Unauthorized | `curl` returns 401 | Token expired or invalid — regenerate in dashboard |
 | API connection refused | `curl` returns 000 or "connection refused" | Wrong URL, server down, or firewall blocking the port |
 | Self-signed cert errors | `UNABLE_TO_VERIFY_LEAF_SIGNATURE` | Set `NODE_TLS_REJECT_UNAUTHORIZED=0` for dev environments |
-| MCP tools exist but return errors | Tool calls return API errors | `dokploy_url` must end with `/api` for MCP and REST; CLI uses base URL |
+| MCP tools exist but return errors | Tool calls return API errors | `dokploy_url` is the **base URL without `/api`** for MCP, REST, and CLI. MCP server and REST endpoints live at `/api/…` under that base |
 | Wrong port | Connection refused on default port | Dokploy defaults to port 3000; verify the actual port in your deployment |
 
 ---

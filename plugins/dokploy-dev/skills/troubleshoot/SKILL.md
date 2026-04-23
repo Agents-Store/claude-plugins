@@ -15,7 +15,7 @@ Run these checks first to understand the current state:
 
 1. **Check Dokploy health:**
    ```bash
-   curl -s "$DOKPLOY_URL/settings.health" \
+   curl -s "$DOKPLOY_URL/api/settings.health" \
      -H "x-api-key: $DOKPLOY_API_KEY"
    ```
 
@@ -67,7 +67,7 @@ If the health check fails, the server itself is down. Fix the server before inve
 | Build fails | Wrong build type | Check the build type matches the source. Use Nixpacks for auto-detect, Dockerfile if a Dockerfile exists in the repo |
 | Build succeeds but app crashes | Missing environment variables | Check the environment config with `mcp__dokploy__application-one` and verify all required env vars are set |
 | Deployment stuck in queue | Previous deployment blocking | Call `mcp__dokploy__application-cleanQueues` to clear the queue, or `mcp__dokploy__application-cancelDeployment` to cancel the blocking deployment |
-| Git clone fails | Wrong repo URL or credentials | Verify the git provider config. Re-authenticate with `mcp__dokploy__gitProvider-update` if needed |
+| Git clone fails | Wrong repo URL or credentials | Verify the git provider config. Re-authenticate with the per-provider update tool: `mcp__dokploy__github-update`, `mcp__dokploy__gitlab-update`, `mcp__dokploy__bitbucket-update`, or `mcp__dokploy__gitea-update` |
 | Nixpacks build fails | Unsupported language/framework | Check Nixpacks docs for supported runtimes. Alternatively, switch to Dockerfile build type |
 | Build timeout | Large image or slow network | Increase build timeout or optimize the Dockerfile (use multi-stage builds, reduce layers) |
 
@@ -78,10 +78,10 @@ If the health check fails, the server itself is down. Fix the server before inve
    curl -s -H "x-api-key: $DOKPLOY_API_KEY" \
      "$DOKPLOY_URL/api/deployment.all?applicationId=<id>" | python3 -m json.tool
    ```
-   Or call `mcp__dokploy__deployment-allByApplication` with the applicationId.
+   Or call `mcp__dokploy__deployment-all` with `applicationId` as the filter.
 
 2. **Read deployment build logs:**
-   Dokploy stores logs at a path like `/etc/dokploy/logs/<appName>/<appName>-<timestamp>.log` on the server. If Beszel is available, use `beszel-getContainerLogs` on the Dokploy container to see recent build output including error traces. The Dokploy container ID can be found via `beszel-get_collections_containers_records` on the dokploy-server system.
+   Call `mcp__dokploy__application-readLogs` with the applicationId to stream container logs directly. For historical build logs, Dokploy stores files at `/etc/dokploy/logs/<appName>/<appName>-<timestamp>.log` on the server. If Beszel is available, use `beszel-getContainerLogs` on the Dokploy container to see recent build output including error traces. The Dokploy container ID can be found via `beszel-get_collections_containers_records` on the dokploy-server system.
 
 3. **Check application status:**
    Call `mcp__dokploy__application-one` with the applicationId. Look at the `applicationStatus` field.
@@ -143,10 +143,11 @@ For external access, replace `container-name` with the server IP and use the ext
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| MCP tools not found | Plugin not enabled or npx failed | Re-enable the plugin. Verify `npx -y @ahdev/dokploy-mcp` works locally |
-| MCP returns "Invalid URL" | `DOKPLOY_URL` env var not set or not passed to MCP server | Check that `DOKPLOY_URL` and `DOKPLOY_API_KEY` are set in `settings.local.json` under `env`. If MCP tools still fail, fall back to direct `curl` calls with `x-api-key` header (see Diagnostic Commands below) |
+| MCP tools not found | Plugin not enabled or npx failed | Re-enable the plugin. Verify `npx -y @dokploy/mcp` works locally |
+| MCP returns "Invalid URL" | `DOKPLOY_URL` env var not set or has wrong format | `DOKPLOY_URL` must be the **base URL without `/api`** (e.g. `https://dokploy.example.com`). Check `settings.local.json` `env` block. If MCP tools still fail, fall back to direct `curl` calls with `x-api-key` header (see Diagnostic Commands below) |
 | MCP returns 401 | Invalid API key or wrong auth header | Dokploy API uses `x-api-key` header, NOT `Authorization: Bearer`. Regenerate the API key in the Dokploy dashboard (**Settings > API/Tokens**). Update `userConfig` |
-| MCP returns connection refused | Wrong DOKPLOY_URL | The URL should be the base Dokploy URL (e.g. `https://dokploy.example.com`). API routes are at `/api/` |
+| MCP returns connection refused | Wrong DOKPLOY_URL | The URL should be the base Dokploy URL (e.g. `https://dokploy.example.com`). API routes are at `/api/…` under it |
+| Too many tools / context bloat | All 500+ tools exposed | Set `DOKPLOY_ENABLED_TAGS` in `.mcp.json` `env` to a comma-separated category list (e.g. `project,application,domain,compose,postgres,settings,deployment`) |
 | MCP timeout | Server overloaded or network latency | Check server health. Increase timeout in MCP client config if the server is slow |
 | MCP returns 500 | Server-side error | Check Dokploy server logs. This usually indicates a bug or corrupt state |
 
@@ -158,23 +159,23 @@ For external access, replace `container-name` with the server IP and use the ext
 
 ```bash
 # Check Dokploy server health
-curl -s "$DOKPLOY_URL/settings.health" \
+curl -s "$DOKPLOY_URL/api/settings.health" \
   -H "x-api-key: $DOKPLOY_API_KEY"
 
 # Check Dokploy version
-curl -s "$DOKPLOY_URL/settings.getDokployVersion" \
+curl -s "$DOKPLOY_URL/api/settings.getDokployVersion" \
   -H "x-api-key: $DOKPLOY_API_KEY"
 
 # List all Docker containers
-curl -s "$DOKPLOY_URL/docker.getContainers" \
+curl -s "$DOKPLOY_URL/api/docker.getContainers" \
   -H "x-api-key: $DOKPLOY_API_KEY"
 
 # Get server public IP
-curl -s "$DOKPLOY_URL/server.publicIp" \
+curl -s "$DOKPLOY_URL/api/server.publicIp" \
   -H "x-api-key: $DOKPLOY_API_KEY"
 
 # List all projects with their applications
-curl -s "$DOKPLOY_URL/project.all" \
+curl -s "$DOKPLOY_URL/api/project.all" \
   -H "x-api-key: $DOKPLOY_API_KEY"
 ```
 
@@ -195,5 +196,5 @@ mcp__dokploy__project-all
 - **Traefik configuration issues** — Check the Traefik dashboard (usually at port 8080 on the server). Traefik misconfigurations are outside Dokploy's control.
 - **Docker Swarm / cluster issues** — Check node status with `mcp__dokploy__cluster-getNodes`. Cluster problems require server-level debugging.
 - **Persistent 502s after all checks pass** — Check server resources (CPU, memory, disk). The server may be under-provisioned.
-- **Data corruption** — If database data is corrupted, restore from backups. Check backup status with `mcp__dokploy__backup-all`.
+- **Data corruption** — If database data is corrupted, restore from backups. Enumerate configured backups per resource and list backup files with `mcp__dokploy__backup-listBackupFiles` (`backup-all` was removed — backups are now resource-scoped).
 - **Dokploy upgrade failures** — Check the Dokploy GitHub releases for known issues. Roll back to the previous version if needed.
