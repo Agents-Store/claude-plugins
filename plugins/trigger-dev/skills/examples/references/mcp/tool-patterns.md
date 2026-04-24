@@ -101,8 +101,102 @@ Input: { "query": "wait for token human in the loop" }
    → Get list of failed run IDs
 
 2. get_run_details(runId="run_xxx", maxTraceLines=500)
-   → Read error message and stack trace
+   → Read error message and stack trace, grab spanId of the failing span
 
-3. search_docs(query="<error message keywords>")
+3. get_span_details(runId="run_xxx", spanId="span_xxx")
+   → AI enrichment (llm model/tokens/cost) + child runs
+
+4. search_docs(query="<error message keywords>")
    → Find relevant documentation
+```
+
+## Profile Switch
+
+```
+Tool: whoami
+→ { profile: "default", user: {...}, apiUrl: "https://api.trigger.dev" }
+
+Tool: list_profiles
+→ { active: "default", profiles: [{ name, apiUrl }, ...] }
+
+Tool: switch_profile
+Input: { "profile": "self-hosted-prod" }
+→ { active: "self-hosted-prod", apiUrl: "https://trigger.example.com" }
+```
+
+## Get Task Schema
+
+```
+Tool: get_task_schema
+Input: { "taskIdentifier": "process-order", "environment": "dev" }
+→ { payloadSchema: { type: "object", properties: {...}, required: [...] } }
+```
+
+Note: v4.4.4 removed inlined payload schemas from `get_current_worker` — always call this before `trigger_task`.
+
+## Run TRQL Query
+
+```
+Tool: get_query_schema
+Input: { "table": "runs" }
+→ { table: "runs", columns: [...] }
+
+Tool: query
+Input: {
+  "query": "SELECT status, count() AS n FROM runs GROUP BY status",
+  "period": "7d",
+  "scope": "environment"
+}
+→ (text table)
+```
+
+## Run a Dashboard Widget
+
+```
+Tool: list_dashboards
+→ [{ dashboardId: "overview", widgets: [{ widgetId: "failure-rate", title: "Failure rate" }] }]
+
+Tool: run_dashboard_query
+Input: { "dashboardId": "overview", "widgetId": "failure-rate", "period": "30d" }
+→ (text table)
+```
+
+## Dev Server Lifecycle
+
+```
+Tool: start_dev_server
+Input: { "configPath": "./packages/jobs/trigger.config.ts" }
+→ { status: "ready", pid: 12345 }
+
+Tool: dev_server_status
+Input: { "lines": 50 }
+→ { status: "ready", recentLogs: [...] }
+
+Tool: stop_dev_server
+→ { status: "stopped" }
+```
+
+## Managed Prompts — Hotfix Workflow
+
+```
+Tool: list_prompts
+Input: { "environment": "prod" }
+→ [{ slug: "customer-reply", currentVersion: 4, overrideActive: false, versionCount: 7 }]
+
+Tool: get_prompt_versions
+Input: { "slug": "customer-reply", "environment": "prod" }
+→ [{ version: 4, labels: ["current", "latest"], source: "code", ... }]
+
+Tool: create_prompt_override
+Input: {
+  "slug": "customer-reply",
+  "textContent": "You are a support agent. Be concise…",
+  "commitMessage": "Hotfix tone OPS-1234",
+  "environment": "prod"
+}
+→ { slug: "customer-reply", overrideVersion: 8, source: "dashboard" }
+
+Tool: remove_prompt_override
+Input: { "slug": "customer-reply", "environment": "prod" }
+→ { slug: "customer-reply", overrideActive: false }
 ```

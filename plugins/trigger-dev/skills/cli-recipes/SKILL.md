@@ -98,11 +98,39 @@ npx trigger.dev@latest deploy --skip-promotion
 ## MCP Server
 
 ```bash
-# Interactive wizard
-npx trigger.dev@latest mcp
+# Interactive installer (detects installed clients and writes their configs)
+npx trigger.dev@latest install-mcp
+
+# Install for a specific client
+npx trigger.dev@latest install-mcp --client claude-code
+npx trigger.dev@latest install-mcp --client cursor --scope user
+
+# Install across every supported client at once
+npx trigger.dev@latest install-mcp --yolo
+
+# Production-safe — hide deploy, trigger_task, cancel_run
+npx trigger.dev@latest install-mcp --readonly
+
+# Restrict to dev env and a single project
+npx trigger.dev@latest install-mcp --dev-only --project-ref proj_abc123
 ```
 
-Manual config:
+### install-mcp Flags
+
+| Flag | Purpose |
+|------|---------|
+| `--client <name...>` | claude-code, cursor, windsurf, vscode, zed, cline, gemini-cli, amp, openai-codex, crush, opencode, ruler |
+| `--scope <scope>` | `user` / `project` / `local` |
+| `--dev-only` | Hide deploy / list_preview_branches — only dev env tools exposed |
+| `--readonly` | Hide `deploy`, `trigger_task`, `cancel_run` (AI can read but not mutate) |
+| `--project-ref <ref>` | Lock MCP to one project |
+| `--tag <tag>` | Pin CLI version |
+| `-a, --api-url <url>` | Self-hosted API URL |
+| `--log-file <path>` | Write MCP server logs to file |
+| `--log-level <level>` | debug / info / log / warn / error / none |
+| `--yolo` | Install into every supported client |
+
+### Manual Config
 
 ```json
 {
@@ -115,17 +143,25 @@ Manual config:
 }
 ```
 
-Dev-only mode:
+Dev-only + project-scoped example:
 
 ```json
 {
   "mcpServers": {
     "trigger": {
       "command": "npx",
-      "args": ["trigger.dev@latest", "mcp", "--dev-only"]
+      "args": ["trigger.dev@latest", "mcp", "--dev-only", "--project-ref", "proj_abc123", "--readonly"]
     }
   }
 }
+```
+
+### Platform Notifications
+
+Since v4.4.4, `trigger dev` and `trigger login` fetch server-side notifications (info/warn/error/success) with color markup. Disable with `--skip-platform-notifications`:
+
+```bash
+npx trigger.dev@latest dev --skip-platform-notifications
 ```
 
 ## Agent Rules

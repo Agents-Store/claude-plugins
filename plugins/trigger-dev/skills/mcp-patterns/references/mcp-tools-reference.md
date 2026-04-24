@@ -1,65 +1,89 @@
 # MCP Tools Reference
 
-Complete parameter documentation for all Trigger.dev MCP tools.
+Complete parameter documentation for all 33 Trigger.dev MCP tools (v4.4.4).
 
-## list_orgs
+Sections mirror the MCP tool taxonomy: Documentation, Project & Organization, Task Management, Run Monitoring, Deployment, Profile, Query & Analytics, Dev Server, Managed Prompts.
 
-List all organizations you have access to.
+---
+
+## Documentation & Search
+
+### search_docs
+
+Search the Trigger.dev documentation.
+
+```
+Input: { "query": "wait for token human in the loop" }
+Output: Relevant documentation pages
+```
+
+---
+
+## Project & Organization
+
+### list_orgs
 
 ```
 Input: {}
 Output: [{ slug: "my-org", id: "org_xxx" }]
 ```
 
-## list_projects
-
-List all projects in your account.
+### list_projects
 
 ```
 Input: {}
 Output: [{ ref: "proj_xxx", name: "My Project" }]
 ```
 
-## create_project_in_org
-
-Create a new project in an organization.
+### create_project_in_org
 
 ```
 Input: { "orgParam": "my-org-slug", "name": "My Background Jobs" }
 Output: { ref: "proj_xxx", name: "My Background Jobs" }
 ```
 
-## initialize_project
-
-Initialize Trigger.dev in a directory.
+### initialize_project
 
 ```
 Input: { "orgParam": "my-org", "projectName": "email-jobs", "cwd": "/path/to/project" }
 Output: Creates trigger.config.ts, src/trigger/ directory, installs SDK
 ```
 
-## get_current_worker
+---
 
-Get worker info, task list, and payload schemas for an environment.
+## Task Management
+
+### get_current_worker
+
+Get worker version, SDK version, registered tasks, and machine presets for an environment. **Since v4.4.4 this tool no longer inlines payload schemas** — use `get_task_schema` for the schema of a specific task.
 
 ```
 Input: { "environment": "dev" }
 Output: {
-  version: "20250225.1",
+  version: "20260413.1",
+  sdkVersion: "4.4.4",
   tasks: [{
     id: "hello-world",
-    payloadSchema: { type: "object", properties: {...} },
     machine: "small-1x",
     queue: { name: "default", concurrencyLimit: 10 }
   }]
 }
 ```
 
-Always call this before triggering tasks to verify IDs and schemas.
+### get_task_schema
 
-## trigger_task
+Fetch the payload schema (and any other declared schemas) for a specific registered task.
 
-Trigger a task with payload.
+```
+Input: { "taskIdentifier": "hello-world", "environment": "dev" }
+Output: {
+  payloadSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"] }
+}
+```
+
+Call this before `trigger_task` to validate payloads.
+
+### trigger_task
 
 ```
 Input: {
@@ -80,7 +104,7 @@ Input: {
 Output: { id: "run_abc123", status: "QUEUED" }
 ```
 
-### Trigger Options
+#### Trigger Options
 
 | Option | Type | Description |
 |--------|------|-------------|
@@ -89,13 +113,15 @@ Output: { id: "run_abc123", status: "QUEUED" }
 | machine | enum | micro to large-2x |
 | maxAttempts | integer | Max retry attempts |
 | maxDuration | number | Max seconds |
-| ttl | string/integer | Time-to-live |
+| ttl | string/integer | Time-to-live; overrides task-level and global defaults |
 | idempotencyKey | string | Prevent duplicates |
 | queue | object | Override queue name |
 
-## list_runs
+---
 
-List and filter runs.
+## Run Monitoring
+
+### list_runs
 
 ```
 Input: {
@@ -108,11 +134,11 @@ Input: {
 }
 ```
 
-### Filter Parameters
+#### Filter Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| status | enum | QUEUED, EXECUTING, COMPLETED, FAILED, CRASHED, etc. |
+| status | enum | QUEUED, EXECUTING, COMPLETED, FAILED, CRASHED, EXPIRED, SYSTEM_FAILURE, TIMED_OUT, PENDING_VERSION |
 | taskIdentifier | string | Filter by task ID |
 | tag | string | Filter by tag |
 | version | string | Filter by worker version |
@@ -122,68 +148,328 @@ Input: {
 | limit | integer | Max 100 |
 | cursor | string | Pagination cursor |
 
-## get_run_details
+### get_run_details
 
-Get run trace, logs, and output.
+Run trace, logs, and output. Since v4.4.4 the **trace output is paginated** — pass `traceCursor` from a prior response to get the next page. Span IDs are surfaced so you can drill in with `get_span_details`.
 
 ```
-Input: { "runId": "run_abc123", "environment": "prod", "maxTraceLines": 500 }
-Output: { status, error, trace: [...], output: {...} }
+Input: {
+  "runId": "run_abc123",
+  "environment": "prod",
+  "maxTraceLines": 500,
+  "traceCursor": "eyJvZmZzZXQiOjIwMH0="
+}
+Output: {
+  status: "FAILED",
+  error: { message: "...", stack: "..." },
+  trace: [{ spanId: "span_xyz", name: "openai.chat", startedAt: "...", durationMs: 420 }],
+  nextTraceCursor: "eyJvZmZzZXQiOjQwMH0=",
+  output: {}
+}
 ```
 
-## wait_for_run_to_complete
+### get_span_details
 
-Wait for a run to finish and return the result.
+Inspect a single span (including child runs and AI enrichment).
+
+```
+Input: { "runId": "run_abc123", "spanId": "span_xyz", "environment": "prod" }
+Output: {
+  attributes: {
+    "llm.model": "gpt-4o-mini",
+    "llm.usage.input_tokens": 812,
+    "llm.usage.output_tokens": 140,
+    "trigger.llm.cost_usd": 0.00036
+  },
+  events: [{ name: "retry", timestamp: "..." }],
+  children: [{ runId: "run_child_123" }]
+}
+```
+
+### wait_for_run_to_complete
 
 ```
 Input: { "runId": "run_abc123", "timeoutInSeconds": 120 }
 Output: { status: "COMPLETED", output: { processed: true } }
 ```
 
-## cancel_run
+### cancel_run
 
-Cancel a running or queued run.
+Cancels a run. Output is now text-formatted.
 
 ```
 Input: { "runId": "run_abc123", "environment": "prod" }
+Output: "Run run_abc123 cancelled."
 ```
 
-## deploy
+---
 
-Deploy to an environment.
+## Deployment
+
+### deploy
 
 ```
 Input: { "environment": "prod", "skipPromotion": false }
-Output: { status: "DEPLOYED", version: "20250225.3" }
+Output: { status: "DEPLOYED", version: "20260413.3" }
 ```
 
-## list_deploys
+### list_deploys
 
-List deployments with filters.
+Text-formatted. In v4.4.4 this tool stopped crashing on deploys with null `runtime` / `runtimeVersion`.
 
 ```
 Input: { "environment": "prod", "status": "DEPLOYED", "limit": 5 }
 ```
 
-## list_preview_branches
-
-List all preview branches.
-
-```
-Input: {}
-Output: [{ branch: "feature/new-task", ... }]
-```
+### list_preview_branches
 
 Not available in `--dev-only` mode.
 
-## search_docs
+```
+Input: {}
+Output: [{ branch: "feature/new-task", version: "20260413.1", ... }]
+```
 
-Search Trigger.dev documentation.
+---
+
+## Profile
+
+### whoami
 
 ```
-Input: { "query": "wait for token human in the loop" }
-Output: Relevant documentation pages
+Input: {}
+Output: {
+  profile: "self-hosted",
+  user: { email: "...", userId: "user_xxx" },
+  apiUrl: "https://trigger.example.com"
+}
 ```
+
+### list_profiles
+
+```
+Input: {}
+Output: {
+  active: "self-hosted",
+  profiles: [
+    { name: "default",    apiUrl: "https://api.trigger.dev" },
+    { name: "self-hosted", apiUrl: "https://trigger.example.com" }
+  ]
+}
+```
+
+### switch_profile
+
+Changes the active profile for the rest of the MCP session. All subsequent tool calls use the new account and API URL.
+
+```
+Input: { "profile": "self-hosted" }
+Output: { active: "self-hosted", apiUrl: "https://trigger.example.com" }
+```
+
+---
+
+## Query & Analytics
+
+TRQL = SQL-style over ClickHouse. See the **observability** skill for the full language reference. Three tables available: `runs`, `metrics`, `llm_metrics`.
+
+### get_query_schema
+
+Returns the schema for **one** table (the tool now requires a `table` parameter).
+
+```
+Input: { "table": "metrics" }
+Output: {
+  table: "metrics",
+  columns: [
+    { name: "metric_name",  type: "string",   description: "Metric identifier" },
+    { name: "metric_value", type: "number",   description: "Observed value" },
+    { name: "bucket_start", type: "datetime", description: "10-second aggregation bucket start time" },
+    // ...
+  ]
+}
+```
+
+### query
+
+Execute a TRQL query.
+
+```
+Input: {
+  "query": "SELECT status, count() AS n FROM runs GROUP BY status ORDER BY n DESC LIMIT 10",
+  "scope": "environment",
+  "period": "7d",
+  "format": "json"
+}
+Output: (text table by default — ~50% fewer tokens than JSON)
+```
+
+| Parameter | Type | Default |
+|-----------|------|---------|
+| query | string (TRQL) | required |
+| scope | `environment` / `project` / `organization` | `environment` |
+| period | shorthand (`1h`, `7d`, …) | — |
+| from, to | ISO datetime or unix ms | — |
+| format | `json` / `csv` | `json` (when called from SDK); MCP returns text tables |
+
+Limits: 10 000 rows per query; per-org concurrency cap; AST complexity and memory limits.
+
+### list_dashboards
+
+```
+Input: {}
+Output: [{
+  dashboardId: "overview",
+  name: "Overview",
+  widgets: [
+    { widgetId: "total-runs",   title: "Total runs" },
+    { widgetId: "failure-rate", title: "Failure rate" }
+  ]
+}]
+```
+
+### run_dashboard_query
+
+```
+Input: { "dashboardId": "overview", "widgetId": "failure-rate", "period": "30d" }
+Output: text table for the widget
+```
+
+---
+
+## Dev Server
+
+### start_dev_server
+
+Starts `trigger dev` in the background. Blocks up to 30 s waiting for the worker to come online.
+
+```
+Input: { "configPath": "./packages/jobs/trigger.config.ts" }
+Output: { status: "ready" | "starting" | "error", pid: 12345 }
+```
+
+### stop_dev_server
+
+```
+Input: {}
+Output: { status: "stopped" }
+```
+
+### dev_server_status
+
+```
+Input: { "lines": 50 }
+Output: {
+  status: "ready",
+  pid: 12345,
+  recentLogs: ["...last 50 log lines..."]
+}
+```
+
+---
+
+## Managed Prompts
+
+All prompt tools take the shared parameters (`environment`, `projectRef`, `configPath`, `branch`). See the **managed-prompts** skill for the full workflow.
+
+### list_prompts
+
+```
+Input: { "environment": "prod" }
+Output: [{
+  slug: "customer-reply",
+  currentVersion: 4,
+  overrideActive: false,
+  versionCount: 7
+}]
+```
+
+### get_prompt_versions
+
+```
+Input: { "slug": "customer-reply", "environment": "prod" }
+Output: [{
+  version: 4,
+  labels: ["current", "latest"],
+  source: "code",
+  model: "gpt-4o-mini",
+  content: "You are a support agent..."
+}, {
+  version: 5,
+  labels: ["override"],
+  source: "dashboard",
+  model: "gpt-4o",
+  content: "Updated prompt via dashboard..."
+}]
+```
+
+### promote_prompt_version
+
+Only code-sourced versions can be promoted.
+
+```
+Input: { "slug": "customer-reply", "version": 4, "environment": "prod" }
+Output: { slug: "customer-reply", currentVersion: 4 }
+```
+
+### create_prompt_override
+
+Creates a dashboard-sourced override. Override takes precedence over the current code version.
+
+```
+Input: {
+  "slug": "customer-reply",
+  "textContent": "You are a support agent. Be concise...",
+  "model": "gpt-4o",
+  "commitMessage": "Hotfix tone for incident 2026-04-24",
+  "environment": "prod"
+}
+Output: { slug: "customer-reply", overrideVersion: 5, source: "dashboard" }
+```
+
+### update_prompt_override
+
+Updates the currently active override. Fails if no override is active.
+
+```
+Input: {
+  "slug": "customer-reply",
+  "textContent": "Revised copy v2",
+  "commitMessage": "Follow-up tweak"
+}
+Output: { slug: "customer-reply", overrideVersion: 6 }
+```
+
+### remove_prompt_override
+
+Removes the active override — reverts to the current code version.
+
+```
+Input: { "slug": "customer-reply", "environment": "prod" }
+Output: { slug: "customer-reply", overrideActive: false }
+```
+
+### reactivate_prompt_override
+
+Use `get_prompt_versions` to find a dashboard-sourced version to reactivate.
+
+```
+Input: { "slug": "customer-reply", "version": 5, "environment": "prod" }
+Output: { slug: "customer-reply", overrideVersion: 5 }
+```
+
+---
+
+## TRQL at a Glance
+
+(See the **observability** skill and `skills/observability/references/trql-reference.md` for depth.)
+
+- **Tables**: `runs`, `metrics`, `llm_metrics`
+- **Time bucket**: `SELECT timeBucket(), count() FROM runs GROUP BY timeBucket()` — auto-bucketed by the caller's time range
+- **Scopes**: `environment` (default), `project`, `organization`
+- **Period shorthand**: `1h`, `6h`, `12h`, `1d`, `7d`, `30d`, `90d`
+- **Pretty formatters**: `prettyFormat(col, 'bytes' | 'percent' | 'duration' | 'durationSeconds' | 'quantity' | 'costInDollars')`
+- Prefer the built-in time filter (dashboard / API / SDK) over embedding `triggered_at` in the TRQL itself.
 
 ---
 
@@ -204,21 +490,40 @@ curl -X POST "${TRIGGER_API_URL}/api/v1/tasks/process-order/trigger" \
 
 ```bash
 POST /api/v1/tasks/{taskId}/batch
-
-curl -X POST "${TRIGGER_API_URL}/api/v1/tasks/process-item/batch" \
-  -H "Authorization: Bearer ${TRIGGER_SECRET_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{"items": [{"payload": {"id": "1"}}, {"payload": {"id": "2"}}]}'
 ```
 
 ### Get Run Status
 
 ```bash
 GET /api/v1/runs/{runId}
+```
+
+### Get Span Details (new in v4.4.4)
+
+```bash
+GET /api/v1/runs/{runId}/spans/{spanId}
 
 curl -H "Authorization: Bearer ${TRIGGER_SECRET_KEY}" \
-  "${TRIGGER_API_URL}/api/v1/runs/run_abc123"
+  "${TRIGGER_API_URL}/api/v1/runs/run_abc123/spans/span_xyz"
 ```
+
+### Execute a TRQL Query
+
+```bash
+POST /api/v1/query
+
+curl -X POST "${TRIGGER_API_URL}/api/v1/query" \
+  -H "Authorization: Bearer ${TRIGGER_SECRET_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "SELECT run_id, status FROM runs LIMIT 10",
+    "scope": "environment",
+    "period": "7d",
+    "format": "json"
+  }'
+```
+
+Requires the `read:query` JWT scope (new in v4.4.4).
 
 ### List Runs
 
@@ -265,14 +570,28 @@ curl -X POST "${TRIGGER_API_URL}/api/v1/schedules" \
   -d '{"task": "daily-report", "cron": "0 9 * * *", "externalId": "report-daily"}'
 ```
 
+### Promote Deployment (with allowRollbacks)
+
+```bash
+POST /api/v1/deployments/{deploymentId}/promote?allowRollbacks=true
+```
+
+`allowRollbacks=true` (new in v4.4.4) lets the promote endpoint downgrade to an older version.
+
 ### SDK Management API
 
 ```ts
-import { configure, runs } from "@trigger.dev/sdk";
+import { configure, runs, query } from "@trigger.dev/sdk";
 
 configure({ secretKey: process.env.TRIGGER_SECRET_KEY });
 
 const result = await runs.list({ limit: 10, status: ["COMPLETED"] });
 const run = await runs.retrieve(runId);
 await runs.cancel(runId);
+
+// TRQL from SDK
+const failed = await query.execute(
+  "SELECT count() AS n FROM runs WHERE status = 'Failed'",
+  { period: "24h" }
+);
 ```

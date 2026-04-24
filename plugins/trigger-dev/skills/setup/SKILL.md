@@ -167,13 +167,17 @@ For the full reference, see @references/environment-setup.md.
 
 ## MCP Server Setup
 
-Trigger.dev provides an **official MCP server** shipped with the CLI:
+Trigger.dev provides an **official MCP server** shipped with the CLI. As of v4.4.4 the supported install flow is the `install-mcp` command:
 
 ```bash
-npx trigger.dev@latest mcp
+# Install for a specific AI client (writes the client's MCP config for you)
+npx trigger.dev@latest install-mcp --client claude-code
+
+# Or — install into every supported client automatically
+npx trigger.dev@latest install-mcp --yolo
 ```
 
-This launches an interactive wizard to choose your AI coding tool. Manual config:
+Manual config:
 
 ```json
 {
@@ -186,18 +190,22 @@ This launches an interactive wizard to choose your AI coding tool. Manual config
 }
 ```
 
-Dev-only mode (prevents production access):
+Common flag combinations:
 
-```json
-{
-  "mcpServers": {
-    "trigger": {
-      "command": "npx",
-      "args": ["trigger.dev@latest", "mcp", "--dev-only"]
-    }
-  }
-}
+```bash
+# Dev-only — hides deploy and list_preview_branches
+npx trigger.dev@latest install-mcp --dev-only
+
+# Read-only — hides deploy, trigger_task, cancel_run (agent can read but not mutate)
+npx trigger.dev@latest install-mcp --readonly
+
+# Scoped to one project
+npx trigger.dev@latest install-mcp --project-ref proj_abc123
 ```
+
+> **Production tip:** pass `--readonly` when wiring MCP into an agent that must not mutate a production instance. All write tools are hidden server-side, not just filtered by the client.
+
+See https://trigger.dev/docs/mcp-introduction for the per-client config file locations.
 
 ## Agent Rules Installation
 

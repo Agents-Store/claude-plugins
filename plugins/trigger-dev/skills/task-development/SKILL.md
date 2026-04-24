@@ -117,6 +117,30 @@ export const parentTask = task({
 });
 ```
 
+## TTL
+
+Tasks can be configured to expire if not dequeued in time — runs that expire get status `EXPIRED`.
+
+```ts
+export const hotfix = task({
+  id: "hotfix",
+  ttl: "30m",         // expire after 30 minutes in the queue
+  run: async (payload) => { /* … */ },
+});
+
+// Per-trigger override
+await hotfix.trigger(payload, { ttl: "5m" });
+
+// Opt out of a global TTL default set in trigger.config.ts
+export const longRunning = task({
+  id: "long-running",
+  ttl: 0,             // never expire due to queue wait
+  run: async (payload) => { /* … */ },
+});
+```
+
+Precedence: `options.ttl` at trigger time > task-level `ttl` > global `ttl` in `defineConfig(...)`. See the **config-and-build** skill for global defaults.
+
 ## Waits
 
 ```ts

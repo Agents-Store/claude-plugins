@@ -49,6 +49,25 @@
 **Root cause:** Trigger.dev imports and validates task files during the Docker build step. Any top-level code that reads env vars will fail because build-time env != runtime env.
 **Severity:** Major
 
+## 2026-04-24 — mcp-patterns/observability/managed-prompts: Upgrade plugin to trigger.dev v4.4.4 (33 MCP tools)
+
+**Feature:** Document the full 33-tool catalogue of the Trigger.dev MCP server as of v4.4.4 — the 11 new v4.4.4 tools (profile, query/analytics, dev server, span details, task schema) plus the 7 Managed Prompts tools confirmed by tool-schema introspection. Add two dedicated skills (`observability`, `managed-prompts`) for the feature areas with the most new surface.
+
+**Implementation:**
+- `skills/mcp-patterns/SKILL.md` + `references/mcp-tools-reference.md` — 9 tool sections now (added Profile, Query & Analytics, Dev Server, Managed Prompts); split `get_current_worker` + `get_task_schema`; added `get_span_details`, pagination for `get_run_details`, `install-mcp` flags, annotations note.
+- `skills/observability/SKILL.md` + `references/trql-reference.md` — new skill covering TRQL, `runs`/`metrics`/`llm_metrics` tables, SDK + REST API usage, dashboards, automatic LLM cost tracking.
+- `skills/managed-prompts/SKILL.md` + `references/managed-prompts-reference.md` — new skill covering the slug/version/override model, all 7 MCP tools, hotfix workflow; SDK-side stub marked TODO pending `/docs/prompts` publication.
+- `skills/cli-recipes/SKILL.md`, `skills/setup/SKILL.md` — replaced old `mcp` wizard with `install-mcp` + full flag table; added platform-notifications flag.
+- `skills/config-and-build/SKILL.md` — added task-level / global TTL defaults with precedence rule.
+- `skills/task-development/SKILL.md` — added TTL section with per-trigger / task / global precedence.
+- `skills/troubleshoot/SKILL.md` — added Query & Dashboards symptom table and MCP annotations tip.
+- `skills/examples/SKILL.md`, `skills/examples/references/mcp/tool-patterns.md` — added dev-server lifecycle, TRQL analysis, LLM cost, profile switch, and prompt-override patterns.
+- `agents/trigger-developer.md` — routed `observability` and `managed-prompts`, updated self-hosted note.
+- `README.md` — extended skills table to 12 rows, updated tech stack + sources list.
+- `plugin.json` + marketplace `version` bumped `1.1.0` → `1.2.0`; added `trql`, `managed-prompts`, `observability` keywords.
+
+**Rationale:** Plugin documented only the pre-v4.4.4 14-tool MCP set. The live MCP server ships 33 tools — 11 added in v4.4.4 (profile, query/dashboards, dev server, span details, task schema) and 7 Managed Prompts tools that are live but not yet covered on trigger.dev/docs. Agents using the plugin against v4.4.4 instances lacked guidance on more than half of the available tools and were blind to the query/dashboards and prompt-override workflows entirely. This gap was surfaced by the user on 2026-04-24 with a pointer to the v4.4.4 changelog.
+
 ## 2026-04-22 — deployment/troubleshoot: Container registry login workflow missing for self-hosted staging/prod deploys
 
 **Feature:** Document the full container registry login workflow for self-hosted Trigger.dev deploys — `docker login` (interactive + non-interactive via `--password-stdin`), the distinction between server-side `DEPLOY_REGISTRY_*` env vars and the client-side `DOCKER_REGISTRY_*` convention, registry credential verification, and CI/CD patterns with a `docker login` step before `trigger.dev deploy`.

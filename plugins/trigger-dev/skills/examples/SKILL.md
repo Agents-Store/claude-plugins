@@ -43,9 +43,10 @@ Ready-to-use examples and complete workflow scenarios.
 
 ```
 1. list_runs(status="FAILED", period="1d")
-2. get_run_details(runId) → read trace
-3. Fix code, redeploy
-4. trigger_task(taskId, payload) → retry
+2. get_run_details(runId) → read trace + span IDs
+3. get_span_details(runId, spanId) → AI enrichment (model, tokens, cost) if GenAI span
+4. Fix code, redeploy
+5. trigger_task(taskId, payload) → retry
 ```
 
 ### Deploy to Production
@@ -55,4 +56,59 @@ Ready-to-use examples and complete workflow scenarios.
 2. trigger_task(environment="staging") → verify
 3. deploy(environment="prod") → ship it
 4. list_deploys(environment="prod", limit=1) → confirm
+```
+
+### Run Dev Server from an Agent
+
+```
+1. start_dev_server(configPath?)             → launches `trigger dev` in background
+2. dev_server_status(lines=50)               → poll until status="ready"
+3. get_current_worker(environment="dev")     → task list
+4. trigger_task(...)                         → test task
+5. stop_dev_server()                         → tear down
+```
+
+### Analyze Failures with TRQL
+
+```
+1. get_query_schema(table="runs")
+2. query({
+     query: "SELECT task_identifier, count() AS n
+             FROM runs
+             WHERE status = 'Failed'
+             GROUP BY task_identifier
+             ORDER BY n DESC LIMIT 10",
+     period: "7d"
+   })
+```
+
+### LLM Cost Breakdown
+
+```
+1. get_query_schema(table="llm_metrics")
+2. query({
+     query: "SELECT model, sum(cost_usd) AS usd
+             FROM llm_metrics
+             GROUP BY model
+             ORDER BY usd DESC",
+     period: "30d"
+   })
+```
+
+### Switch Profile Mid-Session
+
+```
+1. whoami()                           → current profile + API URL
+2. list_profiles()                    → available profiles
+3. switch_profile("self-hosted-prod") → subsequent tool calls use new profile
+```
+
+### Prompt Override Hotfix
+
+```
+1. list_prompts(environment="prod")                              → find slug
+2. get_prompt_versions(slug, environment="prod")                 → see current/override state
+3. create_prompt_override(slug, textContent, commitMessage)      → apply hotfix
+4. (iterate) update_prompt_override(slug, textContent)
+5. remove_prompt_override(slug)                                  → revert after code fix deploys
 ```

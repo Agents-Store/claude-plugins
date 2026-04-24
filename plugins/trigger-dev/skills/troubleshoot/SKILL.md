@@ -24,7 +24,7 @@ Run these checks first:
 | CRASHED | OOM or unexpected crash | Increase machine preset or fix memory leak |
 | SYSTEM_FAILURE | Infrastructure issue | Check supervisor container health |
 | TIMED_OUT | Exceeded maxDuration | Increase `maxDuration` or optimize task |
-| EXPIRED | TTL expired before execution | Increase TTL or fix queue bottleneck |
+| EXPIRED | TTL expired before execution | Raise `ttl` on the trigger / task / global default, or drain the queue. See **config-and-build** and **task-development** for TTL precedence. |
 | PENDING_VERSION | No matching worker deployed | Deploy to the correct environment |
 
 ## Connection Errors
@@ -136,6 +136,22 @@ curl -s http://localhost:5000/v2/
 # Check MinIO
 curl -s http://localhost:9000/minio/health/live
 ```
+
+## Query & Dashboards (TRQL)
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| "AST too complex" | Query too large / nested joins | Split the query, simplify aggregates |
+| "Row limit exceeded" | > 10 000 rows | Add `LIMIT` + a time filter via `period` |
+| "Concurrent queries exceeded" | Dashboard or batch query spam | Reduce widget refresh rate; stagger batch queries |
+| `get_query_schema` error "table required" | v4.4.4 now requires a table arg | Pass `table: "runs"`, `"metrics"`, or `"llm_metrics"` |
+| Column `value` not found on `metrics` | v4.4.4 renamed/clarified column | Use `metric_value` |
+
+See the **observability** skill for the full TRQL syntax reference.
+
+## MCP Tool Annotations (v4.4.4+)
+
+Every MCP tool now carries `readOnlyHint` / `destructiveHint` annotations. If your MCP client respects them, agents can be prevented from calling write tools without explicit approval. For a hard-enforced read-only deployment, install with `npx trigger.dev@latest install-mcp --readonly` — `deploy`, `trigger_task`, and `cancel_run` are hidden server-side.
 
 ## Deeper Reference
 

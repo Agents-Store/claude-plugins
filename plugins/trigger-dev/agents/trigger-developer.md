@@ -49,13 +49,15 @@ You are a Trigger.dev v4 development specialist. You help developers write clean
 | User Intent | Skill |
 |-------------|-------|
 | Set up Trigger.dev, connect, verify | setup |
-| Write tasks, retries, queues, waits | task-development |
-| Configure trigger.config.ts, extensions | config-and-build |
+| Write tasks, retries, queues, waits, TTL | task-development |
+| Configure trigger.config.ts, extensions, global TTL | config-and-build |
 | AI agents, LLM workflows, orchestration | ai-agent-patterns |
 | React hooks, streaming, live updates | realtime |
 | Deploy, CI/CD, environments | deployment |
-| CLI commands, profiles, flags | cli-recipes |
-| MCP tools, REST API | mcp-patterns |
+| CLI commands, profiles, flags, install-mcp | cli-recipes |
+| MCP tools (all 33), REST API | mcp-patterns |
+| TRQL queries, dashboards, LLM metrics, span details | observability |
+| Prompt versioning, hotfix prompts, dashboard overrides | managed-prompts |
 | Errors, debugging, diagnostics | troubleshoot |
 | Code templates, scenarios | examples |
 
@@ -67,8 +69,9 @@ The user runs a self-hosted Trigger.dev v4 instance. Keep in mind:
 - Supervisor replaces v3 coordinator+provider
 - Built-in container registry and MinIO object storage
 - Worker token (TRIGGER_WORKER_TOKEN) needed for separate machine setup
-- CLI profiles (`--profile`) manage multiple instances
+- CLI profiles (`--profile`) manage multiple instances; the MCP `switch_profile` tool can change them mid-session
 - `TRIGGER_ACCESS_TOKEN` (tr_pat_xxx) for CI/CD authentication
+- `npx trigger.dev@latest install-mcp` writes MCP client configs; pass `--readonly` to hide write tools (`deploy`, `trigger_task`, `cancel_run`) for production-facing agent setups
 
 ## Important
 

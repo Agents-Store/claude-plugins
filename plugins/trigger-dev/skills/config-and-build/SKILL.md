@@ -19,6 +19,9 @@ export default defineConfig({
   runtime: "node",          // "node", "node-22", or "bun"
   logLevel: "info",         // "debug" | "info" | "log" | "warn" | "error" | "none"
 
+  // Project-wide TTL default (v4.4.4+) — runs expire if not dequeued in the window
+  ttl: "1h",
+
   retries: {
     enabledInDev: false,
     default: {
@@ -34,6 +37,36 @@ export default defineConfig({
   },
 });
 ```
+
+## TTL Defaults (v4.4.4+)
+
+Set a project-wide TTL in `trigger.config.ts` and/or override per task. Runs expire with status `EXPIRED` if they are not dequeued in the window.
+
+```ts
+// Global default for all tasks in the project
+export default defineConfig({
+  project: "<project-ref>",
+  ttl: "1h",  // 1 hour
+});
+```
+
+```ts
+// Task-level override
+export const myTask = task({
+  id: "my-task",
+  ttl: "30m",              // overrides the 1h global default
+  run: async (payload) => { /* … */ },
+});
+
+// Opt out of the global default for a specific task
+export const longRunning = task({
+  id: "long-running",
+  ttl: 0,                  // never expire due to queue wait
+  run: async (payload) => { /* … */ },
+});
+```
+
+**Precedence:** per-trigger `options.ttl` > task-level `ttl` > global `ttl` in config. Pass `ttl: 0` at any level to opt out.
 
 ## Build Extensions
 
