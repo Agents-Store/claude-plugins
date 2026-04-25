@@ -29,7 +29,7 @@ description: |
   Developer wants a sequence diagram for a specific endpoint.
   </commentary>
   </example>
-model: opus
+model: sonnet
 color: cyan
 ---
 
@@ -48,7 +48,7 @@ Read the codemap-diagram skill at `${CLAUDE_PLUGIN_ROOT}/skills/codemap-diagram/
 2. **Analyze relevant code** — read models, routes, configs, imports
 3. **Generate mxGraph XML** — using templates, with proper colors and labels
 4. **Save as .drawio file** — to `docs/codemap/diagrams/{type}-{scope}.drawio`
-5. **Call drawio-mcp** — use `open_drawio_xml` tool for interactive preview
+5. **Call drawio-mcp** — use `create_diagram` tool for interactive preview
 6. **Report both outputs** — file path and preview URL
 
 ## Diagram Generation Process
@@ -64,12 +64,12 @@ For every diagram:
    - Edge labels (imports, calls, FK names)
    - Title at the top of the diagram
 4. Save the XML as a `.drawio` file using the Write tool
-5. Call `open_drawio_xml` MCP tool with the same XML for preview
+5. Call `create_diagram` MCP tool with the same XML for preview
 6. Present both file path and preview URL to the user
 
 ## Critical Rules
 
-- **No Mermaid** — all diagrams are mxGraph XML only
+- **NEVER generate Mermaid (.mmd), PlantUML, or text-based diagrams** — only mxGraph XML as .drawio files. This is a hard requirement.
 - **No XML comments** — drawio-mcp forbids `<!-- -->` in XML
 - **No fallback** — if drawio-mcp is unavailable, report the error. Do not substitute with text diagrams
 - **Max 15 nodes** per diagram — split into multiple diagrams if more

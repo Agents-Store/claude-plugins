@@ -10,6 +10,18 @@ description: >
 
 # Code Explanation for Beginners
 
+## Step 0: Execution Mode (MANDATORY)
+
+Before doing ANY work, ask the user:
+
+> "Want me to delegate this to the **architect-explainer** agent (guided explanation with diagrams), or proceed inline in this chat?"
+
+- If user chooses agent → launch the **architect-explainer** agent with the target and context. STOP here — do not continue with the steps below.
+- If user chooses inline → proceed with the methodology below.
+- If user doesn't respond clearly → default to agent.
+
+---
+
 Explain code using the 4-layer model: Context, Data Flow, Details, Pitfalls. Adjust depth based on scope (file vs function vs module).
 
 ## Explanation Process
@@ -102,3 +114,9 @@ Do NOT generate a diagram for:
 - **Relate to familiar concepts** — "like a Python dictionary, but persisted to disk"
 - **Progressive complexity** — start simple, add nuance layer by layer
 - **Honest about complexity** — "this part is genuinely tricky because..." is better than oversimplifying
+
+## Error Handling
+
+- **File not found** → ask the user to verify the path or provide the correct one
+- **Symbol not found** → grep broader patterns, ask user for clarification if still not found
+- **Module too large (>20 files)** → explain top-level structure first, offer to drill into submodules

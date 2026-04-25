@@ -37,6 +37,16 @@
         "Prioritizes Critical issues first",
         "Includes learn-more explanations for each finding"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Review the file that_doesnt_exist.py",
+      "expected_output": "Asks user to verify the file path",
+      "files": [],
+      "expectations": [
+        "Does not hallucinate a code review",
+        "Asks user to check the file path or provide the correct one"
+      ]
     }
   ]
 }

@@ -37,6 +37,17 @@
         "Traces data flow through the function",
         "Notes pitfalls and edge cases"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Explain the file src/nonexistent_module.py",
+      "expected_output": "Asks user to verify path instead of hallucinating",
+      "files": [],
+      "expectations": [
+        "Does not hallucinate file contents or code explanation",
+        "Asks user to check the path or provide the correct one",
+        "Suggests using Glob to find similar files"
+      ]
     }
   ]
 }

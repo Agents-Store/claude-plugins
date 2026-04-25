@@ -9,6 +9,18 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 - **Code Explanation**: 4-layer model (Context → Data Flow → Details → Pitfalls)
 - **Diagrams**: Architecture, ERD, user flows, sequence diagrams — all as native .drawio files via drawio-mcp
 
+## Usage Modes
+
+| How you invoke | What happens |
+|---|---|
+| `/codemap:review file.py` (command) | Agent launches **automatically** |
+| `/codemap:explain app.py` (command) | Agent launches **automatically** |
+| `/codemap:diagram architecture` (command) | Agent launches **automatically** |
+| "review file.py" (chat trigger) | Skill triggers → **asks**: agent or inline? |
+| "explain app.py" (chat trigger) | Skill triggers → **asks**: agent or inline? |
+
+**Commands** always delegate to specialized agents. **Skills** (auto-triggered by chat) give you the choice.
+
 ## Requirements
 
 - **drawio-mcp** — public HTTP MCP server (auto-configured by plugin, no API key needed)
@@ -38,7 +50,7 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 |-------|------|-------|
 | `code-reviewer` | Focused code review with educational feedback | Opus |
 | `architect-explainer` | Architecture analysis and guided project tours | Opus |
-| `diagrammer` | Diagram generation via drawio-mcp | Opus |
+| `diagrammer` | Diagram generation via drawio-mcp | Sonnet |
 
 ## Output Artifacts
 

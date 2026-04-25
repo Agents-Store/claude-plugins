@@ -10,6 +10,18 @@ description: >
 
 # Code Review for Beginners
 
+## Step 0: Execution Mode (MANDATORY)
+
+Before doing ANY work, ask the user:
+
+> "Want me to delegate this to the **code-reviewer** agent (isolated, structured review), or proceed inline in this chat?"
+
+- If user chooses agent → launch the **code-reviewer** agent with the target and context. STOP here — do not continue with the steps below.
+- If user chooses inline → proceed with the methodology below.
+- If user doesn't respond clearly → default to agent.
+
+---
+
 Review code with educational explanations. Every comment must explain **why** something matters, not just **what** to change.
 
 ## Review Process
@@ -93,3 +105,9 @@ For each finding:
 - Don't suggest type hints if the project doesn't use them — adding types piecemeal creates inconsistency and misleads readers about project conventions
 - Don't recommend architectural overhauls in a file-level review — large structural changes require broader context and should be a separate discussion
 - Don't flag things that are clearly intentional project conventions — contradicting established patterns confuses beginners about what the project actually expects
+
+## Error Handling
+
+- **File not found** → ask the user to verify the path
+- **PR not found** → verify PR number, check if `gh` CLI is authenticated
+- **Empty file or no code** → inform user, suggest a different target

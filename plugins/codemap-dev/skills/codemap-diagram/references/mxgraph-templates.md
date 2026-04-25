@@ -11,7 +11,7 @@ Every diagram starts with this wrapper:
   <root>
     <mxCell id="0"/>
     <mxCell id="1" parent="0"/>
-    <!-- diagram content here (cells with id starting from 2) -->
+    [diagram cells starting from id="2" go here]
   </root>
 </mxGraphModel>
 ```
