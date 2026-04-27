@@ -1,0 +1,27 @@
+{
+  "name": "nocobase-2-dev",
+  "version": "1.0.0",
+  "description": "NocoBase v2 development plugin. Build, manage, and operate NocoBase through REST API or the `nb` CLI — whichever is convenient per task. Bundles 11 official NocoBase skills (env, data modeling, UI builder, workflows, ACL, plugins, publish, plugin development, DSL reconciler, utils, data analysis), the full OpenAPI 3.0.3 spec (251 endpoints across 19 tag groups, NocoBase v2.1.0-beta.21), CLI install (@nocobase/cli@beta), and authentication patterns (API Key bearer, OAuth IdP).",
+  "author": {
+    "name": "AGENTS.STORE"
+  },
+  "keywords": [
+    "nocobase",
+    "nocobase-v2",
+    "no-code",
+    "low-code",
+    "rest-api",
+    "openapi",
+    "cli",
+    "nb-cli",
+    "collections",
+    "workflows",
+    "ui-builder",
+    "acl",
+    "plugins",
+    "data-modeling",
+    "publish",
+    "dev",
+    "agents-store"
+  ]
+}

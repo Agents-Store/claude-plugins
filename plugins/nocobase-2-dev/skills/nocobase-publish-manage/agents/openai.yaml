@@ -1,0 +1,32 @@
+version: 1
+agent:
+  id: nocobase-publish-manage
+  default_prompt: >
+    Use $nocobase-publish-manage for publish workflows with direct `nb` CLI only.
+
+    Direction is based on Feishu wiki:
+    https://nocobase.feishu.cn/wiki/M0knwAvYSiAouUk1ZHAcduDjnmh
+
+    Supported publish methods:
+    - backup_restore
+    - migration
+
+    Prefer executing user-requested publish commands first.
+    Use capability/help commands (`nb --help`, `nb backup --help`, `nb migration --help`) when diagnostics/help output or command discovery is needed.
+    Execute the target command directly and follow CLI output.
+    If CLI reports command-not-found/unknown-command/not-supported, stop and return:
+    - `feature_status=developing`
+    - missing command list (derived from CLI output)
+    - message: Current nb CLI does not support this feature yet. It is still in development
+
+    Command mapping:
+    - backup_restore publish:
+      `nb backup list --env <source_env>` -> `nb restore <backup_file> --env <target_env>`
+    - migration publish:
+      `nb migration rule add --env <source_env>` -> `nb migration generate <rule_id> --env <source_env>` -> `nb migration run <migration_file> --env <target_env>`
+
+    Safety:
+    - Require explicit `confirm=confirm` before publish mutations (`restore` / `migration run`).
+    - Never auto-switch method between backup_restore and migration.
+
+    Output must include: action, method, feature_status, missing_commands, executed_or_blocked_commands, relevant CLI outputs, and next action.
