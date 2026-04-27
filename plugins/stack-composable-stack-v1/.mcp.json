@@ -44,7 +44,8 @@
       "type": "http",
       "url": "${NOCOBASE_DEV_URL}/api/mcp",
       "headers": {
-        "Authorization": "Bearer ${NOCOBASE_DEV_API_KEY}"
+        "Authorization": "Bearer ${NOCOBASE_DEV_API_KEY}",
+        "x-mcp-packages": "plugin-data-source-main,plugin-data-source-manager,plugin-workflow*,plugin-acl,plugin-users,plugin-auth,plugin-client,plugin-flow-engine,plugin-ai"
       }
     }
   }
