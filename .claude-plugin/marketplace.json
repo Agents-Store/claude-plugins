@@ -353,6 +353,17 @@
       "category": "operations"
     },
     {
+      "name": "nocodb-dev",
+      "source": "./plugins/nocodb-dev",
+      "description": "NocoDB schema development plugin. Full Meta API v3 coverage — tables, fields (30+ types), views, filters, sorts, hooks (HookV3), comments, scripts, dashboards & widgets, workflows, plus workspaces / members / teams / tokens. Bundles both Data API and Meta API OpenAPI specs.",
+      "version": "1.1.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": ["nocodb", "dev", "database", "schema", "tables", "fields", "views", "relations", "formulas", "webhooks", "dashboards", "workflows", "scripts", "comments", "meta-api", "agents-store"],
+      "category": "development"
+    },
+    {
       "name": "dataforseo-dev",
       "source": "./plugins/dataforseo-dev",
       "description": "DataForSEO data analysis plugin. Keyword research, competitor analysis, backlink auditing, SERP monitoring, on-page audits, content analysis, and AI optimization via 70+ MCP tools.",
