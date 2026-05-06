@@ -27,7 +27,7 @@ CLI for NocoDB API. Imported from the official `nocodb/agent-skills` package.
 ## Setup
 
 ```bash
-export NOCODB_TOKEN="your-api-token"
+export NOCODB_API_TOKEN="your-api-token"
 export NOCODB_URL="https://app.nocodb.com"   # optional, this is default
 export NOCODB_VERBOSE=1                       # optional, shows resolved IDs
 ```

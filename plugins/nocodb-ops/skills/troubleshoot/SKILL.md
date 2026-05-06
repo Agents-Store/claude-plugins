@@ -19,19 +19,20 @@ Diagnose issues with NocoDB connections, authentication, data operations, and MC
 
 Verify these are set correctly before debugging further:
 
-| Variable | Check |
-|----------|-------|
-| `NOCODB_MCP_URL` | Must be the full MCP endpoint URL (e.g., `https://your-instance.com/mcp/your-path`) |
-| `NOCODB_URL` | Base instance URL (e.g., `https://your-instance.com`) |
-| `NOCODB_TOKEN` | Must be a valid `xc-mcp-token` value |
-| `NOCODB_VERBOSE` | Optional — set to `1` to see resolved IDs in CLI output |
+| Variable | Used by | Check |
+|----------|---------|-------|
+| `NOCODB_MCP_URL` | MCP | Must be the full MCP endpoint URL (e.g., `https://your-instance.com/mcp/your-path`) |
+| `NOCODB_MCP_TOKEN` | MCP | Must be a valid `xc-mcp-token` value (NocoDB → Integrations → MCP) |
+| `NOCODB_URL` | CLI / API | Base instance URL (e.g., `https://your-instance.com`) |
+| `NOCODB_API_TOKEN` | CLI / API | NocoDB API token (NocoDB → Account Settings → API Tokens) |
+| `NOCODB_VERBOSE` | CLI | Optional — set to `1` to see resolved IDs in CLI output |
 
 ## Quick Diagnostics
 
 Run these checks first to isolate the problem:
 
 1. **Test MCP connection** -- call `mcp__nocodb__getTablesList` with no parameters. If it returns tables, the connection is healthy.
-2. **Test authentication** -- a 401 response means `NOCODB_TOKEN` is invalid or expired. Regenerate it in NocoDB Account Settings.
+2. **Test authentication** -- a 401 response from MCP means `NOCODB_MCP_TOKEN` is invalid or expired (regenerate in NocoDB → Integrations → MCP). A 401 from the CLI/API means `NOCODB_API_TOKEN` is invalid (regenerate in NocoDB → Account Settings → API Tokens).
 3. **Check API version** -- confirm your NocoDB instance version supports the operations you need. View/filter/sort management requires v0.200+ or Enterprise.
 
 ## Connection Errors

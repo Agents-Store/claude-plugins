@@ -36,13 +36,18 @@ NocoDB operations plugin for business users. Manage records, build reports, sear
 Enable the plugin in Claude Code. Set these environment variables:
 
 ```bash
+# MCP — used by .mcp.json
 export NOCODB_MCP_URL="https://your-nocodb-instance.com/mcp/your-path-id"
+export NOCODB_MCP_TOKEN="your-xc-mcp-token"
+
+# API / CLI — used by nc commands and future plugin features
 export NOCODB_URL="https://your-nocodb-instance.com"
-export NOCODB_TOKEN="your-xc-mcp-token"
+export NOCODB_API_TOKEN="your-api-token"
+
 export NOCODB_VERBOSE=1  # optional — show resolved IDs
 ```
 
-The `.mcp.json` uses `${NOCODB_MCP_URL}` and `${NOCODB_TOKEN}` to configure the `nocodb` HTTP MCP server with `xc-mcp-token` header authentication. `NOCODB_URL` is the base instance URL used by CLI and future plugin features.
+The `.mcp.json` uses `${NOCODB_MCP_URL}` and `${NOCODB_MCP_TOKEN}` to configure the `nocodb` HTTP MCP server with `xc-mcp-token` header authentication. `NOCODB_URL` and `NOCODB_API_TOKEN` are used by the CLI and any direct REST API calls.
 
 ## Prerequisites
 
@@ -58,7 +63,7 @@ Install the official NocoDB CLI for additional capabilities:
 npx skills add nocodb/agent-skills
 ```
 
-The CLI uses the same environment variables (`NOCODB_URL`, `NOCODB_TOKEN`, `NOCODB_MCP_URL`, `NOCODB_VERBOSE`).
+The CLI uses `NOCODB_URL` and `NOCODB_API_TOKEN` (plus optional `NOCODB_VERBOSE`). MCP-only variables (`NOCODB_MCP_URL`, `NOCODB_MCP_TOKEN`) are not needed for CLI calls.
 
 ## Related Plugins
 
