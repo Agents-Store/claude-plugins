@@ -1,88 +1,116 @@
 ---
 name: api-reference
-description: This skill should be used when the user asks for "NocoBase API endpoints", "NocoBase REST API", "NocoBase curl examples", "NocoBase API documentation", "NocoBase HTTP API reference", "nc-mcp tool list", "NocoBase MCP endpoint catalog", or needs specific HTTP endpoint or MCP tool details for NocoBase.
+description: "Reference-only skill (loaded on demand) that maps the NocoBase v2 REST API surface — base URL, authentication, action-style endpoint convention, and pointers into the bundled OpenAPI 3.0.3 specification. Loaded by the model when it needs an exact endpoint path or schema; not auto-triggered."
 disable-model-invocation: true
 ---
 
-# NocoBase API Reference
+# NocoBase v2 — REST API reference
 
-Complete HTTP API endpoint reference + MCP tool catalog for NocoBase. All HTTP endpoints use the Resource & Action model at `/api/{resource}:{action}`. MCP tools use the `*` prefix.
+This is a **reference-only** skill. It is not auto-triggered; load it manually when you need an exact endpoint or schema. The single source of truth is the bundled OpenAPI spec.
 
-## MCP tool catalog
+## Spec location
 
-Full catalog of the ~146 `*` tools grouped by prefix (auth, authenticators, collections, fields, resources, flow_surfaces, workflows, roles, users, data_sources, db_views, jobs, executions, flow_nodes) with per-tool purpose and signature lives in:
-
-→ `../mcp-patterns/references/nc-mcp-tool-map.md`
-
-See `mcp-patterns` skill for the declarative-apply family (`fields_apply`, `collections_apply`, `flow_surfaces_apply`, `flow_surfaces_apply_blueprint`), ToolSearch bulk-load recipe, and MCP ⇄ CLI ⇄ HTTP fallback chain.
-
-## Authentication
-
-Every request requires a Bearer token:
-
-```bash
-curl -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  "${NOCOBASE_URL}/api/{resource}:{action}"
+```
+${CLAUDE_PLUGIN_ROOT}/references/openapi/nocobase.json
 ```
 
-## Resource Overview
+- OpenAPI version: `3.0.3`
+- API version: `2.1.0-beta.29`
+- Endpoints: 272 paths
+- Server: `/api/` (relative to NocoBase host)
 
-| Domain | Resource | Key Actions | Reference File |
-|--------|----------|-------------|----------------|
-| **Collections** | `collections` | list, get, create, update, destroy, move, setFields | `references/endpoints-collections.md` |
-| **Fields** | `collections/{name}/fields` | list, get, create, update, destroy, move | `references/endpoints-collections.md` |
-| **Collection Categories** | `collectionCategories` | list, get, create, update, destroy, move | `references/endpoints-collections.md` |
-| **Database Views** | `dbViews` | list, get, query | `references/endpoints-collections.md` |
-| **Records** | `{collection}` | list, get, create, update, destroy, move, export, import | `references/endpoints-records.md` |
-| **Associations** | `{collection}/{id}/{assoc}` | get, create, update, destroy, set, remove, add, toggle, list | `references/endpoints-records.md` |
-| **Workflows** | `workflows` | list, get, create, update, destroy, execute, revision, sync | `references/endpoints-workflows.md` |
-| **Workflow Nodes** | `flow_nodes` | get, create, update, destroy, duplicate, move, test | `references/endpoints-workflows.md` |
-| **Executions** | `executions` | list, get, cancel, destroy | `references/endpoints-workflows.md` |
-| **Jobs** | `jobs` | list, get, resume | `references/endpoints-workflows.md` |
-| **UI Schemas** | `uiSchemas` | getJsonSchema, getProperties, getParentJsonSchema, getParentProperty, insert, insertNewSchema, remove, patch, batchPatch, insertAdjacent, insertBeforeBegin, insertAfterBegin, insertBeforeEnd, insertAfterEnd, initializeActionContext, saveAsTemplate, clearAncestor | `references/endpoints-ui-auth.md` |
-| **Schema Templates (Legacy)** | `uiSchemaTemplates` | list, get | `references/endpoints-ui-auth.md` |
-| **Flow Model Templates** | `flowModelTemplates` | list, get, create, update, destroy | `references/endpoints-ui-auth.md` |
-| **Desktop Routes** *(v2.x — use type "flowPage" for modern pages)* | `desktopRoutes` | listAccessible, getAccessible, create, update, move, destroy | `references/endpoints-routes.md` |
-| **Mobile Routes** | `mobileRoutes` | listAccessible, create, update, move, destroy | `references/endpoints-routes.md` |
-| **Role Routes** | `roles/{name}/desktopRoutes` | set | `references/endpoints-routes.md` |
-| **Data Sources** | `dataSources` | listEnabled, testConnection, refresh, readTables, loadTables | `references/endpoints-data-sources.md` |
-| **DS Collections** | `dataSources/{key}/collections` | list, update | `references/endpoints-data-sources.md` |
-| **DS Fields** | `dataSourcesCollections/{key}.{coll}/fields` | list, get, create, update, destroy | `references/endpoints-data-sources.md` |
-| **Charts** | `charts` | query | `references/endpoints-charts.md` |
-| **Flow Models** *(v2.x — see ux-constructor for page creation workflows)* | `flowModels` | findOne, save, duplicate, attach, move, destroy + 16 inherited schema actions | `references/endpoints-flow-models.md` |
-| **Flow SQL** | `flowSql` | save, runById, getBind | `references/endpoints-flow-models.md` |
-| **Variables** | `variables` | resolve | `references/endpoints-flow-models.md` |
-| **Auth** | `auth` | check, signIn, signUp, signOut, changePassword | `references/endpoints-ui-auth.md` |
-| **Users** | `users` | list, get, create, update, destroy | `references/endpoints-ui-auth.md` |
-| **Roles** | `roles` | list, get, create, update, destroy, check, setDefaultRole | `references/endpoints-ui-auth.md` |
-| **API Keys** | `apiKeys` | list, create, destroy | `references/endpoints-ui-auth.md` |
-| **Authenticators** | `authenticators` | list, get, create, update, destroy, listTypes, publicList | `references/endpoints-ui-auth.md` |
-| **System Settings** | `systemSettings` | get, update | `references/endpoints-system.md` |
-| **Storage** | `storages` | list, get, create, update, destroy | `references/endpoints-system.md` |
-| **Plugins** | `pm` | enable, disable, remove | `references/endpoints-system.md` |
-| **App** | `app` | getInfo, getLang, getPlugins, restart, clearCache | `references/endpoints-system.md` |
-| **Localization** | `localization` | sync, publish | `references/endpoints-system.md` |
+## Base URL and auth
 
-## Quick Example — List Collections
-
-```bash
-curl -g -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-  "${NOCOBASE_URL}/api/collections:list?page=1&pageSize=50"
+```
+${NOCOBASE_URL}/api/{resource}:{action}
+Authorization: Bearer <token>
 ```
 
-## Full OpenAPI Spec
+Token comes from either the API Keys plugin or the IdP: OAuth plugin — see the `auth` skill.
 
-The complete machine-readable OpenAPI 3.0 specification is available at `references/nocobase-openapi.json`. Use it for programmatic endpoint discovery or code generation.
+## Endpoint convention
 
-## Reference Files
+NocoBase exposes a **resource-action** style API rather than CRUD over verbs:
 
-- `references/endpoints-collections.md` — Collections, fields, categories, database views
-- `references/endpoints-records.md` — Record CRUD, file uploads, associations (38 endpoints)
-- `references/endpoints-workflows.md` — Workflows, nodes, executions, jobs
-- `references/endpoints-ui-auth.md` — UI schemas, auth, users, roles, API keys, authenticators, SSO
-- `references/endpoints-system.md` — System settings, storage, plugins, localization, themes, utilities
-- `references/endpoints-routes.md` — Desktop routes, mobile routes, role route access
-- `references/endpoints-data-sources.md` — Data sources, data-source-scoped collections and fields
-- `references/endpoints-charts.md` — Data visualization / chart queries
-- `references/endpoints-flow-models.md` — Flow models (v2.x block engine), Flow SQL, template variables
-- `references/nocobase-openapi.json` — Full OpenAPI 3.0 specification
+| Convention | Example | HTTP method |
+|---|---|---|
+| Read collection of items | `GET /api/{name}:list` | GET |
+| Read one item | `GET /api/{name}:get?filterByTk=…` | GET |
+| Create | `POST /api/{name}:create` | POST |
+| Update | `POST /api/{name}:update?filterByTk=…` | POST |
+| Delete | `POST /api/{name}:destroy?filterByTk=…` | POST |
+| Move (reorder) | `POST /api/{name}:move` | POST |
+| Custom action | `POST /api/{name}:<action>` | POST |
+
+Both reads and writes accept a **`filter`** query/body parameter using the JSON filter language (`$eq`, `$in`, `$and`, `$or`, etc.). The `nocobase-data-modeling` skill has the full grammar.
+
+### Association resources
+
+For relations, the path nests the parent record:
+
+```
+GET  /api/{collection}/{recordKey}/{associationField}:list
+POST /api/{collection}/{recordKey}/{associationField}:add
+POST /api/{collection}/{recordKey}/{associationField}:set
+POST /api/{collection}/{recordKey}/{associationField}:remove
+POST /api/{collection}/{recordKey}/{associationField}:toggle  // m2m only
+```
+
+`recordKey` is normally the primary key (often `id`).
+
+## Tag groups (where to look first)
+
+Top groups by operation count — see `references/tags-overview.md` for the full listing:
+
+| Tag | Ops | What it covers |
+|---|---:|---|
+| `flowSurfaces` | 46 | UI authoring: pages, blocks, popups, tabs, layout, linkage, blueprints |
+| `$collection*` (data + 4 relation types) | 41 | CRUD on user-defined collections + relation actions |
+| `collections`, `collections.fields`, `collectionCategories`, `fields`, `dbViews` | 25 | Data modelling surface (schema admin) |
+| `pm` | 9 | Plugin manager (`/api/pm:enable`, `:disable`, `:list`, …) |
+| `roles*`, `dataSources.roles*` | 28 | ACL — roles, role resources, scopes, user-role membership |
+| `workflows`, `flow_nodes`, `executions`, `jobs`, `userWorkflowTasks`, `workflows.nodes` | 24 | Workflow CRUD + execution monitoring |
+| `users`, `users.roles`, `apiKeys`, `Auth`, `Authenticator`, `OIDC`, `SAML`, `Basic auth`, `verifications*` | ~30 | Identity, auth, MFA |
+| `app` | 5 | Lifecycle — `getInfo`, `getLang`, `getPlugins`, `restart`, `clearCache` |
+| `uiSchemas` | 9 | Lower-level UI schema CRUD (used by ui-builder) |
+| `storages`, `themeConfig`, `localization*`, `map-configuration`, … | many | Settings & utilities |
+
+## How to look up an endpoint
+
+When you need an endpoint path, schema, or parameter list, do not guess — query the OpenAPI file directly.
+
+```bash
+SPEC="${CLAUDE_PLUGIN_ROOT}/references/openapi/nocobase.json"
+
+# 1. List every path containing a keyword
+jq -r '.paths | keys[] | select(test("workflow"; "i"))' "$SPEC"
+
+# 2. Show methods + summary for a path
+jq '.paths["/workflows:create"]' "$SPEC"
+
+# 3. List all operations in a tag
+jq -r '.paths | to_entries[]
+       | .key as $p
+       | .value | to_entries[]
+       | select(.value.tags[0]? == "flowSurfaces")
+       | "\(.key | ascii_upcase) \($p)"' "$SPEC"
+
+# 4. Resolve a schema reference
+jq '.components.schemas.WorkflowDto' "$SPEC"
+```
+
+Always feed the path you derived back to the user as `${NOCOBASE_URL}/api{path}` — the OpenAPI server is `/api/`, so paths in the spec are relative to that.
+
+## Distilled summaries
+
+- `references/tags-overview.md` — every tag, one line each, with the matching skill in this plugin.
+- `references/common-endpoints.md` — copy-paste curl recipes for the 12 highest-traffic operations.
+
+## Notes and gotchas
+
+- **`POST` for non-creates is normal.** Most write actions (`:update`, `:destroy`, `:move`, `:set`, `:remove`) use `POST` even when conceptually they're updates or deletes — this is intentional, do not retry as `PUT`/`DELETE`.
+- **`filterByTk` vs `filter`.** `filterByTk` selects exactly one record by primary key; `filter` is the general-purpose JSON filter language. Read endpoints accept both.
+- **Pagination.** `page` (1-indexed) and `pageSize` (default 20) on any `:list`. The response wraps results in `{ data, meta: { count, page, pageSize, totalPage } }`.
+- **`appends`.** Pass `appends=relName` (repeat for each relation) on `:list` / `:get` to eager-load relations; otherwise relations are not embedded.
+- **Errors.** 4xx/5xx return `{ errors: [{ message, code? }] }`. 401 is auth (see `auth` skill); 403 is ACL (see `nocobase-acl-manage`).
+- **OpenAPI completeness.** The spec covers core + bundled plugins shipping with NocoBase v2.1.0-beta.21. Custom plugins add their own routes that are not in this file — load `nocobase-plugin-development` to learn how plugins register routes.

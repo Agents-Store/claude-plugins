@@ -19,7 +19,23 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["sendpulse", "email-marketing", "chatbots", "crm", "smtp", "telegram", "whatsapp", "instagram", "messenger", "viber", "campaigns", "automation", "leads", "deals", "pipelines"],
+      "keywords": [
+        "sendpulse",
+        "email-marketing",
+        "chatbots",
+        "crm",
+        "smtp",
+        "telegram",
+        "whatsapp",
+        "instagram",
+        "messenger",
+        "viber",
+        "campaigns",
+        "automation",
+        "leads",
+        "deals",
+        "pipelines"
+      ],
       "category": "marketing"
     },
     {
@@ -30,7 +46,19 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["teleshop", "telegram", "ecommerce", "store", "products", "orders", "catalog", "webhooks", "addons", "mini-app", "bot-shop"],
+      "keywords": [
+        "teleshop",
+        "telegram",
+        "ecommerce",
+        "store",
+        "products",
+        "orders",
+        "catalog",
+        "webhooks",
+        "addons",
+        "mini-app",
+        "bot-shop"
+      ],
       "category": "ecommerce"
     },
     {
@@ -41,7 +69,19 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nocodb", "database", "tables", "records", "columns", "views", "relations", "formulas", "no-code", "spreadsheet", "airtable-alternative"],
+      "keywords": [
+        "nocodb",
+        "database",
+        "tables",
+        "records",
+        "columns",
+        "views",
+        "relations",
+        "formulas",
+        "no-code",
+        "spreadsheet",
+        "airtable-alternative"
+      ],
       "category": "development"
     },
     {
@@ -52,7 +92,18 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["n8n", "workflow", "automation", "nodes", "triggers", "executions", "credentials", "integrations", "webhooks", "scheduling"],
+      "keywords": [
+        "n8n",
+        "workflow",
+        "automation",
+        "nodes",
+        "triggers",
+        "executions",
+        "credentials",
+        "integrations",
+        "webhooks",
+        "scheduling"
+      ],
       "category": "development"
     },
     {
@@ -63,7 +114,16 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["firecrawl", "web-scraping", "crawling", "search", "data-extraction", "sitemap", "markdown", "content"],
+      "keywords": [
+        "firecrawl",
+        "web-scraping",
+        "crawling",
+        "search",
+        "data-extraction",
+        "sitemap",
+        "markdown",
+        "content"
+      ],
       "category": "development"
     },
     {
@@ -74,7 +134,16 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nocobase", "low-code", "collections", "workflows", "ui-blocks", "plugin-development", "no-code", "application-builder"],
+      "keywords": [
+        "nocobase",
+        "low-code",
+        "collections",
+        "workflows",
+        "ui-blocks",
+        "plugin-development",
+        "no-code",
+        "application-builder"
+      ],
       "category": "development"
     },
     {
@@ -85,7 +154,17 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["mem0", "memory", "knowledge-base", "vector-search", "semantic-search", "context", "ai-memory", "files", "recall"],
+      "keywords": [
+        "mem0",
+        "memory",
+        "knowledge-base",
+        "vector-search",
+        "semantic-search",
+        "context",
+        "ai-memory",
+        "files",
+        "recall"
+      ],
       "category": "development"
     },
     {
@@ -96,7 +175,19 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["plane", "agile", "scrum", "sprint", "backlog", "kanban", "project-management", "estimation", "retrospective", "roadmap", "knowledge"],
+      "keywords": [
+        "plane",
+        "agile",
+        "scrum",
+        "sprint",
+        "backlog",
+        "kanban",
+        "project-management",
+        "estimation",
+        "retrospective",
+        "roadmap",
+        "knowledge"
+      ],
       "category": "project-management"
     },
     {
@@ -107,7 +198,20 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["deep-research", "web-research", "search", "scraping", "exa", "firecrawl", "jina", "perplexity", "content-extraction", "report-generation", "competitive-analysis", "market-research"],
+      "keywords": [
+        "deep-research",
+        "web-research",
+        "search",
+        "scraping",
+        "exa",
+        "firecrawl",
+        "jina",
+        "perplexity",
+        "content-extraction",
+        "report-generation",
+        "competitive-analysis",
+        "market-research"
+      ],
       "category": "research"
     },
     {
@@ -118,7 +222,21 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["document", "pdf", "docx", "pptx", "invoice", "proposal", "report", "presentation", "contract", "generator", "converter", "pandoc", "business-documents"],
+      "keywords": [
+        "document",
+        "pdf",
+        "docx",
+        "pptx",
+        "invoice",
+        "proposal",
+        "report",
+        "presentation",
+        "contract",
+        "generator",
+        "converter",
+        "pandoc",
+        "business-documents"
+      ],
       "category": "productivity"
     },
     {
@@ -129,7 +247,23 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["openclaw", "workspace", "configurator", "agents-md", "soul-md", "persona", "standing-orders", "session-analysis", "heartbeat", "memory", "ai-agent", "self-hosted", "update", "docker", "git"],
+      "keywords": [
+        "openclaw",
+        "workspace",
+        "configurator",
+        "agents-md",
+        "soul-md",
+        "persona",
+        "standing-orders",
+        "session-analysis",
+        "heartbeat",
+        "memory",
+        "ai-agent",
+        "self-hosted",
+        "update",
+        "docker",
+        "git"
+      ],
       "category": "ai-agents"
     },
     {
@@ -140,7 +274,22 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["multi-bank", "monobank", "privatbank", "banking", "finance", "broadcast", "balances", "transactions", "payments", "salary", "budget", "reports", "ukrainian-banks", "mcp"],
+      "keywords": [
+        "multi-bank",
+        "monobank",
+        "privatbank",
+        "banking",
+        "finance",
+        "broadcast",
+        "balances",
+        "transactions",
+        "payments",
+        "salary",
+        "budget",
+        "reports",
+        "ukrainian-banks",
+        "mcp"
+      ],
       "category": "finance"
     },
     {
@@ -151,7 +300,20 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["directus", "headless-cms", "collections", "fields", "relations", "flows", "schema", "mcp", "api", "sdk", "content-management", "data-modeling"],
+      "keywords": [
+        "directus",
+        "headless-cms",
+        "collections",
+        "fields",
+        "relations",
+        "flows",
+        "schema",
+        "mcp",
+        "api",
+        "sdk",
+        "content-management",
+        "data-modeling"
+      ],
       "category": "development"
     },
     {
@@ -162,7 +324,20 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nextjs", "next.js", "react", "app-router", "server-components", "typescript", "dev", "agents-store", "testing", "security", "authentication", "forms"],
+      "keywords": [
+        "nextjs",
+        "next.js",
+        "react",
+        "app-router",
+        "server-components",
+        "typescript",
+        "dev",
+        "agents-store",
+        "testing",
+        "security",
+        "authentication",
+        "forms"
+      ],
       "category": "development"
     },
     {
@@ -173,7 +348,18 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nextjs", "shadcn", "shadcn-ui", "shadcn-studio", "ui-components", "tailwind", "provision", "agents-store", "community-registries", "component-search"],
+      "keywords": [
+        "nextjs",
+        "shadcn",
+        "shadcn-ui",
+        "shadcn-studio",
+        "ui-components",
+        "tailwind",
+        "provision",
+        "agents-store",
+        "community-registries",
+        "component-search"
+      ],
       "category": "development"
     },
     {
@@ -184,7 +370,16 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["dify", "docker", "self-hosted", "update", "ops", "docker-compose", "env-sync", "llm-platform"],
+      "keywords": [
+        "dify",
+        "docker",
+        "self-hosted",
+        "update",
+        "ops",
+        "docker-compose",
+        "env-sync",
+        "llm-platform"
+      ],
       "category": "operations"
     },
     {
@@ -195,7 +390,16 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["stack", "directus-nextjs", "dev", "agents-store", "directus", "nextjs", "headless-cms", "app-router"],
+      "keywords": [
+        "stack",
+        "directus-nextjs",
+        "dev",
+        "agents-store",
+        "directus",
+        "nextjs",
+        "headless-cms",
+        "app-router"
+      ],
       "category": "development"
     },
     {
@@ -206,7 +410,21 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["stack", "directus-nextjs-trigger", "dev", "agents-store", "directus", "nextjs", "trigger.dev", "ai-agents", "workflows", "scheduled-tasks", "self-hosted", "durable-execution", "app-router"],
+      "keywords": [
+        "stack",
+        "directus-nextjs-trigger",
+        "dev",
+        "agents-store",
+        "directus",
+        "nextjs",
+        "trigger.dev",
+        "ai-agents",
+        "workflows",
+        "scheduled-tasks",
+        "self-hosted",
+        "durable-execution",
+        "app-router"
+      ],
       "category": "development"
     },
     {
@@ -217,7 +435,19 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["web-search", "scraping", "firecrawl", "exa", "perplexity", "jina", "pexels", "unsplash", "context7", "dev", "agents-store"],
+      "keywords": [
+        "web-search",
+        "scraping",
+        "firecrawl",
+        "exa",
+        "perplexity",
+        "jina",
+        "pexels",
+        "unsplash",
+        "context7",
+        "dev",
+        "agents-store"
+      ],
       "category": "development"
     },
     {
@@ -228,7 +458,13 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["media-hosting", "minio", "image-upload", "ops", "agents-store"],
+      "keywords": [
+        "media-hosting",
+        "minio",
+        "image-upload",
+        "ops",
+        "agents-store"
+      ],
       "category": "operations"
     },
     {
@@ -239,7 +475,16 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["image-search", "pexels", "unsplash", "stock-photos", "stock-videos", "media", "dev", "agents-store"],
+      "keywords": [
+        "image-search",
+        "pexels",
+        "unsplash",
+        "stock-photos",
+        "stock-videos",
+        "media",
+        "dev",
+        "agents-store"
+      ],
       "category": "development"
     },
     {
@@ -250,7 +495,21 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["project-template", "template-hierarchy", "feedback", "scaffold", "stack", "template-creator", "CLAUDE.md", "skills", "agents", "commands", "improve", "capture", "unified-wrap-up"],
+      "keywords": [
+        "project-template",
+        "template-hierarchy",
+        "feedback",
+        "scaffold",
+        "stack",
+        "template-creator",
+        "CLAUDE.md",
+        "skills",
+        "agents",
+        "commands",
+        "improve",
+        "capture",
+        "unified-wrap-up"
+      ],
       "category": "development"
     },
     {
@@ -261,7 +520,20 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["trigger.dev", "trigger-dev", "dev", "agents-store", "background-jobs", "task-queue", "self-hosted", "durable-execution", "ai-agents", "trql", "managed-prompts", "observability"],
+      "keywords": [
+        "trigger.dev",
+        "trigger-dev",
+        "dev",
+        "agents-store",
+        "background-jobs",
+        "task-queue",
+        "self-hosted",
+        "durable-execution",
+        "ai-agents",
+        "trql",
+        "managed-prompts",
+        "observability"
+      ],
       "category": "development"
     },
     {
@@ -272,7 +544,15 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["flask", "dev", "agents-store", "python", "jinja2", "blueprints", "web-framework"],
+      "keywords": [
+        "flask",
+        "dev",
+        "agents-store",
+        "python",
+        "jinja2",
+        "blueprints",
+        "web-framework"
+      ],
       "category": "development"
     },
     {
@@ -283,7 +563,15 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["sqlalchemy", "dev", "agents-store", "python", "orm", "alembic", "database"],
+      "keywords": [
+        "sqlalchemy",
+        "dev",
+        "agents-store",
+        "python",
+        "orm",
+        "alembic",
+        "database"
+      ],
       "category": "development"
     },
     {
@@ -294,7 +582,15 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["stack", "flask-sqlalchemy", "dev", "agents-store", "flask", "sqlalchemy", "python"],
+      "keywords": [
+        "stack",
+        "flask-sqlalchemy",
+        "dev",
+        "agents-store",
+        "flask",
+        "sqlalchemy",
+        "python"
+      ],
       "category": "development"
     },
     {
@@ -305,7 +601,18 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["vercel", "nextjs", "deployment", "ai-sdk", "edge-functions", "serverless", "turborepo", "turbopack", "dev", "agents-store"],
+      "keywords": [
+        "vercel",
+        "nextjs",
+        "deployment",
+        "ai-sdk",
+        "edge-functions",
+        "serverless",
+        "turborepo",
+        "turbopack",
+        "dev",
+        "agents-store"
+      ],
       "category": "development"
     },
     {
@@ -316,7 +623,19 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["seo", "structured-data", "json-ld", "schema-org", "metadata", "open-graph", "core-web-vitals", "sitemap", "nextjs", "dev", "agents-store"],
+      "keywords": [
+        "seo",
+        "structured-data",
+        "json-ld",
+        "schema-org",
+        "metadata",
+        "open-graph",
+        "core-web-vitals",
+        "sitemap",
+        "nextjs",
+        "dev",
+        "agents-store"
+      ],
       "category": "development"
     },
     {
@@ -327,7 +646,19 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["postgresql", "postgres", "database", "schema", "sql", "nocodb", "nocobase", "external-database", "low-code", "dev", "agents-store"],
+      "keywords": [
+        "postgresql",
+        "postgres",
+        "database",
+        "schema",
+        "sql",
+        "nocodb",
+        "nocobase",
+        "external-database",
+        "low-code",
+        "dev",
+        "agents-store"
+      ],
       "category": "development"
     },
     {
@@ -338,7 +669,22 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["dokploy", "paas", "deployment", "docker", "self-hosted", "applications", "databases", "domains", "compose", "traefik", "backups", "infrastructure", "dev", "agents-store"],
+      "keywords": [
+        "dokploy",
+        "paas",
+        "deployment",
+        "docker",
+        "self-hosted",
+        "applications",
+        "databases",
+        "domains",
+        "compose",
+        "traefik",
+        "backups",
+        "infrastructure",
+        "dev",
+        "agents-store"
+      ],
       "category": "infrastructure"
     },
     {
@@ -349,7 +695,15 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nocodb", "ops", "database", "records", "views", "reports", "agents-store"],
+      "keywords": [
+        "nocodb",
+        "ops",
+        "database",
+        "records",
+        "views",
+        "reports",
+        "agents-store"
+      ],
       "category": "operations"
     },
     {
@@ -360,7 +714,24 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nocodb", "dev", "database", "schema", "tables", "fields", "views", "relations", "formulas", "webhooks", "dashboards", "workflows", "scripts", "comments", "meta-api", "agents-store"],
+      "keywords": [
+        "nocodb",
+        "dev",
+        "database",
+        "schema",
+        "tables",
+        "fields",
+        "views",
+        "relations",
+        "formulas",
+        "webhooks",
+        "dashboards",
+        "workflows",
+        "scripts",
+        "comments",
+        "meta-api",
+        "agents-store"
+      ],
       "category": "development"
     },
     {
@@ -371,7 +742,19 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["dataforseo", "seo", "keyword-research", "backlinks", "serp", "competitor-analysis", "on-page", "content-analysis", "ai-optimization", "dev", "agents-store"],
+      "keywords": [
+        "dataforseo",
+        "seo",
+        "keyword-research",
+        "backlinks",
+        "serp",
+        "competitor-analysis",
+        "on-page",
+        "content-analysis",
+        "ai-optimization",
+        "dev",
+        "agents-store"
+      ],
       "category": "marketing"
     },
     {
@@ -382,7 +765,14 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["n8n", "workflow", "automation", "dev", "mcp", "agents-store"],
+      "keywords": [
+        "n8n",
+        "workflow",
+        "automation",
+        "dev",
+        "mcp",
+        "agents-store"
+      ],
       "category": "automation"
     },
     {
@@ -393,29 +783,48 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["n8n", "workflow", "automation", "provision", "templates", "import", "deploy", "batch", "community", "agents-store"],
+      "keywords": [
+        "n8n",
+        "workflow",
+        "automation",
+        "provision",
+        "templates",
+        "import",
+        "deploy",
+        "batch",
+        "community",
+        "agents-store"
+      ],
       "category": "automation"
     },
     {
       "name": "nocobase-dev",
       "source": "./plugins/nocobase-dev",
-      "description": "NocoBase V2 dev plugin for Agents Store. Full customization + data management reference covering the nc-mcp MCP server (~146 tools: flow-surfaces, collections, resources, workflows, RBAC, data sources), the HTTP API, and the nocobase-ctl CLI. Includes data-modeling playbook, ui-builder blueprints, ACL governance, publish management, and official upstream skill content.",
-      "version": "1.5.0",
+      "description": "NocoBase v2 development plugin. CLI primary (nb CLI) + REST API fallback (bundled OpenAPI v2.1.0-beta.29, 272 endpoints). Auto-syncs 11 official upstream skills from nocobase/skills weekly. 5 custom REST-API skills (overview, auth, cli-recipes, api-reference, examples).",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["nocobase", "no-code", "low-code", "api", "mcp", "nc-mcp", "flow-surfaces", "blueprints", "reactions", "collections", "data-modeling", "workflows", "ui-schemas", "flow-models", "flow-sql", "routes", "menus", "data-sources", "charts", "templates", "acl", "publish", "ux-constructor", "modern-page", "dev", "agents-store"],
-      "category": "development"
-    },
-    {
-      "name": "nocobase-2-dev",
-      "source": "./plugins/nocobase-2-dev",
-      "description": "NocoBase v2 development plugin. Build, manage, and operate NocoBase through REST API or the `nb` CLI — whichever is convenient per task. Bundles 11 official NocoBase skills (env, data modeling, UI builder, workflows, ACL, plugins, publish, plugin development, DSL reconciler, utils, data analysis), the full OpenAPI 3.0.3 spec (251 endpoints across 19 tag groups, NocoBase v2.1.0-beta.21), CLI install (@nocobase/cli@beta), and authentication patterns (API Key bearer, OAuth IdP).",
-      "version": "1.0.1",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": ["nocobase", "nocobase-v2", "no-code", "low-code", "rest-api", "openapi", "cli", "nb-cli", "collections", "workflows", "ui-builder", "acl", "plugins", "data-modeling", "publish", "dev", "agents-store"],
+      "keywords": [
+        "nocobase",
+        "nocobase-v2",
+        "no-code",
+        "low-code",
+        "rest-api",
+        "openapi",
+        "cli",
+        "nb-cli",
+        "collections",
+        "workflows",
+        "ui-builder",
+        "acl",
+        "plugins",
+        "data-modeling",
+        "publish",
+        "upstream-sync",
+        "dev",
+        "agents-store"
+      ],
       "category": "development"
     },
     {
@@ -426,7 +835,18 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["stack", "composable-stack", "dev", "agents-store", "postgresql", "postgrest", "nocodb", "n8n", "trigger-dev", "nocobase"],
+      "keywords": [
+        "stack",
+        "composable-stack",
+        "dev",
+        "agents-store",
+        "postgresql",
+        "postgrest",
+        "nocodb",
+        "n8n",
+        "trigger-dev",
+        "nocobase"
+      ],
       "category": "stack"
     },
     {
@@ -437,7 +857,15 @@
       "author": {
         "name": "AGENTS.STORE"
       },
-      "keywords": ["codemap", "onboarding", "code-review", "diagrams", "drawio", "architecture", "erd"],
+      "keywords": [
+        "codemap",
+        "onboarding",
+        "code-review",
+        "diagrams",
+        "drawio",
+        "architecture",
+        "erd"
+      ],
       "category": "development"
     }
   ]

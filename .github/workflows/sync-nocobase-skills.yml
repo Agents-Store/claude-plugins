@@ -1,0 +1,67 @@
+name: Sync nocobase/skills upstream
+
+on:
+  schedule:
+    # Weekly: every Monday at 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: "Upstream git ref to sync (branch, tag, or SHA)"
+        required: false
+        default: "main"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Run sync script
+        id: sync
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref || 'main' }}
+        run: |
+          SHA="$(./scripts/sync-nocobase-skills.sh)"
+          echo "upstream_sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "upstream_short=${SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet plugins/nocobase-dev/skills; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/sync-nocobase-skills
+          commit-message: |
+            chore(nocobase-dev): sync upstream skills @ ${{ steps.sync.outputs.upstream_short }}
+
+            Source: https://github.com/nocobase/skills/commit/${{ steps.sync.outputs.upstream_sha }}
+          title: "chore(nocobase-dev): sync upstream skills @ ${{ steps.sync.outputs.upstream_short }}"
+          body: |
+            Automated sync from [`nocobase/skills`](https://github.com/nocobase/skills) at commit [`${{ steps.sync.outputs.upstream_short }}`](https://github.com/nocobase/skills/commit/${{ steps.sync.outputs.upstream_sha }}).
+
+            **Scope:** only files under `plugins/nocobase-dev/skills/nocobase-*/` were touched. Custom REST-API skills (overview, auth, cli-recipes, api-reference, examples) are untouched.
+
+            **Review checklist:**
+            - [ ] New / removed / renamed upstream skill directories?
+            - [ ] Are validator rule changes in `nocobase-ui-builder` breaking?
+            - [ ] Append a LEARNINGS entry if a fix would have been silently dropped.
+
+            Triggered by: `${{ github.event_name }}`.
+          labels: |
+            automation
+            upstream-sync
+          delete-branch: true
