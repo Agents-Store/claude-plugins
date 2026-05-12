@@ -55,16 +55,31 @@ Detailed rules in `nocobase-env-manage` and `cli-recipes`.
 
 ## Environment variables
 
-The plugin itself has **no `.mcp.json` and no runtime env vars**. The variables below are what a user sets in their own shell when calling NocoBase from the REST-API fallback path (used by `auth`, `examples`, `api-reference`, and the upstream `nocobase-data-analysis` skill).
+The plugin itself has **no `.mcp.json` and no runtime env vars**. The variables below are what a user sets in their own shell — they match the names used by the upstream `nocobase/skills` (see `nocobase-dsl-reconciler` for the canonical reference). Use the **same names** in your `.env` so that hand-maintained and upstream skills resolve to one truth.
 
-| Variable | Required for | Purpose | Example |
+| Variable | Required? | Purpose | Example |
 |---|---|---|---|
-| `NOCOBASE_URL` | REST API fallback | Base URL of the NocoBase instance | `https://app.example.com` |
-| `NOCOBASE_API_KEY` | REST API — Path A (API Key) | Bearer token from `Settings → API keys` after `nb pm enable api-keys` | `eyJ…` |
-| `OAUTH_ACCESS_TOKEN` | REST API — Path B (OAuth) | Token from `/api/auth:signIn?authenticator=…` (OIDC flow) | — |
-| `NB_CLI_ROOT` | CLI (optional override) | nb CLI project root, defaults to `~/.nocobase/` | — |
+| `NB_URL` | **always** | Base URL of the NocoBase instance | `https://app.example.com` or `http://localhost:14000` |
+| `NB_USER` | yes, unless `NB_TOKEN` set | Admin email created during `nb init --ui` | `admin@example.com` |
+| `NB_PASSWORD` | yes, unless `NB_TOKEN` set | Admin password from `nb init --ui` | `admin123` |
+| `NB_TOKEN` | optional | Long-lived bearer token (skips `auth:signIn`). Created via `nb pm enable api-keys` → `Settings → API keys`. | `eyJhbGciOi…` |
+| `NOCOBASE_API_TOKEN` | optional | Synonym for `NB_TOKEN` — upstream auth helper reads either. | — |
+| `PG_DSN` | rarely | Direct Postgres connection — only used by `nocobase-dsl-reconciler` data-copy scripts | `postgres://user:pass@host:5432/nocobase` |
 
-Full setup walk-through (curl + Node.js) in `skills/auth/SKILL.md`.
+**Two valid setups:**
+
+```bash
+# Setup A — login flow (recommended, matches upstream quick-start)
+NB_URL=https://app.example.com
+NB_USER=admin@example.com
+NB_PASSWORD=<password>
+
+# Setup B — pre-issued token (skips signIn each call)
+NB_URL=https://app.example.com
+NB_TOKEN=eyJhbGciOi...
+```
+
+Full setup walk-through (curl + Node.js + the `auth:signIn` flow) in `skills/auth/SKILL.md`.
 
 ## Auto-sync from upstream
 

@@ -1,6 +1,6 @@
 # Common endpoint recipes
 
-Copy-paste recipes for the highest-traffic operations. Replace `${NOCOBASE_URL}` with your host and `${TOKEN}` with the bearer token from the `auth` skill. All examples assume `Content-Type: application/json` for `POST` payloads.
+Copy-paste recipes for the highest-traffic operations. Replace `${NB_URL}` with your host and `${TOKEN}` with the bearer token from the `auth` skill. All examples assume `Content-Type: application/json` for `POST` payloads.
 
 ```bash
 H='Authorization: Bearer '"${TOKEN}"
@@ -11,29 +11,29 @@ J='Content-Type: application/json'
 
 ```bash
 # Health / metadata
-curl -H "$H" "${NOCOBASE_URL}/api/app:getInfo"
+curl -H "$H" "${NB_URL}/api/app:getInfo"
 
 # Force restart (admin-level, useful after schema migration)
-curl -X POST -H "$H" "${NOCOBASE_URL}/api/app:restart"
+curl -X POST -H "$H" "${NB_URL}/api/app:restart"
 
 # Clear server cache
-curl -X POST -H "$H" "${NOCOBASE_URL}/api/app:clearCache"
+curl -X POST -H "$H" "${NB_URL}/api/app:clearCache"
 ```
 
 ## 2. Plugin manager
 
 ```bash
 # List all plugins
-curl -H "$H" "${NOCOBASE_URL}/api/pm:list"
+curl -H "$H" "${NB_URL}/api/pm:list"
 
 # Enable / disable
 curl -X POST -H "$H" -H "$J" \
      -d '{"name":"api-keys"}' \
-     "${NOCOBASE_URL}/api/pm:enable"
+     "${NB_URL}/api/pm:enable"
 
 curl -X POST -H "$H" -H "$J" \
      -d '{"name":"api-keys"}' \
-     "${NOCOBASE_URL}/api/pm:disable"
+     "${NB_URL}/api/pm:disable"
 ```
 
 ## 3. Collection schema
@@ -47,10 +47,10 @@ curl -X POST -H "$H" -H "$J" -d '{
     { "type": "string", "name": "title", "uiSchema": { "title": "Title" } },
     { "type": "text",   "name": "body",  "uiSchema": { "title": "Body"  } }
   ]
-}' "${NOCOBASE_URL}/api/collections:create"
+}' "${NB_URL}/api/collections:create"
 
 # List collections
-curl -H "$H" "${NOCOBASE_URL}/api/collections:list?pageSize=200"
+curl -H "$H" "${NB_URL}/api/collections:list?pageSize=200"
 ```
 
 ## 4. Records — CRUD on a user-defined collection
@@ -59,77 +59,77 @@ curl -H "$H" "${NOCOBASE_URL}/api/collections:list?pageSize=200"
 # Create
 curl -X POST -H "$H" -H "$J" \
      -d '{"title":"hello","body":"first post"}' \
-     "${NOCOBASE_URL}/api/posts:create"
+     "${NB_URL}/api/posts:create"
 
 # List with filter + relation eager-load
-curl -H "$H" "${NOCOBASE_URL}/api/posts:list?\
+curl -H "$H" "${NB_URL}/api/posts:list?\
 filter=%7B%22title%22%3A%7B%22%24includes%22%3A%22hello%22%7D%7D&\
 appends=author&page=1&pageSize=20"
 
 # Get one by primary key
-curl -H "$H" "${NOCOBASE_URL}/api/posts:get?filterByTk=42"
+curl -H "$H" "${NB_URL}/api/posts:get?filterByTk=42"
 
 # Update
 curl -X POST -H "$H" -H "$J" \
      -d '{"title":"hello, edited"}' \
-     "${NOCOBASE_URL}/api/posts:update?filterByTk=42"
+     "${NB_URL}/api/posts:update?filterByTk=42"
 
 # Delete
 curl -X POST -H "$H" \
-     "${NOCOBASE_URL}/api/posts:destroy?filterByTk=42"
+     "${NB_URL}/api/posts:destroy?filterByTk=42"
 ```
 
 ## 5. Relations
 
 ```bash
 # Eager-load author and tags
-curl -H "$H" "${NOCOBASE_URL}/api/posts:list?appends=author&appends=tags"
+curl -H "$H" "${NB_URL}/api/posts:list?appends=author&appends=tags"
 
 # Add tags to post 42 (m2m)
 curl -X POST -H "$H" -H "$J" \
      -d '{"values":[1,2,3]}' \
-     "${NOCOBASE_URL}/api/posts/42/tags:add"
+     "${NB_URL}/api/posts/42/tags:add"
 
 # Replace tag set on post 42
 curl -X POST -H "$H" -H "$J" \
      -d '{"values":[5,6]}' \
-     "${NOCOBASE_URL}/api/posts/42/tags:set"
+     "${NB_URL}/api/posts/42/tags:set"
 ```
 
 ## 6. Workflows
 
 ```bash
 # List
-curl -H "$H" "${NOCOBASE_URL}/api/workflows:list"
+curl -H "$H" "${NB_URL}/api/workflows:list"
 
 # Manually trigger a workflow (key or id)
 curl -X POST -H "$H" -H "$J" \
      -d '{"data": {"orderId": 100}}' \
-     "${NOCOBASE_URL}/api/workflows:trigger?filterByTk=order-fulfilment"
+     "${NB_URL}/api/workflows:trigger?filterByTk=order-fulfilment"
 
 # Recent executions
-curl -H "$H" "${NOCOBASE_URL}/api/executions:list?pageSize=50&sort=-createdAt"
+curl -H "$H" "${NB_URL}/api/executions:list?pageSize=50&sort=-createdAt"
 
 # Cancel a stuck execution
 curl -X POST -H "$H" \
-     "${NOCOBASE_URL}/api/executions:cancel?filterByTk=12345"
+     "${NB_URL}/api/executions:cancel?filterByTk=12345"
 ```
 
 ## 7. ACL — roles and membership
 
 ```bash
 # Roles
-curl -H "$H" "${NOCOBASE_URL}/api/roles:list"
+curl -H "$H" "${NB_URL}/api/roles:list"
 
 # Attach a role to a user
 curl -X POST -H "$H" -H "$J" \
      -d '{"values":[{"name":"editor"}]}' \
-     "${NOCOBASE_URL}/api/users/7/roles:add"
+     "${NB_URL}/api/users/7/roles:add"
 
 # Set the default role
 curl -X POST -H "$H" -H "$J" \
      -d '{"name":"member"}' \
-     "${NOCOBASE_URL}/api/roles:setDefaultRole"
+     "${NB_URL}/api/roles:setDefaultRole"
 ```
 
 ## 8. API keys
@@ -138,26 +138,26 @@ curl -X POST -H "$H" -H "$J" \
 # Create a key (requires the API Keys plugin enabled)
 curl -X POST -H "$H" -H "$J" \
      -d '{"name":"agent-bot","role":"member"}' \
-     "${NOCOBASE_URL}/api/apiKeys:create"
+     "${NB_URL}/api/apiKeys:create"
 
 # List
-curl -H "$H" "${NOCOBASE_URL}/api/apiKeys:list"
+curl -H "$H" "${NB_URL}/api/apiKeys:list"
 
 # Revoke
 curl -X POST -H "$H" \
-     "${NOCOBASE_URL}/api/apiKeys:destroy?filterByTk=3"
+     "${NB_URL}/api/apiKeys:destroy?filterByTk=3"
 ```
 
 ## 9. UI schemas (low-level, used by ui-builder)
 
 ```bash
 # Read a UI schema by uid
-curl -H "$H" "${NOCOBASE_URL}/api/uiSchemas:getJsonSchema/<uid>"
+curl -H "$H" "${NB_URL}/api/uiSchemas:getJsonSchema/<uid>"
 
 # Patch
 curl -X POST -H "$H" -H "$J" \
      -d '{"x-component-props":{"title":"New title"}}' \
-     "${NOCOBASE_URL}/api/uiSchemas:patch/<uid>"
+     "${NB_URL}/api/uiSchemas:patch/<uid>"
 ```
 
 For pages, blocks, popups, tabs, and linkage rules prefer the `flowSurfaces` resource — the `nocobase-ui-builder` skill has the full playbook.

@@ -22,11 +22,11 @@ ${CLAUDE_PLUGIN_ROOT}/references/openapi/nocobase.json
 ## Base URL and auth
 
 ```
-${NOCOBASE_URL}/api/{resource}:{action}
+${NB_URL}/api/{resource}:{action}
 Authorization: Bearer <token>
 ```
 
-Token comes from either the API Keys plugin or the IdP: OAuth plugin — see the `auth` skill.
+Get the token via `POST ${NB_URL}/api/auth:signIn` with `NB_USER` + `NB_PASSWORD` (primary), or use a long-lived `NB_TOKEN` from the API Keys plugin — see the `auth` skill.
 
 ## Endpoint convention
 
@@ -99,7 +99,7 @@ jq -r '.paths | to_entries[]
 jq '.components.schemas.WorkflowDto' "$SPEC"
 ```
 
-Always feed the path you derived back to the user as `${NOCOBASE_URL}/api{path}` — the OpenAPI server is `/api/`, so paths in the spec are relative to that.
+Always feed the path you derived back to the user as `${NB_URL}/api{path}` — the OpenAPI server is `/api/`, so paths in the spec are relative to that.
 
 ## Distilled summaries
 
@@ -113,4 +113,4 @@ Always feed the path you derived back to the user as `${NOCOBASE_URL}/api{path}`
 - **Pagination.** `page` (1-indexed) and `pageSize` (default 20) on any `:list`. The response wraps results in `{ data, meta: { count, page, pageSize, totalPage } }`.
 - **`appends`.** Pass `appends=relName` (repeat for each relation) on `:list` / `:get` to eager-load relations; otherwise relations are not embedded.
 - **Errors.** 4xx/5xx return `{ errors: [{ message, code? }] }`. 401 is auth (see `auth` skill); 403 is ACL (see `nocobase-acl-manage`).
-- **OpenAPI completeness.** The spec covers core + bundled plugins shipping with NocoBase v2.1.0-beta.21. Custom plugins add their own routes that are not in this file — load `nocobase-plugin-development` to learn how plugins register routes.
+- **OpenAPI completeness.** The spec covers core + bundled plugins shipping with NocoBase v2.1.0-beta.29. Custom plugins add their own routes that are not in this file — load `nocobase-plugin-development` to learn how plugins register routes.

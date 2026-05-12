@@ -9,7 +9,7 @@ Goal: kick off a workflow from a terminal where `nb` is available, then poll the
 - A bearer token for the API polling step (`auth` skill).
 
 ```bash
-export NOCOBASE_URL="https://app.example.com"
+export NB_URL="https://app.example.com"
 export TOKEN="<your-bearer-token>"
 H='Authorization: Bearer '"${TOKEN}"
 ```
@@ -36,7 +36,7 @@ EXEC_ID=$(nb api workflows trigger --tk order-fulfilment \
 ```bash
 while :; do
   STATUS=$(curl -s -H "$H" \
-    "${NOCOBASE_URL}/api/executions:get?filterByTk=${EXEC_ID}" \
+    "${NB_URL}/api/executions:get?filterByTk=${EXEC_ID}" \
     | jq -r '.data.status')
   echo "execution ${EXEC_ID} status=${STATUS}"
   case "$STATUS" in
@@ -50,7 +50,7 @@ done
 
 ```bash
 curl -H "$H" \
-  "${NOCOBASE_URL}/api/jobs:list?filter=%7B%22executionId%22%3A${EXEC_ID}%7D&pageSize=200" \
+  "${NB_URL}/api/jobs:list?filter=%7B%22executionId%22%3A${EXEC_ID}%7D&pageSize=200" \
   | jq '.data[] | {id, status, nodeId, result}'
 ```
 
@@ -58,7 +58,7 @@ curl -H "$H" \
 
 ```bash
 curl -X POST -H "$H" \
-     "${NOCOBASE_URL}/api/executions:cancel?filterByTk=${EXEC_ID}"
+     "${NB_URL}/api/executions:cancel?filterByTk=${EXEC_ID}"
 ```
 
 ## 5. Why mix CLI and API here

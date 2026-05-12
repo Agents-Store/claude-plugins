@@ -59,8 +59,8 @@ Detailed steps and constraints (timeouts, sandboxed-environment behaviour, never
 ## REST API quick start
 
 ```bash
-curl -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-     "${NOCOBASE_URL}/api/collections:list"
+curl -H "Authorization: Bearer ${NB_TOKEN}" \
+     "${NB_URL}/api/collections:list"
 ```
 
 Endpoint conventions: `GET /api/{resource}:{action}` for reads, `POST /api/{resource}:{action}` for writes. The full spec sits at `${CLAUDE_PLUGIN_ROOT}/references/openapi/nocobase.json` — see the `api-reference` skill for navigation.

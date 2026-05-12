@@ -19,7 +19,7 @@ Three end-to-end scenarios that exercise both surfaces (REST API + `nb` CLI) and
 
 - Read the matching file when the user asks for a "complete example" or one of the listed flows.
 - Follow the steps in order — each scenario assumes the previous step succeeded.
-- Replace placeholders: `${NOCOBASE_URL}`, `${TOKEN}`, and any collection/workflow names with real values.
+- Replace placeholders: `${NB_URL}`, `${TOKEN}`, and any collection/workflow names with real values.
 - If the user requests a related but different scenario, treat the closest scenario as a template and adapt it; do not invent new patterns when an existing one fits.
 
 ## Where to look next

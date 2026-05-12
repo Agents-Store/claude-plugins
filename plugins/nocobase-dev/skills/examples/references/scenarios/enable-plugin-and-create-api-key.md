@@ -8,7 +8,7 @@ Goal: turn on the `api-keys` plugin via CLI, create an API key over HTTP, then m
 - `nb` CLI installed and pointed at the right NocoBase project.
 
 ```bash
-export NOCOBASE_URL="https://app.example.com"
+export NB_URL="https://app.example.com"
 export ADMIN_TOKEN="<existing-admin-bearer-token>"
 H='Authorization: Bearer '"${ADMIN_TOKEN}"
 J='Content-Type: application/json'
@@ -35,7 +35,7 @@ The token inherits the role you specify — pick the *least-privileged* role tha
 ```bash
 NEW_KEY=$(curl -s -X POST -H "$H" -H "$J" \
   -d '{"name":"agent-bot","role":"member"}' \
-  "${NOCOBASE_URL}/api/apiKeys:create" \
+  "${NB_URL}/api/apiKeys:create" \
   | jq -r '.data.token')
 
 echo "store this immediately, it is shown only once: ${NEW_KEY}"
@@ -47,7 +47,7 @@ For an expiring key, add `"expiresIn": "30d"` to the payload (NocoBase accepts I
 
 ```bash
 curl -H "Authorization: Bearer ${NEW_KEY}" \
-     "${NOCOBASE_URL}/api/app:getInfo"
+     "${NB_URL}/api/app:getInfo"
 ```
 
 Should return `200` with the app metadata. A `403` here means the role attached to the key cannot read `app:getInfo` — check the role policy.
@@ -55,18 +55,18 @@ Should return `200` with the app metadata. A `403` here means the role attached 
 ## 4. List existing keys
 
 ```bash
-curl -H "$H" "${NOCOBASE_URL}/api/apiKeys:list" \
+curl -H "$H" "${NB_URL}/api/apiKeys:list" \
   | jq '.data[] | {id, name, role, expiresIn, createdAt}'
 ```
 
 ## 5. Revoke the key when the bot is decommissioned
 
 ```bash
-KEY_ID=$(curl -s -H "$H" "${NOCOBASE_URL}/api/apiKeys:list" \
+KEY_ID=$(curl -s -H "$H" "${NB_URL}/api/apiKeys:list" \
   | jq -r '.data[] | select(.name=="agent-bot") | .id')
 
 curl -X POST -H "$H" \
-     "${NOCOBASE_URL}/api/apiKeys:destroy?filterByTk=${KEY_ID}"
+     "${NB_URL}/api/apiKeys:destroy?filterByTk=${KEY_ID}"
 ```
 
 ## Rotation

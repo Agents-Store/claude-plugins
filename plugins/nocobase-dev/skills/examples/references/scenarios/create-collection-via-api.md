@@ -8,7 +8,7 @@ Goal: create a `posts` collection with two fields, insert one record, list with 
 - Shell environment:
 
   ```bash
-  export NOCOBASE_URL="https://app.example.com"
+  export NB_URL="https://app.example.com"
   export TOKEN="<your-bearer-token>"
   H='Authorization: Bearer '"${TOKEN}"
   J='Content-Type: application/json'
@@ -32,7 +32,7 @@ curl -X POST -H "$H" -H "$J" -d '{
       "uiSchema": { "type": "string", "x-component": "Input.TextArea", "title": "Body" }
     }
   ]
-}' "${NOCOBASE_URL}/api/collections:create"
+}' "${NB_URL}/api/collections:create"
 ```
 
 Expected: `{"data": { "name": "posts", … }}` with HTTP 200.
@@ -42,7 +42,7 @@ Expected: `{"data": { "name": "posts", … }}` with HTTP 200.
 ```bash
 curl -X POST -H "$H" -H "$J" \
      -d '{"title":"hello","body":"first post"}' \
-     "${NOCOBASE_URL}/api/posts:create"
+     "${NB_URL}/api/posts:create"
 ```
 
 Capture the returned `data.id` — call it `${POST_ID}`.
@@ -53,7 +53,7 @@ URL-encoded filter for `title` containing `hello`:
 
 ```bash
 FILTER='%7B%22title%22%3A%7B%22%24includes%22%3A%22hello%22%7D%7D'
-curl -H "$H" "${NOCOBASE_URL}/api/posts:list?filter=${FILTER}&page=1&pageSize=20"
+curl -H "$H" "${NB_URL}/api/posts:list?filter=${FILTER}&page=1&pageSize=20"
 ```
 
 Expected: a `data` array containing the record from step 2 and a `meta` object with `count: 1`.
@@ -61,7 +61,7 @@ Expected: a `data` array containing the record from step 2 and a `meta` object w
 ## 4. Get the record by primary key
 
 ```bash
-curl -H "$H" "${NOCOBASE_URL}/api/posts:get?filterByTk=${POST_ID}"
+curl -H "$H" "${NB_URL}/api/posts:get?filterByTk=${POST_ID}"
 ```
 
 ## 5. Verify from the CLI
@@ -77,12 +77,12 @@ Should print the `posts` row. If the schema doesn't show up, run `nb api app:cle
 ```bash
 # Delete the record
 curl -X POST -H "$H" \
-     "${NOCOBASE_URL}/api/posts:destroy?filterByTk=${POST_ID}"
+     "${NB_URL}/api/posts:destroy?filterByTk=${POST_ID}"
 
 # Drop the collection
 curl -X POST -H "$H" -H "$J" \
      -d '{"name":"posts"}' \
-     "${NOCOBASE_URL}/api/collections:destroy"
+     "${NB_URL}/api/collections:destroy"
 ```
 
 ## When to deviate

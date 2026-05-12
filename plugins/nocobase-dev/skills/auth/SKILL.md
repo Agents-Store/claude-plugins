@@ -1,13 +1,47 @@
 ---
 name: auth
-description: "Use when the user wants to authenticate to a NocoBase v2 instance, asks \"how do I get an API key for NocoBase\", \"set up OAuth on NocoBase\", \"why is my request returning 401 from NocoBase\", or needs working curl/Node samples that send the bearer token. Covers both supported flows: the API Keys plugin and the IdP: OAuth plugin."
+description: "Use when the user wants to authenticate to a NocoBase v2 instance, asks \"how do I get a token for NocoBase\", \"how do I log in via API\", \"why is my request returning 401 from NocoBase\", or needs working curl/Node samples that send the bearer token. Covers the upstream login flow (NB_USER + NB_PASSWORD → auth:signIn → token), the long-lived API Key path, and the OAuth IdP path."
 ---
 
 # Authentication — NocoBase v2
 
-NocoBase v2 accepts `Authorization: Bearer <token>` for every `/api/` request. The OpenAPI spec declares this as the `api-key` security scheme (HTTP bearer). Two production paths exist for getting that token.
+NocoBase v2 accepts `Authorization: Bearer <token>` on every `/api/` request. The OpenAPI spec declares this as the `api-key` security scheme (HTTP bearer). The variable names below match what the upstream `nocobase/skills` library uses — keep them identical in your `.env` so hand-maintained and upstream skills agree on one truth.
 
-## Path A — API Key (recommended for service-to-service)
+## Env vars contract
+
+```bash
+NB_URL=https://app.example.com           # required
+NB_USER=admin@example.com                # required for Path A (sign-in)
+NB_PASSWORD=<password>                   # required for Path A
+NB_TOKEN=eyJhbGciOi...                   # optional, skips sign-in (Path B)
+# NOCOBASE_API_TOKEN is a synonym for NB_TOKEN — upstream auth.ts reads either.
+```
+
+## Path A — Sign-in with admin credentials (upstream default)
+
+This is what the upstream `nocobase-dsl-reconciler` skill uses. Username + password → `auth:signIn` → short-lived bearer token. Best for scripts that are OK re-logging in periodically.
+
+```bash
+export NB_URL="https://app.example.com"
+export NB_USER="admin@example.com"
+export NB_PASSWORD="<password>"
+
+# 1. Sign in and capture the token
+TOKEN=$(curl -sS -X POST "${NB_URL}/api/auth:signIn" \
+  -H "Content-Type: application/json" \
+  -d '{"account":"'"$NB_USER"'","password":"'"$NB_PASSWORD"'"}' \
+  | jq -r '.data.token')
+
+# 2. Use it as a Bearer
+curl -H "Authorization: Bearer $TOKEN" \
+     "${NB_URL}/api/collections:list"
+```
+
+The `NB_USER` value is whatever email you set during `nb init --ui` — the root-admin account.
+
+## Path B — Long-lived API Key (when you want a static token)
+
+Useful when you don't want to re-login every call: cron jobs, agents, deploy hooks, third-party integrations.
 
 ### 1. Enable the API Keys plugin
 
@@ -15,42 +49,42 @@ NocoBase v2 accepts `Authorization: Bearer <token>` for every `/api/` request. T
 nb pm enable api-keys
 ```
 
-The `nocobase-plugin-manage` skill covers `nb pm` semantics, error handling, and listing plugins.
+The `nocobase-plugin-manage` skill covers `nb pm` semantics and error handling.
 
 ### 2. Create a token in the admin UI
 
 Open NocoBase → `Settings → API keys → Create`:
 
 - **Name** — short identifier (e.g. `agent-bot`).
-- **Role** — choose the role whose permissions the key will inherit. The token can do exactly what the role can do; nothing more.
-- **Expiration** — pick a date or `Never`.
+- **Role** — pick the role whose permissions the key inherits. The token can do exactly what the role can; no more.
+- **Expiration** — date or `Never`.
 
-Copy the token; it is shown only once.
+Copy the token; it is shown only once. Put it in `NB_TOKEN`.
 
 ### 3. Send authorised requests
 
 ```bash
-export NOCOBASE_URL="https://app.example.com"
-export NOCOBASE_API_KEY="<token-from-admin-ui>"
+export NB_URL="https://app.example.com"
+export NB_TOKEN="<token-from-admin-ui>"
 
 # List collections
-curl -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
-     "${NOCOBASE_URL}/api/collections:list"
+curl -H "Authorization: Bearer ${NB_TOKEN}" \
+     "${NB_URL}/api/collections:list"
 
 # Create a record in the `posts` collection
 curl -X POST \
-     -H "Authorization: Bearer ${NOCOBASE_API_KEY}" \
+     -H "Authorization: Bearer ${NB_TOKEN}" \
      -H "Content-Type: application/json" \
      -d '{"title":"hello","body":"first post"}' \
-     "${NOCOBASE_URL}/api/posts:create"
+     "${NB_URL}/api/posts:create"
 ```
 
-### 4. Node.js examples
+### 4. Node.js
 
 ```js
 // fetch (Node 18+)
-const res = await fetch(`${process.env.NOCOBASE_URL}/api/collections:list`, {
-  headers: { Authorization: `Bearer ${process.env.NOCOBASE_API_KEY}` },
+const res = await fetch(`${process.env.NB_URL}/api/collections:list`, {
+  headers: { Authorization: `Bearer ${process.env.NB_TOKEN}` },
 });
 const data = await res.json();
 ```
@@ -60,8 +94,8 @@ const data = await res.json();
 import axios from "axios";
 
 const nb = axios.create({
-  baseURL: `${process.env.NOCOBASE_URL}/api`,
-  headers: { Authorization: `Bearer ${process.env.NOCOBASE_API_KEY}` },
+  baseURL: `${process.env.NB_URL}/api`,
+  headers: { Authorization: `Bearer ${process.env.NB_TOKEN}` },
 });
 
 const { data } = await nb.get("/collections:list");
@@ -71,9 +105,11 @@ const { data } = await nb.get("/collections:list");
 
 - Tokens are revoked from the same screen (`Settings → API keys → Delete`).
 - Rotation: create the new token first, deploy it, then delete the old one — there is no in-place rotation.
-- Tokens inherit the role at the time of issuance. If the role is later restricted, the token is restricted too on the next request.
+- Tokens inherit the role at issuance. If the role is later restricted, the token is restricted on the next request.
 
-## Path B — OAuth (IdP: OAuth, recommended for end-user flows)
+## Path C — OAuth (IdP: OAuth, for end-user SSO flows)
+
+For human users signing in through Keycloak / Auth0 / Google / Okta. Not for backend scripts — use Path A or B for those.
 
 ### 1. Enable the IdP: OAuth plugin
 
@@ -81,49 +117,45 @@ const { data } = await nb.get("/collections:list");
 nb pm enable @nocobase/plugin-oidc-client
 ```
 
-Plugin name may also appear as `oidc-client` or `idp-oauth` in different builds — `nb pm list` to confirm the actual name on your install.
+Plugin name may also appear as `oidc-client` or `idp-oauth` — `nb pm list` to confirm.
 
-### 2. Configure the provider in admin UI
+### 2. Configure the provider in the admin UI
 
 `Settings → Authentication → Add → OAuth (OIDC)`:
 
-- **Issuer URL** — your IdP's discovery URL (e.g. Keycloak, Auth0, Google).
+- **Issuer URL** — your IdP's discovery URL.
 - **Client ID / Client Secret** — from the IdP.
-- **Redirect URI** — `${NOCOBASE_URL}/api/auth:redirect?authenticator=<your-name>`.
+- **Redirect URI** — `${NB_URL}/api/auth:redirect?authenticator=<your-name>`.
 - **Scopes** — typically `openid profile email`.
 
 ### 3. Authorisation-code flow
 
 ```text
-Browser → GET ${NOCOBASE_URL}/api/auth:redirect?authenticator=<name>
+Browser → GET ${NB_URL}/api/auth:redirect?authenticator=<name>
        → IdP login screen
-       → Browser ← 302 to ${NOCOBASE_URL}/?code=…&state=…
-       → POST ${NOCOBASE_URL}/api/auth:signIn?authenticator=<name>
-              { code, state } → returns NocoBase access token
+       → Browser ← 302 to ${NB_URL}/?code=…&state=…
+       → POST ${NB_URL}/api/auth:signIn?authenticator=<name>
+              { code, state } → returns NocoBase access token (same shape as Path A)
 ```
 
-```bash
-# Step 4: use the resulting token the same way as an API key
-curl -H "Authorization: Bearer ${OAUTH_ACCESS_TOKEN}" \
-     "${NOCOBASE_URL}/api/users:list"
-```
+The token you get back is the same shape as Path A — put it in `NB_TOKEN` for downstream calls.
 
-### Choosing between the two paths
+## Choosing the right path
 
 | Use case | Pick |
 |---|---|
-| Background script, cron, agent, service-to-service | API Key |
-| Human user signing in to a NocoBase-backed UI | OAuth |
-| Integration where the third-party already issues OIDC tokens | OAuth |
-| You need fine-grained auditing per integration | API Key (one per integration) |
+| Local dev, scripts that can store the admin password | **Path A** (sign-in, matches upstream skills) |
+| CI job, cron, agent — wants a static token in env | **Path B** (API Key) |
+| Multiple integrations needing per-key auditing | **Path B** (one API Key per integration) |
+| End user clicking "Sign in with Google/Keycloak" in your UI | **Path C** (OAuth) |
 
 ## Common 401 / 403 causes
 
-- Missing or wrong `Authorization` header — the value is exactly `Bearer <token>`, single space, case-sensitive `Bearer`.
-- Token expired (API Key with explicit expiration; OAuth access token).
-- Role attached to the token has no permission for the requested resource — check `nocobase-acl-manage`.
-- Plugin providing the token type is disabled — `nb pm list` to confirm `api-keys` or the OIDC plugin is enabled.
-- Calling a multi-app instance — make sure the `X-App` header / hostname matches the app the token was issued for.
+- Missing or wrong `Authorization` header — value is exactly `Bearer <token>`, single space, case-sensitive `Bearer`.
+- Token expired (API Key with explicit expiration, sign-in token after TTL, OAuth access token).
+- Role attached to the token has no permission — check `nocobase-acl-manage`.
+- Plugin providing the token type is disabled — `nb pm list` to confirm `api-keys` or `@nocobase/plugin-oidc-client` is enabled.
+- Multi-app instance — make sure the `X-App` header / hostname matches the app the token was issued for.
 
 ## OpenAPI declaration
 
@@ -135,4 +167,4 @@ The full spec at `${CLAUDE_PLUGIN_ROOT}/references/openapi/nocobase.json` declar
 }
 ```
 
-Both API Key and OAuth tokens satisfy this scheme — the server validates the token, not its origin.
+All three paths (sign-in, API Key, OAuth) produce a bearer token that satisfies this scheme — the server validates the token, not its origin.
