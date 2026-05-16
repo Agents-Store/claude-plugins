@@ -4,9 +4,9 @@
       "command": "npx",
       "args": ["-y", "@nocobase/mcp-server"],
       "env": {
-        "NOCOBASE_URL": "https://your-nocobase-instance:13000",
-        "NOCOBASE_EMAIL": "admin@nocobase.com",
-        "NOCOBASE_PASSWORD": "your-password"
+        "NOCOBASE_URL": "${NOCOBASE_URL}",
+        "NOCOBASE_EMAIL": "${NOCOBASE_EMAIL}",
+        "NOCOBASE_PASSWORD": "${NOCOBASE_PASSWORD}"
       }
     }
   }

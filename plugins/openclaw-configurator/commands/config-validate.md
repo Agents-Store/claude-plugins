@@ -6,13 +6,15 @@ argument-hint: "[--secrets] [--docs] [--all]"
 
 # Config Validate
 
-Validate the current OpenClaw instance's `openclaw.json` against official documentation and best practices. CWD is the instance root (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
+Validate the current OpenClaw instance's `openclaw.json` against official documentation and best practices. The active instance dir is `$OPENCLAW_PROJECT_DIR` when set, otherwise the current working directory (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
 
 ## Process
 
-### 1. Read openclaw.json
+### 1. Resolve and read openclaw.json
 
 ```bash
+INSTANCE_DIR="${OPENCLAW_PROJECT_DIR:-$(pwd)}"
+cd "$INSTANCE_DIR" || { echo "ERROR: cannot access $INSTANCE_DIR"; exit 1; }
 cat ./openclaw.json
 ```
 

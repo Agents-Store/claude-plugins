@@ -1,0 +1,164 @@
+{
+  "mcpServers": {
+    "nc-mcp": {
+      "type": "http",
+      "url": "${NC_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer ${NC_MCP_TOKEN}",
+        "x-mcp-packages": "${NC_MCP_PACKAGES}"
+      }
+    },
+    "nocobase": {
+      "command": "npx",
+      "args": ["-y", "@nocobase/mcp-server"],
+      "env": {
+        "NOCOBASE_URL": "${NOCOBASE_URL}",
+        "NOCOBASE_EMAIL": "${NOCOBASE_EMAIL}",
+        "NOCOBASE_PASSWORD": "${NOCOBASE_PASSWORD}"
+      }
+    },
+    "nocobase-dev": {
+      "type": "http",
+      "url": "${NOCOBASE_DEV_URL}/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${NOCOBASE_DEV_API_KEY}",
+        "x-mcp-packages": "plugin-data-source-main,plugin-data-source-manager,plugin-workflow*,plugin-acl,plugin-users,plugin-auth,plugin-client,plugin-flow-engine,plugin-ai"
+      }
+    },
+    "nocodb": {
+      "type": "http",
+      "url": "${NOCODB_MCP_URL}",
+      "headers": {
+        "xc-mcp-token": "${NOCODB_MCP_TOKEN}"
+      }
+    },
+    "directus": {
+      "type": "http",
+      "url": "${NEXT_PUBLIC_DIRECTUS_URL}/mcp",
+      "headers": {
+        "Authorization": "Bearer ${DIRECTUS_ADMIN_TOKEN}"
+      }
+    },
+    "n8n": {
+      "type": "http",
+      "url": "${N8N_MCP_URL}"
+    },
+    "n8n-mcp-external": {
+      "command": "npx",
+      "args": ["n8n-mcp"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "${N8N_API_URL}",
+        "N8N_API_KEY": "${N8N_API_KEY}"
+      }
+    },
+    "n8n-native-mcp": {
+      "type": "http",
+      "url": "${N8N_NATIVE_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer ${N8N_MCP_TOKEN}"
+      }
+    },
+    "trigger-dev": {
+      "command": "npx",
+      "args": ["trigger.dev@latest", "mcp"],
+      "env": {
+        "TRIGGER_ACCESS_TOKEN": "${TRIGGER_SECRET_KEY}",
+        "TRIGGER_API_URL": "${TRIGGER_API_URL}"
+      }
+    },
+    "postgresql-mcp": {
+      "type": "http",
+      "url": "${POSTGRESQL_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer ${POSTGRESQL_MCP_TOKEN}"
+      }
+    },
+    "dokploy": {
+      "command": "npx",
+      "args": ["-y", "@dokploy/mcp"],
+      "env": {
+        "DOKPLOY_URL": "${DOKPLOY_URL}",
+        "DOKPLOY_API_KEY": "${DOKPLOY_API_KEY}"
+      }
+    },
+    "dataforseo": {
+      "command": "npx",
+      "args": ["-y", "dataforseo-mcp-server@latest"],
+      "env": {
+        "DATAFORSEO_USERNAME": "${DATAFORSEO_USERNAME}",
+        "DATAFORSEO_PASSWORD": "${DATAFORSEO_PASSWORD}"
+      }
+    },
+    "firecrawl": {
+      "type": "http",
+      "url": "${FIRECRAWL_MCP_URL}"
+    },
+    "firecrawl-cloud": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_TOKEN}"
+      }
+    },
+    "exa": {
+      "command": "npx",
+      "args": ["-y", "exa-mcp-server"],
+      "env": {
+        "EXA_API_KEY": "${EXA_API_KEY}"
+      }
+    },
+    "perplexity": {
+      "command": "npx",
+      "args": ["-y", "@perplexity-ai/mcp-server"],
+      "env": {
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"
+      }
+    },
+    "jina": {
+      "type": "http",
+      "url": "https://mcp.jina.ai/v1",
+      "headers": {
+        "Authorization": "Bearer ${JINA_API_KEY}"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"]
+    },
+    "monobank": {
+      "type": "http",
+      "url": "${MONOBANK_MCP_URL}"
+    },
+    "privatbank": {
+      "type": "http",
+      "url": "${PRIVATBANK_MCP_URL}"
+    },
+    "drawio": {
+      "type": "http",
+      "url": "https://mcp.draw.io/mcp"
+    },
+    "deep-research": {
+      "type": "http",
+      "url": "https://mcp.mcpware.net/mcp/d1ab2e49-a032-4788-9ba5-3125624f2769"
+    },
+    "mem0": {
+      "type": "http",
+      "url": "https://my-mcp.mcpware.net/mcp/mem0-user"
+    },
+    "sendpulse": {
+      "type": "http",
+      "url": "https://mcp.sendpulse.com/mcp"
+    },
+    "teleshop": {
+      "type": "http",
+      "url": "https://mcp.teleshop.pro/"
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
+    }
+  }
+}

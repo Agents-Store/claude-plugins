@@ -2,11 +2,11 @@
   "mcpServers": {
     "monobank": {
       "type": "http",
-      "url": "https://your-mcp-server.example.com/mcp/monobank"
+      "url": "${MONOBANK_MCP_URL}"
     },
     "privatbank": {
       "type": "http",
-      "url": "https://your-mcp-server.example.com/mcp/privatbank"
+      "url": "${PRIVATBANK_MCP_URL}"
     }
   }
 }

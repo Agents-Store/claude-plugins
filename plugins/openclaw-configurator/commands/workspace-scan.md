@@ -6,15 +6,17 @@ argument-hint: "[quick|full|security]"
 
 # Workspace Scan
 
-Perform a quick health check of the current OpenClaw instance. CWD is the instance root (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
+Perform a quick health check of the current OpenClaw instance. The active instance dir is `$OPENCLAW_PROJECT_DIR` when set, otherwise the current working directory (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
 
 ## Process
 
-### 1. Verify CWD
+### 1. Resolve and verify instance dir
 ```bash
-[ -f ./openclaw.json ] && echo "openclaw.json: OK" || echo "WARNING: not in an OpenClaw instance root"
+INSTANCE_DIR="${OPENCLAW_PROJECT_DIR:-$(pwd)}"
+cd "$INSTANCE_DIR" || { echo "ERROR: cannot access $INSTANCE_DIR"; exit 1; }
+[ -f ./openclaw.json ] && echo "openclaw.json: OK" || echo "WARNING: not in an OpenClaw instance root ($INSTANCE_DIR)"
 [ -d ./workspace ] && echo "workspace/: OK" || echo "WARNING: workspace/ not found"
-pwd
+echo "Instance dir: $INSTANCE_DIR"
 ```
 
 ### 2. Scan auto-injected workspace files (Cat A — 7 core files)

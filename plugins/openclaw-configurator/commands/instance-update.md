@@ -16,21 +16,23 @@ Update an OpenClaw instance from the official GitHub repository. Fetches the lat
 
 ### Step 1: Verify Working Directory
 
-The command must be run from the OpenClaw project root (e.g., `/docker/openclaw-pitline/`). This directory is a git repo cloned from the official OpenClaw repo and contains `docker-compose.yaml`.
+The command targets `$OPENCLAW_PROJECT_DIR` when set, otherwise the current directory (e.g., `/docker/openclaw-pitline/`). The target must be a git repo cloned from the official OpenClaw repo and contain `docker-compose.yaml`.
 
 ```bash
+PROJECT_DIR="${OPENCLAW_PROJECT_DIR:-$(pwd)}"
+cd "$PROJECT_DIR" || { echo "ERROR: cannot access $PROJECT_DIR"; exit 1; }
+
 if [ ! -d ".git" ]; then
-  echo "ERROR: Not a git repository. Run this from the OpenClaw project root (e.g., /docker/openclaw-pitline/)"
+  echo "ERROR: Not a git repository. Run this from (or set OPENCLAW_PROJECT_DIR to) the OpenClaw project root (e.g., /docker/openclaw-pitline/)"
   exit 1
 fi
 
 if [ ! -f "docker-compose.yaml" ] && [ ! -f "docker-compose.yml" ]; then
-  echo "ERROR: No docker-compose.yaml found. Expected to be in the OpenClaw project root."
+  echo "ERROR: No docker-compose.yaml found in $PROJECT_DIR. Expected to be in the OpenClaw project root."
   exit 1
 fi
 
 COMPOSE_FILE=$([ -f "docker-compose.yaml" ] && echo "docker-compose.yaml" || echo "docker-compose.yml")
-PROJECT_DIR="$(pwd)"
 INSTANCE_NAME=$(basename "$PROJECT_DIR")
 echo "Instance: $INSTANCE_NAME"
 echo "Directory: $PROJECT_DIR"

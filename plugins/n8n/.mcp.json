@@ -2,7 +2,10 @@
   "mcpServers": {
     "n8n": {
       "type": "http",
-      "url": "https://your-n8n-instance.com/mcp"
+      "url": "${N8N_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer ${N8N_MCP_TOKEN}"
+      }
     }
   }
 }

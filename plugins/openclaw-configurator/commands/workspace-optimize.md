@@ -99,9 +99,10 @@ Following the skill's best practices:
 ### 9. Fix permissions (Docker deployments only)
 After writing files in Docker deployments, fix permissions:
 ```bash
-# Derive instance name from CWD (e.g., /root/.openclaw-team → team)
-INSTANCE=$(basename "$(pwd)" | sed 's/^\.openclaw-//')
-cd /docker/openclaw-$INSTANCE
+# Derive instance name from OPENCLAW_PROJECT_DIR (if set) or CWD (e.g., /root/.openclaw-team → team)
+INSTANCE_DIR="${OPENCLAW_PROJECT_DIR:-$(pwd)}"
+INSTANCE=$(basename "$INSTANCE_DIR" | sed 's/^\.openclaw-//')
+cd "${OPENCLAW_PROJECT_DIR:-/docker/openclaw-$INSTANCE}"
 docker compose exec -u root openclaw-gateway chown -R node:node /home/node/.openclaw/
 ```
 For non-Docker deployments, skip this step.
