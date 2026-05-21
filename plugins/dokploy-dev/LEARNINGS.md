@@ -1,5 +1,23 @@
 # LEARNINGS.md — dokploy-dev
 
+## 2026-05-21 — v1.3.0: debug-deploy workflow, ai-assist, v0.29.x router coverage
+
+**Feature:** Turned the plugin from "lists MCP tools" into "actually helps when a deploy fails." Added an end-to-end deploy-failure decision tree, wired up the new v0.29 `ai-*` router for AI-powered log analysis, and filled in the previously-stub coverage for the rest of the v0.29 routers (`schedule`, `patch`, `volumeBackups`, `previewDeployment`) and the missing `docker.*` introspection tools.
+**Implementation:**
+- Added `skills/debug-deploy/SKILL.md` — 7-step decision tree (platform health → locate failed run → read build log → container introspection → Traefik check → recovery → AI summary → verify). Documents the runtime-log REST gap ([issue #3719](https://github.com/Dokploy/dokploy/issues/3719)) with Beszel / SSH workarounds so the model doesn't promise log endpoints that don't exist.
+- Added `skills/ai-assist/SKILL.md` — full `ai-*` router workflow: provider setup (OpenAI/Gemini/OpenRouter/Groq/Ollama/self-hosted vLLM), `ai-create` + `ai-testConnection`, `ai-analyzeLogs`, `ai-suggest`, fallback when AI is not configured, privacy/cost considerations.
+- Added 5 commands: `debug`, `logs`, `analyze`, `rollback`, `cleanup`. `debug` chains the full `debug-deploy` skill. `analyze` is the one-shot `ai-analyzeLogs` wrapper. `cleanup` runs the guided `settings-clean*` chain with per-step confirmation and disk-usage delta reporting. `rollback` lists rollback points from the resource's `rollbacks` array and calls `rollback-rollback`. `logs` is a unified log reader that picks the right `*-readLogs` tool and falls back to Beszel / file path.
+- Extended `skills/mcp-patterns/SKILL.md` — replaced "New Capabilities (Not Detailed)" stubs with real tool tables for `ai` (12 tools), `docker` (12 tools), `settings-*` health/cleanup (~30 tools), `schedule` (6), `patch` (12), `volumeBackups` (6), `previewDeployment` (4). Added a cross-cutting "Recovery Chain" subsection that orders the recovery actions from least- to most-destructive.
+- Slimmed `skills/troubleshoot/SKILL.md` — repositioned it as the symptom-to-cause reference table, with the intro pointing at `/dokploy-dev:debug` as the canonical workflow for failed deploys. Added rows for disk-full silent failure, compose-mode mismatch silent success, 127.0.0.1 binding, missing `dokploy-network` membership, port 80/443/8080 conflicts with Traefik, registry auth, and the runtime-log REST gap.
+- Added two `api-reference/references/` files: `ai-and-debugging.md` (AI router, deployment inspection, Docker introspection, recovery actions, rollback, settings health/cleanup, common diagnostic curl recipes) and `schedule-patch-previews.md` (full REST surface for the four v0.29 routers we don't fully scenario-walk).
+- Added `skills/examples/references/debug-failed-deploy.md` — concrete scenario walkthrough showing the full chain on a Next.js app with a wrong DATABASE_URL pointing at a non-existent compose service.
+- Updated `agents/dokploy-assistant.md` — added 3 new `<example>` blocks (debug failed deploy, compose-mode mismatch silent success, AI setup) and refreshed Knowledge Areas / Guidelines for v0.29.
+- Updated `skills/cli-recipes/SKILL.md` — added LibSQL row to the database table (was 5 types, now correctly 6).
+- Bumped version 1.2.0 → 1.3.0 in `plugin.json` and `marketplace.json`. Refreshed description in both to lead with debugging. Added keywords: `debugging`, `ai-analysis`, `log-analysis`, `dokploy-v0.29`.
+- Updated `README.md` — new Skills/Commands tables, new "Debugging Workflow" section, `DOKPLOY_ENABLED_TAGS` example now includes `ai`, `docker`, `rollback`, `schedule`.
+
+**Rationale:** User reported the plugin "doesn't help debug deployment errors" and that Dokploy had been updated. Research confirmed Dokploy v0.29 (April–May 2026) introduced the `ai`, `schedule`, `patch`, `volumeBackups`, `previewDeployment`, `libsql` and tag routers and expanded `docker.*` introspection — all already exposed by `@dokploy/mcp` since the v1.2.0 migration, but undocumented in the plugin. The `troubleshoot` skill was a flat symptom table without a decision tree, so the agent had no canonical "diagnose-failed-deploy" workflow to run. The new `debug-deploy` skill is now that workflow. The `ai-assist` skill teaches the v0.29 AI router, which is Dokploy's headline new feature for debugging. The five new commands give users one-token entry points for the most common failure recovery actions.
+
 ## 2026-04-23 — MCP server migration: @ahdev/dokploy-mcp → @dokploy/mcp
 
 **Feature:** Migrated to the official Dokploy MCP server released by the Dokploy team (https://github.com/Dokploy/mcp).

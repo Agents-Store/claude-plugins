@@ -1,11 +1,11 @@
 ---
 name: examples
-description: "This skill should be used when learning how to deploy apps, provision databases, or set up Docker Compose stacks on Dokploy. Provides end-to-end workflow walkthroughs. Triggers: \"dokploy example\", \"how to deploy on dokploy\", \"dokploy tutorial\", \"dokploy walkthrough\", \"show me how to use dokploy\"."
+description: "This skill should be used when learning how to deploy apps, provision databases, set up Docker Compose stacks, or debug a failed deployment on Dokploy. Provides end-to-end workflow walkthroughs. Triggers: \"dokploy example\", \"how to deploy on dokploy\", \"dokploy tutorial\", \"dokploy walkthrough\", \"show me how to use dokploy\", \"dokploy debug example\"."
 ---
 
 # Dokploy Examples
 
-Step-by-step walkthroughs covering the three most common Dokploy workflows. Each scenario uses MCP tools as the primary method, with equivalent curl commands shown alongside.
+Step-by-step walkthroughs covering the most common Dokploy workflows. Each scenario uses MCP tools as the primary method, with equivalent curl commands shown alongside where relevant.
 
 ---
 
@@ -36,3 +36,13 @@ Deploy a multi-container application using a docker-compose.yml file with servic
 Covers: compose service creation, compose file content, environment variables, deployment, and per-service domain assignment.
 
 See full walkthrough: [references/compose-stack.md](references/compose-stack.md)
+
+---
+
+## Scenario 4: Debug a Failed Deployment
+
+Diagnose and recover from a failed deployment end-to-end — locate the failed run, read the build log, inspect the container, check Traefik, optionally AI-summarise, apply the fix, and verify.
+
+Covers: `deployment-all` filtering, build log reading via Beszel / SSH (issue #3719 workaround), `docker-getContainersByAppLabel` + `docker-getConfig` introspection, `ai-analyzeLogs` integration, and choosing the right recovery action.
+
+See full walkthrough: [references/debug-failed-deploy.md](references/debug-failed-deploy.md)

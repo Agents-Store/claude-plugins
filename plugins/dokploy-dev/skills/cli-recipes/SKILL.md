@@ -104,6 +104,7 @@ dokploy database:{type}:{action}
 | `mariadb` | MariaDB |
 | `mongo` | MongoDB |
 | `redis` | Redis |
+| `libsql` | LibSQL — SQLite-compatible managed service (added in v0.29) |
 
 ### Supported actions
 

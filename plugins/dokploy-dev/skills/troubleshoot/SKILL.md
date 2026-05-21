@@ -1,11 +1,13 @@
 ---
 name: troubleshoot
-description: "This skill should be used when diagnosing Dokploy deployment failures, domain issues, database connection problems, or Docker/Traefik errors. Use when a deployment fails, domain is not resolving, database cannot connect, app returns 502, or MCP tools return errors. Triggers: \"dokploy error\", \"deployment failed\", \"domain not working\", \"502 bad gateway\", \"database connection refused\", \"dokploy debug\"."
+description: "This skill is the symptom-to-cause lookup reference for Dokploy problems — domains, databases, Docker, Traefik, MCP connection. Use for known-symptom diagnosis. For an end-to-end failed-deploy workflow, the canonical entry point is the `debug-deploy` skill and the `/dokploy-dev:debug` command. Triggers: \"dokploy 502\", \"domain not resolving\", \"database connection refused\", \"mcp tools not found\", \"dokploy api 401\", \"traefik dashboard\"."
 ---
 
-# Dokploy Troubleshooting
+# Dokploy Troubleshooting Reference
 
-Diagnose and resolve common Dokploy problems. Work through the relevant section based on the symptom reported.
+This is the **symptom-to-cause reference table** for common Dokploy problems. Match the user's symptom against the relevant section below, then apply the fix.
+
+> **For a failed deployment, start here:** Run `/dokploy-dev:debug [resource]` (or load the `debug-deploy` skill). That runs the full decision tree — failed-run lookup, build log analysis, container/Traefik inspection, optional AI summary, and recovery — instead of just a symptom lookup. Use this skill when you already know the rough symptom and want the table entry.
 
 ---
 
@@ -13,19 +15,20 @@ Diagnose and resolve common Dokploy problems. Work through the relevant section 
 
 Run these checks first to understand the current state:
 
-1. **Check Dokploy health:**
-   ```bash
-   curl -s "$DOKPLOY_URL/api/settings.health" \
-     -H "x-api-key: $DOKPLOY_API_KEY"
+1. **Platform health:**
+   ```
+   mcp__dokploy__settings-health
+   mcp__dokploy__settings-checkInfrastructureHealth
+   mcp__dokploy__settings-getDockerDiskUsage
    ```
 
-2. **Check Dokploy version:** Call `mcp__dokploy__settings-getDokployVersion`
+2. **Dokploy version:** Call `mcp__dokploy__settings-getDokployVersion`
 
-3. **List recent deployments:** Call `mcp__dokploy__deployment-allCentralized`
+3. **Recent deployments:** Call `mcp__dokploy__deployment-allCentralized`
 
-4. **Check Docker containers:** Call `mcp__dokploy__docker-getContainers`
+4. **Docker containers:** Call `mcp__dokploy__docker-getContainers`
 
-If the health check fails, the server itself is down. Fix the server before investigating application-level issues.
+If the health check fails or `checkInfrastructureHealth` reports a problem, the server itself is unhealthy. Fix the server before investigating application-level issues.
 
 ---
 
@@ -62,6 +65,8 @@ If the health check fails, the server itself is down. Fix the server before inve
 
 ## Deployment Failures
 
+> For a multi-step diagnosis instead of a single-row lookup, run `/dokploy-dev:debug` — it locates the failed run, reads the build log, inspects the container, and recommends a fix.
+
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | Build fails | Wrong build type | Check the build type matches the source. Use Nixpacks for auto-detect, Dockerfile if a Dockerfile exists in the repo |
@@ -70,24 +75,39 @@ If the health check fails, the server itself is down. Fix the server before inve
 | Git clone fails | Wrong repo URL or credentials | Verify the git provider config. Re-authenticate with the per-provider update tool: `mcp__dokploy__github-update`, `mcp__dokploy__gitlab-update`, `mcp__dokploy__bitbucket-update`, or `mcp__dokploy__gitea-update` |
 | Nixpacks build fails | Unsupported language/framework | Check Nixpacks docs for supported runtimes. Alternatively, switch to Dockerfile build type |
 | Build timeout | Large image or slow network | Increase build timeout or optimize the Dockerfile (use multi-stage builds, reduce layers) |
+| Build fails with `no space left on device` | Server disk full (typically build cache or unused images) | Run `/dokploy-dev:cleanup`. Check `mcp__dokploy__settings-getDockerDiskUsage` — if Images > 70% of total, run `settings-cleanUnusedImages` and `cleanDockerBuilder` |
+| Deploy reports `done` but production site unchanged | Compose-mode mismatch — the site runs from a compose service but `application-deploy` was called on the standalone app | Call `compose-deploy` on the matching compose resource. The `/dokploy-dev:deploy` and `/dokploy-dev:status` commands detect this and warn |
+| Container runs but logs show `EADDRINUSE` or never accepts connections | App bound to `127.0.0.1` (loopback) instead of `0.0.0.0` | Fix the app's listen address. Most frameworks need an explicit `HOST=0.0.0.0` env var or CLI flag |
+| Compose service unreachable from Traefik | Service not on `dokploy-network` | Every public-facing compose service must declare `networks: [dokploy-network]` and the network must be `external: true` at the top level |
+| Compose service breaks Traefik (ports 80/443/8080 conflict) | Compose service exposes host ports directly (e.g. `ports: ["80:80"]`) | Remove the explicit host port mapping — Traefik routes via labels, not host bindings. If a host port is required, pick a non-Traefik one |
+| Image pull fails with `unauthorized` | Registry creds missing or expired | `mcp__dokploy__registry-all` → `registry-update` with fresh credentials |
+| Need to see runtime stdout/stderr but `application-readLogs` only returns build log | Dokploy does not yet expose live container logs via REST ([issue #3719](https://github.com/Dokploy/dokploy/issues/3719)) | Use Beszel (`beszel-getContainerLogs`) on the Dokploy container, or `ssh` to the server and `docker logs <containerId>`. The container ID comes from `mcp__dokploy__docker-getContainersByAppLabel` |
 
 ### Deployment debugging steps
+
+For full diagnosis, prefer `/dokploy-dev:debug <id>` over walking these manually — it chains them in the right order and also runs `ai-analyzeLogs` if a provider is configured.
 
 1. **List deployments and find the latest:**
    ```bash
    curl -s -H "x-api-key: $DOKPLOY_API_KEY" \
      "$DOKPLOY_URL/api/deployment.all?applicationId=<id>" | python3 -m json.tool
    ```
-   Or call `mcp__dokploy__deployment-all` with `applicationId` as the filter.
+   Or call `mcp__dokploy__deployment-all` with `applicationId` as the filter. Save the `deploymentId` of the failed run and its `logPath`.
 
 2. **Read deployment build logs:**
-   Call `mcp__dokploy__application-readLogs` with the applicationId to stream container logs directly. For historical build logs, Dokploy stores files at `/etc/dokploy/logs/<appName>/<appName>-<timestamp>.log` on the server. If Beszel is available, use `beszel-getContainerLogs` on the Dokploy container to see recent build output including error traces. The Dokploy container ID can be found via `beszel-get_collections_containers_records` on the dokploy-server system.
+   `mcp__dokploy__application-readLogs` returns build log **metadata** (path, status, deployment marker), not a live tail. For the file content, read `/etc/dokploy/logs/<appName>/<appName>-<timestamp>.log` via Beszel (`beszel-getContainerLogs` on the Dokploy container — the path is visible inside it) or `ssh` to the server and `tail` the file. This limitation is tracked in [issue #3719](https://github.com/Dokploy/dokploy/issues/3719).
 
 3. **Check application status:**
-   Call `mcp__dokploy__application-one` with the applicationId. Look at the `applicationStatus` field.
+   `mcp__dokploy__application-one` with the applicationId. Look at the `applicationStatus` field.
 
-4. **Check the container is running:**
-   Call `mcp__dokploy__docker-getContainers` and find the container matching the app name.
+4. **Inspect the container:**
+   `mcp__dokploy__docker-getContainersByAppLabel { appName }` for state and health. Drill down with `docker-getConfig { containerId }` to see env, command, mounts, network, and restart policy. If the container is in a restart loop, the exit code in `docker-getConfig` tells you why.
+
+5. **Check Traefik routing (if HTTP errors):**
+   `mcp__dokploy__application-readTraefikConfig` returns the router/service entries Traefik uses for this app. Confirm the service URL points at the right port and the host matches the domain the user is hitting.
+
+6. **Summarise with AI (optional):**
+   If `mcp__dokploy__ai-getEnabledProviders` returns at least one provider, run `mcp__dokploy__ai-analyzeLogs { deploymentId }` for a natural-language root-cause + suggested fix. See the `ai-assist` skill for setup.
 
 ---
 
