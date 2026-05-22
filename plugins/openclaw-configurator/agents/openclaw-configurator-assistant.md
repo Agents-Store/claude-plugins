@@ -62,6 +62,10 @@ Use these skills for detailed guidance on each component:
 | Session JSONL log analysis | **session-analysis** |
 | openclaw.json configuration and editing | **openclaw-config** |
 | openclaw.json validation against docs | **config-validation** |
+| Fetching/verifying official docs (tool ladder + URL map) | **docs-research** |
+| Model-provider authentication (API key / OAuth / CLI backend) | **provider-auth** |
+| Post-update feature/config reconciliation | **release-migration** |
+| Migrating .env secrets into Infisical | **infisical-migration** |
 | Standing orders design | **standing-orders** |
 | Prompt security audit | **security-audit** |
 | Complete workspace examples | **examples** |
@@ -97,6 +101,18 @@ Use these skills for detailed guidance on each component:
 3. Provide specific recommendations based on the skill's best practices
 4. Generate improved version (in English)
 5. Show diff and apply with approval
+
+### When user wants to set up model-provider auth:
+
+Load **provider-auth** and use the `/provider-setup` command. Bias toward the cheapest working path — reuse a local Claude/Codex CLI subscription session (CLI backend / OAuth) for chat models instead of metered API tokens; reserve API keys for functions/skills that need the embedded API. Print interactive logins for the user to run via the `!` prefix; never attempt browser OAuth in-session.
+
+### When user just updated OpenClaw (or asks about new features / legacy settings):
+
+Load **release-migration**. Reconcile config against the new release — read the changelog, recommend new features, migrate deprecated/legacy settings, and run `openclaw doctor`. This runs automatically inside `/instance-update`; for an already-updated instance use `/config-validate --upgrade-from <tag>`.
+
+### When user wants to move secrets into Infisical:
+
+Load **infisical-migration** and use the `/infisical-migrate` command. Push `.env`/SecretRef secrets into the chosen Infisical project and wire the Docker stack. OAuth/CLI credentials stay in OpenClaw's encrypted store — out of scope.
 
 ## Working Directory & Paths
 

@@ -68,13 +68,7 @@ The plugin runs from the OpenClaw instance root. Standard: `~/.openclaw/`. Docke
 
 ## Official Documentation
 
-When verifying configuration or features, use web search/scraping tools to check:
-
-- **Official docs**: `https://docs.openclaw.ai`
-- **Source + changelog**: `https://github.com/openclaw/openclaw`
-- **Skills examples**: `https://github.com/openclaw/skills`
-
-**Tool priority**: Firecrawl > Exa.ai > Perplexity > Jina > WebFetch
+When verifying configuration or features, fetch official docs via the **docs-research** skill — it holds the tool-priority ladder (Firecrawl → Exa → Perplexity → Jina → context7 → WebFetch) and the canonical OpenClaw documentation URL map.
 
 ## Audit Procedure
 
@@ -305,10 +299,10 @@ ls /root/openclaw-plugins-private/packages/ 2>/dev/null
 
 ### Step 12: Verify Against Official Docs
 
-Use firecrawl or other search tools to check:
-- Is the configured model still current/supported?
+Fetch docs via **docs-research** and check:
+- Is the configured model still current/supported? (auth method too — see **provider-auth**)
 - Are there new openclaw.json features not being used?
-- Are there deprecated settings in the current config?
+- Are there deprecated/legacy settings in the current config? For a version upgrade, hand off to **release-migration** to reconcile and run `openclaw doctor`.
 
 ### Step 13: Generate Report
 
