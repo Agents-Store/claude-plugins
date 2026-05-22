@@ -1,5 +1,4 @@
 {
-  "enableAllProjectMcpServers": true,
   "permissions": {
     "allow": [
       "mcp__*",
@@ -8,5 +7,10 @@
       "Write(*)",
       "Edit(*)"
     ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true,
+    "context7@claude-plugins-official": true
   }
 }
