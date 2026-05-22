@@ -6,13 +6,20 @@ argument-hint: "[quick|full|security]"
 
 # Workspace Scan
 
-Perform a quick health check of the current OpenClaw instance. The active instance dir is `$OPENCLAW_PROJECT_DIR` when set, otherwise the current working directory (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
+Perform a quick health check of the current OpenClaw instance.
+
+**Path resolution (in priority order):**
+1. `$OPENCLAW_INSTANCE_DIR` — runtime workspace dir (holds `openclaw.json`, `workspace/`, `agents/`, etc.). Standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`.
+2. `$OPENCLAW_PROJECT_DIR` — git/docker-compose project dir; used as a fallback only when `OPENCLAW_INSTANCE_DIR` is unset AND it happens to also be the instance root.
+3. `$(pwd)` — current directory.
+
+`OPENCLAW_INSTANCE_DIR` and `OPENCLAW_PROJECT_DIR` are distinct concepts and usually live in **different** places (e.g. project `/docker/openclaw-pitline/`, instance `~/.openclaw-pitline/`). Workspace commands like this one always target the **instance** dir.
 
 ## Process
 
 ### 1. Resolve and verify instance dir
 ```bash
-INSTANCE_DIR="${OPENCLAW_PROJECT_DIR:-$(pwd)}"
+INSTANCE_DIR="${OPENCLAW_INSTANCE_DIR:-${OPENCLAW_PROJECT_DIR:-$(pwd)}}"
 cd "$INSTANCE_DIR" || { echo "ERROR: cannot access $INSTANCE_DIR"; exit 1; }
 [ -f ./openclaw.json ] && echo "openclaw.json: OK" || echo "WARNING: not in an OpenClaw instance root ($INSTANCE_DIR)"
 [ -d ./workspace ] && echo "workspace/: OK" || echo "WARNING: workspace/ not found"

@@ -6,14 +6,21 @@ argument-hint: "[--secrets] [--docs] [--all]"
 
 # Config Validate
 
-Validate the current OpenClaw instance's `openclaw.json` against official documentation and best practices. The active instance dir is `$OPENCLAW_PROJECT_DIR` when set, otherwise the current working directory (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
+Validate the current OpenClaw instance's `openclaw.json` against official documentation and best practices.
+
+**Path resolution (in priority order):**
+1. `$OPENCLAW_INSTANCE_DIR` — runtime workspace dir holding `openclaw.json` (standard: `~/.openclaw/`, Docker multi-instance: `~/.openclaw-{name}/`).
+2. `$OPENCLAW_PROJECT_DIR` — git/docker-compose project dir; fallback only.
+3. `$(pwd)` — current directory.
+
+Workspace commands always target the **instance** dir, which usually differs from the project dir.
 
 ## Process
 
 ### 1. Resolve and read openclaw.json
 
 ```bash
-INSTANCE_DIR="${OPENCLAW_PROJECT_DIR:-$(pwd)}"
+INSTANCE_DIR="${OPENCLAW_INSTANCE_DIR:-${OPENCLAW_PROJECT_DIR:-$(pwd)}}"
 cd "$INSTANCE_DIR" || { echo "ERROR: cannot access $INSTANCE_DIR"; exit 1; }
 cat ./openclaw.json
 ```

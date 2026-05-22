@@ -227,7 +227,20 @@ claude
 
 ### Path-anchored plugins (OpenClaw)
 
-`openclaw-configurator` honors `OPENCLAW_PROJECT_DIR`. Set it in Infisical (or hand-add to the `env` block of `settings.local.json`) — commands like `/openclaw-configurator:workspace-scan` then target that instance regardless of CWD. When unset, behavior falls back to `$(pwd)`.
+`openclaw-configurator` honors two env vars that target a specific OpenClaw deployment regardless of CWD:
+
+| Var | What it points to | Used by |
+|-----|-------------------|---------|
+| `OPENCLAW_INSTANCE_DIR` | Runtime instance dir (`openclaw.json`, `workspace/`, `agents/`, etc.) — typically `~/.openclaw-{name}/` | `workspace-scan`, `config-validate`, `workspace-optimize`, permission-fix hook |
+| `OPENCLAW_PROJECT_DIR` | Git/docker-compose project dir — typically `/docker/openclaw-{name}/` | `instance-update`; also `docker compose` working dir when fixing permissions |
+
+For Docker deployments these are **different** paths. Workspace-aware commands resolve in this order:
+
+```
+OPENCLAW_INSTANCE_DIR  >  OPENCLAW_PROJECT_DIR  >  $(pwd)
+```
+
+Set them in Infisical (or hand-add to the `env` block of `settings.local.json`). When both are unset, everything falls back to `$(pwd)` and the legacy single-dir layout still works.
 
 ### Adding a new env var
 

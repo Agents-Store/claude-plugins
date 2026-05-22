@@ -13,7 +13,24 @@ This skill covers the structure, loading mechanics, and organization of an OpenC
 
 **Docker multi-instance layout**: Each instance lives at `~/.openclaw-{name}/` (e.g. `~/.openclaw-nova/`). This is a deployment convention for running multiple OpenClaw instances, each with its own config and workspace.
 
-The plugin runs from the instance root as CWD. All paths below are relative to CWD.
+### Instance dir vs Project dir
+
+For Docker deployments these are two **different** directories:
+
+| Concept | Env var | Typical path | Holds |
+|---------|---------|--------------|-------|
+| **Instance dir** (runtime) | `OPENCLAW_INSTANCE_DIR` | `~/.openclaw-{name}/` | `openclaw.json`, `workspace/`, `agents/`, `memory/`, `logs/` |
+| **Project dir** (source) | `OPENCLAW_PROJECT_DIR` | `/docker/openclaw-{name}/` | git checkout, `docker-compose.yaml`, migrations |
+
+**Resolution priority used by workspace-aware commands** (`workspace-scan`, `config-validate`, `workspace-optimize`, the permissions hook):
+
+```
+OPENCLAW_INSTANCE_DIR  >  OPENCLAW_PROJECT_DIR  >  $(pwd)
+```
+
+`OPENCLAW_PROJECT_DIR` alone is used by `instance-update` (git pull / rebuild) and as the `docker compose` working dir when fixing permissions. All other commands target the instance dir. When both are unset, the plugin falls back to CWD and the legacy single-instance layout still works.
+
+All paths below are relative to the resolved instance dir.
 
 ```
 ./                              # Instance root (~/.openclaw-{name}/)
