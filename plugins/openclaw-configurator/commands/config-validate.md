@@ -86,18 +86,7 @@ Cross-checks:
 
 ### 6. Fetch Latest Documentation
 
-Use available search/scraping tools to check official OpenClaw docs for latest features:
-
-**Tool priority** (use the best available):
-1. Firecrawl tools — `firecrawl_scrape` for page content, `firecrawl_search` for queries
-2. Exa.ai — `web_search_exa` for code-aware search
-3. Perplexity — `search` for synthesis
-4. Jina — `read_url` for page reading
-5. WebFetch — basic URL fetch
-
-**What to check**:
-- `https://docs.openclaw.ai` — latest configuration reference
-- `https://github.com/openclaw/openclaw` — changelog, new features
+To check official OpenClaw docs for latest features, follow the **docs-research** skill — it holds the tool-priority ladder (Firecrawl → Exa → Perplexity → Jina → context7 → WebFetch) and the OpenClaw documentation URL map.
 
 Compare current config with latest available features. Flag:
 - New fields available but not configured

@@ -130,18 +130,7 @@ The plugin runs from the OpenClaw instance root. Standard: `~/.openclaw/`. Docke
 
 ## Official Documentation
 
-When verifying OpenClaw configuration, features, or best practices, consult official documentation:
-
-- **Official docs**: `https://docs.openclaw.ai`
-- **Source + changelog**: `https://github.com/openclaw/openclaw`
-- **Skills examples**: `https://github.com/openclaw/skills`
-
-**Tool priority for fetching docs** (use the best available):
-1. Firecrawl tools (firecrawl_scrape, firecrawl_search) — primary, best for deep scraping
-2. Exa.ai (web_search_exa) — code-aware search
-3. Perplexity (search) — synthesis and summaries
-4. Jina (read_url, search_web) — fallback reader
-5. WebFetch — basic fallback
+When verifying OpenClaw configuration, features, or best practices, consult official documentation via the **docs-research** skill — it holds the tool-priority ladder (Firecrawl → Exa → Perplexity → Jina → context7 → WebFetch) and the canonical OpenClaw documentation URL map (docs site, source/changelog, skills examples). Always verify against official docs before recommending a feature or auth change — OpenClaw evolves quickly.
 
 ## openclaw.json Editing Rules
 

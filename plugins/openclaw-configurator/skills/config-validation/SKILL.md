@@ -9,18 +9,7 @@ Validate `openclaw.json` against the official OpenClaw documentation and check f
 
 ## Official Documentation Sources
 
-When validating configuration, fetch the latest information from:
-
-1. **Official docs**: `https://docs.openclaw.ai` — primary reference
-2. **Source + changelog**: `https://github.com/openclaw/openclaw` — latest changes
-3. **Skills examples**: `https://github.com/openclaw/skills` — skill patterns
-
-**Tool priority for fetching docs**:
-1. Firecrawl (firecrawl_scrape, firecrawl_search) — primary, best for deep page scraping
-2. Exa.ai (web_search_exa) — code-aware search
-3. Perplexity (search) — synthesis and summaries
-4. Jina (read_url, search_web) — fallback reader
-5. WebFetch — basic fallback
+When validating configuration, fetch the latest information using the **docs-research** skill — it holds the tool-priority ladder (Firecrawl → Exa → Perplexity → Jina → context7 → WebFetch) and the canonical OpenClaw documentation URL map (docs site, source/changelog, skills examples).
 
 Always verify against official docs before recommending changes. OpenClaw evolves — features may be added or deprecated.
 

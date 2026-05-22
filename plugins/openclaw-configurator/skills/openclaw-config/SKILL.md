@@ -11,12 +11,7 @@ The config uses JSON5 format and has **strict schema validation** — unknown ke
 
 ## Official Documentation
 
-Always verify configuration against official docs:
-- **Docs**: `https://docs.openclaw.ai`
-- **Source + changelog**: `https://github.com/openclaw/openclaw`
-- **Skills examples**: `https://github.com/openclaw/skills`
-
-Use firecrawl, exa, perplexity, jina, or WebFetch to check docs when uncertain.
+Always verify configuration against official docs. To fetch them, follow the **docs-research** skill — it holds the tool-priority ladder (Firecrawl → Exa → Perplexity → Jina → context7 → WebFetch) and the canonical OpenClaw documentation URL map.
 
 ## Editing openclaw.json
 
