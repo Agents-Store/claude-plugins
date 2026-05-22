@@ -1,7 +1,7 @@
 ---
-description: Validate openclaw.json against official documentation, check for latest features, detect inline secrets, and verify cross-references with workspace files
-allowed-tools: ["Read", "Bash", "Glob", "Grep", "WebFetch", "WebSearch"]
-argument-hint: "[--secrets] [--docs] [--all]"
+description: Validate openclaw.json against official documentation, check for latest features, detect inline secrets, verify cross-references with workspace files, and optionally reconcile config against a newer release
+allowed-tools: ["Read", "Edit", "Bash", "Glob", "Grep", "Skill", "WebFetch", "WebSearch"]
+argument-hint: "[--secrets] [--docs] [--all] [--upgrade] [--upgrade-from <tag>]"
 ---
 
 # Config Validate
@@ -141,3 +141,21 @@ If issues found, offer to fix them:
 - Always back up before editing: `cp ./openclaw.json ./openclaw.json.bak`
 - After editing: run `openclaw doctor --fix` to verify (Docker multi-instance: `openclaw-{name} doctor --fix`)
 - For workspace file issues: suggest using `/workspace-optimize <file>`
+
+### 9. Upgrade Reconciliation Mode (`--upgrade` / `--upgrade-from <tag>`)
+
+For an instance whose **code** was already updated but whose **config** was never reconciled against the new release (e.g. updated manually, outside `/instance-update`), run this mode after the normal validation above.
+
+Determine the tag range, then hand off to the **release-migration** skill:
+
+```bash
+PROJECT_DIR="${OPENCLAW_PROJECT_DIR:-$(pwd)}"
+NEW_TAG=$(git -C "$PROJECT_DIR" describe --tags --abbrev=0 2>/dev/null)
+
+# --upgrade-from <tag>  → OLD_TAG is the provided tag
+# --upgrade (no arg)    → OLD_TAG is the tag before NEW_TAG
+OLD_TAG="${UPGRADE_FROM:-$(git -C "$PROJECT_DIR" describe --tags --abbrev=0 "$NEW_TAG^" 2>/dev/null)}"
+echo "Reconciling config from $OLD_TAG → $NEW_TAG"
+```
+
+Invoke **release-migration** with `OLD_TAG` and `NEW_TAG`. It reads the changelog, recommends new features, migrates deprecated/legacy settings (with the safeguards above), and runs `openclaw doctor --fix`. This is the same reconciliation phase `/instance-update` runs automatically — use it standalone here.

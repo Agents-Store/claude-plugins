@@ -1,6 +1,6 @@
 ---
-description: Update OpenClaw instance from official GitHub repo — fetch latest tag, merge into dev preserving local changes, rebuild Docker containers
-allowed-tools: ["Read", "Bash", "Glob", "Grep"]
+description: Update OpenClaw instance from official GitHub repo — fetch latest tag, merge into dev preserving local changes, rebuild Docker containers, then reconcile config against the new release and run openclaw doctor
+allowed-tools: ["Read", "Edit", "Bash", "Glob", "Grep", "Skill", "WebFetch", "WebSearch"]
 argument-hint: "[tag-or-version]"
 ---
 
@@ -240,7 +240,26 @@ If not all containers are running:
 2. Show logs: `docker compose logs --tail=50 <failed_service>`
 3. Offer to retry or roll back
 
-### Step 11: Restore Stashed Changes
+### Step 11: Post-Update Release Analysis & Config Reconciliation
+
+A code update is not done until the config is reconciled against the new release. Run this even on a clean merge.
+
+Config lives in the **instance** dir, not the git project dir:
+
+```bash
+INSTANCE_DIR="${OPENCLAW_INSTANCE_DIR:-${OPENCLAW_PROJECT_DIR:-$(pwd)}}"
+```
+
+Invoke the **release-migration** skill with `OLD_TAG=$PRE_UPDATE_TAG` and `NEW_TAG=$TARGET_TAG`. It will:
+1. Read the changelog between tags (`git show "$TARGET_TAG:CHANGELOG.md"`, `git log "$PRE_UPDATE_TAG..$TARGET_TAG"`) and fetch release notes/docs via **docs-research**.
+2. Recommend newly available features (opt-in), flag deprecated/legacy settings, and migrate `openclaw.json` with the **openclaw-config** safeguards (diff → confirm → backup → validate JSON → never delete sections).
+3. Run `openclaw doctor --fix` — **mandatory** here. Standard: `openclaw doctor --fix`. Docker multi-instance (run in the project dir): `cd "$OPENCLAW_PROJECT_DIR" && docker compose exec openclaw-gateway-$INSTANCE_NAME openclaw doctor --fix`.
+
+If `openclaw.json` was edited from the host in a Docker deployment, fix permissions (chown + doctor) as in `/workspace-optimize` step 9 — `docker compose` runs in `$OPENCLAW_PROJECT_DIR`.
+
+Capture the migration report (new features recommended, legacy items migrated, doctor result) for the final summary.
+
+### Step 12: Restore Stashed Changes
 
 If changes were stashed in Step 2:
 
@@ -251,7 +270,7 @@ echo "Restored stashed changes"
 
 If stash pop has conflicts, show them and help resolve.
 
-### Step 12: Summary
+### Step 13: Summary
 
 ```
 === OpenClaw Instance Update Complete ===
@@ -261,6 +280,8 @@ Previous version: $PRE_UPDATE_TAG ($PRE_UPDATE_COMMIT)
 Updated to:       $TARGET_TAG ($(git rev-parse --short HEAD))
 Branch:           dev (local only — NOT pushed)
 Conflicts:        [None / N resolved]
+Config reconcile: [N features recommended / M migrations applied]
+doctor:           [pass / N fixes applied / issues remain]
 Backups:          ${COMPOSE_FILE}.pre-update.bak
 Containers:       [docker compose ps summary]
 
