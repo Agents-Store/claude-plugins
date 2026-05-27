@@ -8,6 +8,7 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 - **Code Review**: Beginner-friendly review with "why" explanations, not just "fix this"
 - **Code Explanation**: 4-layer model (Context → Data Flow → Details → Pitfalls)
 - **Diagrams**: Architecture, ERD, user flows, sequence diagrams — all as native .drawio files via drawio-mcp
+- **Frontend Testing**: Navigate a running app, test forms and interactions, collect console/network errors — via Playwright MCP
 
 ## Usage Modes
 
@@ -16,14 +17,17 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 | `/codemap:review file.py` (command) | Agent launches **automatically** |
 | `/codemap:explain app.py` (command) | Agent launches **automatically** |
 | `/codemap:diagram architecture` (command) | Agent launches **automatically** |
+| `/codemap:test-frontend localhost:3000` (command) | Agent launches **automatically** |
 | "review file.py" (chat trigger) | Skill triggers → **asks**: agent or inline? |
 | "explain app.py" (chat trigger) | Skill triggers → **asks**: agent or inline? |
+| "test the frontend" (chat trigger) | Skill triggers → **asks**: agent or inline? |
 
 **Commands** always delegate to specialized agents. **Skills** (auto-triggered by chat) give you the choice.
 
 ## Requirements
 
 - **drawio-mcp** — public HTTP MCP server (auto-configured by plugin, no API key needed)
+- **Playwright MCP** — local stdio server, auto-installed via `npx @playwright/mcp@latest` (requires Node.js)
 
 ## Commands
 
@@ -35,6 +39,7 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 | `/codemap:diagram <type> [scope]` | Generate specific diagram (architecture, flow, db, sequence, deps) |
 | `/codemap:db` | Parse models/migrations and generate ERD + DB documentation |
 | `/codemap:flows` | Discover and visualize main user flows |
+| `/codemap:test-frontend [url]` | Test running app's frontend — navigate pages, check UI, find errors, generate report |
 
 ## Skills (auto-triggered in chat)
 
@@ -43,6 +48,7 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 | `codemap-review` | User asks to review code, check quality, find issues |
 | `codemap-explain` | User asks to explain code, understand a file/function. Asks about depth (overview/moderate/deep dive) and aspect of interest before explaining. Ref: `explanation-patterns.md` |
 | `codemap-diagram` | User asks for a diagram, visualization, ERD, flow chart |
+| `frontend-test` | User asks to test the frontend, check UI, find browser errors, verify app works |
 
 ## Agents
 
@@ -51,6 +57,7 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 | `code-reviewer` | Focused code review with educational feedback | Opus |
 | `architect-explainer` | Architecture analysis and guided project tours | Opus |
 | `diagrammer` | Diagram generation via drawio-mcp | Sonnet |
+| `frontend-tester` | Frontend testing via Playwright MCP | Sonnet |
 
 ## Output Artifacts
 
@@ -60,6 +67,7 @@ All generated files are saved to `docs/codemap/` in the project:
 - `docs/codemap/ARCHITECTURE.md` — textual architecture description with diagram links
 - `docs/codemap/DB.md` — database schema description + ERD
 - `docs/codemap/FLOWS.md` — main user flows with diagrams
+- `docs/codemap/FRONTEND.md` — frontend testing report (pages, errors, recommendations)
 - `docs/codemap/diagrams/*.drawio` — all generated diagrams (open with draw.io)
 
 ## Diagram Types

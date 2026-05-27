@@ -3,6 +3,13 @@
     "drawio": {
       "type": "http",
       "url": "https://mcp.draw.io/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless"
+      ]
     }
   }
 }

@@ -39,3 +39,18 @@ Accumulated fixes and discoveries from plugin usage.
 - Expanded Error Handling (minified code, binary files)
 - Updated evals: 4 → 6 test cases, all expectations updated for new structure
 **Rationale:** Skill produced inconsistent output — no format template, no clarification of user intent, no reading strategy for code analysis, no verification step. Users couldn't control depth or focus of explanations. Agent didn't reinforce the new methodology from its own system prompt.
+
+## 2026-05-27 — frontend-test: Add Playwright MCP frontend testing
+
+**Feature:** Added frontend testing capability via Playwright MCP — navigate a running app, explore UI, test forms and interactions, collect console/network errors, and generate a structured health report
+**Implementation:**
+- Added `playwright` stdio MCP server to `.mcp.json` (`npx @playwright/mcp@latest --headless`)
+- Created `skills/frontend-test/SKILL.md` — 5-phase testing methodology (URL detection → Discovery → Interaction → Error Analysis → Report generation)
+- Created `agents/frontend-tester.md` — Sonnet model, green color, dedicated browser automation agent with full Playwright MCP tool list
+- Created `commands/test-frontend.md` — `/codemap:test-frontend [url]` entry point that delegates to the frontend-tester agent
+- Report output at `docs/codemap/FRONTEND.md` with sections: Summary metrics, Pages Discovered, Console Errors, Network Failures, Forms, UI Issues, Recommendations
+- Skill includes Step 0 Execution Mode (agent vs inline choice) matching existing skill pattern
+- Skill includes Error Handling for: app not reachable, authentication required, Playwright MCP not connected, SPA dynamic content
+- Updated plugin.json v1.2.0 → v1.3.0, added `playwright` and `frontend-testing` keywords
+- Updated README.md with new command, skill, agent, and requirements
+**Rationale:** Plugin provided code-level understanding (review, explain, diagram) but lacked runtime/UI perspective. Frontend testing via Playwright MCP completes the picture — users can now get a comprehensive report covering both code quality and actual UI behavior of their application.
