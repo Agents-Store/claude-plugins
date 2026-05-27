@@ -21,3 +21,21 @@ Accumulated fixes and discoveries from plugin usage.
 - Fixed README model mismatch: diagrammer listed as Opus but actually Sonnet
 - Added explicit `docs/codemap/diagrams/` directory creation step to onboard, db, flows commands
 **Rationale:** Agents existed but were never called. Wrong MCP tool name caused diagram generation failures and Mermaid fallbacks. Missing verification meant onboarding sometimes produced incomplete output. Skills didn't offer agent delegation when auto-triggered — user had no way to use agents outside of commands. Missing error handling led to confusing failures. Missing directory creation step caused file write errors.
+
+## 2026-05-27 — codemap-explain: Content quality overhaul
+
+**Feature:** Rewrote codemap-explain skill and architect-explainer agent with clarification step, reading strategy, output template, verification, next steps, and reference file
+**Implementation:**
+- Added Step 1: Clarify Scope and Depth — asks user about depth (overview/moderate/deep dive), aspect, and experience level before explaining
+- Added Step 2: Read and Analyze Code — structured reading strategy per scope (function/file/module/project)
+- Added Step 4: Verify Your Explanation — cross-check claims against actual code before presenting
+- Added Step 5: Suggest Next Steps — 2-3 actionable follow-ups tailored to user's interest
+- Added Output Format template with consistent headers and depth-based section rules
+- Created references/explanation-patterns.md — analogies for 20+ patterns, framework-specific tips (React, Express, Flask, Django, Spring, Go), explanation anti-patterns
+- Updated architect-explainer agent to reinforce new methodology: clarify → analyze → explain → verify → next steps
+- Expanded description frontmatter with additional trigger phrases
+- Expanded Scope Adjustments with full-project scope and Format guidance
+- Expanded Tone Rules with "Do NOT" anti-patterns
+- Expanded Error Handling (minified code, binary files)
+- Updated evals: 4 → 6 test cases, all expectations updated for new structure
+**Rationale:** Skill produced inconsistent output — no format template, no clarification of user intent, no reading strategy for code analysis, no verification step. Users couldn't control depth or focus of explanations. Agent didn't reinforce the new methodology from its own system prompt.

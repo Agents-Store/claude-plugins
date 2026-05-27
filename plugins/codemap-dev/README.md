@@ -41,7 +41,7 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 | Skill | Triggers when... |
 |-------|-----------------|
 | `codemap-review` | User asks to review code, check quality, find issues |
-| `codemap-explain` | User asks to explain code, understand a file/function |
+| `codemap-explain` | User asks to explain code, understand a file/function. Asks about depth (overview/moderate/deep dive) and aspect of interest before explaining. Ref: `explanation-patterns.md` |
 | `codemap-diagram` | User asks for a diagram, visualization, ERD, flow chart |
 
 ## Agents
