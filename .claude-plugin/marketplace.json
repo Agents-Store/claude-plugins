@@ -1002,6 +1002,30 @@
         "agents-store"
       ],
       "category": "collaboration"
+    },
+    {
+      "name": "outline-ops",
+      "source": "./plugins/outline-ops",
+      "description": "Outline knowledge-base ops plugin. Drive the full Outline REST API by curl — documents (create, search, move, archive, trash, import/export, AI answers, memberships), collections (CRUD, user/group permissions, export), comments, stars, views, shares & access requests, users & groups, attachments & file operations, revisions, templates, events (audit log), OAuth clients, and data attributes. Authenticates with a Bearer OUTLINE_API_KEY against OUTLINE_API_URL.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": [
+        "outline",
+        "getoutline",
+        "knowledge-base",
+        "wiki",
+        "documentation",
+        "documents",
+        "collections",
+        "rest-api",
+        "markdown",
+        "shares",
+        "ops",
+        "agents-store"
+      ],
+      "category": "knowledge-base"
     }
   ]
 }
