@@ -1049,6 +1049,31 @@
         "agents-store"
       ],
       "category": "development"
+    },
+    {
+      "name": "atlassian-ops",
+      "source": "./plugins/atlassian-ops",
+      "description": "Atlassian Jira + Confluence Cloud ops plugin. Drive the full Jira Cloud REST API v3 and Confluence Cloud REST API v2 by curl — issues (ADF bodies, transitions, assign), JQL search, comments & worklogs, attachments & links, projects/versions/components, fields & screens, workflows/types/statuses, users & groups (accountId), permission/notification/security schemes, dashboards & filters, plans & teams; Confluence pages & blog posts (versioned storage/ADF bodies), spaces & permissions, comments & attachments, labels & content properties. Authenticates with Atlassian Cloud Basic auth (ATLASSIAN_EMAIL + ATLASSIAN_API_TOKEN) against ATLASSIAN_SITE_URL.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": [
+        "atlassian",
+        "jira",
+        "confluence",
+        "project-management",
+        "issue-tracking",
+        "agile",
+        "knowledge-base",
+        "wiki",
+        "jql",
+        "rest-api",
+        "adf",
+        "ops",
+        "agents-store"
+      ],
+      "category": "project-management"
     }
   ]
 }
