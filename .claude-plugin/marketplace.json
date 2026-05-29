@@ -1026,6 +1026,29 @@
         "agents-store"
       ],
       "category": "knowledge-base"
+    },
+    {
+      "name": "infisical-dev",
+      "source": "./plugins/infisical-dev",
+      "description": "Infisical CLI dev plugin for Agents Store. Complete command-line coverage for secrets management — install & auth, infisical run/secrets/export, dynamic secrets, secret scanning with pre-commit hooks, machine-identity CI/CD auth, self-hosted, and troubleshooting.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": [
+        "infisical",
+        "cli",
+        "secrets",
+        "secrets-management",
+        "secret-scanning",
+        "machine-identity",
+        "devsecops",
+        "ci-cd",
+        "dotenv",
+        "dev",
+        "agents-store"
+      ],
+      "category": "development"
     }
   ]
 }

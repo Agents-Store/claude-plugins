@@ -1,0 +1,11 @@
+# infisical-dev — Learnings
+
+Accumulated fixes and discoveries for the Infisical CLI plugin. Newest first.
+
+<!-- Format:
+## [YYYY-MM-DD] — [skill-name]: Brief description
+**Problem:** What went wrong
+**Fix:** What was changed
+**Root cause:** Why the original was wrong
+**Severity:** Critical / Major / Minor
+-->
