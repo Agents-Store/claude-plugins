@@ -81,7 +81,8 @@ If the health check fails or `checkInfrastructureHealth` reports a problem, the 
 | Compose service unreachable from Traefik | Service not on `dokploy-network` | Every public-facing compose service must declare `networks: [dokploy-network]` and the network must be `external: true` at the top level |
 | Compose service breaks Traefik (ports 80/443/8080 conflict) | Compose service exposes host ports directly (e.g. `ports: ["80:80"]`) | Remove the explicit host port mapping — Traefik routes via labels, not host bindings. If a host port is required, pick a non-Traefik one |
 | Image pull fails with `unauthorized` | Registry creds missing or expired | `mcp__dokploy__registry-all` → `registry-update` with fresh credentials |
-| Need to see runtime stdout/stderr but `application-readLogs` only returns build log | Dokploy does not yet expose live container logs via REST ([issue #3719](https://github.com/Dokploy/dokploy/issues/3719)) | Use Beszel (`beszel-getContainerLogs`) on the Dokploy container, or `ssh` to the server and `docker logs <containerId>`. The container ID comes from `mcp__dokploy__docker-getContainersByAppLabel` |
+| Need to see runtime stdout/stderr | (v0.29.5) Runtime logs ARE available over MCP/REST | App: `application-readLogs { applicationId, tail, since, search }`. Compose: enumerate containers then `compose-readLogs { composeId, containerId, tail, since, search }` per container (use `/dokploy-dev:compose-logs`). DB: `{type}-readLogs`. See the `read-logs` skill |
+| Only one compose container's logs show / "compose-readLogs failed" | `compose-readLogs` requires a **`containerId`** — a stack has many containers | First `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` (or `docker-getStackContainersByAppName` for swarm), then call `compose-readLogs` once **per** returned `containerId` |
 
 ### Deployment debugging steps
 
@@ -94,8 +95,9 @@ For full diagnosis, prefer `/dokploy-dev:debug <id>` over walking these manually
    ```
    Or call `mcp__dokploy__deployment-all` with `applicationId` as the filter. Save the `deploymentId` of the failed run and its `logPath`.
 
-2. **Read deployment build logs:**
-   `mcp__dokploy__application-readLogs` returns build log **metadata** (path, status, deployment marker), not a live tail. For the file content, read `/etc/dokploy/logs/<appName>/<appName>-<timestamp>.log` via Beszel (`beszel-getContainerLogs` on the Dokploy container — the path is visible inside it) or `ssh` to the server and `tail` the file. This limitation is tracked in [issue #3719](https://github.com/Dokploy/dokploy/issues/3719).
+2. **Read the logs (build vs runtime):**
+   - Build failure → `mcp__dokploy__deployment-readLogs { deploymentId, tail: 500 }` (the build log for that run).
+   - Runtime crash → `mcp__dokploy__application-readLogs { applicationId, tail, since, search }` for an app, or the per-container `compose-readLogs` loop for a stack. These return live container stdout/stderr (v0.29.5 — no SSH/Beszel needed). See the `read-logs` skill.
 
 3. **Check application status:**
    `mcp__dokploy__application-one` with the applicationId. Look at the `applicationStatus` field.
@@ -107,7 +109,7 @@ For full diagnosis, prefer `/dokploy-dev:debug <id>` over walking these manually
    `mcp__dokploy__application-readTraefikConfig` returns the router/service entries Traefik uses for this app. Confirm the service URL points at the right port and the host matches the domain the user is hitting.
 
 6. **Summarise with AI (optional):**
-   If `mcp__dokploy__ai-getEnabledProviders` returns at least one provider, run `mcp__dokploy__ai-analyzeLogs { deploymentId }` for a natural-language root-cause + suggested fix. See the `ai-assist` skill for setup.
+   If `mcp__dokploy__ai-getEnabledProviders` returns a provider, fetch the log text (step 2) and run `mcp__dokploy__ai-analyzeLogs { aiId, logs, context: "build" | "runtime" }` for a natural-language root-cause + suggested fix. See the `ai-assist` skill for setup.
 
 ---
 
@@ -152,10 +154,10 @@ For external access, replace `container-name` with the server IP and use the ext
    Call `mcp__dokploy__compose-getConvertedCompose` with the composeId.
 
 2. Check running services:
-   Call `mcp__dokploy__compose-loadServices` with the composeId.
+   Call `mcp__dokploy__compose-loadServices` with the composeId (defined services), and `mcp__dokploy__docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` for the actual running containers + their state.
 
-3. Inspect container logs for a specific service:
-   Use Docker CLI on the server or check via the Dokploy dashboard.
+3. Read each container's logs over MCP (no SSH needed):
+   For every container returned in step 2, call `mcp__dokploy__compose-readLogs { composeId, containerId, tail, since, search }`. The `/dokploy-dev:compose-logs <name>` command runs this whole loop and highlights errors per container.
 
 ---
 

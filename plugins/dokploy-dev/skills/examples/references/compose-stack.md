@@ -256,6 +256,25 @@ Parameters:
 
 This returns the list of services defined in the compose file and their status.
 
+### Read every container's logs
+
+`compose-loadServices` lists the *defined* services; to see the *running* containers and their logs, enumerate then loop (a stack has many containers — `compose-readLogs` is per-container):
+
+```
+mcp__dokploy__compose-one { composeId }
+   → appName (e.g. "my-stack-ab12cd"), composeType ("docker-compose")
+
+mcp__dokploy__docker-getContainersByAppNameMatch
+   → { appName: "my-stack-ab12cd", appType: "docker-compose" }
+   → [ { containerId, name, state, status }, ... ]   # web, api, db
+
+for each container:
+  mcp__dokploy__compose-readLogs
+    → { composeId, containerId: "<containerId>", tail: 200, search: "error" }
+```
+
+Read **all** of them — a crashed `db` container shows up as `ECONNREFUSED` in `api`, so the lowest-level failing container is the real root cause. `/dokploy-dev:compose-logs my-stack` runs this whole loop and highlights errors per container.
+
 ### Validate the compose file
 
 **MCP:**
@@ -353,7 +372,7 @@ services:
 | Problem | Likely cause | Fix |
 |---------|-------------|-----|
 | Deploy fails | Invalid docker-compose.yml | Call `mcp__dokploy__compose-getConvertedCompose` to validate the file |
-| Service not starting | Image pull failure or crash | Check container logs. Verify the image name and tag exist |
+| Service not starting | Image pull failure or crash | Read that container's logs: `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` → `compose-readLogs { composeId, containerId }` (or `/dokploy-dev:compose-logs`). Verify the image name and tag exist |
 | 502 on domain | Wrong port or service name | Verify `port` and `serviceName` match the compose file |
 | Volume data lost | Wrong volume path | Use `../files/` prefix for all persistent volumes |
 | Services cannot communicate | Network misconfiguration | Compose services share a network by default. Reference services by their compose service name |

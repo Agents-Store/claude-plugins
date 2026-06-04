@@ -1,11 +1,15 @@
 ---
 name: cli-recipes
-description: "This skill should be used when running Dokploy operations from the terminal, deploying via CLI, managing environment variables with env push/pull, or provisioning databases via command line. Triggers: \"dokploy cli\", \"dokploy command\", \"env push\", \"env pull\", \"dokploy deploy cli\"."
+description: "This skill should be used when running Dokploy operations from the terminal with the @dokploy/cli — authenticating, creating projects/apps, deploying, managing environment variables, or provisioning databases via command line. Triggers: \"dokploy cli\", \"dokploy command\", \"dokploy authenticate\", \"dokploy app deploy\", \"env push\", \"env pull\", \"deploy dokploy from terminal\"."
 ---
 
 # Dokploy CLI Recipes
 
-Common CLI commands and workflow patterns for the Dokploy CLI. Use these recipes when operating Dokploy from the terminal instead of (or alongside) MCP tools.
+Common commands and workflows for the official Dokploy CLI (`@dokploy/cli`). Use these when operating Dokploy from a terminal or CI, alongside the MCP tools.
+
+> **Syntax note (v0.29+):** the CLI uses **space-separated** subcommands — `dokploy app create`, `dokploy database postgresql create` — NOT colon-separated (`app:create`). Run `dokploy --help` to see the command groups and `dokploy <group> --help` for the exact subcommands and flags in your installed version.
+
+> **The CLI does NOT read logs or debug.** Its command groups are authentication, project, app, database, and environment — all provisioning/deploy actions. There is **no `dokploy logs` / `debug` / `status` command.** For reading logs and diagnosing failures use the MCP/API path instead: `/dokploy-dev:logs`, `/dokploy-dev:compose-logs`, `/dokploy-dev:debug`, or the `read-logs` skill.
 
 ---
 
@@ -13,11 +17,6 @@ Common CLI commands and workflow patterns for the Dokploy CLI. Use these recipes
 
 ```bash
 npm install -g @dokploy/cli
-```
-
-Verify the installation:
-
-```bash
 dokploy --version
 ```
 
@@ -26,20 +25,15 @@ dokploy --version
 ## Authentication
 
 ```bash
-dokploy authenticate
+dokploy authenticate     # interactive: prompts for server URL + access token
+dokploy verify           # confirm the saved token is valid
 ```
 
-When prompted, provide:
-- **Server URL** — The Dokploy instance URL (e.g. `https://dokploy.example.com`). Do NOT include the `/api` suffix.
-- **API Key** — Generate one from **Settings > API/Tokens** in the Dokploy dashboard.
+- **Server URL** — the Dokploy base URL, e.g. `https://dokploy.example.com` (do NOT include `/api`).
+- **Access token** — generate in the dashboard under **Settings > Profile** (or **Settings > API/Tokens**); tokens don't expire by default.
+- `authenticate` writes a local **`config.json`** holding the token + server URL — that's what subsequent commands use.
 
-Verify the connection:
-
-```bash
-dokploy verify
-```
-
-If verification fails, check the setup skill for troubleshooting authentication issues.
+**Relationship to the plugin env vars:** the MCP server, REST `curl` calls, and this plugin use the `DOKPLOY_URL` + `DOKPLOY_API_KEY` environment variables. The CLI uses its own `config.json` from `dokploy authenticate`. The **same access token** works for all three — set it once in each place.
 
 ---
 
@@ -47,149 +41,85 @@ If verification fails, check the setup skill for troubleshooting authentication 
 
 | Command | Description |
 |---------|-------------|
-| `dokploy project:list` | List all projects on the server |
-| `dokploy project:info` | Get details for a specific project |
-| `dokploy project:create` | Create a new project |
-
----
+| `dokploy project list` | List all projects |
+| `dokploy project info` | Show details for a project |
+| `dokploy project create` | Create a new project |
 
 ## Application Commands
 
 | Command | Description |
 |---------|-------------|
-| `dokploy app:create` | Create a new application in a project |
-| `dokploy app:deploy` | Trigger a deployment for an application |
-| `dokploy app:stop` | Stop a running application |
-| `dokploy app:delete` | Delete an application |
-
----
+| `dokploy app create` | Create a new application in a project |
+| `dokploy app deploy` | Trigger a deployment |
+| `dokploy app stop` | Stop a running application |
+| `dokploy app delete` | Delete an application |
 
 ## Environment Variable Commands
 
 | Command | Description |
 |---------|-------------|
-| `dokploy env pull <file>` | Pull environment variables from Dokploy to a local file |
-| `dokploy env push <file>` | Push environment variables from a local file to Dokploy |
-| `dokploy environment:create` | Create a new environment |
-| `dokploy environment:delete` | Delete an environment |
+| `dokploy env pull <file>` | Pull env vars from Dokploy into a local file |
+| `dokploy env push <file>` | Push env vars from a local file to Dokploy |
+
+(Run `dokploy env --help` / `dokploy environment --help` for the exact form in your version.)
 
 ### Env push/pull workflow
 
-Pull current env vars, edit locally, then push back:
-
 ```bash
-dokploy env pull .env.dokploy
-# Edit .env.dokploy as needed
-dokploy env push .env.dokploy
+dokploy env pull .env.dokploy   # download current env
+# edit .env.dokploy locally
+dokploy env push .env.dokploy   # upload — avoids dashboard typos
 ```
-
-This is the safest way to update environment variables — it avoids typos from manual entry in the dashboard.
-
----
 
 ## Database Commands
 
-All database commands follow this pattern:
-
-```
-dokploy database:{type}:{action}
-```
-
-### Supported types
-
-| Type | Description |
-|------|-------------|
-| `postgres` | PostgreSQL |
-| `mysql` | MySQL |
-| `mariadb` | MariaDB |
-| `mongo` | MongoDB |
-| `redis` | Redis |
-| `libsql` | LibSQL — SQLite-compatible managed service (added in v0.29) |
-
-### Supported actions
-
-| Action | Description |
-|--------|-------------|
-| `create` | Create a new database service |
-| `delete` | Delete a database service |
-| `deploy` | Deploy (start) a database container |
-| `stop` | Stop a running database container |
-
-### Example: create and deploy PostgreSQL
+Pattern: `dokploy database <type> <action>`.
 
 ```bash
-dokploy database:postgres:create
-dokploy database:postgres:deploy
+dokploy database postgresql create
+dokploy database postgresql deploy
 ```
+
+| Part | Values |
+|------|--------|
+| `<type>` | `postgresql`, `mysql`, `mariadb`, `mongo`, `redis` (run `dokploy database --help` for exact tokens) |
+| `<action>` | `create`, `delete`, `deploy`, `stop` |
+
+> **LibSQL is not available in the CLI** (only 5 DB types here). Provision LibSQL via MCP (`mcp__dokploy__libsql-create` → `libsql-deploy`) or the REST API.
 
 ---
 
 ## Workflow Recipes
 
-### Recipe 1: Deploy an app from the current directory
+### Deploy an app
 
 ```bash
-# 1. Authenticate (one-time)
-dokploy authenticate
-
-# 2. Create a project
-dokploy project:create
-
-# 3. Create an application in the project
-dokploy app:create
-
-# 4. Push environment variables
+dokploy authenticate          # one-time
+dokploy project create
+dokploy app create
 dokploy env push .env
-
-# 5. Deploy
-dokploy app:deploy
+dokploy app deploy
 ```
 
-### Recipe 2: Sync environment variables
+### Provision a PostgreSQL database
 
 ```bash
-# 1. Pull current env vars from Dokploy
-dokploy env pull .env.dokploy
-
-# 2. Edit the file locally
-# (make changes to .env.dokploy)
-
-# 3. Push updated env vars back
-dokploy env push .env.dokploy
+dokploy project create        # or reuse an existing project
+dokploy database postgresql create
+dokploy database postgresql deploy
 ```
 
-### Recipe 3: Provision a PostgreSQL database
+### Full-stack (app + database)
 
 ```bash
-# 1. Create a project (or use an existing one)
-dokploy project:create
-
-# 2. Create the database
-dokploy database:postgres:create
-
-# 3. Deploy (start) the database container
-dokploy database:postgres:deploy
+dokploy project create
+dokploy database postgresql create && dokploy database postgresql deploy
+dokploy app create
+dokploy env push .env         # include the DB connection string
+dokploy app deploy
 ```
 
-### Recipe 4: Full-stack deployment (app + database)
-
-```bash
-# 1. Create project
-dokploy project:create
-
-# 2. Provision database
-dokploy database:postgres:create
-dokploy database:postgres:deploy
-
-# 3. Create application
-dokploy app:create
-
-# 4. Set env vars (including database connection string)
-dokploy env push .env
-
-# 5. Deploy application
-dokploy app:deploy
-```
+After `dokploy app deploy`, the CLI can't show logs — switch to `/dokploy-dev:logs <app>` (or `/dokploy-dev:compose-logs`, `/dokploy-dev:debug`) to watch the deploy and diagnose failures.
 
 ---
 
@@ -197,20 +127,19 @@ dokploy app:deploy
 
 | Flag | Commands | Description |
 |------|----------|-------------|
-| `--help` | All commands | Show help for any command |
-| `--json` | List/info commands | Output as JSON for scripting |
-| `--project` | app/database commands | Specify project by name or ID |
-| `--name` | create commands | Set the resource name inline |
-| `--yes` / `-y` | delete commands | Skip confirmation prompt |
+| `--help` | all | Show help for any command/group |
+| `--json` | list/info | Machine-readable output for scripting |
+
+(Flag availability varies by version — confirm with `--help`.)
 
 ---
 
 ## CLI vs MCP vs REST API
 
-| Method | Best for |
-|--------|----------|
-| CLI | Terminal workflows, CI/CD scripts, env var management |
-| MCP tools | Claude Code automation, multi-step orchestration |
-| REST API | Custom integrations, external scripts, monitoring |
+| Method | Best for | Logs/debug? |
+|--------|----------|-------------|
+| CLI | Terminal/CI provisioning + deploys, env var sync | ❌ no log/debug commands |
+| MCP tools | Claude Code automation, multi-step orchestration, **reading logs & debugging** | ✅ `*-readLogs`, `ai-analyzeLogs`, docker introspection |
+| REST API | Custom integrations, external scripts, monitoring | ✅ `GET /api/*.readLogs` |
 
-All three methods use the same API key and connect to the same Dokploy instance.
+All three use the same access token against the same Dokploy instance.

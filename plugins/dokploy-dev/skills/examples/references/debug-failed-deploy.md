@@ -69,29 +69,17 @@ Find the most recent entry with `status: "error"`. Save:
 
 ---
 
-## Step 2: Read the build log
+## Step 2: Read the logs
+
+The `status: error` here was a quick finish (~seconds), and the live site returns 502 — that points to a **runtime** crash (the build succeeded, the container won't stay up). Read the app's runtime log directly over MCP (v0.29.5 — no SSH/Beszel):
 
 ```
 mcp__dokploy__application-readLogs
-   → { applicationId: "app_aaa111" }
+   → { applicationId: "app_aaa111", tail: 300, since: "1h", search: "error" }
+   → .data is a newline-joined, timestamp-prefixed string
 ```
 
-This returns metadata. To get the file content, use whichever channel is available:
-
-**With Beszel installed (preferred):**
-
-```
-beszel-getContainerLogs against the dokploy-server container
-→ tail /etc/dokploy/logs/marketing-site/marketing-site-2026-05-21T09-15-22.log
-```
-
-**Without Beszel — ask the user:**
-
-> Dokploy doesn't expose runtime stdout via REST yet (issue #3719). To read the build log, SSH to the server and run:
->
-> ```
-> sudo tail -n 500 /etc/dokploy/logs/marketing-site/marketing-site-2026-05-21T09-15-22.log
-> ```
+(If this had been a *build* failure instead, you'd read that deployment's build log with `mcp__dokploy__deployment-readLogs { deploymentId: "deploy_bbb222", tail: 500 }`.)
 
 Scan the log for these patterns first:
 
@@ -123,10 +111,10 @@ In our scenario, the log ends with:
 
 ```
 mcp__dokploy__docker-getContainersByAppLabel
-   → { appName: "marketing-site" }
+   → { appName: "marketing-site", type: "standalone" }   # type is required
 ```
 
-You'll see a container with `State: "restarting"` — classic crash loop.
+You'll see a container with `state: "restarting"` — classic crash loop. Each entry is `{ containerId, name, state, status }`.
 
 Get its full config:
 
@@ -158,9 +146,9 @@ Only relevant if the runtime *is* up but HTTP is broken. In our scenario the con
 If an AI provider is configured:
 
 ```
-mcp__dokploy__ai-getEnabledProviders     # confirm non-empty
+mcp__dokploy__ai-getEnabledProviders     # confirm non-empty → take an aiId
 mcp__dokploy__ai-analyzeLogs
-   → { deploymentId: "deploy_bbb222" }
+   → { aiId: "<enabled provider id>", logs: "<the runtime-log text from Step 2>", context: "runtime" }
 ```
 
 Expected output (paraphrased):

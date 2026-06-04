@@ -39,8 +39,8 @@ Parse from "$ARGUMENTS".
 6. **Monitor until completion:**
    - Poll `deployment.all?applicationId=<id>` every 30-60 seconds to check latest deployment status.
    - If status is `done` — report success and verify the app is reachable (check health endpoint or domain).
-   - If status is `error` — read deployment logs via Beszel container logs or Dokploy log endpoints, diagnose the issue, fix it (update env vars, build type, Dockerfile, etc.), and redeploy. Repeat until deployment succeeds.
-   - Show the user build logs and errors transparently.
+   - If status is `error` — read the logs over MCP: build failure → `deployment-readLogs { deploymentId, tail }`; runtime crash → `application-readLogs { applicationId, tail, since, search }` or, for a compose stack, the per-container `compose-readLogs` loop (`/dokploy-dev:compose-logs`). Diagnose, fix it (update env vars, build type, Dockerfile, etc.), and redeploy. Repeat until deployment succeeds.
+   - Show the user the build/runtime logs and errors transparently.
 
 ## Example Usage
 ```

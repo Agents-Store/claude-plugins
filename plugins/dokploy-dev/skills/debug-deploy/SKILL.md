@@ -9,7 +9,7 @@ This is the **canonical workflow** when a Dokploy deployment fails, gets stuck, 
 
 Companion command: **`/dokploy-dev:debug [applicationId|composeId]`** runs this entire chain.
 
-> **Runtime-log REST gap (important):** Dokploy does **not** expose live container `stdout` / `stderr` over its public REST API yet (see [issue #3719](https://github.com/Dokploy/dokploy/issues/3719)). `application-readLogs` / `compose-readLogs` return the deployment **build** log path and metadata, not a streaming tail. For *runtime* stdout/stderr you must either (a) `ssh` to the server and `docker logs <container>`, (b) read the build-log file Dokploy writes at `/etc/dokploy/logs/<appName>/<appName>-<timestamp>.log`, or (c) read it via Beszel if Beszel is monitoring the container. Set this expectation with the user up front so they don't think the tool is broken.
+> **Reading logs (Dokploy v0.29.5):** Runtime **and** build logs are available directly over the REST API / MCP — no SSH or Beszel needed (the old [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) gap is closed). There are two distinct artifacts: the **build log** (`deployment-readLogs { deploymentId, tail }`) explains why an image failed to build; the **runtime log** (`application-readLogs` / per-container `compose-readLogs` / `{db}-readLogs`, all with `tail`/`since`/`search`) explains why a running container is crashing. For a multi-container Compose stack you must enumerate the containers and read **each** one — see the [`read-logs`](../read-logs/SKILL.md) skill, which this workflow uses for every log read below.
 
 ---
 
@@ -59,19 +59,22 @@ Save the `deploymentId` of the failed run — multiple steps below take it.
 
 ---
 
-## Step 2 — Read the build log
+## Step 2 — Read the logs (build vs runtime)
 
-The build log is the single most informative artifact for diagnosing failures.
+Logs are the single most informative artifact. Pick the **right** log for the failure — the [`read-logs`](../read-logs/SKILL.md) skill has the full detail; the essentials:
 
-1. **Get the build-log file path** for this deployment from the `deployment-all` response — Dokploy stores the path under `logPath` (typically `/etc/dokploy/logs/<appName>/<appName>-<timestamp>.log` on the host).
+- **Build failed** (`status: error`, image never started) → read the **build log** for that deployment:
+  ```
+  mcp__dokploy__deployment-readLogs { deploymentId: "<from Step 1>", tail: 500 }
+  ```
+- **Build succeeded but the container is crashing / erroring at runtime** → read the **runtime log**:
+  - App: `mcp__dokploy__application-readLogs { applicationId, tail: 300, since: "1h", search?: "error" }`
+  - **Compose stack: read every container.** First enumerate (`compose-one { composeId }` → `appName`/`composeType`; then `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` for compose, or `docker-getStackContainersByAppName { appName }` for swarm). Then loop `compose-readLogs { composeId, containerId, tail, since, search }` for **each** container — or just run `/dokploy-dev:compose-logs <compose>`.
+  - Database: `{type}-readLogs { {type}Id, tail, since, search }`.
 
-2. **Read it via whichever channel is available:**
+`tail` is 1–10000 (default 100); `since` is `all` or `<n>{s|m|h|d}`; `search` is a server-side substring filter. The runtime-log `.data` is a newline-joined, timestamp-prefixed string.
 
-   - **MCP path:** `mcp__dokploy__application-readLogs { applicationId }` (apps) or `mcp__dokploy__compose-readLogs { composeId }` (compose). Returns the build/deploy log metadata.
-   - **Beszel fallback** (most reliable for runtime stdout): if the user has Beszel installed, use `beszel-getContainerLogs` against the Dokploy container — the `/etc/dokploy/logs/...` files are visible inside the container. The container ID for the dokploy-server system can be found via `beszel-get_collections_containers_records`.
-   - **SSH fallback** (last resort, requires user action): tell the user to run `sudo tail -n 500 /etc/dokploy/logs/<appName>/<latest>.log` on the server.
-
-3. **Scan the log for these patterns first** — they account for the majority of Dokploy build failures:
+**Scan the log for these patterns first** — they account for the majority of Dokploy build failures:
 
 | Pattern in log | Root cause | Fix |
 |---|---|---|
@@ -92,10 +95,10 @@ If the *build* succeeded but the *runtime* is broken, switch from build logs to 
 
 ```
 mcp__dokploy__docker-getContainersByAppLabel
-  → { appName: "<appName>" }
+  → { appName: "<appName>", type: "standalone" }    # type is REQUIRED: "standalone" | "swarm"
 ```
 
-Returns the list of running containers tagged with this app's Docker label. You want to see:
+Returns the list of running containers tagged with this app's Docker label (each `{ containerId, name, state, status }`). You want to see:
 
 - **State** — `running`, `exited`, `restarting` (crash loop)
 - **Health** — `healthy`, `unhealthy`, `starting`, `none`
@@ -163,11 +166,18 @@ Pick the smallest action that unblocks the user. Always confirm destructive oper
 
 ## Step 6 — Ask the AI to summarise (when available)
 
-If an AI provider is configured (`mcp__dokploy__ai-getEnabledProviders` returns at least one), let it digest the build log and recommend a fix instead of grepping manually.
+If an AI provider is configured (`mcp__dokploy__ai-getEnabledProviders` returns at least one), let it digest the log and recommend a fix instead of grepping manually.
+
+`ai-analyzeLogs` takes the **log text you already fetched in Step 2** — not a `deploymentId`:
 
 ```
 mcp__dokploy__ai-analyzeLogs
-  → { deploymentId: "<failed deploymentId>" }
+  → {
+      aiId:    "<id of an enabled provider from ai-getEnabledProviders>",
+      logs:    "<the build- or runtime-log text from Step 2>",
+      context: "build"     # for deployment-readLogs output
+               | "runtime" # for application/compose/db readLogs output
+    }
 ```
 
 The response includes a natural-language root-cause summary and suggested remediation. For broader recommendations (e.g. "given this app, what should I check next?"), use `ai-suggest`. See the [`ai-assist`](../ai-assist/SKILL.md) skill for full setup and provider configuration.

@@ -26,7 +26,7 @@ This skill teaches: which providers Dokploy supports, how to wire one up, how to
 | `mcp__dokploy__ai-delete` | Remove a provider |
 | `mcp__dokploy__ai-testConnection` | Validate a provider's credentials and reachability before saving |
 | `mcp__dokploy__ai-deploy` | (Dokploy admin) deploy the AI orchestrator side-service |
-| `mcp__dokploy__ai-analyzeLogs` | **Headline feature:** summarise a deployment's build log with the configured LLM, return root-cause + suggested fix |
+| `mcp__dokploy__ai-analyzeLogs` | **Headline feature:** summarise log **text you pass in** with the configured LLM, return root-cause + suggested fix. Signature: `{ aiId, logs, context: "build"\|"runtime" }` — NOT `{ deploymentId }` |
 | `mcp__dokploy__ai-suggest` | Ask the LLM what to do next given an application's current state (no specific failure) |
 
 ---
@@ -96,28 +96,31 @@ Disable rather than delete a misconfigured provider with `ai-update` `{ aiId, is
 
 ## Step 3 — Analyse a failed deployment
 
-This is the canonical workflow used by the [`debug-deploy`](../debug-deploy/SKILL.md) skill and the `/dokploy-dev:analyze` command.
+This is the canonical workflow used by the [`debug-deploy`](../debug-deploy/SKILL.md) skill and the `/dokploy-dev:analyze` command. **`ai-analyzeLogs` does not fetch logs for you — you fetch the text first** (via the [`read-logs`](../read-logs/SKILL.md) skill) and pass it in.
 
 ```
-1. Find the failed deployment
-   mcp__dokploy__deployment-all { applicationId }     # or composeId
-   → pick the most recent entry with status: "error"
-   → save deploymentId
+1. Pick an enabled provider
+   aiId = first entry from  mcp__dokploy__ai-getEnabledProviders
 
-2. Analyse the build log
+2. Fetch the log text (read-logs skill)
+   build failure   → mcp__dokploy__deployment-readLogs { deploymentId, tail: 1000 }   → context: "build"
+   app runtime     → mcp__dokploy__application-readLogs { applicationId, tail: 500 }   → context: "runtime"
+   compose runtime → loop compose-readLogs per container, concatenate                 → context: "runtime"
+
+3. Analyse
    mcp__dokploy__ai-analyzeLogs
-     → { deploymentId }
-     → returns { summary, rootCause, suggestedFix, references? }
+     → { aiId, logs: "<the text from step 2>", context: "build" | "runtime" }
+     → returns a root-cause summary + suggested fix
 
-3. Apply the suggested fix
-   → Update env vars / build type / Dockerfile / domain config, then `application-redeploy`
+4. Apply the suggested fix
+   → Update env vars / build type / Dockerfile / domain config, then `application-redeploy` / `compose-redeploy`
 ```
 
-The response is a free-form LLM summary. Read it critically — the LLM doesn't *know* your codebase, only the build log content. If the suggestion contradicts what the log clearly shows, trust the log.
+The response is a free-form LLM summary. Read it critically — the LLM doesn't *know* your codebase, only the log text you sent. If the suggestion contradicts what the log clearly shows, trust the log.
 
 ### Cost / latency note
 
-Each `ai-analyzeLogs` call sends the full log to the LLM. On a fresh deploy that's small (~10-50KB) but a stuck container that's been restarting for hours can produce megabyte-scale logs that blow past context windows. Truncate or sample the log first if needed — Dokploy applies its own truncation but the cap varies by provider.
+You control how much log goes to the LLM via the `tail` parameter when you fetch it. A stuck container restarting for hours can produce huge logs — keep `tail` modest (e.g. 500–1000) or use `search` to pre-filter to error lines before passing the text to `ai-analyzeLogs`, so you don't blow past the provider's context window.
 
 ---
 

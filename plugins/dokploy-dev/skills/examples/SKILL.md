@@ -43,6 +43,6 @@ See full walkthrough: [references/compose-stack.md](references/compose-stack.md)
 
 Diagnose and recover from a failed deployment end-to-end — locate the failed run, read the build log, inspect the container, check Traefik, optionally AI-summarise, apply the fix, and verify.
 
-Covers: `deployment-all` filtering, build log reading via Beszel / SSH (issue #3719 workaround), `docker-getContainersByAppLabel` + `docker-getConfig` introspection, `ai-analyzeLogs` integration, and choosing the right recovery action.
+Covers: `deployment-all` filtering, reading runtime + build logs over MCP (`application-readLogs` / per-container `compose-readLogs` / `deployment-readLogs`, v0.29.5), `docker-getContainersByAppLabel` + `docker-getConfig` introspection, `ai-analyzeLogs { aiId, logs, context }` integration, and choosing the right recovery action.
 
 See full walkthrough: [references/debug-failed-deploy.md](references/debug-failed-deploy.md)

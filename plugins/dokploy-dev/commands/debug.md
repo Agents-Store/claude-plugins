@@ -24,12 +24,12 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/debug-deploy/SKILL.md` and follow every step 
 Key checkpoints:
 
 1. **Step 0 — Platform health.** Run `settings-health`, `checkInfrastructureHealth`, `getDockerDiskUsage`. If any fail, fix server before deploy issue.
-2. **Step 1 — Locate the failed run.** Use `deployment-all` filtered by the resource ID. Save `deploymentId` and `logPath`.
-3. **Step 2 — Read the build log.** Use `application-readLogs` / `compose-readLogs` for metadata; for the actual log content, use Beszel (`beszel-getContainerLogs`) or ask the user to `tail` the log file on the server (Dokploy does not expose runtime stdout via REST — issue #3719). Match against the build-failure pattern table.
-4. **Step 3 — Container introspection.** `docker-getContainersByAppLabel { appName }` for state/health. `docker-getConfig` for env/command/mounts. Use `docker-restartContainer` / `killContainer` if wedged.
+2. **Step 1 — Locate the failed run.** Use `deployment-all` filtered by the resource ID. Save `deploymentId`.
+3. **Step 2 — Read the logs (v0.29.5, all over MCP — see the `read-logs` skill).** Build failure → `deployment-readLogs { deploymentId, tail }`. Runtime crash → `application-readLogs { applicationId, tail, since, search }` for an app, or **read every container** of a compose stack: `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` then `compose-readLogs { composeId, containerId, tail, since, search }` per container (or `/dokploy-dev:compose-logs`). Match against the build-failure pattern table.
+4. **Step 3 — Container introspection.** `docker-getContainersByAppLabel { appName, type: "standalone" }` for state/health. `docker-getConfig` for env/command/mounts. Use `docker-restartContainer` / `killContainer` if wedged.
 5. **Step 4 — Request path.** Only if container is running but HTTP requests fail. `application-readTraefikConfig`, check port, network, listen address.
 6. **Step 5 — Recovery.** Use the smallest action that unblocks: `killBuild` / `cancelDeployment` / `cleanQueues` / `dropDeployment` / `rollback-rollback`. Confirm destructive ops with the user.
-7. **Step 6 — AI summary.** If `ai-getEnabledProviders` is non-empty, call `ai-analyzeLogs { deploymentId }` and present the result. Otherwise note that AI is not configured and continue manually.
+7. **Step 6 — AI summary.** If `ai-getEnabledProviders` is non-empty, pass the log text from Step 2 to `ai-analyzeLogs { aiId, logs, context: "build" | "runtime" }` and present the result. Otherwise note that AI is not configured and continue manually.
 8. **Step 7 — Verify the fix.** After applying a fix, `application-redeploy` (or `compose-redeploy`), poll `deployment-all` until `status: done`, validate domains, hit the endpoint with curl.
 
 ## Output format

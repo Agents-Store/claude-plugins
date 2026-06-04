@@ -90,7 +90,7 @@ Connect an application to a Git source. Only one provider can be active at a tim
 | Tool | Description | Parameters |
 |---|---|---|
 | `mcp__dokploy__application-readAppMonitoring` | Read monitoring metrics (CPU, memory, network) | `applicationId` |
-| `mcp__dokploy__application-readLogs` | Stream container logs | `applicationId` |
+| `mcp__dokploy__application-readLogs` | Read the app container's runtime stdout/stderr (v0.29.5) | `applicationId` (required), `tail` (1–10000, default 100), `since` (`all` or `<n>{s\|m\|h\|d}`), `search` (substring) |
 | `mcp__dokploy__application-readTraefikConfig` | Read current Traefik routing config | `applicationId` |
 | `mcp__dokploy__application-updateTraefikConfig` | Update Traefik routing rules | `applicationId`, `traefikConfig` (YAML string) |
 
@@ -204,7 +204,7 @@ Unlike applications, compose git source is set **via `compose-update`**, not a s
 | `mcp__dokploy__compose-getTags` | List image tags used | `composeId` |
 | `mcp__dokploy__compose-randomizeCompose` | Generate random ports for services | `composeId` |
 | `mcp__dokploy__compose-saveEnvironment` | Set environment variables | `composeId`, `env` |
-| `mcp__dokploy__compose-readLogs` | Stream compose service logs | `composeId` |
+| `mcp__dokploy__compose-readLogs` | Read ONE container's runtime logs. `containerId` is **required** — a stack has many containers, so enumerate first (see note) and call once per container | `composeId` (required), `containerId` (required), `tail`, `since`, `search` |
 
 ### Deployment Management
 
@@ -224,6 +224,7 @@ Unlike applications, compose git source is set **via `compose-update`**, not a s
 - **Listing domains for a compose stack:** Use `domain-byComposeId` (not the removed `compose-fetchDomains`).
 - `compose-saveEnvironment` works the same as the application equivalent — newline-separated `KEY=VALUE` string.
 - `compose-getConvertedCompose` validates the compose file by rendering it with current env vars. Call this before `compose-deploy` to catch YAML errors early.
+- **Reading logs for a stack = read every container.** `compose-readLogs` is per-container and requires `containerId`. To read all of them: `compose-one { composeId }` → `appName`/`composeType`; then `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` (compose) or `docker-getStackContainersByAppName { appName }` (swarm) to list containers (`{ containerId, name, state, status }`); then loop `compose-readLogs { composeId, containerId, tail, since, search }` for each. The `read-logs` skill and `/dokploy-dev:compose-logs` automate this.
 
 ---
 
@@ -252,7 +253,7 @@ Replace `{type}` with `postgres`, `mysql`, `mariadb`, `mongo`, `redis`, or `libs
 | `mcp__dokploy__{type}-changePassword` | Rotate the database password | `{type}Id`, `newPassword` |
 | `mcp__dokploy__{type}-saveExternalPort` | Expose database on a host port | `{type}Id`, `externalPort` |
 | `mcp__dokploy__{type}-saveEnvironment` | Set database environment variables | `{type}Id`, `env` |
-| `mcp__dokploy__{type}-readLogs` | Stream database container logs | `{type}Id` |
+| `mcp__dokploy__{type}-readLogs` | Read the DB container's runtime logs | `{type}Id` (required), `tail`, `since`, `search` |
 
 ### Supported types
 
@@ -326,7 +327,7 @@ Provider-agnostic LLM integration for log analysis and recommendations. The AI r
 | `mcp__dokploy__ai-delete` | Remove a provider | `aiId` |
 | `mcp__dokploy__ai-testConnection` | Validate credentials and reachability before saving | `aiId` (or full provider payload for pre-create test) |
 | `mcp__dokploy__ai-deploy` | Deploy the AI orchestrator side-service (admin-only) | none / admin params |
-| `mcp__dokploy__ai-analyzeLogs` | **Headline:** AI-summarise a deployment's build log | `deploymentId` |
+| `mcp__dokploy__ai-analyzeLogs` | **Headline:** AI-summarise log text you fetched | `aiId` (enabled provider), `logs` (the log text from a `*-readLogs` call), `context` (`"build"` for `deployment-readLogs`, `"runtime"` for app/compose/db logs) — NOT `deploymentId` |
 | `mcp__dokploy__ai-suggest` | Ask the LLM for next-step recommendations on a resource | `applicationId` (or compose), optional `prompt` |
 
 `apiUrl` is OpenAI-compatible. Common providers: OpenAI (`https://api.openai.com/v1`), OpenRouter (`https://openrouter.ai/api/v1`), Groq (`https://api.groq.com/openai/v1`), Gemini (`https://generativelanguage.googleapis.com/v1beta/openai`), Ollama (`http://host:11434/v1`). See the `ai-assist` skill for the full setup workflow.
@@ -339,11 +340,11 @@ Raw Docker container operations on the Dokploy host. Essential for runtime debug
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__docker-getContainers` | List all containers on the host | None |
-| `mcp__dokploy__docker-getContainersByAppLabel` | List containers tagged with a specific Dokploy app label | `appName` |
-| `mcp__dokploy__docker-getContainersByAppNameMatch` | Loose substring match by app name — useful when `appName` isn't exact | `appName` |
-| `mcp__dokploy__docker-getServiceContainersByAppName` | Swarm service containers across nodes | `appName` |
-| `mcp__dokploy__docker-getStackContainersByAppName` | Compose stack service containers | `appName` |
+| `mcp__dokploy__docker-getContainers` | List all containers on the host (each `{ containerId, name, state, status }`) | optional `serverId` |
+| `mcp__dokploy__docker-getContainersByAppLabel` | List containers tagged with a specific Dokploy app label | `appName`, `type` (**required**: `"standalone"` \| `"swarm"`), optional `serverId` |
+| `mcp__dokploy__docker-getContainersByAppNameMatch` | Match containers by app name — use for compose stacks | `appName`, `appType` (`"stack"` \| `"docker-compose"`), optional `serverId` |
+| `mcp__dokploy__docker-getServiceContainersByAppName` | Swarm service containers across nodes | `appName`, optional `serverId` |
+| `mcp__dokploy__docker-getStackContainersByAppName` | Compose/Swarm stack service containers | `appName`, optional `serverId` |
 | `mcp__dokploy__docker-getConfig` | Inspect a container's full config (env, command, mounts, network, restart policy) | `containerId` |
 | `mcp__dokploy__docker-startContainer` | Start a stopped container | `containerId` |
 | `mcp__dokploy__docker-stopContainer` | Gracefully stop a running container | `containerId` |
@@ -352,7 +353,7 @@ Raw Docker container operations on the Dokploy host. Essential for runtime debug
 | `mcp__dokploy__docker-removeContainer` | Hard-delete; Dokploy recreates on next `deploy` | `containerId` |
 | `mcp__dokploy__docker-uploadFileToContainer` | Push a one-off file into a container without rebuilding — does NOT survive redeploy | `containerId`, `path`, `content` |
 
-`getContainersByAppLabel` is the most reliable way to find a Dokploy-managed container — Dokploy stamps each container with a known label. Substring matchers are fragile; prefer the label lookup.
+Choosing the discovery tool: for a **standalone application** use `getContainersByAppLabel { appName, type: "standalone" }` (most reliable — Dokploy stamps a known label). For a **compose stack** use `getContainersByAppNameMatch { appName, appType: "docker-compose" }` (or `getStackContainersByAppName` for swarm) — these return every service container. All return `{ containerId, name, state, status }`; feed each `containerId` into `compose-readLogs` to read that container's logs.
 
 ---
 
@@ -567,6 +568,28 @@ If validation fails, the DNS A record for `api.example.com` is not pointing to t
 6. mcp__dokploy__compose-deploy
    → { composeId: "comp789" }
 ```
+
+### 5. Read the logs of every container in a compose stack
+
+```
+1. mcp__dokploy__compose-one
+   → { composeId: "comp789" }
+   → read appName (e.g. "my-stack-ab12cd") and composeType (e.g. "docker-compose")
+
+2. mcp__dokploy__docker-getContainersByAppNameMatch          // swarm → docker-getStackContainersByAppName
+   → { appName: "my-stack-ab12cd", appType: "docker-compose" }
+   → [ { containerId, name, state, status }, ... ]   // every service container
+
+3. for each container:
+   mcp__dokploy__compose-readLogs
+     → { composeId: "comp789", containerId: "<containerId>", tail: 200, since: "1h", search: "error" }
+     → .data is a newline-joined, timestamp-prefixed log string
+
+4. Aggregate per container; the lowest-level failing service (e.g. a crashed db) is usually the root cause of
+   ECONNREFUSED-style errors in the others.
+```
+
+The `read-logs` skill and `/dokploy-dev:compose-logs <name>` command run this loop for you. For build (not runtime) failures, use `deployment-readLogs { deploymentId, tail }` instead.
 
 ---
 

@@ -32,7 +32,7 @@ Dokploy v0.29+ provider-agnostic LLM integration.
 | POST | `/api/ai.delete` | Remove a provider |
 | POST | `/api/ai.testConnection` | Validate credentials/reachability |
 | POST | `/api/ai.deploy` | Deploy AI orchestrator side-service (admin) |
-| POST | `/api/ai.analyzeLogs` | **Headline:** AI-summarise a deployment's build log. Input: `deploymentId` |
+| POST | `/api/ai.analyzeLogs` | **Headline:** AI-summarise log text. Input: `aiId`, `logs` (the text from a `*.readLogs` call), `context` (`"build"` or `"runtime"`). **Not** `deploymentId` |
 | POST | `/api/ai.suggest` | Open-ended recommendations. Input: `applicationId` (or compose), optional `prompt` |
 
 ### `apiUrl` examples
@@ -67,18 +67,23 @@ The deployment object includes `status`, `startedAt`, `finishedAt`, `logPath`, `
 
 ---
 
-## Application / Compose Log Endpoints
+## Log Endpoints (v0.29.5 — runtime logs are first-class)
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/api/application.readLogs` | Build log metadata + `logPath` for an application |
-| POST | `/api/application.readAppMonitoring` | CPU / memory / network for an application |
-| POST | `/api/application.readTraefikConfig` | Traefik router/service entries for an application |
-| POST | `/api/application.updateTraefikConfig` | Overwrite Traefik config |
-| POST | `/api/compose.readLogs` | Build log metadata + `logPath` for a compose stack |
-| POST | `/api/{db}.readLogs` | DB container log metadata (`{db}` is `postgres`/`mysql`/`mariadb`/`mongo`/`redis`/`libsql`) |
+All `readLogs` endpoints are **GET** with query params (URL-encode the `input`). Two kinds of log:
 
-> `readLogs` returns the **build** log artifact. Live container stdout/stderr is not exposed via REST yet — track [issue #3719](https://github.com/Dokploy/dokploy/issues/3719). Workaround: read the file at `logPath` via Beszel or SSH.
+| Method | Endpoint | Params | Returns |
+|---|---|---|---|
+| GET | `/api/deployment.readLogs` | `deploymentId` (req), `tail` | **Build log** for one deployment |
+| GET | `/api/application.readLogs` | `applicationId` (req), `tail`, `since`, `search` | App container **runtime** stdout/stderr |
+| GET | `/api/compose.readLogs` | `composeId` (req), **`containerId` (req)**, `tail`, `since`, `search` | **One** compose container's runtime logs |
+| GET | `/api/{db}.readLogs` | `{db}Id` (req), `tail`, `since`, `search` | DB container runtime logs (`{db}` ∈ postgres/mysql/mariadb/mongo/redis/libsql) |
+| GET | `/api/application.readAppMonitoring` | `applicationId` | CPU / memory / network for an application |
+| GET | `/api/application.readTraefikConfig` | `applicationId` | Traefik router/service entries |
+| POST | `/api/application.updateTraefikConfig` | `applicationId`, `traefikConfig` | Overwrite Traefik config |
+
+Param ranges: `tail` 1–10000 (default 100); `since` is `all` or `<n>{s|m|h|d}` (e.g. `30m`, `2h`); `search` is a substring filter. The response `.data` is a newline-joined string, each line prefixed with an RFC3339 timestamp.
+
+> **Reading a compose stack = read every container.** `compose.readLogs` is per-container (`containerId` required). Enumerate first via `docker.getContainersByAppNameMatch?appName=<>&appType=docker-compose` (or `docker.getStackContainersByAppName` for swarm), then call `compose.readLogs` once per returned `containerId`. The old [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) "runtime logs not in REST" gap is closed — no SSH/Beszel needed.
 
 ---
 
@@ -86,11 +91,11 @@ The deployment object includes `status`, `startedAt`, `finishedAt`, `logPath`, `
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| GET | `/api/docker.getContainers` | All containers on the host |
-| GET | `/api/docker.getContainersByAppLabel` | Containers matching a Dokploy app label (`appName`) |
-| GET | `/api/docker.getContainersByAppNameMatch` | Loose substring match |
-| GET | `/api/docker.getServiceContainersByAppName` | Swarm service containers |
-| GET | `/api/docker.getStackContainersByAppName` | Compose stack service containers |
+| GET | `/api/docker.getContainers` | All containers on the host (each `{ containerId, name, state, status }`) |
+| GET | `/api/docker.getContainersByAppLabel` | Standalone-app containers by label. Params: `appName`, `type` (**req**: `standalone`/`swarm`) |
+| GET | `/api/docker.getContainersByAppNameMatch` | Compose-stack containers by name. Params: `appName`, `appType` (`stack`/`docker-compose`) |
+| GET | `/api/docker.getServiceContainersByAppName` | Swarm service containers (`appName`) |
+| GET | `/api/docker.getStackContainersByAppName` | Compose/Swarm stack service containers (`appName`) |
 | GET | `/api/docker.getConfig` | Full container config (env, command, mounts, network) |
 | POST | `/api/docker.startContainer` | Start by `containerId` |
 | POST | `/api/docker.stopContainer` | Graceful stop |
@@ -167,23 +172,51 @@ curl -s -G "$DOKPLOY_URL/api/deployment.all" \
   | jq '.result.data.json | map(select(.status=="error")) | sort_by(.startedAt) | last'
 ```
 
-### Inspect the container behind an app
+### Inspect the containers behind an app / compose stack
 
 ```bash
-APP_NAME=my-app
+# standalone app (type is required)
 curl -s -G "$DOKPLOY_URL/api/docker.getContainersByAppLabel" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
-  --data-urlencode "input={\"json\":{\"appName\":\"$APP_NAME\"}}" \
-  | jq '.result.data.json[0] | {Id, State, Status, Health: .State.Health.Status}'
+  --data-urlencode 'input={"json":{"appName":"my-app","type":"standalone"}}' \
+  | jq '.result.data.json[] | {containerId, name, state, status}'
+
+# compose stack — every service container
+curl -s -G "$DOKPLOY_URL/api/docker.getContainersByAppNameMatch" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
+  --data-urlencode 'input={"json":{"appName":"my-stack-ab12cd","appType":"docker-compose"}}' \
+  | jq '.result.data.json[] | {containerId, name, state, status}'
 ```
 
-### AI-analyse a deployment
+### Read runtime logs
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/api/ai.analyzeLogs" \
+# app runtime logs (last 200 lines, last hour, filtered to "error")
+curl -s -G "$DOKPLOY_URL/api/application.readLogs" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d "{\"json\":{\"deploymentId\":\"$DEPLOY_ID\"}}"
+  --data-urlencode 'input={"json":{"applicationId":"app123","tail":200,"since":"1h","search":"error"}}' \
+  | jq -r '.result.data.json'
+
+# one compose container's logs (containerId from getContainersByAppNameMatch above)
+curl -s -G "$DOKPLOY_URL/api/compose.readLogs" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
+  --data-urlencode 'input={"json":{"composeId":"cmp123","containerId":"b351686ac4de","tail":200}}' \
+  | jq -r '.result.data.json'
+```
+
+### AI-analyse logs (fetch text first, then analyse)
+
+```bash
+# 1) fetch the log text (build log here)
+LOGS=$(curl -s -G "$DOKPLOY_URL/api/deployment.readLogs" \
+  -H "x-api-key: $DOKPLOY_API_KEY" \
+  --data-urlencode "input={\"json\":{\"deploymentId\":\"$DEPLOY_ID\",\"tail\":1000}}" \
+  | jq -r '.result.data.json')
+
+# 2) analyse it ($AI_ID from /api/ai.getEnabledProviders; context "build" or "runtime")
+curl -s -X POST "$DOKPLOY_URL/api/ai.analyzeLogs" \
+  -H "x-api-key: $DOKPLOY_API_KEY" -H "Content-Type: application/json" \
+  -d "$(jq -nc --arg id "$AI_ID" --arg logs "$LOGS" '{json:{aiId:$id,logs:$logs,context:"build"}}')"
 ```
 
 ### Clean disk cache
