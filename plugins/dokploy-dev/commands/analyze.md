@@ -67,6 +67,6 @@ Parse from "$ARGUMENTS".
 ```
 /dokploy-dev:analyze
 /dokploy-dev:analyze web-frontend
-/dokploy-dev:analyze ipbay-website
+/dokploy-dev:analyze my-compose-stack
 /dokploy-dev:analyze <deploymentId>
 ```

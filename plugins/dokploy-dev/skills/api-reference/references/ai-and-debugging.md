@@ -200,7 +200,7 @@ curl -s -G "$DOKPLOY_URL/api/application.readLogs" \
 # one compose container's logs (containerId from getContainersByAppNameMatch above)
 curl -s -G "$DOKPLOY_URL/api/compose.readLogs" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
-  --data-urlencode 'input={"json":{"composeId":"cmp123","containerId":"b351686ac4de","tail":200}}' \
+  --data-urlencode 'input={"json":{"composeId":"cmp123","containerId":"a1b2c3d4e5f6","tail":200}}' \
   | jq -r '.result.data.json'
 ```
 

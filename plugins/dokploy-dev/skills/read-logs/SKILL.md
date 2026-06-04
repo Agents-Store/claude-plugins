@@ -68,7 +68,7 @@ mcp__dokploy__compose-one → { composeId: "<id>" }
 | `stack` (Swarm) | `docker-getStackContainersByAppName` | `{ appName }` |
 | _unsure / fallback_ | `docker-getContainers` then filter by name containing `appName` | `{}` (lists all host containers) |
 
-Each returned container is `{ containerId, name, state, status }` — e.g. `{ containerId: "b351686ac4de", name: "ipbay-website-kv5y1h-app-1", state: "running", status: "Up 5 days (healthy)" }`. **Save the `containerId` of every container** (the short Docker id) — that's what you pass next. Note which containers are `exited` / `restarting` / unhealthy; those are your prime suspects.
+Each returned container is `{ containerId, name, state, status }` — e.g. `{ containerId: "a1b2c3d4e5f6", name: "my-stack-ab12cd-app-1", state: "running", status: "Up 5 days (healthy)" }`. **Save the `containerId` of every container** (the short Docker id) — that's what you pass next. Note which containers are `exited` / `restarting` / unhealthy; those are your prime suspects.
 
 **3. Read logs for EACH container** (loop — do not stop at the first):
 
