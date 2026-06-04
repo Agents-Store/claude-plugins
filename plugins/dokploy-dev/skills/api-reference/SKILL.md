@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Dokploy REST API Reference
 
-API version: **v0.29.x** | 500+ endpoints across 49 routers (v0.29 added the `ai`, `schedule`, `patch`, `volumeBackups`, `previewDeployment`, `libsql`, `tag`, and `rollback` routers and expanded `docker` introspection)
+API version: **v0.29.5** | **526 endpoints across 49 routers** (OpenAPI 3.1.0). For the **complete, exhaustive operation index** (every endpoint with its params, generated from the schema) see [api-full-index-resources.md](references/api-full-index-resources.md) and [api-full-index-platform.md](references/api-full-index-platform.md). The themed files below give curated usage patterns for the most-used domains.
 
 ## Connection
 | Setting | Value |
@@ -42,7 +42,14 @@ curl -s -X POST "$DOKPLOY_URL/api/project.create" \
 ```
 
 ## Reference files
-The full endpoint surface is split across 7 reference files by domain:
+
+**Complete coverage (100% of all 526 operations, generated from the v0.29.5 schema):**
+| File | Coverage |
+|------|----------|
+| [api-full-index-resources.md](references/api-full-index-resources.md) | EVERY operation for projects, environments, tags, applications, compose, docker, domains, ports, redirects, security, certificates, mounts, registry, all 6 databases, deployments, previews, rollback, schedule, patch, backups, destinations, ai (300 ops) |
+| [api-full-index-platform.md](references/api-full-index-platform.md) | EVERY operation for settings, server, cluster, swarm, sshKey, git providers, notifications, users, organizations, custom roles, SSO, license, stripe, whitelabeling, audit log, admin (226 ops) |
+
+**Curated usage patterns (the most-used domains, with gotchas and examples):**
 | File | Coverage |
 |------|----------|
 | [api-projects-apps.md](references/api-projects-apps.md) | Projects, Applications, Environments, Deployments |
@@ -50,7 +57,7 @@ The full endpoint surface is split across 7 reference files by domain:
 | [api-domains-certs.md](references/api-domains-certs.md) | Domains, Certificates, Security, Redirects, Ports |
 | [api-compose-docker.md](references/api-compose-docker.md) | Compose, Docker, Mounts, Registry |
 | [api-server-settings.md](references/api-server-settings.md) | Server, Settings, Backup, Notifications, Users, Cluster/Swarm |
-| [ai-and-debugging.md](references/ai-and-debugging.md) | AI router, deployment inspection, Docker introspection, recovery actions, rollback, settings health & cleanup |
+| [ai-and-debugging.md](references/ai-and-debugging.md) | AI router, log endpoints, Docker introspection, recovery actions, rollback, settings health & cleanup |
 | [schedule-patch-previews.md](references/schedule-patch-previews.md) | Schedule, Patch, Volume Backups, Preview Deployments |
 
 ## Common patterns

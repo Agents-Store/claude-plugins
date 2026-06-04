@@ -1,5 +1,15 @@
 # LEARNINGS.md — dokploy-dev
 
+## 2026-06-05 — v1.5.0: complete MCP/REST coverage (all 526 operations indexed)
+
+**Feature:** 100% documented coverage of the Dokploy v0.29.5 API/MCP surface. A coverage audit (every OpenAPI operationId vs. the plugin text) showed v1.4.0 explicitly named only 274/526 ops (52%) — the dev/debug core was full, but ~18 categories (notification 41, user 23, organization, sso, stripe, sshKey, environment, mounts, destination, port, redirects, security, certificates, customRole, licenseKey, whitelabeling, tag, admin) were only indexed by category name. User asked for full coverage.
+**Implementation:**
+- Generated two reference files **directly from the OpenAPI schema** (`dokploy.json`) so params are exact, not hand-written: `skills/api-reference/references/api-full-index-resources.md` (300 ops) and `api-full-index-platform.md` (226 ops) — every operation with method + params (`*`=required), grouped by category with a TOC.
+- Wired them into `api-reference/SKILL.md` (new "Complete coverage" table; fixed stale header v0.29.x/500+ → v0.29.5/526) and `mcp-patterns` "Other categories" pointer.
+- Bumped 1.4.0 → 1.5.0 in `plugin.json` + `marketplace.json`; description now states "all 526 v0.29.5 operations across 49 categories indexed".
+**Verification:** Re-ran the coverage audit → 526/526 named, `missing: NONE` (100%). Spot-checked generated params against live MCP schemas (`compose-readLogs` → composeId*/containerId*/tail/since/search; `ai-analyzeLogs` → aiId*/logs*/context*).
+**Rationale:** The MCP server already exposes all 508 tools live (callable with their own schemas), but the plugin only *documented* ~half with usage guidance. Generating the complete index from the authoritative schema guarantees correctness and is regenerable when Dokploy updates — no hand-maintained drift.
+
 ## 2026-06-05 — v1.4.0: v0.29.5 runtime log API, per-container compose logs, ai-analyzeLogs signature fix
 
 **Feature:** The plugin now reads **runtime logs of every container** (including each container in a multi-container Docker Compose stack) over the REST API / MCP and diagnoses errors — the user's core pain ("doesn't read logs, especially for docker compose projects"). Added a dedicated `read-logs` skill and a `/dokploy-dev:compose-logs` command. Validated end-to-end against a live instance.

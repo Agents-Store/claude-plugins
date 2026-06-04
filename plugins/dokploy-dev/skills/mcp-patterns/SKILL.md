@@ -682,7 +682,7 @@ Use `DOKPLOY_ENABLED_TAGS` in `.mcp.json` to restrict exposure to a subset of ca
 
 ## Other categories (reference only)
 
-The remaining categories use the same `mcp__dokploy__<category>-<op>` pattern. They are documented in `api-reference/references/` rather than in detail here.
+The remaining categories use the same `mcp__dokploy__<category>-<op>` pattern. **Every one of these — and every operation in every category above — is enumerated with its exact params in the complete index:** [`api-reference/references/api-full-index-resources.md`](../api-reference/references/api-full-index-resources.md) and [`api-full-index-platform.md`](../api-reference/references/api-full-index-platform.md) (100% of all 526 operations, generated from the v0.29.5 schema). The themed files below add curated usage notes for some of them.
 
 | Category | Prefix | Purpose | Reference |
 |---|---|---|---|
