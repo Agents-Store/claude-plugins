@@ -67,6 +67,12 @@ Logs are the single most informative artifact. Pick the **right** log for the fa
   ```
   mcp__dokploy__deployment-readLogs { deploymentId: "<from Step 1>", tail: 500 }
   ```
+  **If `deployment-readLogs` isn't a registered tool in your session** (some MCP builds expose a reduced tool set — `ToolSearch` won't find it), read the identical artifact over REST instead of giving up on the log:
+  ```bash
+  curl -s -G "$DOKPLOY_URL/api/deployment.readLogs" -H "x-api-key: $DOKPLOY_API_KEY" \
+    --data-urlencode "deploymentId=<from Step 1>" --data-urlencode "tail=500" | tr '\r' '\n'
+  ```
+  Always read the actual build log before forming a root cause — a ~15s "instant" failure looks the same for a dozen different causes (corepack, lockfile, frozen-install policy, OOM), and only the log distinguishes them. See the [`read-logs`](../read-logs/SKILL.md) §3 fallback for details.
 - **Build succeeded but the container is crashing / erroring at runtime** → read the **runtime log**:
   - App: `mcp__dokploy__application-readLogs { applicationId, tail: 300, since: "1h", search?: "error" }`
   - **Compose stack: read every container.** First enumerate (`compose-one { composeId }` → `appName`/`composeType`; then `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` for compose, or `docker-getStackContainersByAppName { appName }` for swarm). Then loop `compose-readLogs { composeId, containerId, tail, since, search }` for **each** container — or just run `/dokploy-dev:compose-logs <compose>`.

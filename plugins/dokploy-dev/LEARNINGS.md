@@ -1,5 +1,12 @@
 # LEARNINGS.md — dokploy-dev
 
+## 2026-06-07 — v1.5.1: read-logs/debug-deploy — REST fallback when `deployment-readLogs` MCP tool is missing
+
+**Problem:** Debugging a real failed build (Next.js app on a v0.29.5 instance), the session's MCP exposed a *reduced* tool set that did **not** register `deployment-readLogs` (only the runtime `*-readLogs`). Following `read-logs` §3 / `debug-deploy` Step 2 — which only name the MCP tool — the agent concluded "build logs are unavailable" and diagnosed from indirect signals (a ~15s "instant" failure), producing a **wrong root cause** (corepack signature) instead of the real one (`ERR_PNPM_IGNORED_BUILDS` under a floating `pnpm@latest`). The user had to push twice before the agent read the actual log via direct REST and corrected itself.
+**Fix:** Added an explicit REST fallback at the point of use in both `read-logs/SKILL.md` §3 and `debug-deploy/SKILL.md` Step 2: when `deployment-readLogs` isn't a registered tool, read the same artifact via `curl -G "$DOKPLOY_URL/api/deployment.readLogs" -H "x-api-key: …" --data-urlencode deploymentId=… --data-urlencode tail=…` (pipe through `tr '\r' '\n'`). Added the generalised "MCP-tool-missing → confirm via `settings-getOpenApiDocument` → REST" move, and a "always read the actual build log before forming a root cause — a 15s instant failure looks identical for corepack/lockfile/frozen-install/OOM" caution.
+**Root cause:** The skills assumed the full MCP tool set is always present. The REST fallback existed elsewhere (`mcp-patterns`, `api-reference`) but not at the build-log read step the agent actually follows, so it was never reached. Fixing at the point of use closes the gap.
+**Severity:** Major (led to an incorrect diagnosis on a production deploy).
+
 ## 2026-06-05 — v1.5.0: complete MCP/REST coverage (all 526 operations indexed)
 
 **Feature:** 100% documented coverage of the Dokploy v0.29.5 API/MCP surface. A coverage audit (every OpenAPI operationId vs. the plugin text) showed v1.4.0 explicitly named only 274/526 ops (52%) — the dev/debug core was full, but ~18 categories (notification 41, user 23, organization, sso, stripe, sshKey, environment, mounts, destination, port, redirects, security, certificates, customRole, licenseKey, whitelabeling, tag, admin) were only indexed by category name. User asked for full coverage.

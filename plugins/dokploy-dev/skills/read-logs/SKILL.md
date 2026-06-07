@@ -102,6 +102,14 @@ The build log explains why an image failed to build (before any container starts
 
 `deployment-readLogs` takes only `deploymentId` + `tail` (no `since`/`search` — it's one finite artifact). Use this for build-time failures; use §1/§2 for run-time failures.
 
+> **If `deployment-readLogs` is not a registered tool in your session, read the build log over REST instead — do not conclude it's unavailable.** Some MCP builds expose only a subset of Dokploy's endpoints, so the tool list / `ToolSearch` won't find `deployment-readLogs` even though the instance (v0.29.5) serves it. The REST endpoint is always there:
+> ```bash
+> curl -s -G "$DOKPLOY_URL/api/deployment.readLogs" \
+>   -H "x-api-key: $DOKPLOY_API_KEY" \
+>   --data-urlencode "deploymentId=<id>" --data-urlencode "tail=500"
+> ```
+> Build logs carry `\r` progress noise — pipe through `tr '\r' '\n'` before grepping. The response is a JSON string. This MCP-tool-missing → REST-fallback move works for any endpoint; confirm exact paths/params with `settings-getOpenApiDocument` (large — dump to a file and grep). Diagnosing a build failure from indirect signals when the real log is one `curl` away leads to wrong root causes.
+
 ---
 
 ## §4 — Database runtime logs
