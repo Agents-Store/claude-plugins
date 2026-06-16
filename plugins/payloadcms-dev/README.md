@@ -1,24 +1,31 @@
 # payloadcms-dev
 
-Developer plugin for **PayloadCMS v3**. Packages Payload knowledge — collections, fields, hooks, access control, queries, adapters, Lexical, jobs queue, plugin development, Next.js integration, CLI, migrations, and end-to-end scenarios — so Claude Code can build with Payload confidently in any session.
+Developer plugin for **PayloadCMS v3**. Packages Payload knowledge — collections, fields, globals, hooks, access control, authentication, queries, data management (trash/presets/folders), localization, adapters, Lexical, admin customization, jobs queue, plugin development, official plugins, Next.js integration, deployment, CLI, migrations, and end-to-end scenarios — so Claude Code can build with Payload confidently in any session.
 
 ## What's Inside
 
-### 16 Skills
+### 23 Skills
 
 | Skill | When Claude triggers it |
 | --- | --- |
 | `setup` | Initial scaffolding, `payload.config.ts`, DB adapter selection, type generation. |
 | `collections` | Designing `CollectionConfig` — slug, admin, auth, upload, versions, drafts, live preview. |
 | `fields` | All field types, validation, virtual, conditional, blocks, join, with reference catalog. |
+| `globals` | `GlobalConfig` for site settings, header/footer, nav — access, hooks, versions, `findGlobal`/`updateGlobal`. |
 | `hooks` | Collection/field/global hooks, context flag, req threading, Next.js revalidation. |
 | `access-control` | Collection/field/global access, RBAC, row-level Where filters, multi-tenant patterns. |
+| `authentication` | Cookie/JWT/API-key/custom (OAuth/SSO) strategies, auth operations, verification & forgot-password emails. |
 | `queries` | Operators, depth, populate, sort, AND/OR, Local/REST/GraphQL. |
+| `data-management` | Trash (soft delete), Query Presets, Folders, and Group By aggregation. |
+| `localization` | `localization` config, localized fields/relationships, fallback locales, locale queries, admin i18n. |
 | `adapters` | Postgres / MongoDB / SQLite, S3 / R2 / Vercel Blob, Resend / Nodemailer + transactions. |
 | `lexical-editor` | Rich text customization — features, blocks, links/uploads, custom nodes, JSX rendering. |
-| `jobs-queue` | Tasks, workflows, retries, cron schedules, in-process autoRun, external triggers. |
+| `admin-customization` | Custom React components, custom views, dashboard widgets, admin React hooks, doc locking, CSS. |
+| `jobs-queue` | Tasks, workflows, retries, cron schedules, declarative `schedule`, in-process autoRun, external triggers. |
 | `nextjs-integration` | App Router fetch, route groups, draft mode, live preview, ISR + revalidation, server actions. |
 | `plugin-development` | Authoring `payload-plugin-*` packages: SWC build, hook preservation, multi-entry exports. |
+| `official-plugins` | Installing & configuring `@payloadcms/plugin-*` — SEO, form-builder, search, stripe, multi-tenant, redirects, nested-docs, sentry, import-export, MCP. |
+| `deployment` | Production build, Vercel / Docker / self-host, building without a DB, preventing API abuse, performance. |
 | `cli-recipes` | `payload migrate`, `generate:types`, `generate:importmap`, `migrate:create/down/refresh`. |
 | `troubleshoot` | Access bypass, hook loops, transaction breaks, type-gen failures, import-map errors. |
 | `cms-migration` | Config-first workflow: WordPress / Contentful / Strapi / Sanity / Webflow → Payload. |

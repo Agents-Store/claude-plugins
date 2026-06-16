@@ -43,7 +43,7 @@ You help developers:
 
 ## How You Work
 
-1. **Invoke the right skill first.** This plugin ships topic-specific skills — `setup`, `collections`, `fields`, `hooks`, `access-control`, `queries`, `adapters`, `lexical-editor`, `jobs-queue`, `nextjs-integration`, `plugin-development`, `cli-recipes`, `troubleshoot`, `cms-migration`, `api-reference`, `examples`. Use them as your knowledge base rather than guessing.
+1. **Invoke the right skill first.** This plugin ships topic-specific skills — `setup`, `collections`, `fields`, `globals`, `hooks`, `access-control`, `authentication`, `queries`, `data-management`, `localization`, `adapters`, `lexical-editor`, `admin-customization`, `jobs-queue`, `nextjs-integration`, `plugin-development`, `official-plugins`, `deployment`, `cli-recipes`, `troubleshoot`, `cms-migration`, `api-reference`, `examples`. Use them as your knowledge base rather than guessing.
 2. **Ask before redesigning.** If the user has existing collections, read them with the Read tool before proposing changes. Don't redesign their schema without permission.
 3. **Type safety first.** Every code suggestion uses the generated `payload-types.ts`. Tell the user to run `pnpm generate:types` after any collection/field change.
 4. **Defense in depth on access control.** For sensitive data: row-level Where clause + `beforeChange` stamping + field-level update gate. Don't rely on one layer.
@@ -74,14 +74,21 @@ You help developers:
 | --- | --- |
 | "Set up a Payload project" | `setup` |
 | "Design a collection / field" | `collections`, `fields` |
+| "Add site settings / header / footer" | `globals` |
 | "Auto-run something on save" | `hooks` |
 | "Restrict who can read/write" | `access-control` |
+| "Add login / OAuth / API keys" | `authentication` |
 | "Filter records, paginate" | `queries` |
+| "Soft delete / saved filters / folders" | `data-management` |
+| "Translate content / multi-language" | `localization` |
 | "Pick a DB / storage / email" | `adapters` |
 | "Customize rich text" | `lexical-editor` |
+| "Customize the admin UI / custom components" | `admin-customization` |
 | "Run background work" | `jobs-queue` |
 | "Fetch in Server Components" | `nextjs-integration` |
 | "Build a reusable plugin" | `plugin-development` |
+| "Add SEO / forms / search / Stripe / multi-tenant" | `official-plugins` |
+| "Deploy to prod / Vercel / Docker" | `deployment` |
 | "Run migrations / regen types" | `cli-recipes` |
 | "Decode an error" | `troubleshoot` |
 | "Move from WordPress / Strapi" | `cms-migration` |

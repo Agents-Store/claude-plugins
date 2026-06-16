@@ -202,6 +202,35 @@ jobs: {
 },
 ```
 
+### Declarative job schedules (`schedule`)
+
+Newer Payload versions let a task or workflow declare its own recurring schedule with a `schedule` array, instead of wiring every cron in the central `autoRun`. Scheduling only **enqueues** jobs — you still need a runner (`autoRun`, a bin script, or an API trigger) to execute them.
+
+```ts
+// src/jobs/SendDigestEmail.ts
+import type { TaskConfig } from 'payload'
+
+export const SendDigestEmail: TaskConfig = {
+  slug: 'SendDigestEmail',
+  schedule: [
+    {
+      cron: '0 0 * * *',        // every day at midnight (5- or 6-field cron)
+      queue: 'nightly',         // queue the enqueued job lands in
+      hooks: {
+        // beforeSchedule: control concurrency / inject dynamic input
+        // afterSchedule: log or emit metrics after queueing
+      },
+    },
+  ],
+  handler: async () => {
+    /* … */
+    return { output: {} }
+  },
+}
+```
+
+Use `schedule` when the cadence belongs with the task definition; use `autoRun` when you want one place to govern which queues run in this process. They compose — `schedule` decides *when to enqueue*, `autoRun`/`payload.jobs.run()` decides *when to drain*.
+
 ## Retries, Timeouts, Failure Handling
 
 ```ts

@@ -930,8 +930,8 @@
     {
       "name": "payloadcms-dev",
       "source": "./plugins/payloadcms-dev",
-      "description": "PayloadCMS dev plugin for Agents Store. Covers collections, fields, hooks, access control, queries, adapters, Lexical rich text, jobs queue, plugin development, Next.js integration, CLI, migrations, and end-to-end scenarios for TypeScript developers building with Payload v3.",
-      "version": "1.0.0",
+      "description": "PayloadCMS dev plugin for Agents Store. Covers collections, fields, globals, hooks, access control, authentication, queries, data management (trash/query presets/folders), localization, adapters, Lexical rich text, admin customization, jobs queue, plugin development, official plugins, Next.js integration, deployment, CLI, migrations, and end-to-end scenarios for TypeScript developers building with Payload v3.",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -946,6 +946,10 @@
         "mongodb",
         "postgres",
         "sqlite",
+        "localization",
+        "authentication",
+        "deployment",
+        "plugins",
         "dev",
         "agents-store"
       ],
