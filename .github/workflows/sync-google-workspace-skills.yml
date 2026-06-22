@@ -1,0 +1,70 @@
+name: Sync googleworkspace/cli skills upstream
+
+on:
+  schedule:
+    # Weekly: every Monday at 06:30 UTC
+    - cron: "30 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: "Upstream git ref to sync (branch, tag, or SHA)"
+        required: false
+        default: "main"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Run sync script
+        id: sync
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref || 'main' }}
+        run: |
+          SHA="$(./scripts/sync-google-workspace-skills.sh)"
+          echo "upstream_sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "upstream_short=${SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet -- \
+              plugins/google-workspace-dev/skills \
+              plugins/google-workspace-dev/SKILLS_INDEX.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/sync-google-workspace-skills
+          commit-message: |
+            chore(google-workspace-dev): sync upstream skills @ ${{ steps.sync.outputs.upstream_short }}
+
+            Source: https://github.com/googleworkspace/cli/commit/${{ steps.sync.outputs.upstream_sha }}
+          title: "chore(google-workspace-dev): sync upstream skills @ ${{ steps.sync.outputs.upstream_short }}"
+          body: |
+            Automated sync from [`googleworkspace/cli`](https://github.com/googleworkspace/cli) at commit [`${{ steps.sync.outputs.upstream_short }}`](https://github.com/googleworkspace/cli/commit/${{ steps.sync.outputs.upstream_sha }}).
+
+            **Scope:** only `gws-*`, `persona-*`, and `recipe-*` directories under `plugins/google-workspace-dev/skills/` (plus `SKILLS_INDEX.md`) are touched. Custom skills (`google-workspace-setup`, `examples`) and all root metadata are untouched. Upstream additions are copied, upstream removals are pruned.
+
+            **Review checklist:**
+            - [ ] New / removed / renamed upstream skill directories look intentional?
+            - [ ] Any new upstream skill that needs a matching `examples` scenario or README mention?
+            - [ ] Did the upstream `gws` CLI version change (check `gws-shared` frontmatter) in a way that affects the setup skill?
+            - [ ] Append a LEARNINGS entry if a manual fix would have been silently overwritten.
+
+            Triggered by: `${{ github.event_name }}`.
+          labels: |
+            automation
+            upstream-sync
+          delete-branch: true
