@@ -5,7 +5,7 @@ description: This skill should be used when the user asks about "web search MCP 
 
 # Web Search & Scraping MCP Tool Patterns
 
-Reference for all available MCP tools across 7 services (60+ tools total). Use the routing table below to find the right tool for your task, then see the per-service reference files for detailed parameters.
+Reference for all available MCP tools across 7 services (65+ tools total). Use the routing table below to find the right tool for your task, then see the per-service reference files for detailed parameters.
 
 ## Tool Priority — ALWAYS prefer MCP tools over WebFetch
 
@@ -30,7 +30,8 @@ Pick a service based on what you need:
 
 - **Need JS rendering / site crawling / structured extraction?** → **Firecrawl**
 - **Need fast page reading / batch operations?** → **Jina**
-- **Need semantic search / code examples?** → **Exa**
+- **Need semantic search?** → **Exa**
+- **Need code examples / GitHub issues / dev docs?** → **Firecrawl** `firecrawl_developer_search`
 - **Need AI-synthesized answer with citations?** → **Perplexity**
 - **Need current framework docs?** → **Context7**
 - **Need stock photos or videos?** → **Pexels** (photos+videos) or **Unsplash** (photos)
@@ -48,29 +49,34 @@ Pick the right tool by what you need to do:
 | **Crawl entire site** | `firecrawl_crawl` | `firecrawl_map` + batch scrape | Firecrawl |
 | **Map site URLs** | `firecrawl_map` | — | Firecrawl |
 | **Extract structured data** | `firecrawl_extract` | `firecrawl_scrape` with jsonOptions | Firecrawl |
-| **Search code examples** | `get_code_context_exa` | `web_search_exa` with GitHub domain | Exa |
+| **Search code examples** | `firecrawl_developer_search` | `web_search_exa` with `includeDomains: ["github.com"]` | Firecrawl / Exa |
 | **AI-powered Q&A** | `perplexity_ask` | `perplexity_search` | Perplexity |
 | **Deep research** | `perplexity_research` | `firecrawl_agent` | Perplexity / Firecrawl |
 | **Reasoning/analysis** | `perplexity_reason` | — | Perplexity |
 | **Search images** | `search_images` | `searchPhotos` (Pexels) → `get_search_photos` (Unsplash) | Jina / Pexels / Unsplash |
 | **Search videos** | `searchVideos` | `getPopularVideos` | Pexels |
 | **Take screenshot** | `capture_screenshot_url` | — | Jina |
-| **Search framework docs** | `contex7-query-docs` | `perplexity_search` | Context7 / Perplexity |
+| **Search framework docs** | `query-docs` | `perplexity_search` | Context7 / Perplexity |
 | **Classify text** | `classify_text` | — | Jina |
 | **Deduplicate content** | `deduplicate_strings` | — | Jina |
 | **Rerank results** | `sort_by_relevance` | — | Jina |
 | **Extract from PDF** | `extract_pdf` | — | Jina |
-| **Browser automation** | `firecrawl_browser_create` | — | Firecrawl |
+| **Browser automation** | `firecrawl_interact` | `firecrawl_scrape` with `actions` | Firecrawl |
 | **Autonomous research** | `firecrawl_agent` | `perplexity_research` | Firecrawl / Perplexity |
+| **Monitor page changes** | `firecrawl_monitor_create` | — | Firecrawl |
+| **Parse files (PDF/DOCX)** | `firecrawl_parse` | `extract_pdf` (Jina) | Firecrawl / Jina |
+| **Search academic papers** | `search_arxiv` (Jina) | `firecrawl_research_search_papers` | Jina / Firecrawl |
+| **Search GitHub** | `firecrawl_research_search_github` | `web_search_exa` + github.com domain | Firecrawl / Exa |
+| **Fetch page via Exa** | `web_fetch_exa` | `read_url` | Exa / Jina |
 
 ## Service Overview
 
 | Service | Tools | Strengths |
 |---------|-------|-----------|
-| **Firecrawl** | 12 | JS rendering, site crawling, structured extraction, browser sessions, autonomous agent |
-| **Jina** | 19 | Fast page reading, parallel operations, image search, text classification, deduplication, PDF extraction |
+| **Firecrawl** | 28 | JS rendering, site crawling, structured extraction, live-page interaction, file parsing, change monitors, research/developer search, autonomous agent |
+| **Jina** | 21 | Fast page reading, parallel operations, image search, text classification, deduplication, PDF extraction |
 | **Perplexity** | 4 | AI-synthesized answers, deep research, reasoning with citations |
-| **Exa** | 3-4 | Semantic search, code context discovery, category filtering |
+| **Exa** | 2 default (+2 optional via remote MCP) | Semantic search, page fetching, category filtering |
 | **Pexels** | 9 | Stock photos and videos with licensing |
 | **Unsplash** | 4 | High-quality stock photos |
 | **Context7** | 2 | Up-to-date framework/library documentation |
@@ -118,9 +124,9 @@ Input: { "query": "modern office workspace", "per_page": 10, "orientation": "lan
 
 For complete tool parameters and advanced usage, see the service-specific references:
 
-- `references/firecrawl-tools.md` — 12 tools: scrape, crawl, map, search, extract, agent, browser
-- `references/exa-tools.md` — 4 tools: web_search, code_context, crawling, advanced_search
+- `references/firecrawl-tools.md` — 28 tools: scrape, search, crawl, map, extract, parse, agent, interact, monitors, research, developer search
+- `references/exa-tools.md` — 2 default tools (web_search, web_fetch) + optional advanced search / agent via remote MCP
 - `references/perplexity-tools.md` — 4 tools: search, ask, research, reason
-- `references/jina-tools.md` — 19 tools: read, search, images, parallel, classify, deduplicate, PDF
+- `references/jina-tools.md` — 21 tools: read, search, images, parallel, classify, deduplicate, PDF
 - `references/media-tools.md` — 13 tools: Pexels photos/videos + Unsplash photos
-- `references/context7-tools.md` — 2 tools: query-docs, resolve-library-id
+- `references/context7-tools.md` — 2 tools: `resolve-library-id`, `query-docs`

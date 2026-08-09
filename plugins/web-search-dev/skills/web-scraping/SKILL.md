@@ -17,7 +17,7 @@ Practical scraping patterns for building applications — extracting content, da
 | Entire site | `firecrawl_crawl` | Full site crawl with depth control |
 | Site URL discovery | `firecrawl_map` | Find all URLs before selective scraping |
 | Structured data | `firecrawl_extract` | Extract to JSON schema (LLM-powered) |
-| Interactive pages | `firecrawl_browser_create` | Login, click, scroll before extraction |
+| Interactive pages | `firecrawl_interact` | Login, click, scroll before extraction |
 | Screenshots | `capture_screenshot_url` (Jina) | Visual snapshots |
 
 ## Pattern 1: Scrape Single Page
@@ -103,7 +103,7 @@ Tool: firecrawl_crawl
 Input: {
   "url": "https://old-site.example.com",
   "limit": 200,
-  "maxDepth": 4,
+  "maxDiscoveryDepth": 4,
   "includePaths": ["/blog/*", "/docs/*"],
   "excludePaths": ["/admin/*", "/login/*"],
   "scrapeOptions": {
@@ -117,30 +117,21 @@ Check progress with `firecrawl_check_crawl_status` using the returned job ID.
 
 ## Pattern 5: Interactive Scraping (Login Required)
 
-For pages behind authentication:
+For pages behind authentication, use `firecrawl_interact` — a single call drives a live browser session with a natural-language prompt (or code):
 
 ```
-Step 1 — Create browser session:
-Tool: firecrawl_browser_create
-
-Step 2 — Login:
-Tool: firecrawl_browser_execute
+Step 1 — Interact:
+Tool: firecrawl_interact
 Input: {
-  "sessionId": "<session_id>",
-  "code": "await page.goto('https://example.com/login'); await page.fill('#email', 'user@example.com'); await page.fill('#password', 'pass'); await page.click('#submit'); await page.waitForNavigation();"
+  "url": "https://example.com/login",
+  "prompt": "Log in with email user@example.com and password from my credentials, then navigate to the dashboard and return its content"
 }
 
-Step 3 — Scrape authenticated content:
-Tool: firecrawl_browser_execute
-Input: {
-  "sessionId": "<session_id>",
-  "code": "await page.goto('https://example.com/dashboard'); const content = await page.content(); return content;"
-}
-
-Step 4 — Clean up:
-Tool: firecrawl_browser_delete
-Input: { "sessionId": "<session_id>" }
+Step 2 — Clean up:
+Tool: firecrawl_interact_stop
 ```
+
+For lighter interactions (click, type, scroll before extraction), the `actions` array on `firecrawl_scrape` is a simpler alternative — no session to manage.
 
 ## Pattern 6: Content Pipeline Script
 
@@ -163,26 +154,27 @@ When the user needs a reusable script they can run independently (not just MCP t
 ### TypeScript (Node.js)
 
 ```typescript
-import Firecrawl from 'firecrawl';
+import { Firecrawl } from 'firecrawl';
 
 const firecrawl = new Firecrawl({ apiKey: process.env.FIRECRAWL_API_KEY });
 
 async function scrapeProducts(baseUrl: string) {
-  // 1. Discover URLs
-  const map = await firecrawl.mapUrl(baseUrl, { limit: 200 });
-  const productUrls = map.urls.filter(u => u.includes('/product'));
+  // 1. Discover URLs — map() returns { links: [{ url, title, description }] }
+  const map = await firecrawl.map(baseUrl, { limit: 200 });
+  const productUrls = map.links.map(l => l.url).filter(u => u.includes('/product'));
 
   // 2. Extract structured data
   const results = [];
   for (const batch of chunk(productUrls, 10)) {
-    const extracted = await firecrawl.extract(batch, {
+    const extracted = await firecrawl.extract({
+      urls: batch,
       schema: { type: 'object', properties: {
         name: { type: 'string' },
         price: { type: 'number' },
         description: { type: 'string' }
       }}
     });
-    results.push(...extracted);
+    results.push(extracted);
     await sleep(1000); // Rate limit respect
   }
   return results;
@@ -213,7 +205,7 @@ Use this pattern when the user says "build me a scraper," "create a script," or 
 
 - Start with `read_url` (fastest), escalate to `firecrawl_scrape` only if needed
 - Use `firecrawl_map` before crawling to estimate scope
-- Set reasonable `limit` and `maxDepth` to avoid excessive crawling
+- Set reasonable `limit` and `maxDiscoveryDepth` to avoid excessive crawling
 - Use `includePaths`/`excludePaths` to focus on relevant content
 - Always use `onlyMainContent: true` to skip navigation, footers, ads
 - For large sites, process in batches of 10-25 URLs

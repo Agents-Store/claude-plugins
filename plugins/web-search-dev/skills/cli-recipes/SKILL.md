@@ -22,7 +22,8 @@ npx -y firecrawl-cli@latest
 ```bash
 firecrawl login --browser    # Browser-based login
 firecrawl login --api-key fc-YOUR_KEY  # Direct key
-firecrawl --status           # Check auth, credits, concurrency
+firecrawl view-config        # Show current auth/config
+firecrawl logout             # Sign out
 ```
 
 ### Scrape a Page
@@ -72,14 +73,29 @@ firecrawl agent "Research React state management libraries" --wait
 firecrawl agent "Find API rate limits" --urls https://docs.stripe.com --schema schema.json
 ```
 
-### Browser Sessions
+### Interact (live browser)
+
+Drive dynamic pages with natural language or code — replaces the old `firecrawl browser` session flow:
 
 ```bash
-firecrawl browser launch-session
-firecrawl browser execute "page.goto('https://example.com'); page.screenshot()"
-firecrawl browser execute --python "from playwright.async_api import async_playwright"
-firecrawl browser list
-firecrawl browser close
+firecrawl interact https://example.com --prompt "log in and open the dashboard"
+```
+
+### Monitor Changes
+
+Recurring scrapes with change detection:
+
+```bash
+firecrawl monitor create https://example.com/pricing
+firecrawl monitor list
+```
+
+### Developer Index Search
+
+Search GitHub issues, PRs, READMEs, and docs:
+
+```bash
+firecrawl developer "nextjs hydration mismatch"
 ```
 
 ### Useful Flags

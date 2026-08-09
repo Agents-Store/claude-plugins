@@ -13,26 +13,29 @@ The Agent API supports third-party models with web search tools, presets, and mo
 curl -s -X POST https://api.perplexity.ai/v1/agent \
   -H "Authorization: Bearer ${PERPLEXITY_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"input": "What are the latest Next.js 15 features?", "preset": "fast-search"}' | jq .
+  -d '{"input": "What are the latest Next.js 15 features?", "preset": "fast"}' | jq .
 
 # Detailed analysis with web search
 curl -s -X POST https://api.perplexity.ai/v1/agent \
   -H "Authorization: Bearer ${PERPLEXITY_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"input": "Compare tRPC vs GraphQL for Next.js apps", "preset": "pro-search"}' | jq .
+  -d '{"input": "Compare tRPC vs GraphQL for Next.js apps", "preset": "low"}' | jq .
 
 # Comprehensive multi-step research (most thorough, slowest)
 curl -s -X POST https://api.perplexity.ai/v1/agent \
   -H "Authorization: Bearer ${PERPLEXITY_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"input": "State of WebAssembly adoption in 2025", "preset": "deep-research"}' | jq .
+  -d '{"input": "State of WebAssembly adoption in 2025", "preset": "medium"}' | jq .
 ```
 
 | Preset | Speed | Depth | Best For |
 |--------|-------|-------|----------|
-| `fast-search` | Fast | Light | Quick facts, current info |
-| `pro-search` | Medium | Detailed | Comparisons, technical analysis |
-| `deep-research` | Slow | Comprehensive | In-depth reports, multi-aspect topics |
+| `fast` | Fast | Light | Quick facts, current info (was `fast-search`) |
+| `low` | Medium | Detailed | Comparisons, technical analysis (was `pro-search`) |
+| `medium` | Slow | Comprehensive | In-depth reports, multi-aspect topics (was `deep-research`) |
+| `high` | Slower | Expert | Expert multi-hop research |
+| `xhigh` | Slowest | Agentic | Agentic research with sandbox |
+| `wide-research` | Slow | Broad | Large evidence-backed collections |
 
 ### With Specific Model
 
@@ -42,8 +45,8 @@ curl -s -X POST https://api.perplexity.ai/v1/agent \
   -H "Content-Type: application/json" \
   -d '{
     "input": "Compare React Server Components vs Client Components performance",
-    "model": "openai/gpt-4o",
-    "preset": "pro-search"
+    "model": "openai/gpt-5.5",
+    "preset": "low"
   }' | jq .
 ```
 
@@ -51,9 +54,12 @@ curl -s -X POST https://api.perplexity.ai/v1/agent \
 
 | Preset | Best For |
 |--------|----------|
-| `fast-search` | Quick factual lookups |
-| `pro-search` | Detailed analysis with web search |
-| `deep-research` | Comprehensive multi-step research |
+| `fast` | Quick factual lookups |
+| `low` | Detailed analysis with web search |
+| `medium` | Comprehensive multi-step research |
+| `high` | Expert multi-hop research |
+| `xhigh` | Agentic research with sandbox |
+| `wide-research` | Large evidence-backed collections |
 
 ### Model Fallback Chain
 
@@ -63,8 +69,8 @@ curl -s -X POST https://api.perplexity.ai/v1/agent \
   -H "Content-Type: application/json" \
   -d '{
     "input": "Explain React 19 new hooks",
-    "models": ["anthropic/claude-sonnet-4-6", "openai/gpt-4o", "xai/grok-4-1"],
-    "preset": "pro-search"
+    "models": ["anthropic/claude-sonnet-4-6", "openai/gpt-5.5", "xai/grok-4.5"],
+    "preset": "low"
   }' | jq .
 ```
 
@@ -76,7 +82,7 @@ curl -s -X POST https://api.perplexity.ai/v1/agent \
   -H "Content-Type: application/json" \
   -d '{
     "input": "How to implement OAuth 2.0 in Next.js",
-    "preset": "fast-search",
+    "preset": "fast",
     "stream": true
   }'
 ```
@@ -108,21 +114,30 @@ curl -s -X POST https://api.perplexity.ai/v1/sonar \
 
 ## Search API
 
+Endpoint is `POST https://api.perplexity.ai/search` — no `/v1` prefix.
+
 ```bash
-curl -s -X POST https://api.perplexity.ai/v1/search \
+curl -s -X POST https://api.perplexity.ai/search \
   -H "Authorization: Bearer ${PERPLEXITY_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "React 19 new features"
+    "query": "React 19 new features",
+    "max_results": 5
   }' | jq .
 ```
+
+Params: `query` (string or array of strings for multi-query), `max_results`, `search_domain_filter`, `search_recency_filter`.
+
+## Gateway API
+
+OpenAI-compatible chat completions proxy: `POST https://api.perplexity.ai/gateway/chat/completions`.
 
 ## Response Format (Agent API)
 
 ```json
 {
   "id": "resp_xxx",
-  "model": "openai/gpt-4o",
+  "model": "openai/gpt-5.5",
   "status": "completed",
   "output": [
     {

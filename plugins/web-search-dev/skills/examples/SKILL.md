@@ -12,7 +12,7 @@ End-to-end scenario walkthroughs for common development tasks. Each scenario sho
 | Scenario | Use Case | Services Used |
 |----------|----------|---------------|
 | [Scrape for App](references/scenarios/scrape-for-app.md) | Extract product data and import into your application | Firecrawl (map, extract), Jina (read) |
-| [Doc Search Workflow](references/scenarios/doc-search-workflow.md) | Find framework docs while coding to fix a bug | Context7, Exa, Perplexity, Jina |
+| [Doc Search Workflow](references/scenarios/doc-search-workflow.md) | Find framework docs while coding to fix a bug | Context7, Perplexity, Firecrawl, Jina |
 | [Media for Content](references/scenarios/media-for-content.md) | Find stock photos/videos for a blog or app | Pexels, Unsplash, Jina (images) |
 | [Content Pipeline](references/scenarios/content-pipeline.md) | Multi-service data pipeline: discover, extract, transform, load | Firecrawl, Jina, Exa |
 
@@ -38,7 +38,7 @@ End-to-end scenario walkthroughs for common development tasks. Each scenario sho
 
 ```
 1. Ask: perplexity_ask({ query: "How to implement X?" })
-2. Find docs: contex7-query-docs({ libraryId: "...", query: "X" })
+2. Find docs: query-docs({ libraryId: "...", query: "X" })
 3. Verify answer against official docs
 ```
 

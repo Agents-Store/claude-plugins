@@ -1,4 +1,4 @@
-# Jina MCP Tools (19 tools)
+# Jina MCP Tools (21 tools)
 
 Jina provides a unified "Search Foundation" platform. One API key works across all tools. Strongest at **page reading, parallel operations, and text processing**.
 
@@ -189,11 +189,17 @@ Get contextual information about the current session (time, location, network).
 
 No parameters required.
 
+### show_api_key
+Return the API key configured for the current session.
+
+No parameters required.
+
 ## Rate Limits
 
-| Tier | RPM | Concurrency |
-|------|-----|-------------|
-| No key | 20 | — |
-| Free key | 100-500 | 2 |
-| Paid key | 500 | 50 |
-| Premium | 5,000 | 500 |
+Limits differ by product — reader (`r.jina.ai`) and search (`s.jina.ai`) have separate tiers:
+
+| Tier | Reader RPM | Search RPM |
+|------|------------|------------|
+| No key | 20 | — (search requires a key) |
+| With key | 500 | 100 |
+| Premium | 5,000 | 1,000 |

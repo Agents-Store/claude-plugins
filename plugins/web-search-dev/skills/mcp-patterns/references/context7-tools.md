@@ -2,7 +2,7 @@
 
 Context7 provides **up-to-date documentation** for programming libraries and frameworks. Essential for finding current API references when building apps.
 
-## contex7-resolve-library-id
+## resolve-library-id
 Resolve a package/product name to a Context7-compatible library ID. Always call this first before querying docs.
 
 | Parameter | Type | Required | Description |
@@ -10,14 +10,14 @@ Resolve a package/product name to a Context7-compatible library ID. Always call 
 | `libraryName` | string | Yes | Package or framework name (e.g., "react", "nextjs", "prisma") |
 
 ```
-Tool: contex7-resolve-library-id
+Tool: resolve-library-id
 Input: { "libraryName": "nextjs" }
 ```
 
-Returns a library ID like `/vercel/next.js` that you pass to `contex7-query-docs`.
+Returns a library ID like `/vercel/next.js` that you pass to `query-docs`.
 
-## contex7-query-docs
-Query documentation for a specific library. Returns relevant documentation sections.
+## query-docs
+Query documentation for a specific library. Returns relevant documentation sections. (Replaces the older `get-library-docs` tool.)
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -25,7 +25,7 @@ Query documentation for a specific library. Returns relevant documentation secti
 | `query` | string | Yes | Natural language question about the library |
 
 ```
-Tool: contex7-query-docs
+Tool: query-docs
 Input: {
   "libraryId": "/vercel/next.js",
   "query": "How to implement server actions with form validation"
@@ -36,12 +36,12 @@ Input: {
 
 ```
 Step 1 — Resolve library name:
-Tool: contex7-resolve-library-id
+Tool: resolve-library-id
 Input: { "libraryName": "prisma" }
 → Returns: "/prisma/prisma"
 
 Step 2 — Query docs:
-Tool: contex7-query-docs
+Tool: query-docs
 Input: {
   "libraryId": "/prisma/prisma",
   "query": "How to set up many-to-many relations"
@@ -67,4 +67,15 @@ Context7 covers most popular programming libraries and frameworks. If `resolve-l
 - **Testing**: Jest, Vitest, Playwright, Cypress
 - **Tools**: Vite, Webpack, ESBuild, Turbopack
 
-No API key required. Free to use.
+API key optional (context7.com/dashboard) — higher rate limits and private repos; keyless works with low limits.
+
+## Remote MCP Alternative
+
+Instead of the bundled npx server, connect to the hosted endpoint:
+
+```
+URL: https://mcp.context7.com/mcp
+Header: Authorization: Bearer ${CONTEXT7_API_KEY}
+```
+
+Quick onboarding: `npx ctx7 setup` configures Context7 for your client interactively.

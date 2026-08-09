@@ -1,6 +1,6 @@
-# Exa MCP Tools (4 tools)
+# Exa MCP Tools (2 default + 2 optional)
 
-Exa excels at **semantic search** — finding pages by meaning, not just keywords. Best for code examples, documentation, and category-specific searches.
+Exa excels at **semantic search** — finding pages by meaning, not just keywords. Best for documentation discovery and category-specific searches. The default MCP server exposes `web_search_exa` and `web_fetch_exa`; advanced search and the Exa Agent must be enabled explicitly (see below).
 
 ## web_search_exa
 General web search with semantic understanding.
@@ -9,7 +9,7 @@ General web search with semantic understanding.
 |-----------|------|----------|-------------|
 | `query` | string | Yes | Natural language search query |
 | `numResults` | integer | No | Results to return (1-100, default: 10) |
-| `type` | string | No | `auto`, `fast`, `instant`, `deep`, `deep-reasoning` |
+| `type` | string | No | `auto`, `fast`, `instant`, `deep-lite`, `deep`, `deep-reasoning` |
 | `category` | string | No | `company`, `people`, `research paper`, `news`, `personal site`, `financial report` |
 | `includeDomains` | string[] | No | Only search these domains |
 | `excludeDomains` | string[] | No | Exclude these domains |
@@ -49,42 +49,34 @@ Input: {
 
 **Important:** `category: "company"` and `category: "people"` disable date, text, and excludeDomains filters — using them together causes a 400 error.
 
-## get_code_context_exa
-Find code examples, documentation, and programming solutions. Optimized for developer queries.
+## web_fetch_exa
+Read one or more URLs as clean markdown. Replaces the old `crawling_exa` tool.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `query` | string | Yes | Code or programming query |
-| `numResults` | integer | No | Results to return |
-
-```
-Tool: get_code_context_exa
-Input: {
-  "query": "TypeScript Prisma ORM pagination example",
-  "numResults": 5
-}
-```
-
-Best for: finding code snippets, library usage examples, API implementation patterns.
-
-## crawling_exa
-Read full page content as clean markdown from a known URL.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `url` | string | Yes | URL to read |
+| `url` | string | Yes | URL(s) to read |
 | `maxCharacters` | integer | No | Max characters to return |
 
 ```
-Tool: crawling_exa
+Tool: web_fetch_exa
 Input: {
   "url": "https://nextjs.org/docs/app/building-your-application/data-fetching",
   "maxCharacters": 50000
 }
 ```
 
-## web_search_advanced_exa
-Advanced search with full filter control. May need to be enabled via MCP URL parameter.
+**Code/dev search:** the old `get_code_context_exa` tool no longer exists. Use `firecrawl_developer_search` (Firecrawl MCP) or `web_search_exa` with `includeDomains: ["github.com"]`. Exa's code vertical is available via the REST API only.
+
+## Optional Tools (via remote MCP)
+
+`web_search_advanced_exa` and the new `agent_run` (multi-step Exa Agent) are not served by default. Enable them via the remote MCP URL with a `tools` query parameter and `x-api-key` header:
+
+```
+https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa,agent_run
+```
+
+### web_search_advanced_exa
+Advanced search with full filter control.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -98,14 +90,9 @@ Advanced search with full filter control. May need to be enabled via MCP URL par
 
 This tool combines search + content extraction in one call — useful when you need both results and page content.
 
-## Pricing Notes
+### agent_run
+Run a multi-step Exa Agent research task (backed by the Agent API `POST /agent/runs`).
 
-| Operation | Cost |
-|-----------|------|
-| Search (1-10 results) | $0.007 |
-| Each additional result | $0.001 |
-| Deep search | $0.012 |
-| Content text per page | $0.001 |
-| Content summary per page | $0.001 |
+## Pricing
 
-MCP has a free tier with rate limits. Add your API key for higher limits.
+See https://exa.ai/pricing for current pricing. MCP has a free tier with rate limits — add your API key for higher limits.

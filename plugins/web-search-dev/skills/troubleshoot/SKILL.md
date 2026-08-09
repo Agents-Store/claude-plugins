@@ -21,6 +21,7 @@ When a service fails, switch to an alternative immediately:
 | Jina search | Web search | Exa `web_search_exa` |
 | Perplexity | AI Q&A | Exa search + Jina read (manual synthesis) |
 | Context7 | Framework docs | Exa with `includeDomains` for official docs site |
+| Exa code search (removed) | Code examples | Firecrawl `firecrawl_developer_search` |
 | Pexels/Unsplash | Stock photos | Jina `search_images` (web-wide) |
 
 ## Quick Diagnostics
@@ -62,7 +63,8 @@ Run these checks in order:
 | Error | Cause | Fix |
 |-------|-------|-----|
 | 401 Unauthorized | Invalid `PERPLEXITY_API_KEY` | Regenerate at https://console.perplexity.ai |
-| Model not available | Invalid model ID | Use `provider/model` format (e.g., `openai/gpt-4o`) |
+| Model not available | Invalid model ID | Use `provider/model` format (e.g., `openai/gpt-5.5`) |
+| Preset not found | Old preset name (`fast-search`/`pro-search`/`deep-research`) | Use `fast` / `low` / `medium` / `high` / `xhigh` |
 | Empty response | Query too vague | Be more specific, try different preset |
 | MCP server not starting | `npx` or Node issue | Run `npx -y @perplexity-ai/mcp-server` manually |
 
@@ -71,7 +73,7 @@ Run these checks in order:
 | Error | Cause | Fix |
 |-------|-------|-----|
 | 401 Unauthorized | Invalid `JINA_API_KEY` | Get new key at https://jina.ai/?sui=apikey |
-| 429 Rate Limited | Exceeded RPM | Use API key (20 RPM without, 500 with key) |
+| 429 Rate Limited | Exceeded RPM | Use API key — reader: 20 RPM without, 500 with key; search requires a key (100 RPM) |
 | Empty markdown | Page uses heavy JS | Try Firecrawl `scrape` with `waitFor` instead |
 | Timeout | Large page or slow server | Try with `X-Target-Selector` to extract specific section |
 | PDF extraction fails | Invalid PDF URL | Verify PDF is publicly accessible |
@@ -111,7 +113,7 @@ After clearing, restart Claude Code or run `/mcp` to reconnect.
 |-------|-------|-----|
 | Tool not found | MCP not configured | These services need separate MCP config |
 | 401 Unauthorized | Invalid API key | Check Pexels/Unsplash API key |
-| 429 Rate Limited | Too many requests | Pexels: 200 req/hr, Unsplash: 50 req/hr |
+| 429 Rate Limited | Too many requests | Pexels: 200 req/hr; Unsplash: 50 req/hr demo, 1,000 req/hr production |
 
 ## Common Cross-Service Issues
 
@@ -148,9 +150,9 @@ npm cache clean --force
 | Firecrawl | — | Based on plan |
 | Exa | Rate limited | Higher limits |
 | Perplexity | — | Based on plan |
-| Jina | 20 RPM | 500 RPM |
+| Jina | Reader 20 RPM (search requires key) | Reader 500 RPM, search 100 RPM |
 | Pexels | 200 req/hr | Same |
-| Unsplash | 50 req/hr | Same |
+| Unsplash | 50 req/hr (demo) | 1,000 req/hr (production) |
 
 When hitting rate limits:
 1. Switch to an alternative service (see mcp-patterns routing table)

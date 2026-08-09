@@ -5,11 +5,11 @@ You're building a Next.js app and encounter a hydration error. You need to find 
 ## Step 1: Search Context7 for Official Docs
 
 ```
-Tool: contex7-resolve-library-id
+Tool: resolve-library-id
 Input: { "libraryName": "nextjs" }
 → Returns: "/vercel/next.js"
 
-Tool: contex7-query-docs
+Tool: query-docs
 Input: {
   "libraryId": "/vercel/next.js",
   "query": "hydration mismatch error causes and solutions"
@@ -31,15 +31,14 @@ Input: {
 
 Perplexity Reasoning provides step-by-step analysis with citations.
 
-## Step 3: Find Community Solutions
+## Step 3: Search the Developer Index
 
-Search for how others solved similar issues:
+Search GitHub issues, PRs, READMEs, and docs for how others solved similar issues:
 
 ```
-Tool: get_code_context_exa
+Tool: firecrawl_developer_search
 Input: {
-  "query": "Next.js hydration mismatch date formatting fix",
-  "numResults": 5
+  "query": "Next.js hydration mismatch date formatting fix"
 }
 ```
 
@@ -63,6 +62,6 @@ Combining these sources, you find that:
 |-----------|-------------|
 | Known library, need current docs | Context7 |
 | Need to understand an error | Perplexity (reason) |
-| Find code examples and patterns | Exa (code context) |
+| Find code examples and patterns | Firecrawl (developer_search) or Exa (domain-scoped web_search_exa) |
 | Read a specific docs page | Jina (read_url) |
 | Quick "how do I" question | Perplexity (ask) |

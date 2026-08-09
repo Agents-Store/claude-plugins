@@ -18,7 +18,7 @@ Tool: firecrawl_search
 Input: { "query": "test", "limit": 1 }
 ```
 
-**Expected:** Returns search results. If error, check `FIRECRAWL_API_KEY`.
+**Expected:** Returns search results. If error, check `FIRECRAWL_API_TOKEN` — the env var this plugin's `.mcp.json` maps to the server's `FIRECRAWL_API_KEY`.
 
 ### 2. Exa
 
@@ -50,11 +50,11 @@ Input: { "url": "https://example.com" }
 ### 5. Context7
 
 ```
-Tool: contex7-resolve-library-id
+Tool: resolve-library-id
 Input: { "libraryName": "react" }
 ```
 
-**Expected:** Returns library ID like `/facebook/react`. No API key required.
+**Expected:** Returns library ID like `/facebook/react`. API key optional — keyless works with low rate limits; a key (context7.com/dashboard) grants higher limits and private repos.
 
 ### 6. Media Services (Pexels / Unsplash)
 
@@ -78,8 +78,8 @@ After running checks, report which services are available:
 
 | Service | Status | Capabilities |
 |---------|--------|-------------|
-| Firecrawl | Connected / Not available | scrape, crawl, search, extract, agent, browser |
-| Exa | Connected / Not available | semantic search, code context, page crawl |
+| Firecrawl | Connected / Not available | scrape, crawl, search, extract, parse, agent, interact, monitors, research/developer search |
+| Exa | Connected / Not available | semantic search, page fetch |
 | Perplexity | Connected / Not available | AI search, research, reasoning |
 | Jina | Connected / Not available | read pages, search, images, classify, deduplicate |
 | Context7 | Connected / Not available | framework documentation search |
@@ -92,9 +92,9 @@ Not all services need to be active — the plugin works with any subset. Here's 
 
 | Available Services | You Can Do |
 |-------------------|------------|
-| Firecrawl only | Scrape, crawl, search, extract structured data, browser automation |
+| Firecrawl only | Scrape, crawl, search, extract structured data, live-page interaction, parse files, monitor changes |
 | Jina only | Read pages, search web, image search, classify, deduplicate, batch ops |
-| Exa only | Semantic search, code examples, domain-scoped search |
+| Exa only | Semantic search, page fetch, domain-scoped search |
 | Perplexity only | AI Q&A, research, reasoning with citations |
 | Context7 only | Framework/library documentation search |
 | Firecrawl + Jina | Full scraping pipeline with fallbacks |

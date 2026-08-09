@@ -5,7 +5,7 @@ Base URL: `https://api.firecrawl.dev`
 ## Scrape a Page
 
 ```bash
-curl -s -X POST https://api.firecrawl.dev/v1/scrape \
+curl -s -X POST https://api.firecrawl.dev/v2/scrape \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -15,9 +15,34 @@ curl -s -X POST https://api.firecrawl.dev/v1/scrape \
   }' | jq .
 ```
 
+Responses are cached by default (`maxAge` defaults to 2 days) — pass `"maxAge": 0` to force a fresh scrape.
+
+With structured JSON extraction (object-style format):
+```bash
+curl -s -X POST https://api.firecrawl.dev/v2/scrape \
+  -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/pricing",
+    "formats": [
+      "markdown",
+      {
+        "type": "json",
+        "prompt": "Extract plan names and prices",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "plans": { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "price": { "type": "string" } } } }
+          }
+        }
+      }
+    ]
+  }' | jq .
+```
+
 With JS rendering wait:
 ```bash
-curl -s -X POST https://api.firecrawl.dev/v1/scrape \
+curl -s -X POST https://api.firecrawl.dev/v2/scrape \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -30,7 +55,7 @@ curl -s -X POST https://api.firecrawl.dev/v1/scrape \
 ## Search the Web
 
 ```bash
-curl -s -X POST https://api.firecrawl.dev/v1/search \
+curl -s -X POST https://api.firecrawl.dev/v2/search \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -42,13 +67,14 @@ curl -s -X POST https://api.firecrawl.dev/v1/search \
 ## Start a Crawl
 
 ```bash
-curl -s -X POST https://api.firecrawl.dev/v1/crawl \
+curl -s -X POST https://api.firecrawl.dev/v2/crawl \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://docs.example.com",
     "limit": 50,
-    "maxDepth": 3,
+    "maxDiscoveryDepth": 3,
+    "sitemap": "include",
     "includePaths": ["/docs/*"],
     "scrapeOptions": {
       "formats": ["markdown"]
@@ -56,17 +82,30 @@ curl -s -X POST https://api.firecrawl.dev/v1/crawl \
   }' | jq .
 ```
 
+Or configure the crawler with a natural-language prompt:
+
+```bash
+curl -s -X POST https://api.firecrawl.dev/v2/crawl \
+  -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://docs.example.com",
+    "prompt": "Get all docs pages",
+    "limit": 50
+  }' | jq .
+```
+
 Returns `{ "id": "crawl-job-id" }`. Check status:
 
 ```bash
-curl -s https://api.firecrawl.dev/v1/crawl/${CRAWL_ID} \
+curl -s https://api.firecrawl.dev/v2/crawl/${CRAWL_ID} \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" | jq .
 ```
 
 ## Map Site URLs
 
 ```bash
-curl -s -X POST https://api.firecrawl.dev/v1/map \
+curl -s -X POST https://api.firecrawl.dev/v2/map \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -78,7 +117,7 @@ curl -s -X POST https://api.firecrawl.dev/v1/map \
 ## Extract Structured Data
 
 ```bash
-curl -s -X POST https://api.firecrawl.dev/v1/extract \
+curl -s -X POST https://api.firecrawl.dev/v2/extract \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -101,7 +140,7 @@ curl -s -X POST https://api.firecrawl.dev/v1/extract \
 ## Start Research Agent
 
 ```bash
-curl -s -X POST https://api.firecrawl.dev/v1/agent \
+curl -s -X POST https://api.firecrawl.dev/v2/agent \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -113,7 +152,7 @@ curl -s -X POST https://api.firecrawl.dev/v1/agent \
 ## Batch Scrape
 
 ```bash
-curl -s -X POST https://api.firecrawl.dev/v1/batch/scrape \
+curl -s -X POST https://api.firecrawl.dev/v2/batch/scrape \
   -H "Authorization: Bearer ${FIRECRAWL_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{

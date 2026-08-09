@@ -13,12 +13,12 @@ For ANY question about a known framework or library (React, Next.js, Prisma, Tai
 
 ```
 Step 1 — Resolve library:
-Tool: contex7-resolve-library-id
+Tool: resolve-library-id
 Input: { "libraryName": "nextjs" }
 → Returns: "/vercel/next.js"
 
 Step 2 — Query docs:
-Tool: contex7-query-docs
+Tool: query-docs
 Input: {
   "libraryId": "/vercel/next.js",
   "query": "useSearchParams suspense boundary error"
@@ -32,12 +32,12 @@ If Context7 resolves the library, use its results as the primary source. Supplem
 
 | Need | Best Approach | Tool |
 |------|--------------|------|
-| Official docs for a known library | **Context7 first (mandatory)** | `contex7-resolve-library-id` → `contex7-query-docs` |
+| Official docs for a known library | **Context7 first (mandatory)** | `resolve-library-id` → `query-docs` |
 | Find docs for unfamiliar tool | Exa semantic search | `web_search_exa` with docs domains |
-| Quick answer to "how do I..." | Context7 first, then Perplexity | `contex7-query-docs` → `perplexity_ask` |
+| Quick answer to "how do I..." | Context7 first, then Perplexity | `query-docs` → `perplexity_ask` |
 | Read a specific docs page | Jina reader | `read_url` |
-| Debug error with framework | Context7 first, then Perplexity | `contex7-query-docs` → `perplexity_reason` |
-| Find code examples | Exa code search | `get_code_context_exa` |
+| Debug error with framework | Context7 first, then Perplexity | `query-docs` → `perplexity_reason` |
+| Find code examples | Firecrawl developer index | `firecrawl_developer_search` (fallback: `web_search_exa` with `includeDomains: ["github.com"]`) |
 
 ## Pattern 1: Context7 — Primary for All Known Libraries
 
@@ -45,12 +45,12 @@ ALWAYS use Context7 first when the library name is known. This is the fastest pa
 
 ```
 Step 1 — Resolve library:
-Tool: contex7-resolve-library-id
+Tool: resolve-library-id
 Input: { "libraryName": "nextjs" }
 → Returns: "/vercel/next.js"
 
 Step 2 — Query docs:
-Tool: contex7-query-docs
+Tool: query-docs
 Input: {
   "libraryId": "/vercel/next.js",
   "query": "How to implement middleware for authentication"
@@ -89,9 +89,19 @@ Input: {
 ### Find Code Examples
 
 ```
-Tool: get_code_context_exa
+Tool: firecrawl_developer_search
+Input: {
+  "query": "TypeScript Prisma middleware logging example"
+}
+```
+
+Searches the developer index (GitHub issues, merged PRs, READMEs, docs). Fallback:
+
+```
+Tool: web_search_exa
 Input: {
   "query": "TypeScript Prisma middleware logging example",
+  "includeDomains": ["github.com"],
   "numResults": 5
 }
 ```
@@ -147,7 +157,7 @@ For complex questions that need multiple sources:
 
 ```
 Step 1 — Get official docs:
-Tool: contex7-resolve-library-id + contex7-query-docs
+Tool: resolve-library-id + query-docs
 
 Step 2 — Search for community patterns:
 Tool: web_search_exa (with GitHub/StackOverflow domains)

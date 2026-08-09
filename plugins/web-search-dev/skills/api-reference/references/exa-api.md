@@ -87,7 +87,9 @@ curl -s -X POST https://api.exa.ai/search \
   }' | jq .
 ```
 
-Types: `auto` (default), `fast`, `instant`, `deep`, `deep-reasoning`.
+Types: `auto` (default), `fast`, `instant`, `deep-lite`, `deep`, `deep-reasoning`.
+
+Search extras: `outputSchema` (`{ "type": "object" }` or `{ "type": "text" }` output modes), `systemPrompt`, and `additionalQueries` (deep types only).
 
 ## Search with Summary
 
@@ -102,6 +104,58 @@ curl -s -X POST https://api.exa.ai/search \
       "summary": { "query": "What changed in Tailwind v4?" }
     }
   }' | jq .
+```
+
+## Answer
+
+Direct answer with citations:
+
+```bash
+curl -s -X POST https://api.exa.ai/answer \
+  -H "x-api-key: ${EXA_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What changed in React 19 server components?"
+  }' | jq .
+```
+
+## Contents
+
+Get text/highlights/summary for URLs (or result ids from a previous search):
+
+```bash
+curl -s -X POST https://api.exa.ai/contents \
+  -H "x-api-key: ${EXA_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": ["https://nextjs.org/docs/app/building-your-application/data-fetching"],
+    "text": true,
+    "highlights": true,
+    "summary": true
+  }' | jq .
+```
+
+## Agent API
+
+Start a multi-step research run:
+
+```bash
+curl -s -X POST https://api.exa.ai/agent/runs \
+  -H "x-api-key: ${EXA_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Compare the top 3 vector databases for a Next.js RAG app",
+    "effort": "medium"
+  }' | jq .
+```
+
+Effort tiers: `minimal`, `low`, `medium`, `high`, `xhigh`, `auto`, `max`. Supports `outputSchema` for structured results.
+
+Poll a run:
+
+```bash
+curl -s https://api.exa.ai/agent/runs/${RUN_ID} \
+  -H "x-api-key: ${EXA_API_KEY}" | jq .
 ```
 
 ## Response Format

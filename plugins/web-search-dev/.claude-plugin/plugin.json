@@ -1,10 +1,22 @@
 {
   "name": "web-search-dev",
-  "version": "1.0.7",
-  "description": "Web search and scraping developer toolkit...",
+  "version": "1.1.0",
+  "description": "Web search and scraping developer toolkit. MCP tool patterns, REST API reference (Firecrawl v2), SDK/CLI usage for Firecrawl, Exa, Perplexity, Jina, Pexels, Unsplash, and Context7. Practical skills for web scraping, documentation search, and media discovery in dev workflows.",
   "author": {
     "name": "AGENTS.STORE"
   },
   "mcpServers": "./.mcp.json",
-  "keywords": ["web-search", "scraping", "firecrawl", "exa", "perplexity", "jina", "pexels", "unsplash", "context7", "dev", "agents-store"]
+  "keywords": [
+    "web-search",
+    "scraping",
+    "firecrawl",
+    "exa",
+    "perplexity",
+    "jina",
+    "pexels",
+    "unsplash",
+    "context7",
+    "dev",
+    "agents-store"
+  ]
 }

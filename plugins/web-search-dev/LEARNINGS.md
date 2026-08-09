@@ -2,6 +2,16 @@
 
 Accumulated fixes and discoveries for the web-search-dev plugin.
 
+## [2026-08-09] — doc-alignment: Firecrawl v1→v2 migration, MCP tool renames, Perplexity preset renames
+
+**Feature:** Aligned all skills with current official docs (v1.1.0). Firecrawl: REST endpoints moved to `/v2/` (26 stale `/v1/` references), `maxDepth`→`maxDiscoveryDepth`, `sitemap` enum, `prompt`-based crawl config, `maxAge` 2-day cache default, object-style formats; MCP `firecrawl_browser_*` replaced by `firecrawl_interact`/`firecrawl_interact_stop`, and ~16 new tools documented (parse, developer_search, monitors ×8, research ×5, feedback ×2 — 28 tools total). SDK v4: `Firecrawl` class, `scrape()`/`crawl()`/`map()`/`batchScrape()` kwargs style. CLI: `view-config`, `interact`, `monitor`, `developer` commands. Exa: `crawling_exa`→`web_fetch_exa`, `get_code_context_exa` removed (routed to `firecrawl_developer_search`), `deep-lite` search type, `/answer`, `/contents` (URL-based), Agent API `/agent/runs`, docs moved to exa.ai/docs. Context7: tool names fixed from typo'd `contex7-*` gateway prefixes to bare `resolve-library-id`/`query-docs` (6 files), API key marked optional-with-benefits, remote MCP + `npx ctx7 setup` documented. Perplexity: Agent API presets renamed (`fast-search`→`fast`, `pro-search`→`low`, `deep-research`→`medium`, plus new `high`/`xhigh`/`wide-research`), Search API path is `/search` (no `/v1`), SDK namespaces fixed to `client.responses`/`client.chat.completions`/`client.search`, MCP tool backings updated, Gateway API added. Jina: 21 MCP tools (added `show_api_key`), reranker v3.5, reader/search rate limits split. Unsplash production tier corrected to 1,000 req/hr.
+
+**Implementation:** Updated mcp-patterns (SKILL + all 6 service references), api-reference (SKILL + firecrawl/exa/perplexity/jina references), sdk-patterns, cli-recipes, web-scraping, doc-search, setup, examples (+ doc-search-workflow scenario), troubleshoot, agent, README. Version bumped 1.0.7 → 1.1.0. `.mcp.json` untouched — all five server entries verified working as-is.
+
+**Rationale:** The live MCP servers and current API docs no longer match what the plugin taught: removed tools (`firecrawl_browser_*`, `crawling_exa`, `get_code_context_exa`), wrong tool names (`contex7-*` prefix from a private gateway users don't have), renamed presets, and a deprecated API generation would produce failing calls and non-compiling SDK code.
+
+**Severity:** Critical
+
 ## 2026-04-03 — .mcp.json: Corrupted npx cache breaks context7 MCP server
 
 **Problem:** Context7 MCP server fails with `ERR_MODULE_NOT_FOUND: Cannot find module '@modelcontextprotocol/sdk/dist/esm/server/mcp.js'`. The npx cache at `~/.npm/_npx/` had `@upstash/context7-mcp@2.1.6` with `@modelcontextprotocol/sdk@1.27.0`, but the SDK's ESM dist only contained `.d.ts` type files — no `.js` runtime files.
