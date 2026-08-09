@@ -1,6 +1,7 @@
 ---
 description: List all Dokploy projects
 argument-hint: ""
+allowed-tools: [Read, Bash, Skill, Agent]
 ---
 
 # List Projects

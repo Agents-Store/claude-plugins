@@ -11,7 +11,7 @@ To reduce the exposed tool surface, set `DOKPLOY_ENABLED_TAGS` in `.mcp.json` `e
 
 ---
 
-## Project Management (8 tools)
+## Project Management (9 tools)
 
 Projects are the top-level container. Every application, database, and compose stack belongs to a project. Always create or identify a project before creating resources.
 
@@ -25,6 +25,7 @@ Projects are the top-level container. Every application, database, and compose s
 | `mcp__dokploy__project-duplicate` | Duplicate an environment's resources | `sourceEnvironmentId` (required), `name` (required), `description`, `includeServices`, `selectedServices`, `duplicateInSameProject` |
 | `mcp__dokploy__project-remove` | Delete a project and all its resources | `projectId` (string, required) |
 | `mcp__dokploy__project-search` | Search projects by name | `query` (string) |
+| `mcp__dokploy__project-homeStats` | Aggregate dashboard/home stats across projects | None |
 
 ### Usage notes
 
@@ -34,7 +35,7 @@ Projects are the top-level container. Every application, database, and compose s
 
 ---
 
-## Application Management (30 tools)
+## Application Management (31 tools)
 
 Applications are the primary deployment unit. They support multiple source types (GitHub, GitLab, Bitbucket, Gitea, generic Git, Docker image) and build types (Nixpacks, Dockerfile, Buildpacks, Docker image).
 
@@ -90,11 +91,11 @@ Connect an application to a Git source. Only one provider can be active at a tim
 | Tool | Description | Parameters |
 |---|---|---|
 | `mcp__dokploy__application-readAppMonitoring` | Read monitoring metrics (CPU, memory, network) | `applicationId` |
-| `mcp__dokploy__application-readLogs` | Read the app container's runtime stdout/stderr (v0.29.5+) | `applicationId` (required), `tail` (1–10000, default 100), `since` (`all` or `<n>{s\|m\|h\|d}`), `search` (substring) |
+| `mcp__dokploy__application-readLogs` | Read the app container's runtime stdout/stderr (v0.29.0+) | `applicationId` (required), `tail` (1–10000, default 100), `since` (`all` or `<n>{s\|m\|h\|d}`), `search` (substring) |
 | `mcp__dokploy__application-readTraefikConfig` | Read current Traefik routing config | `applicationId` |
 | `mcp__dokploy__application-updateTraefikConfig` | Update Traefik routing rules | `applicationId`, `traefikConfig` (YAML string) |
 
-### Deployment & Queue Management (7 tools)
+### Deployment & Queue Management (8 tools)
 
 | Tool | Description | Parameters |
 |---|---|---|
@@ -158,7 +159,7 @@ Domains map hostnames to applications or compose services. Dokploy uses Traefik 
 
 ---
 
-## Compose Management (29 tools)
+## Compose Management (31 tools)
 
 Docker Compose stacks deploy multi-container applications defined by a `docker-compose.yml` file.
 
@@ -194,6 +195,7 @@ Unlike applications, compose git source is set **via `compose-update`**, not a s
 | `mcp__dokploy__compose-templates` | List available compose templates | None |
 | `mcp__dokploy__compose-deployTemplate` | Deploy a compose template | `id` (template id), `environmentId`, `serverId` |
 | `mcp__dokploy__compose-processTemplate` | Render a template with variables | `templateId`, variables |
+| `mcp__dokploy__compose-previewTemplate` | Preview a rendered template before deploying | `base64` (required), `appName` (required), `serverId` |
 
 ### Build, Config & Logs
 
@@ -230,9 +232,9 @@ Unlike applications, compose git source is set **via `compose-update`**, not a s
 
 ---
 
-## Database Management (6 types × 16 tools each)
+## Database Management (5 types × 16 tools; LibSQL has 14)
 
-Dokploy supports six managed database types. Each type has an identical set of 16 tools following the same naming pattern (the official server adds `changePassword`, `readLogs`, and `search` on top of the 13 core tools).
+Dokploy supports six managed database types. Five of them (postgres, mysql, mariadb, mongo, redis) have an identical set of 16 tools following the same naming pattern (the official server adds `changePassword`, `readLogs`, and `search` on top of the 13 core tools). **LibSQL has only 14**: there is no `libsql-changePassword` and no `libsql-search`, and its port tool is `libsql-saveExternalPorts` (plural) taking three port fields (`externalPort`, `externalGRPCPort`, `externalAdminPort`).
 
 ### Tool pattern per database type
 
@@ -245,15 +247,15 @@ Replace `{type}` with `postgres`, `mysql`, `mariadb`, `mongo`, `redis`, or `libs
 | `mcp__dokploy__{type}-update` | Update database config | `{type}Id`, updatable fields |
 | `mcp__dokploy__{type}-remove` | Delete a database | `{type}Id` |
 | `mcp__dokploy__{type}-move` | Move to another environment | `{type}Id`, `targetEnvironmentId` |
-| `mcp__dokploy__{type}-search` | Search databases by name | `query` |
+| `mcp__dokploy__{type}-search` | Search databases by name (**not libsql**) | `query` |
 | `mcp__dokploy__{type}-deploy` | Deploy/start the database container | `{type}Id` |
 | `mcp__dokploy__{type}-start` | Start a stopped database | `{type}Id` |
 | `mcp__dokploy__{type}-stop` | Stop a running database | `{type}Id` |
 | `mcp__dokploy__{type}-reload` | Reload database container | `{type}Id` |
 | `mcp__dokploy__{type}-rebuild` | Rebuild database container from scratch | `{type}Id` |
 | `mcp__dokploy__{type}-changeStatus` | Force status change | `{type}Id`, `applicationStatus` |
-| `mcp__dokploy__{type}-changePassword` | Rotate the database password | `{type}Id`, `newPassword` |
-| `mcp__dokploy__{type}-saveExternalPort` | Expose database on a host port | `{type}Id`, `externalPort` |
+| `mcp__dokploy__{type}-changePassword` | Rotate the database password (**not libsql**) | `{type}Id`, `newPassword` |
+| `mcp__dokploy__{type}-saveExternalPort` | Expose database on a host port (libsql: `libsql-saveExternalPorts`, plural) | `{type}Id`, `externalPort` (libsql also `externalGRPCPort`, `externalAdminPort`) |
 | `mcp__dokploy__{type}-saveEnvironment` | Set database environment variables | `{type}Id`, `env` |
 | `mcp__dokploy__{type}-readLogs` | Read the DB container's runtime logs | `{type}Id` (required), `tail`, `since`, `search` |
 
@@ -264,20 +266,20 @@ Replace `{type}` with `postgres`, `mysql`, `mariadb`, `mongo`, `redis`, or `libs
 - **MariaDB** (`mariadb-*`)
 - **MongoDB** (`mongo-*`)
 - **Redis** (`redis-*`)
-- **LibSQL** (`libsql-*`) — new in the official server; embedded-SQL / SQLite-compatible managed service
+- **LibSQL** (`libsql-*`) — new in the official server; embedded-SQL / SQLite-compatible managed service. Only 14 tools: no `changePassword`/`search`; port exposure via `libsql-saveExternalPorts` (`externalPort`, `externalGRPCPort`, `externalAdminPort`)
 
 ### Database usage notes
 
 - `{type}-create` requires `environmentId` and `name`, plus per-type required fields: postgres/mysql/mariadb → `databaseName`, `databaseUser`, `databasePassword` (mysql/mariadb also accept optional `databaseRootPassword`); mongo → `databaseUser`, `databasePassword`; redis → `databasePassword`; libsql → `databaseUser`, `databasePassword`, `sqldNode`, `enableNamespaces` (and more — see the full index).
 - After `{type}-create`, call `{type}-deploy` to start the container. Creation only registers the resource.
-- `{type}-saveExternalPort` exposes the database on the host network. Set `externalPort` to the desired port number. Set to `null` to remove external access.
+- `{type}-saveExternalPort` exposes the database on the host network. Set `externalPort` to the desired port number. Set to `null` to remove external access. For LibSQL the tool is `libsql-saveExternalPorts` (plural) with `externalPort`, `externalGRPCPort`, and `externalAdminPort`.
 - `{type}-rebuild` destroys and recreates the container. Data persists only if volumes are configured.
 - `{type}-changeStatus` is a manual override. Use only when the actual container state differs from what Dokploy reports.
-- `{type}-changePassword` rotates credentials without destroying data. Follow up by updating connection strings in dependent applications.
+- `{type}-changePassword` rotates credentials without destroying data (not available for libsql). Follow up by updating connection strings in dependent applications.
 
 ---
 
-## Deployment History (5 tools)
+## Deployment History (9 tools)
 
 | Tool | Description | Key Parameters |
 |---|---|---|
@@ -289,6 +291,7 @@ Replace `{type}` with `postgres`, `mysql`, `mariadb`, `mongo`, `redis`, or `libs
 | `mcp__dokploy__deployment-queueList` | Inspect the deployment queue | None |
 | `mcp__dokploy__deployment-killProcess` | Kill a running deployment process | `deploymentId` |
 | `mcp__dokploy__deployment-removeDeployment` | Remove a deployment record | `deploymentId` |
+| `mcp__dokploy__deployment-readLogs` | Read a deployment's **build log** (central to debugging failed builds) | `deploymentId` (required), `tail` |
 
 `deployment-all` takes ONLY `applicationId`. For a compose stack use `deployment-allByCompose { composeId }`; for a server use `deployment-allByServer { serverId }`; `deployment-allByType` takes `id` + `type`.
 
@@ -380,7 +383,7 @@ The `settings-*` namespace is the catch-all for server-wide operations. Highest-
 | `mcp__dokploy__settings-haveTraefikDashboardPortEnabled` | Is the 8080 dashboard exposed? | None |
 | `mcp__dokploy__settings-getLogCleanupStatus` | Log rotation schedule + last run | None |
 | `mcp__dokploy__settings-updateLogCleanup` | Tune log rotation | retention fields |
-| `mcp__dokploy__settings-updateBuildsConcurrency` | Set concurrent builds for the Dokploy host queue (per-server queues since v0.29.9; OSS max 2) | `buildsConcurrency` |
+| `mcp__dokploy__settings-updateBuildsConcurrency` | Set concurrent builds for the Dokploy host queue (per-server queues since v0.29.9; the OSS max-2 clamp existed only in v0.29.9–v0.29.10 — since v0.29.11 concurrency is a full OSS feature, 1–100 per server, default 1) | `buildsConcurrency` |
 | `mcp__dokploy__settings-updateEnforceSSO` | Toggle enforce-SSO restriction | `enforceSSO` |
 | `mcp__dokploy__settings-updateRemoteServersOnly` | Toggle remote-servers-only mode | `remoteServersOnly` |
 | `mcp__dokploy__settings-cleanDockerBuilder` | Clear BuildKit cache | None |
@@ -550,7 +553,7 @@ The database is now accessible at `server-ip:5432`. Use the connection string: `
    → Returns: { domainId: "dom789" }
 
 2. mcp__dokploy__domain-validateDomain
-   → { domainId: "dom789" }
+   → { domain: "api.example.com" }        # the hostname string (optionally serverIp) — NOT the domainId
 ```
 
 If validation fails, the DNS A record for `api.example.com` is not pointing to the server's IP. Fix DNS and re-validate.
@@ -670,17 +673,17 @@ The official `@dokploy/mcp` server exposes **546 tools across 50 categories**. C
 
 | Category | Approx Count | Prefix |
 |---|---|---|
-| Project Management | 8 | `project-` |
-| Application Management | 30 | `application-` |
+| Project Management | 9 | `project-` |
+| Application Management | 31 | `application-` |
 | Domain Management | 9 | `domain-` |
-| Compose Management | 29 | `compose-` |
+| Compose Management | 31 | `compose-` |
 | PostgreSQL | 16 | `postgres-` |
 | MySQL | 16 | `mysql-` |
 | MariaDB | 16 | `mariadb-` |
 | MongoDB | 16 | `mongo-` |
 | Redis | 16 | `redis-` |
-| LibSQL | 16 | `libsql-` |
-| Deployment History | 8 | `deployment-` |
+| LibSQL | 14 | `libsql-` |
+| Deployment History | 9 | `deployment-` |
 | AI Router | 14 | `ai-` |
 | Docker Introspection | 12 | `docker-` |
 | Settings / Cleanup / Health | ~30 | `settings-` |

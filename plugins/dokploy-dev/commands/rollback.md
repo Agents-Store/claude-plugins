@@ -1,6 +1,7 @@
 ---
 description: Roll a Dokploy application or compose stack back to a previous version
 argument-hint: <app-name-or-id|compose-id>
+allowed-tools: [Read, Bash, Skill, Agent]
 ---
 
 # Rollback Deployment

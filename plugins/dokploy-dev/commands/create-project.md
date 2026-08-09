@@ -1,6 +1,7 @@
 ---
 description: Create a new Dokploy project
 argument-hint: <name> [--description <text>]
+allowed-tools: [Read, Bash, Skill, Agent]
 ---
 
 # Create Project

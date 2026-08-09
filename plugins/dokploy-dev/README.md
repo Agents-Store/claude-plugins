@@ -96,10 +96,10 @@ The plugin reads two environment variables, used across all three interfaces:
 | Variable | Purpose |
 |----------|---------|
 | `DOKPLOY_ENABLED_TAGS` | Comma-separated category filter (e.g. `project,application,domain,compose,postgres,deployment,docker,settings,ai,rollback,schedule`) to reduce the exposed tool surface from 546 down to what you actually need. Include `ai` and `docker` to keep the `/dokploy-dev:debug` workflow working |
-| `DOKPLOY_TOOL_PRESET` | Predefined toolset: `all` (default), `minimal`, `core`, `deploy`, `databases`, `git` |
-| `DOKPLOY_DISABLED_TAGS` | Comma-separated categories to exclude (inverse of `DOKPLOY_ENABLED_TAGS`) |
+| `DOKPLOY_TOOL_PRESET` | **Unreleased** — merged upstream 2026-08-07, not in `@dokploy/mcp` 0.29.14 (npm latest), so `npx -y @dokploy/mcp` silently ignores it; use `DOKPLOY_ENABLED_TAGS` until the next release. Planned presets: `all`, `minimal`, `core`, `deploy`, `databases`, `git` |
+| `DOKPLOY_DISABLED_TAGS` | **Unreleased** — merged upstream 2026-08-07, not in `@dokploy/mcp` 0.29.14; use `DOKPLOY_ENABLED_TAGS` until the next release |
 | `DOKPLOY_CUSTOM_HEADERS` | JSON object of extra headers sent to the upstream Dokploy API |
-| `DOKPLOY_REDACT_ENV` | Default `true` — redact secrets/env values in tool responses |
+| `DOKPLOY_REDACT_ENV` | Default `false` in `@dokploy/mcp` ≤0.29.14 — set `DOKPLOY_REDACT_ENV=true` explicitly to redact secrets/env values in tool responses (upstream flips the default to `true` in the next release) |
 | `DOKPLOY_REDACT_FIELDS` | Extra response fields to redact |
 | `MCP_TRANSPORT` | `stdio` (default); `http` for Streamable HTTP (+ legacy SSE) |
 | `DOKPLOY_TIMEOUT` | Per-request timeout in ms (default `30000`) |

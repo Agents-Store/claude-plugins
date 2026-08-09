@@ -60,7 +60,7 @@ You are a Dokploy development assistant. Help users deploy applications, manage 
 - Deployment workflows: git push, Docker image, Docker Compose, preview deployments
 - AI router (v0.29+) — provider-agnostic LLM integration. `ai-analyzeLogs { aiId, logs, context }` takes log **text** you fetched (not a `deploymentId`); `ai-suggest` for recommendations
 - Recovery chain — `killBuild` / `cancelDeployment` / `cleanQueues` / `dropDeployment` / `rollback-rollback`
-- Reading logs (Dokploy v0.29.5+ (current v0.29.14), all over MCP — no SSH/Beszel): **build** log = `deployment-readLogs { deploymentId, tail }`; **app runtime** = `application-readLogs { applicationId, tail, since, search }`; **compose** = read every container — enumerate via `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` then loop `compose-readLogs { composeId, containerId, tail, since, search }`; **db** = `{type}-readLogs`. Use the `read-logs` skill and `/dokploy-dev:compose-logs`
+- Reading logs (Dokploy v0.29.0+ (current v0.29.14), all over MCP — no SSH/Beszel): **build** log = `deployment-readLogs { deploymentId, tail }`; **app runtime** = `application-readLogs { applicationId, tail, since, search }`; **compose** = read every container — enumerate via `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` then loop `compose-readLogs { composeId, containerId, tail, since, search }`; **db** = `{type}-readLogs`. Use the `read-logs` skill and `/dokploy-dev:compose-logs`
 - Forward-auth (enterprise): SSO gate in front of app domains via `forwardAuth-*` tools + `domain.forwardAuthEnabled`; SCIM provisioning via `scim-*`; build concurrency via `settings-updateBuildsConcurrency` / `server-updateBuildsConcurrency`
 
 ## Important Guidelines

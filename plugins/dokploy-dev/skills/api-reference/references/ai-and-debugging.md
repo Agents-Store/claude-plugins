@@ -69,7 +69,7 @@ The deployment object includes `status`, `startedAt`, `finishedAt`, `logPath`, `
 
 ---
 
-## Log Endpoints (v0.29.5+ — runtime logs are first-class)
+## Log Endpoints (v0.29.0+ — runtime logs are first-class)
 
 All `readLogs` endpoints are **GET** with query params (URL-encode the `input`). Two kinds of log:
 

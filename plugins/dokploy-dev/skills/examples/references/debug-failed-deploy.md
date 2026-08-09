@@ -71,7 +71,7 @@ Find the most recent entry with `status: "error"`. Save:
 
 ## Step 2: Read the logs
 
-The `status: error` here was a quick finish (~seconds), and the live site returns 502 — that points to a **runtime** crash (the build succeeded, the container won't stay up). Read the app's runtime log directly over MCP (v0.29.5+ — no SSH/Beszel):
+The `status: error` here was a quick finish (~seconds), and the live site returns 502 — that points to a **runtime** crash (the build succeeded, the container won't stay up). Read the app's runtime log directly over MCP (v0.29.0+ — no SSH/Beszel):
 
 ```
 mcp__dokploy__application-readLogs

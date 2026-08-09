@@ -1,13 +1,13 @@
 ---
 name: read-logs
-description: "This skill should be used whenever the user wants to read, tail, stream, or search Dokploy logs — application runtime logs, Docker Compose stack logs (every container), database logs, or deployment build logs — and especially to diagnose why something failed. Triggers: \"read the logs\", \"show me the dokploy logs\", \"tail the logs\", \"compose logs\", \"all containers' logs\", \"container logs\", \"why is my app crashing\", \"why did my deploy fail — check the logs\", \"grep the logs for an error\", \"runtime logs\", \"build logs\". Use it instead of telling the user logs aren't available over the API — since Dokploy v0.29.5 they are."
+description: "This skill should be used whenever the user wants to read, tail, stream, or search Dokploy logs — application runtime logs, Docker Compose stack logs (every container), database logs, or deployment build logs — and especially to diagnose why something failed. Triggers: \"read the logs\", \"show me the dokploy logs\", \"tail the logs\", \"compose logs\", \"all containers' logs\", \"container logs\", \"why is my app crashing\", \"why did my deploy fail — check the logs\", \"grep the logs for an error\", \"runtime logs\", \"build logs\". Use it instead of telling the user logs aren't available over the API — since Dokploy v0.29.0 they are."
 ---
 
 # Read Dokploy Logs (runtime + build, every container)
 
-Dokploy (since **v0.29.5**; current **v0.29.14**) exposes container logs over the REST API and the `@dokploy/mcp` server. There are four log sources, each with its own tool. The single most common mistake — and the reason multi-container Compose debugging fails — is calling `compose-readLogs` **without a `containerId`**. A Compose stack has many containers; you must enumerate them and read each one.
+Dokploy (since **v0.29.0**; current **v0.29.14**) exposes container logs over the REST API and the `@dokploy/mcp` server. There are four log sources, each with its own tool. The single most common mistake — and the reason multi-container Compose debugging fails — is calling `compose-readLogs` **without a `containerId`**. A Compose stack has many containers; you must enumerate them and read each one.
 
-> **Do not** tell the user "Dokploy doesn't expose runtime logs via REST / use SSH or Beszel." That was true before [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) was resolved. Since v0.29.5, `application-readLogs`, `compose-readLogs`, and every `{db}-readLogs` return **live container stdout/stderr** with `tail` / `since` / `search` filtering. SSH/Beszel is a last resort only (container not Dokploy-managed, or API unreachable).
+> **Do not** tell the user "Dokploy doesn't expose runtime logs via REST / use SSH or Beszel." That was true before [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) was resolved. Since v0.29.0, `application-readLogs`, `compose-readLogs`, and every `{db}-readLogs` return **live container stdout/stderr** with `tail` / `since` / `search` filtering. SSH/Beszel is a last resort only (container not Dokploy-managed, or API unreachable).
 
 ---
 
@@ -102,7 +102,7 @@ The build log explains why an image failed to build (before any container starts
 
 `deployment-readLogs` takes only `deploymentId` + `tail` (no `since`/`search` — it's one finite artifact). Use this for build-time failures; use §1/§2 for run-time failures.
 
-> **If `deployment-readLogs` is not a registered tool in your session, read the build log over REST instead — do not conclude it's unavailable.** Some MCP builds expose only a subset of Dokploy's endpoints, so the tool list / `ToolSearch` won't find `deployment-readLogs` even though the instance (v0.29.5+) serves it. The REST endpoint is always there:
+> **If `deployment-readLogs` is not a registered tool in your session, read the build log over REST instead — do not conclude it's unavailable.** Some MCP builds expose only a subset of Dokploy's endpoints, so the tool list / `ToolSearch` won't find `deployment-readLogs` even though the instance (v0.29.0+) serves it. The REST endpoint is always there:
 > ```bash
 > curl -s -G "$DOKPLOY_URL/api/deployment.readLogs" \
 >   -H "x-api-key: $DOKPLOY_API_KEY" \

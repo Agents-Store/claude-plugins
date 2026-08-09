@@ -9,7 +9,7 @@ This is the **canonical workflow** when a Dokploy deployment fails, gets stuck, 
 
 Companion command: **`/dokploy-dev:debug [applicationId|composeId]`** runs this entire chain.
 
-> **Reading logs (Dokploy v0.29.5+; current v0.29.14):** Runtime **and** build logs are available directly over the REST API / MCP — no SSH or Beszel needed (the old [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) gap is closed). There are two distinct artifacts: the **build log** (`deployment-readLogs { deploymentId, tail }`) explains why an image failed to build; the **runtime log** (`application-readLogs` / per-container `compose-readLogs` / `{db}-readLogs`, all with `tail`/`since`/`search`) explains why a running container is crashing. For a multi-container Compose stack you must enumerate the containers and read **each** one — see the [`read-logs`](../read-logs/SKILL.md) skill, which this workflow uses for every log read below.
+> **Reading logs (Dokploy v0.29.0+; current v0.29.14):** Runtime **and** build logs are available directly over the REST API / MCP — no SSH or Beszel needed (the old [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) gap is closed). There are two distinct artifacts: the **build log** (`deployment-readLogs { deploymentId, tail }`) explains why an image failed to build; the **runtime log** (`application-readLogs` / per-container `compose-readLogs` / `{db}-readLogs`, all with `tail`/`since`/`search`) explains why a running container is crashing. For a multi-container Compose stack you must enumerate the containers and read **each** one — see the [`read-logs`](../read-logs/SKILL.md) skill, which this workflow uses for every log read below.
 
 ---
 
@@ -54,7 +54,7 @@ In both responses, look at `status`. Values you care about:
 | `running` | Build / deploy in progress | Step 2 (read live logs) |
 | `error` | Deploy failed | Step 2, then Step 3 |
 | `done` but site unchanged | Compose-mode mismatch — you deployed the standalone app while production runs from compose, or vice-versa | Re-check via `project-one`; deploy the *compose* resource using `compose-deploy` |
-| `queued` for >2 minutes | Queue stuck | Step 5 (recovery: `cleanQueues`). If queued deploys pile up on a busy server: builds run in per-server queues since v0.29.9 — tune concurrency via `settings-updateBuildsConcurrency { buildsConcurrency }` (Dokploy host) / `server-updateBuildsConcurrency { serverId, buildsConcurrency }` (remote servers); OSS max 2 |
+| `queued` for >2 minutes | Queue stuck | Step 5 (recovery: `cleanQueues`). If queued deploys pile up on a busy server: builds run in per-server queues since v0.29.9 — tune concurrency via `settings-updateBuildsConcurrency { buildsConcurrency }` (Dokploy host) / `server-updateBuildsConcurrency { serverId, buildsConcurrency }` (remote servers); 1–100 per server, default 1 (the OSS max-2 clamp existed only in v0.29.9–v0.29.10; removed in v0.29.11) |
 
 Save the `deploymentId` of the failed run — multiple steps below take it.
 

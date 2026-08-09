@@ -26,7 +26,7 @@ Before verifying, confirm `DOKPLOY_URL` and `DOKPLOY_API_KEY` resolve to real va
 
 ### Optional: reduce the exposed tool surface
 
-The official `@dokploy/mcp` server exposes 546 tools across 50 categories. If that is more than you need, set `DOKPLOY_ENABLED_TAGS` in the plugin's `.mcp.json` `env` block to a comma-separated list of categories (e.g. `project,application,domain,compose,postgres,settings,deployment,docker`). The server will then only expose tools from those categories. Alternatively set `DOKPLOY_TOOL_PRESET` (`all`|`minimal`|`core`|`deploy`|`databases`|`git`) or `DOKPLOY_DISABLED_TAGS` to exclude categories.
+The official `@dokploy/mcp` server exposes 546 tools across 50 categories. If that is more than you need, set `DOKPLOY_ENABLED_TAGS` in the plugin's `.mcp.json` `env` block to a comma-separated list of categories (e.g. `project,application,domain,compose,postgres,settings,deployment,docker`). The server will then only expose tools from those categories. (`DOKPLOY_TOOL_PRESET` and `DOKPLOY_DISABLED_TAGS` are unreleased — merged upstream 2026-08-07, not in `@dokploy/mcp` 0.29.14, so the published package silently ignores them; use `DOKPLOY_ENABLED_TAGS` until the next release.)
 
 ### How to obtain an API key
 
