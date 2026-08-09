@@ -1,49 +1,59 @@
 ---
 description: Pull secrets from Infisical into .env and settings.local.json
+argument-hint: [env] [env-file] [settings-file] [--force] [--dry-run]
 allowed-tools: Bash, Read
 ---
 
-Run the secrets setup script. Argument: $ARGUMENTS
+Pull secrets down from Infisical. Arguments: $ARGUMENTS
+
+Runs `./scripts/secrets-pull.sh`, which writes **both** targets from a single fetch:
+
+- `.env` — for the shell tooling plugins invoke (`nb`, `gws`, `docker compose`, curl recipes)
+- `.claude/settings.local.json` — the `env` block Claude Code expands `${VAR}` in `.mcp.json` from
+
+Instance `https://k.macstack.ai`, project `claude-plugins`
+(`5374e01e-dd78-494c-a589-b29c5dd431bf`, pinned in `.infisical.json`).
 
 ## Defaults
 
-If no arguments provided, run with defaults:
+With no arguments:
 
 ```bash
-./scripts/setup.sh dev .env .claude/settings.local.json
+./scripts/secrets-pull.sh
 ```
 
-**Before running with defaults, inform the user:**
+That is environment `dev` (from `.infisical.json`), `.env`, `.claude/settings.local.json`.
 
-> Running `setup.sh` with default parameters:
-> - Environment: `dev`
-> - Env file: `.env`
-> - Settings file: `.claude/settings.local.json`
->
-> To customize, run: `/setup-tokens <environment> <env-file> <settings-file>`
-> Examples:
-> - `/setup-tokens staging` — staging env, default file paths
-> - `/setup-tokens prod .env.production .claude/settings.local.json` — production env with custom env file
-> - `/setup-tokens dev "" .claude/settings.local.json` — skip writing .env, only update settings
+## With arguments
 
-Then execute the script.
+Positional: `<environment> [env-file] [settings-file]`, plus flags.
 
-## With Arguments
+- environment — `dev` | `staging` | `prod` (all three are kept identical in this project)
+- env-file — default `.env`; pass `""` to skip writing it
+- settings-file — default `.claude/settings.local.json`; pass `""` to skip it
+- `--dry-run` — print the plan, write nothing
+- `--force` — allow a placeholder from Infisical to overwrite a real local value
 
-Parse `$ARGUMENTS` as: `<environment> [env-file] [settings-file]`
+Examples:
 
-- First arg: environment (`dev`, `staging`, `prod`) — required if any args given
-- Second arg: env file path (default: `.env`). Pass `""` to skip writing the env file.
-- Third arg: settings file path (default: `.claude/settings.local.json`). Pass `""` to skip updating settings.
+```bash
+./scripts/secrets-pull.sh prod                    # a different environment
+./scripts/secrets-pull.sh dev .env ""             # only .env
+./scripts/secrets-pull.sh --dry-run               # what would change
+```
 
-Run `./scripts/setup.sh <environment> <env-file> <settings-file>`.
+## Guard rails to explain if they fire
 
-## Prerequisites
+- **Exit 3 / "BLOCKED"** — a real local value would be replaced by a placeholder from
+  Infisical. Nothing was written. Either push the local values up first
+  (`./scripts/secrets-push.sh --yes`) or re-run with `--force`.
+- A failed or empty fetch never touches the files; the previous `.env` is kept as `.env.bak`.
 
-Before running, check:
-1. `scripts/setup.sh` exists and is executable
-2. If not executable, run `chmod +x scripts/setup.sh`
+## After running
 
-## After Running
+1. Report what changed (count of keys, any blocked/downgraded values).
+2. Remind the user to **restart Claude Code** — the `env` block is read at startup, so
+   new MCP servers stay unavailable until then.
+3. If MCP servers still fail, run `/secrets-audit` to see which variable is unset.
 
-Report the result to the user (success or failure with error details).
+Related: `/secrets-push` (the reverse), `/secrets-audit` (drift report).

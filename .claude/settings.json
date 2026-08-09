@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "mcp__*",
       "Bash(*)",
       "Read(*)",
       "Write(*)",
@@ -11,6 +10,7 @@
   "enableAllProjectMcpServers": true,
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,
-    "context7@claude-plugins-official": true
+    "context7@claude-plugins-official": true,
+    "web-search-dev@agents-store-claude-plugins": true
   }
 }
