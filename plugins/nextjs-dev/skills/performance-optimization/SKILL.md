@@ -97,29 +97,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ### Tailwind CSS Integration
 
+Tailwind v4 (the create-next-app default) uses CSS-first configuration — no `tailwind.config.ts` needed for font variables:
+
 ```css
 /* globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
+@theme inline {
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-}
-```
-
-```ts
-// tailwind.config.ts
-const config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ['var(--font-sans)'],
-        mono: ['var(--font-mono)'],
-      },
-    },
-  },
 }
 ```
 
@@ -166,8 +152,14 @@ Avoid importing entire libraries (`import _ from 'lodash'`). Use tree-shakeable 
 ### Analyze the Bundle
 
 ```bash
-ANALYZE=true next build
+# Turbopack bundle analyzer (16.1+): interactive treemap on port 4000
+next experimental-analyze
+
+# Write static analysis files instead
+next experimental-analyze --output
 ```
+
+The analyzer filters by route, shows import chains, and provides separate client/server views. The older `@next/bundle-analyzer` (`ANALYZE=true`) is webpack-based and only works with `next build --webpack`.
 
 ### Common Bundle Bloaters
 
@@ -185,6 +177,27 @@ Every component marked `'use client'` adds to the client JavaScript bundle. Stra
 - Extract only the interactive part into a Client Component
 - Keep data fetching and static rendering in Server Components
 - Use composition (pass Server Components as `children` to Client Components)
+
+## React Compiler
+
+Automatic memoization without manual `useMemo`/`useCallback`. Stable since Next.js 16, but not enabled by default:
+
+```ts
+// next.config.ts
+const nextConfig = {
+  reactCompiler: true,  // requires: npm install babel-plugin-react-compiler@latest
+}
+```
+
+The Babel-based compiler increases build time. Next.js 16.3 adds an experimental Rust-based compiler that runs inside Turbopack (34-46% faster dev-to-ready-page vs Babel):
+
+```ts
+const nextConfig = {
+  experimental: { turbopackRustReactCompiler: true },  // 16.3+
+}
+```
+
+`create-next-app` offers a `--react-compiler` flag for new projects.
 
 ## Core Web Vitals
 
@@ -249,6 +262,8 @@ import Link from 'next/link'
 <Link href="/terms" prefetch={false}>Terms</Link>
 ```
 
+Next.js 16 rewrote prefetching: layout deduplication, incremental prefetching, cancellation when links leave the viewport, and hover prioritization all happen automatically. 16.3 can inline small prefetch payloads into the page (`prefetchInlining`), and `<Link prefetch={true}>` participates in Partial Prefetching when `cacheComponents` + `partialPrefetching` are enabled (see the `data-fetching` skill's Cache Components reference).
+
 ## Production Checklist
 
 - [ ] Hero image has `priority` prop
@@ -256,7 +271,7 @@ import Link from 'next/link'
 - [ ] Fonts use `next/font` (no external stylesheet links)
 - [ ] Heavy components use `dynamic()` import
 - [ ] `'use client'` only on components that need interactivity
-- [ ] Bundle analyzed with `ANALYZE=true next build`
+- [ ] Bundle analyzed with `next experimental-analyze`
 - [ ] No unused dependencies in `package.json`
 - [ ] `output: 'standalone'` for Docker deployments
 - [ ] Static pages use ISR where appropriate

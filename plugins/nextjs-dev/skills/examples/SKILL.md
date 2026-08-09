@@ -11,7 +11,7 @@ Quick reference for common Next.js development patterns with links to detailed s
 
 | Scenario | Type | Key Patterns | File |
 |----------|------|-------------|------|
-| Dashboard App | Authenticated SaaS | Layouts, auth middleware, streaming, Server Actions | [dashboard-app.md](references/scenarios/dashboard-app.md) |
+| Dashboard App | Authenticated SaaS | Layouts, auth proxy, streaming, Server Actions | [dashboard-app.md](references/scenarios/dashboard-app.md) |
 | E-Commerce Storefront | Public catalog | ISR, search params, client state, image optimization | [ecommerce-storefront.md](references/scenarios/ecommerce-storefront.md) |
 
 ## Quick Reference Patterns
@@ -28,7 +28,7 @@ app/
 │   ├── page.tsx            # Dashboard home
 │   ├── settings/page.tsx   # User settings
 │   └── analytics/page.tsx  # Analytics page
-└── middleware.ts           # Redirect unauthenticated to /login
+└── proxy.ts                # Redirect unauthenticated to /login
 ```
 
 ### Pattern 2: CRUD with Server Actions

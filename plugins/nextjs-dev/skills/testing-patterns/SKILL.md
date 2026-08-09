@@ -454,6 +454,25 @@ test('shows validation errors', async ({ page }) => {
 })
 ```
 
+### Instant Navigation Regression Tests (Next.js 16.3)
+
+With Cache Components + Partial Prefetching enabled, `@next/playwright` provides an `instant()` helper to assert that content is visible instantly during navigation (no loading gap):
+
+```typescript
+import { test, expect } from '@playwright/test'
+import { instant } from '@next/playwright'
+
+test('product page navigates instantly', async ({ page }) => {
+  await page.goto('/')
+  await instant(page, async () => {
+    await page.click('a[href="/products/1"]')
+    await expect(page.locator('h1')).toBeVisible()
+  })
+})
+```
+
+See [/docs/app/guides/instant-navigation#prevent-regressions-with-e2e-tests](https://nextjs.org/docs/app/guides/instant-navigation#prevent-regressions-with-e2e-tests).
+
 ## CI Integration & File Organization
 
 For GitHub Actions workflows and test file organization conventions, see `references/ci-and-organization.md`.

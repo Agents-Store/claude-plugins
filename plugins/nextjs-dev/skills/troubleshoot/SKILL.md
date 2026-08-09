@@ -10,7 +10,7 @@ Diagnostics and fixes for common Next.js issues. Start with the quick diagnostic
 ## Quick Diagnostics Checklist
 
 1. **Check Next.js version**: `npx next --version` — ensure 14+ for stable App Router
-2. **Check Node.js version**: `node -v` — ensure 20+ for Next.js 16
+2. **Check Node.js version**: `node -v` — 20.9+ required for Next.js 16
 3. **Clear cache**: `rm -rf .next && npm run dev`
 4. **Check TypeScript**: `npx tsc --noEmit` — catch type errors early
 5. **Check console**: Both browser console and terminal for error messages
@@ -18,7 +18,7 @@ Diagnostics and fixes for common Next.js issues. Start with the quick diagnostic
 
 ## Hydration Errors
 
-The most common Next.js issue. Occurs when server-rendered HTML doesn't match client-rendered output.
+The most common Next.js issue. Occurs when server-rendered HTML doesn't match client-rendered output. Since Next.js 16.2, the dev overlay shows a labeled `+Client`/`-Server` diff pinpointing the exact mismatching markup.
 
 | Error | Cause | Fix |
 |-------|-------|-----|
@@ -175,8 +175,8 @@ Only use `suppressHydrationWarning` for leaf elements where the mismatch is cosm
 |---------|-------|-----|
 | Broken/missing images, no visible error | Upstream image source returns 403 — `next/image` proxies through `/_next/image` so the HTTP error is hidden from the browser | Check network tab for `/_next/image` requests returning 403/401. If the upstream (e.g., Directus, S3) requires auth, include `access_token` or API key in the image URL |
 | "Invalid src prop" or "hostname not configured" | Remote image domain missing from config | Add the domain to `images.remotePatterns` in `next.config.ts` |
-| Images load in `<img>` but not `<Image>` | `next/image` optimizer can't fetch the upstream URL | Verify the upstream URL is reachable from the server (not just the browser). Common with private networks or auth-protected CDNs |
-| Blurry or low-quality images | Wrong `sizes` prop or default quality | Set `sizes` to match actual display size; increase `quality` (default 75) |
+| Images load in `<img>` but not `<Image>` | `next/image` optimizer can't fetch the upstream URL | Verify the upstream URL is reachable from the server (not just the browser). Common with private networks or auth-protected CDNs. Next 16 blocks optimization of local-IP upstreams by default — set `images.dangerouslyAllowLocalIP: true` for private networks |
+| Blurry or low-quality images | Wrong `sizes` prop or default quality | Set `sizes` to match actual display size. In Next 16, `quality` values other than 75 require `images.qualities` config — the prop is coerced to the closest configured value, so raising `quality` alone silently no-ops |
 
 **Debugging tip:** When images appear broken with no error, always check `/_next/image` requests in the browser Network tab — the HTTP status reveals whether the issue is upstream auth (403), missing config (400), or network (502/504).
 
@@ -188,7 +188,7 @@ Only use `suppressHydrationWarning` for leaf elements where the mismatch is cosm
 | Layout shift on load | Images without dimensions | Add `width`/`height` to `<Image>` or use `fill` |
 | Flash of unstyled text | External font stylesheet | Use `next/font` instead of `<link>` |
 | Slow navigation | No prefetching | Ensure `<Link>` is used (auto-prefetch); check `prefetch={false}` isn't set |
-| High memory in production | Memory leaks in middleware | Avoid storing state in middleware closure; check for global variable accumulation |
+| High memory in production | Memory leaks in proxy | Avoid storing state in the proxy closure; check for global variable accumulation |
 
 ## Deployment Issues
 
@@ -198,11 +198,12 @@ For platform-specific deployment issues (Vercel, Dokploy, Netlify, etc.), see th
 |-------|-----|
 | Build fails with memory error | Add `NODE_OPTIONS=--max_old_space_size=4096` to build env |
 | Environment variables not available at build | Use `NEXT_PUBLIC_` prefix for client-side vars; redeploy after adding env vars |
-| API routes timing out | Move to Edge Runtime: `export const runtime = 'edge'` or increase function timeout in your platform settings |
+| API routes timing out | Increase function timeout in your platform settings or stream the response; `export const runtime = 'edge'` only where the platform supports it |
+| `revalidateTag` deprecation warning | Add a cacheLife profile argument (`revalidateTag(tag, 'max')`) or use `updateTag()` in Server Actions |
 | `output: 'standalone'` not generating `server.js` | Verify config, clear `.next/`, rebuild |
 | Static files not found in standalone | Copy `public/` and `.next/static/` to the standalone output |
 | Port conflicts | Set `PORT` env var or use `-p` flag |
-| CORS errors | Add headers in `next.config.ts` `headers()` or middleware |
+| CORS errors | Add headers in `next.config.ts` `headers()` or `proxy.ts` |
 
 ## Diagnostic Commands
 
@@ -210,20 +211,20 @@ For platform-specific deployment issues (Vercel, Dokploy, Netlify, etc.), see th
 # Check Next.js version
 npx next --version
 
-# Full type check
-npx tsc --noEmit
-
-# Lint
-npx next lint
+# Generate route types + full type check
+npx next typegen && npx tsc --noEmit
 
 # Clean build
 rm -rf .next node_modules/.cache && npm run build
 
-# Check bundle
-ANALYZE=true npm run build
+# Debug prerender errors
+npx next build --debug-prerender
 
-# Debug with verbose output
-NODE_OPTIONS='--inspect' next dev
+# Check bundle (Turbopack analyzer, 16.1+)
+npx next experimental-analyze
+
+# Debug with the Node inspector
+npx next dev --inspect
 ```
 
 ## When to Escalate
@@ -231,5 +232,5 @@ NODE_OPTIONS='--inspect' next dev
 - **Persistent 500 errors**: Check server logs, not just browser. Use `next-devtools-mcp` `get_errors` tool
 - **Memory leaks**: Profile with `--inspect` flag and Chrome DevTools
 - **MCP connection failures**: Verify Next.js 16+, dev server running, and `next-devtools-mcp` in `.mcp.json`
-- **Webpack/Turbopack crashes**: Check for incompatible packages, try `--turbopack` flag or disable it
+- **Webpack/Turbopack crashes**: Turbopack is the default in 16 — reproduce with `next dev --webpack` / `next build --webpack` to isolate bundler issues
 - **Deployment-specific bugs**: Test with `next build && next start` locally before deploying

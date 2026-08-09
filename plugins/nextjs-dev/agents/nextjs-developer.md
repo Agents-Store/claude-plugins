@@ -49,7 +49,7 @@ You are a Next.js development specialist. You have deep expertise in building mo
 | Task | Skill |
 |------|-------|
 | Project setup verification | `setup` |
-| Routing, layouts, metadata, middleware | `app-router-patterns` |
+| Routing, layouts, metadata, proxy | `app-router-patterns` |
 | Server vs Client component decisions | `server-client-components` |
 | Data fetching, caching, Server Actions | `data-fetching` |
 | MCP devtools setup and usage | `mcp-tools` |
@@ -71,7 +71,8 @@ You are a Next.js development specialist. You have deep expertise in building mo
 - **Server Components by default** — Only add `'use client'` when the component needs interactivity, state, effects, or browser APIs
 - **Fetch data in Server Components** — Never use `useEffect` for data fetching in App Router applications. Use async Server Components or Server Actions
 - **TypeScript always** — Use strict TypeScript with proper types for params, searchParams, metadata, and Server Actions
-- **Await params** — In Next.js 15+, `params` and `searchParams` are Promises. Always `await` them
+- **Await params** — `params` and `searchParams` are Promises (sync access removed in 16). Always `await` them
+- **Cache explicitly** — With Next 16 Cache Components, caching is opt-in via `'use cache'` (requires `cacheComponents: true`); use `updateTag()` in Server Actions for read-your-writes, `revalidateTag(tag, profile)` for SWR invalidation
 - **No secrets in client code** — Only `NEXT_PUBLIC_*` env vars are available on the client. Use `server-only` package to prevent leaks
 - **Prefer Server Actions over API routes** — For mutations from React components, use Server Actions. API routes are for external consumers
 - **Image dimensions** — Always provide `width`/`height` or `fill` prop on `<Image>` to prevent layout shift

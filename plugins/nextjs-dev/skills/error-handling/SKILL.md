@@ -3,8 +3,8 @@ name: error-handling
 description: >
   Next.js error handling patterns and error boundaries. Use when the user asks about
   "error.tsx", "global-error.tsx", "not-found.tsx", "error boundaries", "error handling",
-  "loading.tsx", "loading states", "fallback UI", "error recovery", "unstable_catchError",
-  "unstable_retry", or needs guidance on graceful error handling in App Router applications.
+  "loading.tsx", "loading states", "fallback UI", "error recovery", "catchError",
+  "retry", or needs guidance on graceful error handling in App Router applications.
 ---
 
 # Error Handling
@@ -130,10 +130,10 @@ import { useEffect } from 'react'
 
 export default function ErrorPage({
   error,
-  unstable_retry,
+  retry,
 }: {
   error: Error & { digest?: string }
-  unstable_retry: () => void
+  retry: () => void
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
@@ -143,7 +143,7 @@ export default function ErrorPage({
   return (
     <div>
       <h2>Something went wrong!</h2>
-      <button onClick={() => unstable_retry()}>Try again</button>
+      <button onClick={() => retry()}>Try again</button>
     </div>
   )
 }
@@ -152,7 +152,8 @@ export default function ErrorPage({
 **Key points:**
 - Must be a Client Component (`'use client'`)
 - `error.digest` — a hash of the error for server-side identification
-- `unstable_retry()` — re-fetches and re-renders the segment (replaces the old `reset()`)
+- `retry()` — re-fetches data and re-renders the segment (`router.refresh()` + reset in a transition); stable in 16.3, named `unstable_retry` in 16.2. Preferred for recovery
+- `reset()` still exists — use it to clear the error state without re-fetching data
 - Errors bubble up to the nearest parent error boundary
 
 ### `global-error.tsx` — Root Error Boundary
@@ -165,47 +166,49 @@ Catches errors in the root layout. Must define its own `<html>` and `<body>`:
 
 export default function GlobalError({
   error,
-  unstable_retry,
+  retry,
 }: {
   error: Error & { digest?: string }
-  unstable_retry: () => void
+  retry: () => void
 }) {
   return (
     <html>
       <body>
         <h2>Something went wrong!</h2>
-        <button onClick={() => unstable_retry()}>Try again</button>
+        <button onClick={() => retry()}>Try again</button>
       </body>
     </html>
   )
 }
 ```
 
-### `unstable_catchError` — Component-Level Error Boundary
+### `catchError` — Component-Level Error Boundary
 
-For granular error handling within a page (not at the route level):
+For granular error handling within a page (not at the route level). Stable since Next.js 16.3 (was `unstable_catchError` in 16.2):
 
 ```tsx
 // app/custom-error-boundary.tsx
 'use client'
 
-import { unstable_catchError as catchError, type ErrorInfo } from 'next/error'
+import { catchError, type ErrorInfo } from 'next/error'
 
 function ErrorFallback(
   props: { title: string },
-  { error, unstable_retry }: ErrorInfo
+  { error, retry }: ErrorInfo
 ) {
   return (
     <div>
       <h2>{props.title}</h2>
       <p>{error.message}</p>
-      <button onClick={() => unstable_retry()}>Try again</button>
+      <button onClick={() => retry()}>Try again</button>
     </div>
   )
 }
 
 export default catchError(ErrorFallback)
 ```
+
+`catchError` boundaries do not interfere with `notFound()`/`redirect()` and clear automatically on client navigation.
 
 Use it as a wrapper in any layout or page:
 
@@ -301,7 +304,7 @@ export function DeleteButton({ id }: { id: string }) {
 | API returns error response | Conditional rendering in Server Component |
 | Unexpected crash in route | `error.tsx` boundary |
 | Root layout crash | `global-error.tsx` |
-| Crash in specific component | `unstable_catchError` wrapper |
+| Crash in specific component | `catchError` wrapper |
 | Event handler failure | `try/catch` + `useState` |
 | Error logging | `useEffect` in `error.tsx` → send to Sentry/etc. |
 

@@ -160,7 +160,7 @@ export function SubmitButton({ children }: { children: React.ReactNode }) {
 
 ## Zod Validation
 
-Use Zod for type-safe schema validation in Server Actions:
+Use Zod for type-safe schema validation in Server Actions. Note for zod v4 (current): `z.string().email()` is deprecated in favor of `z.email()`, and the `errorMap` option is replaced by `error`:
 
 ```typescript
 // app/lib/schemas.ts

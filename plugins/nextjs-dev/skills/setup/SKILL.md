@@ -9,7 +9,7 @@ Confirm that a Next.js project is properly configured for modern App Router deve
 
 ## Prerequisites
 
-- Node.js 20.x or later installed
+- Node.js 20.9+ installed (Next.js 16 minimum); TypeScript 5.1+
 - A Next.js project directory with `package.json`
 
 ## Step 1: Check Next.js Version
@@ -26,8 +26,8 @@ Read `package.json` and locate the `next` dependency:
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| 16.x | Current | App Router default, Cache Components, built-in MCP at `/_next/mcp` |
-| 15.x | Supported | App Router stable, no built-in MCP |
+| 16.x | Current (16.3 latest) | Cache Components, Turbopack default, `proxy.ts`, built-in MCP at `/_next/mcp` |
+| 15.x | Maintenance | Backport releases only (e.g. 15.5.x); `middleware.ts` era, no built-in MCP |
 | 14.x | Legacy | App Router GA, consider upgrading |
 | 13.x or below | Outdated | Upgrade required for modern patterns |
 
@@ -86,8 +86,9 @@ const nextConfig: NextConfig = {
 export default nextConfig
 ```
 
-Common configuration to verify:
+The config file can be `next.config.ts` natively (TypeScript is fully supported). Common configuration to verify:
 - `images.remotePatterns` — if using external image domains
+- `cacheComponents` — must be `true` for `use cache` / Cache Components (16+)
 - `experimental` — any experimental features enabled
 - `output` — `'standalone'` for Docker deployments
 
@@ -118,7 +119,13 @@ For Next.js 16+, the built-in MCP endpoint is available at `/_next/mcp` when the
 }
 ```
 
+Or install with one command: `npx add-mcp next-devtools-mcp@latest`.
+
 If not present, recommend adding it for enhanced AI-assisted development.
+
+## Optional: CI Type Checking
+
+Recommend `next typegen && npx tsc --noEmit` in CI — `next typegen` generates route and `PageProps` types without a full build.
 
 ## What This Skill Does NOT Cover
 

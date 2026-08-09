@@ -10,28 +10,29 @@ app/
 ├── page.tsx                   # Public landing page
 ├── login/
 │   └── page.tsx               # Login form
-├── (dashboard)/
+├── (dashboard)/               # Route group: shared layout, not part of the URL
 │   ├── layout.tsx             # Dashboard layout (sidebar, nav, auth check)
-│   ├── page.tsx               # Dashboard home (overview cards)
-│   ├── loading.tsx            # Skeleton for dashboard pages
+│   ├── dashboard/
+│   │   ├── page.tsx           # /dashboard — home (overview cards)
+│   │   └── loading.tsx        # Skeleton for dashboard home
 │   ├── analytics/
-│   │   ├── page.tsx           # Analytics with streaming charts
+│   │   ├── page.tsx           # /analytics — streaming charts
 │   │   └── loading.tsx        # Chart skeletons
 │   ├── users/
-│   │   ├── page.tsx           # User list with search
+│   │   ├── page.tsx           # /users — list with search
 │   │   ├── [id]/
-│   │   │   └── page.tsx       # User detail
+│   │   │   └── page.tsx       # /users/[id] — user detail
 │   │   └── new/
-│   │       └── page.tsx       # Create user form
+│   │       └── page.tsx       # /users/new — create user form
 │   └── settings/
-│       └── page.tsx           # Account settings
+│       └── page.tsx           # /settings — account settings
 ├── api/
 │   └── auth/
 │       └── [...nextauth]/
-│           └── route.ts       # NextAuth.js handlers
-├── middleware.ts               # Auth middleware
+│           └── route.ts       # Auth.js v5 handlers: export const { GET, POST } = handlers
+├── auth.ts                     # Auth.js v5 config (exports handlers, auth, signIn, signOut)
+├── proxy.ts                    # Auth proxy
 └── lib/
-    ├── auth.ts                # Auth config
     ├── db.ts                  # Database client
     └── actions/
         ├── users.ts           # User CRUD actions
@@ -75,20 +76,20 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 }
 ```
 
-## Step 2: Authentication Middleware
+## Step 2: Authentication Proxy
 
-Middleware runs at the edge and provides the first layer of auth protection. It checks for a session cookie and redirects unauthenticated users before the page even starts rendering:
+The proxy runs on the Node.js runtime before rendering and provides the first layer of auth protection. It checks for a session cookie and redirects unauthenticated users before the page even starts rendering (`middleware.ts` is deprecated since Next.js 16 — use `proxy.ts`):
 
 ```ts
-// middleware.ts — at project root, NOT inside app/
+// proxy.ts — at project root, NOT inside app/
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  // Check both standard and secure cookie variants
+export function proxy(request: NextRequest) {
+  // Check both standard and secure cookie variants (Auth.js v5 cookie names)
   const sessionToken =
-    request.cookies.get('next-auth.session-token') ||
-    request.cookies.get('__Secure-next-auth.session-token')
+    request.cookies.get('authjs.session-token') ||
+    request.cookies.get('__Secure-authjs.session-token')
 
   if (!sessionToken) {
     const loginUrl = new URL('/login', request.url)
@@ -100,25 +101,25 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/(dashboard)/:path*'],
+  // Route groups like (dashboard) are NOT part of the URL — match the real paths
+  matcher: ['/dashboard/:path*', '/analytics/:path*', '/users/:path*', '/settings/:path*'],
 }
 ```
 
 ## Step 3: Dashboard Layout with Sidebar (Double-Layer Auth)
 
-The layout performs a **secondary server-side auth check**. While middleware catches most unauthenticated requests at the edge, the layout check provides defense in depth — it verifies the session is valid (not just that a cookie exists) and gives access to the full session object for rendering user info:
+The layout performs a **secondary server-side auth check**. While the proxy catches most unauthenticated requests up front, the layout check provides defense in depth — it verifies the session is valid (not just that a cookie exists) and gives access to the full session object for rendering user info. This uses Auth.js v5 (`next-auth@beta`): the `auth()` helper exported from your `auth.ts` config replaces v4's `getServerSession(authOptions)`:
 
 ```tsx
 // app/(dashboard)/layout.tsx
-import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
-import { authOptions } from '@/lib/auth'
+import { auth } from '@/auth'
 import { Sidebar } from '@/components/sidebar'
 import { TopNav } from '@/components/top-nav'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // Second auth layer: verifies session validity, not just cookie existence
-  const session = await getServerSession(authOptions)
+  const session = await auth()
   if (!session) redirect('/login')
 
   return (
@@ -136,7 +137,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 ## Step 4: Dashboard Home with Streaming
 
 ```tsx
-// app/(dashboard)/page.tsx
+// app/(dashboard)/dashboard/page.tsx
 import { Suspense } from 'react'
 import { StatsCards } from '@/components/stats-cards'
 import { RecentActivity } from '@/components/recent-activity'
@@ -273,8 +274,8 @@ import { db } from '@/lib/db'
 
 const userSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name must be 100 characters or fewer'),
-  email: z.string().trim().email('Please enter a valid email address'),
-  role: z.enum(['admin', 'member', 'viewer'], { errorMap: () => ({ message: 'Please select a role' }) }),
+  email: z.email('Please enter a valid email address').trim(),  // zod v4: z.email() replaces z.string().email()
+  role: z.enum(['admin', 'member', 'viewer'], { error: 'Please select a role' }),  // zod v4: `error` replaces `errorMap`
 })
 
 export type UserActionState = { errors?: Record<string, string[]>; message?: string } | null
@@ -365,7 +366,7 @@ export function CreateUserForm() {
 ## Key Patterns Used
 
 1. **Route groups** `(dashboard)` — shared layout without affecting URL
-2. **Double-layer auth** — middleware (edge cookie check) + layout (server session validation)
+2. **Double-layer auth** — proxy (cookie check before rendering) + layout (server session validation via Auth.js v5 `auth()`)
 3. **Streaming** — `<Suspense>` for slow data (stats, activity feed)
 4. **Suspense key pattern** — `key={q-page}` forces fallback re-display when search params change
 5. **Debounced search** — `useDebouncedCallback` prevents navigation on every keystroke

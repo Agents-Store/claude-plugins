@@ -15,7 +15,7 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 | `setup` | Verify Next.js project environment and readiness |
 | `app-router-patterns` | App Router file conventions, routing, layouts, metadata, proxy |
 | `server-client-components` | Server vs Client Component patterns, boundaries, composition |
-| `data-fetching` | Data fetching, Server Actions, caching, ISR, streaming, `use cache` |
+| `data-fetching` | Data fetching, Server Actions, caching, ISR, streaming, Cache Components (`use cache`) |
 | `api-reference` | Framework API quick reference (functions, config, types) |
 
 ### Architecture & Patterns
@@ -23,7 +23,7 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 | Skill | Description |
 |-------|-------------|
 | `project-structure` | Project architecture, folder organization, feature-based structure, naming conventions |
-| `error-handling` | Error boundaries (`error.tsx`, `global-error.tsx`), `not-found.tsx`, `loading.tsx`, `unstable_catchError` |
+| `error-handling` | Error boundaries (`error.tsx`, `global-error.tsx`), `not-found.tsx`, `loading.tsx`, `catchError` |
 | `form-handling` | Server Action forms, `useActionState`, `useFormStatus`, Zod validation, `useOptimistic`, file uploads |
 | `api-design` | Route Handlers, streaming responses (SSE), webhooks, API versioning, CORS |
 
@@ -57,12 +57,23 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 
 ## Prerequisites
 
-- A Next.js project (14+ for App Router, 16+ for Cache Components, proxy, and built-in MCP)
+- A Next.js project (16.x recommended — current stable 16.3; 14+ minimum for App Router content)
 - For MCP integration: install `next-devtools-mcp` in your project
 
 ## Installation
 
 Install as a Claude Code plugin from the Agents Store marketplace.
+
+## What's New in v1.4.0
+
+Full alignment with Next.js 16 (16.3 current):
+- **proxy.ts** — `middleware.ts` is deprecated; all routing, auth, and CSP examples now use the `proxy` convention
+- **Stable error APIs** — `retry` prop and `catchError` from `next/error` (formerly `unstable_*`)
+- **Caching APIs** — `revalidateTag(tag, profile)` (single-arg form deprecated), new `updateTag()` and `refresh()` Server Action APIs, `cacheComponents: true` prerequisite for `use cache`, new Cache Components / Instant Navigations reference
+- **`next lint` removal** — linting recipes migrated to the ESLint CLI / Biome; `next typegen` for CI type checks
+- **Turbopack default** — dev and build default to Turbopack; bundle analysis via `next experimental-analyze`
+- **next-devtools-mcp 0.4.0** — 4-tool surface (`nextjs_index`, `nextjs_call`, `nextjs_docs`, `browser_eval` gateways); `init`/`upgrade_nextjs_16`/`enable_cache_components` removed
+- Next 16 image defaults, parallel-route `default.tsx` requirement, Node 20.9+ / TS 5.1+ minimums, Tailwind v4 and zod v4 example updates
 
 ## What's New in v1.3.0
 

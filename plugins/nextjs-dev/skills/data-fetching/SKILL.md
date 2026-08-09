@@ -237,12 +237,33 @@ import { revalidateTag } from 'next/cache'
 
 export async function updatePost(id: string, formData: FormData) {
   await db.post.update({ where: { id }, data: { /* ... */ } })
-  revalidateTag(`post-${id}`)  // Only this post's cache is busted
+  revalidateTag(`post-${id}`, 'max')  // Only this post's cache is busted
 }
 ```
 
+> Since Next.js 16, the single-argument `revalidateTag(tag)` form is **deprecated**. The second argument is a cacheLife profile (`'max'` recommended, or `'hours'`/`'days'`/a custom profile/an inline `{ expire: 3600 }` object) that enables stale-while-revalidate behavior.
+
+### `updateTag()` and `refresh()` (Next.js 16, Server Actions only)
+
+Two Server-Actions-only APIs from `next/cache` complement `revalidateTag`:
+
+```tsx
+'use server'
+import { updateTag, refresh } from 'next/cache'
+
+export async function updatePost(id: string, formData: FormData) {
+  await db.post.update({ where: { id }, data: { /* ... */ } })
+  updateTag(`post-${id}`)  // Expire AND re-read fresh data in the same request
+}
+```
+
+- `updateTag(tag)` — expires the tag **and** reads fresh data within the same request (read-your-writes). Use for form mutations where the user must see their change immediately — this supersedes bare `revalidateTag` in most Server Action examples.
+- `refresh()` — refreshes only uncached data; the server-side counterpart of `router.refresh()`.
+
 **When to use which revalidation:**
-- `revalidateTag()` — surgical invalidation of specific data across all routes that use it
+- `updateTag()` — Server Action mutations where the user must immediately see their own change (read-your-writes)
+- `revalidateTag(tag, profile)` — surgical SWR invalidation of specific data across all routes that use it
+- `refresh()` — re-fetch uncached data from a Server Action without touching the cache
 - `revalidatePath()` — broader, invalidates all cached data for a specific URL path
 - `export const revalidate = N` — background regeneration on a timer (ISR), no mutation trigger needed
 
@@ -264,7 +285,24 @@ export default async function PostsPage() {
 
 ## `use cache` Directive (Next.js 16+)
 
-Cache Components let you cache at the function or component level:
+Cache Components let you cache at the function or component level. **Prerequisite:** `use cache` only works with Cache Components enabled in `next.config.ts` — the examples below fail without it:
+
+```ts
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+}
+
+export default nextConfig
+```
+
+Constraints: all cached functions/components must be `async`, and `cookies()`/`headers()`/`searchParams` cannot be read inside a cached scope (read them outside and pass the values as arguments — otherwise you get a `next-request-in-use-cache` error).
+
+Variants: `'use cache: remote'` stores entries in the platform cache handler (e.g. Redis/KV) so they survive across serverless instances; `'use cache: private'` is a rare variant for runtime request data. The default in-memory runtime cache does **not** persist across serverless requests.
+
+> For the full Cache Components model — cache keys, profiles, Partial Prefetching, new ISR behavior, and migration — see [references/cache-components.md](references/cache-components.md).
 
 ### Data-level Caching
 
@@ -368,11 +406,11 @@ export function LikeButton({ postId, initialLikes }: { postId: string; initialLi
 ```tsx
 // lib/actions.ts
 'use server'
-import { revalidateTag } from 'next/cache'
+import { updateTag } from 'next/cache'
 
 export async function likePost(postId: string) {
   await db.post.update({ where: { id: postId }, data: { likes: { increment: 1 } } })
-  revalidateTag(`post-${postId}`)
+  updateTag(`post-${postId}`)  // read-your-writes: the user sees the new count immediately
 }
 ```
 
@@ -413,4 +451,6 @@ function TodoList({ todos, addTodo }: { todos: Todo[]; addTodo: (text: string) =
 | ISR | Semi-dynamic content | `export const revalidate = 60` |
 | Dynamic (SSR) | Per-request data | Use `cookies()`, `headers()`, or `searchParams` |
 | Streaming | Progressive loading | `<Suspense>` boundaries or `loading.tsx` |
-| `use cache` (16+) | Fine-grained cache control | `'use cache'` + `cacheLife()` + `cacheTag()` |
+| Cache Components (`use cache`, 16+) | Fine-grained cache control | Opt in via `cacheComponents: true`, then `'use cache'` + `cacheLife()` + `cacheTag()` |
+
+Next.js 16 is dynamic-by-default — implicit `fetch` caching was removed, so caching is always explicit. 16.3 adds `partialPrefetching: true` as the second flag of the Instant Navigations model (see [references/cache-components.md](references/cache-components.md)).

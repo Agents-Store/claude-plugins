@@ -1,6 +1,6 @@
 # Advanced Next.js API Reference
 
-Extended API reference for core components, middleware, image loading, font configuration, and advanced config options.
+Extended API reference for core components, proxy, image loading, font configuration, and advanced config options.
 
 ## Table of Contents
 
@@ -8,7 +8,7 @@ Extended API reference for core components, middleware, image loading, font conf
 - [Font Optimization](#font-optimization)
 - [Script Component](#script-component)
 - [next.config.ts Key Options](#nextconfigts-key-options)
-- [Middleware API](#middleware-api)
+- [Proxy API (proxy.ts)](#proxy-api-proxyts)
 - [Image Loader Configuration](#image-loader-configuration)
 - [Font Configuration](#font-configuration)
 - [Advanced next.config.ts Options](#advanced-nextconfigts-options)
@@ -95,15 +95,29 @@ revalidatePath('/posts', 'layout') // Revalidate layout and all child pages
 revalidatePath('/', 'layout')      // Revalidate everything
 ```
 
-### `revalidateTag(tag)`
+### `revalidateTag(tag, profile)`
 
 ```tsx
 import { revalidateTag } from 'next/cache'
 
-revalidateTag('posts')
+revalidateTag('posts', 'max')           // SWR invalidation with a cacheLife profile
+revalidateTag('posts', { expire: 3600 }) // Inline expire override
 ```
 
-### `unstable_cache()` (deprecated in 16+, use `use cache`)
+The single-argument form is deprecated since Next.js 16.
+
+### `updateTag(tag)` / `refresh()` (Server Actions only)
+
+```tsx
+import { updateTag, refresh } from 'next/cache'
+
+updateTag('posts')  // Expire + immediately re-read fresh data (read-your-writes)
+refresh()           // Refresh uncached data — server-side router.refresh()
+```
+
+### `unstable_cache()` (legacy)
+
+Legacy API superseded by `'use cache'` (Cache Components). Still valid for data that must persist across deploys:
 
 ```tsx
 import { unstable_cache } from 'next/cache'
@@ -115,7 +129,9 @@ const getCachedUser = unstable_cache(
 )
 ```
 
-## Middleware API
+## Proxy API (proxy.ts)
+
+Define `proxy.ts` at the project root with `export function proxy(request: NextRequest)` (named or default export). Proxy runs on the **Node.js runtime only** (a `runtime` segment config throws in proxy files). `middleware.ts` is deprecated since Next.js 16 — migrate with `npx @next/codemod@canary middleware-to-proxy .`. A `NextProxy` type is available from `'next/server'`.
 
 ### `NextRequest`
 
@@ -123,21 +139,21 @@ Extends the standard `Request` with additional properties:
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `nextUrl` | `NextURL` | Parsed URL with Next.js specific properties |
-| `cookies` | `RequestCookies` | Cookie access |
-| `geo` | `{ city, country, region, latitude, longitude }` | Geolocation (Vercel only) |
-| `ip` | `string` | Client IP address |
+| `nextUrl` | `NextURL` | Parsed URL with Next.js specific properties (`basePath`, `buildId`, `pathname`, `searchParams`) |
+| `cookies` | `RequestCookies` | Cookie access (`get`, `getAll`, `set`, `delete`, `has`, `clear`) |
+
+> `geo` and `ip` were removed in Next.js 15.0. Use platform helpers (`geolocation()`/`ipAddress()` from `@vercel/functions`) or read the `x-forwarded-for` header.
 
 ### `NextResponse`
 
 | Method | Description |
 |--------|-------------|
-| `NextResponse.next()` | Continue to the next middleware or route |
+| `NextResponse.next()` | Continue past the proxy to the route |
 | `NextResponse.redirect(url)` | Redirect to a different URL |
 | `NextResponse.rewrite(url)` | Rewrite request to a different URL (URL stays the same) |
 | `NextResponse.json(data)` | Return a JSON response |
 
-### Middleware Matcher
+### Proxy Matcher
 
 ```ts
 export const config = {
@@ -151,10 +167,11 @@ export const config = {
 }
 ```
 
-### Setting Cookies in Middleware
+### Setting Cookies in Proxy
 
 ```ts
-export function middleware(request: NextRequest) {
+// proxy.ts
+export function proxy(request: NextRequest) {
   const response = NextResponse.next()
   response.cookies.set('visited', 'true', {
     httpOnly: true,
@@ -166,10 +183,11 @@ export function middleware(request: NextRequest) {
 }
 ```
 
-### Setting Headers in Middleware
+### Setting Headers in Proxy
 
 ```ts
-export function middleware(request: NextRequest) {
+// proxy.ts
+export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-request-id', crypto.randomUUID())
 
@@ -208,6 +226,14 @@ const nextConfig = {
   },
 }
 ```
+
+**Next.js 16 image defaults changed:**
+- `qualities` defaults to `[75]` — a `quality` prop is coerced to the closest configured value, so add values (e.g. `qualities: [50, 75, 90]`) to use other qualities
+- `minimumCacheTTL` default is now `14400` (4 hours, up from 60 seconds)
+- Local `src` values with query strings require `images.localPatterns`
+- Optimization of private-network (local IP) upstreams is blocked by default — set `images.dangerouslyAllowLocalIP: true` when needed
+- `maximumRedirects` is now 3
+- `images.domains` is deprecated (use `remotePatterns`); `next/legacy/image` is deprecated
 
 ### Custom Image Loader
 
@@ -321,10 +347,10 @@ const nextConfig = {
 ### Content Security Policy
 
 ```ts
-// middleware.ts
+// proxy.ts
 import { NextResponse } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
   const csp = `
     default-src 'self';

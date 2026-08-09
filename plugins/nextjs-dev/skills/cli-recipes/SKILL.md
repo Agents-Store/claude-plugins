@@ -5,7 +5,7 @@ description: Next.js CLI commands and common development scripts. This skill sho
 
 # Next.js CLI Recipes
 
-Command-line recipes for creating, developing, building, and deploying Next.js applications.
+Command-line recipes for creating, developing, building, and deploying Next.js applications. Current as of Next.js 16 (16.3 latest).
 
 ## Create a New Project
 
@@ -13,13 +13,26 @@ Command-line recipes for creating, developing, building, and deploying Next.js a
 npx create-next-app@latest my-app
 ```
 
-Interactive prompts will ask about TypeScript, ESLint, Tailwind CSS, `src/` directory, App Router, and import aliases.
+The first prompt asks whether to use the recommended defaults (TypeScript, ESLint, Tailwind CSS, App Router, AGENTS.md); answering no walks through each option.
 
-Non-interactive with all defaults:
+Non-interactive with the defaults:
 
 ```bash
-npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+npx create-next-app@latest my-app --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --yes
 ```
+
+Useful flags (Next.js 16):
+
+| Flag | Purpose |
+|------|---------|
+| `--biome` / `--no-linter` | Use Biome instead of ESLint, or skip linter setup |
+| `--react-compiler` | Enable the React Compiler in the new project |
+| `--api` | Route-handlers-only project (no UI) |
+| `--empty` | Minimal empty project |
+| `--agents-md` | Write AGENTS.md + CLAUDE.md for coding agents (default: on) |
+| `--webpack` | Configure webpack instead of the default Turbopack |
+| `--skip-install` | Skip installing dependencies |
+| `--disable-git` | Skip git initialization |
 
 From a template:
 
@@ -30,18 +43,23 @@ npx create-next-app@latest --example https://github.com/user/repo my-app
 
 ## Development Server
 
+Turbopack is the **default bundler** in Next.js 16 for both `next dev` and `next build` — no flag needed. Opt out with `--webpack`.
+
 ```bash
-# Standard dev server
+# Standard dev server (Turbopack by default in 16+)
 next dev
 
-# With Turbopack (faster HMR and builds)
-next dev --turbopack
+# Opt out of Turbopack
+next dev --webpack
 
 # Custom port
 next dev -p 4000
 
-# Custom hostname
-next dev -H 0.0.0.0
+# Custom hostname (default is 0.0.0.0)
+next dev -H 127.0.0.1
+
+# Attach the Node.js debugger to the correct process (16.1+)
+next dev --inspect
 
 # HTTPS (local development)
 next dev --experimental-https
@@ -50,19 +68,27 @@ next dev --experimental-https
 next dev --verbose
 ```
 
-Turbopack is the recommended bundler for development in Next.js 15+. It provides significantly faster hot module replacement.
+Since Next.js 16, dev output goes to `.next/dev`, so `next dev` and `next build` can run concurrently, and a lockfile prevents two `next dev` instances on one project.
 
 ## Build for Production
 
 ```bash
-# Production build
+# Production build (Turbopack by default in 16+)
 next build
 
-# Analyze bundle size
-ANALYZE=true next build
+# Opt out of Turbopack
+next build --webpack
+
+# Debug prerender errors with full output
+next build --debug-prerender
+
+# Build only a subset of routes (faster iteration on build issues)
+next build --debug-build-paths="app/**/page.tsx"
 ```
 
 Build output appears in `.next/`. For standalone output (Docker), set `output: 'standalone'` in `next.config.ts`.
+
+`next build` still type-checks but **no longer lints** (Next.js 16) — run ESLint or Biome separately. Since 16.3, `typescript@^7` is supported for much faster type checking, and Turbopack's filesystem cache makes repeat builds up to 5.5x faster.
 
 The build reports:
 - **Route sizes** — JS sent to client per route
@@ -77,41 +103,41 @@ next start
 
 # Custom port
 next start -p 4000
+
+# Attach the Node.js debugger (16.2+)
+next start --inspect
+
+# Keep-alive timeout for proxied deployments (ms)
+next start --keepAliveTimeout 70000
 ```
 
 Requires `next build` first. Serves the production build with Node.js.
 
 ## Linting
 
-```bash
-# Lint all files
-next lint
+**`next lint` was removed in Next.js 16**, and `next build` no longer runs linting. Migrate with the official codemod, then run ESLint (or Biome) directly:
 
-# Lint specific directories
-next lint --dir src --dir app
+```bash
+# Migrate from next lint to the ESLint CLI
+npx @next/codemod@canary next-lint-to-eslint-cli .
+
+# Lint with ESLint directly (flat config: eslint.config.mjs)
+npx eslint .
 
 # Fix auto-fixable issues
-next lint --fix
-
-# Output format
-next lint --format json
+npx eslint . --fix
 ```
 
-Next.js includes a built-in ESLint configuration (`eslint-config-next`) that catches common Next.js issues:
-- Incorrect image usage
-- Missing `alt` attributes
-- Incorrect `<link>` and `<script>` usage
-- Accessibility issues
+`eslint-config-next` still catches common Next.js issues (incorrect image usage, missing `alt` attributes, incorrect `<link>`/`<script>` usage, accessibility issues), and `@next/eslint-plugin-next` now defaults to ESLint Flat Config. Biome is the supported alternative (`--biome` in create-next-app).
 
 ## Type Checking
 
 ```bash
-# TypeScript type checking
-npx tsc --noEmit
-
-# Or with next build (includes type checking)
-next build
+# Generate route types, then type-check (recommended for CI)
+next typegen && npx tsc --noEmit
 ```
+
+`next typegen` (15.5+) generates route and `PageProps` types into `.next/types` without running a full build, and also writes `next-env.d.ts`. `next build` includes type checking as well.
 
 ## Useful Environment Variables
 
@@ -121,7 +147,7 @@ next build
 | `HOSTNAME` | Server hostname | `HOSTNAME=0.0.0.0 next start` |
 | `NODE_ENV` | Environment | `development`, `production`, `test` |
 | `NEXT_TELEMETRY_DISABLED` | Disable telemetry | `NEXT_TELEMETRY_DISABLED=1` |
-| `ANALYZE` | Enable bundle analyzer | `ANALYZE=true next build` |
+| `ANALYZE` | Enable `@next/bundle-analyzer` (webpack builds only — prefer `next experimental-analyze`) | `ANALYZE=true next build --webpack` |
 | `NEXT_PUBLIC_*` | Client-side env vars | `NEXT_PUBLIC_API_URL=...` |
 
 ## Package Scripts
@@ -131,12 +157,12 @@ Typical `package.json` scripts:
 ```json
 {
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest",
     "test:e2e": "playwright test"
@@ -146,35 +172,24 @@ Typical `package.json` scripts:
 
 ## Bundle Analysis
 
-Install and configure the bundle analyzer:
+Use the built-in Turbopack bundle analyzer (16.1+):
 
 ```bash
-npm install @next/bundle-analyzer
+# Interactive treemap UI on port 4000
+next experimental-analyze
+
+# Write static analysis files to .next/diagnostics/analyze
+next experimental-analyze --output
 ```
 
-```ts
-// next.config.ts
-import withBundleAnalyzer from '@next/bundle-analyzer'
+The analyzer filters by route, shows import chains, and provides separate client/server views.
 
-const nextConfig = {
-  // ...
-}
-
-export default process.env.ANALYZE === 'true'
-  ? withBundleAnalyzer()(nextConfig)
-  : nextConfig
-```
-
-```bash
-ANALYZE=true next build
-```
-
-Opens an interactive treemap showing client and server bundle composition.
+> `@next/bundle-analyzer` (`ANALYZE=true`) is webpack-based and only works with `next build --webpack`.
 
 ## Docker Deployment
 
 ```dockerfile
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 FROM base AS deps
 WORKDIR /app
@@ -205,24 +220,28 @@ Requires `output: 'standalone'` in `next.config.ts`.
 ## Telemetry
 
 ```bash
-# Check telemetry status
-next telemetry status
-
 # Disable telemetry
-next telemetry disable
+next telemetry --disable
 
 # Enable telemetry
-next telemetry enable
+next telemetry --enable
 ```
 
-## Codemod (Upgrade Migrations)
+## Upgrading & Codemods
 
 ```bash
-# Run all codemods for a target version
-npx @next/codemod@latest upgrade
+# Recommended upgrade path (16.1+): built-in upgrade command
+next upgrade
+next upgrade --revision canary   # or latest / a specific version
+
+# Codemod-driven upgrade (works from any version)
+npx @next/codemod@canary upgrade latest
 
 # Run a specific codemod
-npx @next/codemod@latest <transform> <path>
+npx @next/codemod@canary <transform> <path>
 ```
 
-Available codemods handle async API migrations (`params`, `cookies`, `headers`), configuration changes, and deprecated API removals.
+Key codemods for Next.js 16:
+- `middleware-to-proxy` — rename `middleware.ts` to `proxy.ts` with the `proxy` export
+- `next-lint-to-eslint-cli` — migrate from the removed `next lint` to the ESLint CLI
+- Async API migrations (`params`, `cookies`, `headers`), configuration changes, and deprecated API removals

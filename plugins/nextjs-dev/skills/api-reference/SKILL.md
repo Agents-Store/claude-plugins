@@ -136,6 +136,18 @@ export async function generateStaticParams() {
 | Function | Import | Usage |
 |----------|--------|-------|
 | `revalidatePath(path, type?)` | `next/cache` | Invalidate cached data for a path. `type: 'layout'` revalidates all child pages |
-| `revalidateTag(tag)` | `next/cache` | Invalidate all data tagged with the given tag |
+| `revalidateTag(tag, profile)` | `next/cache` | SWR invalidation of tagged data. `profile` is a cacheLife profile name or `{ expire }` object; the single-argument form is deprecated in 16 |
+| `updateTag(tag)` | `next/cache` | Server Actions only. Expire + immediate refresh in the same request (read-your-writes) |
+| `refresh()` | `next/cache` | Server Actions only. Refresh uncached data; server-side counterpart of `router.refresh()` |
 
-For Image, Font, Script, next.config.ts, middleware API, cache functions with code examples, and advanced configuration, see [references/advanced-api.md](references/advanced-api.md).
+## Server Lifecycle & Auth Interrupts
+
+- **`after(callback)`** from `next/server` (stable since 15.1) — run work after the response (or prerender) finishes. Usable in Server Components, Server Actions, Route Handlers, and Proxy. In Server Components, read `cookies()`/`headers()` **before** calling `after()` and close over the values — they cannot be read inside the callback.
+- **`connection()`** from `next/server` — `await connection()` to mark rendering as dynamic before non-API dynamic work (e.g. `Math.random()`, `Date.now()`).
+- **`forbidden()` / `unauthorized()`** from `next/navigation` with `forbidden.tsx`/`unauthorized.tsx` — render 403/401 pages. **Experimental** — require `experimental: { authInterrupts: true }` (still not stable in 16.3).
+
+## Root Params (16.3)
+
+`import { lang } from 'next/root-params'` — awaitable accessors for root dynamic segments (e.g. `app/[lang]/`), typed per segment, usable from any Server Component. Replaces `unstable_rootParams` (removed in 16.0).
+
+For Image, Font, Script, next.config.ts, proxy API, cache functions with code examples, and advanced configuration, see [references/advanced-api.md](references/advanced-api.md).
