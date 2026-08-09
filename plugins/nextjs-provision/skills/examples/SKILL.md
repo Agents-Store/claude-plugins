@@ -26,7 +26,7 @@ npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-d
 # 2. Enter project
 cd my-app
 
-# 3. Init shadcn
+# 3. Init shadcn (default preset base-nova: Base UI + Nova style; -b radix for Radix)
 npx shadcn@latest init
 
 # 4. Install first components
@@ -59,6 +59,8 @@ export default function Home() {
 ```
 
 ### Add a Form with Validation (3 steps)
+
+For simple forms, the newer `field` component (`npx shadcn@latest add field`) is the modern alternative — it works with Server Actions, React Hook Form, and TanStack Form. The RHF + Zod pattern below remains fully valid:
 
 ```bash
 # 1. Install form components

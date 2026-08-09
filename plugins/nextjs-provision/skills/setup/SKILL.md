@@ -13,8 +13,8 @@ Before initializing shadcn/ui, verify the project meets these requirements:
 
 | Requirement | Check | Minimum |
 |-------------|-------|---------|
-| Node.js | `node --version` | 18.17+ (20+ for Tailwind v4) |
-| Next.js | `package.json` → `next` | 13+ with App Router |
+| Node.js | `node --version` | 20+ |
+| Next.js | `package.json` → `next` | 13+ with App Router (15/16 recommended) |
 | React | `package.json` → `react` | 18+ |
 | TypeScript | `tsconfig.json` exists | Recommended |
 | Tailwind CSS | `package.json` → `tailwindcss` | 3.x or 4.x |
@@ -37,10 +37,14 @@ Run the init command in the project root:
 npx shadcn@latest init
 ```
 
-The CLI prompts for:
-- **Style**: New York or Default (New York recommended -- cleaner borders and shadows)
-- **Base color**: Neutral, Slate, Stone, Gray, or Zinc
-- **CSS variables**: Yes (required for theming)
+The CLI v4 `init` command (alias `create`) supports:
+- `-t next|start|vite|react-router|laravel|astro` -- project template
+- `-b base|radix|aria` -- component base (**Base UI is the default since July 2026**; Radix and React Aria remain fully supported)
+- `-p <preset>` -- style preset
+- `-d` -- accept defaults (equivalent to `--template=next --preset=base-nova`)
+- `--css-variables` (default true), `--rtl`, `--pointer` (adds `cursor: pointer` CSS for buttons), `--monorepo`
+
+Base colors are now **neutral | stone | zinc | mauve | olive | mist | taupe**. Visual styles are the 8 official presets — **Vega** (classic look), **Nova** (compact, default), **Maia** (rounded), **Lyra** (sharp/mono), **Mira** (dense), **Luma**, **Rhea**, **Sera** — chosen via preset or the visual builder at https://ui.shadcn.com/create (`npx shadcn create`). Apply a preset to an existing project with `shadcn apply <preset-code> [--only theme|font]`.
 
 This creates:
 - `components.json` -- Configuration file for the shadcn CLI
@@ -52,7 +56,7 @@ This creates:
 
 Check these files exist and are correct:
 
-1. **`components.json`** -- Should contain:
+1. **`components.json`** -- Should contain (`"style": "new-york"` is still the standard value; `"default"` is deprecated). For Tailwind v4, `tailwind.config` is left blank:
    ```json
    {
      "$schema": "https://ui.shadcn.com/schema.json",
@@ -60,7 +64,7 @@ Check these files exist and are correct:
      "rsc": true,
      "tsx": true,
      "tailwind": {
-       "config": "tailwind.config.ts",
+       "config": "",
        "css": "src/app/globals.css",
        "baseColor": "neutral",
        "cssVariables": true
@@ -71,6 +75,7 @@ Check these files exist and are correct:
      }
    }
    ```
+   (Tailwind v3 projects keep `"config": "tailwind.config.ts"`.)
 
 2. **`lib/utils.ts`** -- Should export the `cn()` helper:
    ```typescript
@@ -100,41 +105,31 @@ Check these files exist and are correct:
 
 ## Step 3: Configure shadcn studio Registries
 
-To access shadcn studio components, blocks, and themes, add the studio registry to `components.json`:
+To access shadcn studio components, blocks, pages, and themes, add the studio registries to `components.json`:
 
 ```json
 {
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
-  "rsc": true,
-  "tsx": true,
-  "tailwind": {
-    "config": "tailwind.config.ts",
-    "css": "src/app/globals.css",
-    "baseColor": "neutral",
-    "cssVariables": true
-  },
-  "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils"
-  },
   "registries": {
-    "ss-components": {
-      "url": "https://shadcnstudio.com/registry"
-    },
-    "ss-blocks": {
-      "url": "https://shadcnstudio.com/registry"
-    },
-    "ss-themes": {
-      "url": "https://shadcnstudio.com/registry"
-    }
+    "@shadcn-studio": "https://shadcnstudio.com/r/{style}/{name}.json",
+    "@ss-components": "https://shadcnstudio.com/r/components/{style}/{name}.json",
+    "@ss-blocks": "https://shadcnstudio.com/r/blocks/{style}/{name}.json",
+    "@ss-pages": "https://shadcnstudio.com/r/pages/{style}/{name}.json",
+    "@ss-themes": "https://shadcnstudio.com/r/themes/{name}.json"
   }
 }
 ```
 
-This enables three namespace registries:
+Or use the native one-liner instead of hand-editing:
+
+```bash
+npx shadcn registry add @shadcn-studio=https://shadcnstudio.com/r/{style}/{name}.json @ss-components=https://shadcnstudio.com/r/components/{style}/{name}.json @ss-blocks=https://shadcnstudio.com/r/blocks/{style}/{name}.json @ss-pages=https://shadcnstudio.com/r/pages/{style}/{name}.json @ss-themes=https://shadcnstudio.com/r/themes/{name}.json
+```
+
+This enables five namespace registries:
+- `@shadcn-studio` -- Free studio content (new namespace)
 - `@ss-components` -- Component variants (buttons, cards, inputs, etc.)
 - `@ss-blocks` -- Pre-built UI blocks (hero sections, dashboards, forms, etc.)
+- `@ss-pages` -- Full pre-built pages (new namespace)
 - `@ss-themes` -- Theme presets (color schemes, typography, etc.)
 
 ## Step 4: Configure Premium Access (Optional)
@@ -152,7 +147,16 @@ Add `.env` to `.gitignore` if not already present:
 echo ".env" >> .gitignore
 ```
 
-Free components and blocks work without credentials. Premium content requires a shadcn studio license (Basic $99, Pro $199, Team $449).
+Premium access requires converting the registry entries in `components.json` to objects with `params` — the CLI expands `${EMAIL}` and `${LICENSE_KEY}` from the environment:
+
+```json
+"@ss-components": {
+  "url": "https://shadcnstudio.com/r/components/{style}/{name}.json",
+  "params": { "email": "${EMAIL}", "license_key": "${LICENSE_KEY}" }
+}
+```
+
+Free components and blocks work without credentials. Premium content requires a shadcn studio license (Basic $99, Pro $199, Team $449, Enterprise $849).
 
 ## Step 5: Test Component Installation
 
@@ -162,9 +166,11 @@ Verify the setup works by installing a test component:
 # Standard shadcn/ui component:
 npx shadcn@latest add button
 
-# shadcn studio component (if registries configured):
-npx shadcn@latest add button --registry @ss-components
+# shadcn studio component (if registries configured) — namespaced address:
+npx shadcn@latest add @ss-components/button-01
 ```
+
+The `--registry` flag no longer exists in CLI v4 — installation from any registry uses namespaced addresses (`@namespace/item`).
 
 Check that:
 - Component file created at `components/ui/button.tsx` (or `src/components/ui/button.tsx`)
@@ -173,24 +179,30 @@ Check that:
 
 ## Step 6: Configure Community Registries (Optional)
 
-The official shadcn MCP only searches registries listed in `components.json`. To unlock search across all 180+ community registries, populate them from the official endpoint:
+The official shadcn MCP only searches registries listed in `components.json`. To unlock search across all 260+ community registries (267 as of Aug 2026), populate them from the official endpoint:
 
 ```bash
 curl -s https://ui.shadcn.com/r/registries.json
 ```
 
-This returns a JSON array with `name`, `url`, `homepage`, `description` for every registry. Add each entry to the `"registries"` field in `components.json`:
+This returns a JSON array with `name`, `url`, `homepage`, `description` for every registry. Add entries with the native command:
+
+```bash
+npx shadcn registry add @magicui=https://magicui.design/r/{name} @aceternity=https://ui.aceternity.com/registry/{name}.json
+```
+
+Or add them to the `"registries"` field in `components.json` directly:
 
 ```json
 {
   "registries": {
-    "@magicui": "https://magicui.design/r/{name}.json",
-    "@aceternity": "https://ui.aceternity.com/r/{name}.json"
+    "@magicui": "https://magicui.design/r/{name}",
+    "@aceternity": "https://ui.aceternity.com/registry/{name}.json"
   }
 }
 ```
 
-Use the `/add-registries` command to do this automatically — it fetches the endpoint, parses all entries, and merges them into `components.json`.
+Use the `/add-registries` command to do this in bulk automatically — it fetches the endpoint, parses all entries, and merges them into `components.json`.
 
 ### Install the Official shadcn Skill
 
@@ -200,7 +212,7 @@ The official shadcn skill reads `components.json` and enables Claude to discover
 pnpm dlx skills add shadcn/ui
 ```
 
-This creates skill files that Claude Code loads automatically when `components.json` is detected.
+This creates skill files that Claude Code loads automatically when `components.json` is detected. The skill runs `shadcn info --json` to read the project's resolved configuration.
 
 ## Tailwind v3 vs v4 Notes
 
@@ -209,7 +221,7 @@ This creates skill files that Claude Code loads automatically when `components.j
 | Config file | `tailwind.config.ts` | CSS-based (`@import "tailwindcss"`) |
 | Content paths | In config `content: [...]` | Auto-detected |
 | CSS variables | `@layer base { :root {...} }` | Same pattern, new import syntax |
-| Button cursor | `cursor-pointer` default | `cursor-default` (add `cursor-pointer` manually) |
+| Button cursor | `cursor-pointer` default | Opt-in: use `shadcn init --pointer` (or add the `@layer base` rule manually) |
 
 If using Tailwind v4, ensure `postcss.config.mjs` uses `@tailwindcss/postcss`:
 

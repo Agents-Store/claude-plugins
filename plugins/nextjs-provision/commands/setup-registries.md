@@ -22,7 +22,19 @@ Full project setup for shadcn community registry search — registries, MCP, CLA
    - `--claudemd` — only add CLAUDE.md section
    - `--skill` — only install official shadcn skill
 
-4. **Add registries** — Run `/add-registries` to fetch all 180+ registries from `https://ui.shadcn.com/r/registries.json` and add them to `components.json`
+4. **Add registries** — Run `/add-registries` to fetch all 260+ registries from `https://ui.shadcn.com/r/registries.json` and add them to `components.json`
+
+4b. **shadcn studio registries** — If the project uses shadcn studio, write the `@`-prefixed studio registries (not legacy `ss-*` keys):
+   ```json
+   "registries": {
+     "@shadcn-studio": "https://shadcnstudio.com/r/{style}/{name}.json",
+     "@ss-components": "https://shadcnstudio.com/r/components/{style}/{name}.json",
+     "@ss-blocks": "https://shadcnstudio.com/r/blocks/{style}/{name}.json",
+     "@ss-pages": "https://shadcnstudio.com/r/pages/{style}/{name}.json",
+     "@ss-themes": "https://shadcnstudio.com/r/themes/{name}.json"
+   }
+   ```
+   For premium, convert entries to objects with `"params": { "email": "${EMAIL}", "license_key": "${LICENSE_KEY}" }`.
 
 5. **Configure MCP servers** — Show the template from `${CLAUDE_PLUGIN_ROOT}/skills/component-search/references/mcp-config-template.json` and create/update the project's `.mcp.json`
 

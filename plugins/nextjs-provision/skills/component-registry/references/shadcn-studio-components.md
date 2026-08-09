@@ -1,10 +1,10 @@
 # shadcn studio Component Catalog
 
-Complete listing of shadcn studio component variants available via `@ss-components` registry.
+Listing of shadcn studio component variants (1000+) available via the `@ss-components` registry.
 
-Install any component:
+Install any component (namespaced address — CLI v4 has no `--registry` flag):
 ```bash
-npx shadcn@latest add [component-name] --registry @ss-components
+npx shadcn@latest add @ss-components/[name]
 ```
 
 ## Accordion

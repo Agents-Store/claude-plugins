@@ -10,19 +10,29 @@ description: >
 
 ## Theme System Overview
 
-shadcn/ui themes are powered by CSS custom properties (variables) in HSL format. All components reference these variables, so changing them updates the entire UI.
+shadcn/ui themes are powered by CSS custom properties (variables) in **OKLCH format**. Variables are complete colors — e.g. `--primary: oklch(0.205 0 0)` — referenced directly as `var(--primary)`. A `@theme inline` block in `globals.css` exposes them to Tailwind utilities. All components reference these variables, so changing them updates the entire UI.
 
-Theme variables are defined in `globals.css` inside `:root` (light) and `.dark` (dark mode) blocks.
+Theme variables are defined in `globals.css` inside `:root` (light) and `.dark` (dark mode) blocks. Legacy projects with HSL triples (`--primary: 240 5.9% 10%` + `hsl(var(--primary))`) still work, but new inits emit OKLCH.
+
+The official theming fast-path: pick one of the 8 style presets (Vega, Nova, Maia, Lyra, Mira, Luma, Rhea, Sera) via the visual builder at https://ui.shadcn.com/create, then apply with `shadcn apply <preset-code> --only theme`.
 
 ## Installing Pre-Made Themes
 
 ### From shadcn studio
 
+Free themes install via `init` with the theme URL:
+
 ```bash
-npx shadcn@latest add theme-name --registry @ss-themes
+npx shadcn@latest init "https://shadcnstudio.com/r/themes/art-deco.json"
 ```
 
-Available themes include: Spotify, VS Code, Material Design, Pastel Dreams, GitHub, and 15+ more. The theme CLI command updates `globals.css` with the theme's CSS variables.
+Premium/user themes: append `?email={EMAIL}&license_key={LICENSE_KEY}` to the URL, or configure the `@ss-themes` registry with `params` (see `setup` skill) and use:
+
+```bash
+npx shadcn@latest add @ss-themes/[name]
+```
+
+Available themes include: Spotify, VS Code, Material Design, Pastel Dreams, GitHub, and 15+ more. The theme install updates `globals.css` with the theme's CSS variables.
 
 ### From the Theme Generator
 
@@ -35,49 +45,41 @@ Available themes include: Spotify, VS Code, Material Design, Pastel Dreams, GitH
 
 ## CSS Variable Structure
 
-All color variables use HSL format without the `hsl()` wrapper:
+All color variables are complete OKLCH colors, referenced directly via `var(--name)`:
 
 ```css
 :root {
+  --radius: 0.625rem;
+
   /* Background and text */
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-
-  /* Primary action color */
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-
-  /* Secondary/muted elements */
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-
-  /* Destructive/error states */
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-
-  /* Muted backgrounds and text */
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-
-  /* Accent highlights */
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
 
   /* Cards and popovers */
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
 
-  /* Borders and inputs */
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
+  /* Primary action color */
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
 
-  /* Border radius */
-  --radius: 0.5rem;
+  /* Secondary/muted elements */
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+
+  /* Muted backgrounds and text */
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+
+  /* Accent highlights */
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
 }
 ```
+
+The `.dark` block redefines the same names with dark values. A `@theme inline` block maps the variables to Tailwind utility tokens (`--color-background: var(--background)`, etc.) — the CLI generates it during init.
 
 ## Dark Mode Setup
 
@@ -87,10 +89,10 @@ Add a `.dark` block in `globals.css`:
 
 ```css
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 5.9% 10%;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
   /* ... all other variables with dark values */
 }
 ```
@@ -154,6 +156,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 npx shadcn@latest add button dropdown-menu
 ```
 
+With the default Base UI base, triggers compose via the `render` prop (`asChild` only exists on Radix-based projects initialized with `-b radix`):
+
 ```typescript
 // components/theme-toggle.tsx
 "use client"
@@ -167,12 +171,10 @@ export function ThemeToggle() {
   const { setTheme } = useTheme()
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
+      <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
+        <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
@@ -183,6 +185,8 @@ export function ThemeToggle() {
   )
 }
 ```
+
+(Radix variant: `<DropdownMenuTrigger asChild><Button ...>...</Button></DropdownMenuTrigger>`.)
 
 ## Font Configuration
 
@@ -229,28 +233,28 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 ## Creating a Custom Brand Theme
 
-### Step 1: Define Brand Colors in HSL
+### Step 1: Define Brand Colors in OKLCH
 
-Convert your brand hex colors to HSL:
-- `#1a1a2e` → `240 27% 14%` (dark navy)
-- `#e94560` → `352 80% 59%` (coral accent)
+Convert your brand hex colors to OKLCH (use a converter such as https://oklch.com):
+- `#1a1a2e` → `oklch(0.24 0.04 285)` (dark navy)
+- `#e94560` → `oklch(0.65 0.2 20)` (coral accent)
 
 ### Step 2: Map to CSS Variables
 
 ```css
 :root {
-  --background: 0 0% 100%;
-  --foreground: 240 27% 14%;
-  --primary: 352 80% 59%;
-  --primary-foreground: 0 0% 100%;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.24 0.04 285);
+  --primary: oklch(0.65 0.2 20);
+  --primary-foreground: oklch(1 0 0);
   /* Map remaining variables following the pattern */
 }
 
 .dark {
-  --background: 240 27% 8%;
-  --foreground: 0 0% 95%;
-  --primary: 352 80% 59%;
-  --primary-foreground: 0 0% 100%;
+  --background: oklch(0.17 0.03 285);
+  --foreground: oklch(0.95 0 0);
+  --primary: oklch(0.65 0.2 20);
+  --primary-foreground: oklch(1 0 0);
 }
 ```
 

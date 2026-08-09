@@ -29,10 +29,12 @@ Installing devDependencies: typescript, @types/node, @types/react, @types/react-
 npx shadcn@latest init
 ```
 
-Choose:
-- Style: **New York**
-- Base color: **Neutral**
-- CSS variables: **Yes**
+The v4 flow prompts for template, base, and preset:
+- Template: **next** (`-t next`)
+- Base: **base** (Base UI, the default; `-b radix` or `-b aria` to switch)
+- Preset: **base-nova** (the default; pick another of the 8 styles or a code from https://ui.shadcn.com/create)
+
+Pass `-d` to accept the defaults (`--template=next --preset=base-nova`) without prompts.
 
 Verify:
 ```bash
@@ -54,7 +56,7 @@ Edit `components.json` to add studio registries:
   "rsc": true,
   "tsx": true,
   "tailwind": {
-    "config": "tailwind.config.ts",
+    "config": "",
     "css": "src/app/globals.css",
     "baseColor": "neutral",
     "cssVariables": true
@@ -67,15 +69,11 @@ Edit `components.json` to add studio registries:
     "hooks": "@/hooks"
   },
   "registries": {
-    "ss-components": {
-      "url": "https://shadcnstudio.com/registry"
-    },
-    "ss-blocks": {
-      "url": "https://shadcnstudio.com/registry"
-    },
-    "ss-themes": {
-      "url": "https://shadcnstudio.com/registry"
-    }
+    "@shadcn-studio": "https://shadcnstudio.com/r/{style}/{name}.json",
+    "@ss-components": "https://shadcnstudio.com/r/components/{style}/{name}.json",
+    "@ss-blocks": "https://shadcnstudio.com/r/blocks/{style}/{name}.json",
+    "@ss-pages": "https://shadcnstudio.com/r/pages/{style}/{name}.json",
+    "@ss-themes": "https://shadcnstudio.com/r/themes/{name}.json"
   }
 }
 ```
@@ -87,11 +85,20 @@ echo "LICENSE_KEY=your-license-key" >> .env
 echo ".env" >> .gitignore
 ```
 
+Then convert the premium registry entries to objects with `params`:
+
+```json
+"@ss-components": {
+  "url": "https://shadcnstudio.com/r/components/{style}/{name}.json",
+  "params": { "email": "${EMAIL}", "license_key": "${LICENSE_KEY}" }
+}
+```
+
 ## Step 4: Install a Theme
 
-Option A: Use a studio theme
+Option A: Use a studio theme (free themes install via init from the theme URL; premium themes via `@ss-themes` with `params` configured)
 ```bash
-npx shadcn@latest add theme-neutral --registry @ss-themes
+npx shadcn@latest init "https://shadcnstudio.com/r/themes/art-deco.json"
 ```
 
 Option B: Use the default (already configured from init)
@@ -175,9 +182,9 @@ Expected: ~20+ component files.
 ## Step 7: Install shadcn studio Blocks (Optional)
 
 ```bash
-# Dashboard blocks
-npx shadcn@latest add dashboard-shell-01 --registry @ss-blocks
-npx shadcn@latest add stat-card-01 --registry @ss-blocks
+# Dashboard blocks (namespaced addresses — CLI v4 has no --registry flag)
+npx shadcn@latest add @ss-blocks/dashboard-shell-01
+npx shadcn@latest add @ss-blocks/stat-card-01
 
 # Move to components directory
 mv src/components/shadcn-studio/blocks/* src/components/blocks/ 2>/dev/null
@@ -271,11 +278,12 @@ my-dashboard/
 │   │   └── theme-provider.tsx   # Dark mode provider
 │   └── lib/
 │       └── utils.ts             # cn() helper
-├── components.json              # shadcn/ui + studio config
-├── tailwind.config.ts           # Tailwind configuration
+├── components.json              # shadcn/ui + studio config ("config": "" for v4)
 ├── tsconfig.json                # TypeScript config with @/ alias
 └── package.json
 ```
+
+(Tailwind v4 is CSS-configured — there is no `tailwind.config.ts` in the tree.)
 
 ## Next Steps
 

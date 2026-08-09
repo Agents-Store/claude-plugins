@@ -28,3 +28,16 @@ Accumulated fixes, discoveries, and improvements for the nextjs-provision plugin
 **Fix:** Added dynamic fetch from `https://ui.shadcn.com/r/registries.json` (official endpoint, 180+ registries, always current). Created `/add-registries` command that fetches and populates components.json automatically. Updated component-search skill, setup skill, and setup-registries command to use dynamic source. Kept category guide as curated reference.
 **Root cause:** Original implementation used a static list instead of the official API endpoint.
 **Severity:** Major
+
+## 2026-08-09 — component-registry: Button-as-link pattern reversed by official docs
+
+**Problem:** Skill taught `<Button nativeButton={false} render={<a/>}>` per earlier Base UI behavior.
+**Fix:** Official Base UI Button docs now forbid this (role="button" overrides link semantics); replaced with `buttonVariants()` + plain `<a>`. Trigger `render` composition unchanged.
+**Root cause:** Upstream guidance changed after Base UI became the default base (July 2026).
+**Severity:** Critical
+
+## 2026-08-09 — doc-alignment: Full realignment to shadcn CLI v4.16 / Base UI default / OKLCH theming (v1.2.0)
+
+**Feature:** Plugin-wide alignment with current official docs: removed the nonexistent `--registry` flag everywhere in favor of namespaced addresses (`@ss-components/button-01`); rewrote shadcn studio registry config to the real `@`-prefixed URLs with `{style}/{name}` placeholders plus the new `@shadcn-studio` and `@ss-pages` namespaces and `params`-based premium auth; documented the v4 init flow (templates, `-b base|radix|aria`, 8 style presets, `--pointer`, visual builder at ui.shadcn.com/create, `shadcn apply`); converted all theming content from HSL triples to OKLCH + `@theme inline`; corrected the Jpisnice MCP tool names to the real snake_case set (v2.0.0, `--mode`/`--port` transports); added the Oct 2025/2026 official components (field, item, kbd, spinner, empty, input-group, button-group, questionnaire, Base UI toast, chat suite); refreshed the registry ecosystem to 267 directory entries (@coss replaces @originui, @commercn replaces @commerce-ui, corrected 9 URL templates, added 16 notable 2026 registries, GitHub-repo installs, `registry add`/`validate`).
+**Implementation:** Updated all 8 skills, 3 commands, the agent, 6 reference files, README, and plugin.json (1.1.1 → 1.2.0); appended the Button-as-link fix entry above; `.mcp.json` verified current and left untouched.
+**Rationale:** The plugin was written against CLI v2/v3-era syntax and pre-July-2026 Radix/HSL conventions; every install command using `--registry` and the studio registry config were broken against CLI v4.16.2, and the tool tables referenced tools that do not exist.

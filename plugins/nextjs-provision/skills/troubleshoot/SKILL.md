@@ -13,7 +13,10 @@ description: >
 Run these checks first:
 
 ```bash
-# 1. Node.js version (need 18.17+)
+# 0. Project config as the CLI resolves it (first diagnostic)
+npx shadcn@latest info
+
+# 1. Node.js version (need 20+)
 node --version
 
 # 2. shadcn CLI version
@@ -22,8 +25,9 @@ npx shadcn@latest --version
 # 3. components.json exists and is valid
 cat components.json
 
-# 4. Tailwind is installed
-npx tailwindcss --help 2>/dev/null && echo "OK" || echo "NOT FOUND"
+# 4. Tailwind is installed (works for both v3 and v4 — the v4 CLI moved
+#    to @tailwindcss/cli, so `npx tailwindcss --help` fails on v4)
+node -e "console.log(require('tailwindcss/package.json').version)"
 
 # 5. cn() helper exists
 cat src/lib/utils.ts 2>/dev/null || cat lib/utils.ts 2>/dev/null || echo "NOT FOUND"
@@ -50,12 +54,12 @@ npx tsc --noEmit
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `Registry not found: @ss-components` | Studio registries not configured | Add registries to `components.json` (see `setup` skill) |
-| `401 Unauthorized` | Invalid or missing premium credentials | Check `EMAIL` and `LICENSE_KEY` in `.env` |
-| `403 Forbidden` | License expired or wrong tier | Verify license at shadcnstudio.com account |
+| `Registry not found: @ss-components` | Studio registries not configured | Add the `@`-prefixed studio registries to `components.json`, e.g. `"@ss-components": "https://shadcnstudio.com/r/components/{style}/{name}.json"` (see `setup` skill) |
+| `401 Unauthorized` | Invalid or missing premium credentials | Credentials are injected via `params` in the registry entry (`${EMAIL}`, `${LICENSE_KEY}` expanded from env/`.env.local`) — check both the params config and the values |
+| `403 Forbidden` | License expired or wrong tier | Verify license at shadcnstudio.com account; confirm `params` auth is configured for the registry |
 | `Network timeout` | Registry unreachable | Check internet connection, try again |
 | `Component not found in registry` | Typo or wrong registry | Check component name at shadcnstudio.com/components |
-| CLI v2 syntax with v3 | Using old URL-based registry format | Update to namespace format `--registry @ss-components` |
+| CLI v2/v3 syntax with v4 | Using `--registry` flag or URL-based format | Use namespaced addresses: `npx shadcn@latest add @ss-components/button-01` |
 
 ## Tailwind CSS Issues
 
@@ -101,10 +105,14 @@ export default {
 ```
 
 **Buttons show default cursor instead of pointer (v4 change):**
+
+For new projects, `shadcn init --pointer` injects this automatically. For existing projects, add the official rule manually:
+
 ```css
 /* globals.css — restore pointer cursor */
 @layer base {
-  button {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
     cursor: pointer;
   }
 }
@@ -120,10 +128,13 @@ export default {
 
 ## Dependency Conflicts
 
+Note: Base UI projects (the default since July 2026) depend on a single `@base-ui-components/react` package — the Radix rows below apply only to Radix-based projects (`init -b radix`).
+
 | Conflict | Symptoms | Fix |
 |----------|----------|-----|
 | React 18 vs 19 | Peer dependency warnings | Pin React to 18.x or upgrade all Radix packages |
 | Conflicting Radix versions | Type errors, runtime crashes | `npm ls @radix-ui/react-*` to find conflicts, then `npm dedupe` |
+| Mixed radix packages | `@radix-ui/react-*` and unified `radix-ui` both installed | Run `npx shadcn@latest migrate radix` (Feb 2026 unified package replaces per-component installs) |
 | CVA version mismatch | `cva is not a function` | `npm install class-variance-authority@latest` |
 | Multiple tailwind-merge | Inconsistent class merging | `npm dedupe tailwind-merge` |
 
@@ -186,17 +197,19 @@ Fix:
 
 **Error: `useContext` returning undefined for Tooltip**
 
-Recent shadcn releases require `<TooltipProvider>` at the layout level:
+Current shadcn `tooltip.tsx` embeds its own `TooltipProvider` inside the `Tooltip` component, so no layout-level provider is needed. Check the installed `components/ui/tooltip.tsx` first: if it wraps `TooltipPrimitive.Root` in a provider, you are on the current copy.
+
+A layout-level provider is only needed for **older copies** of the component, or to set a shared `delayDuration` across all tooltips:
 
 ```typescript
-// app/layout.tsx
+// app/layout.tsx — only for old tooltip.tsx copies or custom delayDuration
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <TooltipProvider>
+        <TooltipProvider delayDuration={200}>
           {children}
         </TooltipProvider>
       </body>
@@ -204,6 +217,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   )
 }
 ```
+
+If the error persists on a current copy, re-install: `npx shadcn@latest add tooltip --overwrite`.
 
 ## Path Alias Issues
 
@@ -242,7 +257,8 @@ Ensure `components.json` aliases match `tsconfig.json` paths.
 | MCP server not connecting | Check `claude mcp list` output, verify server is installed |
 | Rate limit exceeded (60/hour) | Add GitHub token via `--github-api-key` flag |
 | Stale component data | MCP server caches GitHub API responses; restart the server |
-| Wrong framework components | Pass `--framework react` explicitly |
+| Wrong framework components | Pass `--framework react` explicitly (also: svelte, vue, react-native) |
+| Wrong transport | Pass `--mode stdio|sse|dual` (and `--port` for SSE) explicitly |
 
 ## When to Escalate
 

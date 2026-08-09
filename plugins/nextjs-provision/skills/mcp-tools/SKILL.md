@@ -11,7 +11,7 @@ Two MCP servers enable AI-assisted shadcn/ui component discovery and installatio
 
 ## Official shadcn MCP
 
-The official MCP is built into the shadcn CLI (v3.0+).
+The official MCP is built into the shadcn CLI (v3.0+, current v4).
 
 ### Setup
 
@@ -27,6 +27,12 @@ pnpm dlx shadcn@latest mcp init --client cursor
 
 # VS Code
 pnpm dlx shadcn@latest mcp init --client vscode
+
+# Codex
+pnpm dlx shadcn@latest mcp init --client codex
+
+# opencode
+pnpm dlx shadcn@latest mcp init --client opencode
 ```
 
 ### What It Enables
@@ -38,7 +44,7 @@ pnpm dlx shadcn@latest mcp init --client vscode
 
 ## Jpisnice Community MCP Server
 
-The `@jpisnice/shadcn-ui-mcp-server` provides more granular tools for component discovery.
+The `@jpisnice/shadcn-ui-mcp-server` (v2.0.0) provides more granular tools for component discovery.
 
 ### Setup for Claude Code
 
@@ -74,12 +80,15 @@ Add to the project's `.mcp.json` or editor settings:
 
 | Tool | Description |
 |------|-------------|
-| `list-components` | Browse all available components in the registry |
-| `get-component-docs` | Get detailed docs, source code, and usage for a component |
-| `install-component` | Generate installation command for a component |
-| `list-blocks` | Browse pre-built templates (dashboards, forms, etc.) |
-| `get-block-docs` | Get documentation for a block implementation |
-| `install-blocks` | Generate installation command for blocks |
+| `list_components` | Browse all available components in the registry |
+| `get_component` | Get the source code for a component |
+| `get_component_demo` | Get usage examples/demo code for a component |
+| `get_component_metadata` | Get dependencies and metadata for a component |
+| `list_blocks` | Browse pre-built templates (dashboards, forms, etc.) |
+| `get_block` | Get source code for a block implementation |
+| `get_directory_structure` | Browse the shadcn/ui repository structure |
+
+The server has **no install tools** — it is discovery-only. Installation happens via the shadcn CLI (`npx shadcn@latest add ...`) after discovery.
 
 ### Framework Selection
 
@@ -109,16 +118,21 @@ bunx -y @jpisnice/shadcn-ui-mcp-server --ui-library base
 
 ### Transport Modes
 
+Transport is selected with the `--mode` and `--port` flags (the `MCP_TRANSPORT_MODE`/`MCP_PORT` env vars still work):
+
 | Mode | Use Case | Command |
 |------|----------|---------|
 | stdio (default) | CLI, Claude Code | `bunx -y @jpisnice/shadcn-ui-mcp-server` |
-| SSE | HTTP-based clients, remote servers | Set `MCP_TRANSPORT_MODE=sse` |
-| dual | Both stdio and SSE simultaneously | Set `MCP_TRANSPORT_MODE=dual` |
+| SSE | HTTP-based clients, remote servers | `--mode sse --port 7423` |
+| dual | Both stdio and SSE simultaneously | `--mode dual` |
 
-SSE mode configuration:
+SSE mode configuration and client attach:
 
 ```bash
-MCP_TRANSPORT_MODE=sse MCP_PORT=7423 bunx -y @jpisnice/shadcn-ui-mcp-server
+bunx -y @jpisnice/shadcn-ui-mcp-server --mode sse --port 7423
+
+# Attach Claude Code to the running SSE server:
+claude mcp add --scope user --transport sse shadcn-mcp-server http://localhost:7423/sse
 ```
 
 ## Which MCP Server to Use
@@ -129,8 +143,8 @@ MCP_TRANSPORT_MODE=sse MCP_PORT=7423 bunx -y @jpisnice/shadcn-ui-mcp-server
 | Detailed component exploration | Jpisnice MCP |
 | Custom/private registries | Official MCP |
 | Multi-framework projects | Jpisnice MCP |
-| shadcn studio premium components | Official MCP (works with registries in components.json) |
-| Multi-registry search (30+ community registries) | Both (Official reads components.json registries; Jpisnice searches GitHub) |
+| shadcn studio premium components | Official MCP (works with the namespaced registries in components.json) |
+| Multi-registry search (260+ registries) | Both (Official reads components.json registries; Jpisnice searches GitHub) |
 
 Both servers can coexist. The official MCP integrates with `components.json` registries (including shadcn studio), while the Jpisnice server provides richer browsing tools from GitHub source.
 
@@ -139,11 +153,11 @@ Both servers can coexist. The official MCP integrates with `components.json` reg
 ```
 1. User describes UI need ("I need a login form")
      ↓
-2. AI uses list-components/list-blocks to find relevant components
+2. AI uses list_components/list_blocks to find relevant components
      ↓
-3. AI uses get-component-docs to review options and dependencies
+3. AI uses get_component/get_component_demo/get_component_metadata to review options and dependencies
      ↓
-4. AI uses install-component to generate the CLI command
+4. AI composes the CLI command (npx shadcn@latest add ...)
      ↓
 5. User runs the command (or AI runs via Bash)
      ↓
@@ -154,7 +168,7 @@ Both servers can coexist. The official MCP integrates with `components.json` reg
 
 When community registries are configured in `components.json`, the official shadcn MCP automatically discovers and searches them. This enables a combined workflow:
 
-1. **Official MCP** resolves components from all configured registries (standard shadcn/ui + shadcn studio + 30+ community registries)
+1. **Official MCP** resolves components from all configured registries (standard shadcn/ui + shadcn studio + 260+ community registries)
 2. **Jpisnice MCP** provides deeper GitHub-based search across the shadcn ecosystem — component source code, demos, and block implementations
 
 ### Recommended Dual Setup for User Projects
@@ -171,7 +185,7 @@ For a ready-to-use `.mcp.json` template with both servers, see the `component-se
 
 ### Adding Community Registries for MCP Search
 
-The official MCP only searches registries listed in `components.json`. To unlock search across 30+ community registries:
+The official MCP only searches registries listed in `components.json`. To unlock search across 260+ community registries:
 
 1. Add registries to `components.json` (see `component-search` skill for the full list)
 2. Or use the `/setup-registries --all` command to add all registries at once

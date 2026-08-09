@@ -8,8 +8,8 @@ Complete reference for shadcn/ui theme CSS custom properties.
 
 | Variable | Purpose | Typical Light | Typical Dark |
 |----------|---------|---------------|--------------|
-| `--background` | Page background | `0 0% 100%` (white) | `240 10% 3.9%` (near-black) |
-| `--foreground` | Default text color | `240 10% 3.9%` | `0 0% 98%` |
+| `--background` | Page background | `oklch(1 0 0)` (white) | `oklch(0.145 0 0)` (near-black) |
+| `--foreground` | Default text color | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` |
 
 ### Primary Colors
 
@@ -67,7 +67,7 @@ Complete reference for shadcn/ui theme CSS custom properties.
 
 | Variable | Purpose | Usage |
 |----------|---------|-------|
-| `--radius` | Border radius | Applied to all components (default `0.5rem`) |
+| `--radius` | Border radius | Applied to all components (default `0.625rem`) |
 
 ### Chart Colors
 
@@ -83,7 +83,7 @@ Complete reference for shadcn/ui theme CSS custom properties.
 
 | Variable | Purpose |
 |----------|---------|
-| `--sidebar-background` | Sidebar background |
+| `--sidebar` | Sidebar background (formerly `--sidebar-background`) |
 | `--sidebar-foreground` | Sidebar text |
 | `--sidebar-primary` | Active sidebar item |
 | `--sidebar-primary-foreground` | Active item text |
@@ -92,25 +92,27 @@ Complete reference for shadcn/ui theme CSS custom properties.
 | `--sidebar-border` | Sidebar borders |
 | `--sidebar-ring` | Sidebar focus ring |
 
-## HSL Format
+## OKLCH Format
 
-All color values use raw HSL numbers without the `hsl()` wrapper:
+All color values are complete OKLCH colors, referenced directly:
 
 ```css
 /* Correct: */
---primary: 240 5.9% 10%;
+--primary: oklch(0.205 0 0);
 
-/* Incorrect: */
---primary: hsl(240, 5.9%, 10%);
+/* Legacy pattern (older projects only): */
+--primary: 240 5.9% 10%; /* raw HSL triple */
 ```
 
-Components reference them with `hsl()`:
+Components reference them with `var()`:
 ```css
 .button {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  background-color: var(--primary);
+  color: var(--primary-foreground);
 }
 ```
+
+The `hsl(var(--primary))` wrapper is the **legacy pattern** — it only works with projects still using raw HSL triples. New inits emit OKLCH plus a `@theme inline` block that maps the variables to Tailwind utilities.
 
 ## Color Token Hierarchy
 
@@ -130,83 +132,42 @@ Input → Form field borders (often same as border)
 Ring → Focus indicators (often matches primary)
 ```
 
-## Pre-Built Theme Presets
+## Base Colors
+
+The `baseColor` options in `components.json` are now: **neutral | stone | zinc | mauve | olive | mist | taupe** (`slate` and `gray` are gone).
 
 ### Neutral (Default)
 ```css
 :root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --secondary: 240 4.8% 95.9%;
-  --muted: 240 4.8% 95.9%;
-  --accent: 240 4.8% 95.9%;
-  --destructive: 0 84.2% 60.2%;
-  --border: 240 5.9% 90%;
-  --radius: 0.5rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --secondary: oklch(0.97 0 0);
+  --muted: oklch(0.97 0 0);
+  --accent: oklch(0.97 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --radius: 0.625rem;
 }
 ```
 
-### Slate
-```css
-:root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --primary: 222.2 47.4% 11.2%;
-  --secondary: 210 40% 96.1%;
-  --muted: 210 40% 96.1%;
-  --accent: 210 40% 96.1%;
-  --destructive: 0 84.2% 60.2%;
-  --border: 214.3 31.8% 91.4%;
-  --radius: 0.5rem;
-}
-```
-
-### Stone
-```css
-:root {
-  --background: 0 0% 100%;
-  --foreground: 20 14.3% 4.1%;
-  --primary: 24 9.8% 10%;
-  --secondary: 60 4.8% 95.9%;
-  --muted: 60 4.8% 95.9%;
-  --accent: 60 4.8% 95.9%;
-  --destructive: 0 84.2% 60.2%;
-  --border: 20 5.9% 90%;
-  --radius: 0.5rem;
-}
-```
-
-### Zinc
-```css
-:root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --secondary: 240 4.8% 95.9%;
-  --muted: 240 4.8% 95.9%;
-  --accent: 240 4.8% 95.9%;
-  --destructive: 0 84.2% 60.2%;
-  --border: 240 5.9% 90%;
-  --radius: 0.5rem;
-}
-```
+For the other base colors (stone, zinc, mauve, olive, mist, taupe) and the 8 style presets (Vega, Nova, Maia, Lyra, Mira, Luma, Rhea, Sera), generate the exact variable block with the visual builder at https://ui.shadcn.com/create and apply it with `shadcn apply <preset-code> --only theme`.
 
 ## Creating Custom Colors
 
-### Hex to HSL Conversion
+### Hex to OKLCH Conversion
 
-To convert brand colors to HSL for CSS variables:
+To convert brand colors to OKLCH for CSS variables (use a converter such as https://oklch.com):
 
-| Hex | HSL | Variable Assignment |
-|-----|-----|---------------------|
-| `#000000` | `0 0% 0%` | Pure black |
-| `#ffffff` | `0 0% 100%` | Pure white |
-| `#3b82f6` | `217 91% 60%` | Blue |
-| `#ef4444` | `0 84% 60%` | Red |
-| `#22c55e` | `142 71% 45%` | Green |
-| `#f59e0b` | `38 92% 50%` | Amber |
-| `#8b5cf6` | `258 90% 66%` | Violet |
+| Hex | OKLCH | Variable Assignment |
+|-----|-------|---------------------|
+| `#000000` | `oklch(0 0 0)` | Pure black |
+| `#ffffff` | `oklch(1 0 0)` | Pure white |
+| `#3b82f6` | `oklch(0.623 0.214 259.8)` | Blue |
+| `#ef4444` | `oklch(0.637 0.237 25.3)` | Red |
+| `#22c55e` | `oklch(0.723 0.192 149.6)` | Green |
+| `#f59e0b` | `oklch(0.769 0.188 70.1)` | Amber |
+| `#8b5cf6` | `oklch(0.606 0.25 292.7)` | Violet |
 
 ### Contrast Guidelines
 
@@ -222,23 +183,23 @@ For accessibility, ensure sufficient contrast between background and foreground 
 
 ### Generating a Color Scale
 
-For a primary color of `217 91% 60%` (blue):
+For a primary color of `oklch(0.62 0.21 260)` (blue), vary the lightness channel:
 
 ```css
 /* Lighter variants */
---primary-50: 217 91% 97%;
---primary-100: 217 91% 93%;
---primary-200: 217 91% 85%;
---primary-300: 217 91% 75%;
+--primary-50: oklch(0.97 0.02 260);
+--primary-100: oklch(0.93 0.04 260);
+--primary-200: oklch(0.85 0.08 260);
+--primary-300: oklch(0.75 0.13 260);
 
 /* Base */
---primary: 217 91% 60%;
+--primary: oklch(0.62 0.21 260);
 
 /* Darker variants */
---primary-600: 217 91% 50%;
---primary-700: 217 91% 40%;
---primary-800: 217 91% 30%;
---primary-900: 217 91% 20%;
+--primary-600: oklch(0.55 0.21 260);
+--primary-700: oklch(0.47 0.19 260);
+--primary-800: oklch(0.4 0.16 260);
+--primary-900: oklch(0.32 0.13 260);
 ```
 
 Note: shadcn/ui's default theme system uses a simpler two-tone approach (primary + primary-foreground) rather than full color scales. Extend with custom variables only if your design requires it.

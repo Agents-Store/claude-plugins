@@ -1,7 +1,7 @@
 ---
 name: component-search
 description: >
-  Search and install UI components from 30+ free community shadcn registries. This skill should be used when
+  Search and install UI components from 260+ registries in the official shadcn directory. This skill should be used when
   the user asks to "search for shadcn components", "find a calendar component", "browse community registries",
   "install from magicui", "what shadcn registries are available", "add animated components", "search for a
   date picker", "find UI blocks for landing page", "install from aceternity", "what community components
@@ -11,13 +11,21 @@ description: >
 
 ## How Community Registries Work
 
-shadcn v4 supports custom registries via the `"registries"` field in `components.json`. Any registry that implements the shadcn registry protocol can be added. The official registry directory at `https://ui.shadcn.com/r/registries.json` contains 180+ registries — always up to date.
+shadcn v4 supports custom registries via the `"registries"` field in `components.json`. Any registry that implements the shadcn registry protocol can be added. The official registry directory at `https://ui.shadcn.com/r/registries.json` contains 267 registries (Aug 2026) — always up to date.
 
 The CLI can install from any registry without configuration:
 
 ```bash
 npx shadcn@latest add @magicui/shimmer-button
 ```
+
+The CLI also installs straight from public GitHub repos — no build step, just a `registry.json` at the repo root:
+
+```bash
+npx shadcn@latest add <user>/<repo>/<item>
+```
+
+GitHub registries work with `list`, `search`, `view`, and `add`. Registries additionally support server-side dynamic search (`?q=&limit=&offset=`), which powers `shadcn search`.
 
 But the **official shadcn MCP server** only searches registries listed in `components.json`. To enable MCP-assisted search across all registries, populate them from the official endpoint.
 
@@ -60,7 +68,17 @@ Always fetch this endpoint instead of using a hardcoded list — it's maintained
 
 ### Add all registries (recommended)
 
-Use the `/add-registries` command to fetch all 180+ registries from the official endpoint and add them to `components.json` automatically.
+Use the `/add-registries` command to fetch all 260+ registries from the official endpoint and add them to `components.json` automatically.
+
+### Add a handful natively
+
+The CLI's native method (supersedes hand-editing):
+
+```bash
+npx shadcn registry add @magicui=https://magicui.design/r/{name} @coss=https://coss.com/ui/r/{name}.json
+```
+
+Registry authors can check their registry with `npx shadcn registry validate`.
 
 Or manually:
 
@@ -116,7 +134,7 @@ Two MCP servers are configured in this plugin's `.mcp.json`:
 | Server | What It Searches | Best For |
 |--------|-----------------|----------|
 | `shadcn` (official) | All registries in `components.json` | Finding components across configured registries |
-| `shadcn-community` (Jpisnice) | shadcn/ui GitHub repo | Browsing component source code, demos, block implementations |
+| `shadcn-community` (Jpisnice) | shadcn/ui GitHub repo via `list_components`, `get_component`, `get_component_demo`, `get_component_metadata`, `list_blocks`, `get_block` | Browsing component source code, demos, block implementations |
 
 ### Dual search strategy
 
@@ -142,16 +160,17 @@ Or set `GITHUB_PERSONAL_ACCESS_TOKEN` in the MCP server's env config. Create a f
 | Category | Registries | Component Types |
 |----------|-----------|-----------------|
 | Animation & Motion | @magicui, @aceternity, @animate-ui, @cult-ui, @motion-primitives, @chamaac | Animated buttons, scroll effects, parallax, globe, beams |
-| Extended UI | @originui, @diceui, @basecn, @8bitcn, @boldkit, @8starlabs-ui, @cardcn | Extra components, retro/pixel style, card variants, dice rolls |
+| Extended UI | @coss (ex-Origin UI), @diceui, @basecn, @8bitcn, @boldkit, @8starlabs-ui, @cardcn | Extra components, retro/pixel style, card variants, dice rolls |
 | Blocks & Sections | @bundui, @blocks-so, @efferd, @doras-ui, @creative-tim | Landing page sections, marketing blocks, dashboards |
-| E-Commerce | @commerce-ui | Product cards, cart, checkout, reviews |
+| E-Commerce | @commercn | Product cards, cart, checkout, reviews |
 | AI Components | @ai-elements, @assistant-ui, @tool-ui, @ai-blocks | Chat bubbles, prompt inputs, AI response streams, LLM UIs |
 | File Upload | @better-upload | Upload components, drag-and-drop, progress indicators |
+| Editors & misc | @plate, @shadcn-editor, @kibo-ui, @kokonutui, @reui, @intentui, @tailark, @retroui, @neobrutalism, @smoothui, @skiper-ui, @hextaui, @paceui, @clerk, @supabase | Rich text editors, design-system kits, auth/backend UIs |
 | Other | @arc, @abui, @aevr, @unlumen-ui, @einui, @billingsdk | Specialized UI, billing forms, misc |
 
 See `references/community-registries.md` for the full list with URLs and descriptions.
 
-Full directory (170+ registries): https://ui.shadcn.com/docs/directory
+Full directory (267 registries): https://ui.shadcn.com/docs/directory
 
 ## CLAUDE.md Section for User Projects
 

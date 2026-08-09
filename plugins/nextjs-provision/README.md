@@ -1,6 +1,6 @@
 # nextjs-provision
 
-Next.js provisioning plugin for the Agents Store marketplace. Knowledge base for setting up shadcn/ui and shadcn studio in Next.js projects -- component installation, theme configuration, project scaffolding, MCP server integration, and multi-registry component search across 30+ free community registries.
+Next.js provisioning plugin for the Agents Store marketplace. Knowledge base for setting up shadcn/ui and shadcn studio in Next.js projects -- component installation, theme configuration, project scaffolding, MCP server integration, and multi-registry component search across 260+ registries from the official shadcn directory (ui.shadcn.com/r/registries.json).
 
 ## Type
 
@@ -17,14 +17,14 @@ Technology (Level 1) with MCP -- two stdio-based MCP servers for component searc
 | `project-scaffolding` | Templates, starter kits, component architecture patterns |
 | `troubleshoot` | Debug shadcn setup issues, dependency conflicts, Tailwind config |
 | `examples` | End-to-end setup walkthroughs (new project, adding to existing) |
-| `component-search` | Search and install components from 30+ free community registries |
+| `component-search` | Search and install components from 260+ registries in the official shadcn directory |
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
 | `/search-components` | Search across community registries for UI components |
-| `/add-registries` | Fetch all 180+ registries from official endpoint and add to components.json |
+| `/add-registries` | Fetch all 260+ registries from official endpoint and add to components.json |
 | `/setup-registries` | Full project setup: registries + MCP + CLAUDE.md + shadcn skill |
 
 ## Agent
@@ -35,6 +35,7 @@ Technology (Level 1) with MCP -- two stdio-based MCP servers for component searc
 
 - A Next.js project (13+ with App Router)
 - Tailwind CSS 3.x or 4.x configured
+- React 18/19; Base UI is the default component base since July 2026 (Radix and React Aria supported via `-b`)
 - TypeScript (recommended)
 - For shadcn studio premium: EMAIL and LICENSE_KEY in .env
 
@@ -48,6 +49,8 @@ This plugin provides knowledge only -- it does NOT connect to any service. To ad
 pnpm dlx shadcn@latest mcp init --client claude
 ```
 
+Supported clients: claude, cursor, vscode, codex, opencode.
+
 ### Community MCP (Jpisnice)
 
 ```bash
@@ -58,14 +61,15 @@ See the `mcp-tools` skill for detailed setup instructions.
 
 ## Community Registries
 
-This plugin includes knowledge of 30+ free community shadcn registries:
+This plugin includes knowledge of the 260+ registries in the official shadcn directory:
 
 - **Animation**: MagicUI, Aceternity UI, Animate UI, Cult UI, Motion Primitives
-- **Extended UI**: Origin UI, DiceUI, BaseCN, 8bitCN, BoldKit
+- **Extended UI**: COSS (@coss, formerly Origin UI), DiceUI, BaseCN, 8bitCN, BoldKit
 - **Blocks**: BundUI, Blocks.so, Efferd, Creative Tim
-- **E-Commerce**: Commerce UI
+- **E-Commerce**: Commercn (@commercn)
 - **AI/Chat**: AI Elements, Assistant UI, Tool UI, AI Blocks
 - **File Upload**: Better Upload
+- **Editors/AI**: @kibo-ui, @plate (editor), @reui, @kokonutui, @intentui, @tailark and more — 267 total in the directory
 
 Use the `component-search` skill or `/search-components` command to find and install components across all registries.
 

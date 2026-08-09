@@ -11,12 +11,16 @@ description: >
 
 ## Registries Overview
 
-| Registry | Flag | Content | Auth Required |
-|----------|------|---------|---------------|
-| Standard shadcn/ui | (none) | Core components | No |
-| `@ss-components` | `--registry @ss-components` | 1000+ component variants | Free + Premium |
-| `@ss-blocks` | `--registry @ss-blocks` | 700+ pre-built UI blocks | Free + Premium |
-| `@ss-themes` | `--registry @ss-themes` | Theme presets | Free + Premium |
+Installation uses **namespaced addresses** (`@namespace/item`) — the `--registry` flag no longer exists in CLI v4.
+
+| Registry | Install Syntax | Content | Auth Required |
+|----------|----------------|---------|---------------|
+| Standard shadcn/ui | `npx shadcn@latest add button` | Core components | No |
+| `@shadcn-studio` | `npx shadcn@latest add @shadcn-studio/[name]` | Free studio content | No |
+| `@ss-components` | `npx shadcn@latest add @ss-components/button-01` | 1000+ component variants | Free + Premium |
+| `@ss-blocks` | `npx shadcn@latest add @ss-blocks/hero-section-01` | 800+ pre-built UI blocks | Free + Premium |
+| `@ss-pages` | `npx shadcn@latest add @ss-pages/feature-page-01` | Full pre-built pages (NEW) | Free + Premium |
+| `@ss-themes` | `npx shadcn@latest add @ss-themes/[name]` | Theme presets | Free + Premium |
 
 ## Installation Commands
 
@@ -37,16 +41,33 @@ npx shadcn@latest add button --overwrite
 
 ```bash
 # Component variant
-npx shadcn@latest add button --registry @ss-components
+npx shadcn@latest add @ss-components/button-01
 
 # Block
-npx shadcn@latest add hero-section-01 --registry @ss-blocks
+npx shadcn@latest add @ss-blocks/hero-section-01
 
-# Theme
-npx shadcn@latest add theme-name --registry @ss-themes
+# Theme — install via init from the theme URL, or the @ss-themes namespace
+npx shadcn@latest init "https://shadcnstudio.com/r/themes/[name].json"
+npx shadcn@latest add @ss-themes/[name]
 
-# Force overwrite
-npx shadcn@latest add button --registry @ss-components --yes
+# Skip confirmation prompts
+npx shadcn@latest add @ss-components/button-01 --yes
+```
+
+### Inspect Before Installing
+
+```bash
+# View a registry item's contents without installing
+npx shadcn@latest view @ss-blocks/hero-section-01
+
+# See what an install would change, without writing files
+npx shadcn@latest add button --dry-run
+
+# Read a component's docs/API/examples in the terminal
+npx shadcn@latest docs button
+
+# Search a registry server-side
+npx shadcn@latest search @shadcn -q "date picker"
 ```
 
 ## Core Component Categories
@@ -61,6 +82,8 @@ npx shadcn@latest add button --registry @ss-components --yes
 | `avatar` | User profile images | `npx shadcn@latest add avatar` |
 | `calendar` | Date display/selection | `npx shadcn@latest add calendar` |
 | `carousel` | Image/content slider | `npx shadcn@latest add carousel` |
+| `item` | Generic list/detail item | `npx shadcn@latest add item` |
+| `kbd` | Keyboard shortcut display (Kbd + KbdGroup) | `npx shadcn@latest add kbd` |
 
 ### Form Inputs
 
@@ -75,6 +98,10 @@ npx shadcn@latest add button --registry @ss-components --yes
 | `slider` | Range input | `npx shadcn@latest add slider` |
 | `textarea` | Multi-line text | `npx shadcn@latest add textarea` |
 | `form` | Form with validation (React Hook Form + Zod) | `npx shadcn@latest add form` |
+| `field` | "One component, all your forms" — works with Server Actions, RHF, TanStack Form (Field/FieldLabel/FieldDescription/FieldError) | `npx shadcn@latest add field` |
+| `input-group` | Grouped inputs with addons | `npx shadcn@latest add input-group` |
+| `button-group` | Grouped/segmented buttons | `npx shadcn@latest add button-group` |
+| `questionnaire` | Multi-question form flows | `npx shadcn@latest add questionnaire` |
 | `date-picker` | Date selection | `npx shadcn@latest add date-picker` |
 
 ### Navigation & Layout
@@ -96,11 +123,14 @@ npx shadcn@latest add button --registry @ss-components --yes
 |-----------|----------|---------|
 | `dialog` | Modal windows | `npx shadcn@latest add dialog` |
 | `alert-dialog` | Confirmation dialogs | `npx shadcn@latest add alert-dialog` |
-| `toast` | Notification messages | `npx shadcn@latest add sonner` |
+| `toast` | Native Toast for Base UI projects (sonner remains for Radix/legacy) | `npx shadcn@latest add toast` |
+| `sonner` | Notification messages (Radix/legacy projects) | `npx shadcn@latest add sonner` |
 | `tooltip` | Hover information | `npx shadcn@latest add tooltip` |
 | `popover` | Floating panels | `npx shadcn@latest add popover` |
 | `alert` | Inline messages | `npx shadcn@latest add alert` |
 | `skeleton` | Loading placeholders | `npx shadcn@latest add skeleton` |
+| `spinner` | Loading spinner | `npx shadcn@latest add spinner` |
+| `empty` | Empty states | `npx shadcn@latest add empty` |
 | `progress` | Progress indicators | `npx shadcn@latest add progress` |
 
 ### Data & Utility
@@ -113,6 +143,22 @@ npx shadcn@latest add button --registry @ss-components --yes
 | `collapsible` | Show/hide content | `npx shadcn@latest add collapsible` |
 | `scroll-area` | Custom scrollbars | `npx shadcn@latest add scroll-area` |
 | `aspect-ratio` | Fixed aspect containers | `npx shadcn@latest add aspect-ratio` |
+
+### Chat (June 2026)
+
+Chat interface suite plus `scroll-fade` and `shimmer` CSS utilities:
+
+| Component | Use Case |
+|-----------|----------|
+| `message-scroller` | Auto-scrolling message container |
+| `message` | Chat message layout |
+| `bubble` | Message bubble styling |
+| `attachment` | File/image attachments in chat |
+| `marker` | Message markers (timestamps, dividers) |
+
+```bash
+npx shadcn@latest add message-scroller message bubble attachment marker
+```
 
 ## shadcn studio Block Categories
 
@@ -133,16 +179,16 @@ npx shadcn@latest add button --registry @ss-components --yes
 
 See `references/shadcn-studio-components.md` and `references/shadcn-studio-blocks.md` for detailed catalogs.
 
-## Community Registries (30+ Free)
+## Community Registries (260+)
 
-Beyond the standard shadcn/ui and shadcn studio registries, 30+ free community registries provide specialized components:
+Beyond the standard shadcn/ui and shadcn studio registries, 260+ registries in the official directory provide specialized components:
 
 | Category | Example Registries | Component Types |
 |----------|-------------------|-----------------|
 | Animation & Motion | @magicui, @aceternity, @animate-ui, @cult-ui | Animated buttons, scroll effects, parallax, globe, beams |
-| Extended Components | @originui, @diceui, @basecn, @8bitcn, @boldkit | Multi-select, file upload, retro/pixel style, card variants |
+| Extended Components | @coss (ex-Origin UI), @diceui, @basecn, @8bitcn, @boldkit | Multi-select, file upload, retro/pixel style, card variants |
 | Blocks & Sections | @bundui, @blocks-so, @efferd, @creative-tim | Landing page sections, marketing blocks, dashboards |
-| E-Commerce | @commerce-ui | Product cards, cart, checkout, reviews |
+| E-Commerce | @commercn | Product cards, cart, checkout, reviews |
 | AI / Chat | @ai-elements, @assistant-ui, @tool-ui | Chat bubbles, prompt inputs, AI response streams |
 
 Install from a community registry:
@@ -150,7 +196,7 @@ Install from a community registry:
 ```bash
 npx shadcn@latest add @magicui/shimmer-button
 npx shadcn@latest add @aceternity/moving-border
-npx shadcn@latest add @commerce-ui/product-card
+npx shadcn@latest add @commercn/product-card
 ```
 
 See the `component-search` skill for the full registry reference with URLs, setup instructions, and search workflow.
@@ -198,16 +244,16 @@ npx shadcn@latest add form input button select checkbox radio-group switch texta
 
 ```bash
 npx shadcn@latest add button card badge separator navigation-menu
-npx shadcn@latest add hero-section-01 --registry @ss-blocks
-npx shadcn@latest add feature-section-01 --registry @ss-blocks
-npx shadcn@latest add pricing-01 --registry @ss-blocks
+npx shadcn@latest add @ss-blocks/hero-section-01
+npx shadcn@latest add @ss-blocks/feature-section-01
+npx shadcn@latest add @ss-blocks/pricing-01
 ```
 
 ### Authentication Setup
 
 ```bash
 npx shadcn@latest add form input button label card
-npx shadcn@latest add login-01 --registry @ss-blocks
+npx shadcn@latest add @ss-blocks/login-01
 ```
 
 ## Component Composition
@@ -245,38 +291,39 @@ export function UserProfileCard({ user }: { user: User }) {
 
 ## shadcn v4: `render` Prop Instead of `asChild`
 
-shadcn v4 uses `@base-ui/react` instead of Radix. The `asChild` prop **does not exist** in any shadcn v4 component — it will cause a TypeScript error. Use the `render` prop instead. This applies to **all** compound components (Button, SheetTrigger, DialogTrigger, DropdownMenuTrigger, etc.), not just Button.
+shadcn v4 uses `@base-ui-components/react` (Base UI) instead of Radix by default. The `asChild` prop **does not exist** on Base UI components — it will cause a TypeScript error. Use the `render` prop instead. This applies to **all** compound components (SheetTrigger, DialogTrigger, DropdownMenuTrigger, etc.). Radix-based projects (`init -b radix`) still use `asChild`.
 
 ### Button as Link
 
-Use `render` with `nativeButton={false}` — omitting `nativeButton={false}` causes a Base UI console warning because it expects a native `<button>` element by default.
+The official Base UI Button docs explicitly warn: **do NOT use `<Button render={<a />} nativeButton={false} />` for links** — Base UI's Button always applies `role="button"`, which overrides link semantics. Use `buttonVariants()` on a plain `<a>` instead:
 
 ```typescript
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 
-// Correct — renders as <a> with button styling
-<Button nativeButton={false} render={<a href="/dashboard" />}>
-  Go to Dashboard
-</Button>
+// Correct — a real link with button styling
+<a href="/dashboard" className={buttonVariants()}>Go to Dashboard</a>
 
-// Wrong — asChild does NOT exist in shadcn v4
+// Wrong — role="button" breaks link semantics
+// <Button nativeButton={false} render={<a href="/dashboard" />}>Go</Button>
+
+// Wrong — asChild does NOT exist on Base UI components
 // <Button asChild><a href="/dashboard">Go</a></Button>
 ```
 
 ### Trigger Components (SheetTrigger, DialogTrigger, etc.)
 
-When wrapping a custom element as a trigger, use `render` to compose the trigger with your component:
+When wrapping a custom element as a trigger, use `render` to compose the trigger with your component — this Base UI pattern remains correct:
 
 ```typescript
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 
 // Correct — SheetTrigger renders as a Button
-<SheetTrigger render={<Button variant="ghost" size="icon" nativeButton={false} />}>
+<SheetTrigger render={<Button variant="ghost" size="icon" />}>
   <Menu className="h-5 w-5" />
 </SheetTrigger>
 
-// Wrong — asChild does NOT exist
+// Wrong — asChild does NOT exist on Base UI components
 // <SheetTrigger asChild><Button>Open</Button></SheetTrigger>
 ```
 

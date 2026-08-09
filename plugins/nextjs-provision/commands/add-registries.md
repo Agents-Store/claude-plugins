@@ -1,5 +1,5 @@
 ---
-description: Fetch all 180+ shadcn registries from the official endpoint and add them to components.json
+description: Fetch all 260+ shadcn registries from the official endpoint and add them to components.json
 argument-hint: [--filter <keyword>]
 allowed-tools: [Read, Write, Edit, Bash, WebFetch]
 ---
@@ -18,6 +18,12 @@ Fetch the complete list of shadcn-compatible registries from the official endpoi
    ```
    Or use WebFetch on `https://ui.shadcn.com/r/registries.json`.
 
+2b. For a handful of registries, the native CLI command is an alternative to the fetch-and-merge flow:
+   ```bash
+   npx shadcn registry add @name=https://domain.com/r/{name}.json @name2=https://other.com/r/{name}.json
+   ```
+   The fetch-and-merge flow below remains the way to add all 260+ in bulk.
+
 3. Parse the JSON response. Each entry has:
    - `name` — e.g. `"@magicui"`
    - `url` — e.g. `"https://magicui.design/r/{name}.json"`
@@ -29,7 +35,8 @@ Fetch the complete list of shadcn-compatible registries from the official endpoi
 
 6. Build the new registries object by merging existing entries with the fetched ones. For each fetched registry:
    - Key: the `name` field (e.g. `"@magicui"`)
-   - Value: the `url` field (e.g. `"https://magicui.design/r/{name}.json"`)
+   - Value: the `url` field (e.g. `"https://magicui.design/r/{name}"`)
+   - Do NOT clobber existing **object-valued** entries (registries with `headers`/`params` auth, e.g. shadcn studio premium) — the merge must preserve those objects as-is.
 
 7. Write the merged `"registries"` back to `components.json`. Preserve all other fields.
 
@@ -38,8 +45,8 @@ Fetch the complete list of shadcn-compatible registries from the official endpoi
 ## Example Output
 
 ```
-Fetched 180 registries from https://ui.shadcn.com/r/registries.json
-Added 175 new registries to components.json
+Fetched 267 registries from https://ui.shadcn.com/r/registries.json
+Added 262 new registries to components.json
 Skipped 5 already configured
-Total registries in components.json: 178
+Total registries in components.json: 265
 ```

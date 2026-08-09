@@ -14,9 +14,13 @@ description: >
 # 1. Create Next.js project
 npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir
 
-# 2. Initialize shadcn/ui
+# 2. Initialize shadcn/ui (Base UI is the default base; -b radix|aria to switch;
+#    default preset is base-nova)
 cd my-app
 npx shadcn@latest init
+
+# Or one step — init scaffolds the Next.js app too:
+npx shadcn@latest init -t next -n my-app
 
 # 3. Install core components
 npx shadcn@latest add button card input form dialog dropdown-menu toast tabs
@@ -24,7 +28,7 @@ npx shadcn@latest add button card input form dialog dropdown-menu toast tabs
 
 ## shadcn studio Templates
 
-shadcn studio offers 10+ production-ready templates (requires Pro license):
+shadcn studio offers 20+ production-ready templates (requires Pro license). Official templates can also be scaffolded via `npx shadcn create` presets:
 
 | Template | Includes |
 |----------|----------|
@@ -115,7 +119,7 @@ The `components.json` file controls where components are installed and how paths
   "rsc": true,
   "tsx": true,
   "tailwind": {
-    "config": "tailwind.config.ts",
+    "config": "",
     "css": "src/app/globals.css",
     "baseColor": "neutral",
     "cssVariables": true
@@ -128,21 +132,25 @@ The `components.json` file controls where components are installed and how paths
     "hooks": "@/hooks"
   },
   "registries": {
-    "ss-components": { "url": "https://shadcnstudio.com/registry" },
-    "ss-blocks": { "url": "https://shadcnstudio.com/registry" },
-    "ss-themes": { "url": "https://shadcnstudio.com/registry" }
+    "@shadcn-studio": "https://shadcnstudio.com/r/{style}/{name}.json",
+    "@ss-components": "https://shadcnstudio.com/r/components/{style}/{name}.json",
+    "@ss-blocks": "https://shadcnstudio.com/r/blocks/{style}/{name}.json",
+    "@ss-pages": "https://shadcnstudio.com/r/pages/{style}/{name}.json",
+    "@ss-themes": "https://shadcnstudio.com/r/themes/{name}.json"
   }
 }
 ```
+
+(`"config": ""` is correct for Tailwind v4 — v3 projects point it at `tailwind.config.ts`.) Run `npx shadcn@latest info` to print the project's resolved configuration.
 
 ### Key Fields
 
 | Field | Purpose |
 |-------|---------|
-| `style` | Component style variant (`new-york` or `default`) |
+| `style` | `new-york` (default; `default` style deprecated). Visual styles now come from presets (Vega/Nova/Maia/Lyra/Mira/Luma/Rhea/Sera) |
 | `rsc` | Enable React Server Components support |
 | `tsx` | Use TypeScript (`.tsx`) files |
-| `tailwind.config` | Path to Tailwind config (v3) or omit for v4 |
+| `tailwind.config` | Path to Tailwind config (v3); blank for v4 |
 | `tailwind.css` | Path to the CSS file with theme variables |
 | `aliases.components` | Where components are installed |
 | `aliases.ui` | Shorthand alias for `components/ui` |

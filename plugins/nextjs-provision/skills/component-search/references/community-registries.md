@@ -8,7 +8,7 @@ The authoritative, always-up-to-date list of all shadcn-compatible registries:
 https://ui.shadcn.com/r/registries.json
 ```
 
-Returns a JSON array of 180+ registries. Each entry: `name`, `url`, `homepage`, `description`.
+Returns a JSON array of 267 registries (Aug 2026). Each entry: `name`, `url`, `homepage`, `description`.
 
 **To populate components.json with all registries**, use the `/add-registries` command — it fetches this endpoint and adds every registry automatically.
 
@@ -26,19 +26,19 @@ The tables below organize notable registries by category. This is a curated subs
 
 | Registry | URL | Description |
 |----------|-----|-------------|
-| @magicui | `https://magicui.design/r` | 50+ animated components — shimmer buttons, animated beams, globe, particles, meteors, marquee |
-| @aceternity | `https://ui.aceternity.com/r` | Motion-heavy effects — parallax scroll, moving border, spotlight, aurora background, 3D cards |
+| @magicui | `https://magicui.design/r/{name}` | 50+ animated components — shimmer buttons, animated beams, globe, particles, meteors, marquee |
+| @aceternity | `https://ui.aceternity.com/registry/{name}.json` | Motion-heavy effects — parallax scroll, moving border, spotlight, aurora background, 3D cards |
 | @animate-ui | `https://animate-ui.com/r` | Smooth transition components — animated accordion, fade-in, slide, reveal effects |
-| @cult-ui | `https://www.cult-ui.com/r` | Creative animations — flyout menus, hover reveals, morphing shapes |
-| @motion-primitives | `https://motion-primitives.com/r` | Motion building blocks — transition, animate-presence, gesture primitives |
+| @cult-ui | `https://cult-ui.com/r/{name}.json` | Creative animations — flyout menus, hover reveals, morphing shapes |
+| @motion-primitives | `https://motion-primitives.com/c/{name}.json` | Motion building blocks — transition, animate-presence, gesture primitives |
 | @chamaac | `https://chamaac.com/r` | Animation effects — glow, ripple, magnetic cursor, tilt effects |
 
 ## Extended UI Components
 
 | Registry | URL | Description |
 |----------|-----|-------------|
-| @originui | `https://originui.com/r` | 100+ styled component variants — buttons, inputs, cards with extra design options |
-| @diceui | `https://www.diceui.com/r` | Interactive components — combobox, tags input, editable text, kanban board |
+| @coss | `https://coss.com/ui/r/{name}.json` | COSS UI (successor to Origin UI — originui.com now redirects to coss.com/ui) — 100+ styled component variants |
+| @diceui | `https://diceui.com/r/{style}/{name}.json` | Interactive components — combobox, tags input, editable text, kanban board |
 | @basecn | `https://basecn.dev/r` | Base component extensions — enhanced select, multi-select, command palette |
 | @8bitcn | `https://www.8bitcn.com/r` | Retro pixel-style UI components — 8-bit buttons, pixel cards, retro badges |
 | @boldkit | `https://boldkit.dev/r` | Bold design system — distinctive buttons, cards, layouts |
@@ -60,16 +60,16 @@ The tables below organize notable registries by category. This is a curated subs
 
 | Registry | URL | Description |
 |----------|-----|-------------|
-| @commerce-ui | `https://commerce-ui.com/r` | E-commerce components — product cards, shopping cart, checkout flow, reviews, wishlists |
+| @commercn | `https://commercn.com/r/{name}.json` | shadcn blocks for e-commerce sites — product cards, shopping cart, checkout flow, reviews |
 
 ## AI Components
 
 | Registry | URL | Description |
 |----------|-----|-------------|
-| @ai-elements | `https://ai-sdk.dev/elements/r` | Vercel AI SDK UI elements — chat interfaces, streaming response displays |
-| @assistant-ui | `https://www.assistant-ui.com/r` | AI assistant UIs — chat bubbles, thread views, suggested prompts, tool call displays |
+| @ai-elements | `https://ai-sdk.dev/elements/api/registry/{name}.json` | Vercel AI SDK UI elements — chat interfaces, streaming response displays |
+| @assistant-ui | `https://r.assistant-ui.com/{name}.json` | AI assistant UIs — chat bubbles, thread views, suggested prompts, tool call displays |
 | @tool-ui | `https://www.tool-ui.com/r` | Tool/function call UIs for AI agents — tool result cards, execution status |
-| @ai-blocks | `https://webllm.org/blocks/r` | WebLLM blocks — browser-based LLM interfaces, local inference UIs |
+| @ai-blocks | `https://webllm.org/r/{name}.json` | WebLLM blocks — browser-based LLM interfaces, local inference UIs |
 
 ## File Upload
 
@@ -81,17 +81,42 @@ The tables below organize notable registries by category. This is a curated subs
 
 | Registry | URL | Description |
 |----------|-----|-------------|
-| @arc | `https://witharc.co/components/r` | Design system components |
+| @arc | `https://witharc.co/r/{name}.json` | Design system components |
 | @abui | `https://abui.io/r` | Additional UI component library |
 | @aevr | `https://ui.aevr.space/r` | UI component variants |
 | @einui | `https://ui.eindev.ir/r` | Extended UI components |
 | @billingsdk | `https://billingsdk.com/r` | Billing and payment form components — subscription management, plan selectors |
 
+## Notable Additions (2026)
+
+Registries recently added to the directory worth knowing (exact URL templates come from `registries.json` — fetch the endpoint at setup time):
+
+| Registry | Description |
+|----------|-------------|
+| @kibo-ui | Advanced composite components (Gantt, kanban, editors) |
+| @kokonutui | Modern animated components |
+| @reui | Extended UI component collection |
+| @plate | Rich text editor framework components |
+| @paceui (+ @paceui-gsap) | Animated/GSAP-powered components |
+| @intentui | Design-system component kit |
+| @hextaui | Modern UI components |
+| @skiper-ui | Animated showcase components |
+| @smoothui | Smooth micro-interaction components |
+| @neobrutalism | Neobrutalism-styled components |
+| @retroui | Retro-styled components |
+| @tailark | Marketing blocks |
+| @shadcnblocks | Large block collection |
+| @shadcn-editor | Lexical-based editor for shadcn |
+| @clerk | Clerk auth UI components |
+| @supabase | Supabase UI library components |
+
+(@tweakcn is NOT in the directory.)
+
 ---
 
 ## Populating components.json
 
-Use the `/add-registries` command to automatically fetch all 180+ registries from `https://ui.shadcn.com/r/registries.json` and add them to `components.json`.
+Use the `/add-registries` command to automatically fetch all 267 registries from `https://ui.shadcn.com/r/registries.json` and add them to `components.json`.
 
 The command:
 1. Fetches the JSON endpoint

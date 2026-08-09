@@ -25,7 +25,7 @@ grep -E "(material-ui|chakra|mantine|radix|headless)" package.json
 | Existing Setup | Approach |
 |----------------|----------|
 | No UI library | Clean install, straightforward |
-| Radix UI primitives | shadcn builds on Radix -- components will coexist |
+| Radix UI primitives | shadcn now defaults to Base UI -- init with `-b radix` to stay on Radix (no migration needed), or use the official AI migration skill for progressive Radix→Base migration (reports in `.migration/` folders) |
 | Material UI / Chakra | Gradual migration, keep both temporarily |
 | Custom Tailwind components | Remap to shadcn equivalents where possible |
 
@@ -129,9 +129,11 @@ Once base shadcn/ui is working, add studio registries:
 // Add to components.json
 {
   "registries": {
-    "ss-components": { "url": "https://shadcnstudio.com/registry" },
-    "ss-blocks": { "url": "https://shadcnstudio.com/registry" },
-    "ss-themes": { "url": "https://shadcnstudio.com/registry" }
+    "@shadcn-studio": "https://shadcnstudio.com/r/{style}/{name}.json",
+    "@ss-components": "https://shadcnstudio.com/r/components/{style}/{name}.json",
+    "@ss-blocks": "https://shadcnstudio.com/r/blocks/{style}/{name}.json",
+    "@ss-pages": "https://shadcnstudio.com/r/pages/{style}/{name}.json",
+    "@ss-themes": "https://shadcnstudio.com/r/themes/{name}.json"
   }
 }
 ```
@@ -142,13 +144,13 @@ Replace hand-built sections with studio blocks:
 
 ```bash
 # If you have a custom hero section
-npx shadcn@latest add hero-section-01 --registry @ss-blocks
+npx shadcn@latest add @ss-blocks/hero-section-01
 
 # If you have a custom pricing page
-npx shadcn@latest add pricing-01 --registry @ss-blocks
+npx shadcn@latest add @ss-blocks/pricing-01
 
 # If you have a custom dashboard layout
-npx shadcn@latest add dashboard-shell-01 --registry @ss-blocks
+npx shadcn@latest add @ss-blocks/dashboard-shell-01
 ```
 
 ## Step 7: Match Theme to Existing Brand
@@ -161,13 +163,13 @@ grep -r "bg-\[#" src/ --include="*.tsx" | head -10
 grep -r "text-\[#" src/ --include="*.tsx" | head -10
 ```
 
-Convert hex colors to HSL and update `globals.css`:
+Convert hex colors to OKLCH (e.g. via https://oklch.com) and update `globals.css`:
 
 ```css
 :root {
-  /* Replace with your brand colors in HSL format */
-  --primary: 217 91% 60%;           /* Your primary brand color */
-  --primary-foreground: 0 0% 100%;   /* Text on primary */
+  /* Replace with your brand colors in OKLCH format */
+  --primary: oklch(0.623 0.214 259.8);   /* Your primary brand color */
+  --primary-foreground: oklch(1 0 0);    /* Text on primary */
   /* ... map all variables */
 }
 ```
@@ -218,5 +220,5 @@ Check:
 | CSS conflicts between old and new styles | Use shadcn's CSS variable system, remove duplicate color definitions |
 | Path alias mismatches | Ensure `components.json` aliases match `tsconfig.json` paths |
 | Missing `'use client'` directives | Interactive shadcn components need client boundaries |
-| Forgetting TooltipProvider | Add `<TooltipProvider>` in root layout if using Tooltip |
+| Outdated tooltip.tsx copy | Current shadcn tooltip embeds its own TooltipProvider; layout-level provider only needed for older copies or a custom delayDuration |
 | Old library CSS bleeding through | Remove old library's CSS imports from layout/globals |

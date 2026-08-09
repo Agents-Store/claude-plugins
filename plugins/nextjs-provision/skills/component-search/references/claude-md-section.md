@@ -4,12 +4,13 @@ When creating UI — ALWAYS search for existing components before building from 
 
 ### How to search
 Two MCP servers are configured:
-- `shadcn` — official MCP. Searches across all registries listed in components.json (30+ registries pre-configured).
+- `shadcn` — official MCP. Searches across all registries listed in components.json (260+ registries pre-configured).
 - `shadcn-community` — community MCP. Searches component source code, demos, and block implementations on GitHub.
 
 ### How to install
 - Official components: `npx shadcn@latest add [component]`
 - From any registry: `npx shadcn@latest add @[registry]/[component]`
+- From a GitHub repo: `npx shadcn@latest add <user>/<repo>/<item>`
 
 ### Key registries by category
 
@@ -17,16 +18,19 @@ Two MCP servers are configured:
 - @magicui, @aceternity, @animate-ui, @cult-ui, @motion-primitives, @chamaac
 
 **Extra UI components:**
-- @originui, @diceui, @basecn, @8bitcn, @boldkit, @8starlabs-ui, @cardcn
+- @coss (ex-Origin UI), @diceui, @basecn, @8bitcn, @boldkit, @8starlabs-ui, @cardcn
 
 **Blocks & sections (marketing, landing pages, dashboards):**
 - @bundui, @blocks-so, @efferd, @doras-ui, @creative-tim
 
 **E-commerce:**
-- @commerce-ui
+- @commercn
 
 **AI components:**
 - @ai-elements, @assistant-ui, @tool-ui, @ai-blocks
+
+**Editors & kits:**
+- @plate, @kibo-ui, @kokonutui, @reui
 
 **File upload:**
 - @better-upload
