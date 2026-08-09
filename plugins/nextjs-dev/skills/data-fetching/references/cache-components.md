@@ -67,8 +67,8 @@ export async function getProducts() {
 
 | Profile | Stale (client) | Revalidate | Expire |
 |---------|----------------|------------|--------|
-| `default` | 5 minutes | 15 minutes | 1 year |
-| `seconds` | 0 | 1 second | 1 minute |
+| `default` | 5 minutes | 15 minutes | never |
+| `seconds` | 30 seconds | 1 second | 1 minute |
 | `minutes` | 5 minutes | 1 minute | 1 hour |
 | `hours` | 5 minutes | 1 hour | 1 day |
 | `days` | 5 minutes | 1 day | 1 week |

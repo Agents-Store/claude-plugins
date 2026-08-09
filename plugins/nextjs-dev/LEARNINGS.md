@@ -22,3 +22,10 @@ Accumulated fixes, discoveries, and improvements for the nextjs-dev plugin.
 **Implementation:** Targeted in-place edits preserving each file's structure and tone; full rewrites only for mcp-tools and cli-recipes where most content was obsolete; one new reference file under data-fetching linked from the skill; README gained a "What's New in v1.4.0" section.
 **Rationale:** Verified against nextjs.org/docs (version 16.3.0), the next-16 through next-16-3 release posts, the next-devtools-mcp README (0.4.0 migration notes), and npm dist-tags — the plugin still taught removed commands (`next lint`), removed MCP tools, deprecated conventions (`middleware.ts`, bare `revalidateTag`), pre-16 defaults, and one auth matcher that could never match, all of which would actively mislead agents building on current Next.js.
 
+## [2026-08-09] — fact-check: corrections from adversarial doc verification
+
+**Problem:** Two values in the cacheLife Profiles table of `skills/data-fetching/references/cache-components.md` were wrong: the `default` profile's Expire was listed as "1 year" (official 16.3 docs: **never** — "expire: never expires by time") and the `seconds` profile's Stale was listed as "0" (official docs: **30 seconds**, with a 30-second minimum enforced for client stale time). 19 of 21 fact-checked claims in the v1.4.0 update were confirmed; only these two were refuted.
+**Fix:** Changed the `default` row's Expire from "1 year" to "never" and the `seconds` row's Stale from "0" to "30 seconds". All other profile rows (minutes/hours/days/weeks/max) verified correct and left unchanged. No other file in the plugin repeated the wrong values.
+**Root cause:** The table was sourced from the outdated Next.js 15 canary cacheLife docs; the stable 16.3 docs changed the `default` expire to never and enforce a 30-second minimum client stale time.
+**Severity:** Minor
+
