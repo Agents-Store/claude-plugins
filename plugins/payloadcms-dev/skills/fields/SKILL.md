@@ -319,10 +319,13 @@ Return `true` for valid, a string error for invalid.
 
 ## Slug Field Pattern
 
-**Payload core does not export a `slugField` helper** — this is a project-level convention from the official website template. Define it yourself as a text field with a `beforeValidate` hook:
+Payload core **does** export an experimental `slugField` helper (`import { slugField } from 'payload'`, present since at least 3.80.0). It returns a `RowField` containing a slug text field plus a `generateSlug` checkbox, with options `name`, `useAsSlug`, `slugify`, `disableUnique`, `checkboxName`, and `overrides` — but it is JSDoc-tagged `@experimental` and undocumented in the v3 docs, so its API may change without notice.
+
+The stable, documented alternative is the project-level convention from the official website template — a text field with a `beforeValidate` hook. Note that the local helper below shadows the core `slugField` export; rename one of them if you want both in scope:
 
 ```ts
-// src/fields/slug.ts — the conventional pattern (no core helper exists)
+// src/fields/slug.ts — the stable website-template pattern
+// (shadows the experimental core `slugField` export — rename if you use both)
 import type { Field } from 'payload'
 
 export const slugField = (fieldToUse = 'title'): Field => ({

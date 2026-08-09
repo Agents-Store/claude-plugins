@@ -178,7 +178,7 @@ curl 'https://app.example.com/api/media/file/<filename>?size=thumbnail'
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` or `POST` | `/api/payload-jobs/run?limit&queue&allQueues` | Process the queue |
+| `GET` | `/api/payload-jobs/run?limit&queue&allQueues` | Process the queue (POST only via the `X-Payload-HTTP-Method-Override: GET` header) |
 | `GET` | `/api/payload-jobs/handle-schedules` | Enqueue due scheduled jobs |
 | `GET` | `/api/payload-jobs` | List jobs (collection CRUD) |
 

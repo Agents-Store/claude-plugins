@@ -171,7 +171,8 @@ Set `ENABLE_JOBS=true` on exactly one server instance — otherwise multiple rep
 For higher throughput or dedicated workers, hit Payload's job endpoint from outside:
 
 ```bash
-# GET or POST; query params: limit (default 10), queue (default 'default'), allQueues=true
+# GET only (POST reaches it solely via the 'X-Payload-HTTP-Method-Override: GET' header);
+# query params: limit (default 10), queue (default 'default'), allQueues=true
 curl 'https://app.example.com/api/payload-jobs/run?limit=100&queue=nightly' \
   -H "Authorization: Bearer $CRON_SECRET"
 ```
