@@ -18,6 +18,8 @@ Endpoint-by-endpoint reference. Triggered only on explicit user request — heav
 
 All three share the same `where` query syntax, access control rules, and hook firing order.
 
+Typed external client: `@payloadcms/sdk` — the official REST SDK (same 3.x version line) for browser/service callers; mirrors Local API options over HTTP.
+
 ## Reference Files
 
 - [`references/local-api.md`](references/local-api.md) — every method on the `payload` instance with full TypeScript signatures.
@@ -54,7 +56,7 @@ All routes shown in references are relative to that base.
 | `fallback-locale` | string | `?fallback-locale=en` |
 | `draft` | boolean | `?draft=true` |
 
-Use the `qs` library to encode complex where clauses from the browser.
+Use the `qs-esm` library (Payload-maintained) to encode complex where clauses from the browser.
 
 ## Error Format
 

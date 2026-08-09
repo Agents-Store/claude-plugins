@@ -17,7 +17,7 @@ Use `AskUserQuestion` to gather (skip any the user already supplied as `$ARGUMEN
    - **PostgreSQL** (recommended for prod) — needs a `DATABASE_URI` connection string.
    - **MongoDB** — needs an `mongodb://` URI, ideally a replica set for transactions.
    - **SQLite** (libSQL) — `file:./payload.db` for local, `libsql://…` + auth token for Turso.
-3. **Template** — `blank` (recommended for custom builds) / `website` (marketing site demo) / `ecommerce` (Stripe demo).
+3. **Template** — `blank` (recommended for custom builds) / `website` (marketing site demo) / `ecommerce` (Stripe demo). (The payload repo also has `plugin`, `with-cloudflare-d1`, `with-vercel-*`, and the experimental `blank-tanstack` templates, cloned manually rather than via the prompts.)
 4. **Package manager** — pnpm (default) / npm / yarn / bun.
 
 ## Step 2 — Verify Prerequisites
@@ -25,11 +25,11 @@ Use `AskUserQuestion` to gather (skip any the user already supplied as `$ARGUMEN
 Run a Bash check before scaffolding:
 
 ```bash
-node --version          # Must be >= 20.9.0
+node --version          # Recommended >= 20.9.0 (payload engines allow ^18.20.2 || >=20.9.0)
 which pnpm || which npm || which yarn || which bun
 ```
 
-If Node is below 20.9.0, tell the user to install LTS Node via `nvm install --lts && nvm use --lts` and stop here.
+If Node is below the supported range (`^18.20.2 || >=20.9.0`), tell the user to install LTS Node via `nvm install --lts && nvm use --lts` and stop here. Node 20 LTS+ is the recommended baseline.
 
 ## Step 3 — Run the Scaffolder
 
@@ -82,7 +82,7 @@ Don't auto-invoke other skills. Tell the user to invoke the relevant ones based 
 ## Failure Modes
 
 - **`create-payload-app` errors with EACCES** → suggest `sudo chown -R $(whoami) ~/.npm` and rerun.
-- **`Node version too low`** → install Node 20.9+ via nvm.
+- **`Node version too low`** → install Node 20 LTS+ via nvm (engines allow `^18.20.2 || >=20.9.0`).
 - **`Cannot find module 'sharp'`** after install → run `pnpm add sharp` inside the project, then retry `pnpm dev`.
 - **Database connection refused** → confirm the DB is reachable from the dev machine and the URI matches.
 

@@ -38,6 +38,10 @@ admin: {
   readOnly: false,
   hidden: false,
   placeholder: 'Enter title…',
+  disableBulkEdit: true,         // Hide from the bulk-edit field selector
+  disableGroupBy: true,          // Hide from the list-view groupBy dropdown
+  disableListColumn: true,       // Hide from list-view column options
+  disableListFilter: true,       // Hide from list-view filter options
   components: { Field: '@/components/CustomField' },
 }
 ```
@@ -264,7 +268,16 @@ Computed at read time, never stored:
 }
 ```
 
-Useful for derived display values, slugs from titles (use `slugField()` helper), aggregate counts, formatted dates.
+`virtual` also accepts a **dot-notation string path** that resolves through a relationship field in the same collection — no hook needed, and the field stays queryable:
+
+```ts
+// Virtual field linked through a relationship — queryable, no hook needed
+{ name: 'authorName', type: 'text', virtual: 'author.name' }
+```
+
+The path walks `relationship` (or `upload`) fields to a subfield of the related document; `hasMany` relationships resolve to arrays. Source: https://payloadcms.com/docs/fields/overview
+
+Useful for derived display values, slugs from titles (see the slug field pattern below), aggregate counts, formatted dates.
 
 ## Conditional Fields
 
@@ -304,24 +317,36 @@ The `condition` runs in the browser — don't rely on it for security; use `acce
 
 Return `true` for valid, a string error for invalid.
 
-## slugField Helper
+## Slug Field Pattern
 
-For consistent slug fields:
+**Payload core does not export a `slugField` helper** — this is a project-level convention from the official website template. Define it yourself as a text field with a `beforeValidate` hook:
+
 ```ts
-import { slugField } from 'payload'
+// src/fields/slug.ts — the conventional pattern (no core helper exists)
+import type { Field } from 'payload'
 
+export const slugField = (fieldToUse = 'title'): Field => ({
+  name: 'slug',
+  type: 'text',
+  index: true,
+  unique: true,
+  admin: { position: 'sidebar' },
+  hooks: {
+    beforeValidate: [({ data, value }) =>
+      value || String(data?.[fieldToUse] ?? '')
+        .toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')],
+  },
+})
+```
+
+```ts
 fields: [
   { name: 'title', type: 'text', required: true },
-  ...slugField({
-    name: 'slug',
-    useAsSlug: 'title',
-    localized: true,
-    required: true,
-  }),
+  slugField('title'),
 ],
 ```
 
-It generates the slug from `title` on save, allows manual override in admin, and indexes the field.
+It generates the slug from `title` on save, allows manual override in admin, and indexes the field. For a derived value that simply mirrors a related document's field, prefer a string-path virtual field (see Virtual Fields above).
 
 ## See Also
 

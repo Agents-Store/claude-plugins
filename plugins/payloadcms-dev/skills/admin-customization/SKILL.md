@@ -63,6 +63,23 @@ Every component receives `payload` and `i18n` as default props. Pass your own wi
 
 The complete slot-by-slot catalog (with the props each receives) is in **`references/component-slots.md`**.
 
+## Dashboard Widgets
+
+The dashboard is modular: register widgets — data/analytics cards — via `admin.dashboard`:
+
+```ts
+admin: {
+  dashboard: {
+    widgets: [
+      { Component: '@/widgets/OrdersToday' },   // + optional widget sizing per docs
+    ],
+    // defaultLayout: [...]  — omit to keep the built-in collections widget auto-included
+  },
+}
+```
+
+The built-in **collections widget** renders the collection/global cards and is auto-included whenever no `defaultLayout` is defined. `beforeDashboard` / `afterDashboard` still work for simple content injection around the dashboard. Regenerate the import map (`payload generate:importmap`) after adding widget components. Source: https://payloadcms.com/docs/custom-components/dashboard
+
 ## Custom Views and nav links
 
 Register a key under `admin.components.views` to add a brand-new route, then add a nav link via `afterNavLinks`:

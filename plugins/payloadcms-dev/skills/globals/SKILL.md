@@ -156,7 +156,7 @@ const updated = await payload.updateGlobal({
 
 ```http
 GET   /api/globals/header?depth=2&locale=en
-PATCH /api/globals/settings        # body: JSON of fields to update
+POST  /api/globals/settings        # body: JSON of fields to update (REST updates globals via POST)
 ```
 
 GraphQL auto-generates a query and a mutation per global (e.g. `Header` and `updateHeader`). Customize the GraphQL type name or disable operations via `graphQL: { name, disableQueries, disableMutations }`, or turn it off entirely with `graphQL: false`.

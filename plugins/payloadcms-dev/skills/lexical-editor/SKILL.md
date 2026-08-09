@@ -161,16 +161,32 @@ Custom render for specific node types:
 ## Converting to HTML (Server-Side)
 
 For RSS feeds, email, or static rendering:
-```ts
-import { lexicalToHTML } from '@payloadcms/richtext-lexical/html'
 
-const html = await lexicalToHTML({
+```ts
+// Sync — data already fully populated (sufficient depth at query time)
+import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
+
+const html = convertLexicalToHTML({ data: post.content })
+```
+
+```ts
+// Async — dynamically populate uploads/links during conversion
+import { convertLexicalToHTMLAsync } from '@payloadcms/richtext-lexical/html-async'
+import { getPayloadPopulateFn } from '@payloadcms/richtext-lexical'
+
+const html = await convertLexicalToHTMLAsync({
   data: post.content,
-  populationPromises: payload.config.editor.populationPromises,
-  payload,
-  req: req,                           // Optional: passes auth context for population
+  populate: await getPayloadPopulateFn({ currentDepth: 0, depth: 2, payload }),
 })
 ```
+
+Notes:
+
+- Client-side population uses `getRestPopulateFn` from `@payloadcms/richtext-lexical/client` instead of `getPayloadPopulateFn`.
+- Custom block converters go in the `converters` option — an `HTMLConvertersFunction` keying `blocks` / `inlineBlocks` by block slug (same shape as the JSX `converters` above).
+- `lexicalHTMLField()` exists to store auto-converted HTML on the document via an `afterRead` hook, but the docs call it "generally not recommended" — convert at render time instead.
+
+Source: https://payloadcms.com/docs/rich-text/converting-html
 
 ## Custom Features
 

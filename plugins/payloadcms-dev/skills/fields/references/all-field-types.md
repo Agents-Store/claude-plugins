@@ -351,6 +351,11 @@ Computed, not stored:
 }
 ```
 
+`virtual` also accepts a dot-notation string path through a relationship in the same collection — queryable, no hook required:
+```ts
+{ name: 'authorName', type: 'text', virtual: 'author.name' }
+```
+
 ### Conditional
 
 ```ts

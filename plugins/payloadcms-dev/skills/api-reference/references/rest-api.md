@@ -37,6 +37,8 @@ Response:
 }
 ```
 
+Additional list/read query params: `select` (field projection), `populate` (per-relationship field selection on populated docs), `joins` (control join-field pagination/sort per join field), and `trash=true` (include soft-deleted docs on collections with `trash: true` — see the `data-management` skill).
+
 ### Find by ID
 
 ```bash
@@ -176,22 +178,25 @@ curl 'https://app.example.com/api/media/file/<filename>?size=thumbnail'
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `POST` | `/api/payload-jobs/run` | Process the queue |
+| `GET` or `POST` | `/api/payload-jobs/run?limit&queue&allQueues` | Process the queue |
+| `GET` | `/api/payload-jobs/handle-schedules` | Enqueue due scheduled jobs |
 | `GET` | `/api/payload-jobs` | List jobs (collection CRUD) |
 
 ```bash
-curl -X POST 'https://app.example.com/api/payload-jobs/run' \
-  -H "Authorization: JWT $ADMIN_TOKEN"
+curl 'https://app.example.com/api/payload-jobs/run?limit=100&queue=nightly' \
+  -H "Authorization: Bearer $CRON_SECRET"
 ```
+
+Gate the run endpoint via `jobs.access.run` in config — see the `jobs-queue` skill.
 
 ## Where Encoding
 
-REST callers pass `where` as a flattened query string. The `qs` library (the same the admin UI uses) is the easiest way:
+REST callers pass `where` as a flattened query string. The library `qs-esm` (Payload-maintained ESM fork of `qs`, the same the docs use) is the easiest way:
 
 ```ts
-import qs from 'qs'
+import { stringify } from 'qs-esm'
 
-const url = `/api/posts${qs.stringify(
+const url = `/api/posts${stringify(
   {
     where: {
       and: [

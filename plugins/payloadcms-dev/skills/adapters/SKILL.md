@@ -94,6 +94,22 @@ db: vercelPostgresAdapter({
 
 Wraps `@vercel/postgres`. Same migration story as `postgresAdapter`.
 
+### Cloudflare D1
+
+```bash
+pnpm add @payloadcms/db-d1-sqlite
+```
+
+```ts
+import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite'
+
+db: sqliteD1Adapter({
+  binding: env.D1,               // the Workers D1 database binding
+}),
+```
+
+For running Payload on **Cloudflare Workers** with a D1 database — see the official `with-cloudflare-d1` template (pairs with the `r2Storage` upload adapter below).
+
 ## Transactions
 
 Postgres, SQLite (with `transactionOptions`), and MongoDB-with-replica-set provide all-or-nothing transactions. Payload uses them automatically per HTTP request. **You must thread `req` through nested ops** to keep the transaction alive:
@@ -201,10 +217,10 @@ pnpm add @payloadcms/storage-azure
 ```
 
 ```ts
-import { azureBlobStorage } from '@payloadcms/storage-azure'
+import { azureStorage } from '@payloadcms/storage-azure'
 
 plugins: [
-  azureBlobStorage({
+  azureStorage({
     collections: { media: true },
     connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
     containerName: process.env.AZURE_STORAGE_CONTAINER,
@@ -212,9 +228,48 @@ plugins: [
 ],
 ```
 
-### Google Cloud Storage (community/3rd-party)
+Since 3.87.0, client uploads support `chunkLargeFiles` for files larger than 5GB.
 
-Use any S3-compatible config pointing at GCS interop endpoints, or the community `payload-storage-gcs` plugin.
+### Google Cloud Storage
+
+Official adapter:
+
+```bash
+pnpm add @payloadcms/storage-gcs
+```
+
+```ts
+import { gcsStorage } from '@payloadcms/storage-gcs'
+
+plugins: [
+  gcsStorage({
+    collections: { media: true },
+    bucket: process.env.GCS_BUCKET,
+    options: { /* GCS client options — keyFilename or Application Default Credentials */ },
+  }),
+],
+```
+
+### Cloudflare R2 (dedicated adapter — Workers)
+
+`@payloadcms/storage-r2` exports `r2Storage()` for deployments on **Cloudflare Workers** with a native R2 bucket binding:
+
+```bash
+pnpm add @payloadcms/storage-r2
+```
+
+```ts
+import { r2Storage } from '@payloadcms/storage-r2'
+
+plugins: [
+  r2Storage({
+    collections: { media: true },
+    bucket: env.R2_BUCKET,        // the Workers R2 bucket binding
+  }),
+],
+```
+
+On Node hosts (Vercel/Netlify/self-host), R2 via `s3Storage` with the S3-compatible config above remains the recommended approach.
 
 **After enabling a storage adapter** — you'll usually drop `upload.staticDir` from the collection because the files live in the bucket, not on disk:
 

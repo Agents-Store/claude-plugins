@@ -27,6 +27,9 @@ Most methods accept these options:
 | `disableErrors` | `false` | Resolve instead of throw on not-found |
 | `context` | — | Per-op flag bag passed to hooks (`req.context`) |
 | `showHiddenFields` | `false` | Bypass field-level `read` access |
+| `trash` | `false` | Include soft-deleted docs (collections with `trash: true`) — supported by find/findByID/update/delete and version ops |
+| `select` | — | Return only the listed fields |
+| `populate` | — | Per-relationship field selection on populated docs |
 
 ## Collections
 
@@ -93,6 +96,21 @@ payload.count({
   overrideAccess?: boolean,
   req?: PayloadRequest,
 }): Promise<{ totalDocs: number }>
+```
+
+### `payload.findDistinct`
+
+Distinct values of a single field:
+
+```ts
+payload.findDistinct({
+  collection: T,
+  field: string,
+  where?: Where,
+  limit?: number,
+  page?: number,
+  sort?: string,
+}): Promise<PaginatedDistinctDocs<Record<string, unknown>>>
 ```
 
 ### `payload.create`
@@ -241,6 +259,17 @@ payload.restoreVersion({
 }): Promise<Collections[T]>
 ```
 
+### `payload.restoreGlobalVersion`
+
+```ts
+payload.restoreGlobalVersion({
+  slug: G,
+  id: string,                       // Global version ID to restore
+  user?: User,
+  req?: PayloadRequest,
+}): Promise<Globals[G]>
+```
+
 ## Auth
 
 For auth-enabled collections:
@@ -255,11 +284,7 @@ payload.login({
 }): Promise<{ user, token, exp }>
 ```
 
-### `payload.logout`
-
-```ts
-payload.logout({ req: PayloadRequest }): Promise<void>
-```
+> **No `payload.logout` method exists.** Logout and token refresh are server functions imported from `@payloadcms/next/auth` (`logout`, `refresh`) — see the `authentication` skill.
 
 ### `payload.forgotPassword`
 
@@ -332,6 +357,27 @@ payload.jobs.run({
   where?: Where,
   silent?: boolean,
 }): Promise<{ noJobsRemaining: boolean, results: JobResult[] }>
+```
+
+### `payload.jobs.runByID`
+
+```ts
+payload.jobs.runByID({ id: string | number }): Promise<RunJobsResult>
+```
+
+### `payload.jobs.cancel` / `payload.jobs.cancelByID`
+
+```ts
+payload.jobs.cancel({ where: Where }): Promise<void>
+payload.jobs.cancelByID({ id: string | number }): Promise<void>
+```
+
+### `payload.jobs.handleSchedules`
+
+Enqueue due scheduled jobs (see the `jobs-queue` skill):
+
+```ts
+payload.jobs.handleSchedules({ queue?: string, allQueues?: boolean }): Promise<HandleSchedulesResult>
 ```
 
 ## Email

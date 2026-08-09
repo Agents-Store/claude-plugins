@@ -219,11 +219,11 @@ curl -X DELETE 'https://app.example.com/api/posts/675abc' \
   -H "Authorization: JWT $TOKEN"
 ```
 
-The library `qs` (which the Payload admin uses) makes browser calls easy:
+The library `qs-esm` (Payload-maintained ESM fork of `qs`) makes browser calls easy:
 ```ts
-import qs from 'qs'
+import { stringify } from 'qs-esm'
 
-const query = qs.stringify({
+const query = stringify({
   where: { status: { equals: 'published' } },
   sort: '-publishedAt',
   depth: 2,

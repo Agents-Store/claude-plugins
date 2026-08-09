@@ -19,6 +19,7 @@ All components receive `payload` (the Payload instance) and `i18n` as default pr
 | Actions | `actions` | Buttons rendered inside the Admin Panel header | array |
 | Before dashboard | `beforeDashboard` | Components before the default dashboard content | array |
 | After dashboard | `afterDashboard` | Components after the default dashboard content | array |
+| Dashboard widgets | `config.admin.dashboard.widgets` | Modular dashboard widget cards (`{ Component }[]`); built-in collections widget auto-included when no `defaultLayout` is defined | array |
 | Before login | `beforeLogin` | Components above the login form | array |
 | After login | `afterLogin` | Components below the login form | array |
 | Before nav links | `beforeNavLinks` | Components above the nav links | array |

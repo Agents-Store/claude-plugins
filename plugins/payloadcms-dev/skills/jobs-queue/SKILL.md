@@ -137,6 +137,8 @@ If `sendWelcomeEmail` fails, retrying the job re-runs from `sendWelcomeEmail` �
 
 ## Running Queued Jobs
 
+> **Scheduled publish depends on this.** `versions.drafts.schedulePublish` enqueues publish/unpublish jobs — without a running processor (autoRun, `payload jobs:run`, or the run endpoint) those events never fire.
+
 ### In-process autoRun
 
 For low-volume apps, let Payload poll and run jobs automatically:
@@ -149,13 +151,16 @@ jobs: {
       cron: '*/5 * * * *',           // Every 5 minutes
       limit: 10,                      // Up to 10 jobs per tick
       queue: 'default',
+      // disableScheduling: true,     // Skip enqueueing due `schedule` entries on this tick
     },
     {
       cron: '0 * * * *',              // Hourly
       queue: 'heavy',
     },
   ],
-  shouldAutoRun: () => process.env.ENABLE_JOBS === 'true',
+  shouldAutoRun: (payload) => process.env.ENABLE_JOBS === 'true',  // receives the payload instance
+  // Processing order: FIFO by default ('createdAt'); flip per queue:
+  processingOrder: { default: 'createdAt', queues: { nightly: '-createdAt' } },  // LIFO for 'nightly'
 },
 ```
 
@@ -166,9 +171,28 @@ Set `ENABLE_JOBS=true` on exactly one server instance — otherwise multiple rep
 For higher throughput or dedicated workers, hit Payload's job endpoint from outside:
 
 ```bash
-# Run pending jobs (one tick)
-curl -X POST 'https://app.example.com/api/payload-jobs/run' \
-  -H "Authorization: JWT $ADMIN_TOKEN"
+# GET or POST; query params: limit (default 10), queue (default 'default'), allQueues=true
+curl 'https://app.example.com/api/payload-jobs/run?limit=100&queue=nightly' \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
+
+Gate the endpoint via `jobs.access.run` in config — check the Authorization header (e.g. Vercel Cron's `CRON_SECRET`):
+
+```ts
+jobs: {
+  access: {
+    run: ({ req }): boolean => {
+      const authHeader = req.headers.get('authorization')
+      return authHeader === `Bearer ${process.env.CRON_SECRET}`
+    },
+  },
+},
+```
+
+Vercel cron config:
+```json
+// vercel.json
+{ "crons": [{ "path": "/api/payload-jobs/run", "schedule": "*/5 * * * *" }] }
 ```
 
 Or call from a Node script / Trigger.dev / GitHub Actions workflow:
@@ -178,6 +202,20 @@ const { results } = await payload.jobs.run({
   limit: 50,
 })
 ```
+
+### Bin scripts (dedicated worker)
+
+Run jobs in a **separate process** — no impact on API response times:
+
+```bash
+# Drain queues on a schedule (flags: --queue, --limit, --cron, --handle-schedules, --all-queues)
+pnpm payload jobs:run --queue default --limit 10 --cron "*/5 * * * *"
+
+# Enqueue due scheduled jobs only (no execution)
+pnpm payload jobs:handle-schedules --cron "*/5 * * * *"
+```
+
+This is the recommended runner on dedicated servers. See the `cli-recipes` skill for flag details.
 
 ### Cron-only tasks (scheduled work)
 
@@ -231,6 +269,13 @@ export const SendDigestEmail: TaskConfig = {
 
 Use `schedule` when the cadence belongs with the task definition; use `autoRun` when you want one place to govern which queues run in this process. They compose — `schedule` decides *when to enqueue*, `autoRun`/`payload.jobs.run()` decides *when to drain*.
 
+Details worth knowing:
+
+- `queue` is **required** in each `ScheduleConfig` entry; the cron expression supports **seconds precision** (6-field form).
+- Due-schedule tracking lives in the auto-created `payload-jobs-stats` global.
+- `beforeSchedule` can return `{ shouldSchedule, input }` — use the provided `countRunnableOrActiveJobsForQueue` helper to cap concurrency.
+- Scheduling is executed by autoRun ticks (unless the autoRun entry sets `disableScheduling: true`), by `payload jobs:run --handle-schedules`, by `GET /api/payload-jobs/handle-schedules`, or programmatically via `await payload.jobs.handleSchedules()`.
+
 ## Retries, Timeouts, Failure Handling
 
 ```ts
@@ -274,6 +319,13 @@ const failed = await payload.find({
 
 // Manually retry a single job
 await payload.jobs.run({ where: { id: { equals: jobId } } })
+
+// Run one job by ID
+await payload.jobs.runByID({ id: jobId })
+
+// Cancel jobs matching a query / one job by ID
+await payload.jobs.cancel({ where: { taskSlug: { equals: 'sendOrderConfirmation' } } })
+await payload.jobs.cancelByID({ id: jobId })
 ```
 
 The admin panel includes a Jobs view by default — go to `/admin/collections/payload-jobs`.

@@ -1,6 +1,6 @@
 ---
 name: nextjs-integration
-description: This skill should be used when the user asks about "Payload with Next.js", "getPayload in server component", "Payload App Router", "Payload route groups", "Payload live preview Next.js", "revalidate Payload page", "Payload server actions", "Payload draft mode", "Payload Next.js cache", or needs to wire PayloadCMS into a Next.js v14/v15 frontend.
+description: This skill should be used when the user asks about "Payload with Next.js", "getPayload in server component", "Payload App Router", "Payload route groups", "Payload live preview Next.js", "revalidate Payload page", "Payload server actions", "Payload draft mode", "Payload Next.js cache", or needs to wire PayloadCMS into a Next.js 15/16 App Router frontend.
 ---
 
 # PayloadCMS — Next.js Integration
@@ -335,6 +335,7 @@ export async function GET(req: Request) {
 
 ## Deployment Notes
 
+- **Next.js versions** — current `@payloadcms/next` supports Next `>=15.2.9` (within tested minor ranges) and Next 16 (`>=16.2.6 <17`). Next 14 is **not** supported by current v3 releases.
 - **Vercel** — works out of the box. Use `@payloadcms/db-vercel-postgres` and `@payloadcms/storage-vercel-blob`.
 - **Self-host (Node)** — `pnpm build && pnpm start`. Static assets from `public/` go behind your reverse proxy (Caddy / nginx).
 - **Payload Cloud** — managed hosting from the Payload team. One-click deploy from GitHub.

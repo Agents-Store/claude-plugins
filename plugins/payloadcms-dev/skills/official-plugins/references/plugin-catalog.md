@@ -95,6 +95,8 @@ export default buildConfig({
 | `formOverrides` | Partial `CollectionConfig` merged into the `forms` collection |
 | `formSubmissionOverrides` | Partial `CollectionConfig` merged into `form-submissions` |
 
+Since 3.86, the plugin's fields support translations (i18n of the form-builder field labels).
+
 ---
 
 ## Nested Docs — `@payloadcms/plugin-nested-docs`
@@ -369,7 +371,7 @@ export default buildConfig({
   plugins: [
     mcpPlugin({
       collections: {
-        posts: { enabled: true },
+        posts: { enabled: true, description: 'Blog posts' },
         pages: { enabled: { find: true, update: true } },
       },
       globals: {
@@ -384,11 +386,16 @@ export default buildConfig({
 | Option | Purpose |
 | --- | --- |
 | `collections[slug].enabled` | Toggle `find`/`create`/`update`/`delete` per collection (bool or per-op object) |
+| `collections[slug].description` | Per-collection description surfaced to MCP clients |
+| `collections[slug].overrideResponse` | Strip sensitive fields before models see them (per collection) |
 | `globals[slug].enabled` | Toggle `find`/`update` per global |
 | `mcp.tools` | Custom tools beyond CRUD |
 | `mcp.prompts` / `mcp.resources` | MCP prompts and resources |
-| `overrideResponse` | Strip sensitive fields before models see them |
-| `userCollection` | Auth collection that owns the MCP API keys |
+| `mcp.handlerOptions` | `{ verboseLogs, maxDuration, onEvent }` — MCP request-handler tuning |
+| `mcp.serverOptions.serverInfo` | Server name/version reported to clients (default name "Payload MCP Server") |
+| `userCollection` | Auth collection that owns the MCP API keys (defaults to `config.admin.user`) |
+| `overrideApiKeyCollection` | Customize the auto-generated MCP API Keys collection |
+| `overrideAuth` | Replace the built-in Bearer API-key auth |
 
 What it adds: the `/api/mcp` endpoint, an `MCP → API Keys` admin collection, auto tools like `findPosts`/`createPosts`, and Bearer-token auth (`Authorization: Bearer <API-KEY>`). Create a key in the admin panel and grant per-key permissions before connecting a client.
 
@@ -396,21 +403,33 @@ What it adds: the `/api/mcp` endpoint, an `MCP → API Keys` admin collection, a
 
 ## Ecommerce — `@payloadcms/plugin-ecommerce`
 
-A full storefront backend: managed collections for products (with variants), carts, orders, and transactions, plus a payment-adapter pattern (e.g. Stripe).
+A full storefront backend — still **Beta** (breaking changes possible). Adds managed **Products** (with **Variants**), **Carts**, **Orders**, **Transactions**, and **Addresses** collections, plus a payment-adapter pattern and React frontend utilities exported from the same package.
 
 ```ts
 // src/payload.config.ts
 import { ecommercePlugin } from '@payloadcms/plugin-ecommerce'
+import { stripeAdapter } from '@payloadcms/plugin-ecommerce/payments/stripe'
 
 export default buildConfig({
   plugins: [
     ecommercePlugin({
+      // Required: access functions the plugin's collections use
+      access: {
+        adminOnlyFieldAccess,
+        adminOrPublishedStatus,
+        isAdmin,
+        isAuthenticated,
+        isCustomer,
+        isDocumentOwner,
+      },
+      // Required: which auth collection acts as customers
       customers: { slug: 'users' },
-      // access: { adminOnlyFieldAccess, ... },
-      // payments: { paymentMethods: [stripeAdapter({ ... })] },
+      // Payments via the adapter pattern — Stripe is the default adapter;
+      // implement the PaymentAdapter interface for custom providers
+      payments: { paymentMethods: [stripeAdapter({ /* keys, webhooks */ })] },
     }),
   ],
 })
 ```
 
-Use it when you need cart/checkout/orders rather than just billing — for billing-only SaaS, reach for the Stripe plugin instead. The Ecommerce plugin is newer and more opinionated; check its current docs for the exact options surface as it evolves.
+Use it when you need cart/checkout/orders rather than just billing — for billing-only SaaS, reach for the Stripe plugin instead. Shipping, taxes, and subscriptions are **not** natively handled. Docs: https://payloadcms.com/docs/ecommerce/overview

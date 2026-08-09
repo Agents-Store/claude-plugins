@@ -204,9 +204,9 @@ export default buildConfig({
 })
 ```
 
-Write to disk with:
+Write to disk with the `payload-graphql` bin (ships with `@payloadcms/graphql` — the `payload` bin has no GraphQL schema command):
 ```bash
-pnpm payload generate:graphql-schema
+pnpm payload-graphql generate:schema
 ```
 
 ## Code Generation

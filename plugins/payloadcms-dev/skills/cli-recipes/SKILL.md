@@ -1,6 +1,6 @@
 ---
 name: cli-recipes
-description: This skill should be used when the user asks about "payload migrate", "payload generate:types", "payload generate:importmap", "payload migrate:create", "payload migrate:down", "payload migrate:reset", "payload migrate:refresh", "payload migrate:status", "Payload CLI commands", or needs to run the Payload command-line tool for schema migrations or codegen.
+description: This skill should be used when the user asks about "payload migrate", "payload generate:types", "payload generate:importmap", "payload migrate:create", "payload migrate:down", "payload migrate:reset", "payload migrate:refresh", "payload migrate:status", "payload run", "payload jobs:run", "generate:db-schema", "Payload CLI commands", or needs to run the Payload command-line tool for schema migrations, codegen, one-off scripts, or job processing.
 ---
 
 # PayloadCMS — CLI Recipes
@@ -62,12 +62,63 @@ pnpm generate:importmap
 
 If the admin panel says "Could not resolve component X" — you forgot to run this. Commit `importMap.js`.
 
-### `generate:graphql-schema`
+### GraphQL schema — `payload-graphql generate:schema`
 
-Writes the GraphQL schema to a file (useful for `graphql-codegen`):
+The `payload` bin has **no** `generate:graphql-schema` command in v3. GraphQL schema generation lives in the `payload-graphql` bin shipped with `@payloadcms/graphql`:
+
 ```bash
-pnpm payload generate:graphql-schema
+pnpm add @payloadcms/graphql   # if not already present
+pnpm payload-graphql generate:schema
 ```
+
+The output file is set via `graphQL.schemaOutputFile` in `payload.config.ts` (useful for `graphql-codegen`).
+
+### `generate:db-schema`
+
+Generates the Drizzle schema file for SQL adapters (Postgres/SQLite):
+```bash
+pnpm payload generate:db-schema
+```
+
+## Utility Commands
+
+### `payload run`
+
+The documented way to execute one-off Local API scripts. Loads env exactly like Next.js (no dotenv wiring needed) and runs the TypeScript file via `tsx`:
+
+```bash
+pnpm payload run scripts/backfill-slugs.ts
+```
+
+Flags:
+- `--use-swc` — use `@swc-node/register` instead of tsx (faster startup; install it first).
+- `--disable-transpile` — skip transpilation for alternative runtimes, e.g. `bunx --bun payload run src/seed.ts --disable-transpile`.
+
+Source: https://payloadcms.com/docs/local-api/outside-nextjs
+
+### `payload info`
+
+Prints environment and version info — attach it to bug reports:
+```bash
+pnpm payload info
+```
+
+### `jobs:run` and `jobs:handle-schedules`
+
+Run queued jobs in a separate process — the recommended runner on dedicated servers, with no impact on API response times:
+
+```bash
+pnpm payload jobs:run --queue default --limit 10 --cron "*/5 * * * *" --handle-schedules --all-queues
+```
+
+`--cron` keeps the process alive and ticking; omit it for a single drain. `--handle-schedules` also enqueues due scheduled jobs; `--all-queues` processes every queue.
+
+Enqueue scheduled jobs only (no execution):
+```bash
+pnpm payload jobs:handle-schedules --cron "*/5 * * * *"
+```
+
+See the `jobs-queue` skill for queue configuration, schedules, and the HTTP run endpoint.
 
 ## Migrations
 
@@ -204,7 +255,7 @@ The last step catches forgotten `generate:importmap` runs at PR time.
 
 ## Custom CLI Scripts via Local API
 
-Need to do a one-off task (data backfill, audit, export)? Write a script in `scripts/`:
+Need to do a one-off task (data backfill, audit, export)? Write a script in `scripts/` and execute it with `payload run` — it loads env like Next.js and handles TypeScript for you:
 
 ```ts
 // scripts/backfill-slugs.ts
@@ -238,14 +289,14 @@ run().catch((err) => {
 
 Run it:
 ```bash
-pnpm tsx scripts/backfill-slugs.ts
+pnpm payload run scripts/backfill-slugs.ts
 ```
 
 Add as a package script when reusable. Use this pattern for any "do X to every document" job that doesn't deserve a migration.
 
 ## Notes
 
-- The CLI loads `payload.config.ts` via your project's TypeScript runner — make sure `tsx` (or your loader) is available.
+- `payload run` executes scripts via `tsx` and loads env like Next.js — no manual `dotenv` or loader setup needed (`--use-swc` and `--disable-transpile` cover other runtimes).
 - Migration files are TypeScript by default. Compile-time errors stop the migration.
 - On Postgres, `migrate` runs in a transaction per migration. SQLite has the same behavior with `transactionOptions`.
 - MongoDB migrations are schemaless transformations — write your own data normalization in `up`/`down`.

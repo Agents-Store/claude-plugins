@@ -53,6 +53,7 @@ Re-run `pnpm generate:types` after every collection change.
 | `endpoints` | `Endpoint[]` | Custom API routes scoped to this collection. |
 | `indexes` | `object[]` | Compound indexes across multiple fields. |
 | `disableDuplicate` | `boolean` | Hide the "Duplicate" admin action. |
+| `disableBulkDelete` | `boolean` | Hide/disable bulk delete in the list view (3.86+). |
 
 ## `admin` Options
 
@@ -69,6 +70,7 @@ admin: {
   livePreview: {
     url: ({ data }) =>
       `${process.env.NEXT_PUBLIC_SITE_URL}/posts/${data.slug}?draft=true`,
+    openByDefault: true,                // open the live-preview panel automatically (3.86+)
     breakpoints: [
       { name: 'mobile', width: 375, height: 667, label: 'Mobile' },
       { name: 'tablet', width: 768, height: 1024, label: 'Tablet' },
@@ -163,6 +165,8 @@ export const Pages: CollectionConfig = {
   fields: [/* ... */],
 }
 ```
+
+**`schedulePublish` requires a jobs runner.** Scheduled publish/unpublish runs through the Jobs Queue — the app must be processing jobs (autoRun, `payload jobs:run`, or the run endpoint) or scheduled events never execute. See the `jobs-queue` skill.
 
 A `_status` field (`'draft' | 'published'`) is added automatically. Querying drafts requires `draft: true`:
 ```ts

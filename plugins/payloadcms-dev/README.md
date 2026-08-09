@@ -18,7 +18,7 @@ Developer plugin for **PayloadCMS v3**. Packages Payload knowledge — collectio
 | `queries` | Operators, depth, populate, sort, AND/OR, Local/REST/GraphQL. |
 | `data-management` | Trash (soft delete), Query Presets, Folders, and Group By aggregation. |
 | `localization` | `localization` config, localized fields/relationships, fallback locales, locale queries, admin i18n. |
-| `adapters` | Postgres / MongoDB / SQLite, S3 / R2 / Vercel Blob, Resend / Nodemailer + transactions. |
+| `adapters` | Postgres / MongoDB / SQLite / D1, S3 / R2 / GCS / Azure / Vercel Blob, Resend / Nodemailer + transactions. |
 | `lexical-editor` | Rich text customization — features, blocks, links/uploads, custom nodes, JSX rendering. |
 | `admin-customization` | Custom React components, custom views, dashboard widgets, admin React hooks, doc locking, CSS. |
 | `jobs-queue` | Tasks, workflows, retries, cron schedules, declarative `schedule`, in-process autoRun, external triggers. |
@@ -26,7 +26,7 @@ Developer plugin for **PayloadCMS v3**. Packages Payload knowledge — collectio
 | `plugin-development` | Authoring `payload-plugin-*` packages: SWC build, hook preservation, multi-entry exports. |
 | `official-plugins` | Installing & configuring `@payloadcms/plugin-*` — SEO, form-builder, search, stripe, multi-tenant, redirects, nested-docs, sentry, import-export, MCP. |
 | `deployment` | Production build, Vercel / Docker / self-host, building without a DB, preventing API abuse, performance. |
-| `cli-recipes` | `payload migrate`, `generate:types`, `generate:importmap`, `migrate:create/down/refresh`. |
+| `cli-recipes` | `payload migrate`, `generate:types/importmap/db-schema`, `payload run`, `info`, `jobs:run`, `migrate:create/down/refresh`. |
 | `troubleshoot` | Access bypass, hook loops, transaction breaks, type-gen failures, import-map errors. |
 | `cms-migration` | Config-first workflow: WordPress / Contentful / Strapi / Sanity / Webflow → Payload. |
 | `api-reference` | Local API method signatures, REST endpoints, GraphQL schema rules. (`disable-model-invocation`) |
@@ -58,7 +58,7 @@ Or add the marketplace and install:
 
 Once a Payload project is created with this plugin's `/scaffold` command, you'll need:
 
-- **Node.js 20.9.0+** (LTS).
+- **Node.js `^18.20.2 || >=20.9.0`** (payload engines field; 20 LTS+ recommended).
 - **pnpm 9+**, npm 10+, yarn 4+, or bun 1+.
 - A database: PostgreSQL, MongoDB (replica set for transactions), or SQLite/libSQL.
 - Optional: object storage (S3 / R2 / Vercel Blob / Azure / UploadThing) for production uploads.
@@ -87,6 +87,7 @@ Each prompt triggers the relevant topic skill automatically based on quoted phra
 - **No `.mcp.json`** — PayloadCMS is self-hosted per-project. No public SaaS MCP exists, and stuffing a self-hosted URL into a shared plugin wouldn't work for other users. Each developer wires their own Payload instance via `pnpm dev`.
 - **No `userConfig`** — Payload secrets like `PAYLOAD_SECRET`, `DATABASE_URI`, `S3_*`, `RESEND_API_KEY` belong in the project's `.env`, not in plugin-level config. They vary per project and per environment.
 - **Knowledge-only plugin** — file-based skills, an agent, and one scaffolding command. No external services, no auto-running code.
+- **Targets Payload v3** (verified against 3.87.x, Aug 2026). Payload 4.0 (admin redesign, hierarchies in core, framework adapters/TanStack) is in canary — revisit the folders/data-management and admin-customization skills when 4.0 goes stable.
 
 ## Source Material & Credits
 

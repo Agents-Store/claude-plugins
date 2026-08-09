@@ -9,7 +9,7 @@ Bootstrap a PayloadCMS v3 project from zero. Five steps: install Node, scaffold 
 
 ## 1. Prerequisites
 
-- **Node.js 20.9.0 or higher** (LTS recommended — Payload v3 will not start on older Node).
+- **Node.js `^18.20.2 || >=20.9.0`** (the `payload` engines field); use 20 LTS+ in practice.
 - **pnpm 9+**, npm 10+, yarn 4+, or bun 1+ for installing dependencies. pnpm is the project default.
 - A database. Pick one before scaffolding:
   - **MongoDB** — simplest local dev (Docker, Atlas free tier, mongodb-memory-server).
@@ -28,6 +28,8 @@ Interactive prompts:
 - **Template**: `blank` (recommended for custom builds) or `website` / `ecommerce` (full demo apps).
 - **Database**: `mongodb` / `postgres` / `sqlite`.
 - **Project name**: kebab-case slug.
+
+The payload repo also ships additional starter templates beyond the scaffolder prompts: `plugin` (for plugin authors), `with-cloudflare-d1` (Workers + D1), `with-vercel-*`, and the experimental `blank-tanstack`.
 
 Non-interactive form (CI-friendly):
 ```bash
@@ -105,7 +107,7 @@ Key fields:
 - `admin.user` — slug of the auth collection used to sign into `/admin`. Usually `users`.
 - `admin.importMap.baseDir` — Payload's compile target for custom components. Must point at `src/`.
 - `collections` — array of imported collection configs.
-- `editor` — default rich text editor for every `richText` field. `lexicalEditor()` is the only supported option in v3.
+- `editor` — default rich text editor for every `richText` field. `lexicalEditor()` is the default and recommended editor; the legacy Slate adapter (`@payloadcms/richtext-slate`) exists only for v2 migration.
 - `secret` — read from `process.env.PAYLOAD_SECRET`.
 - `typescript.outputFile` — where to emit generated types. Re-run `pnpm generate:types` after editing collections.
 - `db` — database adapter. Swap `postgresAdapter` for `mongooseAdapter` / `sqliteAdapter` if you picked a different DB.

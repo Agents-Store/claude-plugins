@@ -115,6 +115,10 @@ export default buildConfig({
         { label: 'Specific Roles', value: 'specificRoles' /* + custom fields/where */ },
       ],
     },
+    // Dynamically filter which constraint options a user sees
+    filterConstraints: ({ req, options }) => options,
+    // Relabel the presets collection in the admin UI
+    labels: { singular: 'Saved View', plural: 'Saved Views' },
   },
 })
 ```
@@ -151,9 +155,14 @@ export default buildConfig({
     fieldName: 'folder',    // default 'folder' — name of the doc→folder field
     slug: 'payload-folders',// default — the folder collection slug
     debug: false,           // default — reveal hidden folder fields
+    collectionOverrides: [  // async functions that modify the auto-created folder collection
+      async ({ collection }) => collection,
+    ],
   },
 })
 ```
+
+Per-collection, `folders` may also be an object instead of `true` — e.g. `folders: { browseByFolder: false }` to keep the collection out of the global folder browser.
 
 Because folders are built on relationship fields, you can scope a query to a folder with a normal `where` on the folder field (default name `folder`):
 
