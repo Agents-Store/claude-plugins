@@ -130,7 +130,7 @@ Params: `query` (string or array of strings for multi-query), `max_results`, `se
 
 ## Gateway API
 
-OpenAI-compatible chat completions proxy: `POST https://api.perplexity.ai/gateway/chat/completions`.
+OpenAI-compatible chat completions proxy: `POST https://api.perplexity.ai/router/v1/chat/completions`.
 
 ## Response Format (Agent API)
 

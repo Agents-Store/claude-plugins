@@ -9,9 +9,8 @@ Find relevant content sites using Exa:
 ```
 Tool: web_search_exa
 Input: {
-  "query": "best tech blogs and news sites about web development",
-  "numResults": 20,
-  "category": "news"
+  "query": "category:news best tech blogs and news sites about web development",
+  "numResults": 20
 }
 ```
 

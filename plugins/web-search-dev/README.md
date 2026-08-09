@@ -6,7 +6,7 @@ Web search and scraping developer toolkit for Claude Code. Covers 7 services wit
 
 | Service | Tools | Use For |
 |---------|-------|---------|
-| **Firecrawl** | 28 MCP tools | Scraping, crawling, structured extraction, live-page interaction, file parsing, change monitors |
+| **Firecrawl** | 27 MCP tools | Scraping, crawling, structured extraction, live-page interaction, file parsing, change monitors |
 | **Exa** | 2 MCP tools (search + fetch) | Semantic web search, page fetching, domain-scoped search |
 | **Perplexity** | 4 MCP tools | AI-powered Q&A, deep research, reasoning |
 | **Jina** | 21 MCP tools | Page reading, parallel ops, image search, text classification |

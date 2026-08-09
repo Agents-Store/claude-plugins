@@ -49,7 +49,7 @@ Pick the right tool by what you need to do:
 | **Crawl entire site** | `firecrawl_crawl` | `firecrawl_map` + batch scrape | Firecrawl |
 | **Map site URLs** | `firecrawl_map` | — | Firecrawl |
 | **Extract structured data** | `firecrawl_extract` | `firecrawl_scrape` with jsonOptions | Firecrawl |
-| **Search code examples** | `firecrawl_developer_search` | `web_search_exa` with `includeDomains: ["github.com"]` | Firecrawl / Exa |
+| **Search code examples** | `firecrawl_developer_search` | `web_search_advanced_exa` with `includeDomains: ["github.com"]` (opt-in) | Firecrawl / Exa |
 | **AI-powered Q&A** | `perplexity_ask` | `perplexity_search` | Perplexity |
 | **Deep research** | `perplexity_research` | `firecrawl_agent` | Perplexity / Firecrawl |
 | **Reasoning/analysis** | `perplexity_reason` | — | Perplexity |
@@ -66,14 +66,14 @@ Pick the right tool by what you need to do:
 | **Monitor page changes** | `firecrawl_monitor_create` | — | Firecrawl |
 | **Parse files (PDF/DOCX)** | `firecrawl_parse` | `extract_pdf` (Jina) | Firecrawl / Jina |
 | **Search academic papers** | `search_arxiv` (Jina) | `firecrawl_research_search_papers` | Jina / Firecrawl |
-| **Search GitHub** | `firecrawl_research_search_github` | `web_search_exa` + github.com domain | Firecrawl / Exa |
+| **Search GitHub** | `firecrawl_research_search_github` | `web_search_advanced_exa` + github.com domain | Firecrawl / Exa |
 | **Fetch page via Exa** | `web_fetch_exa` | `read_url` | Exa / Jina |
 
 ## Service Overview
 
 | Service | Tools | Strengths |
 |---------|-------|-----------|
-| **Firecrawl** | 28 | JS rendering, site crawling, structured extraction, live-page interaction, file parsing, change monitors, research/developer search, autonomous agent |
+| **Firecrawl** | 27 | JS rendering, site crawling, structured extraction, live-page interaction, file parsing, change monitors, research/developer search, autonomous agent |
 | **Jina** | 21 | Fast page reading, parallel operations, image search, text classification, deduplication, PDF extraction |
 | **Perplexity** | 4 | AI-synthesized answers, deep research, reasoning with citations |
 | **Exa** | 2 default (+2 optional via remote MCP) | Semantic search, page fetching, category filtering |
@@ -124,7 +124,7 @@ Input: { "query": "modern office workspace", "per_page": 10, "orientation": "lan
 
 For complete tool parameters and advanced usage, see the service-specific references:
 
-- `references/firecrawl-tools.md` — 28 tools: scrape, search, crawl, map, extract, parse, agent, interact, monitors, research, developer search
+- `references/firecrawl-tools.md` — 27 tools: scrape, search, crawl, map, extract, parse, agent, interact, monitors, research, developer search
 - `references/exa-tools.md` — 2 default tools (web_search, web_fetch) + optional advanced search / agent via remote MCP
 - `references/perplexity-tools.md` — 4 tools: search, ask, research, reason
 - `references/jina-tools.md` — 21 tools: read, search, images, parallel, classify, deduplicate, PDF

@@ -20,7 +20,7 @@ When a service fails, switch to an alternative immediately:
 | Jina read | Read page | Firecrawl `scrape` |
 | Jina search | Web search | Exa `web_search_exa` |
 | Perplexity | AI Q&A | Exa search + Jina read (manual synthesis) |
-| Context7 | Framework docs | Exa with `includeDomains` for official docs site |
+| Context7 | Framework docs | Exa `web_search_advanced_exa` with `includeDomains` for official docs site |
 | Exa code search (removed) | Code examples | Firecrawl `firecrawl_developer_search` |
 | Pexels/Unsplash | Stock photos | Jina `search_images` (web-wide) |
 

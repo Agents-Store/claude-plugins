@@ -33,11 +33,11 @@ If Context7 resolves the library, use its results as the primary source. Supplem
 | Need | Best Approach | Tool |
 |------|--------------|------|
 | Official docs for a known library | **Context7 first (mandatory)** | `resolve-library-id` → `query-docs` |
-| Find docs for unfamiliar tool | Exa semantic search | `web_search_exa` with docs domains |
+| Find docs for unfamiliar tool | Exa semantic search | `web_search_exa` (or `web_search_advanced_exa` for domain scoping) |
 | Quick answer to "how do I..." | Context7 first, then Perplexity | `query-docs` → `perplexity_ask` |
 | Read a specific docs page | Jina reader | `read_url` |
 | Debug error with framework | Context7 first, then Perplexity | `query-docs` → `perplexity_reason` |
-| Find code examples | Firecrawl developer index | `firecrawl_developer_search` (fallback: `web_search_exa` with `includeDomains: ["github.com"]`) |
+| Find code examples | Firecrawl developer index | `firecrawl_developer_search` (fallback: `web_search_advanced_exa` with `includeDomains: ["github.com"]`) |
 
 ## Pattern 1: Context7 — Primary for All Known Libraries
 
@@ -70,15 +70,16 @@ Use when exploring documentation across multiple sources.
 Tool: web_search_exa
 Input: {
   "query": "Prisma ORM connection pooling configuration",
-  "numResults": 10,
-  "includeDomains": ["prisma.io", "github.com/prisma"]
+  "numResults": 10
 }
 ```
+
+Note: `web_search_exa` accepts only `query` and `numResults`. Domain filters require `web_search_advanced_exa`, an opt-in tool enabled via the remote MCP URL's `tools` parameter (see `mcp-patterns/references/exa-tools.md`).
 
 ### Domain-Scoped Doc Search
 
 ```
-Tool: web_search_exa
+Tool: web_search_advanced_exa
 Input: {
   "query": "server actions form validation",
   "numResults": 10,
@@ -98,7 +99,7 @@ Input: {
 Searches the developer index (GitHub issues, merged PRs, READMEs, docs). Fallback:
 
 ```
-Tool: web_search_exa
+Tool: web_search_advanced_exa
 Input: {
   "query": "TypeScript Prisma middleware logging example",
   "includeDomains": ["github.com"],
@@ -160,7 +161,7 @@ Step 1 — Get official docs:
 Tool: resolve-library-id + query-docs
 
 Step 2 — Search for community patterns:
-Tool: web_search_exa (with GitHub/StackOverflow domains)
+Tool: web_search_advanced_exa (with GitHub/StackOverflow domains)
 
 Step 3 — Get AI summary:
 Tool: perplexity_search
@@ -171,7 +172,7 @@ Tool: parallel_read_url (with top URLs from steps 1-3)
 
 ## Common Documentation Domains
 
-For domain-scoped search with Exa:
+For domain-scoped search with Exa (`web_search_advanced_exa`):
 
 | Framework | Domains |
 |-----------|---------|

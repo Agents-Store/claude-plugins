@@ -201,6 +201,8 @@ jina embed --local "hello world"
 jina classify --local "text" --labels positive,negative
 ```
 
+**Caveat:** `jina-grep` is not currently published on PyPI, so `pip install jina-grep` fails as of 2026-08 (upstream `jina-cli` docs give this same instruction; an npm package named `jina-grep` exists but is an empty placeholder). Check https://github.com/jina-ai/jina-grep-cli for the actual install method before relying on local mode.
+
 ### Useful Flags
 
 | Flag | Description |

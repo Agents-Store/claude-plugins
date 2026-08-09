@@ -62,6 +62,6 @@ Combining these sources, you find that:
 |-----------|-------------|
 | Known library, need current docs | Context7 |
 | Need to understand an error | Perplexity (reason) |
-| Find code examples and patterns | Firecrawl (developer_search) or Exa (domain-scoped web_search_exa) |
+| Find code examples and patterns | Firecrawl (developer_search) or Exa (domain-scoped web_search_advanced_exa) |
 | Read a specific docs page | Jina (read_url) |
 | Quick "how do I" question | Perplexity (ask) |

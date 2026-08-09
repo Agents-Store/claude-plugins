@@ -63,7 +63,7 @@ See `references/exa-api.md` for curl examples.
 | POST | `/search` | Web search (no `/v1` prefix) |
 | POST | `/v1/sonar` | Chat completion with web grounding |
 | POST | `/v1/embeddings` | Text embeddings (`pplx-embed-v1-0.6b`/`4b`; contextualized variants via the contextualized embeddings endpoint) |
-| POST | `/gateway/chat/completions` | Gateway API (OpenAI-compatible) |
+| POST | `/router/v1/chat/completions` | Gateway API (OpenAI-compatible) |
 
 See `references/perplexity-api.md` for curl examples.
 

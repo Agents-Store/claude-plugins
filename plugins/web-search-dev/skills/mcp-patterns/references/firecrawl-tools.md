@@ -1,4 +1,4 @@
-# Firecrawl MCP Tools (28 tools)
+# Firecrawl MCP Tools (27 tools)
 
 Keyless free tier exposes scrape, search, and parse (plus interact per the npm README) with usage limits. The full tool set requires an API key.
 

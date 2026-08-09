@@ -15,7 +15,7 @@ Find images, videos, and visual content for applications using Pexels, Unsplash,
 | **Unsplash** | Photos only | Free commercial (Unsplash License) | 4 tools | High-quality editorial photos |
 | **Jina** | Web images | Varies by source | `search_images` | Finding images from any website |
 
-**If Pexels and Unsplash are not configured**, use Jina's `search_images` as the primary fallback — it searches the open web and requires no additional MCP setup beyond the plugin's bundled Jina server. For stock-quality images without dedicated MCP, also try `web_search_exa` with `includeDomains: ["pexels.com", "unsplash.com"]`.
+**If Pexels and Unsplash are not configured**, use Jina's `search_images` as the primary fallback — it searches the open web and requires no additional MCP setup beyond the plugin's bundled Jina server. For stock-quality images without dedicated MCP, also try `web_search_advanced_exa` (opt-in Exa tool) with `includeDomains: ["pexels.com", "unsplash.com"]`.
 
 ## Pattern 0: Jina Web Image Search (Always Available)
 

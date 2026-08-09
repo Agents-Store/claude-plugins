@@ -46,12 +46,13 @@ curl -s "https://s.jina.ai/?q=React+hooks+best+practices" \
 ### With Filters
 
 ```bash
-curl -s "https://s.jina.ai/?q=Next.js+middleware" \
+curl -s "https://s.jina.ai/?q=Next.js+middleware&num=10" \
   -H "Authorization: Bearer ${JINA_API_KEY}" \
   -H "Accept: application/json" \
-  -H "X-Num: 10" \
   -H "X-Site: nextjs.org"
 ```
+
+Result count is controlled by the `num` field of the search request (query parameter or POST body) — there is no `X-Num` header.
 
 ## Embeddings API
 
@@ -124,8 +125,9 @@ curl -s "https://r.jina.ai/https://example.com" \
 | `X-Wait-For-Selector` | Wait for element before extraction |
 | `X-Json-Schema` | JSON schema for structured extraction |
 | `X-Instruction` | Natural language extraction instruction |
-| `X-Num` | Number of search results |
 | `X-Site` | Restrict search to a domain |
+
+Number of search results is set with the `num` request field of `s.jina.ai` (query parameter or body), not a header.
 
 ## Rate Limits
 
