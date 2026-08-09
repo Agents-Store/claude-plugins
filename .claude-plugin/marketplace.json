@@ -327,7 +327,7 @@
       "name": "nextjs-dev",
       "source": "./plugins/nextjs-dev",
       "description": "Next.js development plugin. Knowledge base for building modern Next.js 16 applications with App Router, Server/Client Components, data fetching, Cache Components, performance optimization, and the next-devtools-mcp toolchain.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -351,7 +351,7 @@
       "name": "nextjs-provision",
       "source": "./plugins/nextjs-provision",
       "description": "Next.js provisioning plugin. Set up shadcn/ui and shadcn studio — component installation, theme configuration, MCP server setup, project scaffolding, and multi-registry component search across 260+ registries from the official directory.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -462,7 +462,7 @@
       "name": "web-search-dev",
       "source": "./plugins/web-search-dev",
       "description": "Web search and scraping developer toolkit. MCP tool patterns, REST API reference (Firecrawl v2), SDK/CLI usage for Firecrawl, Exa, Perplexity, Jina, Pexels, Unsplash, and Context7. Practical skills for web scraping, documentation search, and media discovery in dev workflows.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -696,7 +696,7 @@
       "name": "dokploy-dev",
       "source": "./plugins/dokploy-dev",
       "description": "Dokploy self-hosted PaaS development plugin (aligned with Dokploy v0.29.14). Deploy applications, provision 6 database types (Postgres, MySQL, MariaDB, MongoDB, Redis, LibSQL), manage domains and Docker Compose stacks, AND debug failed deployments end-to-end — reads runtime logs of every container (including each container in a Docker Compose stack) over the API/MCP with tail/since/search, plus AI-powered log analysis (ai-analyzeLogs), Docker container introspection, Traefik diagnosis, and a guided recovery chain. Complete MCP/REST coverage: all 546 v0.29.14 operations across 50 categories indexed with params — covers forward-auth SSO domain protection, SCIM provisioning, build concurrency, and the rewritten @dokploy/cli (546 auto-generated commands incl. read-logs). Uses the official @dokploy/mcp server plus debugging-focused slash commands including /compose-logs.",
-      "version": "1.6.0",
+      "version": "1.6.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -933,7 +933,7 @@
       "name": "payloadcms-dev",
       "source": "./plugins/payloadcms-dev",
       "description": "PayloadCMS dev plugin for Agents Store. Covers collections, fields, globals, hooks, access control, authentication, queries, data management (trash/query presets/folders), localization, adapters, Lexical rich text, admin customization, jobs queue, plugin development, official plugins, Next.js integration, deployment, CLI, migrations, and end-to-end scenarios for TypeScript developers building with Payload v3.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "AGENTS.STORE"
       },
