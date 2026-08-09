@@ -134,7 +134,7 @@ Two MCP servers are configured in this plugin's `.mcp.json`:
 | Server | What It Searches | Best For |
 |--------|-----------------|----------|
 | `shadcn` (official) | All registries in `components.json` | Finding components across configured registries |
-| `shadcn-community` (Jpisnice) | shadcn/ui GitHub repo via `list_components`, `get_component`, `get_component_demo`, `get_component_metadata`, `list_blocks`, `get_block` | Browsing component source code, demos, block implementations |
+| `shadcn-community` (Jpisnice) | shadcn/ui GitHub repo via `list_components`, `get_component`, `get_component_demo`, `get_component_metadata`, `list_blocks`, `get_block`, `get_directory_structure`; plus tweakcn theme tools `list_themes`, `get_theme`, `apply_theme` (writes theme files, supports `dryRun`) | Browsing component source code, demos, block implementations; applying tweakcn themes |
 
 ### Dual search strategy
 

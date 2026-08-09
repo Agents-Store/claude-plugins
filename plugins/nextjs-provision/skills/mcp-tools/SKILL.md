@@ -87,8 +87,11 @@ Add to the project's `.mcp.json` or editor settings:
 | `list_blocks` | Browse pre-built templates (dashboards, forms, etc.) |
 | `get_block` | Get source code for a block implementation |
 | `get_directory_structure` | Browse the shadcn/ui repository structure |
+| `list_themes` | Browse available tweakcn themes |
+| `get_theme` | Get CSS variables and config for a tweakcn theme |
+| `apply_theme` | Write a tweakcn theme's CSS/config files into the project (creates a backup; supports `dryRun`) |
 
-The server has **no install tools** — it is discovery-only. Installation happens via the shadcn CLI (`npx shadcn@latest add ...`) after discovery.
+The server has **no component-install tools** — component installation happens via the shadcn CLI (`npx shadcn@latest add ...`) after discovery. Note that `apply_theme` does write files: it applies tweakcn theme CSS/config to the project (use `dryRun` to preview).
 
 ### Framework Selection
 

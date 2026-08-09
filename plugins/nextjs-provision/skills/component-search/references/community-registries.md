@@ -28,10 +28,10 @@ The tables below organize notable registries by category. This is a curated subs
 |----------|-----|-------------|
 | @magicui | `https://magicui.design/r/{name}` | 50+ animated components — shimmer buttons, animated beams, globe, particles, meteors, marquee |
 | @aceternity | `https://ui.aceternity.com/registry/{name}.json` | Motion-heavy effects — parallax scroll, moving border, spotlight, aurora background, 3D cards |
-| @animate-ui | `https://animate-ui.com/r` | Smooth transition components — animated accordion, fade-in, slide, reveal effects |
+| @animate-ui | `https://animate-ui.com/r/{name}.json` | Smooth transition components — animated accordion, fade-in, slide, reveal effects |
 | @cult-ui | `https://cult-ui.com/r/{name}.json` | Creative animations — flyout menus, hover reveals, morphing shapes |
 | @motion-primitives | `https://motion-primitives.com/c/{name}.json` | Motion building blocks — transition, animate-presence, gesture primitives |
-| @chamaac | `https://chamaac.com/r` | Animation effects — glow, ripple, magnetic cursor, tilt effects |
+| @chamaac | `https://chamaac.com/r/{name}.json` | Animation effects — glow, ripple, magnetic cursor, tilt effects |
 
 ## Extended UI Components
 
@@ -39,22 +39,22 @@ The tables below organize notable registries by category. This is a curated subs
 |----------|-----|-------------|
 | @coss | `https://coss.com/ui/r/{name}.json` | COSS UI (successor to Origin UI — originui.com now redirects to coss.com/ui) — 100+ styled component variants |
 | @diceui | `https://diceui.com/r/{style}/{name}.json` | Interactive components — combobox, tags input, editable text, kanban board |
-| @basecn | `https://basecn.dev/r` | Base component extensions — enhanced select, multi-select, command palette |
-| @8bitcn | `https://www.8bitcn.com/r` | Retro pixel-style UI components — 8-bit buttons, pixel cards, retro badges |
-| @boldkit | `https://boldkit.dev/r` | Bold design system — distinctive buttons, cards, layouts |
-| @8starlabs-ui | `https://ui.8starlabs.com/r` | Additional UI components and variants |
-| @cardcn | `https://cardcn.dev/r` | Card-focused components — pricing cards, profile cards, feature cards, stat cards |
-| @unlumen-ui | `https://ui.unlumen.com/r` | Minimalist UI components |
+| @basecn | `https://basecn.dev/r/{name}.json` | Base component extensions — enhanced select, multi-select, command palette |
+| @8bitcn | `https://www.8bitcn.com/r/{name}.json` | Retro pixel-style UI components — 8-bit buttons, pixel cards, retro badges |
+| @boldkit | `https://boldkit.dev/r/{name}.json` | Bold design system — distinctive buttons, cards, layouts |
+| @8starlabs-ui | `https://ui.8starlabs.com/r/{name}.json` | Additional UI components and variants |
+| @cardcn | `https://cardcn.dev/r/{name}.json` | Card-focused components — pricing cards, profile cards, feature cards, stat cards |
+| @unlumen-ui | `https://ui.unlumen.com/r/{name}.json` | Minimalist UI components |
 
 ## Blocks & Sections
 
 | Registry | URL | Description |
 |----------|-----|-------------|
-| @bundui | `https://bundui.io/r` | Landing page blocks — hero sections, feature grids, pricing tables, testimonials |
-| @blocks-so | `https://blocks.so/r` | Marketing blocks — CTA sections, navigation, footers, content sections |
-| @efferd | `https://efferd.com/r` | Pre-built page sections — headers, footers, feature sections |
-| @doras-ui | `https://ui.doras.to/r` | Dashboard and application blocks |
-| @creative-tim | `https://www.creative-tim.com/ui/r` | Professional UI blocks — admin dashboards, landing pages, e-commerce sections |
+| @bundui | `https://bundui.io/r/{name}.json` | Landing page blocks — hero sections, feature grids, pricing tables, testimonials |
+| @blocks-so | `https://blocks.so/r/{name}.json` | Marketing blocks — CTA sections, navigation, footers, content sections |
+| @efferd | `https://efferd.com/r/{name}.json` | Pre-built page sections — headers, footers, feature sections |
+| @doras-ui | `https://ui.doras.to/r/{name}.json` | Dashboard and application blocks |
+| @creative-tim | `https://www.creative-tim.com/ui/r/{name}.json` | Professional UI blocks — admin dashboards, landing pages, e-commerce sections |
 
 ## E-Commerce
 
@@ -68,24 +68,24 @@ The tables below organize notable registries by category. This is a curated subs
 |----------|-----|-------------|
 | @ai-elements | `https://ai-sdk.dev/elements/api/registry/{name}.json` | Vercel AI SDK UI elements — chat interfaces, streaming response displays |
 | @assistant-ui | `https://r.assistant-ui.com/{name}.json` | AI assistant UIs — chat bubbles, thread views, suggested prompts, tool call displays |
-| @tool-ui | `https://www.tool-ui.com/r` | Tool/function call UIs for AI agents — tool result cards, execution status |
+| @tool-ui | `https://www.tool-ui.com/r/{name}.json` | Tool/function call UIs for AI agents — tool result cards, execution status |
 | @ai-blocks | `https://webllm.org/r/{name}.json` | WebLLM blocks — browser-based LLM interfaces, local inference UIs |
 
 ## File Upload
 
 | Registry | URL | Description |
 |----------|-----|-------------|
-| @better-upload | `https://better-upload.com/r` | Upload components — drag-and-drop zones, progress indicators, file previews |
+| @better-upload | `https://better-upload.com/r/{name}.json` | Upload components — drag-and-drop zones, progress indicators, file previews |
 
 ## Other
 
 | Registry | URL | Description |
 |----------|-----|-------------|
 | @arc | `https://witharc.co/r/{name}.json` | Design system components |
-| @abui | `https://abui.io/r` | Additional UI component library |
-| @aevr | `https://ui.aevr.space/r` | UI component variants |
-| @einui | `https://ui.eindev.ir/r` | Extended UI components |
-| @billingsdk | `https://billingsdk.com/r` | Billing and payment form components — subscription management, plan selectors |
+| @abui | `https://abui.io/r/{name}.json` | Additional UI component library |
+| @aevr | `https://ui.aevr.space/r/{name}.json` | UI component variants |
+| @einui | `https://ui.eindev.ir/r/{name}.json` | Extended UI components |
+| @billingsdk | `https://billingsdk.com/r/{name}.json` | Billing and payment form components — subscription management, plan selectors |
 
 ## Notable Additions (2026)
 

@@ -128,7 +128,7 @@ For new projects, `shadcn init --pointer` injects this automatically. For existi
 
 ## Dependency Conflicts
 
-Note: Base UI projects (the default since July 2026) depend on a single `@base-ui-components/react` package — the Radix rows below apply only to Radix-based projects (`init -b radix`).
+Note: Base UI projects (the default since July 2026) depend on a single `@base-ui/react` package — the Radix rows below apply only to Radix-based projects (`init -b radix`).
 
 | Conflict | Symptoms | Fix |
 |----------|----------|-----|

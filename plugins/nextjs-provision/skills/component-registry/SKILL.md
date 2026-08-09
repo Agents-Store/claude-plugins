@@ -196,7 +196,7 @@ Install from a community registry:
 ```bash
 npx shadcn@latest add @magicui/shimmer-button
 npx shadcn@latest add @aceternity/moving-border
-npx shadcn@latest add @commercn/product-card
+npx shadcn@latest add @commercn/product-card-01
 ```
 
 See the `component-search` skill for the full registry reference with URLs, setup instructions, and search workflow.
@@ -291,7 +291,7 @@ export function UserProfileCard({ user }: { user: User }) {
 
 ## shadcn v4: `render` Prop Instead of `asChild`
 
-shadcn v4 uses `@base-ui-components/react` (Base UI) instead of Radix by default. The `asChild` prop **does not exist** on Base UI components — it will cause a TypeScript error. Use the `render` prop instead. This applies to **all** compound components (SheetTrigger, DialogTrigger, DropdownMenuTrigger, etc.). Radix-based projects (`init -b radix`) still use `asChild`.
+shadcn v4 uses `@base-ui/react` (Base UI) instead of Radix by default. The `asChild` prop **does not exist** on Base UI components — it will cause a TypeScript error. Use the `render` prop instead. This applies to **all** compound components (SheetTrigger, DialogTrigger, DropdownMenuTrigger, etc.). Radix-based projects (`init -b radix`) still use `asChild`.
 
 ### Button as Link
 
