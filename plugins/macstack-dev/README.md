@@ -59,7 +59,12 @@ software selection, prototype recommendation).
   `jq`, `gh` (GitHub prototype/marketplace discovery), `infisical` CLI (env wiring).
 - No MCP server required — the plugin is file- and GitHub-driven.
 
-## Canonical references (bundled)
+## Canonical references
 
-- `skills/lint/references/macstack.schema.json` — the macstack.json JSON Schema
-- `skills/lint/references/software-categories.json` — canonical software category registry
+The standard is hosted on GitHub (GitHub-first; the bundled copies below are offline
+fallbacks):
+
+- **Standard** (schema, examples, reference linter): https://github.com/macstacks/macstack
+- **Registry** (categories, software passports, entity/trigger/agent templates): https://github.com/macstacks/registry
+- Bundled fallbacks: `skills/lint/references/macstack.schema.json`,
+  `skills/lint/references/software-categories.json`

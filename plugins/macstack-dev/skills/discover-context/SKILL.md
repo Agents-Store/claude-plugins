@@ -5,9 +5,31 @@ description: This skill should be used when the user asks to "find plugins for t
 
 # Discover Context: Plugins & Prototypes
 
-Find the context a project needs: Claude plugins in the Agents Store and prototype
-repositories in stackmakers-ai. The output fills `context.plugins` and `prototype`
-in macstack.json.
+Find the context a project needs: reusable blocks from the MACSTACK registry, Claude
+plugins in the Agents Store, and prototype repositories in stackmakers-ai. The output
+fills `software[]`, `context.plugins` and `prototype` in macstack.json.
+
+## Source 0 — the MACSTACK registry (reusable blocks)
+
+Before writing any `software[]`/`entities[]`/`triggers[]` entry by hand, check
+`https://github.com/macstacks/registry` — copying a maintained block beats retyping
+(fewer taxonomy mistakes, ratings already consistent):
+
+```bash
+# A software passport (stack-independent half of a software[] entry):
+curl -fsSL https://raw.githubusercontent.com/macstacks/registry/main/software/directus.json
+# Entity/trigger/agent templates:
+curl -fsSL https://raw.githubusercontent.com/macstacks/registry/main/entities/client.json
+curl -fsSL https://raw.githubusercontent.com/macstacks/registry/main/triggers/trg-nightly-cron.json
+curl -fsSL https://raw.githubusercontent.com/macstacks/registry/main/agents/support-agent.json
+# What exists:
+gh api repos/macstacks/registry/contents/software -q '.[].name'
+```
+
+Copy the passport into macstack.json and add only the stack-specific half (role,
+value, hosting, instances, cost); for entities add stores + master; in trigger/agent
+presets replace the `<placeholders>`. Full examples of finished files live in
+`https://github.com/macstacks/macstack/tree/main/examples`.
 
 ## Source 1 — Agents Store plugins
 

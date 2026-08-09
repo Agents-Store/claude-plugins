@@ -64,6 +64,9 @@ Backed by sources 1→3, create:
 
 ## Rules
 
+- **`"$schema"` first**: ensure macstack.json starts with `"$schema":
+  "https://raw.githubusercontent.com/macstacks/macstack/main/schema/macstack.schema.json"`
+  so editors validate live.
 - **Idempotency**: a re-run only adds what is missing and NEVER overwrites user
   code (existing file with differences → show a diff and ask).
 - **No secrets in files**: key names only; values arrive via `infisical-env`.

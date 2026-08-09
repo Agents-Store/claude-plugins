@@ -8,16 +8,34 @@ description: This skill should be used when the user asks to "validate macstack.
 Two passes: JSON Schema, then referential integrity. A file that fails lint must not
 be scaffolded from.
 
+**Prefer the reference linter** — it implements both passes and is maintained with
+the standard:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/macstacks/macstack/main/scripts/lint.py \
+  -o "${CLAUDE_PLUGIN_DATA}/lint.py" 2>/dev/null || true   # cache; keep the old copy offline
+python3 "${CLAUDE_PLUGIN_DATA}/lint.py" macstack.json \
+  --schema https://raw.githubusercontent.com/macstacks/macstack/main/schema/macstack.schema.json \
+  --categories https://raw.githubusercontent.com/macstacks/registry/main/software-categories.json
+```
+
+Offline fallback: run the same two passes manually with the bundled copies.
+
 ## Pass 1 — JSON Schema
 
-Schema: `${CLAUDE_PLUGIN_ROOT}/skills/lint/references/macstack.schema.json`.
+Fetch the live schema first (it may be newer than the bundled copy); cache it in
+`${CLAUDE_PLUGIN_DATA}`; offline → bundled
+`${CLAUDE_PLUGIN_ROOT}/skills/lint/references/macstack.schema.json`.
 
 ```bash
 python3 - <<'EOF'
-import json, jsonschema
-schema = json.load(open("<PLUGIN_ROOT>/skills/lint/references/macstack.schema.json"))
-doc = json.load(open("macstack.json"))
-jsonschema.validate(doc, schema)
+import json, jsonschema, urllib.request
+URL = "https://raw.githubusercontent.com/macstacks/macstack/main/schema/macstack.schema.json"
+try:
+    schema = json.load(urllib.request.urlopen(URL, timeout=15))
+except Exception:
+    schema = json.load(open("<PLUGIN_ROOT>/skills/lint/references/macstack.schema.json"))
+jsonschema.validate(json.load(open("macstack.json")), schema)
 print("schema: VALID")
 EOF
 ```

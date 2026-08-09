@@ -11,10 +11,21 @@ business spec (goals, results), the technical spec (software, entities, interfac
 workflows) and the meta-config from which project files are scaffolded. `CLAUDE.md`
 references it — never duplicates it.
 
-## Canonical resources (bundled)
+## Canonical resources (GitHub-first, bundled fallback)
 
-- JSON Schema: `${CLAUDE_PLUGIN_ROOT}/skills/lint/references/macstack.schema.json`
-- Category registry: `${CLAUDE_PLUGIN_ROOT}/skills/lint/references/software-categories.json`
+The standard is hosted on GitHub — always prefer the live copies (they may be newer
+than the bundled ones); fall back to the bundled copies offline:
+
+| Resource | Live (canonical) | Bundled fallback |
+|---|---|---|
+| JSON Schema | `https://raw.githubusercontent.com/macstacks/macstack/main/schema/macstack.schema.json` | `${CLAUDE_PLUGIN_ROOT}/skills/lint/references/macstack.schema.json` |
+| Category registry | `https://raw.githubusercontent.com/macstacks/registry/main/software-categories.json` | `${CLAUDE_PLUGIN_ROOT}/skills/lint/references/software-categories.json` |
+| Reusable blocks (software passports, entity/trigger/agent templates) | `https://github.com/macstacks/registry` (`software/`, `entities/`, `triggers/`, `agents/`) | — |
+| Full examples + reference linter | `https://github.com/macstacks/macstack` (`examples/`, `scripts/lint.py`) | — |
+
+Every macstack.json should start with `"$schema":
+"https://raw.githubusercontent.com/macstacks/macstack/main/schema/macstack.schema.json"`
+— editors then autocomplete and validate live.
 
 Read the schema's top-level `description` first — it encodes the section order
 (result-first): goals → results → processes → triggers → workflows → software →

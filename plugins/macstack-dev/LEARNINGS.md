@@ -31,3 +31,12 @@ Root cause / Severity.
 - **Validation**: generated macstack.json passed schema + all integrity rules on the
   first run; legacy stack.json mapped cleanly (layers→software, plugins→context.plugins,
   parent→prototype candidate + open_question).
+
+## 2026-08-09 — the standard moved to GitHub (v1.1.0)
+
+- The canonical home is now **github.com/macstacks/macstack** (schema, examples,
+  scripts/lint.py) + **github.com/macstacks/registry** (categories, software
+  passports, entity/trigger/agent templates). All skills are GitHub-first with the
+  bundled copies as offline fallbacks; the bundled schema's `$id` points at the raw
+  URL. When the schema changes upstream, refresh the bundled copies in
+  `skills/lint/references/` in the same PR.

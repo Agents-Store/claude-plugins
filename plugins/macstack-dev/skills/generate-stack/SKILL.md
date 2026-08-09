@@ -51,10 +51,12 @@ Select software per layer using these rules, in priority order:
 4. **Custom code — only for the unique**: only what has no ready-made equivalent;
    `type: "custom"`, category `custom-scripts`.
 
-For every software fill the taxonomy: `category` (bundled registry), `type`,
-`form`, `license`, `layers` (strict: data | logic | interface | infrastructure,
-multi-layer allowed), `hosting`, `value` (why it is in the stack — one of the 4
-values), `agentic {mcp, api, cli, rating}`, `instances[]`.
+For every software: **copy its passport from the registry first**
+(`https://raw.githubusercontent.com/macstacks/registry/main/software/<slug>.json` —
+category, type, form, license, layers, agentic already consistent), then add the
+stack-specific half: `role`, `value` (why it is in the stack — one of the 4 values),
+`hosting`, `instances[]`, `cost`. No passport in the registry → fill the taxonomy by
+hand from the schema enums and propose the new passport as a registry PR.
 
 ## Step 4 — The rest of the file
 
