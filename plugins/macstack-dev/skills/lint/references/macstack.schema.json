@@ -1,0 +1,786 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://macstack.ai/schema/macstack.schema.json",
+  "title": "macstack.json",
+  "description": "MACSTACK stack file: мета-информация для настройки Claude-проекта + бизнес- и техническая спецификация стека в одном стандартизированном JSON. Лежит в корне проекта; CLAUDE.md ссылается на него; отдельный Claude-плагин macstack-dev (agents.store) парсит файл и скаффолдит структуру проекта (nextjs в software → заготовки next.js). Наследование: prototype указывает на родительский macstack.json (GitHub или absolute path); текущий файл extend/override родителя — мёрж по id (см. спеку). Порядок секций — result-first: goals → results → processes → triggers → workflows → software → entities → interfaces → connections → agents → context → resources.",
+  "type": "object",
+  "required": ["macstack", "name", "version", "description"],
+  "properties": {
+    "macstack": {
+      "type": "string",
+      "description": "Версия формата файла",
+      "enum": ["1.0"]
+    },
+    "name": { "$ref": "#/$defs/slug", "description": "Слаг проекта/стека" },
+    "version": { "type": "string", "description": "Semver версии этой спецификации" },
+    "description": { "type": "string" },
+    "prototype": {
+      "$ref": "#/$defs/stackRef",
+      "description": "Ссылка на родительский macstack.json (прототип стека), который этот файл наследует (extend/override, мёрж по id). GitHub ИЛИ локальная папка (absolute path). Цепочки допустимы, циклы — ошибка"
+    },
+    "prototype_exclude": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z_]+\\.[a-z0-9]+([-.][a-z0-9]+)*$" },
+      "description": "Элементы прототипа, которые НЕ наследуются: '<section>.<id>' (например 'software.qdrant', 'workflows.wf-x')"
+    },
+    "stacks": {
+      "type": "object",
+      "description": "Место этого стека среди ДРУГИХ живых macstack.json-стеков организации. НЕТ секции = автономный стек вне организации. НЕ путать с prototype (наследование шаблона): prototype = «из чего сделан», stacks = «с кем связан». Модель организации: один ROOT-стек (корневой workspace организации — обычно composable/Agents Workspace, из него stack-агент видит и оркестрирует все стеки) + SUBSTACKS (под-стеки: web-приложения, CRM, боты — обычно application/agents по profile.type; сервисные: общий workflow-backend). Cross-stack ссылки в любых ref-полях: '<stack-id>:<element-id>' (например master: 'meg-root:postgresql', uses: 'workflows-hub:wf-enrich'), где stack-id объявлен здесь",
+      "properties": {
+        "role": {
+          "enum": ["root", "substack"],
+          "description": "root = корневой стек организации (единственный; держит реестр substacks); substack = под-стек организации, зарегистрированный в root (web-приложение, CRM, бот, сервисный стек)"
+        },
+        "root": {
+          "type": "object",
+          "description": "Для role=substack: ссылка на корневой стек организации",
+          "required": ["id", "ref"],
+          "properties": {
+            "id": { "$ref": "#/$defs/slug", "description": "Локальный идентификатор root-стека (namespace для cross-stack ссылок)" },
+            "ref": { "$ref": "#/$defs/stackRef" }
+          }
+        },
+        "substacks": {
+          "type": "array",
+          "description": "Для role=root: реестр под-стеков организации",
+          "items": {
+            "type": "object",
+            "required": ["id", "ref"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "ref": { "$ref": "#/$defs/stackRef" },
+              "note": { "type": "string", "description": "Например: сайт компании, CRM, контент-стек" }
+            }
+          }
+        },
+        "links": {
+          "type": "array",
+          "description": "Предметные связи с конкретными стеками (в дополнение к root/members)",
+          "items": {
+            "type": "object",
+            "required": ["id", "ref", "relation"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug", "description": "Локальный идентификатор (namespace для '<stack-id>:<element-id>')" },
+              "ref": { "$ref": "#/$defs/stackRef" },
+              "relation": {
+                "enum": ["uses", "feeds", "peer"],
+                "description": "uses = мы потребляем его workflows/данные/MCP; feeds = мы отдаём ему данные/результаты; peer = соседний стек без зависимости"
+              },
+              "what": { "type": "string", "description": "Что именно связывает (shared workflow backend, общая CRM-база…)" }
+            }
+          }
+        }
+      }
+    },
+
+    "identity": {
+      "type": "object",
+      "description": "Идентичность проекта",
+      "properties": {
+        "title": { "type": "string" },
+        "client": { "type": "string" },
+        "organization": { "$ref": "#/$defs/slug", "description": "Организация-владелец стека; по ней Manager группирует стеки и строит карту main/sub" },
+        "kind": { "enum": ["template", "project", "workspace", "demo"] },
+        "business_domain": {
+          "type": "string",
+          "description": "Бизнес-домен (канон 12: sales, marketing, hr, devops, finance, support, ecommerce, education, product, services, ops, engineering)"
+        },
+        "business_archetype": { "type": "string" },
+        "domains": { "type": "array", "items": { "type": "string" } },
+        "sites": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["slug", "domain"],
+            "properties": {
+              "slug": { "$ref": "#/$defs/slug" },
+              "domain": { "type": "string" },
+              "devPort": { "type": "number" },
+              "status": { "enum": ["active", "planned", "paused"] }
+            }
+          }
+        }
+      }
+    },
+
+    "profile": {
+      "type": "object",
+      "description": "Классификация стека по Stack Architecture. stack_level L0–L3 — свойство сложности стека (не шаблонная иерархия)",
+      "properties": {
+        "type": { "enum": ["composable", "application", "agents"] },
+        "category": {
+          "enum": ["web_application", "crm", "content", "data_automation"],
+          "description": "Только для type=application"
+        },
+        "stack_level": { "enum": ["L0", "L1", "L2", "L3"] },
+        "stack_version": { "type": "string", "pattern": "^v[0-9]+$", "description": "Только для type=composable (v1/v2/v3)" },
+        "architecture_patterns": {
+          "type": "array",
+          "items": { "enum": ["database-first", "hub-and-spoke", "event-bus", "api-gateway", "rag", "multi-agent"] }
+        },
+        "development_approach": { "enum": ["low-code", "no-code", "custom", "hybrid"] },
+        "purposes": {
+          "type": "array",
+          "items": { "enum": ["workflow_execution", "code_development", "artifact_generation", "domain_knowledge"] }
+        },
+        "operation_modes": {
+          "type": "array",
+          "items": { "enum": ["ui", "agent_os", "api_mcp", "hybrid"] }
+        },
+        "upgrade_path": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "add": { "type": "array", "items": { "$ref": "#/$defs/slug" } },
+              "gives": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "goals": {
+      "type": "array",
+      "description": "Бизнес-цели верхнего уровня (вектор бизнеса). Goal = направление/амбиция с горизонтом; Results — измеримые активы, которые её реализуют. Связь: results[].goal → goals[].id; goal без results — warning линтера («цель без пути к ней»)",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "name": { "type": "string" },
+          "statement": { "type": "string", "description": "Формулировка цели (например: выйти на $20k MRR к Q2)" },
+          "horizon": { "type": "string", "description": "Горизонт/дедлайн (YYYY-MM-DD или Q2-2027)" },
+          "metric": {
+            "type": "object",
+            "properties": {
+              "unit": { "type": "string" },
+              "target": { "type": ["number", "string"] }
+            }
+          },
+          "owner": { "type": "string" },
+          "status": { "$ref": "#/$defs/status" }
+        }
+      }
+    },
+
+    "results": {
+      "type": "array",
+      "description": "ЛИНЗА 1: какие результаты продюсит стек. Result = актив, который существует и приносит/экономит деньги. Named, measured, dated. Каждый result может ссылаться на goal, которую реализует",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "class"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "name": { "type": "string" },
+          "class": { "enum": ["revenue_asset", "client_revenue", "pipeline_asset", "cost_saving"] },
+          "metric": {
+            "type": "object",
+            "properties": {
+              "unit": { "type": "string", "description": "$/mo, leads/mo, hours saved/mo, posts/week…" },
+              "target": { "type": ["number", "string"] },
+              "cadence": { "enum": ["recurring", "one_time"] }
+            }
+          },
+          "value_usd_month": { "type": "string", "description": "Диапазон/оценка; для pipeline — пометка indirect" },
+          "business_domain": { "type": "string" },
+          "problem": { "type": "string", "description": "Исходная проблема клиента, которую закрывает результат" },
+          "description": { "type": "string" },
+          "example": { "type": "string" },
+          "goal": { "type": "string", "description": "→ goals[].id — какую бизнес-цель реализует результат" },
+          "produced_by": { "$ref": "#/$defs/refList", "description": "→ processes[].id" },
+          "feeds": { "$ref": "#/$defs/refList", "description": "Result становится Resource: → results[].id | processes[].id" },
+          "offer": { "type": "string", "description": "Ссылка на оффер (Offer Catalog)" },
+          "status": { "$ref": "#/$defs/status" },
+          "review_date": { "type": "string" }
+        }
+      }
+    },
+
+    "processes": {
+      "type": "array",
+      "description": "ЛИНЗА 2: бизнес-процессы — главная единица ценности. Описываются скиллами; состоят из tasks, за каждым — workflow или человек",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "name": { "type": "string" },
+          "type": { "enum": ["development", "operations", "provisioning"] },
+          "automation_mode": { "enum": ["workflow", "agent", "hybrid"] },
+          "skill": { "type": "string", "description": "SKILL-идентификатор (plugin:skill), реализующий процесс" },
+          "description": { "type": "string" },
+          "lifecycle": { "type": "string", "description": "Текстовая state-machine процесса" },
+          "schedule": { "type": "string", "description": "Ритм процесса (cron / weekly / on-event)" },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id"],
+              "properties": {
+                "id": { "$ref": "#/$defs/slug" },
+                "name": { "type": "string" },
+                "workflow": { "type": "string", "description": "→ workflows[].id" },
+                "human": {
+                  "type": "object",
+                  "description": "Human-in-the-loop точка",
+                  "properties": {
+                    "role": { "type": "string", "description": "→ roles[].id" },
+                    "gate": { "enum": ["approve", "input", "review", "execute"] }
+                  }
+                }
+              }
+            }
+          },
+          "produces": { "$ref": "#/$defs/refList", "description": "→ results[].id" },
+          "status": { "$ref": "#/$defs/status" }
+        }
+      }
+    },
+
+    "triggers": {
+      "type": "array",
+      "description": "Отдельная коллекция триггеров стека. Триггеры живут в РАЗНЫХ software (cron в trigger-dev, webhook в n8n, db-event в NocoBase/Directus). Workflows и агенты ссылаются на триггеры по id; все настройки триггера — здесь, в config",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug", "description": "Код триггера (trg-nightly-0300, trg-lead-created)" },
+          "name": { "type": "string" },
+          "type": {
+            "enum": ["schedule", "webhook", "db_event", "form", "email", "queue", "manual"],
+            "description": "schedule = cron; webhook = входящий HTTP; db_event = изменение данных; form = сабмит формы; email/queue = входящие сообщения; manual = запуск человеком/агентом"
+          },
+          "software": { "type": "string", "description": "→ software[].id — где триггер живёт/слушает" },
+          "instance": { "type": "string", "description": "→ software[].instances[].id" },
+          "config": {
+            "type": "object",
+            "description": "Настройки триггера: {schedule: '0 3 * * *'} | {path: '/hooks/x', method} | {entity, event: create|update|delete, condition} | {form: id} | {queue: name}…",
+            "additionalProperties": true
+          },
+          "status": { "$ref": "#/$defs/status" }
+        }
+      }
+    },
+
+    "workflows": {
+      "type": "array",
+      "description": "ЛИНЗЫ 2-3: детерминированные программные реализации, вызываемые через MCP/API/CLI или триггерами. Naming: [Domain] - [Action] - [Trigger]",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "engine"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "name": { "type": "string" },
+          "engine": { "$ref": "#/$defs/slug", "description": "n8n | trigger-dev | nocobase-workflows | directus-flows | script | custom…" },
+          "software": { "type": "string", "description": "→ software[].id, где workflow живёт" },
+          "triggers": { "$ref": "#/$defs/refList", "description": "→ triggers[].id — коды триггеров, запускающих workflow (настройки — в коллекции triggers)" },
+          "execution": { "enum": ["instant", "background"], "description": "Характер исполнения: мгновенный ответ или durable background" },
+          "invocation": {
+            "type": "array",
+            "items": { "enum": ["mcp", "api", "cli", "webhook", "trigger", "internal"] },
+            "description": "Способы вызова: агентом (mcp/api/cli), извне (webhook), триггером (trigger), внутри платформы (internal)"
+          },
+          "implements": { "type": "string", "description": "→ processes[].id или task id" },
+          "uses": { "$ref": "#/$defs/refList", "description": "→ software[].id | entities[].id" },
+          "location": { "type": "string", "description": "Где код/конфиг: repo path, инстанс, внешний backend" },
+          "retry": { "type": "string" },
+          "status": { "$ref": "#/$defs/status" }
+        }
+      }
+    },
+
+    "software": {
+      "type": "array",
+      "description": "ЛИНЗЫ 3, 5: всё ПО стека (self-hosted, SaaS, внешние системы клиента). category и type обязательны — см. software-таксономию в спеке",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "type", "layers"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug", "description": "Канонический слаг (postgresql, nocobase, trigger-dev)" },
+          "name": { "type": "string" },
+          "category": {
+            "$ref": "#/$defs/slug",
+            "description": "Категория из канонического реестра registry/software-categories.json (20 базовых + расширения: accounting, custom-scripts…). Линтер сверяется с реестром"
+          },
+          "type": {
+            "enum": ["ready_made", "constructor", "framework", "library", "custom"],
+            "description": "Природа ПО: готовое приложение / low-code конструктор / фреймворк / библиотека / наше кастомное"
+          },
+          "form": {
+            "type": "array",
+            "items": { "enum": ["web", "cli", "desktop", "mobile", "api_service", "library"] }
+          },
+          "license": { "enum": ["open_source", "saas", "proprietary"] },
+          "layers": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "enum": ["data", "logic", "interface", "infrastructure"] },
+            "description": "Строго 4 типизированных слоя: data | logic | interface | infrastructure. ПО может занимать несколько слоёв (nextjs = logic+interface)"
+          },
+          "role": { "type": "string", "description": "Роль в этом стеке: Headless CMS, BPMS-платформа…" },
+          "value": {
+            "enum": ["interface", "workflows", "data", "storage"],
+            "description": "Зачем ПО в стеке (одна из 4 ценностей)"
+          },
+          "hosting": { "enum": ["self_hosted", "saas_cloud", "external"] },
+          "instances": {
+            "type": "array",
+            "description": "Инстансы этого ПО — одного software может быть НЕСКОЛЬКО экземпляров (prod/dev, по клиенту, по компании группы). Каждый со своими URL. На инстанс ссылаются entities.stores[].instance, connections.mcp[].instance, interfaces[].instance",
+            "items": {
+              "type": "object",
+              "required": ["id"],
+              "properties": {
+                "id": { "$ref": "#/$defs/slug", "description": "Идентификатор инстанса (nocobase-prod, nocobase-dev, pg-main)" },
+                "name": { "type": "string" },
+                "environment": { "enum": ["prod", "dev", "staging", "demo"] },
+                "url": { "type": "string", "description": "Публичный URL, если не секретен" },
+                "url_env": { "type": "string", "description": "Имя env-ключа с URL (не значение!)" },
+                "server": { "type": "string", "description": "Хост/сервер размещения" },
+                "deploy": { "type": "string", "description": "dokploy | docker-compose | vercel | cloudron…" }
+              }
+            }
+          },
+          "agentic": {
+            "type": "object",
+            "description": "Agentic IT Ready паспорт: MCP + API + CLI. Каждый канал: true / false / \"partial\" (есть, но с оговорками — ⚠️ из Software Taxonomy). rating: full = 3×true, good = 2×true, basic = 1×true, partial = только partial-каналы, none = ничего",
+            "properties": {
+              "mcp": { "$ref": "#/$defs/agenticChannel" },
+              "api": { "$ref": "#/$defs/agenticChannel" },
+              "cli": { "$ref": "#/$defs/agenticChannel" },
+              "rating": { "enum": ["full", "good", "basic", "partial", "none"] }
+            }
+          },
+          "components": {
+            "type": "array",
+            "description": "Software Components внутри ПО",
+            "items": {
+              "type": "object",
+              "required": ["type", "name"],
+              "properties": {
+                "type": {
+                  "enum": ["table", "collection", "workflow", "view", "form", "function", "trigger", "webhook", "credential", "dashboard", "api", "mcp_server", "bot", "page", "campaign", "bucket", "other"]
+                },
+                "name": { "type": "string" },
+                "ref": { "type": "string", "description": "ID/slug в самом ПО (volatile ID — лучше в project-config)" }
+              }
+            }
+          },
+          "plugins": {
+            "type": "object",
+            "description": "Переопределения плагинов (по умолчанию выводимы: {tool}-{dev|ops|provision})",
+            "properties": {
+              "dev": { "type": "string" },
+              "ops": { "type": "string" },
+              "provision": { "type": "string" }
+            }
+          },
+          "cost": {
+            "type": "object",
+            "properties": {
+              "model": { "type": "string", "description": "free | subscription | usage | one_time" },
+              "usd_month": { "type": ["number", "string"] }
+            }
+          }
+        }
+      }
+    },
+
+    "entities": {
+      "type": "array",
+      "description": "ЛИНЗА 4: бизнес-сущности — структура, Data Sources и МАСТЕР-источник каждой",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "master", "stores"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string", "description": "string | number | boolean | date | enum | relation | file | json" },
+                "required": { "type": "boolean" },
+                "values": { "type": "array", "items": { "type": "string" }, "description": "Для enum" },
+                "relation": { "type": "string", "description": "→ entities[].id для type=relation" }
+              }
+            }
+          },
+          "stores": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Во всех каких Data Sources живёт сущность и в какой роли",
+            "items": {
+              "type": "object",
+              "required": ["software", "role"],
+              "properties": {
+                "software": { "type": "string", "description": "→ software[].id" },
+                "instance": { "type": "string", "description": "→ software[].instances[].id — КОНКРЕТНЫЙ инстанс, где живёт сущность (одна entity может жить в разных инстансах: prod и dev, инстанс на компанию группы)" },
+                "role": { "enum": ["master", "replica", "cache", "interface", "archive"] },
+                "collection": { "type": "string", "description": "Имя таблицы/коллекции в этом источнике" },
+                "sync": { "type": "string", "description": "Как синхронизируется с мастером (workflow id / shared-db / manual)" }
+              }
+            }
+          },
+          "master": { "type": "string", "description": "→ software[].id — единственный мастер-источник сущности" },
+          "state_fields": {
+            "type": "array",
+            "description": "Статусные поля, которые двигают процессы (statusVisa, statusOrd)",
+            "items": {
+              "type": "object",
+              "required": ["field"],
+              "properties": {
+                "field": { "type": "string" },
+                "states": { "type": "array", "items": { "type": "string" } },
+                "drives": { "type": "string", "description": "→ processes[].id" }
+              }
+            }
+          },
+          "relations": { "$ref": "#/$defs/refList", "description": "→ entities[].id" },
+          "volume": { "type": "string" }
+        }
+      }
+    },
+
+    "interfaces": {
+      "type": "array",
+      "description": "ЛИНЗА 5: интерфейсы стека — human и agent-facing. Уведомления = type: channel",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "audience"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "name": { "type": "string" },
+          "type": { "enum": ["web", "admin_ui", "spreadsheet", "dashboard", "form", "bot", "channel", "approval_center", "report", "api_portal", "cli"] },
+          "audience": { "enum": ["human", "agent", "both"] },
+          "mode": { "enum": ["ui", "agent_os", "api_mcp", "hybrid"] },
+          "software": { "type": "string", "description": "→ software[].id" },
+          "instances": { "$ref": "#/$defs/refList", "description": "→ software[].instances[].id — интерфейс может быть развёрнут в НЕСКОЛЬКИХ инстансах (prod и dev)" },
+          "path": { "type": "string", "description": "ОТНОСИТЕЛЬНЫЙ путь интерфейса ('/admin/approvals'). Полный URL = url инстанса + path — поэтому у интерфейса нет своего абсолютного url" },
+          "related": { "$ref": "#/$defs/refList", "description": "→ interfaces[].id — связанные интерфейсы (поток: форма → approval center → отчёт)" },
+          "roles": { "$ref": "#/$defs/refList", "description": "→ roles[].id — кому доступен" },
+          "entities": { "$ref": "#/$defs/refList" },
+          "workflows": { "$ref": "#/$defs/refList" },
+          "views": { "type": "array", "items": { "type": "string" }, "description": "kanban | calendar | table | gallery…" },
+          "languages": { "type": "array", "items": { "type": "string" } },
+          "status": { "$ref": "#/$defs/status" }
+        }
+      }
+    },
+
+    "connections": {
+      "type": "object",
+      "description": "ЛИНЗЫ 5-6: MCP/API/CLI-разводка — как агент достаёт каждый компонент",
+      "properties": {
+        "mcp": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "software": { "type": "string", "description": "→ software[].id" },
+              "instance": { "type": "string", "description": "→ software[].instances[].id — какой инстанс обслуживает этот MCP" },
+              "transport": { "enum": ["http", "stdio", "sse"] },
+              "auth": { "enum": ["oauth", "token_env", "none"] },
+              "url_env": { "type": "string", "description": "Имя env-ключа URL" },
+              "aggregator": { "type": "string", "description": "mcpware endpoint, если агрегируется" },
+              "capabilities": { "type": "string", "description": "Что агент делает через этот MCP" }
+            }
+          }
+        },
+        "apis": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "software": { "type": "string" },
+              "kind": { "type": "string", "description": "rest | graphql | s3 | sql" },
+              "url_env": { "type": "string" }
+            }
+          }
+        },
+        "clis": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "software": { "type": "string" }, "bin": { "type": "string" } }
+          }
+        }
+      }
+    },
+
+    "agents": {
+      "type": "object",
+      "description": "Систематизация агентов стека — два типа. STACK AGENTS: оркестрируют целым стеком — читают весь стек вместе с .claude/ (подгружают скиллы, правила, команды) и МОГУТ ПРАВИТЬ стек; runtime = AI CLI (Claude Code, Codex, OpenClaw, Hermes); в методологии это Super Agent / AI Client. MANAGED AGENTS: агенты, которыми стек управляет как ресурсами — вызываются по API или работают из интерфейса; определяются тройкой: модель (provider/model), инструкции, список MCP/API-доступов (tools)",
+      "properties": {
+        "stack_agents": {
+          "type": "array",
+          "description": "Агенты уровня стека (вне стека, с доступом к нему). Один агент может обслуживать много стеков — декларируется в каждом macstack.json со своим access. hierarchy_role — место в иерархии MACS: orchestrator (уровень А: OpenClaw/Hermes — мессенджер-фронтенд, принимает команду, делегирует, НЕ делает работу), worker (уровень Б: Claude Code/Codex в каталоге стека — вся тяжёлая работа, читает .claude/, правит стек), control_plane (уровень В: Paperclip — governance, не запускает LLM). Делегация всегда вниз",
+          "items": {
+            "type": "object",
+            "required": ["id", "runtime"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug", "description": "Идентификатор агента (openclaw-meg, claude-code-meg)" },
+              "name": { "type": "string" },
+              "runtime": {
+                "enum": ["claude-code", "codex", "openclaw", "hermes", "perplexity-computer", "cursor", "windsurf", "gemini-cli", "other"],
+                "description": "AI CLI / рантайм, который оживляет агента («проект = статика, CLI = runtime»)"
+              },
+              "hierarchy_role": { "enum": ["orchestrator", "worker", "control_plane"] },
+              "instance": { "type": "string", "description": "Имя инстанса/деплоя ({project}-{client}); где живёт — сервер, каталог стека" },
+              "tier": { "enum": [1, 2], "description": "Tier 1 = Plugins+Skills+MCP; Tier 2 = Skills+MCP" },
+              "reads_stack": { "type": "boolean", "description": "Читает весь стек вместе с .claude/ (скиллы, правила, команды). true для worker в каталоге стека" },
+              "can_modify_stack": { "type": "boolean", "description": "Право править стек (код, схемы, конфиги)" },
+              "channels": {
+                "type": "array",
+                "items": { "enum": ["telegram", "slack", "discord", "whatsapp", "imessage", "web", "cli"] },
+                "description": "Каналы общения с человеком (для orchestrator)"
+              },
+              "modes": {
+                "type": "array",
+                "items": { "enum": ["manual", "remote_interactive", "remote_autonomous", "headless"] }
+              },
+              "access": {
+                "$ref": "#/$defs/refList",
+                "description": "К чему агент имеет доступ в ЭТОМ стеке: → connections.mcp[].id | software[].id | interfaces[].id (cross-stack: '<stack-id>:<element-id>')"
+              },
+              "context_packs": { "$ref": "#/$defs/refList", "description": "→ context.packs[].name" },
+              "delegates_to": { "$ref": "#/$defs/refList", "description": "→ stack_agents[].id — кому делегирует (всегда вниз)" },
+              "model": { "type": "string", "description": "Модель provider/model (orchestrator — дешёвая, worker — сильная)" },
+              "billing": { "enum": ["subscription_oauth", "api_key"] },
+              "state": { "type": "string", "description": "Session persistence (--resume / state.json / manager)" },
+              "invocations": {
+                "type": "array",
+                "description": "Как агент запускается: канал (Telegram), вручную, триггером (routine/cron), из workflow (subprocess)",
+                "items": { "$ref": "#/$defs/agentInvocation" }
+              }
+            }
+          }
+        },
+        "managed_agents": {
+          "type": "array",
+          "description": "Управляемые агенты = модель + инструкции + tools (MCP/API-доступы). Вызываются по API (exposure: api), встроены в интерфейс (exposure: interface — AI Юрист в NocoBase) или работают внутри workflow (exposure: workflow — LLM-шаг)",
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "model"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "name": { "type": "string" },
+              "role": { "type": "string", "description": "Что делает (Анализ договоров, скоринг лидов…)" },
+              "model": { "type": "string", "description": "provider/model: anthropic/claude-sonnet-4.6, openai/chatgpt-5.5" },
+              "instructions": { "type": "string", "description": "Системные инструкции (кратко; длинные — в instructions_ref)" },
+              "instructions_ref": { "type": "string", "description": "Путь/ссылка на файл с полными инструкциями (не дублировать в macstack.json)" },
+              "tools": {
+                "type": "object",
+                "description": "К чему агент имеет доступ как к tools",
+                "properties": {
+                  "mcp": { "$ref": "#/$defs/refList", "description": "→ connections.mcp[].id" },
+                  "apis": { "$ref": "#/$defs/refList", "description": "→ connections.apis (software id) | внешние API" },
+                  "workflows": { "$ref": "#/$defs/refList", "description": "→ workflows[].id — какие workflows может запускать" },
+                  "native": { "type": "array", "items": { "type": "string" }, "description": "Платформенные тулы (knowledge-base-retrieve, dataQuery…)" }
+                }
+              },
+              "invocations": {
+                "type": "array",
+                "description": "Как агент ЗАПУСКАЕТСЯ (может несколькими путями): через интерфейс (юзер общается в чате), из workflow, триггером, прямым API-вызовом",
+                "items": { "$ref": "#/$defs/agentInvocation" }
+              },
+              "knowledge_base": { "type": "string" },
+              "languages": { "type": "array", "items": { "type": "string" } },
+              "available_to": { "$ref": "#/$defs/refList", "description": "→ roles[].id" }
+            }
+          }
+        }
+      }
+    },
+
+    "context": {
+      "type": "object",
+      "description": "ЛИНЗА 6: Claude-плагины и Context Packs. technology = {tool}-{dev|ops|provision} (операции), stack = описатели архитектуры, process = бизнес-workflows",
+      "properties": {
+        "plugins": {
+          "type": "object",
+          "properties": {
+            "technology": { "type": "array", "items": { "$ref": "#/$defs/slug" } },
+            "process": { "type": "array", "items": { "$ref": "#/$defs/slug" } },
+            "stack": { "type": "array", "items": { "$ref": "#/$defs/slug" } }
+          }
+        },
+        "packs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "enum": ["development", "operations", "provisioning"] },
+              "plugins": { "type": "array", "items": { "$ref": "#/$defs/slug" } }
+            }
+          }
+        },
+        "platforms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Целевые AI-клиенты (claude-code, codex, openclaw…)"
+        },
+        "marketplaces": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "roles": {
+      "type": "array",
+      "description": "Роли и доступ («що бачить / що може» + изоляция)",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "name": { "type": "string" },
+          "sees": { "type": "string" },
+          "can": { "type": "string" },
+          "acl": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "entity": { "type": "string", "description": "→ entities[].id" },
+                "fields": { "type": "array", "items": { "type": "string" } },
+                "actions": { "type": "array", "items": { "enum": ["create", "read", "update", "delete", "approve"] } }
+              }
+            }
+          },
+          "isolation": { "type": "string", "description": "Tenant-изоляция (например: по полю company)" }
+        }
+      }
+    },
+
+    "resources": {
+      "type": "object",
+      "description": "Входные ресурсы: доступы (env-имена + Infisical), внешние сервисы, данные, биндинги",
+      "properties": {
+        "accesses": {
+          "type": "array",
+          "description": "Реестр env-токенов стека — коды required ключей для .env. Скаффолдер macstack-dev генерирует из этого списка .env.example; линтер проверяет, что required-ключи присутствуют в .env",
+          "items": {
+            "type": "object",
+            "required": ["env"],
+            "properties": {
+              "env": { "type": "string", "description": "ИМЯ ключа в .env (значение — никогда)" },
+              "required": { "type": "boolean", "default": true, "description": "Обязателен ли токен для работы стека (false = нужен только для опциональной фичи)" },
+              "source": { "type": "string", "default": "infisical" },
+              "project": { "type": "string" },
+              "environment": { "type": "string" },
+              "for": { "type": "string", "description": "→ software[].id | connections.mcp[].id" },
+              "provided_by": { "enum": ["client", "us"] }
+            }
+          }
+        },
+        "external_services": { "type": "array", "items": { "type": "string" } },
+        "data_assets": { "type": "array", "items": { "type": "string" } },
+        "bindings": {
+          "type": "object",
+          "description": "Сервис-биндинги (infisical/dokploy/github/plane…)",
+          "additionalProperties": { "type": "object" }
+        }
+      }
+    },
+
+    "integrations": {
+      "type": "array",
+      "description": "Внешние системы: статус + подход + открытые вопросы",
+      "items": {
+        "type": "object",
+        "required": ["id", "system"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "system": { "type": "string" },
+          "direction": { "enum": ["pull", "push", "bidirectional", "tbd"] },
+          "approach": { "enum": ["api", "webhook", "mcp", "manual", "tbd"] },
+          "entities": { "$ref": "#/$defs/refList" },
+          "status": { "$ref": "#/$defs/status" },
+          "open_questions": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+
+    "lifecycle": {
+      "type": "object",
+      "description": "Статус по 7 delivery-этапам Assembly Process",
+      "properties": {
+        "stage": { "enum": ["define", "decompose", "specify", "compose", "test", "deploy", "iterate"] },
+        "coverage_target": { "type": "string", "description": "Принцип 70% → 95%" },
+        "open_questions": { "type": "array", "items": { "type": "string" } },
+        "needs_from_client": { "type": "array", "items": { "type": "string" } },
+        "next_steps": { "type": "array", "items": { "type": "string" } },
+        "updated": { "type": "string", "description": "Дата последней ревизии (YYYY-MM-DD)" }
+      }
+    },
+
+    "commercial": {
+      "type": "object",
+      "description": "Коммерческий слой: оффер и стоимость владения",
+      "properties": {
+        "offer": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "description": "Тип оффера из Offer Catalog" },
+            "price_range": { "type": "string" },
+            "model": { "enum": ["one_time", "subscription", "retainer", "usage"] }
+          }
+        },
+        "cost_of_ownership": {
+          "type": "object",
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "usd_month": { "type": ["number", "string"] }
+                }
+              }
+            },
+            "total_usd_month": { "type": ["number", "string"] }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+([-.][a-z0-9]+)*$" },
+    "agenticChannel": {
+      "anyOf": [{ "type": "boolean" }, { "const": "partial" }]
+    },
+    "stackRef": {
+      "type": "string",
+      "description": "Ссылка на другой macstack.json: 'github:owner/repo[#ref][/path]' | https-URL на репо или файл | ЛОКАЛЬНАЯ папка absolute path ('/Users/me/STACKS/crm') | absolute path к файлу. Папка/репо → берётся <root>/macstack.json"
+    },
+    "agentInvocation": {
+      "type": "object",
+      "required": ["via"],
+      "description": "Один способ запуска агента",
+      "properties": {
+        "via": {
+          "enum": ["interface", "workflow", "trigger", "api", "channel", "manual"],
+          "description": "interface = юзер общается через интерфейс (чат); workflow = вызывается внутри workflow; trigger = запускается триггером; api = прямой API-вызов; channel = мессенджер-канал (stack-агенты); manual = запуск человеком"
+        },
+        "interface": { "type": "string", "description": "→ interfaces[].id (для via=interface)" },
+        "workflow": { "type": "string", "description": "→ workflows[].id (для via=workflow)" },
+        "trigger": { "type": "string", "description": "→ triggers[].id (для via=trigger)" },
+        "channel": { "type": "string", "description": "telegram | slack | … (для via=channel)" }
+      }
+    },
+    "refList": { "type": "array", "items": { "type": "string" } },
+    "status": {
+      "enum": ["planned", "in_progress", "implemented", "partial", "ready_to_connect", "out_of_scope"]
+    }
+  }
+}
