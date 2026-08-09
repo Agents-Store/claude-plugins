@@ -17,7 +17,7 @@ Scan in this order and map findings to macstack.json sections:
 |---|---|
 | `package.json` / `requirements.txt` / `pyproject.toml` / `composer.json` | `software[]` candidates (frameworks, libraries) |
 | `docker-compose.yml` (services + images) | self-hosted `software[]` + `instances[]` (ports, env names) |
-| `.mcp.json` | `connections.mcp[]` (servers, transports, `${VAR}` → url_env) |
+| `.mcp.json` | `connections.mcp[]` (servers, transports, `${VAR}` → url_env). SECURITY: any HARDCODED token/key found here → flag as an open_question (rotate + move to `${VAR}`) |
 | `.env.example` / `.env` (key NAMES only, NEVER values) | `resources.accesses[]` |
 | `.claude/settings.json` enabledPlugins | `context.plugins` |
 | `.infisical.json`, `.dokploy.json`, `.plane.json` | `resources.bindings` |

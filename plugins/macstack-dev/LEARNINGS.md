@@ -15,3 +15,19 @@ Root cause / Severity.
   escape for embedded quotes) or multiline PEM/JWT values break `source .env`.
 - **Scaffold order is the product**: prototype → stack plugins → dev plugins. Every
   violation observed in testing produced files that contradicted the architecture.
+
+## 2026-08-09 — first real init-project run (macstack-website-directus-nextjs)
+
+- **Finding / Fix**: the audited project's `.mcp.json` contained HARDCODED credentials
+  (an xc-mcp-token and a Figma API key). init-project's audit table already reads
+  `.mcp.json` — added an explicit rule: flag any literal token/key found there as a
+  SECURITY open_question (rotate + move to `${VAR}`). Root cause: real projects drift;
+  the audit must treat `.mcp.json` as a secrets-scan surface, not just an MCP inventory.
+  Severity: high.
+- **Finding**: deep `grep` over `src/` can hang minutes on cloud-synced folders (iCloud
+  file materialization). Fix baked into practice: derive entities from schemas/types
+  with a timeout; on timeout record collection names as open_questions instead of
+  blocking. Severity: medium.
+- **Validation**: generated macstack.json passed schema + all integrity rules on the
+  first run; legacy stack.json mapped cleanly (layers→software, plugins→context.plugins,
+  parent→prototype candidate + open_question).
