@@ -1,0 +1,19 @@
+{
+  "skill_name": "background-job",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We deploy our Payload v3 + Next.js app with docker-compose (services: web on node standalone build, db postgres:18). We need a nightly job at 03:00 that finds subscriptions expiring within 7 days (collection `subscriptions`, fields `owner` relationship to users, `expiresAt` date, `notifiedAt` date) and emails each owner once. Right now nothing we queue ever executes in production, dev seems fine. Set this up end to end: the task definition, scheduling, the jobs config in payload.config.ts, and the docker-compose changes so jobs reliably run in production. Files with repo-relative paths please.",
+      "expected_output": "TaskConfig with schedule [{ cron, queue }]; jobs config registering the task; a runner whose queue name MATCHES the schedule queue (worker container running payload jobs:run --handle-schedules, or gated autoRun) — explaining that queued jobs need a runner in production; idempotency via notifiedAt check (email each owner once); docker-compose worker service or equivalent runnable production topology.",
+      "files": [],
+      "expectations": [
+        "Task defines schedule with a 03:00 cron and an explicit queue name",
+        "A production runner exists whose queue matches the schedule queue (worker container running payload jobs:run, or gated autoRun) and the answer explains why queued jobs never ran before",
+        "Owner is emailed only once — idempotency via notifiedAt (query excludes already-notified or handler checks/sets notifiedAt)",
+        "docker-compose includes a worker service (or an explicitly justified equivalent) so jobs run reliably in production",
+        "Schedule evaluation happens exactly once across instances (--handle-schedules on the worker only / disableScheduling elsewhere)",
+        "Task handler is retry-safe: small input, re-reads fresh data inside the handler"
+      ]
+    }
+  ]
+}

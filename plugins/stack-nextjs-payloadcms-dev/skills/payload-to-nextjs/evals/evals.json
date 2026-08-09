@@ -1,0 +1,20 @@
+{
+  "skill_name": "payload-to-nextjs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our marketing site runs Payload v3 embedded in Next.js 16 (App Router). Posts collection has drafts enabled (`_status`), fields title, slug (text, unique), content (richText), publishedAt. Problem: /blog (list) and /blog/[slug] pages are cached, and when an editor publishes or edits a post in the Payload admin panel the pages stay stale until we redeploy. Build the read path properly: a typed query layer, cached lists with tags, the post page with static params, and make admin-panel edits refresh the pages instantly. Write the TypeScript/TSX files with repo-relative paths.",
+      "expected_output": "Query helpers in src/lib/queries with published-only where filter, explicit depth/select and DTO mapping; tagged caching (unstable_cache or 'use cache' + cacheTag); an afterChange (and ideally afterDelete) hook on posts calling revalidatePath/revalidateTag so admin edits invalidate instantly; [slug] page with generateStaticParams, awaited params Promise, notFound(), and Lexical RichText rendering.",
+      "files": [],
+      "expectations": [
+        "afterChange hook on posts calls revalidatePath/revalidateTag so admin-panel edits refresh pages without redeploy",
+        "Unpublish (previousDoc published, now not) and/or delete also invalidates the previously published page",
+        "Public read queries filter _status equals published",
+        "Cached list uses a tag that matches the tag the hook revalidates",
+        "Post page awaits the params Promise (Next 15+ semantics) and calls notFound() for missing slugs",
+        "generateStaticParams prerenders published slugs",
+        "Rich text rendered via the Lexical RichText converter, not dangerouslySetInnerHTML"
+      ]
+    }
+  ]
+}

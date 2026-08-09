@@ -1,0 +1,19 @@
+{
+  "skill_name": "backend-logic",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "In our Next.js 16 + Payload CMS v3 app (HR portal, src/ layout with payload.config.ts, src/collections, src/hooks, src/actions, src/jobs) we already have an `expense-claims` collection: fields `employee` (relationship to employees), `amount` (number), `status` (select: pending/approved/rejected), `note` (textarea). Managers need to approve or reject claims from our React UI, and the rules must hold even when someone edits a claim in the Payload admin panel: only pending claims can be decided, decisions are final, we must record who decided and when, and the employee gets an email about the decision — the email must not slow down the request. Write the TypeScript files (hooks, server action, job, and the updated collection config wiring) using repo-relative paths.",
+      "expected_output": "beforeChange hook enforcing the pending->decided state machine with APIError and stamping reviewer from req.user; afterChange hook queueing an email job via payload.jobs.queue (not sending inline); TaskConfig job that sends the email; server action with auth check, overrideAccess: false + user, revalidatePath, and error-as-value returns; collection config wiring the hooks.",
+      "files": [],
+      "expectations": [
+        "beforeChange hook enforces pending-only transitions and rejects invalid ones with APIError (rule holds for admin panel too)",
+        "Reviewer identity and decision timestamp are stamped in a hook from req.user, not only in the server action",
+        "Decision email is queued as a Payload job (payload.jobs.queue + TaskConfig), not sent inline in the request",
+        "Server action authenticates the caller and mutates with overrideAccess: false + user",
+        "Server action returns expected errors as values (no throws for business failures) and calls revalidatePath on success",
+        "Job input carries the claim ID (not the whole document)"
+      ]
+    }
+  ]
+}
