@@ -1,6 +1,6 @@
 # Dokploy API — Complete Operation Index: Resources
 
-Auto-generated from the Dokploy v0.29.5 OpenAPI schema — the **exhaustive** list of resource/deployment operations. Every row maps 1:1 to an MCP tool `mcp__dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params. For curated usage patterns and gotchas see the `mcp-patterns` skill and the themed `api-*` references; this file is the complete coverage index.
+Auto-generated from the Dokploy v0.29.14 OpenAPI schema — the **exhaustive** list of resource/deployment operations. Every row maps 1:1 to an MCP tool `mcp__dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params. For curated usage patterns and gotchas see the `mcp-patterns` skill and the themed `api-*` references; this file is the complete coverage index.
 
 ## Contents
 - [project](#project) — Projects (top-level grouping) (9)
@@ -30,7 +30,7 @@ Auto-generated from the Dokploy v0.29.5 OpenAPI schema — the **exhaustive** li
 - [backup](#backup) — Resource-aware (DB-dump) backups (12)
 - [volumeBackups](#volumeBackups) — Raw volume backups (6)
 - [destination](#destination) — S3/R2 backup destinations (6)
-- [ai](#ai) — AI router (log analysis) (12)
+- [ai](#ai) — AI router (log analysis) (14)
 
 ## project
 _Projects (top-level grouping) — 9 operations._
@@ -174,11 +174,11 @@ _Domains / Traefik routing — 9 operations._
 | GET | `domain-byApplicationId` | applicationId* |
 | GET | `domain-byComposeId` | composeId* |
 | GET | `domain-canGenerateTraefikMeDomains` | serverId* |
-| POST | `domain-create` | host*, path, port, customEntrypoint, https, applicationId, certificateType, customCertResolver, composeId, serviceName, domainType, previewDeploymentId, internalPath, stripPath, …(+1) |
+| POST | `domain-create` | host*, path, port, customEntrypoint, https, applicationId, certificateType, customCertResolver, composeId, serviceName, domainType, previewDeploymentId, internalPath, stripPath, middlewares, forwardAuthEnabled |
 | POST | `domain-delete` | domainId* |
 | POST | `domain-generateDomain` | appName*, serverId |
 | GET | `domain-one` | domainId* |
-| POST | `domain-update` | host*, path, port, customEntrypoint, https, certificateType, customCertResolver, serviceName, domainType, internalPath, stripPath, middlewares, domainId* |
+| POST | `domain-update` | host*, path, port, customEntrypoint, https, certificateType, customCertResolver, serviceName, domainType, internalPath, stripPath, middlewares, forwardAuthEnabled, domainId* |
 | POST | `domain-validateDomain` | domain*, serverIp |
 
 ## port
@@ -415,12 +415,14 @@ _Cron schedules — 6 operations._
 
 | Method | Operation | Params (`*`=required) |
 |---|---|---|
-| POST | `schedule-create` | scheduleId, name*, description, cronExpression*, appName, serviceName, shellType, scheduleType, command*, script, applicationId, composeId, serverId, userId, …(+3) |
+| POST | `schedule-create` | scheduleId, name*, description, cronExpression*, appName, serviceName, shellType, scheduleType, command*, script, applicationId, composeId, serverId, organizationId, timezone, …(+2) |
 | POST | `schedule-delete` | scheduleId* |
 | GET | `schedule-list` | id*, scheduleType* |
 | GET | `schedule-one` | scheduleId* |
 | POST | `schedule-runManually` | scheduleId* |
-| POST | `schedule-update` | scheduleId*, name*, description, cronExpression*, appName, serviceName, shellType, scheduleType, command*, script, applicationId, composeId, serverId, userId, …(+3) |
+| POST | `schedule-update` | scheduleId*, name*, description, cronExpression*, appName, serviceName, shellType, scheduleType, command*, script, applicationId, composeId, serverId, organizationId, timezone, …(+2) |
+
+_v0.29.8 rescoped Dokploy-host schedules from user to organization (`organizationId`, formerly `userId`) and added a `timezone` field._
 
 ## patch
 _Deploy-time file patches — 12 operations._
@@ -483,7 +485,7 @@ _S3/R2 backup destinations — 6 operations._
 | POST | `destination-update` | name*, accessKey*, bucket*, region*, endpoint*, secretAccessKey*, destinationId*, provider*, additionalFlags*, serverId |
 
 ## ai
-_AI router (log analysis) — 12 operations._
+_AI router (log analysis) — 14 operations._
 
 | Method | Operation | Params (`*`=required) |
 |---|---|---|
@@ -493,9 +495,11 @@ _AI router (log analysis) — 12 operations._
 | POST | `ai-deploy` | environmentId*, id*, dockerCompose*, envVariables*, serverId, name*, description*, domains, configFiles |
 | GET | `ai-get` | aiId* |
 | GET | `ai-getAll` | — |
+| GET | `ai-getCustomProviders` | — |
 | GET | `ai-getEnabledProviders` | — |
 | GET | `ai-getModels` | apiUrl*, apiKey* |
 | GET | `ai-one` | aiId* |
+| POST | `ai-saveCustomProviders` | providers* |
 | POST | `ai-suggest` | aiId*, input*, serverId |
 | POST | `ai-testConnection` | apiUrl*, apiKey*, model* |
 | POST | `ai-update` | aiId*, name, apiUrl, apiKey, model, isEnabled, createdAt |

@@ -19,7 +19,7 @@ All database types share the same operations. Replace `{db}` with the database p
 | POST | `/{db}.create` | {db}.create | Create a new database service |
 | POST | `/{db}.update` | {db}.update | Update database configuration |
 | POST | `/{db}.remove` | {db}.remove | Delete a database service |
-| POST | `/{db}.move` | {db}.move | Move database to another project |
+| POST | `/{db}.move` | {db}.move | Move database to another environment |
 | POST | `/{db}.deploy` | {db}.deploy | Deploy/redeploy the database container |
 | POST | `/{db}.start` | {db}.start | Start a stopped database |
 | POST | `/{db}.stop` | {db}.stop | Stop a running database |
@@ -56,8 +56,8 @@ POST /redis.saveExternalPort
 ```json
 {
   "name": "string (required)",
-  "projectId": "string (required)",
-  "databasePassword": "string (auto-generated if omitted)",
+  "environmentId": "string (required — resources live under a project environment)",
+  "databasePassword": "string (REQUIRED for all types)",
   "dockerImage": "string (default: type-specific, e.g. postgres:15)",
   "description": "string",
   "serverId": "string (optional — target server)"
@@ -68,11 +68,11 @@ Type-specific create fields:
 
 | Type | Extra fields |
 |------|-------------|
-| postgres | `databaseName`, `databaseUser` |
-| mysql | `databaseName`, `databaseUser`, `databaseRootPassword` |
-| mariadb | `databaseName`, `databaseUser`, `databaseRootPassword` |
-| mongo | `databaseUser` |
-| redis | _(none — password only)_ |
+| postgres | `databaseName` (REQUIRED), `databaseUser` (REQUIRED) |
+| mysql | `databaseName` (REQUIRED), `databaseUser` (REQUIRED), `databaseRootPassword` (optional) |
+| mariadb | `databaseName` (REQUIRED), `databaseUser` (REQUIRED), `databaseRootPassword` (optional) |
+| mongo | `databaseUser` (REQUIRED) |
+| redis | _(none — `databasePassword` only, required)_ |
 
 ### one (all types)
 
@@ -132,7 +132,7 @@ Uses the type-specific ID parameter:
 ```json
 {
   "{type}Id": "string (required)",
-  "projectId": "string (required — target project)"
+  "targetEnvironmentId": "string (required — target environment)"
 }
 ```
 

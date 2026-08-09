@@ -46,13 +46,22 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/project.create" \
+curl -s -X POST "$DOKPLOY_URL/api/project.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "database-services", "description": "Databases for production applications"}'
 ```
 
 Save the returned `projectId`.
+
+**Resolve the target environment** — databases are created inside a project *environment* (default `production`):
+
+```
+mcp__dokploy__project-one { "projectId": "<projectId>" }
+   → environments[0].environmentId
+```
+
+Save the `environmentId`.
 
 ---
 
@@ -64,11 +73,13 @@ Save the returned `projectId`.
 mcp__dokploy__postgres-create
 ```
 
-Parameters:
+Parameters (`databaseName` and `databaseUser` are **required** for postgres):
 ```json
 {
   "name": "main-db",
-  "projectId": "<projectId>",
+  "environmentId": "<environmentId>",
+  "databaseName": "main",
+  "databaseUser": "postgres",
   "databasePassword": "secure-password-here",
   "dockerImage": "postgres:16-alpine"
 }
@@ -77,10 +88,10 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/postgres.create" \
+curl -s -X POST "$DOKPLOY_URL/api/postgres.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"name": "main-db", "projectId": "<projectId>", "databasePassword": "secure-password-here", "dockerImage": "postgres:16-alpine"}'
+  -d '{"name": "main-db", "environmentId": "<environmentId>", "databaseName": "main", "databaseUser": "postgres", "databasePassword": "secure-password-here", "dockerImage": "postgres:16-alpine"}'
 ```
 
 Save the returned `postgresId`.
@@ -116,7 +127,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/postgres.deploy" \
+curl -s -X POST "$DOKPLOY_URL/api/postgres.deploy" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"postgresId": "<postgresId>"}'
@@ -145,7 +156,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/postgres.saveExternalPort" \
+curl -s -X POST "$DOKPLOY_URL/api/postgres.saveExternalPort" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"postgresId": "<postgresId>", "externalPort": 5433}'
@@ -162,7 +173,7 @@ Create a backup schedule using the backup API.
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/backup.create" \
+curl -s -X POST "$DOKPLOY_URL/api/backup.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -188,7 +199,7 @@ curl -s -X POST "$DOKPLOY_URL/backup.create" \
 List available destinations:
 
 ```bash
-curl -s "$DOKPLOY_URL/destination.all" \
+curl -s "$DOKPLOY_URL/api/destination.all" \
   -H "x-api-key: $DOKPLOY_API_KEY"
 ```
 

@@ -45,13 +45,22 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/project.create" \
+curl -s -X POST "$DOKPLOY_URL/api/project.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "my-stack", "description": "Multi-container application stack"}'
 ```
 
 Save the returned `projectId`.
+
+**Resolve the target environment** — compose stacks are created inside a project *environment* (default `production`):
+
+```
+mcp__dokploy__project-one { "projectId": "<projectId>" }
+   → environments[0].environmentId
+```
+
+Save the `environmentId`.
 
 ---
 
@@ -66,7 +75,7 @@ mcp__dokploy__compose-create
 Parameters:
 ```json
 {
-  "projectId": "<projectId>",
+  "environmentId": "<environmentId>",
   "name": "my-stack",
   "appName": "my-stack"
 }
@@ -75,10 +84,10 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/compose.create" \
+curl -s -X POST "$DOKPLOY_URL/api/compose.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"projectId": "<projectId>", "name": "my-stack", "appName": "my-stack"}'
+  -d '{"environmentId": "<environmentId>", "name": "my-stack", "appName": "my-stack"}'
 ```
 
 Save the returned `composeId`.
@@ -106,7 +115,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/compose.update" \
+curl -s -X POST "$DOKPLOY_URL/api/compose.update" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"composeId": "<composeId>", "composeFile": "version: '\''3.8'\''\n\nservices:\n  web:\n    image: nginx:alpine\n    ports:\n      - \"80\"\n    depends_on:\n      - api\n\n  api:\n    image: node:20-alpine\n    ports:\n      - \"3000\"\n    environment:\n      - DATABASE_URL=postgresql://postgres:secret@db:5432/mydb\n    depends_on:\n      - db\n\n  db:\n    image: postgres:16-alpine\n    environment:\n      - POSTGRES_PASSWORD=secret\n      - POSTGRES_DB=mydb\n    volumes:\n      - ../files/pgdata:/var/lib/postgresql/data"}'
@@ -148,7 +157,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/compose.saveEnvironment" \
+curl -s -X POST "$DOKPLOY_URL/api/compose.saveEnvironment" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"composeId": "<composeId>", "env": "POSTGRES_PASSWORD=secret\nAPP_SECRET=my-secret-key"}'
@@ -174,7 +183,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/compose.deploy" \
+curl -s -X POST "$DOKPLOY_URL/api/compose.deploy" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"composeId": "<composeId>"}'
@@ -222,7 +231,7 @@ Parameters:
 **curl (web service):**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/domain.create" \
+curl -s -X POST "$DOKPLOY_URL/api/domain.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"composeId": "<composeId>", "host": "app.example.com", "port": 80, "https": true, "serviceName": "web"}'

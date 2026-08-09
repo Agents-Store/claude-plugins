@@ -2,7 +2,7 @@
 
 ## Contents
 - [Project (8 endpoints)](#project-8-endpoints)
-- [Application (29 endpoints)](#application-29-endpoints)
+- [Application (31 endpoints)](#application-31-endpoints)
 - [Environment (7 endpoints)](#environment-7-endpoints)
 - [Deployment (8 endpoints)](#deployment-8-endpoints)
 
@@ -41,7 +41,7 @@ Projects are top-level containers that hold applications, compose services, and 
 
 ---
 
-## Application (29 endpoints)
+## Application (31 endpoints)
 
 Applications are deployable services within a project — Docker images, GitHub repos, or raw Dockerfiles.
 
@@ -110,7 +110,8 @@ Applications are deployable services within a project — Docker images, GitHub 
 ```json
 {
   "name": "string (required)",
-  "projectId": "string (required)",
+  "environmentId": "string (required — resources live under a project environment)",
+  "appName": "string",
   "description": "string",
   "serverId": "string"
 }
@@ -135,10 +136,12 @@ Applications are deployable services within a project — Docker images, GitHub 
 ```json
 {
   "applicationId": "string (required)",
-  "repository": "string",
-  "branch": "string",
-  "owner": "string",
-  "buildPath": "string (default: /)"
+  "repository": "string (required — repo name only, NOT full URL)",
+  "branch": "string (required)",
+  "owner": "string (required)",
+  "githubId": "string (required — from gitProvider.getAll)",
+  "triggerType": "string (required, default: push)",
+  "buildPath": "string (required, default: /)"
 }
 ```
 
@@ -146,7 +149,7 @@ Applications are deployable services within a project — Docker images, GitHub 
 
 ## Environment (7 endpoints)
 
-Environments are scoped variable sets within a project, allowing staging/production separation.
+Environments partition a project (default: `production`); applications, databases and compose stacks are created **inside an environment** (`environmentId`) — resolve it via `environment.byProjectId` or the `environments` array on `project.one`.
 
 | Method | Path | operationId | Description |
 |--------|------|-------------|-------------|
@@ -177,7 +180,7 @@ Deployments track build and deploy history across all services.
 
 | Method | Path | operationId | Description |
 |--------|------|-------------|-------------|
-| GET | `/deployment.all` | deployment.all | List all deployments for an application |
+| GET | `/deployment.all` | deployment.all | List all deployments for an application (`applicationId` only) |
 | GET | `/deployment.allByCompose` | deployment.allByCompose | List deployments for a compose service |
 | GET | `/deployment.allByServer` | deployment.allByServer | List deployments on a specific server |
 | GET | `/deployment.allByType` | deployment.allByType | List deployments filtered by service type |

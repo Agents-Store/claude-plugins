@@ -18,16 +18,18 @@ This skill teaches: which providers Dokploy supports, how to wire one up, how to
 | Tool | Purpose |
 |---|---|
 | `mcp__dokploy__ai-getEnabledProviders` | List provider integrations that are *both* configured and enabled. If empty, no AI is available |
-| `mcp__dokploy__ai-getModels` | List models advertised by a specific provider |
+| `mcp__dokploy__ai-getModels` | List models a candidate endpoint advertises. Takes `{ apiUrl, apiKey }` (NOT `aiId`) |
 | `mcp__dokploy__ai-getAll` | List all configured providers (enabled or not) |
 | `mcp__dokploy__ai-get` / `mcp__dokploy__ai-one` | Read one provider's config |
 | `mcp__dokploy__ai-create` | Add a new provider (API key + model + endpoint) |
 | `mcp__dokploy__ai-update` | Update an existing provider's config |
 | `mcp__dokploy__ai-delete` | Remove a provider |
-| `mcp__dokploy__ai-testConnection` | Validate a provider's credentials and reachability before saving |
+| `mcp__dokploy__ai-testConnection` | Validate a candidate payload BEFORE saving. Takes `{ apiUrl, apiKey, model }` (NOT `aiId`) |
+| `mcp__dokploy__ai-getCustomProviders` | List org-defined custom provider presets (v0.29.13+) |
+| `mcp__dokploy__ai-saveCustomProviders` | Save org custom provider presets: `{ providers }` |
 | `mcp__dokploy__ai-deploy` | (Dokploy admin) deploy the AI orchestrator side-service |
 | `mcp__dokploy__ai-analyzeLogs` | **Headline feature:** summarise log **text you pass in** with the configured LLM, return root-cause + suggested fix. Signature: `{ aiId, logs, context: "build"\|"runtime" }` — NOT `{ deploymentId }` |
-| `mcp__dokploy__ai-suggest` | Ask the LLM what to do next given an application's current state (no specific failure) |
+| `mcp__dokploy__ai-suggest` | Ask the LLM for next-step recommendations. Signature: `{ aiId, input, serverId? }` — `input` is the question/state text |
 
 ---
 
@@ -62,10 +64,16 @@ Dokploy's AI router is provider-agnostic — anything that speaks the OpenAI cha
 | Ollama (self-hosted) | `http://<host>:11434/v1` | No API key required; model must be pulled on the server |
 | Self-hosted (vLLM, LM Studio, etc.) | provider-specific | Same shape — OpenAI-compatible |
 
-### Create + test the provider
+### Test, then create the provider
+
+`ai-testConnection` and `ai-getModels` take the **candidate payload** (`apiUrl` + `apiKey`), not an `aiId` — so test BEFORE saving:
 
 ```
-1. mcp__dokploy__ai-create
+1. mcp__dokploy__ai-testConnection
+   → { apiUrl: "https://api.openai.com/v1", apiKey: "<secret>", model: "gpt-4o-mini" }
+   → returns { ok: true/false, error?: string }
+
+2. mcp__dokploy__ai-create        # only after the test passes
    → {
        name: "openai-prod",
        apiKey: "<secret>",
@@ -75,13 +83,9 @@ Dokploy's AI router is provider-agnostic — anything that speaks the OpenAI cha
      }
    → returns { aiId }
 
-2. mcp__dokploy__ai-testConnection
-   → { aiId }
-   → returns { ok: true/false, error?: string }
-
 3. (optional) mcp__dokploy__ai-getModels
-   → { aiId }
-   → returns the provider's model list; useful if you want to switch the chosen model
+   → { apiUrl: "https://api.openai.com/v1", apiKey: "<secret>" }   # NOT aiId
+   → returns the endpoint's model list; useful if you want to switch the chosen model
 ```
 
 If `testConnection` returns `ok: false`, do not move on. Common causes:
@@ -130,11 +134,11 @@ When there's no specific failure but you want guidance ("what should I tighten o
 
 ```
 mcp__dokploy__ai-suggest
-  → { applicationId, prompt?: "<optional question>" }
-  → returns { suggestions: [{ title, detail, action? }] }
+  → { aiId: "<enabled provider>", input: "<the question / state description text>", serverId?: "<optional>" }
+  → returns suggestions
 ```
 
-`ai-suggest` differs from `ai-analyzeLogs` in that it takes the *current state* of the resource (env, build config, attached domains, recent deployment history) and generates recommendations. Use it for:
+`ai-suggest` differs from `ai-analyzeLogs` in that `input` is a free-form question or state description you compose (there is no `applicationId`/`prompt` form) — describe the app's config, env, and recent history in the `input` text. Use it for:
 
 - "Is my health-check configured correctly?"
 - "Should I switch this from Nixpacks to Dockerfile?"
@@ -173,7 +177,7 @@ Do not block on AI. The plugin must remain useful without it.
 | `ai-analyzeLogs` returns generic advice | Log was empty or only contained Dokploy framing | Confirm the deployment actually produced output — check `deployment-all`'s `logPath` |
 | 401 / 403 from `analyzeLogs` only | Provider key revoked or org rate-limited | Re-test with `ai-testConnection`; rotate key |
 | Tool not found (`mcp__dokploy__ai-…`) | `DOKPLOY_ENABLED_TAGS` is filtering it out | Add `ai` to the tag list in `.mcp.json` `env` |
-| Dokploy is older than v0.29 | AI router not yet present | Upgrade Dokploy server; the official `@dokploy/mcp` requires v0.29+ for the `ai` router |
+| Dokploy is older than v0.29 | AI router not yet present | Upgrade Dokploy server; the official `@dokploy/mcp` requires v0.29+ for the `ai` router. Custom provider presets (`ai-getCustomProviders`/`ai-saveCustomProviders`) need >= v0.29.13 |
 
 ---
 

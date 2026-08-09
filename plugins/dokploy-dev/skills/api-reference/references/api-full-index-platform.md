@@ -1,10 +1,10 @@
 # Dokploy API — Complete Operation Index: Platform & Admin
 
-Auto-generated from the Dokploy v0.29.5 OpenAPI schema — the **exhaustive** list of server, settings, git-provider, and tenancy/admin operations. Every row maps 1:1 to an MCP tool `mcp__dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params. Many of these are ops/admin surfaces outside the day-to-day dev flow — included for completeness.
+Auto-generated from the Dokploy v0.29.14 OpenAPI schema — the **exhaustive** list of server, settings, git-provider, and tenancy/admin operations. Every row maps 1:1 to an MCP tool `mcp__dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params. Many of these are ops/admin surfaces outside the day-to-day dev flow — included for completeness.
 
 ## Contents
-- [settings](#settings) — Server settings / health / cleanup (51)
-- [server](#server) — Managed remote servers (17)
+- [settings](#settings) — Server settings / health / cleanup (54)
+- [server](#server) — Managed remote servers (18)
 - [cluster](#cluster) — Docker Swarm cluster (4)
 - [swarm](#swarm) — Swarm node/container stats (4)
 - [sshKey](#sshKey) — SSH keys (7)
@@ -17,7 +17,9 @@ Auto-generated from the Dokploy v0.29.5 OpenAPI schema — the **exhaustive** li
 - [user](#user) — Users / API keys / permissions (23)
 - [organization](#organization) — Organizations / members / invitations (11)
 - [customRole](#customRole) — Custom roles (6)
-- [sso](#sso) — Single sign-on (10)
+- [sso](#sso) — Single sign-on (11)
+- [forwardAuth](#forwardauth) — Traefik forward-auth SSO gate for app domains (10)
+- [scim](#scim) — SCIM 2.0 user provisioning (enterprise) (3)
 - [licenseKey](#licenseKey) — Enterprise license (6)
 - [stripe](#stripe) — Cloud billing (8)
 - [whitelabeling](#whitelabeling) — Branding (4)
@@ -25,7 +27,7 @@ Auto-generated from the Dokploy v0.29.5 OpenAPI schema — the **exhaustive** li
 - [admin](#admin) — Admin-only ops (1)
 
 ## settings
-_Server settings / health / cleanup — 51 operations._
+_Server settings / health / cleanup — 54 operations._
 
 | Method | Operation | Params (`*`=required) |
 |---|---|---|
@@ -70,9 +72,12 @@ _Server settings / health / cleanup — 51 operations._
 | POST | `settings-setupGPU` | serverId |
 | POST | `settings-toggleDashboard` | enableDashboard, serverId |
 | POST | `settings-toggleRequests` | enable* |
+| POST | `settings-updateBuildsConcurrency` | buildsConcurrency* |
 | POST | `settings-updateDockerCleanup` | enableDockerCleanup*, serverId |
+| POST | `settings-updateEnforceSSO` | enforceSSO* |
 | POST | `settings-updateLogCleanup` | cronExpression* |
 | POST | `settings-updateMiddlewareTraefikConfig` | traefikConfig* |
+| POST | `settings-updateRemoteServersOnly` | remoteServersOnly* |
 | POST | `settings-updateServer` | — |
 | POST | `settings-updateServerIp` | serverIp* |
 | POST | `settings-updateTraefikConfig` | traefikConfig* |
@@ -82,7 +87,7 @@ _Server settings / health / cleanup — 51 operations._
 | POST | `settings-writeTraefikEnv` | env*, serverId |
 
 ## server
-_Managed remote servers — 17 operations._
+_Managed remote servers — 18 operations._
 
 | Method | Operation | Params (`*`=required) |
 |---|---|---|
@@ -101,6 +106,7 @@ _Managed remote servers — 17 operations._
 | POST | `server-setup` | serverId* |
 | POST | `server-setupMonitoring` | serverId*, metricsConfig* |
 | POST | `server-update` | name*, description*, serverId*, ipAddress*, port*, username*, sshKeyId*, serverType*, command |
+| POST | `server-updateBuildsConcurrency` | serverId*, buildsConcurrency* |
 | GET | `server-validate` | serverId* |
 | GET | `server-withSSHKey` | — |
 
@@ -305,12 +311,13 @@ _Custom roles — 6 operations._
 | POST | `customRole-update` | roleName*, newRoleName, permissions* |
 
 ## sso
-_Single sign-on — 10 operations._
+_Single sign-on — 11 operations._
 
 | Method | Operation | Params (`*`=required) |
 |---|---|---|
 | POST | `sso-addTrustedOrigin` | origin* |
 | POST | `sso-deleteProvider` | providerId* |
+| GET | `sso-enforceSSO` | — |
 | GET | `sso-getTrustedOrigins` | — |
 | GET | `sso-listProviders` | — |
 | GET | `sso-one` | providerId* |
@@ -319,6 +326,31 @@ _Single sign-on — 10 operations._
 | GET | `sso-showSignInWithSSO` | — |
 | POST | `sso-update` | providerId*, issuer*, domains*, oidcConfig, samlConfig, organizationId, overrideUserInfo |
 | POST | `sso-updateTrustedOrigin` | oldOrigin*, newOrigin* |
+
+## forwardAuth
+_Traefik forward-auth "Application Authentication" — SSO login gate in front of app domains, powered by oauth2-proxy (enterprise, v0.29.8+). 10 operations._
+
+| Method | Operation | Params (`*`=required) |
+|---|---|---|
+| POST | `forwardAuth-deployOnServer` | serverId*, providerId* |
+| POST | `forwardAuth-disable` | domainId* |
+| POST | `forwardAuth-enable` | domainId* |
+| GET | `forwardAuth-getAuthDomain` | serverId* |
+| GET | `forwardAuth-listProviders` | — |
+| POST | `forwardAuth-removeAuthDomain` | serverId* |
+| POST | `forwardAuth-removeOnServer` | serverId* |
+| GET | `forwardAuth-serverStatus` | — |
+| POST | `forwardAuth-setAuthDomain` | serverId*, authDomain*, https, certificateType, customCertResolver |
+| GET | `forwardAuth-status` | domainId* |
+
+## scim
+_SCIM 2.0 provisioning — IdP-driven user create/update/deactivate (enterprise, v0.29.11+). 3 operations._
+
+| Method | Operation | Params (`*`=required) |
+|---|---|---|
+| POST | `scim-deleteProvider` | providerId* |
+| POST | `scim-generateToken` | providerId* |
+| GET | `scim-listProviders` | — |
 
 ## licenseKey
 _Enterprise license — 6 operations._

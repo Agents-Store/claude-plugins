@@ -9,7 +9,7 @@ This is the **canonical workflow** when a Dokploy deployment fails, gets stuck, 
 
 Companion command: **`/dokploy-dev:debug [applicationId|composeId]`** runs this entire chain.
 
-> **Reading logs (Dokploy v0.29.5):** Runtime **and** build logs are available directly over the REST API / MCP — no SSH or Beszel needed (the old [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) gap is closed). There are two distinct artifacts: the **build log** (`deployment-readLogs { deploymentId, tail }`) explains why an image failed to build; the **runtime log** (`application-readLogs` / per-container `compose-readLogs` / `{db}-readLogs`, all with `tail`/`since`/`search`) explains why a running container is crashing. For a multi-container Compose stack you must enumerate the containers and read **each** one — see the [`read-logs`](../read-logs/SKILL.md) skill, which this workflow uses for every log read below.
+> **Reading logs (Dokploy v0.29.5+; current v0.29.14):** Runtime **and** build logs are available directly over the REST API / MCP — no SSH or Beszel needed (the old [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) gap is closed). There are two distinct artifacts: the **build log** (`deployment-readLogs { deploymentId, tail }`) explains why an image failed to build; the **runtime log** (`application-readLogs` / per-container `compose-readLogs` / `{db}-readLogs`, all with `tail`/`since`/`search`) explains why a running container is crashing. For a multi-container Compose stack you must enumerate the containers and read **each** one — see the [`read-logs`](../read-logs/SKILL.md) skill, which this workflow uses for every log read below.
 
 ---
 
@@ -33,11 +33,12 @@ Find the most recent deployment for the resource and confirm its status.
 **For a single resource (you know the ID):**
 
 ```
-mcp__dokploy__deployment-all
-  → { applicationId: "<id>" }     # for applications
-  → { composeId: "<id>" }         # for compose stacks
-  → { serverId: "<id>" }          # for server-level deploys
+mcp__dokploy__deployment-all          → { applicationId: "<id>" }   # applications ONLY
+mcp__dokploy__deployment-allByCompose → { composeId: "<id>" }       # compose stacks
+mcp__dokploy__deployment-allByServer  → { serverId: "<id>" }        # server-level deploys
 ```
+
+(`deployment-all` takes only `applicationId` — compose and server deploys have their own list tools.)
 
 **For "I don't know which app failed":**
 
@@ -53,7 +54,7 @@ In both responses, look at `status`. Values you care about:
 | `running` | Build / deploy in progress | Step 2 (read live logs) |
 | `error` | Deploy failed | Step 2, then Step 3 |
 | `done` but site unchanged | Compose-mode mismatch — you deployed the standalone app while production runs from compose, or vice-versa | Re-check via `project-one`; deploy the *compose* resource using `compose-deploy` |
-| `queued` for >2 minutes | Queue stuck | Step 5 (recovery: `cleanQueues`) |
+| `queued` for >2 minutes | Queue stuck | Step 5 (recovery: `cleanQueues`). If queued deploys pile up on a busy server: builds run in per-server queues since v0.29.9 — tune concurrency via `settings-updateBuildsConcurrency { buildsConcurrency }` (Dokploy host) / `server-updateBuildsConcurrency { serverId, buildsConcurrency }` (remote servers); OSS max 2 |
 
 Save the `deploymentId` of the failed run — multiple steps below take it.
 
@@ -72,6 +73,7 @@ Logs are the single most informative artifact. Pick the **right** log for the fa
   curl -s -G "$DOKPLOY_URL/api/deployment.readLogs" -H "x-api-key: $DOKPLOY_API_KEY" \
     --data-urlencode "deploymentId=<from Step 1>" --data-urlencode "tail=500" | tr '\r' '\n'
   ```
+  CLI alternative: `dokploy deployment read-logs --deploymentId <id> --tail 500`.
   Always read the actual build log before forming a root cause — a ~15s "instant" failure looks the same for a dozen different causes (corepack, lockfile, frozen-install policy, OOM), and only the log distinguishes them. See the [`read-logs`](../read-logs/SKILL.md) §3 fallback for details.
 - **Build succeeded but the container is crashing / erroring at runtime** → read the **runtime log**:
   - App: `mcp__dokploy__application-readLogs { applicationId, tail: 300, since: "1h", search?: "error" }`

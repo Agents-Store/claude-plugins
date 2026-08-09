@@ -1,4 +1,4 @@
-# API Reference: Domains, Certificates, Security, Redirects, Ports
+# API Reference: Domains, Certificates, Security, Redirects, Ports, Forward Auth
 
 ## Contents
 - [Domain (9 endpoints)](#domain-9-endpoints)
@@ -6,6 +6,7 @@
 - [Security (4 endpoints)](#security-4-endpoints)
 - [Redirects (4 endpoints)](#redirects-4-endpoints)
 - [Port (4 endpoints)](#port-4-endpoints)
+- [Forward Auth (Application Authentication) (10 endpoints)](#forward-auth-application-authentication-10-endpoints)
 
 ## Domain (9 endpoints)
 
@@ -19,7 +20,7 @@ Domains map hostnames to applications and compose services via Traefik.
 | POST | `/domain.create` | domain.create | Create a new domain mapping |
 | POST | `/domain.update` | domain.update | Update domain configuration |
 | POST | `/domain.delete` | domain.delete | Remove a domain mapping |
-| POST | `/domain.validateDomain` | domain.validateDomain | Check if a domain is valid and resolvable |
+| POST | `/domain.validateDomain` | domain.validateDomain | Check if a domain is valid and resolvable. Input: `domain` (the hostname string, NOT domainId), optional `serverIp` |
 | POST | `/domain.generateDomain` | domain.generateDomain | Auto-generate a subdomain (traefik.me) |
 | GET | `/domain.canGenerateTraefikMeDomains` | domain.canGenerateTraefikMeDomains | Check if traefik.me auto-domains are available |
 
@@ -35,7 +36,8 @@ Domains map hostnames to applications and compose services via Traefik.
   "certificateType": "letsencrypt | none (default: letsencrypt)",
   "applicationId": "string (one of applicationId or composeId required)",
   "composeId": "string (one of applicationId or composeId required)",
-  "serviceName": "string (required for compose — which service in the compose file)"
+  "serviceName": "string (required for compose — which service in the compose file)",
+  "forwardAuthEnabled": "boolean (v0.29.8+, enterprise — gate this domain behind the server's forward-auth SSO)"
 }
 ```
 
@@ -47,7 +49,8 @@ Domains map hostnames to applications and compose services via Traefik.
   "path": "string",
   "port": "number",
   "https": "boolean",
-  "certificateType": "string"
+  "certificateType": "string",
+  "forwardAuthEnabled": "boolean (v0.29.8+, enterprise)"
 }
 ```
 
@@ -155,3 +158,32 @@ Expose additional container ports beyond the main service port.
   "applicationId": "string"
 }
 ```
+
+---
+
+## Forward Auth (Application Authentication) (10 endpoints)
+
+v0.29.8+ (enterprise). Traefik forward-auth powered by **oauth2-proxy**: put an SSO/OIDC login in front of any deployed application's domain **without changing app code**. Managed in the dashboard under **Settings → SSO → Application Authentication**.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/forwardAuth.listProviders` | List available SSO providers for forward-auth (no params) |
+| POST | `/forwardAuth.setAuthDomain` | Set the auth domain on a server. Input: `serverId` (req), `authDomain` (req), `https`, `certificateType`, `customCertResolver` |
+| GET | `/forwardAuth.getAuthDomain` | Read a server's auth domain. Input: `serverId` (req) |
+| POST | `/forwardAuth.removeAuthDomain` | Remove a server's auth domain. Input: `serverId` (req) |
+| POST | `/forwardAuth.deployOnServer` | Deploy the oauth2-proxy side-service on a server. Input: `serverId` (req), `providerId` (req) |
+| POST | `/forwardAuth.removeOnServer` | Remove the forward-auth deployment from a server. Input: `serverId` (req) |
+| GET | `/forwardAuth.serverStatus` | Forward-auth deployment status across servers (no params) |
+| POST | `/forwardAuth.enable` | Gate one domain behind forward-auth. Input: `domainId` (req) |
+| POST | `/forwardAuth.disable` | Ungate a domain. Input: `domainId` (req) |
+| GET | `/forwardAuth.status` | Forward-auth state for one domain. Input: `domainId` (req) |
+
+`domain.create` / `domain.update` accept `forwardAuthEnabled: boolean` to gate a domain at creation/update time.
+
+### Typical flow
+
+1. `forwardAuth.listProviders` → pick a `providerId`
+2. `forwardAuth.setAuthDomain { serverId, authDomain, https, certificateType }`
+3. `forwardAuth.deployOnServer { serverId, providerId }`
+4. `forwardAuth.enable { domainId }` (per app domain to protect)
+5. Verify: `forwardAuth.status { domainId }` / `forwardAuth.serverStatus`

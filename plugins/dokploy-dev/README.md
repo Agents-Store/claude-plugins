@@ -2,7 +2,7 @@
 
 Dokploy self-hosted PaaS development plugin for Claude Code. Deploy applications, provision databases, manage domains, Docker Compose stacks, backups, server operations — **and debug failed deployments end-to-end** with AI-powered log analysis.
 
-Uses the **official** `@dokploy/mcp` server (maintained by the Dokploy team). Aligned with Dokploy **v0.29.5**.
+Uses the **official** `@dokploy/mcp` server (maintained by the Dokploy team). Aligned with Dokploy **v0.29.14**.
 
 **Reads runtime logs of every container** — including each container in a Docker Compose stack — over the API/MCP (no SSH/Beszel), and diagnoses errors end-to-end.
 
@@ -10,9 +10,9 @@ Uses the **official** `@dokploy/mcp` server (maintained by the Dokploy team). Al
 
 | Interface | Package | Tools/Endpoints | Logs/debug? |
 |-----------|---------|-----------------|-------------|
-| MCP Server | `@dokploy/mcp` | 500+ tools across 49 categories | ✅ runtime + build logs, AI analysis, docker introspection |
-| REST API | — | 500+ endpoints (OpenAPI v0.29.5) | ✅ `GET /api/*.readLogs` |
-| CLI | `@dokploy/cli` | provisioning/deploy commands (project, app, database, env, auth) | ❌ no log/debug command — use MCP/API |
+| MCP Server | `@dokploy/mcp` | 546 tools across 50 categories | ✅ runtime + build logs, AI analysis, docker introspection |
+| REST API | — | 546 endpoints (OpenAPI v0.29.14) | ✅ `GET /api/*.readLogs` |
+| CLI | `@dokploy/cli` | 546 auto-generated commands (`dokploy <group> <action>`), 1:1 with the API | ✅ `<group> read-logs` commands |
 
 ## Skills
 
@@ -21,7 +21,7 @@ Uses the **official** `@dokploy/mcp` server (maintained by the Dokploy team). Al
 | `setup` | Verify MCP connection, CLI installation, and API access |
 | `mcp-patterns` | Core MCP tools by category with usage patterns (filterable via `DOKPLOY_ENABLED_TAGS`) |
 | `api-reference` | REST API endpoint reference across 7 reference files (projects/apps, databases, domains, compose/docker, server/settings, ai-and-debugging, schedule-patch-previews) |
-| `cli-recipes` | CLI commands and workflow recipes |
+| `cli-recipes` | Auto-generated CLI (0.29.x): auth, command model, provisioning + read-logs recipes |
 | `read-logs` | Read runtime + build logs of any resource — app, **every container in a Compose stack**, database, or deployment — with `tail`/`since`/`search` and AI-triage handoff |
 | `debug-deploy` | End-to-end failed-deployment decision tree — failed-run lookup → build/runtime logs → container/Traefik inspection → AI summary → recovery |
 | `ai-assist` | Configure AI providers and call `ai-analyzeLogs` / `ai-suggest` for log analysis and recommendations |
@@ -59,7 +59,7 @@ The command runs through `debug-deploy/SKILL.md`:
 
 1. **Step 0** — platform health (`settings-checkInfrastructureHealth`, `getDockerDiskUsage`)
 2. **Step 1** — locate the failed run (`deployment-all`, save `deploymentId`)
-3. **Step 2** — read the logs (v0.29.5, all over MCP/REST): build → `deployment-readLogs { deploymentId, tail }`; app runtime → `application-readLogs { applicationId, tail, since, search }`; **Compose → every container** via `docker-getContainersByAppNameMatch` then `compose-readLogs { composeId, containerId }` per container (`/dokploy-dev:compose-logs`); db → `{type}-readLogs`
+3. **Step 2** — read the logs (all over MCP/REST/CLI): build → `deployment-readLogs { deploymentId, tail }`; app runtime → `application-readLogs { applicationId, tail, since, search }`; **Compose → every container** via `docker-getContainersByAppNameMatch` then `compose-readLogs { composeId, containerId }` per container (`/dokploy-dev:compose-logs`); db → `{type}-readLogs`
 4. **Step 3** — inspect the container (`docker-getContainersByAppLabel { appName, type }`, `docker-getConfig`)
 5. **Step 4** — check Traefik routing (`application-readTraefikConfig`)
 6. **Step 5** — recover with the smallest safe action (`killBuild` / `cleanQueues` / `dropDeployment` / `rollback-rollback`)
@@ -76,6 +76,7 @@ The command runs through `debug-deploy/SKILL.md`:
 
 - A running Dokploy instance
 - Dokploy API key (generate in Dokploy dashboard under user settings)
+- Recommended Dokploy server >= v0.29.13 (large batch of command-injection/IDOR security fixes)
 
 ## Configuration
 
@@ -86,7 +87,7 @@ The plugin reads two environment variables, used across all three interfaces:
 | `DOKPLOY_URL` | Dokploy server base URL **without** `/api` (e.g. `https://dokploy.example.com`). MCP/REST endpoints live at `/api/…` under it | MCP, REST API |
 | `DOKPLOY_API_KEY` | Dokploy access token (Settings > API/Tokens) | MCP, REST API |
 
-`.mcp.json` injects these into the `@dokploy/mcp` server via `${DOKPLOY_URL}` / `${DOKPLOY_API_KEY}` — set them in your Claude Code environment (e.g. the `env` block of `.claude/settings.local.json`, or your shell). The **CLI** uses the same access token via `dokploy authenticate` (stored in its own `config.json`).
+`.mcp.json` injects these into the `@dokploy/mcp` server via `${DOKPLOY_URL}` / `${DOKPLOY_API_KEY}` — set them in your Claude Code environment (e.g. the `env` block of `.claude/settings.local.json`, or your shell). The **CLI** reads the same `DOKPLOY_URL`/`DOKPLOY_API_KEY` env vars directly (or `dokploy auth -u <url> -t <token>` to persist them).
 
 > After changing either value, **restart Claude Code or reconnect the `dokploy` MCP server** (`/mcp` → reconnect) — a stdio MCP server reads its env once at startup. Symptoms of a stale process: "Invalid URL" (empty `DOKPLOY_URL`) or 401 (bad key).
 
@@ -94,7 +95,13 @@ The plugin reads two environment variables, used across all three interfaces:
 
 | Variable | Purpose |
 |----------|---------|
-| `DOKPLOY_ENABLED_TAGS` | Comma-separated category filter (e.g. `project,application,domain,compose,postgres,deployment,docker,settings,ai,rollback,schedule`) to reduce the exposed tool surface from 500+ down to what you actually need. Include `ai` and `docker` to keep the `/dokploy-dev:debug` workflow working |
+| `DOKPLOY_ENABLED_TAGS` | Comma-separated category filter (e.g. `project,application,domain,compose,postgres,deployment,docker,settings,ai,rollback,schedule`) to reduce the exposed tool surface from 546 down to what you actually need. Include `ai` and `docker` to keep the `/dokploy-dev:debug` workflow working |
+| `DOKPLOY_TOOL_PRESET` | Predefined toolset: `all` (default), `minimal`, `core`, `deploy`, `databases`, `git` |
+| `DOKPLOY_DISABLED_TAGS` | Comma-separated categories to exclude (inverse of `DOKPLOY_ENABLED_TAGS`) |
+| `DOKPLOY_CUSTOM_HEADERS` | JSON object of extra headers sent to the upstream Dokploy API |
+| `DOKPLOY_REDACT_ENV` | Default `true` — redact secrets/env values in tool responses |
+| `DOKPLOY_REDACT_FIELDS` | Extra response fields to redact |
+| `MCP_TRANSPORT` | `stdio` (default); `http` for Streamable HTTP (+ legacy SSE) |
 | `DOKPLOY_TIMEOUT` | Per-request timeout in ms (default `30000`) |
 | `DOKPLOY_RETRY_ATTEMPTS` | Retry count on transient failure (default `3`) |
 | `DOKPLOY_RETRY_DELAY` | Retry backoff in ms (default `1000`) |
@@ -103,5 +110,5 @@ The plugin reads two environment variables, used across all three interfaces:
 
 ```bash
 npm install -g @dokploy/cli
-dokploy authenticate
+dokploy auth -u https://dokploy.example.com -t <API_KEY>   # or just export DOKPLOY_URL / DOKPLOY_API_KEY
 ```

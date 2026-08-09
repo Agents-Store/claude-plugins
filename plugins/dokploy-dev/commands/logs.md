@@ -6,7 +6,7 @@ allowed-tools: [Read, Bash, Skill, Agent]
 
 # Read Dokploy Logs
 
-Unified log reader. Resolves the resource type and reads logs **directly over MCP/REST** (Dokploy v0.29.5 — runtime logs are first-class; no SSH/Beszel needed). For a multi-container compose stack, use `/dokploy-dev:compose-logs` instead — it reads every container.
+Unified log reader. Resolves the resource type and reads logs **directly over MCP/REST** (Dokploy v0.29.5+ — runtime logs are first-class over MCP/REST/CLI; no SSH/Beszel needed). For a multi-container compose stack, use `/dokploy-dev:compose-logs` instead — it reads every container.
 
 Follow the `read-logs` skill (`${CLAUDE_PLUGIN_ROOT}/skills/read-logs/SKILL.md`) — load it first.
 

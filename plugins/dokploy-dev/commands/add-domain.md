@@ -1,6 +1,7 @@
 ---
 description: Add a custom domain to a Dokploy application
 argument-hint: <domain> --app <app-name-or-id> [--port <port>] [--https]
+allowed-tools: [Read, Bash, Skill, Agent]
 ---
 
 # Add Domain
@@ -27,7 +28,7 @@ Parse from "$ARGUMENTS".
    - `path`: `/`
    - `https`: true if --https flag provided
 
-3. **Validate domain** using MCP tool `domain-validateDomain` to check DNS resolution.
+3. **Validate domain** using MCP tool `domain-validateDomain { domain: "<host>", serverIp? }` — pass the **hostname string** (NOT the domainId) to check DNS resolution.
 
 4. **Display result:**
    Show domain, port, HTTPS status, and validation result. If DNS not resolving, remind user to add an A record pointing to the server IP.

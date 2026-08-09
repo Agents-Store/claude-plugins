@@ -17,7 +17,7 @@ The plugin needs two values — the Dokploy **base URL** (no `/api` suffix) and 
 |---|---|---|
 | **MCP** (`@dokploy/mcp`) | `.mcp.json` `env` block expands `${DOKPLOY_URL}` / `${DOKPLOY_API_KEY}` from the Claude Code environment (e.g. the `env` block of `.claude/settings.local.json`, or your shell) | `DOKPLOY_URL`, `DOKPLOY_API_KEY` |
 | **REST API** (`curl`) | Same env vars in your shell | `DOKPLOY_URL`, `DOKPLOY_API_KEY` |
-| **CLI** (`@dokploy/cli`) | Its own `config.json`, written by `dokploy authenticate` | run `dokploy authenticate` (same token + base URL) |
+| **CLI** (`@dokploy/cli`) | Reads the SAME `DOKPLOY_URL`/`DOKPLOY_API_KEY` env vars (or a CWD `.env`); falls back to `config.json` written by `dokploy auth -u <url> -t <token>` | `DOKPLOY_URL`, `DOKPLOY_API_KEY` (or run `dokploy auth`) |
 
 - `DOKPLOY_URL` = the server **base URL without `/api`** (e.g. `https://dokploy.example.com`). MCP and REST endpoints live at `/api/…` under it.
 - `DOKPLOY_API_KEY` = an access token from **Settings > API/Tokens** (or **Settings > Profile**). The **same token** works for MCP, REST, and the CLI.
@@ -26,7 +26,7 @@ Before verifying, confirm `DOKPLOY_URL` and `DOKPLOY_API_KEY` resolve to real va
 
 ### Optional: reduce the exposed tool surface
 
-The official `@dokploy/mcp` server exposes 500+ tools across 49 categories. If that is more than you need, set `DOKPLOY_ENABLED_TAGS` in the plugin's `.mcp.json` `env` block to a comma-separated list of categories (e.g. `project,application,domain,compose,postgres,settings,deployment,docker`). The server will then only expose tools from those categories.
+The official `@dokploy/mcp` server exposes 546 tools across 50 categories. If that is more than you need, set `DOKPLOY_ENABLED_TAGS` in the plugin's `.mcp.json` `env` block to a comma-separated list of categories (e.g. `project,application,domain,compose,postgres,settings,deployment,docker`). The server will then only expose tools from those categories. Alternatively set `DOKPLOY_TOOL_PRESET` (`all`|`minimal`|`core`|`deploy`|`databases`|`git`) or `DOKPLOY_DISABLED_TAGS` to exclude categories.
 
 ### How to obtain an API key
 
@@ -73,13 +73,14 @@ Report the specific error message from the MCP call to help diagnose.
 
 ## Step 2: Verify CLI Installation
 
-Run the Dokploy CLI verification command:
+Check the CLI is installed, then make a real call (there is NO `dokploy verify` command in the 0.29.x auto-generated CLI):
 
 ```bash
-dokploy verify
+dokploy --version        # versions in lockstep with Dokploy, e.g. 0.29.14
+dokploy project all      # real API call — succeeds only when auth works
 ```
 
-### If the command succeeds
+### If the commands succeed
 
 Report: "Dokploy CLI is installed and authenticated."
 
@@ -91,20 +92,21 @@ Install the CLI globally:
 npm install -g @dokploy/cli
 ```
 
-Then authenticate with the server:
+Then authenticate — non-interactive:
 
 ```bash
-dokploy authenticate
+dokploy auth -u https://dokploy.example.com -t $DOKPLOY_API_KEY
 ```
 
-When prompted, provide:
-- **Server URL** — The Dokploy instance URL (e.g. `https://dokploy.example.com`). Do NOT include `/api` suffix for CLI auth.
-- **Access token** — the same token used for `DOKPLOY_API_KEY` (Settings > API/Tokens). `authenticate` saves it to the CLI's `config.json`.
+Or simply export `DOKPLOY_URL` / `DOKPLOY_API_KEY` — the CLI reads the **same env vars** as MCP/REST, and env wins over `config.json`.
+
+- **Server URL** — the Dokploy instance URL (e.g. `https://dokploy.example.com`). Do NOT include `/api` suffix for CLI auth.
+- **Access token** — the same token used for `DOKPLOY_API_KEY` (Settings > API/Tokens). `dokploy auth` validates it against `/api/trpc/user.get` and saves it to the CLI's `config.json`.
 
 After authentication, re-run:
 
 ```bash
-dokploy verify
+dokploy project all
 ```
 
 ### If authentication fails
@@ -188,7 +190,7 @@ If any step fails, provide the specific fix instructions from the relevant secti
 | MCP not connecting | Tool calls return "server not found" or timeout | Verify `.mcp.json` exists, `npx @dokploy/mcp` works, and env vars are set |
 | MCP returns "Invalid URL" | `DOKPLOY_URL` empty/wrong **in the running server process** | Set `DOKPLOY_URL` (base URL, no `/api`, no trailing slash), then **restart Claude Code or `/mcp` → reconnect `dokploy`** — a stdio MCP server reads env once at spawn and won't pick up edits to `settings.local.json`/`.env` until reconnected |
 | MCP returns 401 "Authentication failed" | `DOKPLOY_API_KEY` invalid/stale in the running process | Fix the token, then reconnect the server (as above). Confirm `settings.local.json` and `.env` hold the **same** key |
-| CLI auth fails | `dokploy authenticate` returns 401 | Use base URL without `/api` suffix; regenerate token |
+| CLI auth fails | `dokploy auth` fails (401 / invalid) | Check the base URL has no `/api` suffix; regenerate the token. Env vars `DOKPLOY_URL`/`DOKPLOY_API_KEY` override `config.json` — make sure they're not stale |
 | API 401 Unauthorized | `curl` returns 401 | Token expired or invalid — regenerate in dashboard |
 | API connection refused | `curl` returns 000 or "connection refused" | Wrong URL, server down, or firewall blocking the port |
 | Self-signed cert errors | `UNABLE_TO_VERIFY_LEAF_SIGNATURE` | Set `NODE_TLS_REJECT_UNAUTHORIZED=0` for dev environments |
@@ -200,7 +202,7 @@ If any step fails, provide the specific fix instructions from the relevant secti
 ## What This Skill Does NOT Cover
 
 - **Application deployment workflows** — See the `mcp-patterns` skill for MCP tool sequences to deploy apps, provision databases, and manage domains.
-- **API endpoint details** — See the `api-reference` skill for the REST API surface (500+ endpoints across 49 routers, Dokploy v0.29.5) with parameters and response schemas.
+- **API endpoint details** — See the `api-reference` skill for the REST API surface (546 endpoints across 50 routers, Dokploy v0.29.14) with parameters and response schemas.
 - **Reading logs / debugging deploys** — See the `read-logs` and `debug-deploy` skills (and `/dokploy-dev:logs`, `/dokploy-dev:compose-logs`, `/dokploy-dev:debug`).
 - **CLI command recipes** — See the `cli-recipes` skill for common CLI workflows like deploying from a local directory, managing Docker Compose stacks, and backup operations.
 - **Troubleshooting deployment issues** — See the `troubleshoot` skill for diagnosing failed deployments, container crashes, and Traefik routing problems.

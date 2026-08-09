@@ -81,7 +81,7 @@ If the health check fails or `checkInfrastructureHealth` reports a problem, the 
 | Compose service unreachable from Traefik | Service not on `dokploy-network` | Every public-facing compose service must declare `networks: [dokploy-network]` and the network must be `external: true` at the top level |
 | Compose service breaks Traefik (ports 80/443/8080 conflict) | Compose service exposes host ports directly (e.g. `ports: ["80:80"]`) | Remove the explicit host port mapping — Traefik routes via labels, not host bindings. If a host port is required, pick a non-Traefik one |
 | Image pull fails with `unauthorized` | Registry creds missing or expired | `mcp__dokploy__registry-all` → `registry-update` with fresh credentials |
-| Need to see runtime stdout/stderr | (v0.29.5) Runtime logs ARE available over MCP/REST | App: `application-readLogs { applicationId, tail, since, search }`. Compose: enumerate containers then `compose-readLogs { composeId, containerId, tail, since, search }` per container (use `/dokploy-dev:compose-logs`). DB: `{type}-readLogs`. See the `read-logs` skill |
+| Need to see runtime stdout/stderr | (v0.29.5+) Runtime logs ARE available over MCP/REST | App: `application-readLogs { applicationId, tail, since, search }`. Compose: enumerate containers then `compose-readLogs { composeId, containerId, tail, since, search }` per container (use `/dokploy-dev:compose-logs`). DB: `{type}-readLogs`. See the `read-logs` skill |
 | Only one compose container's logs show / "compose-readLogs failed" | `compose-readLogs` requires a **`containerId`** — a stack has many containers | First `docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }` (or `docker-getStackContainersByAppName` for swarm), then call `compose-readLogs` once **per** returned `containerId` |
 
 ### Deployment debugging steps
@@ -97,7 +97,7 @@ For full diagnosis, prefer `/dokploy-dev:debug <id>` over walking these manually
 
 2. **Read the logs (build vs runtime):**
    - Build failure → `mcp__dokploy__deployment-readLogs { deploymentId, tail: 500 }` (the build log for that run).
-   - Runtime crash → `mcp__dokploy__application-readLogs { applicationId, tail, since, search }` for an app, or the per-container `compose-readLogs` loop for a stack. These return live container stdout/stderr (v0.29.5 — no SSH/Beszel needed). See the `read-logs` skill.
+   - Runtime crash → `mcp__dokploy__application-readLogs { applicationId, tail, since, search }` for an app, or the per-container `compose-readLogs` loop for a stack. These return live container stdout/stderr (v0.29.5+ — no SSH/Beszel needed). See the `read-logs` skill.
 
 3. **Check application status:**
    `mcp__dokploy__application-one` with the applicationId. Look at the `applicationStatus` field.
@@ -169,7 +169,7 @@ For external access, replace `container-name` with the server IP and use the ext
 | MCP returns "Invalid URL" | `DOKPLOY_URL` env var not set or has wrong format | `DOKPLOY_URL` must be the **base URL without `/api`** (e.g. `https://dokploy.example.com`). Check `settings.local.json` `env` block. If MCP tools still fail, fall back to direct `curl` calls with `x-api-key` header (see Diagnostic Commands below) |
 | MCP returns 401 | Invalid API key or wrong auth header | Dokploy API uses `x-api-key` header, NOT `Authorization: Bearer`. Regenerate the API key in the Dokploy dashboard (**Settings > API/Tokens**). Update `userConfig` |
 | MCP returns connection refused | Wrong DOKPLOY_URL | The URL should be the base Dokploy URL (e.g. `https://dokploy.example.com`). API routes are at `/api/…` under it |
-| Too many tools / context bloat | All 500+ tools exposed | Set `DOKPLOY_ENABLED_TAGS` in `.mcp.json` `env` to a comma-separated category list (e.g. `project,application,domain,compose,postgres,settings,deployment`) |
+| Too many tools / context bloat | All 546 tools exposed | Set `DOKPLOY_ENABLED_TAGS` in `.mcp.json` `env` to a comma-separated category list (e.g. `project,application,domain,compose,postgres,settings,deployment`), or use `DOKPLOY_TOOL_PRESET` (`minimal`/`core`/`deploy`/`databases`/`git`) / `DOKPLOY_DISABLED_TAGS` |
 | MCP timeout | Server overloaded or network latency | Check server health. Increase timeout in MCP client config if the server is slow |
 | MCP returns 500 | Server-side error | Check Dokploy server logs. This usually indicates a bug or corrupt state |
 
@@ -220,3 +220,4 @@ mcp__dokploy__project-all
 - **Persistent 502s after all checks pass** — Check server resources (CPU, memory, disk). The server may be under-provisioned.
 - **Data corruption** — If database data is corrupted, restore from backups. Enumerate configured backups per resource and list backup files with `mcp__dokploy__backup-listBackupFiles` (`backup-all` was removed — backups are now resource-scoped).
 - **Dokploy upgrade failures** — Check the Dokploy GitHub releases for known issues. Roll back to the previous version if needed.
+- **Running < v0.29.13?** Upgrade — v0.29.13 fixed ~20 security issues (OS command injection in git/docker/db paths, cross-org IDORs, credential disclosure, unauthenticated WebSocket handlers).

@@ -26,14 +26,16 @@ Dokploy v0.29+ provider-agnostic LLM integration.
 | GET | `/api/ai.getAll` | All providers (enabled and disabled) |
 | GET | `/api/ai.get` | One provider (input: `aiId`) |
 | GET | `/api/ai.one` | Same as `get` (alias) |
-| GET | `/api/ai.getModels` | Models advertised by a provider (input: `aiId`) |
+| GET | `/api/ai.getModels` | Models advertised by a candidate endpoint. Input: `apiUrl`, `apiKey` (NOT `aiId`) |
+| GET | `/api/ai.getCustomProviders` | List org custom provider presets (v0.29.13+) |
+| POST | `/api/ai.saveCustomProviders` | Save org custom provider presets. Input: `providers` (v0.29.13+) |
 | POST | `/api/ai.create` | Add a provider: `name`, `apiKey`, `apiUrl`, `model`, `isEnabled` |
 | POST | `/api/ai.update` | Update provider config |
 | POST | `/api/ai.delete` | Remove a provider |
-| POST | `/api/ai.testConnection` | Validate credentials/reachability |
+| POST | `/api/ai.testConnection` | Pre-save validation. Input: `apiUrl`, `apiKey`, `model` (NOT `aiId`) |
 | POST | `/api/ai.deploy` | Deploy AI orchestrator side-service (admin) |
 | POST | `/api/ai.analyzeLogs` | **Headline:** AI-summarise log text. Input: `aiId`, `logs` (the text from a `*.readLogs` call), `context` (`"build"` or `"runtime"`). **Not** `deploymentId` |
-| POST | `/api/ai.suggest` | Open-ended recommendations. Input: `applicationId` (or compose), optional `prompt` |
+| POST | `/api/ai.suggest` | Open-ended recommendations. Input: `aiId`, `input` (question text), optional `serverId` |
 
 ### `apiUrl` examples
 
@@ -54,10 +56,10 @@ All providers must speak the OpenAI chat-completions shape:
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| GET | `/api/deployment.all` | List deployments, filter by `applicationId` / `composeId` / `serverId` |
-| GET | `/api/deployment.allByCompose` | Deployments for a compose stack |
-| GET | `/api/deployment.allByServer` | Deployments for a remote server |
-| GET | `/api/deployment.allByType` | Filter by `type` (`deploy`, `rollback`, `redeploy`, etc.) |
+| GET | `/api/deployment.all` | List deployments for an application — filter by `applicationId` (required; only param) |
+| GET | `/api/deployment.allByCompose` | Deployments for a compose stack (`composeId`) |
+| GET | `/api/deployment.allByServer` | Deployments for a remote server (`serverId`) |
+| GET | `/api/deployment.allByType` | Filter by resource: `id`, `type` |
 | GET | `/api/deployment.allCentralized` | Every deployment across the instance |
 | GET | `/api/deployment.queueList` | Inspect the live deployment queue |
 | POST | `/api/deployment.killProcess` | Kill a deployment process by `deploymentId` |
@@ -67,7 +69,7 @@ The deployment object includes `status`, `startedAt`, `finishedAt`, `logPath`, `
 
 ---
 
-## Log Endpoints (v0.29.5 — runtime logs are first-class)
+## Log Endpoints (v0.29.5+ — runtime logs are first-class)
 
 All `readLogs` endpoints are **GET** with query params (URL-encode the `input`). Two kinds of log:
 

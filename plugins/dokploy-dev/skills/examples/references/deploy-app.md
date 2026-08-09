@@ -46,7 +46,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/project.create" \
+curl -s -X POST "$DOKPLOY_URL/api/project.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "my-web-app", "description": "Production web application"}'
@@ -54,11 +54,20 @@ curl -s -X POST "$DOKPLOY_URL/project.create" \
 
 Save the returned `projectId` for the next steps.
 
+**Resolve the target environment** — resources live under a project *environment* (default `production`), not the project itself:
+
+```
+mcp__dokploy__project-one { "projectId": "<projectId>" }
+   → environments[0].environmentId
+```
+
+(Or `environment-byProjectId { projectId }`.) Save the `environmentId`.
+
 ---
 
 ## Step 2: Create an Application
 
-Create an application resource within the project.
+Create an application resource within the project's environment.
 
 **MCP:**
 
@@ -69,7 +78,7 @@ mcp__dokploy__application-create
 Parameters:
 ```json
 {
-  "projectId": "<projectId from Step 1>",
+  "environmentId": "<environmentId from Step 1>",
   "name": "my-web-app",
   "appName": "my-web-app"
 }
@@ -78,10 +87,10 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/application.create" \
+curl -s -X POST "$DOKPLOY_URL/api/application.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"projectId": "<projectId>", "name": "my-web-app", "appName": "my-web-app"}'
+  -d '{"environmentId": "<environmentId>", "name": "my-web-app", "appName": "my-web-app"}'
 ```
 
 Save the returned `applicationId`.
@@ -98,23 +107,26 @@ Link the application to a GitHub repository.
 mcp__dokploy__application-saveGithubProvider
 ```
 
-Parameters:
+Parameters (`repository` is the repo **name only** — NOT the full URL; get `githubId` from `gitProvider-getAll`):
 ```json
 {
   "applicationId": "<applicationId from Step 2>",
-  "repository": "https://github.com/owner/repo",
+  "repository": "repo",
   "branch": "main",
-  "owner": "owner"
+  "owner": "owner",
+  "githubId": "<githubId>",
+  "triggerType": "push",
+  "buildPath": "/"
 }
 ```
 
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/application.saveGithubProvider" \
+curl -s -X POST "$DOKPLOY_URL/api/application.saveGithubProvider" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"applicationId": "<applicationId>", "repository": "https://github.com/owner/repo", "branch": "main", "owner": "owner"}'
+  -d '{"applicationId": "<applicationId>", "repository": "repo", "branch": "main", "owner": "owner", "githubId": "<githubId>", "triggerType": "push", "buildPath": "/"}'
 ```
 
 ---
@@ -140,7 +152,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/application.saveBuildType" \
+curl -s -X POST "$DOKPLOY_URL/api/application.saveBuildType" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>", "buildType": "nixpacks"}'
@@ -171,7 +183,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/application.saveEnvironment" \
+curl -s -X POST "$DOKPLOY_URL/api/application.saveEnvironment" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>", "env": "NODE_ENV=production\nDATABASE_URL=postgresql://user:pass@db:5432/mydb\nPORT=3000"}'
@@ -202,7 +214,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/domain.create" \
+curl -s -X POST "$DOKPLOY_URL/api/domain.create" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>", "host": "app.example.com", "port": 3000, "https": true}'
@@ -237,7 +249,7 @@ Parameters:
 **curl:**
 
 ```bash
-curl -s -X POST "$DOKPLOY_URL/application.deploy" \
+curl -s -X POST "$DOKPLOY_URL/api/application.deploy" \
   -H "x-api-key: $DOKPLOY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"applicationId": "<applicationId>"}'
@@ -274,10 +286,10 @@ Look for `"applicationStatus": "done"` in the response.
 mcp__dokploy__domain-validateDomain
 ```
 
-Parameters:
+Parameters (the **hostname string**, not the domainId):
 ```json
 {
-  "domainId": "<domainId from Step 6>"
+  "domain": "app.example.com"
 }
 ```
 
