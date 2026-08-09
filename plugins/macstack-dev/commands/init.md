@@ -6,5 +6,5 @@ argument-hint: "[path]"
 Use the macstack-dev:setup skill to verify tooling, then the macstack-dev:init-project
 skill to audit the existing project ($ARGUMENTS or current directory) and produce a
 validated macstack.json. Finish with macstack-dev:lint and add the CLAUDE.md
-"Спецификация стека" section. Report: what was derived from code, what came from the
+"Stack Specification" section. Report: what was derived from code, what came from the
 user, and the remaining open questions.

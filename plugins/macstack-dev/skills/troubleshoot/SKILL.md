@@ -1,54 +1,59 @@
 ---
 name: troubleshoot
-description: This skill should be used when the user reports "macstack lint fails", "prototype не резолвится", "env keys missing", "scaffold сломал файлы", "cross-stack ссылка не работает", or any macstack-dev skill errors out. Diagnoses the common failure modes of the macstack.json toolchain.
+description: This skill should be used when the user reports "macstack lint fails", "prototype does not resolve", "env keys missing", "scaffold broke my files", "cross-stack reference does not work", or any macstack-dev skill errors out. Diagnoses the common failure modes of the macstack.json toolchain.
 ---
 
 # Troubleshoot macstack-dev
 
 ## Lint failures
 
-| Симптом | Причина → фикс |
+| Symptom | Cause → fix |
 |---|---|
-| `entity master problem` | master не входит в stores ровно один раз с role=master → добавь store с ролью master или поправь `master` |
-| `category не в реестре` | опечатка или новая ниша → сверь со `references/software-categories.json`; новая категория = kebab-слаг + предложение в реестр (PR), не молчаливый кастом |
-| `rating mismatch` | agentic.rating не совпадает с каналами → правило: 3×true=full, 2=good, 1=basic, только "partial"=partial |
-| `trigger unknown` | workflow ссылается на код триггера, которого нет в `triggers[]` → триггеры живут ТОЛЬКО в коллекции, не инлайн |
-| `делегация не вниз` | orchestrator в delegates_to у worker'а → иерархия строго control_plane → orchestrator → worker |
-| `x-stack не объявлен` | префикс `foo:` не объявлен → добавь стек в `stacks.root/substacks/links` |
+| `entity master problem` | master does not appear in stores exactly once with role=master → add a store with the master role or fix the `master` field |
+| `category not in registry` | typo or a new niche → check `references/software-categories.json`; a new category = a kebab-case slug + a registry proposal (PR), never a silent custom value |
+| `rating mismatch` | agentic.rating disagrees with the channels → rule: 3×true=full, 2=good, 1=basic, only "partial"=partial |
+| `trigger unknown` | a workflow references a trigger code missing from `triggers[]` → triggers live ONLY in the collection, never inline |
+| `delegation not downward` | an orchestrator appears in a worker's delegates_to → the hierarchy is strictly control_plane → orchestrator → worker |
+| `cross-stack not declared` | the `foo:` prefix is not declared → add the stack to `stacks.root/substacks/links` |
 
 ## Prototype resolution
 
-- `github:owner/repo` не клонится → проверь `gh auth status` / приватность репо;
-  для приватных нужен PAT. Fallback: попроси юзера дать локальный absolute path.
-- В репо нет `macstack.json` → это legacy-прототип (только `stack.json`): используй
-  его файлы для scaffold, но наследовать нечего — зафиксируй в open_questions.
-- Цикл прототипов (A→B→A) → ошибка by design; разорви цепочку.
-- Локальный path в iCloud-папке может «висеть» при первом чтении (материализация) —
-  повтори или скопируй прототип в обычную папку.
+- `github:owner/repo` fails to clone → check `gh auth status` / repo visibility;
+  private repos need a PAT. Fallback: ask the user for a local absolute path.
+- The repo has no `macstack.json` → it is a legacy prototype (only `stack.json`):
+  use its files for scaffolding, but there is nothing to inherit — record it in
+  open_questions.
+- A prototype cycle (A→B→A) → an error by design; break the chain.
+- A local path inside a cloud-synced folder (iCloud/Drive) may hang on first read
+  (file materialization) — retry, or copy the prototype to a regular folder.
 
 ## Infisical / env
 
-- `infisical secrets` читает не тот инстанс → CLI игнорирует `--domain` на
-  authenticated reads; активен один инстанс — сначала `infisical login --domain=…`.
-- `.env` затёрся пустым → в setup.sh нет guard'а: fetch во временный файл, mv только
-  при успехе. Восстанови из Infisical повторным pull.
-- required-ключ есть в macstack.json, но пуст после sync → его нет в Infisical:
-  создать там; `provided_by: client` → в `lifecycle.needs_from_client`.
-- Значения с `$`/пробелами ломают `source .env` → рендерить `KEY='value'`
-  в одинарных кавычках (внутренняя кавычка → `'\''`).
+- `infisical secrets` reads the wrong instance → the CLI ignores `--domain` on
+  authenticated reads; only one instance is active — run
+  `infisical login --domain=…` first.
+- `.env` got wiped empty → setup.sh lacks the guard: fetch into a temp file, mv
+  only on success. Restore by pulling from Infisical again.
+- A required key exists in macstack.json but is empty after sync → it is missing in
+  Infisical: create it there; `provided_by: client` → move to
+  `lifecycle.needs_from_client`.
+- Values with `$`/spaces break `source .env` → render `KEY='value'` in single
+  quotes (embedded quote → `'\''`).
 
 ## Scaffold
 
-- Перезаписал пользовательский файл → нарушение идемпотентности: существующий файл с
-  отличиями = diff + вопрос, никогда молчаливый overwrite. Восстанови из git.
-- Файлы не совпадают с архитектурой → нарушен порядок источников: prototype →
-  stack-плагины → dev-плагины; переделай от prototype.
-- `${VAR}` из .mcp.json не резолвится → значения должны быть в env-блоке
-  `.claude/settings.local.json` (заполняет scripts/setup.sh), не в .mcp.json.
+- A user file got overwritten → an idempotency violation: an existing file with
+  differences = diff + question, never a silent overwrite. Restore from git.
+- Generated files contradict the architecture → the source order was violated:
+  prototype → stack plugins → dev plugins; redo starting from the prototype.
+- `${VAR}` from .mcp.json does not resolve → values must live in the env block of
+  `.claude/settings.local.json` (filled by scripts/setup.sh), not inside .mcp.json.
 
 ## Discovery
 
-- `curl raw.githubusercontent.com/...marketplace.json` → 404: ветка не `main` или
-  репо приватный → `gh api repos/agents-store/claude-plugins/contents/...`.
-- Нет плагина для software → gap в open_questions + предложение создать через
-  plugin-creator; НЕ вписывать несуществующее имя в context.plugins.
+- `curl raw.githubusercontent.com/...marketplace.json` → 404: the branch is not
+  `main` or the repo is private → use
+  `gh api repos/agents-store/claude-plugins/contents/...`.
+- No plugin exists for a software → record the gap in open_questions + suggest
+  creating it via plugin-creator; do NOT put a non-existent name into
+  context.plugins.

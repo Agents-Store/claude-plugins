@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: This skill should be used when the user asks to "create macstack.json in this project", "add macstack.json", "init macstack", "опиши существующий проект в macstack.json", or an existing codebase has no macstack.json. Audits the existing project and produces a validated macstack.json draft.
+description: This skill should be used when the user asks to "create macstack.json in this project", "add macstack.json", "init macstack", "describe this existing project as macstack.json", or an existing codebase has no macstack.json. Audits the existing project and produces a validated macstack.json draft.
 ---
 
 # Init macstack.json in an Existing Project
@@ -13,18 +13,18 @@ derived.
 
 Scan in this order and map findings to macstack.json sections:
 
-| Источник | Что даёт |
+| Source | What it yields |
 |---|---|
-| `package.json` / `requirements.txt` / `pyproject.toml` / `composer.json` | `software[]` кандидаты (frameworks, libraries) |
-| `docker-compose.yml` (services + images) | `software[]` self-hosted + `instances[]` (порты, env-имена) |
+| `package.json` / `requirements.txt` / `pyproject.toml` / `composer.json` | `software[]` candidates (frameworks, libraries) |
+| `docker-compose.yml` (services + images) | self-hosted `software[]` + `instances[]` (ports, env names) |
 | `.mcp.json` | `connections.mcp[]` (servers, transports, `${VAR}` → url_env) |
-| `.env.example` / `.env` (ИМЕНА ключей, НИКОГДА значения) | `resources.accesses[]` |
+| `.env.example` / `.env` (key NAMES only, NEVER values) | `resources.accesses[]` |
 | `.claude/settings.json` enabledPlugins | `context.plugins` |
 | `.infisical.json`, `.dokploy.json`, `.plane.json` | `resources.bindings` |
-| Схемы БД / Directus collections / NocoBase collections / migrations | `entities[]` (attributes, master) |
+| DB schemas / Directus collections / NocoBase collections / migrations | `entities[]` (attributes, master) |
 | `src/trigger/`, n8n exports, Flows | `workflows[]` + `triggers[]` |
-| App Router pages / админки / боты | `interfaces[]` (path относительно инстанса!) |
-| README, CLAUDE.md, docs/ | описание, goals/results черновик |
+| App Router pages / admin panels / bots | `interfaces[]` (path relative to the instance!) |
+| README, CLAUDE.md, docs/ | description, goals/results draft |
 
 Classification rules for layers: full-stack frameworks (nextjs, django) → logic +
 interface; BaaS/headless CMS (directus, nocodb, supabase) → data; job runners
@@ -35,12 +35,12 @@ interface; BaaS/headless CMS (directus, nocodb, supabase) → data; job runners
 The audit yields the technical half. The business half must come from the user —
 ask in ONE compact message:
 
-1. Какие **goals** у проекта (1–3, с горизонтом)?
-2. Какие **results** он должен продюсить (измеримо: $, leads/mo, hours saved)?
-   Какую **problem** каждый результат закрывает?
-3. Кто **клиент/организация** (`identity.client`, `identity.organization`)?
-   Есть ли root-стек организации (→ `stacks.role: substack`)?
-4. Какой **prototype** (шаблон-родитель), если проект делался по шаблону?
+1. What are the project's **goals** (1–3, with a horizon)?
+2. What **results** must it produce (measurable: $, leads/mo, hours saved)?
+   What **problem** does each result close?
+3. Who is the **client/organization** (`identity.client`, `identity.organization`)?
+   Is there an organization root stack (→ `stacks.role: substack`)?
+4. What **prototype** (parent template) was the project built from, if any?
 
 ## Step 3 — Write the draft
 
@@ -49,7 +49,7 @@ ask in ONE compact message:
   `lifecycle.open_questions[]`.
 - Every entity MUST get `master` (which software/instance owns it). If two stores
   exist and the master is unclear — that is an open question for the user, never a
-  silent guess (wrong master = data corruption later).
+  silent guess (a wrong master means data corruption later).
 - `software[].category` — from the bundled registry; `type` — mandatory;
   slugs kebab-case (`trigger-dev`, not `trigger.dev`; `postgresql`, not `postgres`).
 - Triggers: extract cron/webhook/db-event configs into the top-level `triggers[]`
@@ -60,16 +60,16 @@ ask in ONE compact message:
 ## Step 4 — Validate and wire
 
 1. Run the `lint` skill (schema + referential integrity). Fix every error.
-2. Add the CLAUDE.md reference section (see `setup` skill).
+2. Add the CLAUDE.md reference section (see the `setup` skill).
 3. Offer next steps: `infisical-env` (if accesses exist), `best-practices`
    (rules/commands), `discover-context` (find plugins for the detected software).
 
 <example>
-user: "Добавь macstack.json в этот проект (Directus + Next.js сайт)"
+user: "Add macstack.json to this project (a Directus + Next.js website)"
 → audit: docker-compose (directus, postgres), package.json (next), .mcp.json (directus mcp),
   src/trigger absent → no trigger-dev
 → ask: goals/results/client/prototype
-→ write macstack.json: software [directus(cms/constructor/data), nextjs(frontend-frameworks/framework/logic+interface)],
-  entities from Directus collections with master=directus, interfaces site(path "/")+cms-admin(path "/admin")
-→ lint → CLAUDE.md section → предложить infisical-env
+→ write macstack.json: software [directus (cms/constructor/data), nextjs (frontend-frameworks/framework/logic+interface)],
+  entities from Directus collections with master=directus, interfaces site (path "/") + cms-admin (path "/admin")
+→ lint → CLAUDE.md section → offer infisical-env
 </example>

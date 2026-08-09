@@ -1,6 +1,6 @@
 ---
 name: setup
-description: This skill should be used when the user asks "what is macstack.json", "set up macstack", "check macstack setup", "verify macstack.json", "где схема macstack", or before any other macstack-dev skill runs in a project for the first time. Explains the standard, locates the schema and category registry, and verifies tooling.
+description: This skill should be used when the user asks "what is macstack.json", "set up macstack", "check macstack setup", "verify macstack.json", "explain the macstack standard", or before any other macstack-dev skill runs in a project for the first time. Explains the standard, locates the schema and category registry, and verifies tooling.
 ---
 
 # MACSTACK Setup & Orientation
@@ -40,28 +40,29 @@ entities → interfaces → connections → agents → context → resources.
 ## Verification steps
 
 1. **Tooling**: `python3 -c "import jsonschema"` (fallback: structural checks only),
-   `jq --version`, `gh --version` (needed for discover-context and github prototypes).
+   `jq --version`, `gh --version` (needed for discover-context and GitHub prototypes).
 2. **Project state**: does `./macstack.json` exist?
-   - Yes → validate it (`lint` skill) and report stage (`lifecycle.stage`).
+   - Yes → validate it (`lint` skill) and report the stage (`lifecycle.stage`).
    - No → offer `init-project` (existing codebase) or `generate-stack` (from scratch).
-3. **CLAUDE.md link**: check CLAUDE.md contains a "Спецификация стека" section pointing
-   to macstack.json. If missing, offer to add:
+3. **CLAUDE.md link**: check that CLAUDE.md contains a "Stack Specification" section
+   pointing to macstack.json. If missing, offer to add:
 
 ```markdown
-## Спецификация стека
-Бизнес- и техническая спецификация проекта — **`macstack.json`** (стандарт MACSTACK).
-Читай его первым: goals → results → processes → workflows → software → entities → interfaces.
-Не редактируй код, противоречащий macstack.json, — сначала обнови спецификацию.
+## Stack Specification
+The business and technical specification of this project is **`macstack.json`**
+(MACSTACK standard). Read it first: goals → results → processes → workflows →
+software → entities → interfaces.
+Never write code that contradicts macstack.json — update the specification first.
 ```
 
 ## Skill routing
 
-| Задача | Скилл |
+| Task | Skill |
 |---|---|
-| macstack.json в существующем проекте | `init-project` |
-| Новый стек с нуля по запросу | `generate-stack` |
-| Найти плагины/прототипы | `discover-context` |
-| Создать рабочие файлы проекта | `scaffold-project` |
+| macstack.json for an existing project | `init-project` |
+| New stack from scratch from a request | `generate-stack` |
+| Find plugins/prototypes | `discover-context` |
+| Create the project's working files | `scaffold-project` |
 | .infisical.json + .env.prod/.env.dev | `infisical-env` |
-| Правила и команды проекта | `best-practices` |
-| Валидация | `lint` |
+| Project rules and commands | `best-practices` |
+| Validation | `lint` |

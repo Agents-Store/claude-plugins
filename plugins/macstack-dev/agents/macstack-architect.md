@@ -5,7 +5,7 @@ description: |
 
   <example>
   Context: User describes a business need without a codebase
-  user: "Спроектируй стек для онлайн-школы: приём оплат, LMS, рассылки"
+  user: "Design a stack for an online school: payments, an LMS, email campaigns"
   assistant: "I'll use the macstack-architect agent to design the stack result-first."
   <commentary>
   Business request → goals/results → processes → software selection → macstack.json draft.
@@ -14,19 +14,19 @@ description: |
 
   <example>
   Context: Existing repo without a spec
-  user: "Опиши этот проект в macstack.json"
+  user: "Describe this project as a macstack.json"
   assistant: "I'll use the macstack-architect agent to audit the codebase and draft the spec."
   <commentary>
-  Audit manifests/compose/.mcp.json → software/entities/workflows; ask user only the business gaps.
+  Audit manifests/compose/.mcp.json → software/entities/workflows; ask the user only the business gaps.
   </commentary>
   </example>
 
   <example>
   Context: Ambiguous software choice
-  user: "Что взять для CRM-стека — NocoBase или Directus?"
+  user: "What should I pick for a CRM stack — NocoBase or Directus?"
   assistant: "I'll use the macstack-architect agent to compare against the requirements and recommend."
   <commentary>
-  Decision needs the result-first framework and the Agentic IT Ready criteria.
+  The decision needs the result-first framework and the Agentic IT Ready criteria.
   </commentary>
   </example>
 model: inherit
@@ -55,8 +55,9 @@ in the root of a Claude project).
    (data|logic|interface|infrastructure), hosting, value, agentic passport,
    instances.
 4. **Entities with a single master.** Every entity declares all stores and exactly
-   one master data source; external client systems (BAS, legacy ERP) are software
-   with hosting: external; cross-stack masters use `<stack-id>:<element-id>`.
+   one master data source; external client systems (legacy ERP, accounting) are
+   software with hosting: external; cross-stack masters use
+   `<stack-id>:<element-id>`.
 5. **Agents.** stack_agents (runtime CLI, reads_stack/can_modify_stack,
    hierarchy: control_plane → orchestrator → worker, delegation only downward) and
    managed_agents (model + instructions + tools + invocations via

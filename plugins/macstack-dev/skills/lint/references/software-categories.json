@@ -1,5 +1,5 @@
 {
-  "$comment": "Канонический реестр категорий software для macstack.json (поле software[].category). Единый словарь для всех проектов — линтер плагина macstack-dev сверяется с этим файлом. Расширение: новая категория = kebab-case слаг + PR в этот файл (origin: extension). Позже реестр публикуется в Software Directory на macstack.ai.",
+  "$comment": "Canonical registry of software categories for macstack.json (field software[].category). A single shared vocabulary for all projects — the macstack-dev linter checks against this file. Extension: a new category = a kebab-case slug + a PR to this file (origin: extension). Later the registry gets published to the Software Directory on macstack.ai.",
   "version": "1.0.0",
   "categories": [
     { "id": "databases", "name": "Databases", "examples": ["postgresql", "mysql", "mongodb", "redis", "qdrant"] },
@@ -22,13 +22,13 @@
     { "id": "queue-message-brokers", "name": "Queue / Message Brokers", "examples": ["rabbitmq", "bullmq", "kafka"] },
     { "id": "api-gateways", "name": "API Gateways", "examples": ["nginx", "traefik", "kong"] },
     { "id": "documentation-tools", "name": "Documentation Tools", "examples": ["outline", "wiki-js"] },
-    { "id": "accounting", "name": "Accounting / ERP (учётные системы)", "examples": ["bas", "1c", "odoo"], "origin": "extension", "added": "2026-08-08" },
+    { "id": "accounting", "name": "Accounting / ERP", "examples": ["bas", "1c", "odoo"], "origin": "extension", "added": "2026-08-08" },
     { "id": "payments", "name": "Payments", "examples": ["stripe", "brocard"], "origin": "extension", "added": "2026-08-09" },
-    { "id": "custom-scripts", "name": "Custom Scripts & Services (наше кастомное ПО)", "examples": [], "origin": "extension", "added": "2026-08-08" }
+    { "id": "custom-scripts", "name": "Custom Scripts & Services (our custom software)", "examples": [], "origin": "extension", "added": "2026-08-08" }
   ],
   "slug_rules": [
-    "kebab-case, официальное короткое имя: trigger-dev (не trigger.dev), postgresql (не postgres), nextjs (не next.js)",
-    "драйверы БД схлопываются в имя СУБД (pg → postgresql)",
-    "группы UI-библиотек схлопываются (@radix-ui/* → radix-ui)"
+    "kebab-case, official short name: trigger-dev (not trigger.dev), postgresql (not postgres), nextjs (not next.js)",
+    "database drivers collapse to the database name (pg → postgresql)",
+    "UI library groups collapse (@radix-ui/* → radix-ui)"
   ]
 }
