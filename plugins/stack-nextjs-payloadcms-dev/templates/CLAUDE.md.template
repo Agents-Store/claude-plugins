@@ -1,0 +1,49 @@
+# CLAUDE.md
+
+{{PROJECT_NAME}} — Next.js {{NEXT_VERSION}} + Payload CMS v3 + PostgreSQL. One application: frontend, admin panel, API, and all backend logic live in this repo and deploy as one unit.
+
+## Stack Rules
+
+- **Backend logic runs on the stack itself**: user-triggered mutations are Server Actions (`src/actions/`), rules that must always hold are Payload hooks (`src/hooks/`), async/scheduled work is the Payload Jobs Queue (`src/jobs/`). No external workflow engine.
+- **Enforce in hooks, pre-check in actions** — admin panel and REST bypass actions; hooks and access control are the authority.
+- **Every user-facing Local API call** passes `overrideAccess: false, user` — the Local API skips access control by default.
+- **Reads go through `src/lib/queries/`** helpers returning typed DTOs (`depth: 0` unless justified); pages never call `payload.find` inline.
+- **Types are generated**: run `pnpm generate:types` after any schema change; import from `@/payload-types`.
+- **Postgres schema**: dev uses push; production uses committed migrations (`pnpm payload migrate:create <name>` when a feature is done). Never mix push and migrate on one database.
+
+## Layout
+
+```
+src/
+├── payload.config.ts      # collections, globals, jobs, plugins — read this first
+├── collections/           # CollectionConfig per file (+ colocated integration tests)
+├── globals/               # settings singletons
+├── access/roles.ts        # role helpers + Access functions (shared by UI and data layer)
+├── hooks/                 # collection/field hooks (thin; pure helpers alongside)
+├── jobs/                  # TaskConfig / WorkflowConfig
+├── actions/               # 'use server' actions per domain
+├── lib/session.ts         # getSession(): { payload, user }
+├── lib/queries/           # read helpers → DTOs
+├── seed/                  # seed scripts (pnpm seed)
+└── app/
+    ├── (frontend)/        # product UI (own root layout)
+    └── (payload)/         # admin + REST/GraphQL (Payload-owned; do not add pages here)
+```
+
+## Commands
+
+```bash
+pnpm dev                   # Next dev + admin at /admin
+pnpm generate:types        # payload-types.ts from payload.config.ts
+pnpm payload migrate:create <name>
+pnpm test                  # vitest (unit + integration)
+pnpm seed                  # seed data
+```
+
+## Environment
+
+Secrets in `.env` (never committed): `DATABASE_URI`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_SERVER_URL`, `ENABLE_JOBS`, `PAYLOAD_MCP_URL`, `PAYLOAD_MCP_API_KEY`. See `.env.example` for the full catalogue.
+
+## Feature Workflow
+
+Follow the nine-step recipe (collection → access → hooks → types → jobs → actions → queries → UI → tests + migration) from the `stack-nextjs-payloadcms-dev` plugin's `full-feature` skill.

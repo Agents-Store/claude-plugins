@@ -1179,6 +1179,29 @@
         "agents-store"
       ],
       "category": "infrastructure"
+    },
+    {
+      "name": "stack-nextjs-payloadcms-dev",
+      "source": "./plugins/stack-nextjs-payloadcms-dev",
+      "description": "Next.js + Payload CMS stack dev plugin. One app for frontend, admin, and backend: business logic in Server Actions + Payload hooks, workflows on the Payload Jobs Queue, PostgreSQL, Docker deployment.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": [
+        "stack",
+        "nextjs-payloadcms",
+        "dev",
+        "agents-store",
+        "nextjs",
+        "payloadcms",
+        "app-router",
+        "server-actions",
+        "jobs-queue",
+        "postgres",
+        "workflows"
+      ],
+      "category": "development"
     }
   ]
 }

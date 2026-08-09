@@ -1,0 +1,22 @@
+{
+  "name": "stack-nextjs-payloadcms-dev",
+  "version": "1.0.0",
+  "description": "Next.js + Payload CMS stack dev plugin. One app for frontend, admin, and backend: business logic in Server Actions + Payload hooks, workflows on the Payload Jobs Queue, PostgreSQL, Docker deployment.",
+  "author": {
+    "name": "AGENTS.STORE"
+  },
+  "mcpServers": "./.mcp.json",
+  "keywords": [
+    "stack",
+    "nextjs-payloadcms",
+    "dev",
+    "agents-store",
+    "nextjs",
+    "payloadcms",
+    "app-router",
+    "server-actions",
+    "jobs-queue",
+    "postgres",
+    "workflows"
+  ]
+}
