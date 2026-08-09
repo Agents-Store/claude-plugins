@@ -28,17 +28,44 @@ Create in the project root:
 - The Infisical domain comes from the organization's registry (root stack /
   projects.json, `infisical.domain`) — never hardcode it in scripts.
 
-## Step 2 — env keys from macstack.json
+## Step 2 — collect the required variables from TWO sources
 
-`resources.accesses[]` is the source of truth for names:
+`.env.prod` and `.env.dev` are ALWAYS created, and their variable set is the union
+of two sources (missing either source produces a stack that "deploys but breaks at
+runtime"):
 
-1. Generate `.env.example`: one `KEY=` line per access (comment: `for`,
-   `provided_by`, `required`). Committed.
-2. Ensure every `required: true` key EXISTS in Infisical (prod env); create missing
-   ones with an empty/placeholder value and list them for the user ("fill in
+**Source A — the project architecture**: `macstack.json` → `resources.accesses[]`
+(every key, with its `required` flag, `for`, `provided_by`).
+
+**Source B — the project's Claude plugins (project scope)**: the plugins enabled in
+`.claude/settings.json` → `enabledPlugins` need their own env tokens to work:
+
+1. For each enabled **stack plugin**, read its `.mcp.json` and `templates/.env.example`
+   — every `${VAR}` placeholder is a required variable (that's how MCP connections
+   resolve).
+2. Scan the project's own `.mcp.json` for `${VAR}` placeholders.
+3. Read the existing env block of `.claude/settings.local.json` — keys already wired
+   there stay in the set.
+
+Cross-check the two sources: a variable required by a plugin but absent from
+`resources.accesses` → **add it to macstack.json accesses** in the same run (the
+spec must stay the superset — macstack.json is the registry of the stack's tokens);
+an access present in macstack.json but used by nothing → warning.
+
+Then:
+
+1. Generate `.env.example`: one `KEY=` line per variable with a comment
+   (`# required|optional — for <software|plugin>, provided_by <us|client>`). Committed.
+2. Ensure every `required: true` key EXISTS in Infisical (prod AND dev envs); create
+   missing ones with an empty/placeholder value and list them for the user ("fill in
    Infisical"). Keys with `provided_by: "client"` go to `lifecycle.needs_from_client`.
 3. Pull: `.env.prod` ⇄ Infisical prod, `.env.dev` ⇄ Infisical dev, `.env` = the
-   working copy of prod. All three gitignored (`.env*` catch-all + `!.env.example`).
+   working copy of prod. Variables that are required but still empty after the pull
+   MUST appear in the files as `KEY=''` with a `# FILL ME (required — <reason>)`
+   comment right above — an empty required variable must be visible, not absent.
+   All three files gitignored (`.env*` catch-all + `!.env.example`).
+4. Mirror the values into the env block of `.claude/settings.local.json` so the
+   `${VAR}` placeholders of the project's `.mcp.json` resolve.
 
 ## Step 3 — mandatory scripts (battle-tested pattern)
 

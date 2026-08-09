@@ -40,13 +40,14 @@ the project's working files are scaffolded.
 | `infisical-env` | .infisical.json, env pulling, secrets scripts & commands |
 | `best-practices` | Rules and core commands installation |
 | `lint` | Schema + integrity validation |
+| `feedback` | Report a problem and fix it at the source: plugin skills / the schema repo (macstacks/macstack) / the registry (macstacks/registry), with mirror sync |
 | `examples` | Full-file examples and end-to-end scenarios |
 | `troubleshoot` | Common failure modes |
 
 ## Commands
 
 `/macstack-dev:init` · `/macstack-dev:generate` · `/macstack-dev:scaffold` ·
-`/macstack-dev:lint` · `/macstack-dev:sync`
+`/macstack-dev:lint` · `/macstack-dev:sync` · `/macstack-dev:feedback`
 
 ## Agent
 

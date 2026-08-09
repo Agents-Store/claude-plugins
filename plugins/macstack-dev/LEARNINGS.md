@@ -40,3 +40,17 @@ Root cause / Severity.
   bundled copies as offline fallbacks; the bundled schema's `$id` points at the raw
   URL. When the schema changes upstream, refresh the bundled copies in
   `skills/lint/references/` in the same PR.
+
+## 2026-08-09 — v1.2.0: feedback loop + dual-source env
+
+- **feedback skill/command added** (mirrors plugin-creator's loop, extended with
+  routing): plugin problems → plugin skills; schema problems → macstacks/macstack
+  (+ MANDATORY mirror sync: the bundled schema copy here and any project mirrors);
+  registry problems → macstacks/registry. A fix applied to a mirror gets silently
+  overwritten — always fix at the source, then sync mirrors in the same session.
+- **infisical-env now collects variables from TWO sources**: macstack.json
+  resources.accesses (architecture) ∪ the env tokens required by the project's
+  enabled Claude plugins (settings.json enabledPlugins → stack plugin .mcp.json
+  ${VAR} + .env.example + settings.local.json env block). .env.prod/.env.dev are
+  always created; required-but-empty keys stay visible as KEY='' with a FILL ME
+  comment. Cross-check keeps macstack.json the superset registry of tokens.
