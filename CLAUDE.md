@@ -253,7 +253,37 @@ Both directions refuse to replace a **real** value with a **placeholder** (`repl
 - push is an upsert: dropping a key from `.env` does not delete it in Infisical
 - pushed secrets go through a mode-600 temp file, never argv, so they stay out of `ps`
 
-The Infisical CLI keeps one **active** instance and `infisical secrets` always reads it — `--domain` does not switch it. The scripts detect this and run `infisical login --domain=…` when the active instance is not ours. Override for one run with `INFISICAL_DOMAIN=https://…`.
+### Authentication — machine identity
+
+All three scripts authenticate with a **machine identity** by default, so they never
+prompt and never depend on whoever happens to be logged into the CLI:
+
+| File | Contents |
+|------|----------|
+| `/etc/infisical/claude-plugins.env` | `INFISICAL_UNIVERSAL_AUTH_CLIENT_ID` + `INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET`, mode 600 |
+
+This follows the server-wide convention — one identity file per project under
+`/etc/infisical/`, the same layout the OpenClaw deployments use. The identity needs
+read access to project `claude-plugins`; grant write too if you intend to push.
+
+`inf_ensure_login` exchanges those credentials for a short-lived token, exports it as
+`INFISICAL_TOKEN`, and every call then passes `--token` explicitly. The credentials are
+sourced into the environment rather than passed as flags, so the secret stays out of
+`argv` and therefore out of `ps`; the secret is unset again once the token is in hand.
+
+- point somewhere else for one run: `INFISICAL_IDENTITY_FILE=/etc/infisical/other.env ./scripts/secrets-pull.sh`
+- force the old interactive path: `INFISICAL_IDENTITY_FILE= ./scripts/secrets-pull.sh`
+- the banner prints which mode is in use, so a silent fallback is always visible
+
+When no identity file is readable the scripts fall back to the interactive user
+session. That path needs the active-instance dance: the Infisical CLI keeps one
+**active** instance and `infisical secrets` always reads it — `--domain` does not
+switch it. The scripts detect this and run `infisical login --domain=…` when the active
+instance is not ours. Override the instance for one run with `INFISICAL_DOMAIN=https://…`.
+
+> When scripting `infisical login … --plain --silent`, capture **stdout only**. The CLI
+> writes its update-check banner to stderr, so a `2>&1` concatenates that banner onto the
+> JWT and every later call fails with a misleading "denied".
 
 ### Path-anchored plugins (OpenClaw)
 

@@ -6,8 +6,17 @@
 #   inf_project         resolve the Infisical project (workspace) id
 #   inf_default_env     resolve the default environment slug
 #   inf_require_cli     abort unless the Infisical CLI is installed
-#   inf_ensure_login    make sure the ACTIVE CLI session points at our instance
+#   inf_identity_file   resolve the machine-identity credentials file (may be empty)
+#   inf_ensure_login    authenticate: machine identity if available, else user login
 #   inf_fetch           fetch one environment as JSON into a file (fails loudly)
+#
+# Auth order:
+#   1. A machine identity at $INFISICAL_IDENTITY_FILE (default
+#      /etc/infisical/claude-plugins.env, the server-wide convention: one file per
+#      project holding INFISICAL_UNIVERSAL_AUTH_CLIENT_ID / _CLIENT_SECRET). We
+#      exchange those for a short-lived token and pass it explicitly on every call.
+#      This is non-interactive and immune to the active-instance problem below.
+#   2. Otherwise the interactive user session, which needs the dance described next.
 #
 # Why the active-instance dance: the Infisical CLI keeps a separate login per
 # self-hosted instance but only ONE is "active" at a time, and `infisical secrets`
@@ -16,6 +25,7 @@
 
 INFISICAL_DEFAULT_DOMAIN="https://k.macstack.ai"
 INFISICAL_CONFIG_FILE="$HOME/.infisical/infisical-config.json"
+INFISICAL_DEFAULT_IDENTITY="/etc/infisical/claude-plugins.env"
 
 # Repo root = parent of the directory holding this library's parent (scripts/lib -> repo).
 inf_repo_root() {
@@ -64,10 +74,65 @@ inf_active_instance() {
   printf '%s' "$d"
 }
 
-# Switch/authenticate so that the active instance is our domain. Interactive when
-# no session exists yet.
+# Machine-identity credentials file. Override with INFISICAL_IDENTITY_FILE=...
+# (set it to "" to force the interactive user path). Empty output = none usable.
+inf_identity_file() {
+  local f="${INFISICAL_IDENTITY_FILE-$INFISICAL_DEFAULT_IDENTITY}"
+  [ -n "$f" ] && [ -r "$f" ] && printf '%s' "$f"
+}
+
+# Exchange the universal-auth credentials for a short-lived token, into
+# INFISICAL_TOKEN. Returns non-zero (quietly) so callers can fall back.
+#
+# The credentials are sourced into the environment rather than passed as flags:
+# the CLI reads INFISICAL_UNIVERSAL_AUTH_CLIENT_ID / _CLIENT_SECRET itself, which
+# keeps the secret out of argv and therefore out of `ps`. The secret is unset
+# again as soon as the token is in hand so it is not inherited by child processes.
+#
+# NOTE: capture stdout ONLY. The CLI writes its update-check banner to stderr, so
+# a `2>&1` here silently concatenates that banner onto the JWT and every later
+# call fails with an unhelpful "denied".
+inf_login_machine() {
+  local domain="$1" file token
+  file="$(inf_identity_file)" || return 1
+  [ -n "$file" ] || return 1
+
+  set -a
+  # shellcheck disable=SC1090
+  . "$file" || { set +a; return 1; }
+  set +a
+
+  if [ -z "${INFISICAL_UNIVERSAL_AUTH_CLIENT_ID:-}" ] || \
+     [ -z "${INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET:-}" ]; then
+    unset INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET
+    echo "Identity file '$file' has no CLIENT_ID/CLIENT_SECRET — ignoring it." >&2
+    return 1
+  fi
+
+  token=$(infisical login --method=universal-auth --domain="$domain" --plain --silent 2>/dev/null)
+  unset INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET
+
+  if [ -z "$token" ]; then
+    echo "Machine-identity login failed against '$domain' (file: $file)." >&2
+    return 1
+  fi
+
+  export INFISICAL_TOKEN="$token"
+}
+
+# Authenticate. Prefers the machine identity; falls back to the interactive user
+# session, switching the active instance to our domain when needed.
 inf_ensure_login() {
   local domain="$1" active
+
+  if [ -n "$(inf_identity_file)" ]; then
+    if inf_login_machine "$domain"; then
+      return 0
+    fi
+    echo "Falling back to the interactive user session." >&2
+    echo "" >&2
+  fi
+
   active="$(inf_active_instance)"
   [ "$active" = "$domain" ] && return 0
 
@@ -95,6 +160,7 @@ inf_fetch() {
   local args=(secrets --env="$env" --domain="$(inf_domain)" -o json --silent)
   local pid; pid="$(inf_project)"
   [ -n "$pid" ] && args+=(--projectId="$pid")
+  [ -n "${INFISICAL_TOKEN:-}" ] && args+=(--token="$INFISICAL_TOKEN")
 
   if ! infisical "${args[@]}" > "$out" 2> "$err"; then
     echo "Failed to fetch secrets for env '$env':" >&2
@@ -111,4 +177,10 @@ inf_banner() {
   echo "Instance: $(inf_domain)"
   local pid; pid="$(inf_project)"
   echo "Project:  ${pid:-<from .infisical.json in CWD>}"
+  local ident; ident="$(inf_identity_file)"
+  if [ -n "$ident" ]; then
+    echo "Auth:     machine identity ($ident)"
+  else
+    echo "Auth:     interactive user session"
+  fi
 }

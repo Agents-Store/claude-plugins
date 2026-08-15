@@ -109,6 +109,7 @@ for ENV_NAME in "${ENVS[@]}"; do
   if [ "$APPLY" = 1 ]; then
     SET_ARGS=(secrets set --file "$UPLOAD" --env="$ENV_NAME" --domain="$DOMAIN" --silent)
     [ -n "$PROJECT_ID" ] && SET_ARGS+=(--projectId="$PROJECT_ID")
+    [ -n "${INFISICAL_TOKEN:-}" ] && SET_ARGS+=(--token="$INFISICAL_TOKEN")
     if infisical "${SET_ARGS[@]}" >/dev/null; then
       echo "   ✓ written to Infisical ($ENV_NAME)"
     else
