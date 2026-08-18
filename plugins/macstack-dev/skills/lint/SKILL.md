@@ -16,7 +16,8 @@ curl -fsSL https://raw.githubusercontent.com/macstacks/macstack/main/scripts/lin
   -o "${CLAUDE_PLUGIN_DATA}/lint.py" 2>/dev/null || true   # cache; keep the old copy offline
 python3 "${CLAUDE_PLUGIN_DATA}/lint.py" macstack.json \
   --schema https://raw.githubusercontent.com/macstacks/macstack/main/schema/macstack.schema.json \
-  --categories https://raw.githubusercontent.com/macstacks/registry/main/software-categories.json
+  --categories https://raw.githubusercontent.com/macstacks/registry/main/software-categories.json \
+  --coverage-areas https://raw.githubusercontent.com/macstacks/registry/main/coverage-areas.json
 ```
 
 Offline fallback: run the same two passes manually with the bundled copies.
@@ -69,6 +70,10 @@ skipped.
    `invocations[*].interface|workflow|trigger` resolve.
 10. **Env**: `resources.accesses[].env` holds NAMES, not values (a string that looks
     like a secret/token is an error); slugs are kebab-case; `prototype` has no cycles.
+11. **Plugin coverage**: `context.plugins.*[].covers[*]` ∈ the coverage registry
+    (`references/coverage-areas.json`); `scope[*]` resolves to a declared id in
+    software / entities / workflows / triggers / interfaces / connections.mcp
+    (the id-spaces of the six sections the gap check looks at).
 
 ## Warnings (non-blocking)
 
@@ -77,6 +82,16 @@ skipped.
 - A trigger referenced by no workflow and no agent.
 - Software without an agentic passport; a required key missing from `.env` (when the
   file exists).
+- **Coverage gap**: a non-empty *tooling-backed* section — software, entities,
+  workflows, triggers, interfaces, connections — that no plugin `covers`. Say which:
+  "14 workflows and no plugin covering `workflows`". Do NOT gap-check goals, results,
+  processes, roles or integrations: those are authored by the architect, not taught by
+  a plugin, and demanding a plugin for them only produces fake entries.
+- **Plugin without `covers`** (including the legacy bare-slug form): an agent cannot
+  route to it, so it will be either ignored or loaded blindly.
+- **Ambiguous coverage**: an area claimed by 2+ plugins where none narrows it with
+  `scope`. Resolution rule is most-specific-wins — a plugin whose `scope` holds the
+  element beats an unscoped one — so an unscoped overlap has no winner.
 
 ## Output format
 
