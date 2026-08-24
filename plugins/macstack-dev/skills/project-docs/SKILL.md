@@ -109,6 +109,11 @@ writing.
 2. Create only what is missing — **never overwrite an existing document.** For a file
    that exists but lacks anchors or sections, add what is missing in place and report
    it; do not regenerate.
+   Materialize eagerly: the six documents, plus `inbox/` with its `README.md` manifest.
+   Create `deltas/`, `decisions/` and `reviews/` **lazily, on first use** — git does
+   not track an empty directory, so creating them up front either leaves untracked
+   empties that vanish on clone or scatters four `.gitkeep` files. Their absence in a
+   fresh folder is correct, not a gap; lint must not report it.
 3. Seed each document from `doc-contracts.json`: the required anchors, the section
    headings translated into `docs.language`, and a one-line placeholder saying what
    belongs there. Seed `USER-CASES.md` role sections from `roles[]`, and back-fill
