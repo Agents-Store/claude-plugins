@@ -59,7 +59,9 @@ truths. Report both paths and stop.
    `inbox/README.md`, the manifest.
 2. **ASCII only** in `inbox/` filenames and inside every ID token. Refuse at the
    moment of adding: the zone is immutable, so a bad name can never be corrected.
-   A Cyrillic `К` in `К-1` greps as absent and silently breaks every cross-check.
+   Watch the homoglyphs: U+041A CYRILLIC CAPITAL KA renders identically to ASCII `K`,
+   so an id typed with it greps as absent and silently breaks every cross-reference
+   check. Same trap with А О С Е Р Т Х. Verify the codepoint, not the glyph.
 3. **Anchors, not headings.** Each section is marked by an HTML comment
    (`<!-- macstack:section=contradictions -->`) on the line above its heading.
    Headings and prose are written in `docs.language`; **anchors are never
