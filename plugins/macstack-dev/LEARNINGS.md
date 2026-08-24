@@ -116,9 +116,14 @@ apart despite the plugin's own rule requiring parity — both are now 1.4.0;
 `coverage-areas.json` was bundled but missing from the README's fallback list; the
 `examples` skill still pointed at the pre-GitHub location of the canonical examples.
 
-## 2026-08-24 — lint/references: the schema mirror is AHEAD of upstream (rev 10)
+## 2026-08-24 — lint/references: the schema mirror was AHEAD of upstream · **CLOSED same day**
 
-**Known drift, deliberate and temporary.** `skills/lint/references/macstack.schema.json`
+**Closed 2026-08-24:** rev 10 is live at `macstacks/macstack@65b76c7`, and the network
+diff in `skills/feedback/SKILL.md` reports the mirror and the source identical. The
+entry stays because the drift was real while it lasted and the reasoning is what makes
+the next one recoverable.
+
+**The drift, as it stood.** `skills/lint/references/macstack.schema.json`
 carries rev 10 (the `docs` section, `$defs/{docRef,openItemRef,decisionRef}`,
 `lifecycle.decisions[]`, `roles[].cases`) while
 `github.com/macstacks/macstack@main` is still at rev 9 (`036314f`). The owner chose to
@@ -129,7 +134,7 @@ Nothing breaks while this holds: the schema has no `additionalProperties: false`
 mirror validates every rev-9 file — verified against the four canonical examples with
 upstream's own `scripts/lint.py` (0 warnings) plus two live project files.
 
-**To close it**, copy the mirror over the standard and push:
+**How it was closed** — the same recipe, kept for the next time the mirror leads:
 
 ```bash
 git clone https://github.com/macstacks/macstack.git && cd macstack
@@ -144,7 +149,7 @@ Then verify the mirror matches again, per the rule in `skills/feedback/SKILL.md`
 **Why this entry exists:** the mirror carries no rev marker, so drift is invisible from
 inside the repo without a network diff — the same gap the retroactive rev-9 entry above
 records. Until a rev marker exists in the schema itself, a LEARNINGS note is the only
-thing that makes a known drift discoverable.
+thing that makes a known drift discoverable, and the only thing that says when it ended.
 
 ## 2026-08-24 — test-cases: TEST-CASES.md derived from the acceptance bullets
 
