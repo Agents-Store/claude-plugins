@@ -1475,6 +1475,10 @@
               "$ref": "#/$defs/docRef",
               "description": "Cases per role with acceptance lists — the acceptance bar"
             },
+            "test_cases": {
+              "$ref": "#/$defs/docRef",
+              "description": "How each acceptance bullet of user_cases is verified — one test per bullet, tagged auto or manual. Derived from user_cases; its version names the user_cases version it was derived from."
+            },
             "business_logic": {
               "$ref": "#/$defs/docRef",
               "description": "Product logic in plain words: invariants, and what the platform must refuse"

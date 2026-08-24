@@ -145,3 +145,90 @@ Then verify the mirror matches again, per the rule in `skills/feedback/SKILL.md`
 inside the repo without a network diff — the same gap the retroactive rev-9 entry above
 records. Until a rev marker exists in the schema itself, a LEARNINGS note is the only
 thing that makes a known drift discoverable.
+
+## 2026-08-24 — test-cases: TEST-CASES.md derived from the acceptance bullets
+
+**Feature:** the folder gains a seventh document. `TEST-CASES.md` says **how** each
+"Готово, если" bullet of `USER-CASES.md` is verified — at least one test per bullet,
+each tagged `auto` (naming the test title that proves it) or `manual` (with
+preconditions and steps a person can follow). Ids carry their case: `C-06.T3`, so
+`grep 'C-06\.'` finds every check for that case. Section order mirrors USER-CASES so
+the two read side by side. New skill `test-cases`, new command `/macstack-dev:test-cases`,
+new contract entry, `docs.files.test_cases` in the schema, lint rules 12.11 and 12.12.
+
+**Implementation:** derivation is incremental and id-addressed. An existing test keeps
+its hand-refined steps — those are the point of the document and are never regenerated
+over; a bullet with no test gets one appended; a test whose bullet is gone is struck,
+not deleted. The header names the `USER-CASES.md` version it was derived from, and lint
+warns when that falls behind. `docs-merge` now re-derives in the same pass that changes
+an acceptance bullet, because a changed bullet leaves the coverage table lying.
+
+**Rationale:** the chain already existed in practice but had a hole in the middle.
+`USER-CASES.md` says what must be true; `reviews/*-conformance.md` records what was
+found the day somebody checked. Nothing said how to check — so each audit re-invented
+its own method, and the only record of a check was a dated review that nobody re-runs.
+Three rules came out of reading real acceptance bullets rather than imagining them:
+
+- **One case mixes both kinds.** C-06 in the live project asserts both "отметиться без
+  геолокации можно всегда" (a machine can decide that) and "предупреждение написано
+  спокойно: это не обвинение" (only a person can). Splitting the document by automation
+  would tear the case in half, so the tag lives on the test, not on the file.
+- **`auto` describes how it is checked today**, not what could be automated one day.
+  An aspirational tag is how a coverage table starts lying.
+- **A prohibition needs two assertions**, not one: the platform refuses, and the refusal
+  explains itself. A silent refusal passes a naive test and fails the case.
+
+The sharpest rule is about what NOT to write: if verifying a bullet needs a fact the
+case does not state — a threshold, a deadline, an exact message — the gap is in
+`USER-CASES.md`, and it goes to `OPEN-QUESTIONS.md §A` or through `docs-merge` as a
+contradiction. A test that invents its own acceptance criterion becomes a second
+specification, which is the failure mode this whole folder exists to prevent.
+
+## 2026-08-24 — project-docs / docs-merge / docs-migrate / lint: 15 defects from a dry run
+
+**Problem:** the folder standard was written, reviewed and validated clean — and was
+still not followable. An adversarial dry run that *actually executed* the instructions
+(scratch project, the real 8-page client PDF through the full loop, lint group 12 walked
+by hand, the path resolver tested in three physical scenarios) found 15 defects in ~45
+tool calls. None had been visible to a reading review, including a formal validation
+pass that reported no findings.
+
+**Fix:** all 15 applied. The four that mattered most:
+
+- **Case-id letters were a closed enum.** `^(X|C|T|O|S|Z)-[0-9]{2}$` with X, S and Z
+  reserved leaves exactly C, T and O for every role a project can have — a fourth role
+  had no legal id, and nothing said how a letter gets picked. The live project has three
+  roles, so the ceiling was invisible. Now `^[A-Z]-[0-9]{2}$`, with the reserved set and
+  the assignment rule stated.
+- **Lint 12.1 passed vacuously.** It checked "every file named in `docs.files` exists",
+  but `docs.files` is author-populated — list nothing and the rule approves an empty
+  folder. Now it reads the contract's `documents` map: the checker is driven by the
+  standard, not by the thing being checked.
+- **Retiring a role produced a guaranteed lint error.** Apply struck the role's cases but
+  never its section heading, and 12.4 requires every case-section letter to map to a
+  role. Reproduced live.
+- **A `versioned: true` document with no journal made 12.5 unevaluable.** Two documents
+  carried a version they could never satisfy. They are living documents; the version came
+  off rather than the rule being weakened.
+
+The rest: an anchor asserted by one file and undefined by the contract; no documented
+path from legacy prose `open_questions` to pointer form (lint warned, nothing remediated);
+the layout diagram showing `macstack.json` inside the folder while creation never moved a
+legacy root file; "stop" versus "ask which is canonical" for the same error; and prose
+placeholders (`D-NN`, `A-N`) that did not match their own regexes — the dry run wrote
+`D-1`, then had to self-correct against the pattern.
+
+**Root cause:** every one of these is an instruction that reads correctly and executes
+wrongly. A reviewer checks whether a sentence is true; only an executor discovers that a
+rule cannot be satisfied, that two files disagree about the same step, or that a
+constraint has no legal solution past the third role. The formal validation was not
+wrong — it was answering a different question.
+
+**Severity:** Major. Shipping 1.4.0 without this pass would have put a standard in front
+of users that breaks on the fourth role and cannot drive its own linter to green.
+
+**How to apply:** for anything whose product is *instructions* — a skill, a runbook, a
+convention — one adversarial execution against real material is worth more than any
+number of readings. Budget it as part of the work, not as a nicety, and give it the real
+input rather than a toy: the defect ceiling only showed up because the live project has
+exactly three roles.

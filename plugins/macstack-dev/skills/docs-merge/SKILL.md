@@ -22,9 +22,10 @@ source = `"chat, YYYY-MM-DD"`.
 ## 0. Resolve
 
 `macstack/macstack.json` → `./macstack.json` (legacy) → search upward to the git root.
-**Both present is an ERROR**, not a silent choice — ask which is canonical. Read
-`docs.language` (documents are written in it; anchors and IDs never are) and
-`docs.files`.
+**Both present is an ERROR**, not a silent choice — report both paths and stop: the
+remedy is `docs-migrate`, which relocates the legacy root file into the folder (or
+`git rm`s it once the moved copy is verified). Read `docs.language` (documents are
+written in it; anchors and IDs never are) and `docs.files`.
 
 ## 1. Intake
 
@@ -80,7 +81,8 @@ merge without a ruling unless the owner objects. Nothing in Part 1 merges silent
 
 ## 4. Rulings
 
-Allocate D-IDs in `DECISIONS.md` FIRST, in their own commit, then write
+Allocate D-ids in `DECISIONS.md` FIRST, in their own commit — writing each row's id,
+date, title, decided by and file at allocation time — then write
 `decisions/YYYY-MM-DD-<slug>-rulings.md`. Each entry: the ruling, "— because …",
 **Cost if wrong** under its anchor (written AT DECISION TIME, before the outcome is
 known — a retrospective cost clause is worthless), and who decided (owner | session).
@@ -89,26 +91,31 @@ the client, where this was applied.
 
 ## 5. Apply
 
-Order matters: USER-CASES.md → BUSINESS-LOGIC.md → macstack.json. The latter two are
-derived from the first, so writing the spec first means writing changes you may have
-to reverse. USER-CASES gets a version bump in its header AND a matching journal-table
+Order matters: USER-CASES.md → TEST-CASES.md → BUSINESS-LOGIC.md → macstack.json. The
+last three are derived from the first, so writing the spec first means writing changes
+you may have to reverse. A changed or added acceptance bullet leaves `TEST-CASES.md`
+stale by definition — re-derive it with `macstack-dev:test-cases` in the same pass, or
+the coverage table starts lying. USER-CASES gets a version bump in its header AND a matching journal-table
 row naming the delta and the rulings file. Re-insert any stripped anchors idempotently
 — a missing anchor is never a reason to rewrite the document; headings and prose stay
 in `docs.language`, anchors never translate. No line-number pointers into source
-(`src/foo.ts:214`) — cite a symbol name or a test title instead.
+(`src/foo.ts:214`) — cite a symbol name or a test title instead. When a role is
+removed from `roles[]`, strike its entire USER-CASES.md section heading as well as
+its cases — the letter is retired with it and never reassigned.
 
 **GATE 3** — show the USER-CASES diff before writing.
 **GATE 4** — show the macstack.json diff separately (a spec change is lint-gated).
 
 ## 6. Remainder, then 7. Close
 
-- Unresolved → `OPEN-QUESTIONS.md` §A with fresh A-IDs, cross-referencing the K-N.
-  Resolved → struck with the closing D-ID and date: `~~A6~~ · CLOSED D14, 2026-08-24`
+- Unresolved → `OPEN-QUESTIONS.md` §A with fresh A<n> ids, cross-referencing the K-N.
+  Resolved → struck with the closing decision id and date: `~~A6~~ · CLOSED D14, 2026-08-24`
   (numbers never reused). New deferred engineering → §B with BOTH the reason it was
   safe to defer AND the trigger that makes it unsafe.
 - Close: prepend the applied banner under the `applied` anchor in the delta, naming
-  the resulting version, the rulings file, and the A-IDs opened — the delta is now
-  history. Add registry rows to DECISIONS.md.
+  the resulting version, the rulings file, and the A<n> ids opened — the delta is now
+  history. DECISIONS.md rows were already written in step 4 — do not re-add them here;
+  only fill in a row's `file` link now if it was not yet known at allocation time.
 
 ## 8. Log
 
@@ -124,6 +131,9 @@ Append to `log.md`:
 - note: <the one thing a reader six months from now needs>
 ```
 
+Bump `lifecycle.updated` to today's date in this same step — the two dates must
+never disagree.
+
 Second entry point (no file): record the source as `chat, YYYY-MM-DD` in both the
 delta and this entry — there is no inbox row and no Gate 1 for it.
 
@@ -134,7 +144,7 @@ together cover:
 
 **Script it:** inbox file with no manifest row · inbox file with no merge entry naming
 it in log.md · missing anchors · non-unique / non-ASCII / gap-numbered IDs · a cited
-D-N that doesn't resolve in DECISIONS.md · a struck A-N with no closing D-ID and date ·
+D<n> that doesn't resolve in DECISIONS.md · a struck A<n> with no closing decision id and date ·
 USER-CASES header version ≠ last journal row · `lifecycle.updated` older than the
 newest log.md entry · a delta past its age budget with no applied banner.
 
@@ -149,4 +159,5 @@ fired · whether BUSINESS-LOGIC has started restating USER-CASES.
 | No `macstack/` yet | `macstack-dev:project-docs` first |
 | Delta has no contradictions | 3b bypass — apply directly, skip rulings |
 | Anything headed for USER-CASES / BUSINESS-LOGIC / macstack.json | Never directly — always through this loop |
+| Acceptance bullets changed | `macstack-dev:test-cases` in the same pass |
 | After apply | `macstack-dev:lint` |

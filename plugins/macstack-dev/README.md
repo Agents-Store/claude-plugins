@@ -28,7 +28,8 @@ the client.
    secrets-env-sync, commit-after-task, search-first, external-api-docs,
    project-conventions, macstack-sync) and core commands.
 7. **Keep the working documents** — a standardized `macstack/` folder beside the spec:
-   `USER-CASES.md` (cases per role), `BUSINESS-LOGIC.md`, `OPEN-QUESTIONS.md`
+   `USER-CASES.md` (cases per role), `TEST-CASES.md` (how each acceptance bullet is
+   verified, `auto` or `manual`), `BUSINESS-LOGIC.md`, `OPEN-QUESTIONS.md`
    (§A owed by the client · §B deferred by us), `DECISIONS.md` + dated rulings,
    an immutable `inbox/` for client material and an append-only `log.md`.
 8. **Merge client edits** — a client document lands in `inbox/`, becomes a delta of
@@ -48,6 +49,7 @@ the client.
 | `setup` | Orientation, schema/registry location, tooling check, CLAUDE.md wiring |
 | `project-docs` | The `macstack/` folder standard: layout, path resolution, ID spaces, section anchors, language rule, immutability guardrails |
 | `docs-merge` | The merge loop: client material → delta → owner rulings → cases, logic and spec |
+| `test-cases` | Derives `TEST-CASES.md` from the acceptance bullets — one test per bullet, tagged `auto` or `manual` |
 | `docs-migrate` | One-time relocation of an existing `docs/` into the folder |
 | `init-project` | macstack.json for an existing codebase |
 | `generate-stack` | Result-first stack design from a request |
@@ -63,8 +65,9 @@ the client.
 ## Commands
 
 `/macstack-dev:init` · `/macstack-dev:generate` · `/macstack-dev:scaffold` ·
-`/macstack-dev:docs` · `/macstack-dev:docs-merge` · `/macstack-dev:docs-migrate` ·
-`/macstack-dev:lint` · `/macstack-dev:sync` · `/macstack-dev:feedback`
+`/macstack-dev:docs` · `/macstack-dev:docs-merge` · `/macstack-dev:test-cases` ·
+`/macstack-dev:docs-migrate` · `/macstack-dev:lint` · `/macstack-dev:sync` ·
+`/macstack-dev:feedback`
 
 ## Agent
 

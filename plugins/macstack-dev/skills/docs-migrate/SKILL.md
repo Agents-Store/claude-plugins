@@ -82,7 +82,7 @@ each source, leaving "from whom" and "supersedes" blank rather than guessed. See
 **6. Reconcile IDs — a named gate, not a heuristic.** Local numbering in existing
 rulings files ("1." … "26.") is not the project's D-space, and the two cannot be
 reconciled mechanically. Present the mapping you propose and let the owner correct
-it. **── GATE 3 ──** the owner confirms the D-ID assignment. Then convert
+it. **── GATE 3 ──** the owner confirms the D<n> assignment. Then convert
 `lifecycle.open_questions` and `lifecycle.needs_from_client` from prose strings to
 pointer form `{id, ref, status, blocks, closed_by}`, keeping the prose in
 `OPEN-QUESTIONS.md` — the JSON must end up holding no prose. Back-fill `roles[].cases`.
@@ -93,11 +93,22 @@ what stayed, what was renamed, which references were rewritten, which external
 references are now broken and who must fix them, and which IDs still need a human
 decision.
 
+**8. Prose → pointer, standalone.** The same `lifecycle.open_questions[]` /
+`lifecycle.needs_from_client[]` conversion from step 6 can run on its own — no
+`docs/` folder, no full relocation — whenever `lint`'s "Legacy string-form
+open_questions" warning is the only problem left in an otherwise-standard
+`macstack/` folder: for each prose string, write a fresh `OPEN-QUESTIONS.md` row (an
+A or B id) carrying its title and body, then replace the string in the JSON with the
+matching pointer object `{id, ref, status, blocks, closed_by}`. **── GATE 4 ──** the
+owner confirms each split — turning one prose paragraph into an id, a title and a
+body is a judgement call, never mechanical.
+
 ## Guard rails
 
 - Nothing is moved before the move map (Gate 1) is confirmed.
 - `git mv` only, one migration branch, a clean tree — no exceptions.
 - `inbox/` becomes immutable the moment material lands in it: fix bad filenames
   during the move, never after.
-- Three named gates (map, external references, D-ID reconciliation) — never
-  collapse them into one confirmation.
+- Three named gates (map, external references, D<n> reconciliation) for a full
+  relocation — never collapse them into one confirmation. A fourth (prose →
+  pointer, step 8) stands alone and needs none of the others.

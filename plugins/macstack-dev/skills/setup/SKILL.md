@@ -55,12 +55,13 @@ The standard also defines a folder of working documents next to macstack.json:
 
 ```
 macstack/
-├── macstack.json          the spec — canonical location
+├── macstack.json           the spec — canonical location
 ├── README.md               folder contract   [generated]
 ├── USER-CASES.md           [client] cases per role, versioned
+├── TEST-CASES.md           how each acceptance bullet is verified, auto | manual
 ├── BUSINESS-LOGIC.md       [client] invariants and logic in plain words
 ├── OPEN-QUESTIONS.md       §A owed by the client · §B deferred by us
-├── DECISIONS.md            D-ID registry → files in decisions/
+├── DECISIONS.md            decision registry (D14, D15 …) → files in decisions/
 ├── log.md                  append-only journal of intakes and merges
 ├── inbox/                  IMMUTABLE client material · README.md = manifest
 ├── deltas/                 proposals, not edits
@@ -80,12 +81,14 @@ code-style.md, runbooks) — it never moves into `macstack/`.
    2. `./macstack.json` — legacy; works, but say so and offer `docs-migrate`.
    3. Search upward to the git root (monorepo / nested project).
    - Both 1 and 2 present → **ERROR, never a silent choice** — two specs mean two
-     truths; report both paths and stop.
+     truths; report both paths and stop. The remedy is `docs-migrate`, which
+     relocates the legacy root file into the folder (or `git rm`s it once the moved
+     copy is verified). Never guess which one is canonical.
    - Found → validate it (`lint` skill) and report the stage (`lifecycle.stage`).
    - Not found → offer `init-project` (existing codebase) or `generate-stack` (from
      scratch).
    - Also check whether `macstack/` and its working documents (USER-CASES.md,
-     BUSINESS-LOGIC.md, OPEN-QUESTIONS.md, DECISIONS.md, log.md) exist. If not,
+     TEST-CASES.md, BUSINESS-LOGIC.md, OPEN-QUESTIONS.md, DECISIONS.md, log.md) exist. If not,
      offer `project-docs` to create the folder.
 3. **CLAUDE.md link**: check that CLAUDE.md contains a "Stack Specification" section
    pointing to macstack.json. If missing, offer to add:
@@ -112,4 +115,5 @@ Never write code that contradicts macstack.json — update the specification fir
 | Validation | `lint` |
 | Create/seed the `macstack/` folder | `project-docs` |
 | Merge new client material into the folder | `docs-merge` |
+| Turn the acceptance bullets into checks | `test-cases` |
 | Relocate an existing `docs/` into the new layout | `docs-migrate` |

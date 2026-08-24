@@ -9,9 +9,14 @@
   },
   "id_spaces": {
     "case": {
-      "pattern": "^(X|C|T|O|S|Z)-[0-9]{2}$",
+      "pattern": "^[A-Z]-[0-9]{2}$",
       "owner": "USER-CASES.md",
-      "note": "X cross-cutting, S end-to-end scenario, Z prohibition; the rest are role letters bound via roles[].cases"
+      "note": "X = cross-cutting, S = end-to-end scenario, Z = prohibition are RESERVED and never assigned to a role; any other uppercase ASCII letter is a role letter, chosen from the role name's first distinctive letter and recorded in roles[].cases; on collision take the next unused letter; a letter, once used, is never reassigned to a different role."
+    },
+    "testcase": {
+      "pattern": "^[A-Z]-[0-9]{2}\\.T[0-9]+$",
+      "owner": "TEST-CASES.md",
+      "note": "The case id it verifies, plus .T<n>. Traceability is built into the id: `grep 'C-06\\.' ` finds every test for C-06. Numbers are never reused after a test is struck."
     },
     "open_item": {
       "pattern": "^[AB][0-9]+$",
@@ -71,10 +76,45 @@
       ],
       "note": "Every case heading carries an ID and a priority tag, and is followed by an acceptance list. Role sections are bound to roles[].cases in macstack.json."
     },
+    "test_cases": {
+      "path": "TEST-CASES.md",
+      "audience": "both",
+      "versioned": true,
+      "derived_from": "user_cases",
+      "sections": [
+        "howto",
+        "coverage",
+        "crosscutting",
+        "roles",
+        "scenarios",
+        "prohibitions",
+        "journal"
+      ],
+      "item_anchor": "testcase",
+      "item_requires": [
+        "covers",
+        "expected"
+      ],
+      "item_requires_when": {
+        "manual": [
+          "preconditions",
+          "steps"
+        ],
+        "auto": [
+          "evidence"
+        ]
+      },
+      "kinds": [
+        "auto",
+        "manual"
+      ],
+      "section_order_mirrors": "user_cases",
+      "struck_form": "~~C-04.T2~~ · DROPPED in v1.9 — the acceptance bullet it covered is gone",
+      "note": "Sits between USER-CASES.md (what must be true) and reviews/ (what was found when someone checked): this document says HOW each acceptance bullet is verified. At least one test per bullet. Evidence cites a test title, never a file:line. A bullet needing human judgement is `manual` and carries steps; an `auto` test names the automated test that proves it. Regeneration is by id: update in place, never clobber hand-written steps."
+    },
     "business_logic": {
       "path": "BUSINESS-LOGIC.md",
       "audience": "client",
-      "versioned": true,
       "sections": [
         "essence",
         "key",
@@ -88,12 +128,12 @@
     "open_questions": {
       "path": "OPEN-QUESTIONS.md",
       "audience": "both",
-      "versioned": true,
       "sections": [
         "howto",
         "client-inputs",
         "deferred"
       ],
+      "item_anchor": "open-item",
       "client_table_columns": [
         "#",
         "what is owed",
@@ -105,9 +145,9 @@
         "trigger-that-makes-it-unsafe"
       ],
       "closed_form": "~~A6~~ · CLOSED D14, 2026-08-24",
-      "note": "Closed items are struck through with the closing D-ID and date, never deleted."
+      "note": "Closed items are struck through with the closing decision id and date, never deleted."
     },
-    "decisions_index": {
+    "decisions": {
       "path": "DECISIONS.md",
       "audience": "both",
       "append_only": true,
@@ -115,6 +155,7 @@
         "howto",
         "registry"
       ],
+      "item_anchor": "decision",
       "registry_columns": [
         "id",
         "date",
@@ -136,7 +177,7 @@
         "opened",
         "closed"
       ],
-      "note": "The unprocessed signal: a file in inbox/ with no merge entry naming it."
+      "note": "The unprocessed signal: a file in inbox/ with no merge entry naming it. Scaffolding does not log: log.md records incoming material and merges only, so a freshly created folder has no entry — that absence is intentional, not a gap."
     },
     "inbox_manifest": {
       "path": "inbox/README.md",
@@ -164,6 +205,10 @@
         "absent",
         "journal"
       ],
+      "item_anchors": {
+        "contradiction": "k",
+        "addition": "n"
+      },
       "applied_anchor": "applied",
       "age_budget_days": {
         "warn": 14,
@@ -185,6 +230,11 @@
         "left-to-client",
         "where-applied"
       ],
+      "item_anchor": "ruling",
+      "item_anchors": {
+        "cost_if_wrong": "cost-if-wrong",
+        "decided_by": "decided-by"
+      },
       "item_requires": [
         "cost-if-wrong",
         "decided-by"

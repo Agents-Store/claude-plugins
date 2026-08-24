@@ -18,12 +18,13 @@ file's anchors or ID patterns from memory — open it.
 
 ```
 macstack/
-├── macstack.json          the spec — machine-readable facts
+├── macstack.json          the spec — machine-readable facts (canonical location; a legacy root file stays put until `docs-migrate` moves it)
 ├── README.md              this folder's contract: map, ownership, ID spaces   [generated]
 ├── USER-CASES.md          [client] cases per role, versioned            ← the bar
+├── TEST-CASES.md          how each acceptance bullet is verified, auto | manual
 ├── BUSINESS-LOGIC.md      [client] invariants and logic in plain words
 ├── OPEN-QUESTIONS.md      §A owed by the client · §B deferred by us
-├── DECISIONS.md           D-ID registry and allocator → files in decisions/
+├── DECISIONS.md           D<n> registry and allocator → files in decisions/
 ├── log.md                 append-only journal of intakes and merges
 ├── inbox/                 IMMUTABLE client material · README.md = manifest
 ├── deltas/                YYYY-MM-DD-<slug>.md — proposals, not edits
@@ -38,6 +39,8 @@ you can hand to a client whole.
 There is no physical `client/` vs `technical/` split: these documents cross-cite each
 other constantly, and two trees would double every relative link. Audience is declared
 in `docs.files.<name>.audience` and in the `-business.md` suffix, not in the path.
+`docs.files.<key>` uses the document keys from `doc-contracts.json` (`user_cases`,
+`test_cases`, `business_logic`, `open_questions`, `decisions`, `log`), not filenames.
 
 ## Path resolution
 
@@ -48,7 +51,9 @@ Resolve once, at the start of every operation, in this order:
 3. Search upward from cwd to the git root.
 
 **Both 1 and 2 present is an ERROR**, never a silent choice — two specs mean two
-truths. Report both paths and stop.
+truths. Report both paths and stop: the remedy is `docs-migrate`, which relocates
+the legacy root file into the folder (or `git rm`s it once the moved copy is
+verified).
 
 ## Six invariants
 
@@ -85,15 +90,20 @@ is still a copy.
 | Concern | Owner | The other side holds |
 |---|---|---|
 | `roles[].id/name/acl/isolation` | `macstack.json` | `USER-CASES.md` role sections, joined via `roles[].cases` |
-| What a person gets, per case | `USER-CASES.md` | — |
+| What a person gets, per case | `USER-CASES.md` | `TEST-CASES.md` verifies each of its acceptance bullets |
+| How a bullet is checked | `TEST-CASES.md` | ids carry the case they verify (`C-06.T3`); a dated `reviews/` file records what a run found |
 | Open questions | `OPEN-QUESTIONS.md` | `lifecycle.open_questions[]` as `{id, ref, status, blocks, closed_by}` pointers |
 | Owed by the client | `OPEN-QUESTIONS.md §A` | `lifecycle.needs_from_client[]` — a **derived view**: live §A client rows only |
-| Decisions | `decisions/*.md` | `lifecycle.decisions[]` pointers; prose cites `D-NN` |
+| Decisions | `decisions/*.md` | `lifecycle.decisions[]` pointers; prose cites `D<n>` |
 | Prose, rationale, cost-if-wrong | markdown | JSON never |
 
 Pointer form carries no prose, so there is nothing to drift. Where a human genuinely
 needs text in the JSON, an optional `summary` (≤200 chars) **must equal the first
 sentence** of its markdown item — mismatch is an ERROR, not a warning.
+
+During migration, `lifecycle.open_questions[]` may legally hold a mix of legacy prose
+strings and pointer objects in the same array — the lint warning for a legacy string
+fires per item, never against the array as a whole.
 
 ## Language
 
@@ -106,10 +116,13 @@ writing.
 ## Creating or repairing the folder
 
 1. Resolve the spec; read `docs.root` (default `macstack`), `docs.language`, `docs.files`.
+   If the spec resolved to the legacy root path (`<repo>/macstack.json`), create the
+   folder around it as-is and report that relocating it is `docs-migrate`'s job — do
+   not move it here.
 2. Create only what is missing — **never overwrite an existing document.** For a file
    that exists but lacks anchors or sections, add what is missing in place and report
    it; do not regenerate.
-   Materialize eagerly: the six documents, plus `inbox/` with its `README.md` manifest.
+   Materialize eagerly: the seven documents, plus `inbox/` with its `README.md` manifest.
    Create `deltas/`, `decisions/` and `reviews/` **lazily, on first use** — git does
    not track an empty directory, so creating them up front either leaves untracked
    empties that vanish on clone or scatters four `.gitkeep` files. Their absence in a
@@ -117,9 +130,14 @@ writing.
 3. Seed each document from `doc-contracts.json`: the required anchors, the section
    headings translated into `docs.language`, and a one-line placeholder saying what
    belongs there. Seed `USER-CASES.md` role sections from `roles[]`, and back-fill
-   `roles[].cases` with the matching ID prefix.
+   `roles[].cases` with the matching ID prefix. If the spec's `lifecycle.open_questions`
+   or `needs_from_client` still holds prose strings, offer `docs-migrate`'s conversion
+   step (prose → `OPEN-QUESTIONS.md` rows with pointer objects) rather than leaving
+   them as unconvertible legacy text.
 4. Write `README.md` from the contract: the map above, the ownership table, the ID
-   spaces, and the merge loop in four lines.
+   spaces, and the merge loop in four lines. Scaffolding does not write to `log.md` —
+   that journal records incoming material and merges only, so a freshly created
+   folder has no log entry, and that absence is correct, not forgotten.
 5. `.gitignore` — leave `inbox/` committed (an immutable zone must be durable). Respect
    the existing `*.local.md` convention for sensitive companions.
 6. Add the `docs` section to `macstack.json` if absent, then run `lint`.
@@ -132,6 +150,7 @@ questions are not this project's.
 | Task | Skill |
 |---|---|
 | Client edits arrived, or "improve X" | `docs-merge` |
+| Turn the acceptance bullets into checks | `test-cases` |
 | Move an existing `docs/` into this layout | `docs-migrate` |
 | Validate the folder and the spec | `lint` |
 | The spec itself | `init-project` · `generate-stack` |

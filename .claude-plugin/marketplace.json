@@ -1185,8 +1185,8 @@
     {
       "name": "macstack-dev",
       "source": "./plugins/macstack-dev",
-      "description": "MACSTACK dev plugin for Agents Store. Creates and maintains the macstack/ folder of a Claude project: macstack.json — the standardized business + technical stack specification — plus the working documents around it (user cases per role, business logic in plain words, the decision log with cost-if-wrong, open questions split into what the client owes and what we deferred, and an immutable inbox for client material). Init in existing projects, generate from scratch (result-first), discover context plugins and prototypes, scaffold project files in the prototype → stack plugins → dev plugins order, merge incoming client edits through a gated delta/rulings loop, wire Infisical env, install best-practice rules and commands.",
-      "version": "1.4.0",
+      "description": "MACSTACK dev plugin for Agents Store. Creates and maintains the macstack/ folder of a Claude project: macstack.json — the standardized business + technical stack specification — plus the working documents around it (user cases per role, test cases derived from their acceptance bullets, business logic in plain words, the decision log with cost-if-wrong, open questions split into what the client owes and what we deferred, and an immutable inbox for client material). Init in existing projects, generate from scratch (result-first), discover context plugins and prototypes, scaffold project files in the prototype → stack plugins → dev plugins order, merge incoming client edits through a gated delta/rulings loop, wire Infisical env, install best-practice rules and commands.",
+      "version": "1.5.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1200,6 +1200,7 @@
         "infisical",
         "project-docs",
         "user-cases",
+        "test-cases",
         "decision-log",
         "client-feedback"
       ],

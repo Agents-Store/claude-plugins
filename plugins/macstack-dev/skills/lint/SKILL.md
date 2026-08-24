@@ -87,23 +87,26 @@ Active only when macstack.json has a `docs` section, or a `macstack/` folder exi
 on disk. Errors block scaffolding exactly like Pass 2; lint red on a document that
 reads fine usually means stripped anchors (see `troubleshoot`).
 
-12.1 **Layout** — `docs.root` resolves; every file named in `docs.files` exists;
-     exactly one `macstack.json` in the repo.
+12.1 **Layout** — `docs.root` resolves; every document in `doc-contracts.json`'s
+     `documents` map exists at its `path` under `docs.root`; `docs.files` entries,
+     where present, must agree with it; exactly one `macstack.json` in the repo.
 12.2 **Anchors** — each document carries the anchors its type requires per
      `${CLAUDE_PLUGIN_ROOT}/skills/project-docs/references/doc-contracts.json`.
-12.3 **ID integrity** — unique per space (case/open-item/decision/contradiction/
-     addition); ASCII-only inside an ID token — the homoglyph rule: a Cyrillic
+12.3 **ID integrity** — unique per space (case/test-case/open-item/decision/
+     contradiction/addition); ASCII-only inside an ID token — the homoglyph rule: a Cyrillic
      capital KA (U+041A) renders exactly like `K` (U+004B), greps as absent and
      silently breaks every cross-reference check, so compare codepoints rather than
      glyphs; no gaps in
      D-numbering; A/B numbers never reused after a strike.
-12.4 **Cross-file refs** — every `D-N` cited in macstack.json, USER-CASES or
-     OPEN-QUESTIONS resolves in DECISIONS.md; every `A-N` in `lifecycle.*` resolves
+12.4 **Cross-file refs** — every `D<n>` cited in macstack.json, USER-CASES or
+     OPEN-QUESTIONS resolves in DECISIONS.md; every `A<n>` in `lifecycle.*` resolves
      to a live §A row; every `roles[].cases` prefix yields ≥1 case heading; every
-     case-section letter maps to exactly one role.
+     case-section letter maps to exactly one role; every `<case>.T<n>` id in
+     TEST-CASES.md carries the id of a case that still exists.
 12.5 **Checked copies** — `open_questions[].summary` equals the first sentence of
-     its markdown item; `docs.files.<x>.version` equals the document header version
-     equals the last journal row.
+     its markdown item; for versioned documents (`user_cases`, `test_cases`),
+     `docs.files.<x>.version` equals the document header version equals the last
+     journal row.
 12.6 **`needs_from_client` is a view** — contains no closed items, omits no open
      client-input §A row.
 12.7 **Inbox hygiene** — ASCII-only filenames; every inbox file has a manifest row
@@ -115,12 +118,24 @@ reads fine usually means stripped anchors (see `troubleshoot`).
      `resources.accesses`.
 12.10 **No parallel spec** — a delta older than 30 days with neither an applied
       banner nor a superseded note.
+12.11 **Every acceptance bullet is verified** — each "Готово, если" bullet in
+      USER-CASES.md is covered by at least one test in TEST-CASES.md. An uncovered
+      bullet is an unverified promise; that is the whole point of the document.
+12.12 **Test cases are well formed** — every test declares `covers` and `expected`;
+      a `manual` test also declares preconditions and steps; an `auto` test also
+      names the test title that proves it (a bare filename is not evidence, and a
+      `file.ts:NNN` pointer is already banned by 12.8); a struck test states why.
 
 ## Warnings (non-blocking)
 
 - A goal with no result ("a goal with no path to it"); a result with no goal when
   goals are non-empty.
 - A trigger referenced by no workflow and no agent.
+- TEST-CASES.md derived from an older `USER-CASES.md` version than the current one
+  (name both versions) — the coverage table is stale by definition.
+- A `Z-` prohibition whose tests assert the refusal but not that the refusal
+  explains itself.
+- An `X-` cross-cutting case whose tests name no roles to run as.
 - Software without an agentic passport; a required key missing from `.env` (when the
   file exists).
 - **Coverage gap**: a non-empty *tooling-backed* section — software, entities,

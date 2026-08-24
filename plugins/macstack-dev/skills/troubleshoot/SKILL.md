@@ -58,7 +58,7 @@ description: This skill should be used when the user reports "macstack lint fail
 | A cross-reference check reports a missing ID that is visibly present | a Cyrillic homoglyph in the ID token — Latin and Cyrillic A B E K M H O P C T Y X are indistinguishable on screen. Do not try to spot it; find it with `grep -RPn "[^\x00-\x7F]-[0-9]" macstack/`, which matches a non-ASCII letter directly before the hyphen-number of an ID, then retype the token in ASCII |
 | A client PDF reads as empty | not-yet-materialized iCloud file → size/first-bytes check before reading; refuse rather than guess |
 | `.xlsx` cannot be opened by any file tool | ask for a CSV export beside it and write NO log entry, so the file stays in the unprocessed set |
-| `D-NN` cited but nowhere to be found | the rulings file was written without allocating in DECISIONS.md first |
+| `D<n>` cited but nowhere to be found | the rulings file was written without allocating in DECISIONS.md first |
 
 ## Discovery
 

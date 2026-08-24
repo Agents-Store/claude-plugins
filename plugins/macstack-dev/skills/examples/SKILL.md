@@ -67,7 +67,7 @@ Client emails a PDF spec update
 1. It lands in inbox/ → a manifest row in inbox/README.md
 2. Read it (materialization/size check first) → drafted as a delta with
    contradictions (K-N) and additions (N-N)
-3. Owner rules on each item → decisions/ + a DECISIONS.md D-ID row
+3. Owner rules on each item → decisions/ + a DECISIONS.md registry row
 4. USER-CASES.md bumps a version for the affected role section
 5. Unresolved items become new §A rows in OPEN-QUESTIONS.md
 6. The delta gets its applied banner; log.md gets a merge entry naming the source
