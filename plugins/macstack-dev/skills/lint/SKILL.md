@@ -92,8 +92,10 @@ reads fine usually means stripped anchors (see `troubleshoot`).
 12.2 **Anchors** — each document carries the anchors its type requires per
      `${CLAUDE_PLUGIN_ROOT}/skills/project-docs/references/doc-contracts.json`.
 12.3 **ID integrity** — unique per space (case/open-item/decision/contradiction/
-     addition); ASCII-only inside an ID token (the homoglyph rule — a Cyrillic `К`
-     greps as absent and silently breaks every cross-reference check); no gaps in
+     addition); ASCII-only inside an ID token — the homoglyph rule: a Cyrillic
+     capital KA (U+041A) renders exactly like `K` (U+004B), greps as absent and
+     silently breaks every cross-reference check, so compare codepoints rather than
+     glyphs; no gaps in
      D-numbering; A/B numbers never reused after a strike.
 12.4 **Cross-file refs** — every `D-N` cited in macstack.json, USER-CASES or
      OPEN-QUESTIONS resolves in DECISIONS.md; every `A-N` in `lifecycle.*` resolves

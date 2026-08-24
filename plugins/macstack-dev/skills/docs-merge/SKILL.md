@@ -63,7 +63,7 @@ Write `deltas/YYYY-MM-DD-<slug>.md` with the anchored sections from doc-contract
 
 | Part | Content |
 |---|---|
-| 1 — Contradictions `K-N` | The document says something a live case doesn't; each carries a blast-radius tag and names the cases it would rewrite. ASCII `K` only — a Cyrillic `К` greps as absent and silently breaks every cross-reference check. |
+| 1 — Contradictions `K-N` | The document says something a live case doesn't; each carries a blast-radius tag and names the cases it would rewrite. ASCII `K` only (U+004B) — the Cyrillic capital KA (U+041A) renders identically, greps as absent, and silently breaks every cross-reference check. |
 | 2 — Additions `N-N` | Grouped by role. |
 | 3 — Confirmed | What the document already matches. |
 | 4 — Absent | What the document doesn't address at all. |

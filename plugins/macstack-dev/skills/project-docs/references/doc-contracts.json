@@ -1,100 +1,240 @@
 {
   "version": "1.0.0",
   "$comment": "Structural contract for the macstack/ folder. Read by project-docs (writer) and by lint (checker) — one source of truth for structure, so the two cannot drift. Anchors are byte-exact and NEVER translated; headings and prose are written in docs.language.",
-
   "anchor_syntax": {
     "doc": "<!-- macstack:doc=<type> lang=<code> version=<v> -->",
     "section": "<!-- macstack:section=<key> -->",
     "item": "<!-- macstack:<key> -->",
     "rule": "One anchor line immediately ABOVE the heading it marks. Byte-exact: no extra spaces inside the comment. Re-inserted idempotently by docs-merge before any other write; never a reason to rewrite a document."
   },
-
   "id_spaces": {
-    "case":         { "pattern": "^(X|C|T|O|S|Z)-[0-9]{2}$", "owner": "USER-CASES.md",     "note": "X cross-cutting, S end-to-end scenario, Z prohibition; the rest are role letters bound via roles[].cases" },
-    "open_item":    { "pattern": "^[AB][0-9]+$",             "owner": "OPEN-QUESTIONS.md", "note": "A = owed by the client, B = deferred engineering. Numbers are never reused after a strike-through" },
-    "decision":     { "pattern": "^D[0-9]+$",                "owner": "DECISIONS.md",      "note": "Allocated in DECISIONS.md in its own commit BEFORE the rulings file is written" },
-    "contradiction":{ "pattern": "^K-[0-9]+$",               "owner": "deltas/*.md",       "note": "ASCII K. Cyrillic К is a homoglyph that greps as absent — refuse it" },
-    "addition":     { "pattern": "^N-[0-9]+$",               "owner": "deltas/*.md" }
+    "case": {
+      "pattern": "^(X|C|T|O|S|Z)-[0-9]{2}$",
+      "owner": "USER-CASES.md",
+      "note": "X cross-cutting, S end-to-end scenario, Z prohibition; the rest are role letters bound via roles[].cases"
+    },
+    "open_item": {
+      "pattern": "^[AB][0-9]+$",
+      "owner": "OPEN-QUESTIONS.md",
+      "note": "A = owed by the client, B = deferred engineering. Numbers are never reused after a strike-through"
+    },
+    "decision": {
+      "pattern": "^D[0-9]+$",
+      "owner": "DECISIONS.md",
+      "note": "Allocated in DECISIONS.md in its own commit BEFORE the rulings file is written"
+    },
+    "contradiction": {
+      "pattern": "^K-[0-9]+$",
+      "owner": "deltas/*.md",
+      "note": "ASCII K (U+004B) only. The Cyrillic capital KA (U+041A) renders identically and greps as absent — refuse it"
+    },
+    "addition": {
+      "pattern": "^N-[0-9]+$",
+      "owner": "deltas/*.md"
+    }
   },
-
   "documents": {
     "readme": {
-      "path": "README.md", "audience": "internal", "generated": true,
-      "sections": ["map", "ownership", "idspaces", "loop"]
+      "path": "README.md",
+      "audience": "internal",
+      "generated": true,
+      "sections": [
+        "map",
+        "ownership",
+        "idspaces",
+        "loop"
+      ]
     },
     "user_cases": {
-      "path": "USER-CASES.md", "audience": "client", "versioned": true,
-      "sections": ["howto", "crosscutting", "roles", "scenarios", "prohibitions", "outofscope", "maintaining", "journal"],
+      "path": "USER-CASES.md",
+      "audience": "client",
+      "versioned": true,
+      "sections": [
+        "howto",
+        "crosscutting",
+        "roles",
+        "scenarios",
+        "prohibitions",
+        "outofscope",
+        "maintaining",
+        "journal"
+      ],
       "item_anchor": "case",
-      "item_requires": ["priority", "acceptance"],
-      "priorities": ["critical", "important", "nice-to-have"],
+      "item_requires": [
+        "priority",
+        "acceptance"
+      ],
+      "priorities": [
+        "critical",
+        "important",
+        "nice-to-have"
+      ],
       "note": "Every case heading carries an ID and a priority tag, and is followed by an acceptance list. Role sections are bound to roles[].cases in macstack.json."
     },
     "business_logic": {
-      "path": "BUSINESS-LOGIC.md", "audience": "client", "versioned": true,
-      "sections": ["essence", "key", "details", "invariants", "refuses", "related"],
+      "path": "BUSINESS-LOGIC.md",
+      "audience": "client",
+      "versioned": true,
+      "sections": [
+        "essence",
+        "key",
+        "details",
+        "invariants",
+        "refuses",
+        "related"
+      ],
       "note": "Logic in plain words: what the product is, how it earns, what it must refuse. Never restates USER-CASES case by case."
     },
     "open_questions": {
-      "path": "OPEN-QUESTIONS.md", "audience": "both", "versioned": true,
-      "sections": ["howto", "client-inputs", "deferred"],
-      "client_table_columns": ["#", "what is owed", "where it goes", "if it is wrong or missing"],
-      "deferred_requires": ["reason-safe-to-defer", "trigger-that-makes-it-unsafe"],
+      "path": "OPEN-QUESTIONS.md",
+      "audience": "both",
+      "versioned": true,
+      "sections": [
+        "howto",
+        "client-inputs",
+        "deferred"
+      ],
+      "client_table_columns": [
+        "#",
+        "what is owed",
+        "where it goes",
+        "if it is wrong or missing"
+      ],
+      "deferred_requires": [
+        "reason-safe-to-defer",
+        "trigger-that-makes-it-unsafe"
+      ],
       "closed_form": "~~A6~~ · CLOSED D14, 2026-08-24",
       "note": "Closed items are struck through with the closing D-ID and date, never deleted."
     },
     "decisions_index": {
-      "path": "DECISIONS.md", "audience": "both", "append_only": true,
-      "sections": ["howto", "registry"],
-      "registry_columns": ["id", "date", "title", "decided by", "file"]
+      "path": "DECISIONS.md",
+      "audience": "both",
+      "append_only": true,
+      "sections": [
+        "howto",
+        "registry"
+      ],
+      "registry_columns": [
+        "id",
+        "date",
+        "title",
+        "decided by",
+        "file"
+      ]
     },
     "log": {
-      "path": "log.md", "audience": "internal", "append_only": true,
+      "path": "log.md",
+      "audience": "internal",
+      "append_only": true,
       "entry": "## [YYYY-MM-DD] <intake|merge> | <source title>",
-      "entry_requires": ["source", "delta", "decisions", "applied", "opened", "closed"],
+      "entry_requires": [
+        "source",
+        "delta",
+        "decisions",
+        "applied",
+        "opened",
+        "closed"
+      ],
       "note": "The unprocessed signal: a file in inbox/ with no merge entry naming it."
     },
     "inbox_manifest": {
-      "path": "inbox/README.md", "audience": "internal", "append_only": true,
-      "columns": ["file", "received", "from whom", "channel", "supersedes", "processed in"],
+      "path": "inbox/README.md",
+      "audience": "internal",
+      "append_only": true,
+      "columns": [
+        "file",
+        "received",
+        "from whom",
+        "channel",
+        "supersedes",
+        "processed in"
+      ],
       "note": "The ONLY writable file under inbox/."
     },
     "delta": {
-      "path": "deltas/YYYY-MM-DD-<slug>.md", "audience": "internal", "write_once": true,
-      "sections": ["howto", "contradictions", "additions", "confirmed", "absent", "journal"],
+      "path": "deltas/YYYY-MM-DD-<slug>.md",
+      "audience": "internal",
+      "write_once": true,
+      "sections": [
+        "howto",
+        "contradictions",
+        "additions",
+        "confirmed",
+        "absent",
+        "journal"
+      ],
       "applied_anchor": "applied",
-      "age_budget_days": { "warn": 14, "error": 30 },
+      "age_budget_days": {
+        "warn": 14,
+        "error": 30
+      },
       "note": "A proposal, not an edit. Declares the bar (USER-CASES.md) and stays history. Gets one applied banner and is never otherwise revised."
     },
     "rulings": {
-      "path": "decisions/YYYY-MM-DD-<slug>-rulings.md", "audience": "internal", "write_once": true,
-      "header_requires": ["date", "branch", "result"],
-      "sections": ["rulings", "left-to-client", "where-applied"],
-      "item_requires": ["cost-if-wrong", "decided-by"],
-      "decided_by": ["owner", "session"],
+      "path": "decisions/YYYY-MM-DD-<slug>-rulings.md",
+      "audience": "internal",
+      "write_once": true,
+      "header_requires": [
+        "date",
+        "branch",
+        "result"
+      ],
+      "sections": [
+        "rulings",
+        "left-to-client",
+        "where-applied"
+      ],
+      "item_requires": [
+        "cost-if-wrong",
+        "decided-by"
+      ],
+      "decided_by": [
+        "owner",
+        "session"
+      ],
       "note": "Cost-if-wrong is written AT DECISION TIME, before the outcome is known. A retrospective cost clause is worthless."
     },
     "review": {
-      "path": "reviews/YYYY-MM-DD-<slug>-conformance.md", "audience": "internal",
+      "path": "reviews/YYYY-MM-DD-<slug>-conformance.md",
+      "audience": "internal",
       "twin": "reviews/YYYY-MM-DD-<slug>-business.md",
-      "sections": ["scope", "findings", "counts", "gaps"],
+      "sections": [
+        "scope",
+        "findings",
+        "counts",
+        "gaps"
+      ],
       "note": "Ships in pairs: a technical audit and its business-language twin, same date and slug, same commit. The twin rule is a WARNING until a generator exists."
     }
   },
-
   "prohibitions": [
-    { "id": "line-pointers", "match": "[A-Za-z0-9_./-]+\\.[a-z]{2,4}:[0-9]+", "why": "Line numbers rot the moment the file above them grows. Cite a symbol name or a test title." },
-    { "id": "non-ascii-id",  "why": "An ID token containing a homoglyph (Cyrillic К, А, О, С, Е) greps as absent and silently breaks every cross-reference check." },
-    { "id": "outside-repo",  "why": "A link resolving above the repository root does not resolve for anyone who clones only this repo." },
-    { "id": "secrets",       "why": "Names of env keys only, never values — extends the existing rule 10 past resources.accesses." }
+    {
+      "id": "line-pointers",
+      "match": "[A-Za-z0-9_./-]+\\.[a-z]{2,4}:[0-9]+",
+      "why": "Line numbers rot the moment the file above them grows. Cite a symbol name or a test title."
+    },
+    {
+      "id": "non-ascii-id",
+      "why": "An ID token whose letter is a Cyrillic look-alike (U+0410 U+0412 U+0415 U+041A U+041C U+041D U+041E U+0420 U+0421 U+0422 U+0423 U+0425) greps as absent and silently breaks every cross-reference check. Compare codepoints, never glyphs."
+    },
+    {
+      "id": "outside-repo",
+      "why": "A link resolving above the repository root does not resolve for anyone who clones only this repo."
+    },
+    {
+      "id": "secrets",
+      "why": "Names of env keys only, never values — extends the existing rule 10 past resources.accesses."
+    }
   ],
-
   "inbox": {
     "immutable": true,
     "filename": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
     "naming": "<slug>-YYYY-MM-DD.<ext>",
     "size_warn_mb": 5,
     "do_not_copy": "A source already committed in this repo at a stable path is NOT copied into inbox/ — it is cited by path. A copy diverges from its original, and inbox/ cannot be fixed afterwards.",
-    "unreadable": { "xlsx": "Refuse: ask for a CSV export beside it and write NO log entry, so the file stays in the unprocessed set." }
+    "unreadable": {
+      "xlsx": "Refuse: ask for a CSV export beside it and write NO log entry, so the file stays in the unprocessed set."
+    }
   }
 }
