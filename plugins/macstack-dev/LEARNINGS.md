@@ -220,7 +220,8 @@ The rest: an anchor asserted by one file and undefined by the contract; no docum
 path from legacy prose `open_questions` to pointer form (lint warned, nothing remediated);
 the layout diagram showing `macstack.json` inside the folder while creation never moved a
 legacy root file; "stop" versus "ask which is canonical" for the same error; and prose
-placeholders (`D-NN`, `A-N`) that did not match their own regexes — the dry run wrote
+placeholders for the decision and open-item spaces, written with a hyphen their own
+regexes do not allow — the dry run wrote
 `D-1`, then had to self-correct against the pattern.
 
 **Root cause:** every one of these is an instruction that reads correctly and executes
@@ -237,3 +238,68 @@ convention — one adversarial execution against real material is worth more tha
 number of readings. Budget it as part of the work, not as a nicety, and give it the real
 input rather than a toy: the defect ceiling only showed up because the live project has
 exactly three roles.
+
+## 2026-08-24 — tasks / changelog / status: the forward half of the folder
+
+**Feature:** the folder could describe a project but not run one. Three additions close
+that. `TASKS.md` holds milestones with falsifiable `done_when` checks and tasks whose
+ids match the commit convention teams already use (`M11-T9`), every one of them
+carrying a `tracker` id so the file and the team's own tracker cannot quietly diverge.
+`log.md` becomes typed — `intake · merge · work · release` — and the `work` entry is
+the development log the folder never had. `CHANGELOG.md` is its curated, client-facing
+derivative: what reached the people who use the product, newest first. A new `status`
+skill and `/macstack-dev:status` answer "where are we and what do I run next" by
+computing the blockers from the artifacts rather than storing a list that goes stale.
+
+**Implementation:** three skills (18 total), three commands, schema rev 11 adding
+`docs.files.{tasks,changelog}`, `$defs/{taskRef,milestoneRef}`, `lifecycle.milestones[]`,
+and lint rules 12.13–12.16. The tracker rule is deliberately product-agnostic: the
+plugin never names a tracker, it reads the binding from `resources.bindings`, discovers
+whatever tools the session exposes, and reconciles — reading both sides, showing a diff,
+and refusing to pick a winner when both changed.
+
+**Rationale:** an audit of the four things the owner asked for found that only one —
+open questions — was genuinely built. The other three were absent in a way that was
+worse than obvious:
+
+- **`log.md` looked like a development log and was contractually forbidden from being
+  one.** Its entry grammar admitted exactly `intake|merge` and all six required fields
+  were client-merge artifacts. The folder appeared to have a log, so nobody noticed
+  there was no record of the work.
+- **`lifecycle.next_steps` was dead schema** — the only field in `lifecycle` with no
+  description, referenced by zero skills, zero commands and zero lint rules. Somebody
+  intended a task list, added the field, and never wired it.
+- **`OPEN-QUESTIONS.md §B` cannot be a task list**, and reading its two required fields
+  says why: both argue for *not* doing the work. It is a good debt register and a bad
+  backlog. They stay separate, and an item is PROMOTED across with a strike and a
+  pointer, so the argument for having deferred survives beside the decision to stop.
+- **The staleness detector was self-defeating.** The only currency check compared
+  `lifecycle.updated` against the newest `log.md` entry — and with no client input both
+  freeze in agreement. A project could run for months, green.
+
+**What the evidence changed about the design.** A live project already had working
+conventions in the wrong containers: 420 lines of `## Recent Changes` inside a 116 KB
+`CLAUDE.md`, ordered oldest-first and undated; and a real per-milestone ledger that
+lived in a gitignored scratch directory and was **destroyed once by `git clean -fdx`**,
+forcing a manual salvage of 26 rulings. Both are now first-class, committed files. Two
+habits from that project were kept verbatim because they are better than the obvious
+alternative: supersession in place rather than deletion, and §B bucketed by the
+*trigger* that makes deferral unsafe rather than by P0/P1.
+
+**Borrowed from a sibling project-runner pack**, with attribution to its ideas rather
+than its code: the attention list is computed from predicates over existing artifacts
+instead of stored; the status render ends with the exact next command; and `dropped`
+is kept distinct from `todo`, because "deliberately not doing this" and "not yet
+reached" are different states that a single glyph would hide. Deliberately not borrowed:
+its git-tag checkpoint machinery, its weighted numeric quality score (two of four
+inputs are subjective, and the critical-issue override is what actually does the work),
+and its silence protocol — sensible for autonomous workers, wrong for a folder a human
+edits.
+
+**Also fixed, all found by the same audit:** lint 12.1 required every document in the
+contract to exist including the ones whose path is a dated pattern, contradicting the
+lazy-directory rule; 12.4 validated A-pointers but not B-pointers; 12.5 had to parse
+"the last journal row" of a table whose shape was declared nowhere; `log.md` had no
+`sections` so 12.2 could never fire on it; and two skills instructed users to write
+prose into a JSON field the standard forbids — the plugin was generating its own
+warnings.

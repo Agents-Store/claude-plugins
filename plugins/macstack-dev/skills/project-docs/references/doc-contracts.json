@@ -5,7 +5,8 @@
     "doc": "<!-- macstack:doc=<type> lang=<code> version=<v> -->",
     "section": "<!-- macstack:section=<key> -->",
     "item": "<!-- macstack:<key> -->",
-    "rule": "One anchor line immediately ABOVE the heading it marks. Byte-exact: no extra spaces inside the comment. Re-inserted idempotently by docs-merge before any other write; never a reason to rewrite a document."
+    "rule": "One anchor line immediately ABOVE the heading it marks. Byte-exact: no extra spaces inside the comment. Re-inserted idempotently by docs-merge before any other write; never a reason to rewrite a document.",
+    "item_rule": "An item anchor marks a FIELD INSIDE an item that a checker must locate — the cost-if-wrong clause of a ruling, the applied banner of a delta. Items themselves are NOT anchored: an item is identified by the id in its heading, which 12.3 already pattern-checks. Anchoring all 68 cases of a client-facing document would be noise for the reader and buys the linter nothing it does not already have."
   },
   "id_spaces": {
     "case": {
@@ -84,7 +85,7 @@
         "maintaining",
         "journal"
       ],
-      "item_anchor": "case",
+      "item_id_space": "case",
       "item_requires": [
         "priority",
         "acceptance"
@@ -116,7 +117,7 @@
         "prohibitions",
         "journal"
       ],
-      "item_anchor": "testcase",
+      "item_id_space": "testcase",
       "item_requires": [
         "covers",
         "expected"
@@ -154,7 +155,7 @@
         "backlog",
         "journal"
       ],
-      "item_anchor": "task",
+      "item_id_space": "task",
       "item_requires": [
         "status",
         "tracker"
@@ -208,7 +209,7 @@
         "client-inputs",
         "deferred"
       ],
-      "item_anchor": "open-item",
+      "item_id_space": "open-item",
       "client_table_columns": [
         "#",
         "what is owed",
@@ -221,11 +222,12 @@
         "trigger-that-makes-it-unsafe"
       ],
       "closed_form": "~~A6~~ · CLOSED D14, 2026-08-24",
-      "note": "§A is owed by the client, §B is engineering the team deferred. An §A row carries the date it was asked, because a question nobody has actually put to the client is not blocked — it is forgotten. §B argues why NOT to act now; TASKS.md says what WILL be done. Keep them apart.",
+      "note": "§A is owed by the client, §B is engineering the team deferred. An §A row carries the date it was asked, because a question nobody has actually put to the client is not blocked — it is forgotten. §B argues why NOT to act now; TASKS.md says what WILL be done. Keep them apart. A §B item that becomes real work is PROMOTED, not copied: strike it with a pointer to the new task id and leave its original text untouched, so the argument for having deferred it survives next to the decision to stop deferring.",
       "age_budget_days": {
         "warn": 14,
         "error": 45
-      }
+      },
+      "promoted_form": "~~B7~~ · PROMOTED 2026-08-24 → M3-T2"
     },
     "changelog": {
       "path": "CHANGELOG.md",
@@ -234,7 +236,7 @@
         "howto",
         "releases"
       ],
-      "item_anchor": "release",
+      "item_id_space": "release",
       "item_requires": [
         "date",
         "what-changed"
@@ -253,7 +255,7 @@
         "howto",
         "registry"
       ],
-      "item_anchor": "decision",
+      "item_id_space": "decision",
       "registry_columns": [
         "id",
         "date",
@@ -367,7 +369,7 @@
         "left-to-client",
         "where-applied"
       ],
-      "item_anchor": "ruling",
+      "item_id_space": "ruling",
       "item_anchors": {
         "cost_if_wrong": "cost-if-wrong",
         "decided_by": "decided-by"
