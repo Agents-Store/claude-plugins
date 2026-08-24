@@ -356,3 +356,25 @@ otherwise a project writing its documents in German would need a second parser. 
 refuses to create or delete: an id is referenced by workflows, tests and prose, so a machine that
 invents one orphans a reference on the next rename. A rename therefore shows up as one addition
 and one removal, and the report says so instead of guessing.
+
+## 2026-08-24 — plan-changes: the missing link between a requirement and a code change
+
+**Feature:** `/macstack-dev:plan-changes`. Finds the user cases nobody scheduled and no audit
+confirmed, emits task skeletons pointing back at the case, and the agent fills `files` and
+`acceptance` by reading the code. The handoff is a planning session reading a task that names
+its requirement — not a prompt that repeats the requirement and records nothing.
+
+**Implementation:** `skills/plan-changes/` with `references/uncovered.py` + command. The script
+reads three inputs: USER-CASES, TASKS, and the newest `reviews/*-conformance.md`.
+
+**Rationale:** The owner's process is client mess → readable document → filled by the client →
+machine spec → detailed change plan → agent codes. Five links; four existed. Between "the spec
+is updated" and "the agent starts" there was nothing, so each planning session re-explained the
+requirement from scratch and no record survived of which change answered which requirement.
+
+**Measured while building it.** The first version reported "63 cases with no plan" on a project
+where 35 were already audited as implemented. True and useless: a work list nobody believes is
+a work list nobody reads. Reading the audit's per-case verdict cut it to 8 — exactly the eight
+cases added in user-cases v1.8, which is the right answer. The lesson generalises: a gap report
+that ignores what has already been verified reports the size of the document, not the size of
+the work.
