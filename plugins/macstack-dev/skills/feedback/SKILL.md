@@ -81,9 +81,17 @@ affected skill's text (one line), so future runs don't repeat the mistake.
 - Plugin fix: re-read the edited skill; versions in plugin.json ⇄ marketplace.json
   match.
 - Schema fix: `scripts/lint.py` green on all examples; bundled copy byte-identical
-  to the hosted one (`curl -fsSL <raw-url> | diff - <bundled>` — this single-file
-  diff covers the rev-10 `docs` section too, since it lives in the same schema
-  file).
+  to the hosted one — one diff covers every section, since it is all one file:
+  ```
+  curl -fsSL <raw-url> | diff - <bundled>
+  ```
+  **Straight after a push this reports a false difference.** `raw.githubusercontent.com`
+  is CDN-cached for a few minutes, so it serves the previous revision while the commit
+  is already on `main`. Do not "fix" the mirror on that evidence — you would revert the
+  change you just made. Confirm against the API, which is not cached the same way:
+  ```
+  gh api "repos/<owner>/<repo>/contents/<path>?ref=main" --jq .content | base64 -d | diff - <bundled>
+  ```
 - Registry fix: `scripts/validate.py` green.
 
 <example>

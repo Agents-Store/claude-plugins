@@ -118,8 +118,10 @@ apart despite the plugin's own rule requiring parity — both are now 1.4.0;
 
 ## 2026-08-24 — lint/references: the schema mirror was AHEAD of upstream · **CLOSED same day**
 
-**Closed 2026-08-24:** rev 10 is live at `macstacks/macstack@65b76c7`, and the network
-diff in `skills/feedback/SKILL.md` reports the mirror and the source identical. The
+**Closed 2026-08-24:** rev 10 landed as `macstacks/macstack@65b76c7`, and rev 11
+(`cecea1e`, the `tasks` and `changelog` entries) followed the same day. Mirror and
+source are identical — verified through the API rather than the CDN-cached raw URL,
+for the reason the entry below this one records. The
 entry stays because the drift was real while it lasted and the reasoning is what makes
 the next one recoverable.
 
@@ -303,3 +305,25 @@ lazy-directory rule; 12.4 validated A-pointers but not B-pointers; 12.5 had to p
 `sections` so 12.2 could never fire on it; and two skills instructed users to write
 prose into a JSON field the standard forbids — the plugin was generating its own
 warnings.
+
+## 2026-08-24 — feedback: the mirror check reports a false drift right after a push
+
+**Problem:** the skill's own verification for "is the bundled mirror still identical to
+the standard" is `curl -fsSL <raw-url> | diff - <bundled>`. Run immediately after
+pushing a schema change, it prints a full diff — `raw.githubusercontent.com` is
+CDN-cached for a few minutes and serves the previous revision while the commit is
+already on `main`. Hit live while landing rev 11: the push reported
+`65b76c7..cecea1e`, and the very next `curl | diff` claimed the mirror was ahead by
+everything that had just been pushed.
+
+**Fix:** the trap is now named in the skill, with the uncached alternative
+(`gh api …/contents/<path>?ref=main`) beside it, and an explicit instruction not to
+"repair" the mirror on that evidence.
+
+**Root cause:** a verification that is correct at steady state and wrong for a few
+minutes in exactly the situation it is prescribed for — right after a change.
+
+**Severity:** Major. The failure mode is not a missed check but an inverted one: the
+obvious response to that diff is to copy upstream back over the mirror, which silently
+reverts the change that was just published. The instruction was wrong in the direction
+that destroys work.
