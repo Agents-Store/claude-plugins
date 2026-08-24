@@ -150,6 +150,30 @@ reads fine usually means stripped anchors (see `troubleshoot`).
       as met. A milestone whose tasks are all `done` but whose checks are not
       recorded is not done — it is unverified.
 
+12.17 **Documents have a shelf life** — every document with a `docs.files` entry carries
+      `reviewed`, the date it was last checked AGAINST THE CODE. Past `freshness_days`
+      (default 30) it is a WARNING; past twice that, an ERROR. A
+      `reviews/<date>-*-conformance.md` dated later than `reviewed` counts as the check
+      and moves the date forward. This is the one rule aimed at the failure the whole
+      folder exists to prevent: a document that reads perfectly and describes a system
+      that no longer exists. Everything else here checks shape; this checks truth has
+      been looked at recently. `reviewed` is NOT `updated` — you can rewrite a sentence
+      today without ever asking whether the platform still behaves that way.
+12.18 **A generated document equals its source** — for every document whose contract
+      carries `generated`, re-render it and compare. A difference is an ERROR, and it is
+      exactly one of two things: somebody edited the rendered file by hand, or the source
+      moved and nobody re-rendered. Both are the same defect from the reader's side — the
+      document lies — so both are reported the same way, naming which. The remedy is
+      `render`, never a hand fix.
+12.19 **The journal is not empty** — a document whose contract declares a `journal`
+      section has at least one row in it, and no row is dated later than the document's
+      `updated`. An empty journal on a living document means either it has never changed
+      since creation (say so in a row) or its changes went unrecorded, which is the thing
+      the journal exists to prevent.
+12.20 **Every handoff is recorded** — each file in `handoffs/` has a `handoff` entry in
+      `log.md` naming it, and each `handoff` entry names a file that exists. The mirror of
+      12.7 for the outbound direction: when the client's edits come back, the only way to
+      know WHICH version they reviewed is that entry.
 ## Warnings (non-blocking)
 
 - A goal with no result ("a goal with no path to it"); a result with no goal when

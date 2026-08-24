@@ -6,7 +6,9 @@
     "section": "<!-- macstack:section=<key> -->",
     "item": "<!-- macstack:<key> -->",
     "rule": "One anchor line immediately ABOVE the heading it marks. Byte-exact: no extra spaces inside the comment. Re-inserted idempotently by docs-merge before any other write; never a reason to rewrite a document.",
-    "item_rule": "An item anchor marks a FIELD INSIDE an item that a checker must locate — the cost-if-wrong clause of a ruling, the applied banner of a delta. Items themselves are NOT anchored: an item is identified by the id in its heading, which 12.3 already pattern-checks. Anchoring all 68 cases of a client-facing document would be noise for the reader and buys the linter nothing it does not already have."
+    "item_rule": "An item anchor marks a FIELD INSIDE an item that a checker must locate — the cost-if-wrong clause of a ruling, the applied banner of a delta. Items themselves are NOT anchored: an item is identified by the id in its heading, which 12.3 already pattern-checks. Anchoring all 68 cases of a client-facing document would be noise for the reader and buys the linter nothing it does not already have.",
+    "generated": "<!-- macstack:generated from=<source> on=<YYYY-MM-DD> -->",
+    "generated_rule": "First line of a document whose `generated` field names its source. The document is REBUILT from that source, so a hand edit is lost on the next render and 12.18 reports it as an error rather than silently overwriting. Anything a human needs to say about a generated subject goes in the document the source points BACK to — for architecture, docs/architecture.md; for a role's meaning to a person, USER-CASES.md."
   },
   "id_spaces": {
     "case": {
@@ -63,13 +65,19 @@
     "readme": {
       "path": "README.md",
       "audience": "internal",
-      "generated": true,
+      "generated": "doc-contracts.json",
       "sections": [
         "map",
         "ownership",
         "idspaces",
-        "loop"
-      ]
+        "loop",
+        "journal"
+      ],
+      "journal_columns": [
+        "date",
+        "what changed"
+      ],
+      "note": "This folder's own contract, rendered for a human: the map, who owns what, the ID spaces and the loop. Generated from doc-contracts.json — the same file lint reads — so the folder cannot describe itself differently from the way it is checked."
     },
     "user_cases": {
       "path": "USER-CASES.md",
@@ -145,6 +153,52 @@
         "source"
       ]
     },
+    "roles": {
+      "path": "ROLES.md",
+      "audience": "both",
+      "generated": "macstack.json",
+      "sections": [
+        "howto",
+        "roles",
+        "triggers",
+        "journal"
+      ],
+      "journal_columns": [
+        "date",
+        "what changed"
+      ],
+      "renders": {
+        "per_role": "roles[].id → the tasks of processes[].tasks[] whose human.role matches, each with its gate (input|execute|approve) and the process it belongs to",
+        "per_task": "a task carrying `workflow` resolves to workflows[] → its triggers[] → the trigger's type and schedule; a task carrying `human` is started by a person on a screen and says so",
+        "code": "workflows[].location — where the automatic half actually lives",
+        "status": "workflows[].status, so a documented task that is not built cannot read as built"
+      },
+      "note": "WHO does WHAT and WHAT STARTS IT — the one view macstack.json holds but nobody can see without reading JSON: tasks live under processes, roles under roles[], and the trigger that moves a task is two hops away through workflows[]. Generated, because the moment it is hand-written it starts disagreeing with the spec, and a role document that disagrees is worse than none: people plan against it. The triggers section is the reverse index — schedule or event → workflows it raises → whose tasks move."
+    },
+    "architecture": {
+      "path": "ARCHITECTURE.md",
+      "audience": "internal",
+      "generated": "macstack.json",
+      "sections": [
+        "howto",
+        "stack",
+        "entities",
+        "workflows",
+        "integrations",
+        "journal"
+      ],
+      "journal_columns": [
+        "date",
+        "what changed"
+      ],
+      "renders": {
+        "stack": "software[] with layers, type and agentic rating; profile.architecture_patterns",
+        "entities": "entities[] with their stores[] and which store holds the master",
+        "workflows": "workflows[] with engine, trigger, location and status",
+        "integrations": "connections.mcp[], interfaces[], context.plugins with what each covers"
+      },
+      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand, because every new collection, workflow and plugin changes it. It does NOT replace docs/architecture.md: that one holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise re-discover. Keep them apart or one of them becomes a worse copy of the other."
+    },
     "tasks": {
       "path": "TASKS.md",
       "audience": "both",
@@ -197,9 +251,14 @@
         "details",
         "invariants",
         "refuses",
-        "related"
+        "related",
+        "journal"
       ],
-      "note": "Logic in plain words: what the product is, how it earns, what it must refuse. Never restates USER-CASES case by case."
+      "note": "Logic in plain words: what the product is, how it earns, what it must refuse. Never restates USER-CASES case by case.",
+      "journal_columns": [
+        "date",
+        "what changed"
+      ]
     },
     "open_questions": {
       "path": "OPEN-QUESTIONS.md",
@@ -207,7 +266,8 @@
       "sections": [
         "howto",
         "client-inputs",
-        "deferred"
+        "deferred",
+        "journal"
       ],
       "item_id_space": "open-item",
       "client_table_columns": [
@@ -227,14 +287,19 @@
         "warn": 14,
         "error": 45
       },
-      "promoted_form": "~~B7~~ · PROMOTED 2026-08-24 → M3-T2"
+      "promoted_form": "~~B7~~ · PROMOTED 2026-08-24 → M3-T2",
+      "journal_columns": [
+        "date",
+        "what changed"
+      ]
     },
     "changelog": {
       "path": "CHANGELOG.md",
       "audience": "client",
       "sections": [
         "howto",
-        "releases"
+        "releases",
+        "journal"
       ],
       "item_id_space": "release",
       "item_requires": [
@@ -245,7 +310,11 @@
       "entry": "## R-YYYY-MM-DD · <milestone or version> — <what a user can now do that they could not before>",
       "supersession": "In place, never by deletion: append '**Superseded by <id>:** …' to the old entry. A changelog that edits its own past cannot be trusted about its present.",
       "derived_from": "log",
-      "note": "The curated, audience-facing half of the journal: what reached the people who use the product. log.md holds everything that happened; this holds what mattered to them. Never a git log dump — an entry claims a PROPERTY the system now has, in the words of someone who does not read code."
+      "note": "The curated, audience-facing half of the journal: what reached the people who use the product. log.md holds everything that happened; this holds what mattered to them. Never a git log dump — an entry claims a PROPERTY the system now has, in the words of someone who does not read code.",
+      "journal_columns": [
+        "date",
+        "what changed"
+      ]
     },
     "decisions": {
       "path": "DECISIONS.md",
@@ -253,7 +322,8 @@
       "append_only": true,
       "sections": [
         "howto",
-        "registry"
+        "registry",
+        "journal"
       ],
       "item_id_space": "decision",
       "registry_columns": [
@@ -262,13 +332,17 @@
         "title",
         "decided by",
         "file"
+      ],
+      "journal_columns": [
+        "date",
+        "what changed"
       ]
     },
     "log": {
       "path": "log.md",
       "audience": "internal",
       "append_only": true,
-      "entry": "## [YYYY-MM-DD] <intake|merge|work|release> | <title>",
+      "entry": "## [YYYY-MM-DD] <intake|handoff|merge|work|release> | <title>",
       "entry_requires": [
         "source",
         "delta",
@@ -288,6 +362,15 @@
             "source"
           ],
           "note": "Client material landed in inbox/."
+        },
+        "handoff": {
+          "requires": [
+            "document",
+            "version",
+            "file",
+            "to"
+          ],
+          "note": "What was handed OUT to the client and in which version. The other half of intake: without it nobody can answer 'which version did they actually review?' when their edits come back, and the edits are always against a version, never against today's file."
         },
         "merge": {
           "requires": [
@@ -425,5 +508,12 @@
     "unreadable": {
       "xlsx": "Refuse: ask for a CSV export beside it and write NO log entry, so the file stays in the unprocessed set."
     }
+  },
+  "handoffs": {
+    "path": "handoffs",
+    "immutable": true,
+    "filename": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+    "naming": "YYYY-MM-DD-<slug>.<ext>",
+    "note": "What was sent to the client, exactly as sent. Immutable for the same reason inbox/ is: their edits come back against THIS file, and a package edited after the fact makes every returned comment unresolvable. Regenerating for a new round writes a new dated file, never overwrites."
   }
 }

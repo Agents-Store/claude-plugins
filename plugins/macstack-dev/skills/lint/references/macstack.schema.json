@@ -1479,6 +1479,14 @@
               "$ref": "#/$defs/docRef",
               "description": "How each acceptance bullet of user_cases is verified — one test per bullet, tagged auto or manual. Derived from user_cases; its version names the user_cases version it was derived from."
             },
+            "roles": {
+              "$ref": "#/$defs/docRef",
+              "description": "Who does what and what starts it — generated from this file's own roles[], processes[].tasks[], workflows[] and triggers[]."
+            },
+            "architecture": {
+              "$ref": "#/$defs/docRef",
+              "description": "How the project is built, for the agent building in it — generated from software[], entities[], workflows[], connections and context.plugins."
+            },
             "tasks": {
               "$ref": "#/$defs/docRef",
               "description": "Milestones and tasks — the forward-looking half of the folder. Every task also lives in the team's own task tracker, where the discussion happens; this file is the source of truth for what the work IS."
@@ -1527,6 +1535,11 @@
               "type": "string",
               "default": "reviews",
               "description": "Conformance audits; each ships with a business-language twin"
+            },
+            "handoffs": {
+              "type": "string",
+              "default": "handoffs",
+              "description": "Packages sent to the client, exactly as sent. Immutable like inbox/: their edits come back against a specific file, and editing it afterwards makes every returned comment unresolvable."
             }
           }
         }
@@ -2007,6 +2020,17 @@
         "language": {
           "type": "string",
           "description": "Per-document override of docs.language (ISO 639-1)"
+        },
+        "reviewed": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Date this document was last CHECKED AGAINST THE CODE — not the date its text was edited. The two are different facts and conflating them is how a document stays confidently wrong: you can rewrite a sentence in USER-CASES today without ever asking whether the platform still behaves that way. A reviews/<date>-*-conformance.md newer than this date counts as the check and moves it forward."
+        },
+        "freshness_days": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 30,
+          "description": "How long this document's last check stays good. Lint warns past it and errors past twice it — the same shape the delta age budget already uses (14/30). Set it per document: a business-logic document may outlive a user-cases document, and pretending one number fits both produces either noise or false comfort."
         }
       }
     },
