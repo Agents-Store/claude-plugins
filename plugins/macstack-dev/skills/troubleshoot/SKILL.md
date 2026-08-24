@@ -49,6 +49,17 @@ description: This skill should be used when the user reports "macstack lint fail
 - `${VAR}` from .mcp.json does not resolve → values must live in the env block of
   `.claude/settings.local.json` (filled by scripts/setup.sh), not inside .mcp.json.
 
+## The `macstack/` folder
+
+| Symptom | Cause → fix |
+|---|---|
+| Two `macstack.json` (root and folder) | lint errors on both → keep the folder copy, `git rm` the root one via `docs-migrate` |
+| Lint red on a document that reads fine | anchors were stripped (client returned an edited copy, or someone pasted through a WYSIWYG) → re-insert anchors idempotently; never rewrite the document |
+| A cross-reference check reports a missing ID that is visibly present | a Cyrillic homoglyph in the ID token (`К` vs `K`, also `А О С Е`) → rewrite the token in ASCII |
+| A client PDF reads as empty | not-yet-materialized iCloud file → size/first-bytes check before reading; refuse rather than guess |
+| `.xlsx` cannot be opened by any file tool | ask for a CSV export beside it and write NO log entry, so the file stays in the unprocessed set |
+| `D-NN` cited but nowhere to be found | the rulings file was written without allocating in DECISIONS.md first |
+
 ## Discovery
 
 - `curl raw.githubusercontent.com/...marketplace.json` → 404: the branch is not

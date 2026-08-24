@@ -25,6 +25,8 @@ Scan in this order and map findings to macstack.json sections:
 | `src/trigger/`, n8n exports, Flows | `workflows[]` + `triggers[]` |
 | App Router pages / admin panels / bots | `interfaces[]` (path relative to the instance!) |
 | README, CLAUDE.md, docs/ | description, goals/results draft |
+| `macstack/*.md` (USER-CASES, BUSINESS-LOGIC, OPEN-QUESTIONS) | existing goals/results/open questions, already in the client's words |
+| `docs/` (engineering docs) | architecture notes, conventions — context, not the spec itself |
 
 Classification rules for layers: full-stack frameworks (nextjs, django) → logic +
 interface; BaaS/headless CMS (directus, nocodb, supabase) → data; job runners
@@ -44,9 +46,12 @@ ask in ONE compact message:
 
 ## Step 3 — Write the draft
 
-- Fill sections in the schema's canonical order. Mark everything not confirmed by
-  code or user as `"status": "planned"` and list uncertainties in
-  `lifecycle.open_questions[]`.
+- Write the file to `macstack/macstack.json` (canonical location — never the bare
+  root file for a new project). Fill sections in the schema's canonical order.
+  Mark everything not confirmed by code or user as `"status": "planned"`.
+- Open questions discovered during the audit go into `OPEN-QUESTIONS.md §A`
+  (client-owed) with pointer-form entries in `lifecycle.open_questions[]` — no
+  prose in the JSON, the markdown item carries the wording.
 - Every entity MUST get `master` (which software/instance owns it). If two stores
   exist and the master is unclear — that is an open question for the user, never a
   silent guess (a wrong master means data corruption later).
@@ -61,7 +66,11 @@ ask in ONE compact message:
 
 1. Run the `lint` skill (schema + referential integrity). Fix every error.
 2. Add the CLAUDE.md reference section (see the `setup` skill).
-3. Offer next steps: `infisical-env` (if accesses exist), `best-practices`
+3. Invoke `project-docs` to create/seed the `macstack/` folder (README.md,
+   USER-CASES.md, BUSINESS-LOGIC.md, OPEN-QUESTIONS.md, DECISIONS.md, log.md). If
+   the project already has a populated `docs/`, offer `docs-migrate` instead of
+   seeding fresh.
+4. Offer next steps: `infisical-env` (if accesses exist), `best-practices`
    (rules/commands), `discover-context` (find plugins for the detected software).
 
 <example>

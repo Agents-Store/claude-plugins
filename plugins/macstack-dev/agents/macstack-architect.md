@@ -65,15 +65,21 @@ in the root of a Claude project).
 6. **No secrets, no duplication.** Env keys by NAME only (resources.accesses with
    required flags); skill/plugin content by reference; volatile IDs stay in
    project-config.
+7. **Roles and open questions are pointers.** The narrative per role belongs to
+   `USER-CASES.md`; `roles[]` owns only the machine half (`id`, `name`, `acl`,
+   `isolation`), joined to it via `roles[].cases`. Open questions are pointers
+   into `OPEN-QUESTIONS.md` — never prose in the JSON.
 
 ## Output contract
 
 Produce (a) a compact result-first summary table (goals → results → processes), then
-(b) the full macstack.json draft, then (c) open questions. Validate mentally against
-the schema at ${CLAUDE_PLUGIN_ROOT}/skills/lint/references/macstack.schema.json and
-state which lint rules the draft satisfies. Recommend a prototype
-(github:stackmakers-ai/...) whenever one fits, and list the context plugins
-({tool}-{dev|ops|provision} + stack-*) the stack needs.
+(b) the full macstack.json draft, then (c) open questions as pointer-form entries
+only (id/ref/status) — the prose lives in `OPEN-QUESTIONS.md`, never in the JSON.
+Validate mentally against the schema at
+${CLAUDE_PLUGIN_ROOT}/skills/lint/references/macstack.schema.json and state which
+lint rules the draft satisfies. Recommend a prototype (github:stackmakers-ai/...)
+whenever one fits, and list the context plugins ({tool}-{dev|ops|provision} +
+stack-*) the stack needs.
 
 Ask at most ONE compact block of clarifying questions before drafting; proceed with
 explicit assumptions if the user does not answer.

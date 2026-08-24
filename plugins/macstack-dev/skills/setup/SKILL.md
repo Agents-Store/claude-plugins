@@ -6,10 +6,11 @@ description: This skill should be used when the user asks "what is macstack.json
 # MACSTACK Setup & Orientation
 
 macstack.json is the standardized JSON file of the MACSTACK framework (Multi-Agent
-Composable Stacks). It lives in the **root of a Claude project** and is at once: the
-business spec (goals, results), the technical spec (software, entities, interfaces,
-workflows) and the meta-config from which project files are scaffolded. `CLAUDE.md`
-references it — never duplicates it.
+Composable Stacks). It lives in **`macstack/` in the project root**, alongside the
+working documents (`macstack/macstack.json`) — a bare root `./macstack.json` is a
+supported legacy location. It is at once: the business spec (goals, results), the
+technical spec (software, entities, interfaces, workflows) and the meta-config from
+which project files are scaffolded. `CLAUDE.md` references it — never duplicates it.
 
 ## Canonical resources (GitHub-first, bundled fallback)
 
@@ -48,21 +49,53 @@ entities → interfaces → connections → agents → context → resources.
 - **Secrets are NAMES only**: `resources.accesses[]` lists env keys (with `required`
   flag); values live in Infisical.
 
+## The `macstack/` folder
+
+The standard also defines a folder of working documents next to macstack.json:
+
+```
+macstack/
+├── macstack.json          the spec — canonical location
+├── README.md               folder contract   [generated]
+├── USER-CASES.md           [client] cases per role, versioned
+├── BUSINESS-LOGIC.md       [client] invariants and logic in plain words
+├── OPEN-QUESTIONS.md       §A owed by the client · §B deferred by us
+├── DECISIONS.md            D-ID registry → files in decisions/
+├── log.md                  append-only journal of intakes and merges
+├── inbox/                  IMMUTABLE client material · README.md = manifest
+├── deltas/                 proposals, not edits
+├── decisions/              rulings, each with cost-if-wrong
+└── reviews/                <slug>-conformance.md + its -business.md twin
+```
+
+`docs/` stays the ENGINEERING folder (architecture.md, api-conventions.md,
+code-style.md, runbooks) — it never moves into `macstack/`.
+
 ## Verification steps
 
 1. **Tooling**: `python3 -c "import jsonschema"` (fallback: structural checks only),
    `jq --version`, `gh --version` (needed for discover-context and GitHub prototypes).
-2. **Project state**: does `./macstack.json` exist?
-   - Yes → validate it (`lint` skill) and report the stage (`lifecycle.stage`).
-   - No → offer `init-project` (existing codebase) or `generate-stack` (from scratch).
+2. **Project state**: resolve macstack.json in this order:
+   1. `macstack/macstack.json` — canonical.
+   2. `./macstack.json` — legacy; works, but say so and offer `docs-migrate`.
+   3. Search upward to the git root (monorepo / nested project).
+   - Both 1 and 2 present → **ERROR, never a silent choice** — two specs mean two
+     truths; report both paths and stop.
+   - Found → validate it (`lint` skill) and report the stage (`lifecycle.stage`).
+   - Not found → offer `init-project` (existing codebase) or `generate-stack` (from
+     scratch).
+   - Also check whether `macstack/` and its working documents (USER-CASES.md,
+     BUSINESS-LOGIC.md, OPEN-QUESTIONS.md, DECISIONS.md, log.md) exist. If not,
+     offer `project-docs` to create the folder.
 3. **CLAUDE.md link**: check that CLAUDE.md contains a "Stack Specification" section
    pointing to macstack.json. If missing, offer to add:
 
 ```markdown
 ## Stack Specification
 The business and technical specification of this project is **`macstack.json`**
-(MACSTACK standard). Read it first: goals → results → processes → workflows →
-software → entities → interfaces.
+(MACSTACK standard, canonical at `macstack/macstack.json`). Read it first: goals →
+results → processes → workflows → software → entities → interfaces. The working
+documents (cases, decisions, open questions) are described in `macstack/README.md`.
 Never write code that contradicts macstack.json — update the specification first.
 ```
 
@@ -77,3 +110,6 @@ Never write code that contradicts macstack.json — update the specification fir
 | .infisical.json + .env.prod/.env.dev | `infisical-env` |
 | Project rules and commands | `best-practices` |
 | Validation | `lint` |
+| Create/seed the `macstack/` folder | `project-docs` |
+| Merge new client material into the folder | `docs-merge` |
+| Relocate an existing `docs/` into the new layout | `docs-migrate` |
