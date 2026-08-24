@@ -1,7 +1,7 @@
 # LEARNINGS — macstack-dev
 
-Accumulated feedback and fixes. Format per entry: date, type, Problem / Fix /
-Root cause / Severity.
+Accumulated feedback and fixes. Fixes use: date, type, Problem / Fix / Root cause /
+Severity. Enhancements use: date, component, Feature / Implementation / Rationale.
 
 ## 2026-08-09 — initial release notes
 
@@ -54,3 +54,64 @@ Root cause / Severity.
   ${VAR} + .env.example + settings.local.json env block). .env.prod/.env.dev are
   always created; required-but-empty keys stay visible as KEY='' with a FILL ME
   comment. Cross-check keeps macstack.json the superset registry of tokens.
+
+## 2026-08-21 — lint/references: schema mirror synced to rev 9 (retroactive entry)
+
+**Problem:** the bundled `macstack.schema.json` was synced to upstream rev 9
+(`identity.industry`, commit `036314f`) without a LEARNINGS entry, even though the
+feedback skill requires one per change. The gap made the mirror's actual revision
+invisible from inside the repo.
+**Fix:** entry recorded here; the rev-10 sync below follows the rule.
+**Root cause:** the sync was a `chore` commit and the rule lives in the `feedback`
+skill, which a plain mirror refresh does not invoke.
+**Severity:** Minor — but it is why the mirror's revision is only discoverable by a
+network `diff`. A rev marker inside the schema would close this properly.
+
+## 2026-08-24 — project-docs / docs-merge / docs-migrate: the `macstack/` folder
+
+**Feature:** the plugin now owns a standardized `macstack/` folder, not just a lone
+`macstack.json`. Beside the spec live the documents a project actually accumulates:
+`USER-CASES.md` (cases per role, versioned), `BUSINESS-LOGIC.md`, `OPEN-QUESTIONS.md`
+(§A owed by the client · §B deferred by us, each with the trigger that makes deferral
+unsafe), `DECISIONS.md` plus dated rulings that each record their cost if wrong, an
+immutable `inbox/` for client material, `deltas/`, `reviews/`, and an append-only
+`log.md`. Incoming client edits go through a gated loop instead of being merged by
+hand: intake → delta of contradictions and additions → owner rulings → cases → logic
+→ spec → open questions → journal.
+
+**Implementation:** three skills — `project-docs` (the standard: layout, path
+resolution, ID spaces, anchors, language rule, invariants), `docs-merge` (the loop,
+four human gates, plus a 3b bypass that skips the ceremony when there are no
+contradictions), `docs-migrate` (`disable-model-invocation: true`; one-shot relocation
+of a grown-organically `docs/`). Three commands: `/docs`, `/docs-merge`,
+`/docs-migrate`. Structure is defined once in
+`skills/project-docs/references/doc-contracts.json`, read by both the writer and the
+linter, so the two cannot drift. `lint` gains rule group 12; `setup` gains a real
+resolver (`macstack/macstack.json` → legacy `./macstack.json` → upward search; both
+present is an error). Schema rev 10 adds `docs`, `$defs/{docRef,openItemRef,decisionRef}`,
+`lifecycle.decisions[]` and `roles[].cases`, all additive with format still `"1.0"`.
+
+**Rationale:** the loop was not invented here — it was reverse-engineered from a live
+project that had already grown 25 markdown files in 15 days and was running the cycle
+by hand. Three things that project taught, now enforced:
+
+- **Prose does not belong in JSON.** Its `lifecycle.open_questions` had drifted into
+  17 prose entries, several over 800 characters, and `needs_from_client` restated five
+  of them — a second, uncontrolled copy that had already disagreed with the markdown
+  once and needed manual reconciliation. Both are now pointer arrays; the text lives in
+  `OPEN-QUESTIONS.md`, and `needs_from_client` is a derived view the linter can check.
+- **Anchors, not headings.** Section anchors (`<!-- macstack:section=… -->`) are what
+  make `docs.language` implementable: prose and headings translate freely, the linter
+  greps the anchor. Fixed English headings would have forced every document into one
+  language.
+- **Homoglyphs are a real defect class, not a hypothetical.** The project's delta file
+  numbered its contradictions with U+041A CYRILLIC CAPITAL KA, so `grep "K-1"` returned
+  nothing at all — silently. ID tokens are now ASCII-only by rule, and lint 12.3 checks
+  the codepoint rather than the glyph. Dogfooding caught this twice: the first draft of
+  `project-docs` illustrated the trap by printing the Cyrillic character, which its own
+  rule then flagged. The illustration now names the codepoint instead.
+
+Also fixed in passing: `plugin.json` (1.3.0) and `marketplace.json` (1.2.0) had drifted
+apart despite the plugin's own rule requiring parity — both are now 1.4.0;
+`coverage-areas.json` was bundled but missing from the README's fallback list; the
+`examples` skill still pointed at the pre-GitHub location of the canonical examples.
