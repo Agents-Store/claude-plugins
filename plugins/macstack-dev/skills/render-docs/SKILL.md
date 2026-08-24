@@ -9,9 +9,13 @@ Three documents in `macstack/` are **not authored** — they are rebuilt from a 
 
 | Document | Source | Answers |
 |---|---|---|
-| `ROLES.md` | `macstack.json` | who does what, and what starts it |
-| `ARCHITECTURE.md` | `macstack.json` | how the project is built, for the agent building in it |
+| `generated/ARCHITECTURE.md` | `macstack.json` | how the project is built, for the agent building in it |
 | `README.md` | `doc-contracts.json` | this folder's own contract |
+
+**`ROLES.md` used to be here and is not any more.** The direction was inverted: who does what
+is now authored in `client/ROLES-AND-TASKS.md`, because a client cannot correct a generated
+file and the client is the one who knows whether a task belongs to a role. `seed.py` writes its
+first version and then never touches it; `sync-spec` reconciles the spec against it.
 
 Each carries `<!-- macstack:generated from=… -->` on its second line. A hand edit to any
 of them is lost on the next render, and lint reports the difference (rule 12.18) rather
@@ -45,17 +49,17 @@ byte-identical to the first, and what keeps rules 12.18 and 12.19 from fighting 
 
 ## What goes where, and what must NOT
 
-A role section lists **only what a person does**. Automation lives in the Triggers section,
-as a reverse index: schedule or event → what it raises → whose tasks it moves.
+`seed.py` writes the first `client/ROLES-AND-TASKS.md` and `client/SCREENS.md` and **refuses
+to overwrite them**. A role section there lists only what a PERSON does; automation is the
+Triggers table, a reverse index of schedule or event → what it raises.
 
-This is deliberate and was a measured mistake first: an earlier renderer listed, under each
-role, every workflow of every process where that role had any task. Under *Coach* it
-produced invoice issuance and the Sonderänderung flow — neither of which a coach may touch.
-**A process workflow does not belong to a role.** Filing it under one because they share a
-process misstates that person's duties, which is precisely the failure a roles document
-exists to prevent.
+That split was a measured mistake first: an earlier renderer listed, under each role, every
+workflow of every process where that role had any task. Under *Coach* it produced invoice
+issuance and the Sonderänderung flow — neither of which a coach may touch. **A process workflow
+does not belong to a role.** Filing it under one because they share a process misstates that
+person's duties, which is precisely the failure a roles document exists to prevent.
 
-Likewise `ARCHITECTURE.md` does **not** replace `docs/architecture.md`. It holds what can be
+`ARCHITECTURE.md` does **not** replace `docs/architecture.md`. It holds what can be
 rebuilt from the spec — software, entities and their stores, workflows and their code paths,
 integrations and plugins. The measured trap, the argument behind a decision, the rake already
 stepped on: those cannot be regenerated, they belong in `docs/`, and merging the two makes

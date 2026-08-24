@@ -8,7 +8,9 @@
     "rule": "One anchor line immediately ABOVE the heading it marks. Byte-exact: no extra spaces inside the comment. Re-inserted idempotently by docs-merge before any other write; never a reason to rewrite a document.",
     "item_rule": "An item anchor marks a FIELD INSIDE an item that a checker must locate — the cost-if-wrong clause of a ruling, the applied banner of a delta. Items themselves are NOT anchored: an item is identified by the id in its heading, which 12.3 already pattern-checks. Anchoring all 68 cases of a client-facing document would be noise for the reader and buys the linter nothing it does not already have.",
     "generated": "<!-- macstack:generated from=<source> on=<YYYY-MM-DD> -->",
-    "generated_rule": "First line of a document whose `generated` field names its source. The document is REBUILT from that source, so a hand edit is lost on the next render and 12.18 reports it as an error rather than silently overwriting. Anything a human needs to say about a generated subject goes in the document the source points BACK to — for architecture, docs/architecture.md; for a role's meaning to a person, USER-CASES.md."
+    "generated_rule": "First line of a document whose `generated` field names its source. The document is REBUILT from that source, so a hand edit is lost on the next render and 12.18 reports it as an error rather than silently overwriting. Anything a human needs to say about a generated subject goes in the document the source points BACK to — for architecture, docs/architecture.md; for a role's meaning to a person, USER-CASES.md.",
+    "table": "<!-- macstack:table=<kind> -->",
+    "table_rule": "One line above the table it marks. Columns are identified by POSITION, never by header text: headings follow docs.language and a parser that matched on them would break the moment a project writes its documents in German. The anchor names the kind, the contract fixes the order, and the header row is for the human only. This is what lets a document a client can read and edit also be the machine source of the spec's business half."
   },
   "id_spaces": {
     "case": {
@@ -80,7 +82,7 @@
       "note": "This folder's own contract, rendered for a human: the map, who owns what, the ID spaces and the loop. Generated from doc-contracts.json — the same file lint reads — so the folder cannot describe itself differently from the way it is checked."
     },
     "user_cases": {
-      "path": "USER-CASES.md",
+      "path": "client/USER-CASES.md",
       "audience": "client",
       "versioned": true,
       "sections": [
@@ -111,8 +113,176 @@
         "source"
       ]
     },
+    "roles_tasks": {
+      "path": "client/ROLES-AND-TASKS.md",
+      "audience": "client",
+      "sections": [
+        "howto",
+        "roles",
+        "triggers",
+        "journal"
+      ],
+      "journal_columns": [
+        "date",
+        "what changed"
+      ],
+      "table_anchors": {
+        "tasks": "tasks",
+        "triggers": "triggers"
+      },
+      "table_columns": {
+        "tasks": [
+          "task",
+          "what starts it",
+          "gate",
+          "workflow"
+        ],
+        "triggers": [
+          "trigger",
+          "type",
+          "when",
+          "what it raises"
+        ]
+      },
+      "gates": [
+        "input",
+        "execute",
+        "approve",
+        "—"
+      ],
+      "feeds": {
+        "target": "macstack.json",
+        "fields": [
+          "roles[]",
+          "processes[].tasks[]",
+          "triggers[]",
+          "workflows[] (name, trigger, process)"
+        ],
+        "not": [
+          "workflows[].location",
+          "workflows[].engine",
+          "software",
+          "entities",
+          "statuses"
+        ]
+      },
+      "note": "WHO does WHAT and WHAT STARTS IT, in a form a non-technical client can read AND correct. This document was generated from macstack.json until the direction was inverted: a client cannot edit a generated file, and the client is the one who knows whether a task belongs to a role. Now the document is authored and the spec's BUSINESS half is written from its tables — roles, tasks, triggers, and which workflow answers which trigger. The TECHNICAL half is not derivable from any client document and stays authored by the architect: where a workflow lives in the code, what engine runs it, which entities and software exist, what is actually implemented. Promising to generate that too would be a promise the format cannot keep."
+    },
+    "screens": {
+      "path": "client/SCREENS.md",
+      "audience": "client",
+      "sections": [
+        "howto",
+        "screens",
+        "journal"
+      ],
+      "journal_columns": [
+        "date",
+        "what changed"
+      ],
+      "table_anchors": {
+        "screens": "screens"
+      },
+      "table_columns": {
+        "screens": [
+          "screen",
+          "address",
+          "who sees it",
+          "what is on it",
+          "what can be done",
+          "what must NOT be visible"
+        ]
+      },
+      "feeds": {
+        "target": "macstack.json",
+        "fields": [
+          "interfaces[] (id, name, path, roles)"
+        ],
+        "not": [
+          "interfaces[].software",
+          "interfaces[].instances",
+          "interfaces[].entities"
+        ]
+      },
+      "note": "What a person sees on each screen, and — the column that earns this document — what must NOT be visible there. A prohibition written per screen is checkable by opening that screen; the same prohibition written once in USER-CASES is a rule somebody has to remember to apply on fifty-seven routes. For OHAWO the load-bearing case is the coach's rate and OHAWO's margin, which must never reach a client screen. The last column is where that is stated, screen by screen, in the client's own words."
+    },
+    "business_logic": {
+      "path": "client/BUSINESS-LOGIC.md",
+      "audience": "client",
+      "sections": [
+        "essence",
+        "key",
+        "details",
+        "invariants",
+        "refuses",
+        "related",
+        "journal"
+      ],
+      "note": "Logic in plain words: what the product is, how it earns, what it must refuse. Never restates USER-CASES case by case.",
+      "journal_columns": [
+        "date",
+        "what changed"
+      ]
+    },
+    "open_questions": {
+      "path": "client/OPEN-QUESTIONS.md",
+      "audience": "both",
+      "sections": [
+        "howto",
+        "client-inputs",
+        "deferred",
+        "journal"
+      ],
+      "item_id_space": "open-item",
+      "client_table_columns": [
+        "#",
+        "what is owed",
+        "asked on",
+        "where it goes",
+        "if it is wrong or missing"
+      ],
+      "deferred_requires": [
+        "reason-safe-to-defer",
+        "trigger-that-makes-it-unsafe"
+      ],
+      "closed_form": "~~A6~~ · CLOSED D14, 2026-08-24",
+      "note": "§A is owed by the client, §B is engineering the team deferred. An §A row carries the date it was asked, because a question nobody has actually put to the client is not blocked — it is forgotten. §B argues why NOT to act now; TASKS.md says what WILL be done. Keep them apart. A §B item that becomes real work is PROMOTED, not copied: strike it with a pointer to the new task id and leave its original text untouched, so the argument for having deferred it survives next to the decision to stop deferring.",
+      "age_budget_days": {
+        "warn": 14,
+        "error": 45
+      },
+      "promoted_form": "~~B7~~ · PROMOTED 2026-08-24 → M3-T2",
+      "journal_columns": [
+        "date",
+        "what changed"
+      ]
+    },
+    "architecture": {
+      "path": "generated/ARCHITECTURE.md",
+      "audience": "internal",
+      "generated": "macstack.json",
+      "sections": [
+        "howto",
+        "stack",
+        "entities",
+        "workflows",
+        "integrations",
+        "journal"
+      ],
+      "journal_columns": [
+        "date",
+        "what changed"
+      ],
+      "renders": {
+        "stack": "software[] with layers, type and agentic rating; profile.architecture_patterns",
+        "entities": "entities[] with their stores[] and which store holds the master",
+        "workflows": "workflows[] with engine, trigger, location and status",
+        "integrations": "connections.mcp[], interfaces[], context.plugins with what each covers"
+      },
+      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand, because every new collection, workflow and plugin changes it. It does NOT replace docs/architecture.md: that one holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise re-discover. Keep them apart or one of them becomes a worse copy of the other."
+    },
     "test_cases": {
-      "path": "TEST-CASES.md",
+      "path": "generated/TEST-CASES.md",
       "audience": "both",
       "versioned": true,
       "derived_from": "user_cases",
@@ -153,54 +323,8 @@
         "source"
       ]
     },
-    "roles": {
-      "path": "ROLES.md",
-      "audience": "both",
-      "generated": "macstack.json",
-      "sections": [
-        "howto",
-        "roles",
-        "triggers",
-        "journal"
-      ],
-      "journal_columns": [
-        "date",
-        "what changed"
-      ],
-      "renders": {
-        "per_role": "roles[].id → the tasks of processes[].tasks[] whose human.role matches, each with its gate (input|execute|approve) and the process it belongs to",
-        "per_task": "a task carrying `workflow` resolves to workflows[] → its triggers[] → the trigger's type and schedule; a task carrying `human` is started by a person on a screen and says so",
-        "code": "workflows[].location — where the automatic half actually lives",
-        "status": "workflows[].status, so a documented task that is not built cannot read as built"
-      },
-      "note": "WHO does WHAT and WHAT STARTS IT — the one view macstack.json holds but nobody can see without reading JSON: tasks live under processes, roles under roles[], and the trigger that moves a task is two hops away through workflows[]. Generated, because the moment it is hand-written it starts disagreeing with the spec, and a role document that disagrees is worse than none: people plan against it. The triggers section is the reverse index — schedule or event → workflows it raises → whose tasks move."
-    },
-    "architecture": {
-      "path": "ARCHITECTURE.md",
-      "audience": "internal",
-      "generated": "macstack.json",
-      "sections": [
-        "howto",
-        "stack",
-        "entities",
-        "workflows",
-        "integrations",
-        "journal"
-      ],
-      "journal_columns": [
-        "date",
-        "what changed"
-      ],
-      "renders": {
-        "stack": "software[] with layers, type and agentic rating; profile.architecture_patterns",
-        "entities": "entities[] with their stores[] and which store holds the master",
-        "workflows": "workflows[] with engine, trigger, location and status",
-        "integrations": "connections.mcp[], interfaces[], context.plugins with what each covers"
-      },
-      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand, because every new collection, workflow and plugin changes it. It does NOT replace docs/architecture.md: that one holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise re-discover. Keep them apart or one of them becomes a worse copy of the other."
-    },
     "tasks": {
-      "path": "TASKS.md",
+      "path": "history/TASKS.md",
       "audience": "both",
       "sections": [
         "howto",
@@ -242,59 +366,30 @@
         "what changed"
       ]
     },
-    "business_logic": {
-      "path": "BUSINESS-LOGIC.md",
-      "audience": "client",
-      "sections": [
-        "essence",
-        "key",
-        "details",
-        "invariants",
-        "refuses",
-        "related",
-        "journal"
-      ],
-      "note": "Logic in plain words: what the product is, how it earns, what it must refuse. Never restates USER-CASES case by case.",
-      "journal_columns": [
-        "date",
-        "what changed"
-      ]
-    },
-    "open_questions": {
-      "path": "OPEN-QUESTIONS.md",
+    "decisions": {
+      "path": "history/DECISIONS.md",
       "audience": "both",
+      "append_only": true,
       "sections": [
         "howto",
-        "client-inputs",
-        "deferred",
+        "registry",
         "journal"
       ],
-      "item_id_space": "open-item",
-      "client_table_columns": [
-        "#",
-        "what is owed",
-        "asked on",
-        "where it goes",
-        "if it is wrong or missing"
+      "item_id_space": "decision",
+      "registry_columns": [
+        "id",
+        "date",
+        "title",
+        "decided by",
+        "file"
       ],
-      "deferred_requires": [
-        "reason-safe-to-defer",
-        "trigger-that-makes-it-unsafe"
-      ],
-      "closed_form": "~~A6~~ · CLOSED D14, 2026-08-24",
-      "note": "§A is owed by the client, §B is engineering the team deferred. An §A row carries the date it was asked, because a question nobody has actually put to the client is not blocked — it is forgotten. §B argues why NOT to act now; TASKS.md says what WILL be done. Keep them apart. A §B item that becomes real work is PROMOTED, not copied: strike it with a pointer to the new task id and leave its original text untouched, so the argument for having deferred it survives next to the decision to stop deferring.",
-      "age_budget_days": {
-        "warn": 14,
-        "error": 45
-      },
-      "promoted_form": "~~B7~~ · PROMOTED 2026-08-24 → M3-T2",
       "journal_columns": [
         "date",
         "what changed"
       ]
     },
     "changelog": {
-      "path": "CHANGELOG.md",
+      "path": "history/CHANGELOG.md",
       "audience": "client",
       "sections": [
         "howto",
@@ -316,30 +411,8 @@
         "what changed"
       ]
     },
-    "decisions": {
-      "path": "DECISIONS.md",
-      "audience": "both",
-      "append_only": true,
-      "sections": [
-        "howto",
-        "registry",
-        "journal"
-      ],
-      "item_id_space": "decision",
-      "registry_columns": [
-        "id",
-        "date",
-        "title",
-        "decided by",
-        "file"
-      ],
-      "journal_columns": [
-        "date",
-        "what changed"
-      ]
-    },
     "log": {
-      "path": "log.md",
+      "path": "history/log.md",
       "audience": "internal",
       "append_only": true,
       "entry": "## [YYYY-MM-DD] <intake|handoff|merge|work|release> | <title>",
@@ -416,7 +489,7 @@
       "note": "The ONLY writable file under inbox/."
     },
     "delta": {
-      "path": "deltas/YYYY-MM-DD-<slug>.md",
+      "path": "history/deltas/YYYY-MM-DD-<slug>.md",
       "audience": "internal",
       "write_once": true,
       "sections": [
@@ -439,7 +512,7 @@
       "note": "A proposal, not an edit. Declares the bar (USER-CASES.md) and stays history. Gets one applied banner and is never otherwise revised."
     },
     "rulings": {
-      "path": "decisions/YYYY-MM-DD-<slug>-rulings.md",
+      "path": "history/decisions/YYYY-MM-DD-<slug>-rulings.md",
       "audience": "internal",
       "write_once": true,
       "header_requires": [
@@ -468,9 +541,9 @@
       "note": "Cost-if-wrong is written AT DECISION TIME, before the outcome is known. A retrospective cost clause is worthless."
     },
     "review": {
-      "path": "reviews/YYYY-MM-DD-<slug>-conformance.md",
+      "path": "history/reviews/YYYY-MM-DD-<slug>-conformance.md",
       "audience": "internal",
-      "twin": "reviews/YYYY-MM-DD-<slug>-business.md",
+      "twin": "history/reviews/YYYY-MM-DD-<slug>-business.md",
       "sections": [
         "scope",
         "findings",
@@ -510,10 +583,17 @@
     }
   },
   "handoffs": {
-    "path": "handoffs",
+    "path": "history/handoffs",
     "immutable": true,
     "filename": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
     "naming": "YYYY-MM-DD-<slug>.<ext>",
     "note": "What was sent to the client, exactly as sent. Immutable for the same reason inbox/ is: their edits come back against THIS file, and a package edited after the fact makes every returned comment unresolvable. Regenerating for a new round writes a new dated file, never overwrites."
+  },
+  "dirs": {
+    "client": "What a HUMAN writes and a CLIENT reads. The source of truth for everything the product must do. This is the folder you hand over.",
+    "generated": "What the plugin builds from a source. Never edited by hand — a hand edit is lost on the next render and lint reports it.",
+    "inbox": "What the client sent, exactly as sent. Immutable.",
+    "history": "Journals and records: what happened, what was decided, what was checked, what we sent. Append-only by nature; the plan of work lives here too because it is the same working record.",
+    "_note": "Exactly four, plus README.md and macstack.json at the root — six entries in all. The count is a constraint, not an accident: the field's own criticism of spec-driven tooling is that a specification spread over many files becomes more tedious to review than the code it describes. A fifth folder needs an argument that beats that."
   }
 }

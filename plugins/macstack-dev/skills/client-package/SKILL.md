@@ -22,18 +22,18 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/client-package/references/package.py" macs
         [--date YYYY-MM-DD] [--slug user-cases]
 ```
 
-Writes `macstack/handoffs/<date>-<slug>.html` and prints a ready `handoff` entry. **Append
+Writes `macstack/history/handoffs/<date>-<slug>.html` and prints a ready `handoff` entry. **Append
 that entry to `log.md`** — lint rule 12.20 requires it, and it is the only record of which
 version the client actually reviewed.
 
-## `handoffs/` is immutable, and that is what makes the numbers work
+## `history/handoffs/` is immutable, and that is what makes the numbers work
 
 Bullet numbers (`C-04.2`) are **positional within one package**, not global ids.
 `USER-CASES.md` does not carry them, so inserting a bullet shifts everything below it in the
 next package.
 
 That is safe for exactly one reason: **the handoff file never changes.** A comment written on
-`2026-08-24-user-cases.html` is resolved against that file, which still exists, byte for byte,
+`history/handoffs/2026-08-24-user-cases.html` is resolved against that file, which still exists, byte for byte,
 with the numbering the client saw. Regenerating for a new round writes a new dated file; it
 never overwrites the old one.
 
@@ -51,16 +51,18 @@ change to get lost.
 
 ## What goes in, and what deliberately does not
 
-**In:** `BUSINESS-LOGIC.md` first, as context in plain words, then every case with its intro,
-priority and acceptance bullets, grouped by the same sections the document uses.
+**In:** everything in `client/` except the open questions — `BUSINESS-LOGIC.md` as context in
+plain words, then `USER-CASES.md` case by case, then the tables of `ROLES-AND-TASKS.md` and
+`SCREENS.md`. Those four are the client's documents by definition; handing over three of them
+and keeping the fourth back is how a client reviews a product they have not seen.
 
-**Not in:** `OPEN-QUESTIONS.md`, `DECISIONS.md`, `TASKS.md`, `ROLES.md`, `ARCHITECTURE.md`,
-`reviews/`. Some of it is internal, some of it would invite the client to re-open decisions
+**Not in:** `history/` in any form, `generated/ARCHITECTURE.md`, `generated/TEST-CASES.md`. Some of it is internal, some of it would invite the client to re-open decisions
 already taken, and all of it makes the package longer without making it more answerable. A
 package the client does not finish reading produces fewer corrections, not more.
 
-If a client genuinely needs to see the open questions, send `OPEN-QUESTIONS.md` §A separately —
-it is written for exactly that and is short.
+`OPEN-QUESTIONS.md` §A goes separately when needed — it is short, written for exactly that, and
+mixing "what we still need from you" into "what we will build for you" invites the two to be
+answered as one.
 
 ## Language
 

@@ -87,8 +87,15 @@ Active only when macstack.json has a `docs` section, or a `macstack/` folder exi
 on disk. Errors block scaffolding exactly like Pass 2; lint red on a document that
 reads fine usually means stripped anchors (see `troubleshoot`).
 
-12.1 **Layout** — `docs.root` resolves; every document in `doc-contracts.json`'s
-     `documents` map whose `path` is a FIXED NAME exists under `docs.root`.
+12.1 **Layout** — `docs.root` resolves and holds exactly SIX entries: `README.md`,
+     `macstack.json` and the four folders `client/`, `generated/`, `inbox/`, `history/`.
+     Dot-files do not count — `.DS_Store` and friends are the operating system's litter, not
+     the project's documents, and failing a folder for them teaches people to ignore the rule.
+     A seventh real entry is an error, not a preference: a specification spread over many files
+     becomes more tedious to review than the code it describes, which is the field's own
+     criticism of spec-driven tooling and the reason this layout was collapsed. Every
+     document in `doc-contracts.json`'s `documents` map whose `path` is a FIXED NAME exists
+     at that path under `docs.root`.
      Documents whose `path` carries a `<placeholder>` (`delta`, `rulings`, `review`)
      are dated instances, not required files — their directories are created lazily
      and their absence in a fresh folder is correct. `docs.files` entries, where
@@ -174,6 +181,22 @@ reads fine usually means stripped anchors (see `troubleshoot`).
       `log.md` naming it, and each `handoff` entry names a file that exists. The mirror of
       12.7 for the outbound direction: when the client's edits come back, the only way to
       know WHICH version they reviewed is that entry.
+12.21 **The tables parse** — every table anchor a document's contract declares
+      (`table_anchors`) is present, and every row under it has exactly the number of columns
+      the contract fixes. Columns are read by POSITION; the header row follows `docs.language`
+      and is never parsed. A reordered column is the one edit to these documents that breaks
+      the toolchain quietly, so it is checked here rather than discovered later.
+12.22 **The spec agrees with the client's documents** — `sync-spec` reports no disagreement
+      between `client/ROLES-AND-TASKS.md` and the business half of `macstack.json`: same roles,
+      same human tasks, same gates, same triggers. A spec that disagrees with the document the
+      client signed off on is the failure the whole folder exists to prevent. Additions and
+      removals are ERRORS here even though `sync-spec` will not apply them: they mean a human
+      still owes an id.
+12.23 **Every screen is declared** — every `interfaces[]` entry a person opens (`web`,
+      `admin_ui`, `dashboard`, `approval_center`, `form`) has a row in `client/SCREENS.md`, and
+      every row's address belongs to a declared interface. The "what must NOT be visible"
+      column is non-empty wherever the project declares a prohibition touching that role — an
+      empty cell there is a promise nobody checked.
 ## Warnings (non-blocking)
 
 - A goal with no result ("a goal with no path to it"); a result with no goal when

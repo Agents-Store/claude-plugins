@@ -148,9 +148,9 @@ def build(root, date, slug):
     lang = ((spec.get('docs') or {}).get('language')) or 'en'
     ru = lang == 'ru'
     name = spec.get('description', '').split('.')[0] or spec.get('name', '')
-    uc = io.open(os.path.join(root, 'USER-CASES.md'), encoding='utf-8').read()
+    uc = io.open(os.path.join(root, 'client', 'USER-CASES.md'), encoding='utf-8').read()
     version, cases = parse_cases(uc)
-    bl_path = os.path.join(root, 'BUSINESS-LOGIC.md')
+    bl_path = os.path.join(root, 'client', 'BUSINESS-LOGIC.md')
     logic = parse_logic(io.open(bl_path, encoding='utf-8').read()) if os.path.exists(bl_path) else []
 
     T = dict(
@@ -203,7 +203,7 @@ def build(root, date, slug):
 
     P.append('<footer>%s</footer></body></html>' % html.escape(T['foot']))
 
-    outdir = os.path.join(root, 'handoffs')
+    outdir = os.path.join(root, 'history', 'handoffs')
     os.makedirs(outdir, exist_ok=True)
     out = os.path.join(outdir, '%s-%s.html' % (date, slug))
     io.open(out, 'w', encoding='utf-8').write('\n'.join(P) + '\n')
@@ -227,7 +227,7 @@ def main():
     print()
     print('- **document:** USER-CASES.md' + (' + BUSINESS-LOGIC.md'))
     print('- **version:** %s' % version)
-    print('- **file:** `handoffs/%s-%s.html`' % (date, slug))
+    print('- **file:** `history/handoffs/%s-%s.html`' % (date, slug))
     print('- **to:** ')
     return 0
 

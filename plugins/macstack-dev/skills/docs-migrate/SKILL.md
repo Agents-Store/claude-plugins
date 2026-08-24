@@ -112,3 +112,22 @@ body is a judgement call, never mechanical.
 - Three named gates (map, external references, D<n> reconciliation) for a full
   relocation — never collapse them into one confirmation. A fourth (prose →
   pointer, step 8) stands alone and needs none of the others.
+
+## Second mode — a flat `macstack/` into the four folders
+
+A folder created before the four-folder layout has twelve files and five directories at its
+root and no signal about which of them a human may edit. `references/restructure.py` moves it:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/docs-migrate/references/restructure.py" <repo>          # dry run
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/docs-migrate/references/restructure.py" <repo> --apply
+```
+
+`git mv` only, so history follows. The part that goes wrong quietly is the second job:
+documents move one level DEEPER, so a link reading `../docs/architecture.md` from the root must
+read `../../docs/architecture.md` from `client/`. The script resolves every reference against
+its OLD location and re-expresses it against the new one; a reference that does not resolve is
+REPORTED, never guessed at. Run the dry pass and read that list before applying — on the first
+real run it found a genuinely broken link that predated the move.
+
+Afterwards: `seed.py` for the two authored client documents, `render-docs`, then `lint`.

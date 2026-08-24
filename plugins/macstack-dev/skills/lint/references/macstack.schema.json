@@ -1475,13 +1475,17 @@
               "$ref": "#/$defs/docRef",
               "description": "Cases per role with acceptance lists — the acceptance bar"
             },
+            "roles_tasks": {
+              "$ref": "#/$defs/docRef",
+              "description": "Who does what and what starts it — AUTHORED by a human, read and corrected by the client. Its tables write the business half of this file: roles, tasks, triggers, and which workflow answers which trigger."
+            },
+            "screens": {
+              "$ref": "#/$defs/docRef",
+              "description": "What a person sees on each screen and what must NOT be visible there — authored. Feeds interfaces[] id, name, path and roles."
+            },
             "test_cases": {
               "$ref": "#/$defs/docRef",
               "description": "How each acceptance bullet of user_cases is verified — one test per bullet, tagged auto or manual. Derived from user_cases; its version names the user_cases version it was derived from."
-            },
-            "roles": {
-              "$ref": "#/$defs/docRef",
-              "description": "Who does what and what starts it — generated from this file's own roles[], processes[].tasks[], workflows[] and triggers[]."
             },
             "architecture": {
               "$ref": "#/$defs/docRef",
@@ -1515,31 +1519,27 @@
         },
         "dirs": {
           "type": "object",
+          "description": "The four folders of the macstack/ layout, plus README.md and macstack.json at the root — six entries in all. The count is deliberate: a specification spread over many files becomes more tedious to review than the code it describes, which is the field's own criticism of spec-driven tooling. A fifth folder needs an argument that beats that.",
           "properties": {
+            "client": {
+              "type": "string",
+              "default": "client",
+              "description": "What a human writes and a client reads — the source of truth for what the product must do. This is the folder you hand over."
+            },
+            "generated": {
+              "type": "string",
+              "default": "generated",
+              "description": "Built from a source, never edited by hand. A hand edit is lost on the next render and lint reports the difference."
+            },
             "inbox": {
               "type": "string",
               "default": "inbox",
-              "description": "IMMUTABLE client material. Never edited, renamed or deleted; a source already committed elsewhere in the repo is cited by path, not copied."
+              "description": "What the client sent, exactly as sent. Immutable."
             },
-            "decisions": {
+            "history": {
               "type": "string",
-              "default": "decisions",
-              "description": "Dated rulings, each carrying its cost-if-wrong written at decision time"
-            },
-            "deltas": {
-              "type": "string",
-              "default": "deltas",
-              "description": "Analyses of incoming edits — proposals, never a parallel specification"
-            },
-            "reviews": {
-              "type": "string",
-              "default": "reviews",
-              "description": "Conformance audits; each ships with a business-language twin"
-            },
-            "handoffs": {
-              "type": "string",
-              "default": "handoffs",
-              "description": "Packages sent to the client, exactly as sent. Immutable like inbox/: their edits come back against a specific file, and editing it afterwards makes every returned comment unresolvable."
+              "default": "history",
+              "description": "Journals and records: what happened, what was decided, what was checked, what we sent — plus the plan of work, which is the same working record read forwards."
             }
           }
         }

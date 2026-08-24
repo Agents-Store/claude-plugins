@@ -327,3 +327,32 @@ minutes in exactly the situation it is prescribed for — right after a change.
 obvious response to that diff is to copy upstream back over the mirror, which silently
 reverts the change that was just published. The instruction was wrong in the direction
 that destroys work.
+
+## 2026-08-24 — project-docs, sync-spec, screens: fold the folder into four, invert the direction
+
+**Feature:** The `macstack/` folder was twelve files and five directories at its root with no
+signal about which of them a human may edit. It is now six entries: `README.md`,
+`macstack.json`, and four folders — `client/` (what a human writes and a client reads),
+`generated/`, `inbox/`, `history/`. Two authored client documents were added:
+`ROLES-AND-TASKS.md` in the format trigger → task → workflow, and `SCREENS.md`, whose last
+column is what must NOT be visible on that screen.
+
+**Implementation:** `doc-contracts.json` gained the four `dirs`, new paths for every document,
+a `table` anchor and per-document `table_columns`; the schema gained `docs.dirs` and the
+`roles_tasks` / `screens` keys. New: `skills/sync-spec` (+ command), `render-docs/references/
+seed.py`, `docs-migrate/references/restructure.py`. Lint rules 12.21–12.23. `ROLES.md` stopped
+being generated.
+
+**Rationale:** The owner's complaint — "too many folders, too many files, badly sorted" — is the
+same one Martin Fowler makes about spec-kit: a specification spread over many files becomes more
+tedious to review than the code it describes. So the fix had to REDUCE the count, not re-sort it.
+The second half is the inversion: a client cannot correct a generated file, and the client is the
+one who knows whether a task belongs to a role or whether a number may appear on a screen. The
+client documents are now the source; `sync-spec` reconciles the spec's business half against
+their tables.
+
+**Two things measured while building it.** Tables are read by POSITION, never by header text —
+otherwise a project writing its documents in German would need a second parser. And `sync-spec`
+refuses to create or delete: an id is referenced by workflows, tests and prose, so a machine that
+invents one orphans a reference on the next rename. A rename therefore shows up as one addition
+and one removal, and the report says so instead of guessing.

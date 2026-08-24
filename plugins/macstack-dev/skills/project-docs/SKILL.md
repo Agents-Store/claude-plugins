@@ -18,23 +18,30 @@ file's anchors or ID patterns from memory — open it.
 
 ```
 macstack/
-├── macstack.json          the spec — machine-readable facts (canonical location; a legacy root file stays put until `docs-migrate` moves it)
-├── README.md              this folder's contract: map, ownership, ID spaces   [generated]
-├── USER-CASES.md          [client] cases per role, versioned            ← the bar
-├── TEST-CASES.md          how each acceptance bullet is verified, auto | manual
-├── ROLES.md               who does what and what starts it              [generated]
-├── ARCHITECTURE.md        how the project is built, for the agent       [generated]
-├── TASKS.md               milestones and tasks — what will be done, in what order
-├── BUSINESS-LOGIC.md      [client] invariants and logic in plain words
-├── OPEN-QUESTIONS.md      §A owed by the client · §B deferred by us
-├── DECISIONS.md           D<n> registry and allocator → files in decisions/
-├── log.md                 append-only journal: intake · handoff · merge · work · release
-├── inbox/                 IMMUTABLE client material · README.md = manifest
-├── handoffs/              IMMUTABLE packages sent to the client, exactly as sent
-├── deltas/                YYYY-MM-DD-<slug>.md — proposals, not edits
-├── decisions/             YYYY-MM-DD-<slug>-rulings.md — with cost-if-wrong
-└── reviews/               <slug>-conformance.md + its -business.md twin
+├── README.md          the map — six entries in this folder, this is the first  [generated]
+├── macstack.json      the spec — machine-readable facts
+│
+├── client/            WHAT A HUMAN WRITES AND A CLIENT READS — the source of truth
+│   ├── USER-CASES.md          what a person must get, per role, versioned   ← the bar
+│   ├── ROLES-AND-TASKS.md     who does what and what starts it — TABLES
+│   ├── SCREENS.md             what is on each screen, and what must NOT be
+│   ├── BUSINESS-LOGIC.md      the product in plain words
+│   └── OPEN-QUESTIONS.md      §A owed by the client · §B deferred by us
+│
+├── generated/         BUILT FROM A SOURCE — never edited by hand
+│   ├── ARCHITECTURE.md        how it is built, from macstack.json
+│   └── TEST-CASES.md          how each acceptance bullet is verified
+│
+├── inbox/             WHAT THE CLIENT SENT, exactly as sent · README.md = manifest
+│
+└── history/           JOURNALS AND RECORDS
+    ├── log.md · CHANGELOG.md · TASKS.md · DECISIONS.md
+    └── decisions/ · deltas/ · reviews/ · handoffs/
 ```
+
+**Six entries, and the count is a constraint.** The field's own criticism of spec-driven
+tooling is that a specification spread over many files becomes more tedious to review than
+the code it describes. A fifth folder needs an argument that beats that.
 
 `docs/` stays the **engineering** folder — `architecture.md`, `api-conventions.md`,
 `code-style.md`, deployment runbooks do not move here. `macstack/` must stay a folder
@@ -59,7 +66,7 @@ truths. Report both paths and stop: the remedy is `docs-migrate`, which relocate
 the legacy root file into the folder (or `git rm`s it once the moved copy is
 verified).
 
-## Nine invariants
+## Ten invariants
 
 1. **`inbox/` is immutable.** Never edit, rename or delete anything in it. A source
    already committed in this repo at a stable path is **not copied** into `inbox/` —
@@ -84,8 +91,8 @@ verified).
    closing brace is worse than none because it reads as authoritative.
 6. **A delta is not a spec.** It names its bar (`USER-CASES.md`) and stays the history
    of an analysis.
-7. **A generated document is never edited by hand.** `README.md`, `ROLES.md` and
-   `ARCHITECTURE.md` carry a `generated` banner naming their source and are rebuilt by
+7. **A generated document is never edited by hand.** `README.md` and
+   `generated/ARCHITECTURE.md` carry a `generated` banner naming their source and are rebuilt by
    `render-docs`. A hand edit is lost on the next render, and lint reports the difference
    (12.18) rather than quietly overwriting it. What a human needs to add about a generated
    subject belongs where the source points back: architecture arguments and measured traps
@@ -94,7 +101,14 @@ verified).
    (`user_cases` and `test_cases` add `version` and `source`). Write-once documents —
    rulings, reviews, deltas, the inbox manifest — carry none: their date is in the filename,
    and editing one of them is itself the defect.
-9. **`reviewed` is not `updated`.** `updated` is when the text last changed; `reviewed` is
+9. **The client's documents are the SOURCE, not an output.** `client/ROLES-AND-TASKS.md` and
+   `client/SCREENS.md` were generated from `macstack.json` until the direction was inverted. A
+   client cannot correct a generated file, and the client is the one who knows whether a task
+   belongs to a role or whether a number may appear on a screen. Now they are authored, their
+   TABLES are the machine source, and `sync-spec` reconciles the spec's business half against
+   them. What is not derivable from any client document — code paths, engines, entities,
+   software, implementation status — stays the architect's and is never written by that tool.
+10. **`reviewed` is not `updated`.** `updated` is when the text last changed; `reviewed` is
    when the document was last checked AGAINST THE CODE. Only the second one expires
    (`freshness_days`, default 30), because only the second one is a claim about the world. A
    document can be edited daily and be wrong the whole time.
@@ -155,10 +169,12 @@ writing.
    or `needs_from_client` still holds prose strings, offer `docs-migrate`'s conversion
    step (prose → `OPEN-QUESTIONS.md` rows with pointer objects) rather than leaving
    them as unconvertible legacy text.
-3b. **Render the generated documents** — `README.md`, `ROLES.md`, `ARCHITECTURE.md` — with
-   `render-docs`, never by hand, and never partially. A folder created without them is
-   incomplete, not minimal: `ROLES.md` is the only place the join between a role, its tasks
-   and the trigger that moves them can be read at all.
+3b. **Seed the client's two table documents once**, then hand them over: `seed.py` writes a
+   first `client/ROLES-AND-TASKS.md` and `client/SCREENS.md` from the spec and REFUSES to
+   overwrite them afterwards. A blank page is a bad start when the spec already knows the
+   roles; a machine guess over a client's correction is worse.
+3c. **Render the generated documents** — `README.md` and `generated/ARCHITECTURE.md` — with
+   `render-docs`, never by hand.
 4. Write `README.md` from the contract: the map above, the ownership table, the ID
    spaces, and the merge loop in four lines. Scaffolding does not write to `log.md` —
    that journal records incoming material and merges only, so a freshly created
@@ -180,6 +196,7 @@ questions are not this project's.
 | Record what was built, or cut a release | `changelog` |
 | "Where are we and what next" | `status` |
 | Rebuild the generated documents | `render-docs` |
+| Client corrected the tables | `sync-spec` |
 | Hand the client something to edit | `client-package` |
 | Move an existing `docs/` into this layout | `docs-migrate` |
 | Validate the folder and the spec | `lint` |

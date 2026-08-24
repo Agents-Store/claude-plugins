@@ -301,13 +301,17 @@ def main():
     t = L.get(lang, L['en'])
     src = 'macstack.json'
 
-    targets = [('ROLES.md', render_roles), ('ARCHITECTURE.md', render_arch)]
+    # ROLES.md БОЛЬШЕ НЕ ГЕНЕРИРУЕТСЯ: направление инвертировано — client/ROLES-AND-TASKS.md
+    # пишет человек, и из ЕГО таблиц собирается бизнес-половина спеки (sync-spec.py).
+    # Генератор ролей остался в файле как render_roles() и используется seed.py для
+    # ПЕРВОЙ версии документа; после неё документ авторский и машина его не трогает.
+    targets = [(os.path.join('generated', 'ARCHITECTURE.md'), render_arch)]
     rc = 0
     for name, fn in targets:
         path = os.path.join(root, name)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         banner = '<!-- macstack:generated from=%s -->' % src
-        docanc = '<!-- macstack:doc=%s lang=%s version=1 -->' % (
-            'roles' if name == 'ROLES.md' else 'architecture', lang)
+        docanc = '<!-- macstack:doc=architecture lang=%s version=1 -->' % lang
         body = '%s\n%s\n\n> %s\n\n%s' % (docanc, banner, t['banner_note'].format(src=src), fn(spec, t, src))
 
         old = io.open(path, encoding='utf-8').read() if os.path.exists(path) else ''
