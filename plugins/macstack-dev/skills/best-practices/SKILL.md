@@ -33,11 +33,14 @@ Create each file; content = a short version of the rule + the WHY:
    training data goes stale.
 6. **`project-conventions.md`** — naming: TS PascalCase/camelCase/kebab files; DB
    snake_case, FK `{table}_id`, booleans `is_*/has_*`, timestamps `*_at`; workflows
-   `[Domain] - [Action] - [Trigger]`; kebab API URLs.
+   `[Domain] - [Action] - [Trigger]`; kebab API URLs; never cite `file.ts:214` —
+   cite a symbol name or a test title, because line numbers rot the moment the
+   file above them grows and a pointer at a closing brace reads as authoritative.
 7. **`macstack-sync.md`** (specific to the standard) — macstack.json is a living
    specification: any stack change (new software/workflow/entity/interface) is
-   accompanied by a macstack.json update + `lint` in the same commit; the definition
-   of done includes the spec sync.
+   accompanied by a macstack.json update + `lint` in the same commit; a spec change
+   means `macstack.json` **and** the affected `macstack/*.md` land in the same
+   commit — the specification and its documents are one definition of done.
 
 If the project deploys to a PaaS (dokploy/coolify) — also add `deploy-verify.md`
 (a deploy is done only when the build is done + containers are healthy + logs are
@@ -55,9 +58,9 @@ clean + the domain returns 200).
 
 ## CLAUDE.md wiring
 
-Ensure CLAUDE.md: (1) has the "Stack Specification" section → macstack.json;
-(2) lists the rules as MANDATORY, one line each; (3) stays short (<100 lines) —
-details live in rules/skills/macstack.json, not in CLAUDE.md.
+Ensure CLAUDE.md: (1) has the "Stack Specification" section → macstack.json and
+`macstack/README.md`; (2) lists the rules as MANDATORY, one line each; (3) stays
+short (<100 lines) — details live in rules/skills/macstack.json, not in CLAUDE.md.
 
 ## Rules for applying
 

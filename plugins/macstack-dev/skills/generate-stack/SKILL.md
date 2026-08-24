@@ -74,7 +74,11 @@ hand from the schema enums and propose the new passport as a registry PR.
 - **profile** — type (composable | application | agents), stack_level, patterns.
 - **commercial** — the offer and the Cost of Ownership (make the open-source-first
   economics explicit).
-- **lifecycle** — `stage: "define"`, open_questions, needs_from_client.
+- **docs** — set `docs.language` (ask the user if not obvious from the request);
+  seed `macstack/` via `project-docs` in the same pass.
+- **lifecycle** — `stage: "define"`, `open_questions`/`needs_from_client` in
+  pointer form from day one — never as prose; the wording lives in
+  `OPEN-QUESTIONS.md`.
 
 ## Step 5 — Validate & present
 

@@ -7,8 +7,8 @@ description: This skill should be used when the user asks for "macstack examples
 
 ## Reference files
 
-Canonical full examples live in the standard's repository (`docs/macstack/examples/`
-of the MACSTACK standard repo):
+Canonical full examples live in the standard's repository
+(`github.com/macstacks/macstack`, `examples/`):
 
 - **nova-root** — an organization's root workspace (composable v1): the substacks
   registry, the openclaw→claude-code agent hierarchy, the organization's master
@@ -58,4 +58,17 @@ Adding Qdrant for semantic search:
 2. /macstack-dev:lint → /macstack-dev:scaffold (grows idempotently)
 3. infisical-env: add the key to Infisical → /secrets-sync
 4. Commit per the macstack-sync rule (spec and code in one commit)
+```
+
+## Scenario E — the client drops a PDF
+
+```
+Client emails a PDF spec update
+1. It lands in inbox/ → a manifest row in inbox/README.md
+2. Read it (materialization/size check first) → drafted as a delta with
+   contradictions (K-N) and additions (N-N)
+3. Owner rules on each item → decisions/ + a DECISIONS.md D-ID row
+4. USER-CASES.md bumps a version for the affected role section
+5. Unresolved items become new §A rows in OPEN-QUESTIONS.md
+6. The delta gets its applied banner; log.md gets a merge entry naming the source
 ```

@@ -8,13 +8,18 @@ description: This skill should be used when the user asks to "validate macstack.
 Two passes: JSON Schema, then referential integrity. A file that fails lint must not
 be scaffolded from.
 
+Resolve the path first: `macstack/macstack.json` (canonical) → `./macstack.json`
+(legacy fallback). Both present is a setup error (see `setup`) — stop instead of
+picking one silently.
+
 **Prefer the reference linter** — it implements both passes and is maintained with
 the standard:
 
 ```bash
+MACSTACK_JSON="macstack/macstack.json"; [ -f "$MACSTACK_JSON" ] || MACSTACK_JSON="macstack.json"
 curl -fsSL https://raw.githubusercontent.com/macstacks/macstack/main/scripts/lint.py \
   -o "${CLAUDE_PLUGIN_DATA}/lint.py" 2>/dev/null || true   # cache; keep the old copy offline
-python3 "${CLAUDE_PLUGIN_DATA}/lint.py" macstack.json \
+python3 "${CLAUDE_PLUGIN_DATA}/lint.py" "$MACSTACK_JSON" \
   --schema https://raw.githubusercontent.com/macstacks/macstack/main/schema/macstack.schema.json \
   --categories https://raw.githubusercontent.com/macstacks/registry/main/software-categories.json \
   --coverage-areas https://raw.githubusercontent.com/macstacks/registry/main/coverage-areas.json
@@ -30,13 +35,14 @@ Fetch the live schema first (it may be newer than the bundled copy); cache it in
 
 ```bash
 python3 - <<'EOF'
-import json, jsonschema, urllib.request
+import json, jsonschema, urllib.request, os
 URL = "https://raw.githubusercontent.com/macstacks/macstack/main/schema/macstack.schema.json"
 try:
     schema = json.load(urllib.request.urlopen(URL, timeout=15))
 except Exception:
     schema = json.load(open("<PLUGIN_ROOT>/skills/lint/references/macstack.schema.json"))
-jsonschema.validate(json.load(open("macstack.json")), schema)
+path = "macstack/macstack.json" if os.path.exists("macstack/macstack.json") else "macstack.json"
+jsonschema.validate(json.load(open(path)), schema)
 print("schema: VALID")
 EOF
 ```
@@ -75,6 +81,39 @@ skipped.
     software / entities / workflows / triggers / interfaces / connections.mcp
     (the id-spaces of the six sections the gap check looks at).
 
+## Pass 3 — The `macstack/` folder (rule group 12)
+
+Active only when macstack.json has a `docs` section, or a `macstack/` folder exists
+on disk. Errors block scaffolding exactly like Pass 2; lint red on a document that
+reads fine usually means stripped anchors (see `troubleshoot`).
+
+12.1 **Layout** — `docs.root` resolves; every file named in `docs.files` exists;
+     exactly one `macstack.json` in the repo.
+12.2 **Anchors** — each document carries the anchors its type requires per
+     `${CLAUDE_PLUGIN_ROOT}/skills/project-docs/references/doc-contracts.json`.
+12.3 **ID integrity** — unique per space (case/open-item/decision/contradiction/
+     addition); ASCII-only inside an ID token (the homoglyph rule — a Cyrillic `К`
+     greps as absent and silently breaks every cross-reference check); no gaps in
+     D-numbering; A/B numbers never reused after a strike.
+12.4 **Cross-file refs** — every `D-N` cited in macstack.json, USER-CASES or
+     OPEN-QUESTIONS resolves in DECISIONS.md; every `A-N` in `lifecycle.*` resolves
+     to a live §A row; every `roles[].cases` prefix yields ≥1 case heading; every
+     case-section letter maps to exactly one role.
+12.5 **Checked copies** — `open_questions[].summary` equals the first sentence of
+     its markdown item; `docs.files.<x>.version` equals the document header version
+     equals the last journal row.
+12.6 **`needs_from_client` is a view** — contains no closed items, omits no open
+     client-input §A row.
+12.7 **Inbox hygiene** — ASCII-only filenames; every inbox file has a manifest row
+     in `inbox/README.md`; no content-modifying commit has touched an inbox path
+     after its add commit.
+12.8 **No rotting pointers** — no `path.ext:NNN` line-number citation anywhere
+     under `macstack/`; no link resolving outside the repo root.
+12.9 **No secrets anywhere under `macstack/`** — extends rule 10 past
+     `resources.accesses`.
+12.10 **No parallel spec** — a delta older than 30 days with neither an applied
+      banner nor a superseded note.
+
 ## Warnings (non-blocking)
 
 - A goal with no result ("a goal with no path to it"); a result with no goal when
@@ -92,9 +131,42 @@ skipped.
 - **Ambiguous coverage**: an area claimed by 2+ plugins where none narrows it with
   `scope`. Resolution rule is most-specific-wins — a plugin whose `scope` holds the
   element beats an unscoped one — so an unscoped overlap has no winner.
+- **Unprocessed source**: a file in `inbox/` with no `merge` entry in `log.md`
+  naming it.
+- `lifecycle.updated` older than the newest `log.md` entry (name the date).
+- A `roles[]` entry with no `cases`; a `sees`/`can` longer than one sentence.
+- A case heading with no acceptance list; a §B item stating no trigger; a ruling
+  with no cost-if-wrong anchor.
+- A `-conformance.md` review with no `-business.md` twin of the same date and slug
+  (WARNING, not error — nothing generates the twin yet).
+- A delta aged 14–30 days with no applied banner.
+- `docs.language` absent while the documents are visibly not English.
+- Legacy string-form `open_questions`.
+- An `inbox/` file heavier than 5 MB.
+
+## Judgment checks (documents)
+
+| Check | What it flags |
+|---|---|
+| Duplicate content | The same fact stated in both BUSINESS-LOGIC.md and USER-CASES.md |
+| Superseded documents | A document contradicted by a newer source with no note pointing to it |
+| Cross-role contradictions | Two role sections in USER-CASES.md disagree on the same behavior |
+| Coverage gaps | An entity or workflow in macstack.json that no case touches |
 
 ## Output format
 
 `ERRORS` as a list (the file is not scaffold-ready) → `WARNINGS` → one `OK: schema +
 N integrity rules` line. With a prototype set — resolve and merge first, lint the
 merged document.
+
+When rule group 12 is active, append a documents block:
+
+```
+Documents: 🟢 OK | 🟡 N warnings | 🔴 N errors
+1. <next step>
+2. <next step>
+```
+
+🔴 on any 12.x error, 🟡 on a documents warning with zero errors, 🟢 otherwise.
+Number the next steps in the same order as ERRORS/WARNINGS above (fix errors
+first).

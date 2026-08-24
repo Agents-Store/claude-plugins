@@ -20,6 +20,8 @@ severity (critical / major / minor). Then route by WHAT is wrong:
 | A skill/command/agent of this plugin behaved wrongly | **Plugin** | `claude-public-plugins/plugins/macstack-dev` (via `$PLUGINS_PUBLIC_SOURCE_DIR`) |
 | The schema: a missing/wrong property, enum value, required rule; a lint rule; an example | **Standard** | `github.com/macstacks/macstack` |
 | A software passport, category, entity/trigger/agent template | **Registry** | `github.com/macstacks/registry` |
+| A `macstack/` folder-convention problem (anchors, IDs, layout, the merge loop) | **Plugin** | this plugin's `project-docs` / `docs-merge` skills |
+| The `docs` schema section itself (fields, `docRef` shape) | **Standard** | `github.com/macstacks/macstack` |
 
 One report may touch several targets (a new schema field usually needs: schema +
 examples + the plugin's bundled copy + a skill mention) — fix all of them in one
@@ -79,7 +81,9 @@ affected skill's text (one line), so future runs don't repeat the mistake.
 - Plugin fix: re-read the edited skill; versions in plugin.json ⇄ marketplace.json
   match.
 - Schema fix: `scripts/lint.py` green on all examples; bundled copy byte-identical
-  to the hosted one (`curl -fsSL <raw-url> | diff - <bundled>`).
+  to the hosted one (`curl -fsSL <raw-url> | diff - <bundled>` — this single-file
+  diff covers the rev-10 `docs` section too, since it lives in the same schema
+  file).
 - Registry fix: `scripts/validate.py` green.
 
 <example>
