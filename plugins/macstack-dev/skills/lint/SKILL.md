@@ -88,12 +88,15 @@ on disk. Errors block scaffolding exactly like Pass 2; lint red on a document th
 reads fine usually means stripped anchors (see `troubleshoot`).
 
 12.1 **Layout** — `docs.root` resolves; every document in `doc-contracts.json`'s
-     `documents` map exists at its `path` under `docs.root`; `docs.files` entries,
-     where present, must agree with it; exactly one `macstack.json` in the repo.
+     `documents` map whose `path` is a FIXED NAME exists under `docs.root`.
+     Documents whose `path` carries a `<placeholder>` (`delta`, `rulings`, `review`)
+     are dated instances, not required files — their directories are created lazily
+     and their absence in a fresh folder is correct. `docs.files` entries, where
+     present, must agree. Exactly one `macstack.json` in the repo.
 12.2 **Anchors** — each document carries the anchors its type requires per
      `${CLAUDE_PLUGIN_ROOT}/skills/project-docs/references/doc-contracts.json`.
-12.3 **ID integrity** — unique per space (case/test-case/open-item/decision/
-     contradiction/addition); ASCII-only inside an ID token — the homoglyph rule: a Cyrillic
+12.3 **ID integrity** — unique per space (case/test-case/task/backlog/milestone/
+     release/open-item/decision/contradiction/addition); ASCII-only inside an ID token — the homoglyph rule: a Cyrillic
      capital KA (U+041A) renders exactly like `K` (U+004B), greps as absent and
      silently breaks every cross-reference check, so compare codepoints rather than
      glyphs; no gaps in
@@ -102,11 +105,15 @@ reads fine usually means stripped anchors (see `troubleshoot`).
      OPEN-QUESTIONS resolves in DECISIONS.md; every `A<n>` in `lifecycle.*` resolves
      to a live §A row; every `roles[].cases` prefix yields ≥1 case heading; every
      case-section letter maps to exactly one role; every `<case>.T<n>` id in
-     TEST-CASES.md carries the id of a case that still exists.
+     TEST-CASES.md carries the id of a case that still exists. Every `A<n>` **and
+     every `B<n>`** in `lifecycle.*` resolves to a live row — the B half was
+     previously unchecked, so a pointer at a struck or nonexistent item passed clean.
+     Every `blocked_by` entry in TASKS.md resolves to a live task id or open-item id.
 12.5 **Checked copies** — `open_questions[].summary` equals the first sentence of
      its markdown item; for versioned documents (`user_cases`, `test_cases`),
      `docs.files.<x>.version` equals the document header version equals the last
-     journal row.
+     journal row. Parse the journal by the contract's `journal_columns` for that
+     document — the shape is declared there, not guessed.
 12.6 **`needs_from_client` is a view** — contains no closed items, omits no open
      client-input §A row.
 12.7 **Inbox hygiene** — ASCII-only filenames; every inbox file has a manifest row
@@ -125,6 +132,23 @@ reads fine usually means stripped anchors (see `troubleshoot`).
       a `manual` test also declares preconditions and steps; an `auto` test also
       names the test title that proves it (a bare filename is not evidence, and a
       `file.ts:NNN` pointer is already banned by 12.8); a struck test states why.
+12.13 **The journal is typed** — every `log.md` entry declares one of
+      `intake | merge | work | release` and carries that kind's required fields per
+      the contract's `entry_kinds`. Before the kinds existed, `log.md` had no
+      `sections` at all, so 12.2 could not fire on it and its declared shape was
+      enforced by nothing.
+12.14 **Every task is tracked in both places** — every task in TASKS.md declares a
+      `tracker` id. The file is the source of truth for what the work IS; the team's
+      tracker is where the conversation about it happens, and a task in only one of
+      them is a task half the team cannot see. Also: `status` declared and one of the
+      five; a struck task states why.
+12.15 **A release is paired** — every `release` entry in `log.md` has a
+      `CHANGELOG.md` entry with the same id, and every `CHANGELOG.md` entry has its
+      `release` entry in the log. CHANGELOG.md is ordered newest first.
+12.16 **Milestones are falsifiable** — every milestone in TASKS.md declares a
+      non-empty `done_when`, and a milestone marked `done` has every check recorded
+      as met. A milestone whose tasks are all `done` but whose checks are not
+      recorded is not done — it is unverified.
 
 ## Warnings (non-blocking)
 
@@ -151,6 +175,21 @@ reads fine usually means stripped anchors (see `troubleshoot`).
 - **Unprocessed source**: a file in `inbox/` with no `merge` entry in `log.md`
   naming it.
 - `lifecycle.updated` older than the newest `log.md` entry (name the date).
+- **The project has gone quiet**: a task sitting in `doing` while `log.md` has had no
+  `work` entry for 14 days. The older staleness check compares `lifecycle.updated`
+  against the newest log entry, and with no client input both freeze in agreement —
+  a project can run for months with a perfectly green lint and no record of the work.
+  This is the rule that notices.
+- An §A open item past its age budget (warn 14 days, error 45 per the contract), or
+  with no **asked on** date — a question nobody has actually put to the client is not
+  blocked, it is forgotten.
+- An §A item that one or more tasks name in `blocked_by` — say how many. That count
+  is the argument for chasing the client today rather than next month.
+- A task with no `spec` pointer, or whose `acceptance` names no test.
+- A `BL-<n>` backlog item promoted to a task without the original being struck with a
+  pointer to its new id.
+- Legacy free-text entries in `lifecycle.next_steps` (offer the conversion to task
+  pointers).
 - A `roles[]` entry with no `cases`; a `sees`/`can` longer than one sentence.
 - A case heading with no acceptance list; a §B item stating no trigger; a ruling
   with no cost-if-wrong anchor.

@@ -22,10 +22,11 @@ macstack/
 ├── README.md              this folder's contract: map, ownership, ID spaces   [generated]
 ├── USER-CASES.md          [client] cases per role, versioned            ← the bar
 ├── TEST-CASES.md          how each acceptance bullet is verified, auto | manual
+├── TASKS.md               milestones and tasks — what will be done, in what order
 ├── BUSINESS-LOGIC.md      [client] invariants and logic in plain words
 ├── OPEN-QUESTIONS.md      §A owed by the client · §B deferred by us
 ├── DECISIONS.md           D<n> registry and allocator → files in decisions/
-├── log.md                 append-only journal of intakes and merges
+├── log.md                 append-only journal: intake · merge · work · release
 ├── inbox/                 IMMUTABLE client material · README.md = manifest
 ├── deltas/                YYYY-MM-DD-<slug>.md — proposals, not edits
 ├── decisions/             YYYY-MM-DD-<slug>-rulings.md — with cost-if-wrong
@@ -92,6 +93,9 @@ is still a copy.
 | `roles[].id/name/acl/isolation` | `macstack.json` | `USER-CASES.md` role sections, joined via `roles[].cases` |
 | What a person gets, per case | `USER-CASES.md` | `TEST-CASES.md` verifies each of its acceptance bullets |
 | How a bullet is checked | `TEST-CASES.md` | ids carry the case they verify (`C-06.T3`); a dated `reviews/` file records what a run found |
+| What will be done, in what order | `TASKS.md` | `lifecycle.next_steps[]` and `lifecycle.milestones[]` as pointers; every task also lives in the team's tracker |
+| What happened | `log.md` | typed entries — `work` is the development log, the half git cannot hold |
+| What reached the client | `CHANGELOG.md` | curated from the log's `work` and `release` entries; never a commit history in disguise |
 | Open questions | `OPEN-QUESTIONS.md` | `lifecycle.open_questions[]` as `{id, ref, status, blocks, closed_by}` pointers |
 | Owed by the client | `OPEN-QUESTIONS.md §A` | `lifecycle.needs_from_client[]` — a **derived view**: live §A client rows only |
 | Decisions | `decisions/*.md` | `lifecycle.decisions[]` pointers; prose cites `D<n>` |
@@ -122,7 +126,7 @@ writing.
 2. Create only what is missing — **never overwrite an existing document.** For a file
    that exists but lacks anchors or sections, add what is missing in place and report
    it; do not regenerate.
-   Materialize eagerly: the seven documents, plus `inbox/` with its `README.md` manifest.
+   Materialize eagerly: the nine documents, plus `inbox/` with its `README.md` manifest.
    Create `deltas/`, `decisions/` and `reviews/` **lazily, on first use** — git does
    not track an empty directory, so creating them up front either leaves untracked
    empties that vanish on clone or scatters four `.gitkeep` files. Their absence in a
@@ -151,6 +155,9 @@ questions are not this project's.
 |---|---|
 | Client edits arrived, or "improve X" | `docs-merge` |
 | Turn the acceptance bullets into checks | `test-cases` |
+| Plan work, or reconcile with the tracker | `tasks` |
+| Record what was built, or cut a release | `changelog` |
+| "Where are we and what next" | `status` |
 | Move an existing `docs/` into this layout | `docs-migrate` |
 | Validate the folder and the spec | `lint` |
 | The spec itself | `init-project` · `generate-stack` |

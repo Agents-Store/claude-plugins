@@ -21,8 +21,9 @@ description: This skill should be used when the user reports "macstack lint fail
 - `github:owner/repo` fails to clone → check `gh auth status` / repo visibility;
   private repos need a PAT. Fallback: ask the user for a local absolute path.
 - The repo has no `macstack.json` → it is a legacy prototype (only `stack.json`):
-  use its files for scaffolding, but there is nothing to inherit — record it in
-  open_questions.
+  use its files for scaffolding, but there is nothing to inherit — open a
+  `OPEN-QUESTIONS.md §B` row and point at it by id from `lifecycle.open_questions`
+  (prose in the markdown, pointer in the JSON).
 - A prototype cycle (A→B→A) → an error by design; break the chain.
 - A local path inside a cloud-synced folder (iCloud/Drive) may hang on first read
   (file materialization) — retry, or copy the prototype to a regular folder.
@@ -65,6 +66,7 @@ description: This skill should be used when the user reports "macstack lint fail
 - `curl raw.githubusercontent.com/...marketplace.json` → 404: the branch is not
   `main` or the repo is private → use
   `gh api repos/agents-store/claude-plugins/contents/...`.
-- No plugin exists for a software → record the gap in open_questions + suggest
+- No plugin exists for a software → open a §B row (pointer from
+  `lifecycle.open_questions`, never prose in the JSON) + suggest
   creating it via plugin-creator; do NOT put a non-existent name into
   context.plugins.

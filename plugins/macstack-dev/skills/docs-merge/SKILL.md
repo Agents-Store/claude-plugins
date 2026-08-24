@@ -119,7 +119,9 @@ its cases — the letter is retired with it and never reassigned.
 
 ## 8. Log
 
-Append to `log.md`:
+Append to `log.md` — kind `merge`, one of the four the journal accepts
+(`intake · merge · work · release`; `work` and `release` belong to the
+`changelog` skill, not this one):
 
 ```
 ## [2026-08-24] merge | OHAWO Client Portal Functional Spec

@@ -59,10 +59,12 @@ macstack/
 ├── README.md               folder contract   [generated]
 ├── USER-CASES.md           [client] cases per role, versioned
 ├── TEST-CASES.md           how each acceptance bullet is verified, auto | manual
+├── TASKS.md                milestones and tasks — what will be done, in what order
 ├── BUSINESS-LOGIC.md       [client] invariants and logic in plain words
 ├── OPEN-QUESTIONS.md       §A owed by the client · §B deferred by us
+├── CHANGELOG.md            [client] what reached the people who use it, newest first
 ├── DECISIONS.md            decision registry (D14, D15 …) → files in decisions/
-├── log.md                  append-only journal of intakes and merges
+├── log.md                  append-only journal: intake · merge · work · release
 ├── inbox/                  IMMUTABLE client material · README.md = manifest
 ├── deltas/                 proposals, not edits
 ├── decisions/              rulings, each with cost-if-wrong
@@ -88,7 +90,8 @@ code-style.md, runbooks) — it never moves into `macstack/`.
    - Not found → offer `init-project` (existing codebase) or `generate-stack` (from
      scratch).
    - Also check whether `macstack/` and its working documents (USER-CASES.md,
-     TEST-CASES.md, BUSINESS-LOGIC.md, OPEN-QUESTIONS.md, DECISIONS.md, log.md) exist. If not,
+     TEST-CASES.md, TASKS.md, BUSINESS-LOGIC.md, OPEN-QUESTIONS.md, CHANGELOG.md,
+     DECISIONS.md, log.md) exist. If not,
      offer `project-docs` to create the folder.
 3. **CLAUDE.md link**: check that CLAUDE.md contains a "Stack Specification" section
    pointing to macstack.json. If missing, offer to add:
@@ -116,4 +119,7 @@ Never write code that contradicts macstack.json — update the specification fir
 | Create/seed the `macstack/` folder | `project-docs` |
 | Merge new client material into the folder | `docs-merge` |
 | Turn the acceptance bullets into checks | `test-cases` |
+| Plan work, or reconcile with the tracker | `tasks` |
+| Record what was built, or cut a release | `changelog` |
+| "Where are we and what next" | `status` |
 | Relocate an existing `docs/` into the new layout | `docs-migrate` |

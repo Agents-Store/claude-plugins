@@ -29,16 +29,28 @@ the client.
    project-conventions, macstack-sync) and core commands.
 7. **Keep the working documents** — a standardized `macstack/` folder beside the spec:
    `USER-CASES.md` (cases per role), `TEST-CASES.md` (how each acceptance bullet is
-   verified, `auto` or `manual`), `BUSINESS-LOGIC.md`, `OPEN-QUESTIONS.md`
+   verified, `auto` or `manual`), `TASKS.md` (milestones and tasks, reconciled with
+   the team's own tracker), `CHANGELOG.md`, `BUSINESS-LOGIC.md`, `OPEN-QUESTIONS.md`
    (§A owed by the client · §B deferred by us), `DECISIONS.md` + dated rulings,
    an immutable `inbox/` for client material and an append-only `log.md`.
 8. **Merge client edits** — a client document lands in `inbox/`, becomes a delta of
    contradictions and additions, the owner rules on each, and only then does it reach
    the cases, the logic and the spec. Every ruling records its cost if wrong.
-9. **Migrate an existing project** — classify a grown-organically `docs/`, move the
+9. **Track the work** — milestones with falsifiable `done_when` checks, tasks with
+   ids that match the commit convention (`M11-T9`), every one of them reconciled
+   both ways with the team's task tracker. Forward work leaves the code: no `TODO`
+   in a source file, where nobody can prioritise or close it.
+10. **Keep a record** — `log.md` takes typed entries (`intake · merge · work ·
+   release`); the `work` entry is the development log, holding the half git cannot:
+   what was tried first and why it went this way. `CHANGELOG.md` is its curated,
+   client-facing derivative — what reached the people who use the product.
+11. **Say where the project stands** — `/macstack-dev:status` computes the blockers
+   from the artifacts instead of storing a TODO that goes stale, and ends with the
+   exact next command to run.
+12. **Migrate an existing project** — classify a grown-organically `docs/`, move the
    specification side into `macstack/` with `git mv`, and report the references that
    could not be rewritten.
-10. **Lint** — JSON Schema (bundled) + referential-integrity rules (masters, triggers,
+13. **Lint** — JSON Schema (bundled) + referential-integrity rules (masters, triggers,
    instances, cross-stack refs, agent delegation) + the folder: anchors, ID integrity
    across files, pointer/prose separation, inbox hygiene.
 
@@ -50,6 +62,9 @@ the client.
 | `project-docs` | The `macstack/` folder standard: layout, path resolution, ID spaces, section anchors, language rule, immutability guardrails |
 | `docs-merge` | The merge loop: client material → delta → owner rulings → cases, logic and spec |
 | `test-cases` | Derives `TEST-CASES.md` from the acceptance bullets — one test per bullet, tagged `auto` or `manual` |
+| `tasks` | Milestones and tasks, reconciled both ways with the team's task tracker |
+| `changelog` | The work journal and its curated, client-facing changelog |
+| `status` | Read-only dashboard: where the project is, what blocks it, what to run next |
 | `docs-migrate` | One-time relocation of an existing `docs/` into the folder |
 | `init-project` | macstack.json for an existing codebase |
 | `generate-stack` | Result-first stack design from a request |
@@ -66,6 +81,7 @@ the client.
 
 `/macstack-dev:init` · `/macstack-dev:generate` · `/macstack-dev:scaffold` ·
 `/macstack-dev:docs` · `/macstack-dev:docs-merge` · `/macstack-dev:test-cases` ·
+`/macstack-dev:tasks` · `/macstack-dev:changelog` · `/macstack-dev:status` ·
 `/macstack-dev:docs-migrate` · `/macstack-dev:lint` · `/macstack-dev:sync` ·
 `/macstack-dev:feedback`
 

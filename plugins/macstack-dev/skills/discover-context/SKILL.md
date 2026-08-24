@@ -53,8 +53,10 @@ Matching rule — derive plugin names from macstack.json `software[]`:
 - For the layer bundle look for a stack plugin `stack-{name}-{process}` (e.g.
   `stack-directus-nextjs-trigger-dev`, `stack-composable-stack-v1`) — it carries
   `.mcp.json`, `.env.example` and the integration skills.
-- Plugin not found → record the gap in `lifecycle.open_questions` ("no plugin X —
-  create it via plugin-creator"); NEVER invent a name inside context.plugins.
+- Plugin not found → open a row in `OPEN-QUESTIONS.md §B` ("no plugin for X —
+  create it via plugin-creator", with the trigger that makes the gap urgent) and
+  point `lifecycle.open_questions` at its id. The prose goes in the markdown; the
+  JSON holds the pointer. NEVER invent a name inside `context.plugins`.
 
 Fill `context.plugins`: `{technology: [...], process: [...], stack: [...]}` and
 `context.marketplaces: ["agents-store-claude-plugins"]`.
@@ -84,7 +86,8 @@ prefer `project-*` templates over client repos. Set in macstack.json:
 
 Check whether the prototype repo has its own `macstack.json` (the new standard) —
 inherit via merge-by-id; if it only has a legacy `stack.json`, treat it as a
-scaffold source only and note that in open_questions.
+scaffold source only and open a §B row saying so, referenced from
+`lifecycle.open_questions` by id.
 
 ## Output
 
