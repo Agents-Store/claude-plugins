@@ -320,13 +320,32 @@ def tables(text):
     return out
 
 
+CODESPAN = re.compile(r'`[^`]*`')
+
+
 def _cells(line):
-    parts = CELL_SPLIT.split(line.strip())
+    """Split a table row. A pipe inside a code span is content, not a separator —
+    `app | migrate | postgres` is one cell, and treating it as three silently truncates
+    the row and everything downstream of it."""
+    line = line.strip()
+    spans = []
+
+    def hide(m):
+        spans.append(m.group(0))
+        return '\x00%d\x00' % (len(spans) - 1)
+
+    line = CODESPAN.sub(hide, line)
+    parts = CELL_SPLIT.split(line)
     if parts and not parts[0].strip():
         parts = parts[1:]
     if parts and not parts[-1].strip():
         parts = parts[:-1]
-    return [p.strip() for p in parts]
+    out = []
+    for p in parts:
+        for i, s in enumerate(spans):
+            p = p.replace('\x00%d\x00' % i, s)
+        out.append(p.strip())
+    return out
 
 
 BUDGET = dict(max_columns=4, max_cell_chars=80, min_rows=3,
@@ -353,7 +372,10 @@ def table_violations(text, exempt_anchors=('journal',)):
         for token in BUDGET['forbid']:
             if token == '|':
                 continue
-            if any(token in c for c in cells):
+            # Bold on a short cell is a term in a legend, not prose in a grid. Bold
+            # inside a long cell is the smell this rule exists for.
+            limit = 40 if token == '**' else 0
+            if any(token in c and len(c) > limit for c in cells):
                 reasons.append('%s inside a cell' % token)
         if reasons:
             bad.append((start + 1, len(head), len(longest), longest, '; '.join(sorted(set(reasons)))))

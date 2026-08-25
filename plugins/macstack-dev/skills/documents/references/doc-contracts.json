@@ -42,6 +42,11 @@
     "generated_indexes": {
       "rule": "An index, a summary table or a coverage count is GENERATED, never authored. A hand-written index is a second copy of the document that drifts silently.",
       "measured": "A live USER-CASES.md printed all 63 cases twice — once as index rows, once as headings — with zero divergence, i.e. 15% of the file existed only to be kept in sync by hand."
+    },
+    "placeholder": {
+      "marker": "_TODO —",
+      "rule": "A required section a migration or a seed could not fill carries a line starting with this marker. The section EXISTS, so 12.21 passes and the document is structurally whole; the marker is what makes the gap visible instead of letting an empty section read as a finished one. Lint warns on every placeholder still standing and names them, so the count only ever goes down.",
+      "never": "A placeholder is never written over content. If a converter cannot tell what a block of prose meant, it leaves the prose where it is and reports the file — mangling a client's words to fit a shape is worse than an unconverted document."
     }
   },
   "anchor_syntax": {
