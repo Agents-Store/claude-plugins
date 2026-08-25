@@ -37,7 +37,9 @@
       ],
       "max_foreign_ratio": 0.15,
       "measured_over": "letters outside code spans, yaml blocks, anchors and ID tokens",
-      "note": "A live project ran docs.language=ru with one client document 100% English and another at 21% Cyrillic — Russian headings over an English body copied out of the spec. Both read as finished documents and neither was one. Terminology stays English on purpose; the glossary section of overview carries the mapping."
+      "note": "A live project ran docs.language=ru with one client document 100% English and another at 21% Cyrillic — Russian headings over an English body copied out of the spec. Both read as finished documents and neither was one. Terminology stays English on purpose; the glossary section of overview carries the mapping.",
+      "not_measured_for": "generated documents",
+      "identifiers_must_be_backticked": "Anything a renderer emits that is an identifier — a workflow name, a software id, a path — is written in backticks. It reads as an identifier to a person and it is stripped before the language count, which is the same fact seen twice."
     },
     "generated_indexes": {
       "rule": "An index, a summary table or a coverage count is GENERATED, never authored. A hand-written index is a second copy of the document that drifts silently.",

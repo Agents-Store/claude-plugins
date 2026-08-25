@@ -160,11 +160,18 @@ below is checked against that file, never against memory.
 12.25 **The document is written in its declared language** — measure the ratio of
       letters from the wrong alphabet outside code spans, YAML blocks, anchors and ID
       tokens against `docs.files.<key>.language` or `docs.language`. Past 15% it is an
-      ERROR for a document whose `audience` is `client`, and a WARNING otherwise.
-      Terminology is expected to be English and is excluded by the measurement, not by
-      an exception list. The severity split is the whole point: the rule exists so the
-      client can read the documents written for them. An internal journal drifting into
-      English costs nothing; a client document doing it costs the review.
+      ERROR for a document whose `audience` is `client`, a WARNING otherwise, and **not
+      measured at all for a `generated` document**. The severity split is the whole point:
+      the rule exists so the client can read the documents written for them. An internal
+      journal drifting into English costs nothing; a client document doing it costs the
+      review. A generated document is exempt because its body is identifiers — software
+      ids, entity names, workflow names — which the language rule forbids translating, so
+      measuring it would demand the one thing the standard prohibits.
+      Terminology is excluded by the measurement, not by an exception list: it sits in
+      code spans, YAML blocks and ID tokens, all of which are stripped before counting.
+      Anything a renderer emits that IS an identifier must be backticked for the same
+      reason — an unquoted workflow name put a generated index at 45% foreign when every
+      Russian word in it was Russian.
       A live project ran `docs.language: ru` with one client document 100% English and
       another at 21% Cyrillic — Russian headings over an English body copied out of the
       spec. Both read as finished documents and neither was one.

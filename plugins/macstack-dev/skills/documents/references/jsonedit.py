@@ -140,10 +140,16 @@ def render(value, pad):
     return txt.replace('\n', '\n' + pad)
 
 
-def set_value(raw, path, value):
-    """Replace one value, leaving every other byte untouched."""
+def set_value(raw, path, value, create=False):
+    """Replace one value, leaving every other byte untouched.
+
+    create=True inserts the key when it is absent — needed because docs.files entries are
+    hand-written and half of them carry no `version` at all, which is exactly the state
+    rule 12.5 exists to end."""
     sp = locate(index(raw), path)
     if sp is None:
+        if create and len(path) > 1 and locate(index(raw), path[:-1]) is not None:
+            return insert_key(raw, path[:-1], path[-1], value)
         raise KeyError('/'.join(str(p) for p in path))
     pad = indent_at(raw, sp.key_start if sp.key_start is not None else sp.start)
     out = raw[:sp.start] + render(value, pad) + raw[sp.end:]
@@ -168,8 +174,15 @@ def insert_key(raw, parent_path, key, value):
         raise ValueError('cannot infer indentation of an empty object')
     last = list(parent.children.values())[-1]
     pad = indent_at(raw, last.key_start)
-    if not pad:                                  # the object is inline; leave it alone
-        raise ValueError('refusing to expand an inline object')
+    if not pad:
+        # The object is written on one line — `{ "path": "...", "version": "1.8" }`.
+        # Expanding it would reformat a file whose formatting is the thing we are
+        # protecting, so the key goes in beside its siblings, inline, same as they are.
+        inline = json.dumps(value, ensure_ascii=False)
+        if '\n' in inline:
+            raise ValueError('refusing to inline a multi-line value into a one-line object')
+        text = ', %s: %s' % (json.dumps(key, ensure_ascii=False), inline)
+        return raw[:last.end] + text + raw[last.end:]
     text = ',\n%s%s: %s' % (pad, json.dumps(key, ensure_ascii=False), render(value, pad))
     return raw[:last.end] + text + raw[last.end:]
 

@@ -34,6 +34,21 @@ import jsonedit as J                                # noqa: E402
 
 TODO = '_TODO —'
 
+# The gate column held whatever docs.language called it. A converter that accepted only
+# the English enum silently set `gate: none` on every task of a Russian project — 33 of
+# them on the live one — and `none` reads as "nobody owns this", which is the opposite
+# of what the row said.
+GATES = {
+    'input': 'input', 'ввод': 'input', 'eingabe': 'input', 'ввід': 'input',
+    'execute': 'execute', 'исполнение': 'execute', 'выполнение': 'execute',
+    'ausführung': 'execute', 'виконання': 'execute',
+    'approve': 'approve', 'решение': 'approve', 'утверждение': 'approve',
+    'freigabe': 'approve', 'рішення': 'approve',
+    'review': 'review', 'проверка': 'review', 'ревью': 'review',
+    'prüfung': 'review', 'перевірка': 'review',
+    '—': 'none', '-': 'none', '': 'none',
+}
+
 MOVES = [
     ('USER-CASES.md',        'client/USER-CASES.md'),
     ('BUSINESS-LOGIC.md',    'client/OVERVIEW.md'),
@@ -226,6 +241,28 @@ def cell_to_lines(cell):
     return ['- ' + p for p in parts]
 
 
+def carry_journal(old_text, lang):
+    """Lift the journal out of a document being rebuilt.
+
+    convert_screens and convert_roles_tasks rebuild their document from the head plus the
+    converted entities, which silently dropped everything after the first table — the
+    journal included. A living document without a journal fails 12.19, and the rows lost
+    are human history that nothing else holds. Found on the live project: UX-UI.md came
+    out of the conversion with no journal at all."""
+    keep, taking = [], False
+    for line in old_text.splitlines():
+        if 'macstack:section=journal' in line:
+            taking = True
+        if taking:
+            keep.append(line)
+    if keep:
+        return keep
+    head = (u'| дата | что изменилось |' if lang == 'ru' else u'| date | what changed |')
+    return [M.anchor('section', 'journal'),
+            u'## Журнал документа' if lang == 'ru' else '## Document journal', '',
+            head, '|---|---|']
+
+
 def convert_screens(text, spec, lang):
     """SCREENS.md 6-column table -> UX-UI.md screen entities."""
     ifaces = {}
@@ -361,7 +398,7 @@ def convert_roles_tasks(text, lang, spec=None):
                 y = {}
                 if cur_role:
                     y['role'] = cur_role[0]
-                y['gate'] = gate if gate in ('input', 'execute', 'approve', 'review') else 'none'
+                y['gate'] = GATES.get(gate.strip().lower(), 'none')
                 if starts and starts not in ('—', '-'):
                     y['trigger'] = starts
                 if wf and wf not in ('—', '-'):
@@ -640,6 +677,7 @@ def migrate_format(mroot, spec, lang, apply_):
             head = re.sub(r'^<!--\s*macstack:doc=.*?-->', M.doc_header('ux_ui', lang, bump(cur_version(t))), head, count=1)
             body = [head, '', M.anchor('section', 'screens'), '## Экраны' if lang == 'ru' else '## Screens', '']
             body += ents
+            body += [''] + carry_journal(t, lang)
             write(p, '\n'.join(body), '%d screens converted from the 6-column table' % n)
 
     # --- AUTOMATION.md
@@ -657,6 +695,7 @@ def migrate_format(mroot, spec, lang, apply_):
                 body += [M.anchor('section', 'tasks'), '## Задачи' if lang == 'ru' else '## Tasks', ''] + tasks
             if triggers:
                 body += [M.anchor('section', 'triggers'), '## Триггеры' if lang == 'ru' else '## Triggers', ''] + triggers
+            body += [''] + carry_journal(t, lang)
             write(p, '\n'.join(body), '%d roles, %d tasks, %d triggers converted'
                   % (len(roles), len(tasks), len(triggers)))
 

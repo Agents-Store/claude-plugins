@@ -395,9 +395,27 @@ STRIP = re.compile(r'(```.*?```|`[^`]*`|<!--.*?-->|\[[^\]]*\]\([^)]*\))', re.S)
 IDTOK = re.compile(r'\b[A-Z]-\d{2}(\.[aT]\d+)?\b|\bM\d+(-T\d+)?\b|\b[AB]\d+\b|\bD\d+\b|\bBL-\d+\b')
 
 
+def strip_fences(text):
+    """Remove fenced blocks by tracking fences LINE BY LINE, not by regex pairing.
+
+    A regex that pairs ``` with the next ``` breaks on a document that mentions the fence
+    syntax in its own prose — one stray mention shifts every later pair by one, so the
+    real yaml blocks stop being stripped and the prose between them starts being. Found
+    on a live document whose 'how to edit this' section named ```yaml as text: the
+    language check then read it as 84% foreign when it was 15%."""
+    out, inside = [], False
+    for line in text.splitlines():
+        if FENCE.match(line):
+            inside = not inside
+            continue
+        out.append('' if inside else line)
+    return '\n'.join(out)
+
+
 def foreign_ratio(text, lang):
     """Rule 12.25. Share of letters from the wrong alphabet outside code, anchors and ids."""
-    body = STRIP.sub(' ', text)
+    body = strip_fences(text)
+    body = STRIP.sub(' ', body)
     body = IDTOK.sub(' ', body)
     cyr = len(CYR.findall(body))
     lat = len(LAT.findall(body))

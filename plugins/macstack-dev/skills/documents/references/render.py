@@ -335,7 +335,13 @@ def render_index(root, lang):
             ttype = tg.yaml.get('type')
             src = tg.yaml.get('source')
             raises = tg.yaml.get('raises') or []
-            raises_s = ', '.join(raises) if isinstance(raises, list) else esc(raises)
+            if not isinstance(raises, list):
+                raises = [raises]
+            # A workflow name is an identifier, not prose. Backticked it reads as one and
+            # the language check stops counting it as foreign text — which it was doing,
+            # putting a generated index at 45% "not Russian" when every Russian word in
+            # it was Russian.
+            raises_s = ', '.join('`%s`' % str(r) for r in raises)
             out_lines.append('- **%s** · %s — %s / %s — %s' % (
                 tg.id, esc(_title(tg)), esc(ttype or '—'), esc(src or '—'), raises_s or '—'))
         out_lines.append('')
