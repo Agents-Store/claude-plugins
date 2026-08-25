@@ -285,10 +285,48 @@ def _roles_cell(cell, known):
 
 
 def convert_roles_tasks(text, lang, spec=None):
-    trg_by_name, tsk_by_name, rol_by_name = _spec_index(spec or {})
     """ROLES-AND-TASKS.md -> AUTOMATION.md role / task / trigger entities."""
+    spec = spec or {}
+    trg_by_name, tsk_by_name, rol_by_name = _spec_index(spec)
     roles, tasks, triggers = [], [], []
     lines = text.splitlines()
+
+    # Roles were prose in v1: a heading, then two bold labels. The labels follow
+    # docs.language, so match the SHAPE — a bold run ending in a colon — not the words.
+    i = 0
+    while i < len(lines):
+        m = re.match(r'^###\s+(.*?)\s+[\u2014-]\s+`?([A-Za-z0-9][A-Za-z0-9._-]*)`?\s*$', lines[i])
+        if not m:
+            i += 1
+            continue
+        title, rid = m.group(1).strip(), m.group(2)
+        vals, j = [], i + 1
+        while j < len(lines) and not re.match(r'^#{2,3}\s', lines[j]):
+            b = re.match(r'^\*\*(.+?):\*\*\s*(.*)$', lines[j].strip())
+            if b:
+                v = b.group(2).strip()
+                k = j + 1
+                while k < len(lines) and lines[k].strip() and \
+                        not lines[k].lstrip().startswith(('**', '|', '#', '<!--')):
+                    v += ' ' + lines[k].strip()
+                    k += 1
+                vals.append(v)
+                j = k
+                continue
+            j += 1
+        if vals:
+            y = {'cases': ['%s-*' % rid[0].upper()]}
+            for r in (spec.get('roles') or []):
+                if r.get('id') == rid:
+                    if r.get('cases'):
+                        y['cases'] = r['cases']
+                    if r.get('isolation'):
+                        y['isolation'] = r['isolation']
+            fields = [('sees', None, [vals[0]]),
+                      ('can', None, [vals[1] if len(vals) > 1
+                                     else '%s state what this role may do._' % TODO])]
+            roles.append(M.entity('role', rid, title, y, fields))
+        i = j
     cur_role = None
     for start, head, rows in M.tables(text):
         # the role this table sits under: nearest '### <name> — `<id>`' above it
@@ -608,15 +646,18 @@ def migrate_format(mroot, spec, lang, apply_):
     if p:
         t = read(p)
         roles, tasks, triggers = convert_roles_tasks(t, lang, spec)
-        if tasks or triggers:
+        if roles or tasks or triggers:
             head = t.split('<!-- macstack:table=')[0].rstrip()
             head = re.sub(r'^<!--\s*macstack:doc=.*?-->', M.doc_header('automation', lang, bump(cur_version(t))), head, count=1)
             body = [head, '']
+            if roles:
+                body += [M.anchor('section', 'roles'), '## Роли' if lang == 'ru' else '## Roles', ''] + roles
             if tasks:
                 body += [M.anchor('section', 'tasks'), '## Задачи' if lang == 'ru' else '## Tasks', ''] + tasks
             if triggers:
                 body += [M.anchor('section', 'triggers'), '## Триггеры' if lang == 'ru' else '## Triggers', ''] + triggers
-            write(p, '\n'.join(body), '%d tasks, %d triggers converted' % (len(tasks), len(triggers)))
+            write(p, '\n'.join(body), '%d roles, %d tasks, %d triggers converted'
+                  % (len(roles), len(tasks), len(triggers)))
 
     # --- OPEN-QUESTIONS.md §A
     p = resolve(mroot, 'client/OPEN-QUESTIONS.md')
