@@ -30,6 +30,7 @@ import sys, os, io, re, subprocess, posixpath
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from i18n import doc_lang, msg                      # noqa: E402
 import mdblocks as M                                # noqa: E402
+import jsonedit as J                                # noqa: E402
 
 TODO = '_TODO —'
 
@@ -775,48 +776,58 @@ def migrate_spec(mroot, lang, apply_):
     Missed on the first run against the live project: every file had been renamed and the
     spec still pointed at BUSINESS-LOGIC.md, SCREENS.md and ROLES-AND-TASKS.md, which
     12.1 reads as three missing documents. A migration that renames files and leaves the
-    index behind has not finished."""
-    import json, collections
+    index behind has not finished.
+
+    Edited as TEXT, not reserialized. json.dump(indent=2) on a live spec turned 959 lines
+    into 4119: the file is hand-formatted, short objects inlined, and no width heuristic
+    reproduces that. A whole-file reformat makes a three-line change unreviewable."""
+    import json
     sp = os.path.join(mroot, 'macstack.json')
     if not os.path.exists(sp):
         return 0
-    spec = json.load(io.open(sp, encoding='utf-8'), object_pairs_hook=collections.OrderedDict)
-    docs = spec.get('docs')
-    if not docs or 'files' not in docs:
+    raw = io.open(sp, encoding='utf-8').read()
+    try:
+        spec = json.loads(raw)
+    except ValueError as e:
+        print('  macstack.json does not parse: %s' % e)
         return 0
-    old = docs['files']
-    out = collections.OrderedDict()
-    moved = []
-    for k, v in old.items():
-        nk, npath = k, None
-        for a, b, path in DOCS_FILES_RENAME:
-            if k == a:
-                nk, npath = b, path
-        if npath:
-            v = collections.OrderedDict(v)
-            v['path'] = npath
-            moved.append('%s -> %s' % (k, nk))
-        out[nk] = v
-    for key, path, audience in DOCS_FILES_NEW:
-        if key in out:
+    files = ((spec.get('docs') or {}).get('files')) or {}
+    if not files:
+        return 0
+
+    done = []
+    for old, new_key, new_path in DOCS_FILES_RENAME:
+        if old not in files or new_key in files:
             continue
-        entry = collections.OrderedDict()
-        entry['path'] = path
-        entry['version'] = '1.0'
-        entry['audience'] = audience
+        try:
+            raw = J.set_value(raw, ['docs', 'files', old, 'path'], new_path)
+            raw = J.rename_key(raw, ['docs', 'files'], old, new_key)
+            done.append('%s -> %s' % (old, new_key))
+        except Exception as e:                       # a spec shaped unexpectedly is reported
+            print('  could not re-key %s: %s' % (old, e))
+
+    for key, path, audience in DOCS_FILES_NEW:
+        if key in files:
+            continue
+        entry = {'path': path, 'version': '1.0', 'audience': audience}
         if audience != 'internal':
-            entry['language'] = docs.get('language', 'en')
-        out[key] = entry
-        moved.append('+ %s' % key)
-    if not moved:
+            entry['language'] = (spec.get('docs') or {}).get('language', 'en')
+        try:
+            raw = J.insert_key(raw, ['docs', 'files'], key, entry)
+            done.append('+ %s' % key)
+        except Exception as e:
+            print('  could not add %s: %s' % (key, e))
+
+    if not done:
         return 0
-    docs['files'] = out
     print('\n=== SPEC ===')
-    for m in moved:
-        print('  docs.files  %s' % m)
+    for d in done:
+        print('  docs.files  %s' % d)
+    before = len(io.open(sp, encoding='utf-8').read().splitlines())
+    print('  %d lines before, %d after — formatting preserved' % (before, len(raw.splitlines())))
     if apply_:
-        io.open(sp, 'w', encoding='utf-8').write(json.dumps(spec, ensure_ascii=False, indent=2) + '\n')
-    return len(moved)
+        io.open(sp, 'w', encoding='utf-8').write(raw)
+    return len(done)
 
 
 # ============================================================ report

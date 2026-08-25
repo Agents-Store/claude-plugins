@@ -35,6 +35,7 @@ import sys, os, io, re, json, collections
 sys.path.insert(0, os.path.normpath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..', 'documents', 'references')))
 from mdblocks import parse, entities  # noqa: E402
+import jsonedit as J  # noqa: E402
 from i18n import doc_lang, msg  # noqa: E402
 
 CONFIG_KEYS = ('schedule', 'entity', 'event', 'condition', 'path')
@@ -199,6 +200,42 @@ def mk_change(kind, id_, field, have, want, appliable, apply_fn):
         appliable, apply_fn = False, None
     return {'kind': kind, 'id': id_, 'field': field, 'have': have, 'want': want,
             'appliable': appliable, 'apply': apply_fn}
+
+
+CONFIG_FIELDS = ('schedule', 'entity', 'event', 'condition', 'path')
+
+
+def path_of(spec, rec):
+    """The JSON path of a change, so it can be written as TEXT rather than by
+    reserializing the file.
+
+    json.dump(indent=2) on a live spec turned 959 lines into 4119 — the file is
+    hand-formatted, short objects inlined, and a whole-file reformat makes a one-value
+    change unreviewable. The parse decides WHAT to change; the path says WHERE."""
+    kind, ident, field = rec['kind'], rec['id'], rec['field']
+    if kind == 'role':
+        for i, r in enumerate(spec.get('roles') or []):
+            if r.get('id') == ident:
+                return ['roles', i, field]
+    elif kind == 'role_task':
+        for pi, pr in enumerate(spec.get('processes') or []):
+            for ti, tk in enumerate(pr.get('tasks') or []):
+                if tk.get('id') == ident:
+                    base = ['processes', pi, 'tasks', ti]
+                    if field in ('gate', 'role'):
+                        return base + ['human', field]
+                    return base + [field]
+    elif kind == 'trigger':
+        for i, x in enumerate(spec.get('triggers') or []):
+            if x.get('id') == ident:
+                if field in CONFIG_FIELDS:
+                    return ['triggers', i, 'config', field]
+                return ['triggers', i, field]
+    elif kind == 'screen':
+        for i, x in enumerate(spec.get('interfaces') or []):
+            if x.get('id') == ident:
+                return ['interfaces', i, field]
+    return None
 
 
 SPEC = {}
@@ -392,14 +429,29 @@ def main():
               (rec['kind'], rec['id'], rec['field'], rec['have'], rec['want'], tag))
 
     if apply_:
-        applied = [r for r in changed if r['appliable'] and r['apply'] is not None]
-        for r in applied:
-            r['apply']()
+        raw = io.open(spec_p, encoding='utf-8').read()
+        before = len(raw.splitlines())
+        applied, skipped = 0, []
+        for r in changed:
+            if not r['appliable']:
+                continue
+            path = path_of(spec, r)
+            if path is None:
+                skipped.append('%s %s.%s — could not locate it in the spec' % (r['kind'], r['id'], r['field']))
+                continue
+            try:
+                raw = J.set_value(raw, path, r['want'])
+                applied += 1
+            except Exception as e:
+                # a refused edit is reported, never forced: the alternative is a spec
+                # that parses and says something nobody asked for
+                skipped.append('%s %s.%s — %s' % (r['kind'], r['id'], r['field'], e))
         if applied:
-            with io.open(spec_p, 'w', encoding='utf-8') as f:
-                json.dump(spec, f, indent=2, ensure_ascii=False)
-                f.write('\n')
-        print('\n%s: %d' % (msg(lang, 'applied'), len(applied)))
+            io.open(spec_p, 'w', encoding='utf-8').write(raw)
+            print('\n  %d lines before, %d after — formatting preserved' % (before, len(raw.splitlines())))
+        for s in skipped:
+            print('  not written: %s' % s)
+        print('\n%s: %d' % (msg(lang, 'applied'), applied))
     elif changed:
         print('\n' + msg(lang, 'dry_run'))
 
