@@ -757,6 +757,68 @@ def migrate_format(mroot, spec, lang, apply_):
     return len(changed)
 
 
+DOCS_FILES_RENAME = [
+    ('business_logic', 'overview',   'client/OVERVIEW.md'),
+    ('screens',        'ux_ui',      'client/UX-UI.md'),
+    ('roles_tasks',    'automation', 'client/AUTOMATION.md'),
+]
+DOCS_FILES_NEW = [
+    ('handbook', 'client/HANDBOOK.md', 'client'),
+    ('index',    'generated/INDEX.md', 'both'),
+    ('readme',   'README.md',          'internal'),
+]
+
+
+def migrate_spec(mroot, lang, apply_):
+    """docs.files still names the documents by their v1 keys and paths after the move.
+
+    Missed on the first run against the live project: every file had been renamed and the
+    spec still pointed at BUSINESS-LOGIC.md, SCREENS.md and ROLES-AND-TASKS.md, which
+    12.1 reads as three missing documents. A migration that renames files and leaves the
+    index behind has not finished."""
+    import json, collections
+    sp = os.path.join(mroot, 'macstack.json')
+    if not os.path.exists(sp):
+        return 0
+    spec = json.load(io.open(sp, encoding='utf-8'), object_pairs_hook=collections.OrderedDict)
+    docs = spec.get('docs')
+    if not docs or 'files' not in docs:
+        return 0
+    old = docs['files']
+    out = collections.OrderedDict()
+    moved = []
+    for k, v in old.items():
+        nk, npath = k, None
+        for a, b, path in DOCS_FILES_RENAME:
+            if k == a:
+                nk, npath = b, path
+        if npath:
+            v = collections.OrderedDict(v)
+            v['path'] = npath
+            moved.append('%s -> %s' % (k, nk))
+        out[nk] = v
+    for key, path, audience in DOCS_FILES_NEW:
+        if key in out:
+            continue
+        entry = collections.OrderedDict()
+        entry['path'] = path
+        entry['version'] = '1.0'
+        entry['audience'] = audience
+        if audience != 'internal':
+            entry['language'] = docs.get('language', 'en')
+        out[key] = entry
+        moved.append('+ %s' % key)
+    if not moved:
+        return 0
+    docs['files'] = out
+    print('\n=== SPEC ===')
+    for m in moved:
+        print('  docs.files  %s' % m)
+    if apply_:
+        io.open(sp, 'w', encoding='utf-8').write(json.dumps(spec, ensure_ascii=False, indent=2) + '\n')
+    return len(moved)
+
+
 # ============================================================ report
 def audit(mroot, lang, apply_=True):
     """What is still out of shape. Never fails the run."""
@@ -816,6 +878,7 @@ def main():
         migrate_layout(root, mroot, apply_, lang)
     if '--layout-only' not in flags:
         migrate_format(mroot, spec, lang, apply_)
+        migrate_spec(mroot, lang, apply_)
     audit(mroot, lang, apply_)
 
     if not apply_:
