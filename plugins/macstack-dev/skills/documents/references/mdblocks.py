@@ -147,6 +147,13 @@ def dump_yaml(data):
 
 
 def _q(v):
+    if isinstance(v, bool):
+        # A nested map used to emit Python's True/False, which round-trips back as the
+        # STRING "True" rather than a boolean. Owning the bool case at the leaf fixes it
+        # everywhere instead of at each call site.
+        return 'true' if v else 'false'
+    if v is None:
+        return '—'
     s = str(v)
     if s == '':
         return "''"

@@ -1,184 +1,356 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Seed the two AUTHORED client documents once, from macstack.json.
+"""Seed the three AUTHORED client documents once, from macstack.json.
 
-client/ROLES-AND-TASKS.md and client/SCREENS.md are written by a human and read by the
-client — they are the source of the spec's business half, not its output. But a blank page
-is a bad start when the spec already knows the roles, the tasks and the interfaces, so this
-seeds a FIRST version and then never touches it again.
+client/AUTOMATION.md, client/UX-UI.md and client/HANDBOOK.md are written by a human
+and read by the client — they are a SOURCE of the spec's business half, not its
+output (invariant 9). But a blank page is a bad start when the spec already knows the
+roles, the tasks, the triggers and the interfaces, so this seeds a FIRST v2-format
+version of each and then never touches them again.
 
-REFUSES to overwrite. If the file exists, say so and stop: overwriting an authored document
-with a machine guess is how a client's correction disappears.
+REFUSES to overwrite. If the file exists, say so and stop: overwriting an authored
+document with a machine guess is how a client's correction disappears. `--force`
+replaces it anyway with a fresh seed (used to reseed, never as the normal path).
 
-Tables carry the content. Columns are read by POSITION — the header row follows
-docs.language and is for the human only, so a project writing in German parses the same.
-
-Usage: seed.py <macstack-dir> [--force]
+Usage: seed.py <macstack-dir> [--force] [--date YYYY-MM-DD] [--only automation|ux-ui|handbook]
 """
-import sys, os, io, json
+import sys, os, io, json, datetime
 
-L = {
- 'ru': dict(
-  rt_title="Роли, их задачи и что эти задачи запускает",
-  rt_howto="Как читать и как править",
-  rt_howto_body=(
-   "**Этот документ пишете вы, а не платформа.** Из него собирается машинная часть спецификации:\n"
-   "какие есть роли, какие у них задачи, что эти задачи запускает и какой процесс на это отвечает.\n\n"
-   "Строки таблиц можно править, добавлять и удалять — это и есть способ изменить продукт.\n"
-   "**Порядок колонок менять нельзя:** их читают по позиции, а не по названию.\n\n"
-   "«Ворота» говорят, что делает человек: `ввод` — вносит данные, `исполнение` — совершает\n"
-   "действие, `решение` — утверждает чужую работу. Прочерк значит, что задачу делает платформа\n"
-   "сама, и тогда в последней колонке назван процесс, который её выполняет."),
-  rt_roles="Роли", rt_trig="Триггеры",
-  rt_sees="Что видит", rt_can="Что может",
-  c_task="задача", c_start="что запускает", c_gate="ворота", c_wf="что выполняет",
-  c_trig="триггер", c_type="тип", c_when="когда", c_raise="что поднимает",
-  by_person="действие человека", none="—",
-  gate={'input':'ввод','execute':'исполнение','approve':'решение'},
-  sc_title="Экраны — что на какой странице видно",
-  sc_howto="Как читать и как править",
-  sc_howto_body=(
-   "**Этот документ пишете вы.** Одна строка — один экран. Последняя колонка — самая важная:\n"
-   "там написано, чего на этом экране быть НЕ должно. Запрет, записанный против конкретного\n"
-   "экрана, проверяется тем, что экран открывают; тот же запрет, записанный один раз в общем\n"
-   "документе, приходится держать в голове на каждой странице.\n\n"
-   "**Заготовка ниже — по одной строке на область интерфейса, а не на страницу.** Платформа знает\n"
-   "области, а страницы знаете вы: разбейте строки на реальные экраны и заполните последние три\n"
-   "колонки."),
-  sc_screens="Экраны",
-  s_screen="экран", s_addr="адрес", s_who="кто видит", s_what="что на нём",
-  s_can="что можно сделать", s_not="чего быть не должно",
-  journal="Журнал документа", j_date="дата", j_what="что изменилось",
-  j_seed="заготовка собрана из `macstack.json`; дальше документ ведётся руками"),
- 'en': dict(
-  rt_title="Roles, their tasks, and what starts them",
-  rt_howto="How to read and how to edit",
-  rt_howto_body=(
-   "**You write this document, not the platform.** The machine half of the specification is built\n"
-   "from it: which roles exist, what their tasks are, what starts each one, and which process answers.\n\n"
-   "Table rows may be edited, added and removed — that is how the product is changed.\n"
-   "**Column order must not change:** they are read by position, not by heading.\n\n"
-   "The gate says what the person does: `input` supplies data, `execute` performs the act,\n"
-   "`approve` signs off somebody else's work. A dash means the platform does it by itself, and then\n"
-   "the last column names the process that runs it."),
-  rt_roles="Roles", rt_trig="Triggers",
-  rt_sees="Sees", rt_can="Can",
-  c_task="task", c_start="what starts it", c_gate="gate", c_wf="what runs it",
-  c_trig="trigger", c_type="type", c_when="when", c_raise="what it raises",
-  by_person="a person acts", none="—",
-  gate={'input':'input','execute':'execute','approve':'approve'},
-  sc_title="Screens — what is visible where",
-  sc_howto="How to read and how to edit",
-  sc_howto_body=(
-   "**You write this document.** One row, one screen. The last column is the important one: it says\n"
-   "what must NOT be visible there. A prohibition written against a screen is checked by opening that\n"
-   "screen; the same prohibition written once in a general document has to be remembered on every page.\n\n"
-   "**The seed below has one row per interface AREA, not per page.** The platform knows the areas; you\n"
-   "know the pages. Split the rows into real screens and fill the last three columns."),
-  sc_screens="Screens",
-  s_screen="screen", s_addr="address", s_who="who sees it", s_what="what is on it",
-  s_can="what can be done", s_not="what must NOT be visible",
-  journal="Document journal", j_date="date", j_what="what changed",
-  j_seed="seeded from `macstack.json`; from here the document is maintained by hand"),
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from mdblocks import parse, entities, entity, anchor, doc_header
+from i18n import doc_lang, msg, out
+
+
+def load_spec(root):
+    try:
+        with io.open(os.path.join(root, 'macstack.json'), encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def L(table, lang):
+    return table.get(lang) or table['en']
+
+
+def _title(block):
+    h = block.heading or ''
+    return h.split('·', 1)[1].strip() if '·' in h else h
+
+
+# ---------------------------------------------------------------- prose catalogue
+TITLE = {
+    'ru': dict(automation="Автоматизация — роли, задачи, триггеры",
+               ux_ui="Интерфейс — что видно и чего быть не должно",
+               handbook="Справочник — как работать с платформой"),
+    'en': dict(automation="Automation — roles, tasks, triggers",
+               ux_ui="Interface — what is visible and what must not be",
+               handbook="Handbook — how to work with the platform"),
 }
 
-def esc(x):
-    return str(x if x is not None else '').replace('|','\\|').replace('\n',' ').strip()
+HEAD = {
+    'ru': dict(howto="Как читать и как править", roles="Роли", tasks="Задачи",
+               triggers="Триггеры", journal="Журнал документа",
+               principles="Принципы", navigation="Навигация", states="Пустое, загрузка, ошибка",
+               responsive="Адаптивность", accessibility="Доступность", tone="Тон",
+               screens="Экраны", start="С чего начать", procedures="Процедуры",
+               problems="Частые проблемы", glossary="Термины"),
+    'en': dict(howto="How to read and how to edit", roles="Roles", tasks="Tasks",
+               triggers="Triggers", journal="Document journal",
+               principles="Principles", navigation="Navigation", states="Empty, loading, error",
+               responsive="Responsive", accessibility="Accessibility", tone="Tone",
+               screens="Screens", start="Where to start", procedures="Procedures",
+               problems="Common problems", glossary="Terms"),
+}
 
-def journal(t, date):
-    return ('\n<!-- macstack:section=journal -->\n## %s\n\n| %s | %s |\n|---|---|\n| %s | %s |\n'
-            % (t['journal'], t['j_date'], t['j_what'], date, t['j_seed']))
+MISC = {
+    'ru': dict(
+        col_version="версия", col_date="дата", col_what="что изменилось", col_source="источник",
+        seeded="заготовка собрана из `macstack.json`; дальше документ ведётся руками",
+        automation_howto=(
+            "**Этот документ пишете вы, а не платформа.** Из него собирается бизнес-половина\n"
+            "спецификации: какие есть роли, какие у них задачи, что эти задачи запускает и какой\n"
+            "процесс на это отвечает. Заготовка ниже собрана из `macstack.json`; правьте её как свой\n"
+            "текст — она больше не пересобирается."),
+        no_roles="В спецификации нет ни одной роли.", no_tasks="В спецификации нет ни одной задачи.",
+        no_triggers="В спецификации нет ни одного триггера.",
+        sees_label="Что видит", can_label="Что может",
+        flow_label="Как это проходит",
+        flow_hint="_Опишите шаги: кто и что делает от начала до конца этой задачи._",
+        what_happens_label="Что при этом происходит",
+        what_happens_hint="_Опишите, что видит роль, чья задача сдвигается, когда этот триггер срабатывает._",
+        ux_howto=(
+            "**Этот документ пишете вы.** Сквозные разделы ниже применяются к каждому экрану и\n"
+            "пишутся один раз. Последняя секция каждого экрана — самая важная: там написано, чего на\n"
+            "этом экране быть НЕ должно."),
+        principles_hint="_Опишите 3-5 принципов интерфейса этого продукта._",
+        navigation_hint="_Опишите, как человек попадает с экрана на экран._",
+        states_hint="_Опишите пустое, загрузочное и ошибочное состояние — что видно и что делать._",
+        responsive_hint="_Опишите поведение на узком и широком экране._",
+        accessibility_hint="_Опишите требования доступности: контраст, клавиатура, читалки экрана._",
+        tone_hint="_Опишите тон текста интерфейса: формальность, обращение, длина сообщений._",
+        no_screens="Подходящих интерфейсов в спецификации нет.",
+        content_label="Что на экране", content_hint="_Опишите, что видно на этом экране._",
+        actions_label="Что можно сделать", actions_hint="_Опишите доступные действия._",
+        forbidden_label="Чего здесь быть не должно", forbidden_hint="_Опишите, что запрещено показывать здесь._",
+        handbook_howto=(
+            "**Этот документ пишете вы**, для человека, который будет работать с платформой изо дня\n"
+            "в день — не для того, кто её заказал. Заготовки процедур ниже собраны из критичных\n"
+            "кейсов `client/USER-CASES.md`, если он уже существует."),
+        start_hint="_Опишите первый вход: что человек видит и делает в первые пять минут._",
+        see_automation="определение роли — в `AUTOMATION.md`",
+        no_procedures="Нет `client/USER-CASES.md`, либо в нём нет критичных кейсов — заготовок нет.",
+        steps_label="Шаги", steps_hint="_Опишите шаги от начала до конца этой процедуры._",
+        problems_hint="_Опишите частые проблемы и что с ними делать._",
+        glossary_hint="_Соберите термины, которые встречаются в интерфейсе, в одном месте._",
+    ),
+    'en': dict(
+        col_version="version", col_date="date", col_what="what changed", col_source="source",
+        seeded="seeded from `macstack.json`; from here the document is maintained by hand",
+        automation_howto=(
+            "**You write this document, not the platform.** It builds the business half of the\n"
+            "specification: which roles exist, what their tasks are, what starts each one, and which\n"
+            "process answers. The seed below is built from `macstack.json`; edit it as your own text —\n"
+            "it is never regenerated again."),
+        no_roles="The spec declares no roles.", no_tasks="The spec declares no tasks.",
+        no_triggers="The spec declares no triggers.",
+        sees_label="Sees", can_label="Can",
+        flow_label="How it runs",
+        flow_hint="_Describe the steps: who does what, start to finish, for this task._",
+        what_happens_label="What happens",
+        what_happens_hint="_Describe what the role whose task moves sees when this trigger fires._",
+        ux_howto=(
+            "**You write this document.** The cross-cutting sections below apply to every screen and\n"
+            "are written once. The last section of each screen is the important one: it says what must\n"
+            "NOT be visible there."),
+        principles_hint="_Describe 3-5 interface principles for this product._",
+        navigation_hint="_Describe how a person moves from screen to screen._",
+        states_hint="_Describe the empty, loading and error state — what is visible and what to do._",
+        responsive_hint="_Describe behaviour at a narrow and a wide viewport._",
+        accessibility_hint="_Describe accessibility requirements: contrast, keyboard, screen readers._",
+        tone_hint="_Describe the tone of the interface text: formality, address, message length._",
+        no_screens="No matching interfaces in the spec.",
+        content_label="What is on this screen", content_hint="_Describe what is visible here._",
+        actions_label="What can be done", actions_hint="_Describe the actions available._",
+        forbidden_label="What must NOT be visible", forbidden_hint="_Describe what is forbidden here._",
+        handbook_howto=(
+            "**You write this document**, for the person who will use the platform day to day — not\n"
+            "for the person who commissioned it. The procedure seeds below are built from the critical\n"
+            "cases in `client/USER-CASES.md`, if it already exists."),
+        start_hint="_Describe the first login: what a person sees and does in the first five minutes._",
+        see_automation="role definition lives in `AUTOMATION.md`",
+        no_procedures="No `client/USER-CASES.md`, or it has no critical cases — nothing seeded.",
+        steps_label="Steps", steps_hint="_Describe the steps, start to finish, for this procedure._",
+        problems_hint="_Describe common problems and what to do about them._",
+        glossary_hint="_Collect the terms that appear in the interface, in one place._",
+    ),
+}
 
-def seed_roles(spec, t, lang, date):
+SOURCE_BY_TYPE = {'schedule': 'schedule', 'form': 'interface', 'webhook': 'integration',
+                   'db_event': 'backend', 'manual': 'manual'}
+CFG_PRIORITY = ('schedule', 'entity', 'event', 'condition', 'path', 'form', 'queue')
+SCREENISH = {'web', 'admin_ui', 'dashboard', 'approval_center', 'form'}
+
+
+def trigger_source(trg):
+    return SOURCE_BY_TYPE.get(trg.get('type'))
+
+
+def trigger_cfg(trg):
+    cfg = trg.get('config') or {}
+    for key in CFG_PRIORITY:
+        if cfg.get(key) is not None:
+            return key, cfg[key]
+    return None, None
+
+
+def raises_of(trigger_id, workflows):
+    return [w['id'] for w in workflows if trigger_id in (w.get('triggers') or [])]
+
+
+# ---------------------------------------------------------------- client/AUTOMATION.md
+def seed_automation(spec, lang):
+    h, m = L(HEAD, lang), L(MISC, lang)
+    out_lines = [anchor('section', 'howto'), '## ' + h['howto'], '', m['automation_howto'], '']
+
+    out_lines += [anchor('section', 'roles'), '## ' + h['roles'], '']
+    roles = spec.get('roles') or []
+    if not roles:
+        out_lines += ['_%s_' % m['no_roles'], '']
+    for r in roles:
+        yaml_fields = {'cases': r.get('cases') or [], 'isolation': r.get('isolation')}
+        fields = []
+        if r.get('sees'):
+            fields.append(('sees', m['sees_label'], [r['sees']]))
+        if r.get('can'):
+            fields.append(('can', m['can_label'], [r['can']]))
+        out_lines.append(entity('role', r['id'], r.get('name', r['id']), yaml_fields, fields))
+
+    out_lines += [anchor('section', 'tasks'), '## ' + h['tasks'], '']
     procs = spec.get('processes') or []
     wfs = {w['id']: w for w in (spec.get('workflows') or [])}
-    trgs = {g['id']: g for g in (spec.get('triggers') or [])}
-    o = ['<!-- macstack:doc=roles_tasks lang=%s version=1 -->' % lang, '# ' + t['rt_title'], '',
-         '<!-- macstack:section=howto -->', '## ' + t['rt_howto'], '', t['rt_howto_body'], '',
-         '<!-- macstack:section=roles -->', '## ' + t['rt_roles'], '']
-    for r in (spec.get('roles') or []):
-        o.append('### %s — `%s`' % (r.get('name', r['id']), r['id']))
-        o.append('')
-        if r.get('sees'): o.append('**%s:** %s' % (t['rt_sees'], r['sees']))
-        if r.get('can'):  o.append('**%s:** %s' % (t['rt_can'], r['can']))
-        o.append('')
-        o.append('<!-- macstack:table=tasks -->')
-        o.append('| %s | %s | %s | %s |' % (t['c_task'], t['c_start'], t['c_gate'], t['c_wf']))
-        o.append('|---|---|---|---|')
-        for p in procs:
-            for task in (p.get('tasks') or []):
-                h = task.get('human') or {}
-                if h.get('role') != r['id']:
-                    continue
-                start = t['by_person']
-                if task.get('workflow'):
-                    w = wfs.get(task['workflow'])
-                    names = [trgs[x]['name'] for x in (w.get('triggers') or []) if x in trgs] if w else []
-                    start = ' · '.join(names) or t['by_person']
-                o.append('| %s | %s | %s | %s |' % (
-                    esc(task.get('name', task['id'])), esc(start),
-                    t['gate'].get(h.get('gate',''), esc(h.get('gate')) or t['none']),
-                    esc(p.get('name', p['id']))))
-        o.append('')
-    o += ['<!-- macstack:section=triggers -->', '## ' + t['rt_trig'], '',
-          '<!-- macstack:table=triggers -->',
-          '| %s | %s | %s | %s |' % (t['c_trig'], t['c_type'], t['c_when'], t['c_raise']),
-          '|---|---|---|---|']
-    for gid in sorted(trgs):
-        g = trgs[gid]; cfg = g.get('config') or {}
-        raised = [w.get('name', w['id']) for w in (spec.get('workflows') or []) if gid in (w.get('triggers') or [])]
-        o.append('| %s | %s | %s | %s |' % (
-            esc(g.get('name', gid)), esc(g.get('type')),
-            esc(cfg.get('schedule') or cfg.get('event') or t['none']),
-            esc(' · '.join(raised) or t['none'])))
-    o.append('')
-    return '\n'.join(o) + journal(t, date)
+    any_task = False
+    for p in procs:
+        for task in (p.get('tasks') or []):
+            any_task = True
+            human = task.get('human') or {}
+            wf = wfs.get(task.get('workflow'))
+            trig = (wf.get('triggers') or []) if wf else []
+            yaml_fields = {
+                'role': human.get('role'),
+                'gate': human.get('gate') or ('none' if task.get('workflow') else None),
+                'trigger': (trig[0] if len(trig) == 1 else trig) if trig else None,
+                'workflow': task.get('workflow'),
+                'process': p.get('id'),
+            }
+            fields = [('flow', m['flow_label'], [m['flow_hint']])]
+            out_lines.append(entity('task', task['id'], task.get('name', task['id']), yaml_fields, fields))
+    if not any_task:
+        out_lines += ['_%s_' % m['no_tasks'], '']
 
-def seed_screens(spec, t, lang, date):
-    o = ['<!-- macstack:doc=screens lang=%s version=1 -->' % lang, '# ' + t['sc_title'], '',
-         '<!-- macstack:section=howto -->', '## ' + t['sc_howto'], '', t['sc_howto_body'], '',
-         '<!-- macstack:section=screens -->', '## ' + t['sc_screens'], '',
-         '<!-- macstack:table=screens -->',
-         '| %s | %s | %s | %s | %s | %s |' % (t['s_screen'], t['s_addr'], t['s_who'],
-                                              t['s_what'], t['s_can'], t['s_not']),
-         '|---|---|---|---|---|---|']
-    # только то, что человек ОТКРЫВАЕТ. Канал (почта), выгрузка и API — не экраны:
-    # у них нет страницы, на которую можно посмотреть и проверить, что на ней видно.
-    SCREENISH = {'web', 'admin_ui', 'dashboard', 'approval_center', 'form'}
-    for i in (spec.get('interfaces') or []):
-        if i.get('type') not in SCREENISH:
-            continue
-        if i.get('mode') and i['mode'] != 'ui':
-            continue
-        if i.get('audience') not in (None, 'human'):
-            continue
-        o.append('| %s | `%s` | %s | | | |' % (
-            esc(i.get('name', i['id'])), esc(i.get('path') or t['none']),
-            esc(' · '.join(i.get('roles') or []) or t['none'])))
-    o.append('')
-    return '\n'.join(o) + journal(t, date)
+    out_lines += [anchor('section', 'triggers'), '## ' + h['triggers'], '']
+    trgs = spec.get('triggers') or []
+    workflows = spec.get('workflows') or []
+    if not trgs:
+        out_lines += ['_%s_' % m['no_triggers'], '']
+    for g in trgs:
+        cfg_key, cfg_val = trigger_cfg(g)
+        yaml_fields = {'type': g.get('type'), 'source': trigger_source(g)}
+        if cfg_key:
+            yaml_fields[cfg_key] = cfg_val
+        yaml_fields['raises'] = raises_of(g['id'], workflows)
+        fields = [('what_happens', m['what_happens_label'], [m['what_happens_hint']])]
+        out_lines.append(entity('trigger', g['id'], g.get('name', g['id']), yaml_fields, fields))
 
+    return '\n'.join(out_lines).rstrip('\n') + '\n'
+
+
+# ---------------------------------------------------------------- client/UX-UI.md
+def seed_ux_ui(spec, lang):
+    h, m = L(HEAD, lang), L(MISC, lang)
+    out_lines = [anchor('section', 'howto'), '## ' + h['howto'], '', m['ux_howto'], '']
+    for key in ('principles', 'navigation', 'states', 'responsive', 'accessibility', 'tone'):
+        out_lines += [anchor('section', key), '## ' + h[key], '', m['%s_hint' % key], '']
+
+    out_lines += [anchor('section', 'screens'), '## ' + h['screens'], '']
+    ifs = spec.get('interfaces') or []
+    screens = [i for i in ifs if i.get('type') in SCREENISH
+               and (not i.get('mode') or i.get('mode') == 'ui')
+               and (i.get('audience') in (None, 'human'))]
+    if not screens:
+        out_lines += ['_%s_' % m['no_screens'], '']
+    for i in screens:
+        yaml_fields = {'path': i.get('path'), 'roles': i.get('roles') or []}
+        fields = [
+            ('content', m['content_label'], [m['content_hint']]),
+            ('actions', m['actions_label'], [m['actions_hint']]),
+            ('forbidden', m['forbidden_label'], [m['forbidden_hint']]),
+        ]
+        out_lines.append(entity('screen', i['id'], i.get('name', i['id']), yaml_fields, fields))
+
+    return '\n'.join(out_lines).rstrip('\n') + '\n'
+
+
+# ---------------------------------------------------------------- client/HANDBOOK.md
+def seed_handbook(spec, root, lang):
+    h, m = L(HEAD, lang), L(MISC, lang)
+    out_lines = [anchor('section', 'howto'), '## ' + h['howto'], '', m['handbook_howto'], '']
+    out_lines += [anchor('section', 'start'), '## ' + h['start'], '', m['start_hint'], '']
+
+    roles = spec.get('roles') or []
+    out_lines += [anchor('section', 'roles'), '## ' + h['roles'], '']
+    if not roles:
+        out_lines += ['_%s_' % m['no_roles'], '']
+    for r in roles:
+        out_lines.append('- **%s** — %s' % (r['id'], m['see_automation']))
+    out_lines.append('')
+
+    out_lines += [anchor('section', 'procedures'), '## ' + h['procedures'], '']
+    uc_path = os.path.join(root, 'client', 'USER-CASES.md')
+    critical_by_role = {}
+    if os.path.exists(uc_path):
+        with io.open(uc_path, encoding='utf-8') as f:
+            _, blocks = parse(f.read())
+        for c in entities(blocks, 'case'):
+            if (c.yaml.get('priority') or '') == 'critical':
+                critical_by_role.setdefault(c.yaml.get('role') or '', []).append(c)
+    if not critical_by_role:
+        out_lines += ['_%s_' % m['no_procedures'], '']
+    else:
+        for role in sorted(critical_by_role):
+            for c in sorted(critical_by_role[role], key=lambda b: b.id):
+                slug = '%s-%s' % (role, c.id.lower())
+                yaml_fields = {'role': role, 'screens': c.yaml.get('screens') or [],
+                                'cases': [c.id], 'frequency': None}
+                fields = [('steps', m['steps_label'], [m['steps_hint']])]
+                out_lines.append(entity('procedure', slug, _title(c), yaml_fields, fields))
+
+    out_lines += [anchor('section', 'problems'), '## ' + h['problems'], '', m['problems_hint'], '']
+    out_lines += [anchor('section', 'glossary'), '## ' + h['glossary'], '', m['glossary_hint'], '']
+
+    return '\n'.join(out_lines).rstrip('\n') + '\n'
+
+
+# ---------------------------------------------------------------- assembly
+def seed_journal(lang, date):
+    m = L(MISC, lang)
+    row = '| %s | %s | %s | %s |' % ('1.0', date, m['seeded'], 'seed')
+    return '\n'.join([
+        anchor('section', 'journal'), '## ' + L(HEAD, lang)['journal'], '',
+        '| %s | %s | %s | %s |' % (m['col_version'], m['col_date'], m['col_what'], m['col_source']),
+        '|---|---|---|---|', row, ''])
+
+
+def build_full(doc_key, lang, date, body):
+    header = doc_header(doc_key, lang, '1.0')
+    title = '# ' + L(TITLE, lang)[doc_key]
+    return header + '\n' + title + '\n\n' + body.rstrip('\n') + '\n\n' + seed_journal(lang, date)
+
+
+# ---------------------------------------------------------------- main
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith('--')]
-    root = args[0] if args else 'macstack'
-    force = '--force' in sys.argv
-    date = None
-    for i, a in enumerate(sys.argv):
-        if a == '--date' and i + 1 < len(sys.argv): date = sys.argv[i + 1]
-    if not date:
-        import datetime; date = datetime.date.today().isoformat()
-    spec = json.load(io.open(os.path.join(root, 'macstack.json'), encoding='utf-8'))
-    lang = ((spec.get('docs') or {}).get('language')) or 'en'
-    t = L.get(lang, L['en'])
+    argv = sys.argv[1:]
+    force = '--force' in argv
+    date, only = None, None
+    positional = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == '--date' and i + 1 < len(argv):
+            date = argv[i + 1]; i += 2; continue
+        if a == '--only' and i + 1 < len(argv):
+            only = argv[i + 1]; i += 2; continue
+        if a == '--force':
+            i += 1; continue
+        positional.append(a); i += 1
+    root = positional[0] if positional else 'macstack'
+    date = date or datetime.date.today().isoformat()
+
+    spec = load_spec(root)
+    lang = doc_lang(root)
     os.makedirs(os.path.join(root, 'client'), exist_ok=True)
+
+    jobs = []
+    if only in (None, 'automation'):
+        jobs.append(('automation', 'AUTOMATION.md', lambda: seed_automation(spec, lang)))
+    if only in (None, 'ux-ui'):
+        jobs.append(('ux_ui', 'UX-UI.md', lambda: seed_ux_ui(spec, lang)))
+    if only in (None, 'handbook'):
+        jobs.append(('handbook', 'HANDBOOK.md', lambda: seed_handbook(spec, root, lang)))
+
     rc = 0
-    for name, fn in (('ROLES-AND-TASKS.md', seed_roles), ('SCREENS.md', seed_screens)):
-        p = os.path.join(root, 'client', name)
-        if os.path.exists(p) and not force:
-            print('%s: уже существует — НЕ трогаю (авторский документ)' % p); rc = 1; continue
-        io.open(p, 'w', encoding='utf-8').write(fn(spec, t, lang, date))
-        print('%s: заготовка создана' % p)
-    return 0 if rc == 0 else 0
+    for doc_key, filename, fn in jobs:
+        path = os.path.join(root, 'client', filename)
+        if os.path.exists(path) and not force:
+            out(lang, 'refuse_exists', path=path)
+            rc = 1
+            continue
+        body = build_full(doc_key, lang, date, fn())
+        with io.open(path, 'w', encoding='utf-8') as f:
+            f.write(body)
+        out(lang, 'wrote', path=path)
+    return rc
+
 
 if __name__ == '__main__':
     sys.exit(main())
