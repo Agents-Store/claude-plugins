@@ -1,113 +1,131 @@
 # macstack-dev
 
-Technology plugin (dev) for the **MACSTACK** framework. Creates and maintains the
-**`macstack/` folder** of a Claude project: `macstack.json` — the standardized JSON
-that is at once the business spec (goals, results), the technical spec (software,
-entities, interfaces, workflows, agents) and the meta-config from which the project's
-working files are scaffolded — together with the working documents around it: cases
-per role, product logic in plain words, the decision log and what is still owed by
-the client.
+Technology plugin (dev) for the MACSTACK framework. Keeps the `macstack/` folder of a
+Claude project: `macstack.json` — the standardized business + technical stack
+specification — and the documents it is written from.
 
-## What it does
+The problem it exists for: a client says what they want in their own words, an agent
+needs a machine spec to build from, and somebody has to notice when the two stop
+agreeing. This plugin owns the path between them in both directions.
 
-1. **Init in existing projects** — audits the codebase (manifests, docker-compose,
-   `.mcp.json`, DB schemas) and produces a validated `macstack.json`, asking the user
-   only the business gaps (goals, results, client).
-2. **Generate from scratch** — designs a stack result-first from a business request:
-   goals → results → processes → triggers/workflows → software selection
-   (prototype reuse first, Open Source first, Agentic IT Ready first).
-3. **Discover context** — finds Claude plugins in the Agents Store marketplace
-   (github.com/agents-store/claude-plugins) and stack prototypes in
-   github.com/orgs/stackmakers-ai; fills `context.plugins` and `prototype`.
-4. **Scaffold project files** in the MANDATORY source order:
-   **prototype → stack plugins → dev plugins** → generated files. Idempotent.
-5. **Wire Infisical env** — creates `.infisical.json`, pulls `.env.prod`/`.env.dev`,
-   ensures every key from `resources.accesses` exists, installs the secrets
-   scripts (`setup.sh`, `secrets-push.sh`, `env-audit.sh`) and commands.
-6. **Install best practices** — the proven `.claude/rules/` set (safety,
-   secrets-env-sync, commit-after-task, search-first, external-api-docs,
-   project-conventions, macstack-sync) and core commands.
-7. **Keep the working documents** — a standardized `macstack/` folder beside the spec:
-   `USER-CASES.md` (cases per role), `TEST-CASES.md` (how each acceptance bullet is
-   verified, `auto` or `manual`), `TASKS.md` (milestones and tasks, reconciled with
-   the team's own tracker), `CHANGELOG.md`, `BUSINESS-LOGIC.md`, `OPEN-QUESTIONS.md`
-   (§A owed by the client · §B deferred by us), `DECISIONS.md` + dated rulings,
-   an immutable `inbox/` for client material and an append-only `log.md`.
-8. **Merge client edits** — a client document lands in `inbox/`, becomes a delta of
-   contradictions and additions, the owner rules on each, and only then does it reach
-   the cases, the logic and the spec. Every ruling records its cost if wrong.
-9. **Track the work** — milestones with falsifiable `done_when` checks, tasks with
-   ids that match the commit convention (`M11-T9`), every one of them reconciled
-   both ways with the team's task tracker. Forward work leaves the code: no `TODO`
-   in a source file, where nobody can prioritise or close it.
-10. **Keep a record** — `log.md` takes typed entries (`intake · merge · work ·
-   release`); the `work` entry is the development log, holding the half git cannot:
-   what was tried first and why it went this way. `CHANGELOG.md` is its curated,
-   client-facing derivative — what reached the people who use the product.
-11. **Say where the project stands** — `/macstack-dev:status` computes the blockers
-   from the artifacts instead of storing a TODO that goes stale, and ends with the
-   exact next command to run.
-12. **Migrate an existing project** — classify a grown-organically `docs/`, move the
-   specification side into `macstack/` with `git mv`, and report the references that
-   could not be rewritten.
-13. **Lint** — JSON Schema (bundled) + referential-integrity rules (masters, triggers,
-   instances, cross-stack refs, agent delegation) + the folder: anchors, ID integrity
-   across files, pointer/prose separation, inbox hygiene.
+## The loop
 
-## Skills
-
-| Skill | Purpose |
-|---|---|
-| `setup` | Orientation, schema/registry location, tooling check, CLAUDE.md wiring |
-| `project-docs` | The `macstack/` folder standard: layout, path resolution, ID spaces, section anchors, language rule, immutability guardrails |
-| `docs-merge` | The merge loop: client material → delta → owner rulings → cases, logic and spec |
-| `test-cases` | Derives `TEST-CASES.md` from the acceptance bullets — one test per bullet, tagged `auto` or `manual` |
-| `tasks` | Milestones and tasks, reconciled both ways with the team's task tracker |
-| `changelog` | The work journal and its curated, client-facing changelog |
-| `status` | Read-only dashboard: where the project is, what blocks it, what to run next |
-| `docs-migrate` | One-time relocation of an existing `docs/` into the folder |
-| `init-project` | macstack.json for an existing codebase |
-| `generate-stack` | Result-first stack design from a request |
-| `discover-context` | Agents Store plugins + stackmakers-ai prototypes |
-| `scaffold-project` | Project files in prototype → stack → dev order |
-| `infisical-env` | .infisical.json, env pulling, secrets scripts & commands |
-| `best-practices` | Rules and core commands installation |
-| `lint` | Schema + integrity validation |
-| `feedback` | Report a problem and fix it at the source: plugin skills / the schema repo (macstacks/macstack) / the registry (macstacks/registry), with mirror sync |
-| `examples` | Full-file examples and end-to-end scenarios |
-| `troubleshoot` | Common failure modes |
+```
+client material  ->  inbox/        immutable, exactly as sent
+                     delta         contradictions and additions, a proposal
+                     rulings       the owner decides, cost-if-wrong written now
+                     client/*.md   the six documents a client reads and corrects
+                     macstack.json its business half, written from those documents
+                     TASKS.md      what will be done, with acceptance
+                     code
+                     reviews/      what an audit found, per case id
+                     CHANGELOG.md  what reached the people who use it
+                  -> review package -> the client answers -> inbox/
+```
 
 ## Commands
 
-`/macstack-dev:init` · `/macstack-dev:generate` · `/macstack-dev:scaffold` ·
-`/macstack-dev:docs` · `/macstack-dev:docs-merge` · `/macstack-dev:test-cases` ·
-`/macstack-dev:tasks` · `/macstack-dev:changelog` · `/macstack-dev:status` ·
-`/macstack-dev:docs-migrate` · `/macstack-dev:lint` · `/macstack-dev:sync` ·
-`/macstack-dev:feedback`
+| Command | What it does |
+|---|---|
+| `/macstack-dev:start` | Spec from a codebase, from a business request, or migrate an older layout; then the folder, the env, the rules, the scaffold |
+| `/macstack-dev:inbox` | Client material in — delta, gates, rulings, apply, log |
+| `/macstack-dev:plan` | Requirements nobody scheduled become tasks; tracker reconcile |
+| `/macstack-dev:update` | Close the loop after work: spec, generated documents, test cases, journal, changelog |
+| `/macstack-dev:check` | Lint and dashboard · `--docs` documents only · `--code` audit the implementation |
+| `/macstack-dev:review` | Build the client review package, HTML or artifact; read the answers back |
+| `/macstack-dev:feedback` | Fix a problem in the plugin, the schema or the registry — at the source |
 
-## Agent
+## The six client documents
 
-`macstack-architect` — designs macstack.json result-first (goals/results decomposition,
-software selection, prototype recommendation).
+Each answers one question, and none answers another's.
+
+- **`client/OVERVIEW.md`** — what the product is, its goals, who it is for, the
+  high-level processes, the invariants, what it refuses to do, the glossary.
+- **`client/USER-CASES.md`** — what a person must be able to get, per role, each case
+  with a priority, its own UX requirements and an addressable acceptance list.
+- **`client/UX-UI.md`** — navigation, empty/loading/error states, responsive behaviour,
+  accessibility and tone once; then per screen what is on it, what can be done, and
+  what must **not** be visible there.
+- **`client/AUTOMATION.md`** — the trigger → task → workflow → role model. A trigger
+  declares its `type` (the mechanism) and its `source` (interface · backend ·
+  integration · schedule · manual), because the client asks the second question.
+- **`client/HANDBOOK.md`** — how a person actually uses the platform.
+- **`client/OPEN-QUESTIONS.md`** — §A owed by the client, §B deferred by the team with
+  the trigger that ends the deferral.
+
+Around them: `generated/` (ARCHITECTURE, TEST-CASES, INDEX — never edited by hand),
+`inbox/` (immutable), `history/` (log, CHANGELOG, TASKS, DECISIONS, and the dated
+deltas, rulings, reviews and handoffs). Six entries in the root, and the count is a
+constraint.
+
+## How a document is shaped
+
+One entity — one heading with an id, one anchor above it, one YAML block under it,
+prose below in anchored sections.
+
+````markdown
+<!-- macstack:case=C-04 -->
+### C-04 · Check in to a session
+
+```yaml
+role: coach
+priority: critical
+screens: [coach-today]
+```
+
+<!-- macstack:acceptance -->
+**Done when**
+- the check-in is stored with an exact timestamp;
+- a second check-in on the same session is impossible.
+````
+
+Anchors and YAML keys are ASCII and never translated; headings and prose follow
+`docs.language`. That is what lets one parser read a Russian document and a German one
+— and it is why v2 stopped reading tables by column position, which had dragged every
+paragraph into a grid to get the same property.
+
+Tables are held to a budget: 4 columns, 80 characters a cell, 3 rows, no `<br>`, no
+bold in a long cell. Journals are exempt. Lint measures it.
+
+## Skills
+
+| Skill | What it holds |
+|---|---|
+| `documents` | The folder standard: layout, path resolution, invariants, ownership, rendering, migration |
+| `document-format` | The entity + YAML + anchored-prose shape, the table budget, the language rule |
+| `spec-authoring` | `macstack.json` itself — audit path, design path, discovery, examples |
+| `scaffold-project` | Project files, in the mandatory prototype → stack plugins → dev plugins order |
+| `intake` | Client material → delta → gates → rulings → apply → log |
+| `planning` | Milestones, tasks, backlog, the tracker reconcile, and finding unplanned work |
+| `sync` | The spec against the client documents, and against the code |
+| `test-cases` | One test per acceptance bullet, derived from cases, triggers and screens |
+| `conformance` | Audit the implementation against the documents; the dated review pair |
+| `journal` | `log.md` and its curated client-facing `CHANGELOG.md` |
+| `client-package` | The review package, HTML and artifact, and reading the answers back |
+| `lint` | Schema, referential integrity, the folder (12.1–12.27), and the status dashboard |
+| `infisical-env` | `.env` wiring from `resources.accesses` |
+| `best-practices` | Project rules and commands |
+| `setup` | Orientation, tooling, path resolution, the CLAUDE.md and AGENTS.md blocks |
+| `troubleshoot` | Symptom → cause → fix |
+| `feedback` | Route a fix to the plugin, the schema or the registry |
+
+Agent: `macstack-architect`, for a spec spanning many domains or an ambiguous software
+choice.
 
 ## Prerequisites
 
-- `python3` with `jsonschema` (full validation; degrades to structural checks),
-  `jq`, `gh` (GitHub prototype/marketplace discovery), `infisical` CLI (env wiring).
-- No MCP server required — the plugin is file- and GitHub-driven.
+`python3` (plus `jsonschema` for full schema validation), `jq`, `gh`, and the
+`infisical` CLI if the project uses it. No MCP server required.
 
 ## Canonical references
 
-The standard is hosted on GitHub (GitHub-first; the bundled copies below are offline
-fallbacks):
+GitHub first, bundled copy as the offline fallback:
 
-- **Standard** (schema, examples, reference linter): https://github.com/macstacks/macstack
-- **Registry** (categories, software passports, entity/trigger/agent templates): https://github.com/macstacks/registry
-- Bundled fallbacks: `skills/lint/references/macstack.schema.json`,
-  `skills/lint/references/software-categories.json`,
-  `skills/lint/references/coverage-areas.json`
+- schema — `macstacks/macstack`, mirrored in `skills/lint/references/`
+- registry — `macstacks/registry` (software categories, coverage areas)
+- the folder's own structure — `skills/documents/references/doc-contracts.json`, read
+  by both the writer (`documents`) and the checker (`lint`), so the two cannot drift
 
-The folder's structure is defined once in
-`skills/project-docs/references/doc-contracts.json` — anchors, ID patterns and required
-sections — and is read by both the writer (`project-docs`) and the checker (`lint`), so
-the two cannot drift.
+When the schema changes it changes in all three places at once. Verify a push with
+`gh api repos/macstacks/macstack/contents/<path>?ref=main` — a plain `curl` against the
+CDN right after a push serves the previous revision and prints an entirely false diff.

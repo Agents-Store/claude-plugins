@@ -378,3 +378,118 @@ a work list nobody reads. Reading the audit's per-case verdict cut it to 8 — e
 cases added in user-cases v1.8, which is the right answer. The lesson generalises: a gap report
 that ignores what has already been verified reports the size of the document, not the size of
 the work.
+
+## 2026-08-25 — the whole plugin: the table was the machine interface, and prose followed it there
+
+**Problem:** The owner's complaint was that the plugin had become hard to work with and
+its documents hard to read. Measured on the live project rather than argued about:
+**56 tables across 20 documents**, cells up to **1353 characters**, one client-facing
+document at **six columns by thirty-seven rows of 600–880 characters a row**. Sixty-three
+of sixty-three cases printed twice — once as index rows, once as headings, with zero
+divergence. Thirty-three decisions in three places. Two client documents in English under
+`docs.language: ru`. Three documents empty of substance. And 17 commands, several of
+which nobody could tell apart.
+
+**Root cause — and it is not "somebody wrote a wide table".** v1 made the table the
+machine interface *on purpose*: `table_rule` reads "Columns are identified by POSITION,
+never by header text", because a heading follows `docs.language` and matching on its text
+would break the moment a project wrote its documents in German. That reasoning was
+correct. The consequence was not foreseen: once the grid is where the machine looks, every
+piece of prose that needs to be machine-adjacent gets written into a cell. The document
+degrades one paragraph at a time, and each individual paragraph looks reasonable when it
+is added.
+
+**Fix:** Anchor + YAML block instead of column position. An entity is a heading carrying
+its id, its machine fields are one fenced `yaml` block, its prose is in anchored sections.
+Same language independence — anchors and YAML keys are ASCII and never translated — with
+nothing pulling prose into a grid. Tables go back to short values and are held to a budget
+lint measures: 4 columns, 80 characters, 3 rows, no `<br>`, no bold past 40 characters.
+
+**Severity:** Critical.
+
+**The generalizable half:** a format decision propagates into content. Choosing where the
+machine reads decides where humans write, and the second consequence arrives months after
+the first and looks like a discipline problem rather than a design one.
+
+## 2026-08-25 — migrate.py: four defects a dry run found that no reading would have
+
+**Problem:** The v1→v2 converter passed review and then, run against a copy of the live
+project, produced four wrong outputs — each of which read as correct in the code.
+
+1. A pipe inside a code span split a row. `` `app | migrate | postgres` `` parsed as three
+   cells, silently truncating the milestone that contained it. The row still looked like a
+   row afterwards.
+2. Bold inside a cell was banned outright, which failed a legitimate two-column priority
+   legend (`| **критично** | без этого пилот не запускается |`). Bold on a short cell is a
+   term; bold in a long one is prose in a grid. The rule needed a length, not a token.
+3. The screens table's "who sees it" cell said **`все без входа`** — Russian prose, not
+   ids. Splitting it on whitespace produced three role ids that exist nowhere. **A
+   fabricated id is worse than an empty field**, because every cross-reference check
+   downstream believes it and reports green.
+4. Triggers were given slugs derived from their English titles while the spec already held
+   their real ids.
+
+**Fix:** code spans masked before splitting; the bold rule gated on cell length; role ids
+taken only from the ones the spec declares, with anything else preserved verbatim in a
+`_TODO —` marker; names matched against the spec before slugging.
+
+**Severity:** Major — 3 and 1 are silent, which is the class that matters.
+
+**This is the second time this lesson has been paid for.** The 2026-08-24 entry says a
+reviewer checks whether a sentence is true and only an executor discovers that a rule
+cannot be satisfied. The same holds for a converter: reading it confirms the transformation
+is described correctly, and only running it on real material shows what the material
+actually contains. Budget the run.
+
+## 2026-08-25 — client-package: a positional id is not an address
+
+**Problem:** v1 numbered acceptance bullets positionally *within each package*: `C-04.2`
+meant "the second bullet in this file". Its own docstring defended this — safe because
+`handoffs/` is immutable and `log.md` records which version went out. It is not safe. The
+moment a bullet is inserted above another, the client's next package renumbers everything
+below it, and a client quoting `C-04.2` from memory or from an earlier email points at a
+different sentence. The immutability of the handoff protects the old comment; it does
+nothing for the conversation that continues afterwards.
+
+**Fix:** ids allocated from the document's own order (`C-04.a3`, `coach-today.f2`),
+identical across rebuilds, verified by diffing the id set of two runs.
+
+**Also fixed here:** the SKILL promised the package carried four documents and named why —
+"handing over three of them and keeping the fourth back is how a client reviews a product
+they have not seen". Its builder opened two. The gap survived three releases because the
+sentence explaining the rule and the code implementing it were in different files and only
+one of them was ever reread.
+
+**Severity:** Major.
+
+## 2026-08-25 — README, sync/, ROLES.md: what an inventory drifts into when nothing checks it
+
+**Problem:** Nineteen structural defects found by auditing the plugin against itself.
+The sharpest four:
+
+- `README.md` was declared `generated` in the contract, `render-docs` promised to build it,
+  the `/render` command named it — and no generator existed. Lint rule 12.18 ("re-render
+  every generated document and compare") was therefore **unsatisfiable for that document
+  across three releases**, which means it was either not firing or permanently red, and
+  nobody could tell which.
+- `skills/sync/` was an empty directory with no `SKILL.md`, while `/macstack-dev:sync`
+  existed and carried its instructions inline.
+- `ROLES.md`, deleted in v1.8, still lived in `plugin.json`, `commands/render.md` and
+  `render-docs/SKILL.md`.
+- The README listed 18 skills of 22 and 13 commands of 17; `plugin.json` and
+  `marketplace.json` disagreed on keywords, 27 against 14, in a plugin whose own rules
+  require parity.
+
+**Fix:** all nineteen. The generators now exist for every document the contract calls
+generated; the README is verified against `ls skills/` and `ls commands/` rather than
+maintained by hand.
+
+**Root cause:** every one of these is a claim about the plugin's own contents that nothing
+checked. The plugin lints the projects it manages and lints nothing about itself.
+
+**Severity:** Major.
+
+**Idea worth building:** the check is three lines of Python — does every skill directory
+hold a `SKILL.md` whose `name` matches it, does every path referenced in a skill exist,
+does every document the contract calls `generated` have a generator, do the two manifests
+agree. It belongs in `/macstack-dev:feedback` or in CI.
