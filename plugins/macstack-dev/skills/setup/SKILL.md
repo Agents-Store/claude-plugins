@@ -51,25 +51,41 @@ entities → interfaces → connections → agents → context → resources.
 
 ## The `macstack/` folder
 
-The standard also defines a folder of working documents next to macstack.json:
+The standard also defines a folder of working documents next to macstack.json —
+exactly four subfolders, plus README.md and macstack.json at the root, six
+entries in all. The count is a constraint: a specification spread over many
+files becomes more tedious to review than the code it describes.
 
 ```
 macstack/
-├── macstack.json           the spec — canonical location
-├── README.md               folder contract   [generated]
-├── USER-CASES.md           [client] cases per role, versioned
-├── TEST-CASES.md           how each acceptance bullet is verified, auto | manual
-├── TASKS.md                milestones and tasks — what will be done, in what order
-├── BUSINESS-LOGIC.md       [client] invariants and logic in plain words
-├── OPEN-QUESTIONS.md       §A owed by the client · §B deferred by us
-├── CHANGELOG.md            [client] what reached the people who use it, newest first
-├── DECISIONS.md            decision registry (D14, D15 …) → files in decisions/
-├── log.md                  append-only journal: intake · merge · work · release
-├── inbox/                  IMMUTABLE client material · README.md = manifest
-├── deltas/                 proposals, not edits
-├── decisions/              rulings, each with cost-if-wrong
-└── reviews/                <slug>-conformance.md + its -business.md twin
+├── macstack.json            the spec — canonical location
+├── README.md                folder contract, rendered from doc-contracts.json   [generated]
+├── client/                  what a human writes and the client reads — the source of truth
+│   ├── OVERVIEW.md          [client] business logic, goals, invariants, glossary
+│   ├── USER-CASES.md        [client] cases per role, versioned
+│   ├── UX-UI.md             [client] interface bar — cross-cutting + per-screen, incl. forbidden
+│   ├── AUTOMATION.md        [client] roles, role tasks, triggers
+│   ├── HANDBOOK.md          [client] how to actually work with the platform, seeded from cases+screens
+│   └── OPEN-QUESTIONS.md    §A owed by the client · §B deferred by us
+├── generated/                built from a source, never hand-edited
+│   ├── ARCHITECTURE.md      how the project is built, generated from macstack.json
+│   ├── TEST-CASES.md        how each acceptance bullet is verified, auto | manual
+│   └── INDEX.md             generated cases/screens/triggers/coverage tables
+├── inbox/                   IMMUTABLE client material · README.md = manifest
+└── history/                 journals and records — append-only
+    ├── TASKS.md              milestones and tasks — what will be done, in what order
+    ├── DECISIONS.md          decision registry (D14, D15 …) → files in decisions/
+    ├── CHANGELOG.md          [client] what reached the people who use it, newest first
+    ├── log.md                append-only journal: intake · merge · work · release
+    ├── deltas/               proposals, not edits
+    ├── decisions/            rulings, each with cost-if-wrong
+    ├── reviews/              <slug>-conformance.md + its -business.md twin
+    └── handoffs/             handoff records
 ```
+
+`/macstack-dev:start` writes the `## Stack Specification` block into both
+`CLAUDE.md` and `AGENTS.md` — the spec must read the same way from Claude Code
+and from Codex.
 
 `docs/` stays the ENGINEERING folder (architecture.md, api-conventions.md,
 code-style.md, runbooks) — it never moves into `macstack/`.
@@ -77,22 +93,26 @@ code-style.md, runbooks) — it never moves into `macstack/`.
 ## Verification steps
 
 1. **Tooling**: `python3 -c "import jsonschema"` (fallback: structural checks only),
-   `jq --version`, `gh --version` (needed for discover-context and GitHub prototypes).
+   `jq --version`, `gh --version` (needed for `spec-authoring`'s context discovery and
+   GitHub prototypes).
 2. **Project state**: resolve macstack.json in this order:
    1. `macstack/macstack.json` — canonical.
-   2. `./macstack.json` — legacy; works, but say so and offer `docs-migrate`.
+   2. `./macstack.json` — legacy; works, but say so and offer `/macstack-dev:start`
+      (migration mode).
    3. Search upward to the git root (monorepo / nested project).
    - Both 1 and 2 present → **ERROR, never a silent choice** — two specs mean two
-     truths; report both paths and stop. The remedy is `docs-migrate`, which
-     relocates the legacy root file into the folder (or `git rm`s it once the moved
-     copy is verified). Never guess which one is canonical.
+     truths; report both paths and stop. The remedy is `/macstack-dev:start`
+     (migration mode), which relocates the legacy root file into the folder (or
+     `git rm`s it once the moved copy is verified). Never guess which one is
+     canonical.
    - Found → validate it (`lint` skill) and report the stage (`lifecycle.stage`).
-   - Not found → offer `init-project` (existing codebase) or `generate-stack` (from
-     scratch).
-   - Also check whether `macstack/` and its working documents (USER-CASES.md,
-     TEST-CASES.md, TASKS.md, BUSINESS-LOGIC.md, OPEN-QUESTIONS.md, CHANGELOG.md,
-     DECISIONS.md, log.md) exist. If not,
-     offer `project-docs` to create the folder.
+   - Not found → offer `spec-authoring` — deriving the spec from an existing
+     codebase and generating one from scratch are the same skill now.
+   - Also check whether `macstack/` and its `client/`, `generated/`, `history/`
+     documents exist (`client/OVERVIEW.md`, `USER-CASES.md`, `UX-UI.md`,
+     `AUTOMATION.md`, `HANDBOOK.md`, `OPEN-QUESTIONS.md`; `generated/ARCHITECTURE.md`,
+     `TEST-CASES.md`, `INDEX.md`; `history/TASKS.md`, `DECISIONS.md`, `CHANGELOG.md`,
+     `log.md`). If not, offer `documents` to create the folder.
 3. **CLAUDE.md link**: check that CLAUDE.md contains a "Stack Specification" section
    pointing to macstack.json. If missing, offer to add:
 
@@ -109,17 +129,17 @@ Never write code that contradicts macstack.json — update the specification fir
 
 | Task | Skill |
 |---|---|
-| macstack.json for an existing project | `init-project` |
-| New stack from scratch from a request | `generate-stack` |
-| Find plugins/prototypes | `discover-context` |
+| macstack.json for an existing project, or a new stack from scratch — incl. finding plugins/prototypes and worked examples | `spec-authoring` |
 | Create the project's working files | `scaffold-project` |
 | .infisical.json + .env.prod/.env.dev | `infisical-env` |
 | Project rules and commands | `best-practices` |
-| Validation | `lint` |
-| Create/seed the `macstack/` folder | `project-docs` |
-| Merge new client material into the folder | `docs-merge` |
+| Validation, and "where are we and what next" | `lint` |
+| Create/seed the `macstack/` folder, or relocate an existing `docs/` into the new layout | `documents` |
+| The entity + YAML + anchored-prose shape and the table budget | `document-format` |
+| Merge new client material into the folder | `intake` |
 | Turn the acceptance bullets into checks | `test-cases` |
-| Plan work, or reconcile with the tracker | `tasks` |
-| Record what was built, or cut a release | `changelog` |
-| "Where are we and what next" | `status` |
-| Relocate an existing `docs/` into the new layout | `docs-migrate` |
+| Plan work, or reconcile with the tracker | `planning` |
+| Keep the spec, the documents and the code in step | `sync` |
+| Record what was built, or cut a release | `journal` |
+| Audit the implementation against the documents | `conformance` |
+| Package a review for the client | `client-package` |

@@ -36,15 +36,16 @@ Create each file; content = a short version of the rule + the WHY:
    `[Domain] - [Action] - [Trigger]`; kebab API URLs; never cite `file.ts:214` —
    cite a symbol name or a test title, because line numbers rot the moment the
    file above them grows and a pointer at a closing brace reads as authoritative.
-   **No `TODO` / `FIXME` in code** — forward-looking work goes to `macstack/TASKS.md`
+   **No `TODO` / `FIXME` in code** — forward-looking work goes to `macstack/history/TASKS.md`
    (and to the team's tracker), where it has an id, an owner and a status. A TODO in
    a source file is a task nobody can see, prioritise or close.
 7. **`macstack-sync.md`** (specific to the standard) — macstack.json is a living
    specification: any stack change (new software/workflow/entity/interface) is
    accompanied by a macstack.json update + `lint` in the same commit; a spec change
-   means `macstack.json` **and** the affected `macstack/*.md` land in the same
-   commit — the specification and its documents are one definition of done.
-   **A day of work ends with a `work` entry in `macstack/log.md`** naming the task
+   means `macstack.json` **and** the affected documents under `macstack/client/`,
+   `generated/` or `history/` land in the same commit — the specification and its
+   documents are one definition of done.
+   **A day of work ends with a `work` entry in `macstack/history/log.md`** naming the task
    ids it advanced and what did not go as planned. Git records what changed; the log
    records why it went that way and what was tried first, which is the half nobody
    can reconstruct later. Put the task id in the commit subject — `(M11-T9)` — and
@@ -61,9 +62,8 @@ clean + the domain returns 200).
 | `commit.md` | Conventional commit per the commit-after-task rule |
 | `pr.md` | Create a PR (body: what/why, work-item link) |
 | `secrets-sync.md`, `secrets-push.md`, `env-audit.md`, `setup-tokens.md` | from the `infisical-env` skill |
-| `update-context.md` | update macstack.json + CLAUDE.md + .env.example after stack changes (sync analog) |
-| `macstack-lint.md` | run the `lint` skill |
-| `status.md` | where the project is and what to do next (the `status` skill) |
+| `update-context.md` | update macstack.json + CLAUDE.md + .env.example after stack changes (the `sync` skill) |
+| `macstack-lint.md` | validation, plus the dashboard — "where are we and what next" (the `lint` skill; `status` folded into it) |
 
 ## CLAUDE.md wiring
 
