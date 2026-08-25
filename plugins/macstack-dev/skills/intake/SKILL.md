@@ -1,6 +1,6 @@
 ---
-name: docs-merge
-description: This skill should be used when the user says "client sent edits", "merge client feedback", "клиент прислал правки", "разобрать правки", "improve the user cases", "new spec from the client", "process the inbox", "what changed in the client's document", "apply the delta", pastes new client material into chat, or drops a file into macstack/inbox/. Runs the full intake → delta → gate → ruling → apply → log loop against the macstack/ folder standard — never edits USER-CASES.md, BUSINESS-LOGIC.md or macstack.json directly from raw client material.
+name: intake
+description: This skill should be used when the user says "client sent edits", "merge client feedback", "клиент прислал правки", "разобрать правки", "improve the user cases", "new spec from the client", "process the inbox", "what changed in the client's document", "apply the delta", pastes new client material into chat, or drops a file into macstack/inbox/. Runs the full intake → delta → gate → ruling → apply → log loop against the macstack/ folder standard — never edits the client documents or macstack.json directly from raw client material.
 ---
 
 # Docs Merge — the Client-Feedback Loop
@@ -9,8 +9,8 @@ Turns one piece of client material (a file, or plain text) into a versioned, rul
 change to `macstack/`. Nothing skips from raw material straight into the spec — every
 change passes through a delta, at least one human gate, and a logged ruling.
 
-Open `${CLAUDE_PLUGIN_ROOT}/skills/project-docs/SKILL.md` for the folder layout and
-`${CLAUDE_PLUGIN_ROOT}/skills/project-docs/references/doc-contracts.json` for anchors,
+Open `${CLAUDE_PLUGIN_ROOT}/skills/documents/SKILL.md` for the folder layout and
+`${CLAUDE_PLUGIN_ROOT}/skills/documents/references/doc-contracts.json` for anchors,
 section keys and ID regexes first — this skill assumes both and does not repeat them.
 
 ## Two entry points
@@ -23,7 +23,7 @@ source = `"chat, YYYY-MM-DD"`.
 
 `macstack/macstack.json` → `./macstack.json` (legacy) → search upward to the git root.
 **Both present is an ERROR**, not a silent choice — report both paths and stop: the
-remedy is `docs-migrate`, which relocates the legacy root file into the folder (or
+remedy is migration mode in `documents`, which relocates the legacy root file into the folder (or
 `git rm`s it once the moved copy is verified). Read `docs.language` (documents are
 written in it; anchors and IDs never are) and `docs.files`.
 
@@ -91,7 +91,7 @@ the client, where this was applied.
 
 ## 5. Apply
 
-Order matters: USER-CASES.md → TEST-CASES.md → BUSINESS-LOGIC.md → macstack.json. The
+Order matters: USER-CASES.md → UX-UI.md and AUTOMATION.md → TEST-CASES.md → OVERVIEW.md → macstack.json. The
 last three are derived from the first, so writing the spec first means writing changes
 you may have to reverse. A changed or added acceptance bullet leaves `TEST-CASES.md`
 stale by definition — re-derive it with `macstack-dev:test-cases` in the same pass, or
@@ -121,14 +121,14 @@ its cases — the letter is retired with it and never reassigned.
 
 Append to `log.md` — kind `merge`, one of the four the journal accepts
 (`intake · merge · work · release`; `work` and `release` belong to the
-`changelog` skill, not this one):
+`journal` skill, not this one):
 
 ```
 ## [2026-08-24] merge | OHAWO Client Portal Functional Spec
 - source: macstack/inbox/ohawo-client-portal-spec-2026-08-24.pdf (Read, pages 1-18)
 - delta: macstack/deltas/2026-08-24-client-portal.md — K-1..K-9, N-1..N-18
 - decisions: macstack/decisions/2026-08-24-client-feedback-rulings.md — D13..D23
-- applied: USER-CASES.md 1.7→1.8 · BUSINESS-LOGIC.md · macstack.json (roles, lifecycle)
+- applied: USER-CASES.md 1.7→1.8 · UX-UI.md 1.2→1.3 · macstack.json (roles, lifecycle)
 - opened: A10..A14 · closed: A6
 - note: <the one thing a reader six months from now needs>
 ```
@@ -152,14 +152,14 @@ newest log.md entry · a delta past its age budget with no applied banner.
 
 **Call it yourself:** whether a contradiction is real or the client's silence ·
 whether an addition duplicates an existing case · whether a §B trigger has already
-fired · whether BUSINESS-LOGIC has started restating USER-CASES.
+fired · whether OVERVIEW has started restating USER-CASES.
 
 ## Routing
 
 | Situation | Do |
 |---|---|
-| No `macstack/` yet | `macstack-dev:project-docs` first |
+| No `macstack/` yet | `macstack-dev:documents` first |
 | Delta has no contradictions | 3b bypass — apply directly, skip rulings |
-| Anything headed for USER-CASES / BUSINESS-LOGIC / macstack.json | Never directly — always through this loop |
+| Anything headed for a client document or macstack.json | Never directly — always through this loop |
 | Acceptance bullets changed | `macstack-dev:test-cases` in the same pass |
 | After apply | `macstack-dev:lint` |

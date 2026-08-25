@@ -1,6 +1,6 @@
 ---
-name: changelog
-description: This skill should be used when the user wants to "write a changelog", "log what I did", "record today's work", "what shipped", "что сделали", "лог разработки", "записать в журнал", "release notes", "what changed for the client", "закрыть веху", "что нового в релизе", "cut a release", write a `work` or `release` entry to `macstack/log.md`, or curate `log.md` into `macstack/CHANGELOG.md`. Never used for `intake` or `merge` entries — those stay owned by `docs-merge`.
+name: journal
+description: This skill should be used when the user wants to "write a changelog", "log what I did", "record today's work", "what shipped", "что сделали", "лог разработки", "записать в журнал", "release notes", "what changed for the client", "закрыть веху", "что нового в релизе", "cut a release", write a `work` or `release` entry to `macstack/log.md`, or curate `log.md` into `macstack/CHANGELOG.md`. Never used for `intake`, `handoff` or `merge` entries — those stay owned by `intake` and `client-package`.
 ---
 
 # Changelog — the Development Log and Its Client-Facing Derivative
@@ -12,7 +12,7 @@ shipped; nobody reads `CHANGELOG.md` to find out why a decision was made. Confus
 the two either produces a changelog no client can parse, or a client document that
 quietly loses the reasoning git cannot hold.
 
-Open `${CLAUDE_PLUGIN_ROOT}/skills/project-docs/references/doc-contracts.json` for
+Open `${CLAUDE_PLUGIN_ROOT}/skills/documents/references/doc-contracts.json` for
 the `log`/`changelog` document contracts (anchors, entry grammar, id spaces) —
 authoritative, not repeated here.
 
@@ -32,12 +32,13 @@ Heading: `## [YYYY-MM-DD] <intake|merge|work|release> | <title>`.
 
 | Kind | Owner | Requires | When |
 |---|---|---|---|
-| `intake` | `docs-merge` | `source` | client material lands in `inbox/` |
-| `merge` | `docs-merge` | `source, delta, decisions, applied, opened, closed` | a delta was ruled on and applied |
-| `work` | **this skill** | `tasks, what, notes` | development happened, worth a record |
+| `intake` | `intake` | `source` | client material lands in `inbox/` |
+| `handoff` | `client-package` | `document, version, file, to` | something went OUT to the client |
+| `merge` | `intake` | `source, delta, decisions, applied, opened, closed` | a delta was ruled on and applied |
+| `work` | **this skill** | `tasks` + `what`, `notes` | development happened, worth a record |
 | `release` | **this skill** | `release, milestone, changelog` | something reached the people who use it |
 
-*`intake`/`merge` are not redefined here — they belong to `docs-merge`.*
+*`intake`, `handoff` and `merge` are not redefined here — they belong to `intake` and `client-package`.*
 
 ## Writing a `work` entry
 
@@ -50,7 +51,7 @@ with empty `notes` is usually not worth writing.**
 
 ```
 ## [2026-08-24] work | M11 — split the export run in two
-- tasks: T-42, T-43
+- tasks: M11-T42, M11-T43
 - what: export now runs as two independent jobs (metadata, then rows) instead of one
 - notes: tried keeping it one job with an internal checkpoint first — rows outnumber
   metadata 400:1, so a mid-job crash always looked like a metadata failure and
@@ -127,8 +128,8 @@ restates a diff instead of one of those two gets cut.
 
 | Situation | Do |
 |---|---|
-| No `macstack/` yet | `macstack-dev:project-docs` first |
-| Client material / a delta was ruled on | `docs-merge` owns `intake`/`merge` — not this skill |
+| No `macstack/` yet | `macstack-dev:documents` first |
+| Client material / a delta was ruled on | `intake` owns `intake`/`merge` — not this skill |
 | Development happened, worth recording | write a `work` entry here |
 | Something reached the client | write a `release` entry + matching `CHANGELOG.md` item |
 | Ready to publish accumulated work | run the curation pass |

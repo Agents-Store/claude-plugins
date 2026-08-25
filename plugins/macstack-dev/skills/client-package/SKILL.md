@@ -1,6 +1,6 @@
 ---
 name: client-package
-description: This skill should be used when the user asks to "send the cases to the client", "give the client something to edit", "собрать пакет для клиента", "отдать клиенту на согласование", "prepare the user cases for review", or needs the outbound half of the client loop — turning USER-CASES.md and BUSINESS-LOGIC.md into one file a client can annotate and send back.
+description: This skill should be used when the user asks to "send the cases to the client", "give the client something to edit", "собрать пакет для клиента", "отдать клиенту на согласование", "prepare the user cases for review", or needs the outbound half of the client loop — turning the five client documents into one artifact a client can annotate and send back, as a self-contained HTML file or as a published artifact with comment threads.
 ---
 
 # Hand the client something they can actually edit
@@ -44,17 +44,19 @@ not today's document.
 ## The return trip needs nothing new
 
 The client sends the file back. It lands in `inbox/` like any other incoming material, with an
-`intake` entry, and from there the existing `docs-merge` loop takes over: delta → rulings →
+`intake` entry, and from there the existing `intake` loop takes over: delta → rulings →
 `USER-CASES.md`. Do not build a second path for returned packages — the one that exists is the
 best-tested part of this plugin, and a parallel one would be a second place for a client's
 change to get lost.
 
 ## What goes in, and what deliberately does not
 
-**In:** everything in `client/` except the open questions — `BUSINESS-LOGIC.md` as context in
-plain words, then `USER-CASES.md` case by case, then the tables of `ROLES-AND-TASKS.md` and
-`SCREENS.md`. Those four are the client's documents by definition; handing over three of them
-and keeping the fourth back is how a client reviews a product they have not seen.
+**In:** everything in `client/` except the open questions — `OVERVIEW.md` as context in
+plain words, then `USER-CASES.md` case by case, then `UX-UI.md` screen by screen, then
+`AUTOMATION.md`, then `HANDBOOK.md`. Those five are the client's documents by definition;
+handing over four of them and keeping the fifth back is how a client reviews a product they
+have not seen. v1 promised four and its builder read two, which is the same failure with a
+smaller number.
 
 **Not in:** `history/` in any form, `generated/ARCHITECTURE.md`, `generated/TEST-CASES.md`. Some of it is internal, some of it would invite the client to re-open decisions
 already taken, and all of it makes the package longer without making it more answerable. A

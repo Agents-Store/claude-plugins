@@ -1,9 +1,9 @@
 ---
-name: tasks
-description: This skill should be used when the user asks to "add a task", "what's left to do", "что осталось сделать", "завести задачу", "план работ", "backlog", "milestone status", "sync tasks with the tracker", "синхронизировать задачи", "what should I work on next", "какая веха дальше", "add to the backlog", "отметить задачу выполненной", "block this on", or mentions TASKS.md, milestones, M<n>-T<n> ids, or the team's task tracker. Owns TASKS.md — milestones, tasks, backlog — and its bidirectional reconcile with whatever tracker the project is bound to, without ever naming a specific product.
+name: planning
+description: This skill should be used when the user asks to "add a task", "what's left to do", "что осталось сделать", "завести задачу", "план работ", "backlog", "milestone status", "sync tasks with the tracker", "синхронизировать задачи", "what should I work on next", "какая веха дальше", "add to the backlog", "отметить задачу выполненной", "block this on", "plan the changes", "what needs building", "turn the requirements into tasks", "which cases have no plan", or mentions TASKS.md, milestones, M<n>-T<n> ids, or the team's task tracker. Owns TASKS.md — milestones, tasks, backlog — turns unplanned requirements into task entries, and reconciles bidirectionally with whatever tracker the project is bound to, without ever naming a specific product.
 ---
 
-# Tasks — Milestones, Backlog, and the Tracker
+# Planning — from a requirement to a task somebody can pick up
 
 `TASKS.md` says what will be done, in what order, and how it will be known done. It
 sits beside `USER-CASES.md` (the bar), `OPEN-QUESTIONS.md` (owed / deferred) and the
@@ -11,7 +11,7 @@ team's own task tracker — where the *conversation* happens: comments, attachme
 assignment, notifications. `TASKS.md` is the **source of truth** for scope and order;
 the tracker is never edited around it.
 
-Open `${CLAUDE_PLUGIN_ROOT}/skills/project-docs/references/doc-contracts.json`
+Open `${CLAUDE_PLUGIN_ROOT}/skills/documents/references/doc-contracts.json`
 (`documents.tasks`) for the anchors, id patterns and required fields first — this
 skill assumes both and does not repeat them beyond the worked examples below.
 Headings and prose follow `docs.language`; anchors and ids never translate.
@@ -50,16 +50,27 @@ id is a lint ERROR — see Tracker sync below.
 
 ## One task, worked
 
-```
-### M2-T3 · Verify email before first login   doing ▶
+````markdown
+<!-- macstack:task=M2-T3 -->
+### M2-T3 · Verify email before first login
 
-- tracker: TRACK-142
-- spec: §4.1–§4.3 of docs/design/auth-flow.md
-- files: src/auth/verify.ts, src/auth/routes.ts
-- acceptance: `auth.int.spec.ts` — "rejects unverified login"; remove the
-  verify-guard and this test reddens
-- blocked_by: —
+```yaml
+status: doing
+tracker: TRACK-142
+milestone: M2
+spec: client/USER-CASES.md#C-02
+files: [src/auth/verify.ts, src/auth/routes.ts]
+acceptance: 'auth.int.spec.ts — "rejects unverified login"'
+blocked_by: [A5]
 ```
+
+<!-- macstack:notes -->
+Remove the verify guard and that named test reddens. That is the check.
+````
+
+The status lives in the YAML block, not in the heading — v1 put a glyph after the
+title and every tool had to parse a heading to learn a state. The glyph stays in the
+`INDEX.md` render, where it is for the reader.
 
 `spec` points, it never restates — the pointer plus `acceptance` is the row's whole
 value; a paraphrase only drifts. `acceptance` names the test(s) and what each
@@ -70,10 +81,16 @@ blocking three tasks is the argument for chasing the client.
 
 ## One milestone, worked
 
-```
-## M2 · Auth hardening   doing ▶
+````markdown
+<!-- macstack:milestone=M2 -->
+## M2 · Auth hardening
 
-done_when:
+```yaml
+status: doing
+target: 2026-09-15
+```
+
+<!-- macstack:done_when -->
 - works in every role area at both narrow and wide viewport
 - migrations proven, up and down, against a seeded snapshot
 - `auth.pinning.spec.ts` unchanged and green
@@ -84,7 +101,7 @@ done_when:
 
 Order is strict: M2-T1 → M2-T2 → M2-T3 — the migration must land before the route
 guard or local dev breaks mid-branch. Do not reorder without re-opening this note.
-```
+````
 
 `done_when` is a list of FALSIFIABLE checks, typically 5–7; "works well" is not
 one. Five recur across milestones — offer as the default, then add 2–3 specific to
@@ -136,11 +153,70 @@ ending `(M11-T9)` links a commit to its task for free — worth the convention.
 
 | Situation | Do |
 |---|---|
-| No `TASKS.md` yet | `macstack-dev:project-docs` scaffolds it |
+| No `TASKS.md` yet | `macstack-dev:documents` scaffolds it |
 | "add a task" / "завести задачу" | Append under its milestone (or `backlog`), `todo`, `tracker` filled or created |
 | "what's left" / "что осталось сделать" / "what should I work on next" | List `todo`/`doing` tasks not `blocked`, ordered by milestone |
 | "milestone status" | Report the milestone's `done_when` checks, pass/fail |
 | "sync tasks with the tracker" / "синхронизировать задачи" | Run the reconcile procedure above |
 | Debt that's fine to sit | `OPEN-QUESTIONS.md` §B, not here |
 | A §B trigger just fired | Promote it — see above |
+| "what needs building" / nothing planned yet | Run the gap pass below |
+| A task just reached `done` | `/macstack-dev:update` — it sweeps the documents |
 | After any change | `macstack-dev:lint` |
+
+## Finding the work nobody planned
+
+The link between `client/USER-CASES.md` — what a person must get — and `TASKS.md` —
+what will be done about it. Without it a requirement reaches the code through
+somebody's memory, and nothing afterwards can say which change answered which
+requirement.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/planning/references/uncovered.py" macstack [--emit]
+```
+
+It reads three inputs — the cases, the tasks, and the newest
+`history/reviews/*-conformance.md` — and sorts every case into four states:
+
+| State | Means | Do |
+|---|---|---|
+| planned | a task already names it | nothing |
+| audited: done | the newest review found it implemented | nothing |
+| audited: partial | found partial or externally blocked | read the verdict first |
+| **neither** | nobody planned it, nobody checked it | **this is the work** |
+
+**Read the verdicts before reporting a number.** The first version of this reported
+63 cases with no plan where 35 were already confirmed implemented by an audit — true,
+and useless. A work list nobody believes is a work list nobody reads. Reading the
+review cut the same report to 8. A gap report that ignores what has already been
+checked reports the size of the document, not the size of the work.
+
+`--emit` prints task skeletons. The skeleton is not the deliverable — `files` and
+`acceptance` come back empty, and filling them is the only real work in this pass:
+
+1. Open `generated/ARCHITECTURE.md` and find where this behaviour belongs. Use the map,
+   not a blind recursive grep — in an iCloud-backed folder that hangs for minutes, and
+   it finds the word rather than the behaviour either way.
+2. Write `files` as the expected footprint.
+3. Write `acceptance` as a named test and what it asserts. Strongest form: *remove X and
+   this named test reddens*. A bare filename is not acceptance; a line number is banned.
+4. Carry `blocked_by` through from the case's open items — an `A<n>` here is how a
+   client question becomes visibly load-bearing.
+
+### Three things this refuses to do
+
+- **Guess `files` or `acceptance` without reading the code.** If the codebase does not
+  answer where something belongs, that is a finding — say so and leave the field empty
+  rather than filling it plausibly. A plausible wrong path costs more than an empty one,
+  because somebody will follow it.
+- **Plan a case an audit already passed.**
+- **Invent a milestone.** A new milestone is a decision about scope and dates and it
+  belongs to the owner. The script takes the last `M<n>` from `TASKS.md`; going past it
+  is a question, not a default.
+
+### Then stop
+
+Do not start coding here. The handoff is the point: open plan mode and say *"take
+M15-T2 from macstack/history/TASKS.md"*. A planning session that slides into
+implementation produces a task list nobody finished writing and a change nobody
+reviewed the plan for.

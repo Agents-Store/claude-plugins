@@ -60,7 +60,7 @@ Backed by sources 1→3, create:
 | `.mcp.json` (`${VAR}`) | stack plugin / connections |
 | `.env.example`, **`.env.prod`, `.env.dev`** (always created), `.infisical.json` | the `infisical-env` skill (mandatory to invoke) — variables = union of macstack.json `resources.accesses` AND the `${VAR}` tokens required by the project's enabled Claude plugins (settings.json → stack plugin `.mcp.json`/`.env.example`); required-but-empty keys appear as `KEY=''` with a FILL ME comment |
 | `.claude/rules/`, `.claude/commands/`, `scripts/` | the `best-practices` skill (mandatory to invoke) |
-| `macstack/` (README.md, USER-CASES.md, BUSINESS-LOGIC.md, OPEN-QUESTIONS.md, DECISIONS.md, log.md) | the `project-docs` skill (mandatory to invoke) |
+| `macstack/` (README.md, client/OVERVIEW.md, USER-CASES.md, UX-UI.md, AUTOMATION.md, HANDBOOK.md, OPEN-QUESTIONS.md, history/DECISIONS.md, log.md) | the `documents` skill (mandatory to invoke) |
 | Workflow stubs (from `workflows[]` + `triggers[]`) and entity schemas/migrations | macstack.json + dev plugins |
 
 ## Rules
@@ -86,5 +86,5 @@ user: "Scaffold the project from macstack.json"
 → stack plugin stack-directus-nextjs-trigger-dev → enabledPlugins + .mcp.json (${VAR}) + CLAUDE.md merge
 → dev plugins directus-dev, nextjs-dev, trigger-dev → enable, follow their conventions in stubs
 → files: src/trigger/<wf-id>.ts per workflows[], collection schemas per entities[]
-→ infisical-env → best-practices → project-docs → lint → report
+→ infisical-env → best-practices → documents → lint → report
 </example>
