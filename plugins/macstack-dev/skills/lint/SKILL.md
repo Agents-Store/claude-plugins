@@ -118,6 +118,17 @@ below is checked against that file, never against memory.
 
 ### Layout and identity
 
+12.0 **A declared entity kind is actually found** — for every entity kind the
+     contract declares in a document, the loader returns at least one. This rule
+     protects the other thirty-eight from the failure that keeps recurring here: a
+     filter that matches nothing returns an empty list, thirty-five rules run over it,
+     and every one of them passes. A green report and a broken folder look identical.
+     It has fired for real: after the schema gave cases their own records and the
+     pointers were repointed from `roles[].cases` to `cases[id=…]`, the kind filter
+     still matched the old collection and silently returned zero.
+     Any rule that can return "nothing to check" must be able to tell that apart from
+     "checked, and it was fine" — otherwise it is decoration.
+
 12.1 **Layout** — `docs.root` resolves and holds exactly SIX entries: `README.md`,
      `macstack.json` and the four folders `client/`, `generated/`, `inbox/`,
      `history/`. Dot-files do not count — `.DS_Store` and friends are the operating
@@ -234,16 +245,29 @@ below is checked against that file, never against memory.
       a check instead of a promise. While `REQUIREMENTS.md` does not exist, the rule
       emits one finding saying so — not one per id.
 
-12.36 **Every edit left a row in the ledger** — every change to a document under
-      `macstack/`, relative to the newest entry in `history/ledger.jsonl`, has a row
-      keyed by the id of the thing that changed. The ledger is what lets the review
-      package show a client, per statement, what moved since they last read it and
-      what they said about it. An edit with no row is a defect, because the next
-      package will present a changed sentence as if it had always said that.
+12.36 **A document that moved has a row in the ledger** — an authored client
+      document declaring a version in its header has at least one row in
+      `history/ledger.jsonl` that names it. The ledger is what lets the review package
+      show a client, per statement, what moved since they last read it and what they
+      said about it; an edit with no row means the next package presents a changed
+      sentence as if it had always said that.
+      What this checks and what it does not: it compares the document against the
+      ledger at file granularity, not edit by edit — proving that EVERY individual
+      edit was recorded would need the git history, and a rule that claims more than
+      it measures is worse than no rule. Generated documents are exempt: their edits
+      belong to their generator, and 12.18 covers those.
 
 12.37 **The first bullet is not the heading again** — an entity whose opening bullet
       restates its own title makes the client read the same sentence twice. Twenty-two
       of thirty-six blocks in one live document did exactly that.
+
+12.38 **`client/` holds documents, and nothing else** — any file there that is not one
+      of the six is incoming material: a client's own draft, a screenshot, a `.docx`
+      saved beside the documents. Its place is `inbox/`, where it is immutable and has
+      a manifest row, and from there `/macstack-dev:intake` merges it.
+      Leaving it in `client/` creates a seventh document that no renderer, no package
+      and no spec knows about — and a month later nobody can say whether it is a
+      source of truth or somebody's draft.
 12.24 **Tables stay inside the budget** — in `history/` and `generated/` only; in
       `client/` a table is an error outright (12.30). At most 4 columns, at most 80
       characters a cell, at least 3 rows, and no `<br>`, bold, code fence or pipe

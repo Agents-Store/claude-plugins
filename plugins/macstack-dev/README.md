@@ -109,7 +109,7 @@ not a risk.
 | `conformance` | Audit the implementation against the documents; the dated review pair |
 | `journal` | `history/ledger.jsonl` — one row per edit, comment and audit verdict — and its curated client-facing `CHANGELOG.md` |
 | `client-package` | The client package — HTML and published page — with each statement's own history, and reading the answers back into the ledger |
-| `lint` | Schema, referential integrity, the folder (37 rules, 12.0–12.37), and the status dashboard |
+| `lint` | Schema, referential integrity, the folder (39 rules, 12.0–12.38), and the status dashboard |
 | `infisical-env` | `.env` wiring from `resources.accesses` |
 | `best-practices` | Project rules and commands |
 | `setup` | Orientation, tooling, path resolution, the CLAUDE.md and AGENTS.md blocks |

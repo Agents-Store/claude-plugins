@@ -6,7 +6,7 @@
 Everything here reads files under macstack/ or shells out to render.py; nothing
 here edits lint_folder.py, another rules_*.py, the contract or the schema.
 """
-import datetime, glob, io, os, re, subprocess, sys
+import datetime, glob, io, json, os, re, subprocess, sys
 
 from lint_folder import rule, Finding, ERROR, WARNING
 
@@ -765,3 +765,89 @@ def _r_12_25_one(c, key, decl, path, text):
                     '%.0f%% of its letters are outside the %s alphabet (budget 15%%) — '
                     'worst line: %s' % (ratio * 100, lang, snippet or '(no single line '
                     'carries enough letters to blame)'))]
+
+@rule('12.36', 'A document that moved has a ledger row saying what moved')
+def r_12_36(c):
+    """Правка без строки в журнале — дефект, и это не бюрократия.
+
+    Клиентский пакет показывает КАЖДОЕ утверждение с его собственной историей:
+    что было, что стало, почему. Строка, называющая только файл, к утверждению не
+    цепляется, а значит клиент увидит документ без следа изменения — ровно то,
+    ради чего журнал и заводился.
+
+    Проверка дешёвая и не требует git: версия в шапке документа против самой
+    свежей строки журнала, которая этот документ называет. Версию поднимают, когда
+    документ меняют; если журнал об этой версии не знает, правка прошла мимо него.
+    """
+    led = _ledger_rows(c)
+    if led is None:
+        return []                     # журнала ещё нет — это ловит 12.13, не мы
+    seen = {}
+    for r in led:
+        d = str(r.get('doc') or '')
+        if d:
+            seen[d] = max(seen.get(d, ''), str(r.get('date') or ''))
+    out = []
+    # Только авторские. Сгенерированный документ переписывает его генератор, и за
+    # его свежесть отвечает 12.18; требовать от рендера строку в журнале о самом
+    # себе — значит завести шум, в котором утонет правка, сделанная человеком.
+    for key in sorted(k for k in c.client_keys() if not c.is_generated(k)):
+        doc = c.docs[key]
+        rel = c.rel(doc.path)
+        ver = (doc.header or {}).get('version')
+        if not ver:
+            continue
+        rows = [r for r in led if str(r.get('doc') or '') == rel]
+        if not rows:
+            out.append(Finding('12.36', ERROR, rel, 1,
+                               'документ версии %s, а в history/ledger.jsonl о нём '
+                               'нет ни одной строки — значит правки не записаны'
+                               % ver))
+    return out
+
+
+def _ledger_rows(c):
+    p = os.path.join(c.root, 'history', 'ledger.jsonl')
+    if not os.path.exists(p):
+        return None
+    rows = []
+    for n, line in enumerate(io.open(p, encoding='utf-8')):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rows.append(json.loads(line))
+        except ValueError:
+            # Битая строка — это не «журнала нет». Молчаливый пропуск здесь
+            # означал бы, что правило проходит тем увереннее, чем хуже журнал.
+            c.errors.append('history/ledger.jsonl:%d не разбирается' % (n + 1))
+    return rows
+
+
+@rule('12.38', 'client/ holds documents, and nothing else')
+def r_12_38(c):
+    """Файл, который не является одним из шести документов, — входящий материал.
+
+    Клиент пришлёт правки как умеет: положит .docx рядом с документами, скинет
+    скриншот, сохранит свой вариант под другим именем. Оставить это в `client/`
+    значит завести седьмой документ, которого не знает ни рендер, ни пакет, ни
+    спека, — и через месяц никто не скажет, он источник правды или чей-то черновик.
+
+    Место такому файлу — `inbox/`, где он неизменяем и имеет строку в манифесте.
+    """
+    want = set()
+    for key, decl in (c.contract.get('documents') or {}).items():
+        rel = (c.files.get(key) or {}).get('path') or decl.get('path') or ''
+        if rel.startswith('client/'):
+            want.add(os.path.basename(rel))
+    d = os.path.join(c.root, 'client')
+    if not os.path.isdir(d) or not want:
+        return []
+    out = []
+    for name in sorted(os.listdir(d)):
+        if name.startswith('.') or name in want:
+            continue
+        out.append(Finding('12.38', ERROR, 'client/' + name, 0,
+                           'не один из документов — входящий материал: перенесите '
+                           'в inbox/ и разберите через /macstack-dev:intake'))
+    return out
