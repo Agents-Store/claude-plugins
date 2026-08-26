@@ -638,7 +638,8 @@
         "workflows": "workflows[] as one block per workflow: engine, triggers, location, invocation, status. Grouped by status, so 'what is not built yet' is one section rather than a column to scan.",
         "integrations": "connections.mcp[], interfaces[] and context.plugins with what each covers, as lists."
       },
-      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand. It does NOT replace docs/architecture.md, which holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise rediscover."
+      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand. It does NOT replace docs/architecture.md, which holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise rediscover.",
+      "format": "v3"
     },
     "test_cases": {
       "path": "generated/TEST-CASES.md",
@@ -1234,7 +1235,14 @@
       },
       "label_aliases": {
         "ru": [
-          "что переносим"
+          "что переносим",
+          "entities"
+        ],
+        "en": [
+          "entities"
+        ],
+        "de": [
+          "entities"
         ]
       },
       "type": "id_list",
@@ -1397,7 +1405,18 @@
         "en": "Address"
       },
       "type": "text",
-      "render": "text"
+      "render": "text",
+      "label_aliases": {
+        "ru": [
+          "path"
+        ],
+        "en": [
+          "path"
+        ],
+        "de": [
+          "path"
+        ]
+      }
     },
     "priority": {
       "label": {
@@ -1458,7 +1477,18 @@
       "type": "id",
       "resolves_to": "roles[]",
       "render": "code",
-      "$comment": "label_by_kind exists because one field is spoken two ways in the live corpus: HANDBOOK procedures say \"Кто\" (41x), AUTOMATION tasks say \"Кто делает\" (33x). A single label silently dropped all 33."
+      "$comment": "label_by_kind exists because one field is spoken two ways in the live corpus: HANDBOOK procedures say \"Кто\" (41x), AUTOMATION tasks say \"Кто делает\" (33x). A single label silently dropped all 33.",
+      "label_aliases": {
+        "ru": [
+          "role"
+        ],
+        "en": [
+          "role"
+        ],
+        "de": [
+          "role"
+        ]
+      }
     },
     "roles": {
       "label": {
@@ -1513,7 +1543,18 @@
           "manual": "запуск вручную"
         }
       },
-      "render": "text"
+      "render": "text",
+      "label_aliases": {
+        "ru": [
+          "source"
+        ],
+        "en": [
+          "source"
+        ],
+        "de": [
+          "source"
+        ]
+      }
     },
     "status": {
       "label": {
@@ -1521,7 +1562,15 @@
         "en": "Status"
       },
       "type": "text",
-      "render": "text"
+      "render": "text",
+      "label_aliases": {
+        "ru": [
+          "status"
+        ],
+        "de": [
+          "status"
+        ]
+      }
     },
     "trigger": {
       "label": {
@@ -1539,7 +1588,15 @@
       },
       "type": "id_list",
       "resolves_to": "triggers[]",
-      "render": "code_list"
+      "render": "code_list",
+      "label_aliases": {
+        "ru": [
+          "triggers"
+        ],
+        "de": [
+          "triggers"
+        ]
+      }
     },
     "type": {
       "label": {
@@ -1565,7 +1622,20 @@
           "manual": "запуск вручную"
         }
       },
-      "render": "text"
+      "render": "text",
+      "scope": "generated",
+      "label_aliases": {
+        "ru": [
+          "type"
+        ],
+        "en": [
+          "type"
+        ],
+        "de": [
+          "type"
+        ]
+      },
+      "$comment": "The ASCII key is a read-only alias for generated documents, whose reader is an agent and whose values are identifiers. A human label over an identifier value makes the line worse, not clearer — the same reason 12.25 does not measure the language of a generated document."
     },
     "unsafe_when": {
       "label": {
@@ -1591,11 +1661,114 @@
       "label_aliases": {
         "ru": [
           "что платформа делает сама"
+        ],
+        "de": [
+          "workflow"
         ]
       },
       "type": "id",
       "resolves_to": "workflows[]",
       "render": "code"
+    },
+    "category": {
+      "label": {
+        "ru": "category",
+        "en": "category"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "layers": {
+      "label": {
+        "ru": "layers",
+        "en": "layers"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "license": {
+      "label": {
+        "ru": "license",
+        "en": "license"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "hosting": {
+      "label": {
+        "ru": "hosting",
+        "en": "hosting"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "agentic": {
+      "label": {
+        "ru": "agentic",
+        "en": "agentic"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "stores": {
+      "label": {
+        "ru": "stores",
+        "en": "stores"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated",
+      "$comment": "The architecture labels stay ASCII in every language on purpose: their values are software ids, entity names and file paths, which the standard forbids translating. A translated label over an untranslatable value reads worse than an English one, and 12.25 exempts a generated document from the language ratio for the same reason."
+    },
+    "volume": {
+      "label": {
+        "ru": "volume",
+        "en": "volume"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "engine": {
+      "label": {
+        "ru": "engine",
+        "en": "engine"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "location": {
+      "label": {
+        "ru": "location",
+        "en": "location"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "implements": {
+      "label": {
+        "ru": "implements",
+        "en": "implements"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "invocation": {
+      "label": {
+        "ru": "invocation",
+        "en": "invocation"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
     }
   },
   "prose": {
@@ -1689,6 +1862,22 @@
       },
       "shape": "paragraph",
       "$comment": "a deferral without the trigger that ends it is not a decision, it is a hope"
+    },
+    "steps": {
+      "label": {
+        "ru": "Шаги",
+        "en": "Steps",
+        "de": "Schritte"
+      },
+      "shape": "ordered_list",
+      "$comment": "What the person actually does, in order. 42 live blocks in HANDBOOK procedures and the contract did not know the block existed, so nothing could require it: a procedure with no steps passed every check."
+    },
+    "problem": {
+      "label": {
+        "ru": "Какую проблему закрывает",
+        "en": "What problem it closes"
+      },
+      "shape": "paragraph"
     }
   }
 }

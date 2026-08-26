@@ -24,7 +24,7 @@ a document a human will actually correct, and it is the right price: the labels 
 few, they are declared here, and a project writing in German gets German labels rather
 than a document nobody edits.
 """
-import re, io
+import io, json, os, re, sys
 
 DOC_HEADER = re.compile(r'^<!--\s*macstack:doc=(\S+)\s+lang=(\S+)\s+version=(\S+)\s*-->')
 REF = re.compile(r'^<!--\s*macstack:ref=(.+?)\s*-->\s*$')
@@ -33,108 +33,57 @@ BULLET = re.compile(r'^\s*[-*]\s+\*\*(.+?):\*\*\s*(.*)$')
 PROSE = re.compile(r'^\*\*(.+?)[.:]?\*\*\s*(.*)$')
 
 # ---------------------------------------------------------------- labels
-# READ is many-to-one: a field may be spoken more than one way, and the live
-# corpus proves it — goals say "Чем измеряем", results say "Что измеряем", and
-# they are the same field. AUTOMATION tasks say "Кто делает" where HANDBOOK
-# procedures say "Кто". A single label per field silently dropped 103 of 430
-# bullets; every one of them became a raw Cyrillic dict key nothing reads.
+# Ярлыки живут в doc-contracts.json и строятся отсюда инверсией. Здесь их
+# больше нет: два места, объявляющие одно и то же, расходятся — и разошлись.
+# Контракт объявил ASCII-псевдонимы для сгенерированных документов, а таблица
+# в этом файле о них не знала, поэтому линтер считал ARCHITECTURE.md разобранным,
+# а читатель находил в нём ноль полей и 149 неизвестных ярлыков.
 #
-# WRITE is one-to-one and per kind: EMIT names the default word, EMIT_BY_KIND
-# overrides it where a kind speaks differently. The writer never emits an alias.
-READ = {
- 'ru': {u'кто': 'role', u'кто делает': 'role', u'кто видит': 'roles',
-        u'насколько важно': 'priority', u'экраны': 'screens',
-        u'триггеры': 'triggers', u'триггер': 'trigger', u'workflow': 'workflow',
-        u'адрес': 'path', u'кейсы': 'cases',
-        u'что от человека требуется': 'gate', u'что требуется от человека': 'gate',
-        u'процесс': 'process', u'что это за событие': 'type',
-        u'кто его создаёт': 'source', u'когда срабатывает': 'schedule',
-        u'что поднимает': 'raises', u'за чем следит': 'entity',
-        u'чьи задачи двигает': 'moves', u'что платформа делает сама': 'workflow',
-        u'открытый доступ': 'public', u'чужого не видит': 'isolation',
-        u'как часто': 'frequency', u'когда спросили': 'asked_on',
-        u'куда пойдёт': 'goes_to', u'что блокирует': 'blocks',
-        u'проверяет': 'covers', u'как проверяется': 'kind', u'состояние': 'status',
-        u'данные': 'entities', u'виды': 'views', u'языки': 'languages',
-        # goals and results
-        u'к какому сроку': 'horizon', u'чем измеряем': 'metric_unit',
-        u'что измеряем': 'metric_unit', u'цель': 'metric_target',
-        # integrations
-        u'направление': 'direction', u'как': 'approach',
-        u'что переносим': 'entities', u'срок диктует закон': 'legal_deadline',
-        # deferred open items
-        u'безопасно отложить, потому что': 'safe_because',
-        u'станет небезопасно в тот момент, когда': 'unsafe_when'},
- 'en': {'who': 'role', 'who does it': 'role', 'who sees it': 'roles',
-        'how important': 'priority', 'screens': 'screens', 'triggers': 'triggers',
-        'trigger': 'trigger', 'workflow': 'workflow', 'address': 'path',
-        'cases': 'cases', 'what the person must do': 'gate', 'process': 'process',
-        'kind of event': 'type', 'who creates it': 'source',
-        'when it fires': 'schedule', 'what it raises': 'raises',
-        'what it watches': 'entity', 'whose tasks it moves': 'moves',
-        'public': 'public', 'sees nothing else': 'isolation',
-        'how often': 'frequency', 'asked on': 'asked_on',
-        'where it goes': 'goes_to', 'blocks': 'blocks', 'covers': 'covers',
-        'how it is checked': 'kind', 'status': 'status', 'data': 'entities',
-        'by when': 'horizon', 'what we measure': 'metric_unit',
-        'target': 'metric_target', 'direction': 'direction', 'how': 'approach',
-        'legal deadline': 'legal_deadline',
-        'safe to defer because': 'safe_because',
-        'stops being safe when': 'unsafe_when'},
-}
-LABELS = READ          # name kept: five modules import it
+# READ многие-к-одному: у поля бывает больше одного имени. Цели говорят «Чем
+# измеряем», результаты — «Что измеряем», и это одно поле; задачи говорят «Кто
+# делает», процедуры — «Кто». Единственное имя на поле молча теряло 103 пункта
+# из 430.
+#
+# EMIT один-к-одному и по видам: писатель никогда не выводит псевдоним.
+_CONTRACT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              'doc-contracts.json')
 
-EMIT = {
- 'ru': {'role': u'Кто', 'roles': u'Кто видит', 'priority': u'Насколько важно',
-        'screens': u'Экраны', 'triggers': u'Триггеры', 'trigger': u'Триггер',
-        'workflow': u'Workflow', 'path': u'Адрес', 'cases': u'Кейсы',
-        'gate': u'Что от человека требуется', 'process': u'Процесс',
-        'type': u'Что это за событие', 'source': u'Кто его создаёт',
-        'schedule': u'Когда срабатывает', 'raises': u'Что поднимает',
-        'entity': u'За чем следит', 'moves': u'Чьи задачи двигает',
-        'public': u'Открытый доступ', 'isolation': u'Чужого не видит',
-        'frequency': u'Как часто', 'asked_on': u'Когда спросили',
-        'goes_to': u'Куда пойдёт', 'blocks': u'Что блокирует',
-        'covers': u'Проверяет', 'kind': u'Как проверяется',
-        'status': u'Состояние', 'entities': u'Данные', 'views': u'Виды',
-        'languages': u'Языки', 'horizon': u'К какому сроку',
-        'metric_unit': u'Чем измеряем', 'metric_target': u'Цель',
-        'direction': u'Направление', 'approach': u'Как',
-        'legal_deadline': u'Срок диктует закон',
-        'safe_because': u'Безопасно отложить, потому что',
-        'unsafe_when': u'Станет небезопасно в тот момент, когда'},
- 'en': {'role': 'Who', 'roles': 'Who sees it', 'priority': 'How important',
-        'screens': 'Screens', 'triggers': 'Triggers', 'trigger': 'Trigger',
-        'workflow': 'Workflow', 'path': 'Address', 'cases': 'Cases',
-        'gate': 'What the person must do', 'process': 'Process',
-        'type': 'Kind of event', 'source': 'Who creates it',
-        'schedule': 'When it fires', 'raises': 'What it raises',
-        'entity': 'What it watches', 'moves': 'Whose tasks it moves',
-        'public': 'Public', 'isolation': 'Sees nothing else',
-        'frequency': 'How often', 'asked_on': 'Asked on',
-        'goes_to': 'Where it goes', 'blocks': 'Blocks', 'covers': 'Covers',
-        'kind': 'How it is checked', 'status': 'Status', 'entities': 'Data',
-        'views': 'Views', 'languages': 'Languages', 'horizon': 'By when',
-        'metric_unit': 'What we measure', 'metric_target': 'Target',
-        'direction': 'Direction', 'approach': 'How',
-        'legal_deadline': 'Legal deadline',
-        'safe_because': 'Safe to defer because',
-        'unsafe_when': 'Stops being safe when'},
-}
-EMIT_BY_KIND = {
- 'ru': {'role_task': {'role': u'Кто делает'},
-        'result':    {'metric_unit': u'Что измеряем'}},
- 'en': {'role_task': {'role': 'Who does it'}},
-}
 
-VALUES = {
- 'ru': {u'критично': 'critical', u'важно': 'important', u'желательно': 'nice-to-have',
-        u'внести данные': 'input', u'совершить действие': 'execute', u'утвердить': 'approve',
-        u'проверить': 'review', u'расписание': 'schedule', u'событие в данных': 'db_event',
-        u'форма на экране': 'form', u'вызов извне': 'webhook', u'запуск вручную': 'manual',
-        u'да': True, u'нет': False, u'автоматически': 'auto', u'руками': 'manual'},
- 'en': {},
-}
+def _tables(contract):
+    read_, emit, by_kind, values = {}, {}, {}, {}
+    for key, f in (contract.get('fields') or {}).items():
+        for lang, lab in (f.get('label') or {}).items():
+            emit.setdefault(lang, {})[key] = lab
+            read_.setdefault(lang, {})[lab.strip().lower()] = key
+        for kind, per in (f.get('label_by_kind') or {}).items():
+            for lang, lab in per.items():
+                by_kind.setdefault(lang, {}).setdefault(kind, {})[key] = lab
+                read_.setdefault(lang, {})[lab.strip().lower()] = key
+        for lang, aliases in (f.get('label_aliases') or {}).items():
+            for lab in aliases:
+                read_.setdefault(lang, {})[lab.strip().lower()] = key
+        for lang, vmap in (f.get('value_label') or {}).items():
+            for canon, word in vmap.items():
+                values.setdefault(lang, {})[word.strip().lower()] = canon
+    # значения, не привязанные к enum: да/нет и автоматически/руками
+    for lang, extra in ((u'ru', {u'да': True, u'нет': False,
+                                 u'автоматически': 'auto', u'руками': 'manual'}),
+                        ('en', {'yes': True, 'no': False})):
+        values.setdefault(lang, {}).update(extra)
+    read_.setdefault('en', {})
+    emit.setdefault('en', {})
+    return read_, emit, by_kind, values
+
+
+try:
+    with io.open(_CONTRACT_PATH, encoding='utf-8') as _fh:
+        READ, EMIT, EMIT_BY_KIND, VALUES = _tables(json.load(_fh))
+except (IOError, ValueError) as _e:          # контракт рядом не лежит — читаем как умеем
+    sys.stderr.write('v3: doc-contracts.json не прочитан (%s); '
+                     'ярлыки недоступны, поля разбираться не будут\n' % _e)
+    READ, EMIT, EMIT_BY_KIND, VALUES = {'en': {}}, {'en': {}}, {}, {'en': {}}
+
+LABELS = READ          # имя сохранено: его импортируют пять модулей
 
 
 class Item(object):
