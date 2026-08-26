@@ -61,126 +61,140 @@ def _block(item, label):
     return []
 
 
-def _first_para(item, limit=400):
-    """Первый абзац тела сущности.
+ENTITY_MD = re.compile(r'^#{1,6}\s')
 
-    Склеивать всё тело нельзя: за прозой идут прозаические блоки со своими
-    заголовками, и вместе они дают стену текста, в которой клиент не найдёт,
-    на что отвечает.
+
+def _entity_md(doc_lines, item, drop_labels):
+    """Сущность целиком, как её читает человек — без машинных пунктов.
+
+    Клиенту показывают ЛОГИКУ, а не чек-лист. Пункты приёмки — это тест-кейсы,
+    они для машины; в документе они живут внутри кейса и читаются как его часть,
+    а не как отдельные вопросы. Первая версия расплющила их в 611 отдельных
+    строк по 400 символов, и получился длинный опросник вместо документа.
+
+    Машинные пункты (`- **Насколько важно:** критично`) убираются: клиенту они
+    ничего не говорят, а приоритет показывается отдельной пометкой.
     """
-    buf = []
-    for line in item.body:
-        s = line.strip()
-        if s.startswith('**') or s.startswith('- '):
-            if buf:
-                break
+    a, b = item.span
+    out, seen_head = [], False
+    for raw in doc_lines[a:b]:
+        s = raw.rstrip()
+        if s.lstrip().startswith('<!--'):
             continue
-        if not s:
-            if buf:
+        if ENTITY_MD.match(s):
+            if seen_head:
                 break
+            seen_head = True
+            continue                      # заголовок печатаем отдельно
+        m = re.match(r'^\s*-\s+\*\*(.+?):\*\*', s)
+        if m and m.group(1).strip() in drop_labels:
             continue
-        buf.append(s)
-    return ' '.join(buf)[:limit]
+        out.append(s)
+    while out and not out[0].strip():
+        out.pop(0)
+    while out and not out[-1].strip():
+        out.pop()
+    return out
+
+
+def _machine_labels(contract, lang):
+    """Ярлыки машинных полей на языке документа — их клиенту не показывают."""
+    out = set()
+    for f in (contract.get('fields') or {}).values():
+        lab = (f.get('label') or {}).get(lang)
+        if lab:
+            out.add(lab)
+        for per in (f.get('label_by_kind') or {}).values():
+            if per.get(lang):
+                out.add(per[lang])
+    return out
 
 
 def collect(root, contract, lang):
-    """Семь разделов, которые заказчик и просил, в его же порядке.
+    """Семь разделов, и в каждом — сущности ЦЕЛИКОМ.
 
-    Открытые вопросы входят: клиент должен на них ОТВЕЧАТЬ, а не смотреть, как
-    они висят. Закрытые не входят — спрашивать второй раз о решённом значит
-    тратить внимание, которого у человека ровно столько, сколько он готов дать
-    одному документу.
+    Единица, на которую отвечает клиент, — кейс, экран, триггер, вопрос. Не
+    строка внутри него. Клиент читает связный текст и говорит про него одно из
+    трёх; разбивать документ на шестьсот отдельных вопросов значит превращать
+    его в опросник, который никто не дочитает. Пункты приёмки — тест-кейсы, они
+    для машины и живут внутри кейса как его часть.
     """
     cl = os.path.join(root, 'client')
-    spec = _spec(root)
-    L = lambda k: _label(contract, k, lang)
+    drop = _machine_labels(contract, lang)
 
-    ov = v3.load(os.path.join(cl, 'OVERVIEW.md'), lang)
-    uc = v3.load(os.path.join(cl, 'USER-CASES.md'), lang)
-    ux = v3.load(os.path.join(cl, 'UX-UI.md'), lang)
-    au = v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
-    oq = v3.load(os.path.join(cl, 'OPEN-QUESTIONS.md'), lang)
+    def load(name):
+        p_ = os.path.join(cl, name)
+        return v3.load_doc(p_) if os.path.exists(p_) else None
 
-    def by(items, prefix):
-        return [i for i in items if i.id and (i.ref or '').startswith(prefix)]
+    docs = dict((n, load(n)) for n in ('OVERVIEW.md', 'USER-CASES.md', 'UX-UI.md',
+                                       'AUTOMATION.md', 'HANDBOOK.md',
+                                       'OPEN-QUESTIONS.md'))
 
-    sections = []
+    def ents(name, pref=None, level=3, want_id=True):
+        d = docs.get(name)
+        if d is None:
+            return []
+        out = []
+        for it in d.items:
+            if it.level != level:
+                continue
+            if want_id and not it.id:
+                continue
+            if pref is not None and not (it.ref or '').startswith(pref):
+                continue
+            body = _entity_md(d.lines, it, drop)
+            if not body and not it.id:
+                continue
+            out.append(dict(id=it.id or '', title=it.title or '', section=it.section,
+                            meta=_meta(it, lang), body=body))
+        return out
 
-    # 1. про проект — инварианты и отказы, они и есть утверждения о продукте
-    inv = [(r['id'], r.get('name') or '') for r in (spec.get('invariants') or [])]
-    if inv:
-        sections.append(('product', [dict(id=i, title='', items=[(i, n)]) for i, n in inv]))
+    def prose(name, heads):
+        d = docs.get(name)
+        if d is None:
+            return []
+        out = []
+        for it in d.items:
+            if it.level != 2 or (it.title or '') not in heads:
+                continue
+            body = _entity_md(d.lines, it, drop)
+            if body:
+                out.append(dict(id='', title=it.title, section=None, meta='', body=body))
+        return out
 
-    # 2. цели
-    goals = [dict(id=g.id, title=g.title, meta=' · '.join(
-                  '%s' % v for v in (g.get('horizon'), g.get('metric_target')) if v),
-                  items=[('%s.g1' % g.id, _first_para(g) or g.title)])
-             for g in by(ov, 'goals[')]
-    if goals:
-        sections.append(('goals', goals))
+    tasks = [e for e in ents('AUTOMATION.md', None, level=4) if e['id']]
+    sections = [
+        ('product', prose('OVERVIEW.md',
+                          (u'О продукте', u'Как это работает', u'Для кого',
+                           u'Правила, которые не нарушаются',
+                           u'Что платформа отказывается делать',
+                           'About the product', 'How it works', 'Who it is for'))),
+        ('goals', ents('OVERVIEW.md', 'goals[') + ents('OVERVIEW.md', 'results[')),
+        ('roles', ents('AUTOMATION.md', 'roles[')),
+        ('automation', ents('AUTOMATION.md', 'processes[')
+                       + ents('AUTOMATION.md', 'triggers[') + tasks),
+        ('cases', ents('USER-CASES.md')),
+        ('questions', [e for e in ents('OPEN-QUESTIONS.md')
+                       if '~~' not in (e['title'] or '')]),
+        ('screens', ents('UX-UI.md', 'interfaces[')),
+        ('handbook', ents('HANDBOOK.md', None, level=3, want_id=False)),
+    ]
+    return [(k, v) for k, v in sections if v]
 
-    # 3. роли
-    roles = []
-    for r in by(au, 'roles['):
-        it = []
-        for tag, key in (('s', 'sees'), ('c', 'can')):
-            for n, x in enumerate(_block(r, L(key)), 1):
-                it.append(('%s.%s%d' % (r.id, tag, n), x))
-        if it:
-            roles.append(dict(id=r.id, title=r.title, items=it))
-    if roles:
-        sections.append(('roles', roles))
 
-    # 4. триггер -> задача -> процесс
-    trig = []
-    for x in by(au, 'triggers['):
-        happens = _first_para(x)
-        trig.append(dict(id=x.id, title=x.title,
-                         meta=' · '.join(str(v) for v in (x.get('type'), x.get('source')) if v),
-                         items=[('%s.w1' % x.id, happens or x.title)]))
-    for x in au:
-        if x.id and '.tasks[' in (x.ref or ''):
-            trig.append(dict(id=x.id, title=x.title,
-                             meta=' · '.join(str(v) for v in (x.get('role'), x.get('gate')) if v),
-                             items=[('%s.w1' % x.id, _first_para(x) or x.title)]))
-    if trig:
-        sections.append(('automation', trig))
-
-    # 5. кейсы — сердце пакета
-    cases = []
-    for c in uc:
-        if not c.id or c.level < 3:
-            continue
-        acc = _block(c, L('acceptance'))
-        items = [('%s.a%d' % (c.id, n), x) for n, x in enumerate(acc, 1)]
-        if not items:
-            items = [('%s.a1' % c.id, _first_para(c) or c.title)]
-        cases.append(dict(id=c.id, title=c.title, meta=c.get('priority') or '', items=items))
-    if cases:
-        sections.append(('cases', cases))
-
-    # 6. открытые вопросы — только живые
-    q = []
-    for o in oq:
-        if not o.id or o.level < 3 or not o.ref:
-            continue
-        q.append(dict(id=o.id, title=o.title,
-                      items=[('%s.q1' % o.id, _first_para(o, 500) or o.title)]))
-    if q:
-        sections.append(('questions', q))
-
-    # 7. экраны
-    screens = []
-    for s in by(ux, 'interfaces['):
-        it = []
-        for tag, key in (('c', 'content'), ('d', 'actions'), ('f', 'forbidden')):
-            for n, x in enumerate(_block(s, L(key)), 1):
-                it.append(('%s.%s%d' % (s.id, tag, n), x))
-        if it:
-            screens.append(dict(id=s.id, title=s.title, meta=s.get('path') or '', items=it))
-    if screens:
-        sections.append(('screens', screens))
-    return sections
+def _meta(item, lang):
+    PRI = {'critical': {'ru': u'критично', 'en': 'critical'},
+           'important': {'ru': u'важно', 'en': 'important'},
+           'nice-to-have': {'ru': u'желательно', 'en': 'nice to have'}}
+    bits = []
+    p_ = item.get('priority')
+    if p_:
+        bits.append((PRI.get(p_) or {}).get(lang, p_))
+    for k in ('path', 'horizon', 'metric_target'):
+        v = item.get(k)
+        if v:
+            bits.append(str(v))
+    return ' · '.join(bits)
 
 
 def _spec(root):
@@ -243,10 +257,15 @@ h3{font:500 1.02rem/1.35 "IBM Plex Serif",Georgia,serif;margin:2rem 0 .55rem;
 .code{font:400 11.5px/1 "IBM Plex Mono",ui-monospace,Menlo,monospace;color:var(--dim);
  letter-spacing:.02em}
 h3 .code{font-size:12px}
-.item{border:1px solid var(--line);border-radius:11px;padding:.9rem 1rem;
- display:flex;flex-direction:column;gap:.5rem;margin-bottom:.55rem;background:var(--paper)}
-.item.changed{border-color:var(--mark-line);background:var(--mark-bg)}
-.claim{margin:0;max-width:62ch}
+.e{border:1px solid var(--line);border-radius:12px;padding:1.05rem 1.15rem;
+ display:flex;flex-direction:column;gap:.55rem;margin-bottom:.75rem;background:var(--paper)}
+.e.changed{border-color:var(--mark-line);background:var(--mark-bg)}
+.e h3{margin:0}
+.body{display:flex;flex-direction:column;gap:.55rem;max-width:64ch}
+.body p{margin:0}
+.body ul{margin:0;padding-left:1.15rem;display:flex;flex-direction:column;gap:.3rem}
+.body li{margin:0}
+.body .sub{font-weight:600;margin-top:.15rem}
 .tag{font:500 10.5px/1 "IBM Plex Mono",monospace;text-transform:uppercase;
  letter-spacing:.09em;color:var(--mark)}
 .was{margin:0;font-size:.89rem;color:var(--mark);padding-left:.75rem;
@@ -281,9 +300,9 @@ footer{margin-top:3.5rem;padding-top:1.3rem;border-top:1px solid var(--line);
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{
   body{max-width:none;padding:0;font-size:11pt}
-  .ans,.c,.item{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ans,.c,.e{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   button,textarea,#bar{display:none}
-  .item{break-inside:avoid;page-break-inside:avoid}
+  .e{break-inside:avoid;page-break-inside:avoid}
   h2{break-after:avoid}
 }
 """
@@ -330,6 +349,8 @@ STR = {
             n_questions='На эти вопросы можем ответить только вы. Пока ответа нет, работа по ним стоит.',
             n_cases='Главное в пакете. Каждый пункт — то, что человек должен смочь сделать.',
             c_c='комментарий, если есть',
+            s_handbook='Как этим пользоваться',
+            n_handbook='Пошагово, для того, кто сядет работать в платформе.',
             ok='верно', no='не так', q='вопрос',
             changed='изменилось', was='было:', you='вы', us='мы',
             btn='Собрать мои ответы', dump='Скопируйте этот текст и пришлите нам',
@@ -354,6 +375,8 @@ STR = {
             n_questions='Only you can answer these. Work on them is stopped until you do.',
             n_cases='The heart of the package. Each item is something a person must be able to do.',
             c_c='a comment, if you have one',
+            s_handbook='How to use it',
+            n_handbook='Step by step, for the person who will work in it.',
             ok='right', no='not so', q='question',
             changed='changed', was='was:', you='you', us='we',
             btn='Collect my answers', dump='Copy this text and send it to us',
@@ -364,47 +387,88 @@ STR = {
 
 
 def rows(T, group, hist, since):
-    """Одна карточка на утверждение. Таблица здесь не годится: клиент читает это
-    с телефона, а четыре колонки на телефоне не читаются вовсе."""
-    out = ['<div class="grp">',
-           '<h3>%s <span class="code">%s</span></h3>' % (md(group['title'] or group['id']),
-                                                        html.escape(group.get('id', '')))]
+    """Сущность как кусок документа, и ОДИН ответ на неё."""
+    ident = group['id']
+    rec = hist.get(ident, []) if ident else []
+    moved = [r for r in rec if r.get('kind') in ('added', 'changed')
+             and (r.get('date') or '') > (since or '')]
+    said = [r for r in rec if r.get('kind') in ('comment', 'answer')]
+
+    out = ['<section class="e%s"%s>' % (' changed' if moved else '',
+                                        ' data-id="%s"' % html.escape(ident) if ident else '')]
+    head = md(group['title'] or '')
+    if ident:
+        head += ' <span class="code">%s</span>' % html.escape(ident)
+    out.append('<h3>%s</h3>' % head)
     if group.get('meta'):
         out.append('<p class="meta">%s</p>' % md(str(group['meta'])))
-    for ident, claim in group['items']:
-        rec = hist.get(ident, []) + hist.get(group.get('id', ''), [])
-        moved = [r for r in rec if r.get('kind') in ('added', 'changed')
-                 and (r.get('date') or '') > (since or '')]
-        said = [r for r in rec if r.get('kind') in ('comment', 'answer')]
-        cls = ' changed' if moved else ''
-        out.append('<div class="item%s" data-id="%s">' % (cls, html.escape(ident)))
-        out.append('<span class="code">%s</span>' % html.escape(ident))
-        if moved:
-            out.append('<div class="tag">%s</div>' % T['changed'])
-        out.append('<p class="claim">%s</p>' % md(claim))
-        for r in moved:
-            # «было» — это ТЕКСТ, который стоял раньше. Номер решения на его месте
-            # ничего клиенту не говорит: D46 он видит впервые.
-            if r.get('was'):
-                out.append('<p class="was">%s %s</p>' % (T['was'], md(str(r['was'])[:300])))
-            else:
-                why = str(r.get('why') or '').strip()
-                if len(why) > 12 and not re.match(r'^[A-Z]\d*-?\d*$', why):
-                    out.append('<p class="was">%s</p>' % md(why[:300]))
-        for r in said:
-            who = T['you'] if r.get('by') == 'client' else T['us']
-            out.append('<p class="said"><strong>%s, %s:</strong> %s</p>'
-                       % (who, html.escape(r.get('date') or ''),
-                          md(str(r.get('why') or r.get('now') or '')[:300])))
+    if moved:
+        out.append('<p class="tag">%s</p>' % T['changed'])
+    out.append('<div class="body">%s</div>' % _md_block(group['body']))
+    for r in moved:
+        if r.get('was'):
+            out.append('<p class="was">%s %s</p>' % (T['was'], md(str(r['was'])[:400])))
+    for r in said:
+        who = T['you'] if r.get('by') == 'client' else T['us']
+        out.append('<p class="said"><strong>%s, %s:</strong> %s</p>'
+                   % (who, html.escape(r.get('date') or ''),
+                      md(str(r.get('why') or r.get('now') or '')[:400])))
+    if ident:
         radios = ''.join(
             '<label class="r"><input type="radio" name="%s" value="%s">%s</label>'
             % (html.escape(ident), val, T[key])
             for val, key in (('ok', 'ok'), ('no', 'no'), ('q', 'q')))
         out.append('<div class="ans">%s</div>' % radios)
         out.append('<div class="c" contenteditable="true" data-ph="%s"></div>' % T['c_c'])
-        out.append('</div>')
-    out.append('</div>')
+    out.append('</section>')
     return out
+
+
+def _md_block(lines):
+    """Абзацы, списки и жирные подзаголовки — как в самом документе.
+
+    Строки абзаца склеиваются ДО преобразования. В документе жирный текст
+    свободно переносится на следующую строку, и построчное преобразование
+    оставляло от него половину: «**центр» на одной строке и «подтверждает
+    часы**» на другой — ни одна не пара сама себе.
+    """
+    out, ul, para = [], False, []
+
+    def flush():
+        if not para:
+            return
+        s = ' '.join(x.strip() for x in para).strip()
+        del para[:]
+        if not s:
+            return
+        if re.match(r'^\*\*[^*]+[.:]?\*\*$', s):
+            out.append('<p class="sub">%s</p>' % md(s))
+        else:
+            out.append('<p>%s</p>' % md(s))
+
+    for raw in lines:
+        s = raw.strip()
+        if not s:
+            flush()
+            if ul:
+                out.append('</ul>')
+                ul = False
+            continue
+        if s.startswith('- '):
+            flush()
+            if not ul:
+                out.append('<ul>')
+                ul = True
+            out.append('<li>%s</li>' % md(s[2:].rstrip(';')))
+            continue
+        if ul:
+            out.append('</ul>')
+            ul = False
+        para.append(s)
+    flush()
+    if ul:
+        out.append('</ul>')
+    return '\n'.join(out)
 
 
 def build(root, date, slug, lang=None, artifact=False):
@@ -451,7 +515,7 @@ def build(root, date, slug, lang=None, artifact=False):
             P.append('<p class="sec-note">%s</p>' % html.escape(note))
         for g in groups:
             P.extend(rows(T, g, hist, since))
-            counted += len(g['items'])
+            counted += 1 if g['id'] else 0
 
     P.append('<div id="bar"><button onclick="save()">%s</button>'
              '<textarea id="dump" placeholder="%s"></textarea></div>'
@@ -518,8 +582,7 @@ def main():
         sys.stderr.write('ledger не записан: %s\n' % e)
 
     print('%s  ·  %d answerable items' % (out, counted))
-    print('  ' + ' · '.join('%s %d' % (k, sum(len(g['items']) for g in gs))
-                            for k, gs in data if gs))
+    print('  ' + ' · '.join('%s %d' % (k, len(gs)) for k, gs in data if gs))
     print('')
     if artifact:
         print('  artifact body — publish with the Artifact tool, then record its URL below')
