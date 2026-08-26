@@ -8,17 +8,25 @@ description: This skill should be used when the user asks to "check the implemen
 Every other check in this plugin asks whether the documents are well formed. This one
 asks whether they are **true**.
 
-It is read-only against the source tree and writes exactly two files, both dated, both
-into `history/reviews/`:
+It is read-only against the source tree, and it starts from a **case id**: does the code
+do what this case promises? That is the boundary with `code-audit`, which starts from a
+file and asks the opposite question — what is in the code that no document mentions.
+Two skills, two directions, one source tree. Overlap them and you get two answers to one
+question with no way to tell which is current.
 
-```
-history/reviews/<date>-<slug>-conformance.md   the technical audit
-history/reviews/<date>-<slug>-business.md      its business-language twin
-```
+**The durable output is a verdict per case, written into `history/ledger.jsonl` as
+`kind: "audit"`.** A verdict keyed by id is data: `uncovered.py` reads it to know which
+cases are already confirmed built, so the work list stops counting them as unplanned.
 
-The twin is not optional. It shipped as a WARNING "until a generator exists" for three
-releases; the generator is this skill. An audit only an engineer can read is an audit
-the person paying for the platform cannot act on.
+A dated markdown report is not the output. `history/reviews/` was exactly that and it is
+now in `archive/`: a report goes stale faster than anyone rereads it, while the verdict
+inside it stays useful for months. Print the run's findings to the terminal, put the
+verdicts in the ledger, and put what must be built into `TASKS.md`.
+
+What the client is told about the audit belongs in `CHANGELOG.md`, in their language,
+and only for what actually reached them. An audit only an engineer can read is an audit
+the person paying for the platform cannot act on — but the answer to that is one honest
+paragraph, not a second full document that has to be kept in step with the first.
 
 ## What it reads
 
@@ -54,23 +62,29 @@ A verdict without evidence is an opinion. Evidence cites a **test title** or a n
 symbol — never `file.ts:120`, which is banned outright because line numbers rot the
 moment the file above them grows.
 
-## The two documents
+## What a verdict row carries
 
-**The technical one** carries a finding per case: the verdict, the surfaces that
-implement it, the evidence, and what remains. Its `counts` section is the arithmetic —
-per role and in total, how many of each verdict, and how many acceptance bullets have no
-test at all.
+One row per case, keyed by its id:
 
-**The twin** answers the same question without a single file path in it: which parts of
-the platform do what was agreed, which do not yet, and what the client has to supply for
-the blocked ones to move. Same date, same slug, same commit. It is written from the
-findings, not from a second pass over the code — two independent readings would
-eventually disagree, and then nobody knows which one to believe.
+```json
+{"date":"2026-08-27","doc":"client/USER-CASES.md","item":"C-04","kind":"audit",
+ "now":"implemented","why":"src/workflows/attendance.ts + entry.double-checkin.spec.ts",
+ "by":"claude"}
+```
+
+`now` is the verdict, `why` is the evidence — the surfaces that implement it and the
+test that proves it. That is enough for the next run to see what changed and for
+`uncovered.py` to stop reporting a built case as unplanned.
+
+The arithmetic goes to the terminal: per role and in total, how many of each verdict, and
+how many cases have no scenario test at all.
 
 ## What it does NOT do
 
 - **It does not fix anything.** The output is a verdict and a list; the fix is
   `/macstack-dev:plan` and then a coding session.
+- **It does not enumerate the code.** Starting from a file and asking what the
+  documents are missing is `code-audit`. This skill starts from a case id.
 - **It does not move `reviewed` dates by itself** for documents it did not actually
   check. A review dated later than `reviewed` moves that date forward — but only for the
   documents whose content this run examined. Marking all six because one was audited is
@@ -81,7 +95,7 @@ eventually disagree, and then nobody knows which one to believe.
 
 ## Feeding the loop
 
-The newest conformance review is what `/macstack-dev:plan` reads before reporting a
+The audit verdicts in the ledger are what `/macstack-dev:plan` reads before reporting a
 work list. Measured when this link was first built: a gap report that ignored the audit
 announced 63 unplanned cases where 35 were already confirmed implemented. Reading the
 verdicts cut it to 8. **A gap report that ignores what has already been checked reports

@@ -14,7 +14,7 @@ what already exists.
 
 | What you find | Mode |
 |---|---|
-| A codebase, no `macstack.json` | **audit** — read the code into a spec (`spec-authoring`) |
+| A codebase, no `macstack.json` | **audit** — enumerate the code (`code-audit`), then read it into a spec (`spec-authoring`) |
 | No codebase, a business request in `$ARGUMENTS` | **design** — result-first from scratch (`spec-authoring`) |
 | `macstack.json` at the repo root, or a flat/`docs/`-era layout, or v1 table-shaped documents | **migrate** — `documents`, migration mode |
 | A valid spec, an incomplete `macstack/` | **repair** — `documents`, create only what is missing |
@@ -22,6 +22,10 @@ what already exists.
 
 Then, in order and without skipping:
 
+0. **`code-audit`** — in **audit** mode only: enumerate what the code contains before
+   writing a line of spec. Reading a codebase into a spec by browsing it is how a
+   subsystem goes unmentioned — the enumerator lists every candidate the declared stack's
+   conventions produce, and says out loud when a convention matched nothing.
 1. **`spec-authoring`** — produce or complete `macstack.json`. For a hard case,
    delegate to the `macstack-architect` agent.
 2. **`documents`** — create or repair `macstack/`, seeding the authored client

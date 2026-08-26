@@ -106,7 +106,8 @@ not a risk.
 | `planning` | Milestones, tasks, backlog, the tracker reconcile, and finding unplanned work |
 | `sync` | The spec against the client documents, and against the code |
 | `test-cases` | One test per acceptance bullet, derived from cases, triggers and screens |
-| `conformance` | Audit the implementation against the documents; the dated review pair |
+| `conformance` | From a case id: does the code do what this case promises? One `audit` verdict per case, into the ledger |
+| `code-audit` | From a file: what is in the code that no document mentions? Enumerates by the conventions the spec declares, sorts into three lists, proposes — never edits |
 | `journal` | `history/ledger.jsonl` — one row per edit, comment and audit verdict — and its curated client-facing `CHANGELOG.md` |
 | `client-package` | The client package — HTML and published page — with each statement's own history, and reading the answers back into the ledger |
 | `lint` | Schema, referential integrity, the folder (39 rules, 12.0–12.38), and the status dashboard |
