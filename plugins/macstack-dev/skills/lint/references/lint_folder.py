@@ -123,9 +123,9 @@ class Ctx(object):
         doc = self.docs.get(key)
         if decl is None or doc is None:
             return None, []
-        want = _CONTRACT_KIND.get(kind, kind)
+        want = set(decl.get('collections') or [_CONTRACT_KIND.get(kind, kind)])
         return decl, [i for i in doc.items
-                      if i.level >= 3 and self.entity_kind(i) == want]
+                      if i.level >= 3 and self.entity_kind(i) in want]
 
     def prose_label(self, prose_key, lang=None):
         pr = (self.contract.get('prose') or {}).get(prose_key) or {}
@@ -143,6 +143,37 @@ TABLE = re.compile(r'^\s*\|')
 
 
 # ---------------------------------------------------------------- rules
+@rule('12.0', 'A declared entity kind is actually found in its document')
+def r_12_0(c):
+    """The guard against the failure this whole pass exists to catch.
+
+    A rule that filters entities and matches none reports CLEAN, and clean is
+    indistinguishable from correct. It happened here: schema rev 13 gave cases their
+    own records, the pointers were repointed from `roles[].cases` to `cases[id=…]`,
+    and the kind filter — still matching the old collection — silently returned zero.
+    Thirty-five rules ran over an empty list and every one of them passed.
+
+    So: if the contract declares an entity kind for a document and the document has
+    headings, finding none of that kind is an ERROR, not silence.
+    """
+    out = []
+    for key in sorted(c.docs):
+        doc = c.docs[key]
+        if not [i for i in doc.items if i.level >= 3]:
+            continue
+        for e in ((c.contract.get('documents') or {}).get(key) or {}).get('entities') or []:
+            if e.get('status') == 'unrealised':
+                continue
+            _, items = c.entities_of(key, e['kind'])
+            if not items:
+                out.append(Finding('12.0', ERROR, c.rel(doc.path), 0,
+                                   'the contract declares a %s here and not one was '
+                                   'matched — the document has %d headings, so this is '
+                                   'a broken filter, not an empty document'
+                                   % (e['kind'], len([i for i in doc.items if i.level >= 3]))))
+    return out
+
+
 @rule('12.1', 'Layout — six entries in the root, and every fixed-path document exists')
 def r_12_1(c):
     out = []

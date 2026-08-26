@@ -33,11 +33,11 @@ DOCS = sorted(glob.glob(os.path.join(CLIENT, '*.md')))
 # relax: it means a pointer relation moved, and the only way that happens
 # quietly is somebody inventing a spec entry to satisfy a lint rule.
 CENSUS = {
-    'AUTOMATION.md':     dict(headings=49, pointers=49, targets=49, same=49, none=0),
+    'AUTOMATION.md':     dict(headings=57, pointers=57, targets=57, same=57, none=0),
     'HANDBOOK.md':       dict(headings=0,  pointers=0,  targets=0,  same=0,  none=0),
     'OPEN-QUESTIONS.md': dict(headings=25, pointers=21, targets=21, same=21, none=4),
-    'OVERVIEW.md':       dict(headings=18, pointers=18, targets=18, same=18, none=0),
-    'USER-CASES.md':     dict(headings=78, pointers=51, targets=3,  same=0,  none=27),
+    'OVERVIEW.md':       dict(headings=10, pointers=10, targets=10, same=10, none=0),
+    'USER-CASES.md':     dict(headings=78, pointers=78, targets=78, same=78, none=0),
     'UX-UI.md':          dict(headings=37, pointers=37, targets=9,  same=9,  none=0),
 }
 
@@ -91,10 +91,20 @@ class LabelsDeclared(unittest.TestCase):
 class CardinalityCensus(unittest.TestCase):
     """Pointer binding is not one relation, and this is the proof.
 
-    identity  AUTOMATION, OVERVIEW    heading id == pointer id
-    container UX-UI                   37 headings -> 9 interfaces[]
-    member    USER-CASES              roles[id=coach].cases holds a glob 'C-*'
-    none      X-/S-/Z- cases          belong to every role, so to no roles[] entry
+    identity  AUTOMATION, OVERVIEW, USER-CASES   heading id == pointer id
+    container UX-UI                              37 headings -> 9 interfaces[]
+    none      4 closed open items                struck through, no longer owed
+
+    Schema rev 13 changed two of these on purpose. Before it there was no cases[] to
+    point at, so a case pointed at the ROLE that owned it — membership in the glob
+    'C-*' — and the 27 cross-cutting cases and prohibitions, which belong to no role,
+    carried no pointer at all. Now every case names its own record, and the member
+    binding has no user left in this corpus. It stays in the contract because the
+    relation is real; a project whose documents predate rev 13 will still use it.
+
+    The eight processes that OVERVIEW.md used to head are now a list: the heading and
+    the id were duplicated verbatim in two documents, which is one rename away from a
+    disagreement nobody would notice.
     """
 
     def test_census_unchanged(self):

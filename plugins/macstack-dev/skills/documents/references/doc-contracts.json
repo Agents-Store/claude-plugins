@@ -170,11 +170,11 @@
         "audience",
         "results",
         "integrations",
-        "processes",
         "invariants",
         "refuses",
         "glossary",
-        "related"
+        "related",
+        "processes"
       ],
       "entities": [
         {
@@ -192,20 +192,10 @@
           "pointer": {
             "path": "goals[id=<id>]",
             "binding": "identity"
-          }
-        },
-        {
-          "kind": "process",
-          "id_space": "slug",
-          "in_section": "processes",
-          "heading": "### <id> · <title>",
-          "prose_required": [],
-          "bullets_required": [],
-          "bullets_optional": [],
-          "pointer": {
-            "path": "processes[id=<id>]",
-            "binding": "identity"
-          }
+          },
+          "collections": [
+            "goals"
+          ]
         },
         {
           "kind": "result",
@@ -220,7 +210,10 @@
           "prose_optional": [
             "problem"
           ],
-          "note": "What the client gets, and honestly: a result carries the problem it closes and the state it is actually in. Two of four in the live project are partial, and the document says which open question blocks each."
+          "note": "What the client gets, and honestly: a result carries the problem it closes and the state it is actually in. Two of four in the live project are partial, and the document says which open question blocks each.",
+          "collections": [
+            "results"
+          ]
         },
         {
           "kind": "integration",
@@ -238,7 +231,10 @@
           "prose_optional": [
             "open"
           ],
-          "note": "Where the platform touches something it does not own."
+          "note": "Where the platform touches something it does not own.",
+          "collections": [
+            "integrations"
+          ]
         }
       ],
       "feeds": {
@@ -255,7 +251,7 @@
           "statuses of technical work"
         ]
       },
-      "note": "What the product is, who it is for, what it must never do — in the words of someone who does not read code. Owns goals, the high-level processes and the glossary. Does NOT define roles: it names them in `audience` with one sentence each and points at AUTOMATION.md, which owns the definition. Splitting a role's definition across two documents is how the two start disagreeing.",
+      "note": "What the product is, who it is for, what it must never do — in the words of someone who does not read code. Owns goals, the high-level processes and the glossary. Does NOT define roles: it names them in `audience` with one sentence each and points at AUTOMATION.md, which owns the definition. Splitting a role's definition across two documents is how the two start disagreeing.  Processes are NAMED here and OWNED by client/AUTOMATION.md, where the paradigm lives: trigger -> task -> workflow, grouped by process. Heading them in both documents put the same id and the same title in two places, one rename away from a disagreement nobody would notice; here they are a list under a collection pointer.",
       "format": "v3",
       "journal": false,
       "journal_moved_to": "history/"
@@ -303,28 +299,24 @@
           ],
           "bullets_note": "the role is already the pointer one line above; a second copy is the hand-maintained duplicate 12.27 exists to stop",
           "pointer": {
-            "inherits_section": true,
+            "binding": "identity",
             "by_id_prefix": {
-              "X": {
-                "binding": "none",
-                "why": "cross-cutting: belongs to every role, so to no roles[] entry"
-              },
-              "S": {
-                "binding": "none",
-                "why": "end-to-end scenario, spans roles"
-              },
               "Z": {
-                "binding": "none",
-                "why": "prohibition, spans roles"
+                "path": "prohibitions[id=<id>]",
+                "binding": "identity",
+                "why": "a prohibition is its own record: no acceptance list, and it belongs to no single role"
               },
               "*": {
-                "path": "roles[id=<role>].cases",
-                "binding": "member",
-                "member_test": "glob",
-                "why": "roles[].cases holds globs ([\"C-*\"]), not objects. The pointer asserts membership; it does not name this case."
+                "path": "cases[id=<id>]",
+                "binding": "identity"
               }
-            }
-          }
+            },
+            "$comment": "Until schema rev 13 there was no cases[] to point at, so a case heading pointed at the ROLE that owned it — membership in the glob \"C-*\" — and the 27 cross-cutting cases and prohibitions, which belong to no role, carried no pointer at all. They were addressable only inside their own document."
+          },
+          "collections": [
+            "cases",
+            "prohibitions"
+          ]
         }
       ],
       "index": "generated/INDEX.md",
@@ -378,7 +370,10 @@
             "path": "interfaces[id=<area>]",
             "binding": "container",
             "why": "interfaces[] stays at AREA level by decision — 37 screens onto 9 entries. The heading id is the route slug, not the interface id."
-          }
+          },
+          "collections": [
+            "interfaces"
+          ]
         }
       ],
       "feeds": {
@@ -431,7 +426,27 @@
           },
           "bullets_forbidden": [
             "cases"
+          ],
+          "collections": [
+            "roles"
           ]
+        },
+        {
+          "kind": "process",
+          "id_space": "process",
+          "collections": [
+            "processes"
+          ],
+          "heading": "### <title> — `<id>`",
+          "pointer": {
+            "path": "processes[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_required": [],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": [],
+          "note": "The high-level layer of the paradigm: a PROCESS is the big thing the business does, a WORKFLOW is the small deterministic thing software runs, and tasks are grouped under processes. Eight of them stood in this document unchecked by anything, because the contract declared processes only for OVERVIEW.md — where they are summarised, not where their tasks live."
         },
         {
           "kind": "role_task",
@@ -457,7 +472,10 @@
           "bullets_forbidden": [
             "process"
           ],
-          "bullets_note": "the process is already the pointer — processes[id=X].tasks[id=Y] — and a second copy of a fact the pointer carries is the hand-maintained duplicate 12.27 exists to stop. The same reasoning that forbids `role` on a case."
+          "bullets_note": "the process is already the pointer — processes[id=X].tasks[id=Y] — and a second copy of a fact the pointer carries is the hand-maintained duplicate 12.27 exists to stop. The same reasoning that forbids `role` on a case.",
+          "collections": [
+            "role_task"
+          ]
         },
         {
           "kind": "trigger",
@@ -483,7 +501,10 @@
           "pointer": {
             "path": "triggers[id=<id>]",
             "binding": "identity"
-          }
+          },
+          "collections": [
+            "triggers"
+          ]
         }
       ],
       "feeds": {
@@ -541,7 +562,10 @@
             "frequency"
           ],
           "status": "unrealised",
-          "status_note": "Measured 2026-08-26: HANDBOOK.md carries zero headings with an id and zero pointers. Procedures are not addressable, so a client cannot comment on one and the ledger cannot record an edit to one. Either the document gains ids or this entity leaves the contract — it must not stay a silent promise."
+          "status_note": "Measured 2026-08-26: HANDBOOK.md carries zero headings with an id and zero pointers. Procedures are not addressable, so a client cannot comment on one and the ledger cannot record an edit to one. Either the document gains ids or this entity leaves the contract — it must not stay a silent promise.",
+          "collections": [
+            "procedure"
+          ]
         }
       ],
       "derived_seed": [
@@ -602,7 +626,10 @@
               "goes_to"
             ],
             "team": []
-          }
+          },
+          "collections": [
+            "lifecycle"
+          ]
         }
       ],
       "closed_form": "~~A6~~ · CLOSED D14, 2026-08-24",
@@ -692,6 +719,9 @@
             "screen",
             "trigger",
             "status"
+          ],
+          "collections": [
+            "testcase"
           ]
         }
       ],
@@ -759,6 +789,9 @@
           "bullets_optional": [
             "target",
             "released"
+          ],
+          "collections": [
+            "milestone"
           ]
         },
         {
@@ -788,6 +821,9 @@
             "blocked_by",
             "milestone",
             "done_on"
+          ],
+          "collections": [
+            "task"
           ]
         },
         {
@@ -802,6 +838,9 @@
           "bullets_optional": [
             "spec",
             "size"
+          ],
+          "collections": [
+            "backlog"
           ]
         }
       ],
@@ -837,6 +876,9 @@
           ],
           "bullets_optional": [
             "branch"
+          ],
+          "collections": [
+            "rulings_group"
           ]
         }
       ],
@@ -874,6 +916,9 @@
             "milestone",
             "tasks",
             "superseded_by"
+          ],
+          "collections": [
+            "release"
           ]
         }
       ],
@@ -937,7 +982,10 @@
               "milestone",
               "changelog"
             ]
-          }
+          },
+          "collections": [
+            "log_entry"
+          ]
         }
       ],
       "note": "Append-only journal of everything that happened to this project: client material in, merges, work done, releases out. Scaffolding does not log — a freshly created folder has no entry, and that absence is intentional. CHANGELOG.md is this file's curated, client-facing derivative; the two are never merged."
@@ -969,6 +1017,9 @@
             "processed_in",
             "size_mb",
             "pages"
+          ],
+          "collections": [
+            "intake"
           ]
         }
       ],
@@ -1009,6 +1060,9 @@
           "bullets_optional": [
             "cases",
             "source_page"
+          ],
+          "collections": [
+            "contradiction"
           ]
         },
         {
@@ -1026,6 +1080,9 @@
             "priority",
             "becomes",
             "source_page"
+          ],
+          "collections": [
+            "addition"
           ]
         }
       ],
@@ -1067,6 +1124,9 @@
             "closes",
             "opens",
             "applies_to"
+          ],
+          "collections": [
+            "ruling"
           ]
         }
       ],
@@ -1103,6 +1163,9 @@
             "surfaces",
             "blocked_by",
             "tests"
+          ],
+          "collections": [
+            "finding"
           ]
         }
       ],
