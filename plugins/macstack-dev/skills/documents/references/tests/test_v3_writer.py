@@ -35,7 +35,7 @@ DOCS = sorted(glob.glob(os.path.join(CLIENT, '*.md')))
 CENSUS = {
     'AUTOMATION.md':     dict(headings=57, pointers=57, targets=57, same=57, none=0),
     'HANDBOOK.md':       dict(headings=0,  pointers=0,  targets=0,  same=0,  none=0),
-    'OPEN-QUESTIONS.md': dict(headings=25, pointers=21, targets=21, same=21, none=4),
+    'OPEN-QUESTIONS.md': dict(headings=26, pointers=22, targets=22, same=22, none=4),
     'OVERVIEW.md':       dict(headings=10, pointers=10, targets=10, same=10, none=0),
     'USER-CASES.md':     dict(headings=78, pointers=78, targets=78, same=78, none=0),
     'UX-UI.md':          dict(headings=37, pointers=37, targets=9,  same=9,  none=0),

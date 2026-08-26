@@ -86,6 +86,15 @@ class Ctx(object):
     def rel(self, p):
         return os.path.relpath(p, self.root)
 
+    def is_generated(self, key):
+        return bool(((self.contract.get('documents') or {}).get(key) or {}).get('generated'))
+
+    def authored_keys(self):
+        """Документы, которые пишет человек. Форму сгенерированного гарантирует
+        его генератор и правило 12.18 — требовать с него указателей значит
+        требовать, чтобы генератор их придумывал."""
+        return [k for k in self.docs if not self.is_generated(k)]
+
     def client_keys(self):
         """Everything the client actually reads — `client` AND `both`.
 
@@ -221,7 +230,7 @@ def r_12_2(c):
     so removing one pointer could hide a duplicate id as a bonus.
     """
     out = []
-    for key in sorted(c.docs):
+    for key in sorted(c.authored_keys()):
         doc = c.docs[key]
         if not doc.header.get('doc'):
             out.append(Finding('12.2', ERROR, c.rel(doc.path), 1,
@@ -386,7 +395,7 @@ def _glob(pat, s):
 @rule('12.30', 'A client document is headings and bullets, and nothing else')
 def r_12_30(c):
     out = []
-    for key in c.client_keys():
+    for key in [k for k in c.client_keys() if not c.is_generated(k)]:
         p = c.rel(c.docs[key].path)
         for n, line in enumerate(c.docs[key].lines, 1):
             if FENCE.match(line):
@@ -432,7 +441,7 @@ def r_12_33(c):
     out = []
     heads = [u'история изменений', u'document journal', u'журнал документа',
              u'änderungsverlauf', u'change log', u'changelog']
-    for key in c.client_keys():
+    for key in [k for k in c.client_keys() if not c.is_generated(k)]:
         doc = c.docs[key]
         for it in doc.items:
             if it.level == 2 and (it.title or '').strip().lower() in heads:

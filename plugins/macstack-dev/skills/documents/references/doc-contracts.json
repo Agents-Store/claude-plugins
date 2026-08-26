@@ -759,42 +759,11 @@
         "what changed",
         "source"
       ],
-      "entities": [
-        {
-          "kind": "testcase",
-          "id_space": "testcase",
-          "heading": "### <id> · <title>",
-          "sections_required_when": {
-            "manual": [
-              "preconditions",
-              "steps"
-            ],
-            "auto": [
-              "evidence"
-            ]
-          },
-          "note": "`covers` names the acceptance id it verifies (C-06.a2), not just the case. That is what makes the coverage count checkable rather than plausible.",
-          "prose_required": [
-            "expected"
-          ],
-          "bullets_required": [
-            "covers",
-            "kind"
-          ],
-          "bullets_optional": [
-            "role",
-            "screen",
-            "trigger",
-            "status"
-          ],
-          "collections": [
-            "testcase"
-          ]
-        }
-      ],
       "section_order_mirrors": "user_cases",
       "struck_form": "~~C-04.T2~~ · DROPPED in v1.9 — the acceptance bullet it covered is gone",
-      "note": "Sits between the client documents (what must be true) and reviews/ (what was found when someone checked): this document says HOW each acceptance bullet is verified. At least one test per bullet. Evidence cites a test title, never a file:line. A bullet needing human judgement is `manual` and carries steps; an `auto` test names the automated test that proves it. v2 widens the source from user_cases alone to the screens and triggers as well — a screen prohibition and a trigger that must fire on a schedule are both verifiable claims, and neither had a home before. Regeneration is by id: update in place, never clobber hand-written steps."
+      "note": "Собирается из ЗАГОЛОВКОВ тестов. Раньше это был авторский документ, который кто-то должен был вести руками, и он врал с того дня, как тест удаляли: покрытие оставалось зелёным, а проверки уже не было. Единица покрытия — кейс, а не пункт приёмки: пункт это строка чек-листа внутри кейса, а не отдельный тест.",
+      "generated": "client/USER-CASES.md + tests/",
+      "format": "v3"
     },
     "index": {
       "path": "generated/INDEX.md",
@@ -1102,6 +1071,13 @@
         ]
       },
       "note": "Every edit and every client comment, one JSON object per line, keyed by the id of the thing that changed. It replaces history/log.md, whose entries were about the SESSION and never said which statement moved — so a review package could not show a client what had changed since they last read it. intake and merge lost their entry kinds on the way: the trace of a merge is the edits it produced, and a row saying \"material was merged\" beside rows saying what it changed is a summary of its own neighbours."
+    },
+    "requirements": {
+      "path": "generated/REQUIREMENTS.md",
+      "audience": "internal",
+      "format": "v3",
+      "generated": "client/*.md",
+      "note": "Каждое проверяемое утверждение клиентских документов с постоянным адресом. То, по чему агент сверяет код с договорённостью, не читая шесть документов прозы. Правило 12.35 держит его полным."
     }
   },
   "prohibitions": [
@@ -1890,14 +1866,14 @@
         "ru": "Что видит",
         "en": "What it sees"
       },
-      "shape": "bullet_list"
+      "shape": "paragraph"
     },
     "can": {
       "label": {
         "ru": "Что может",
         "en": "What it can do"
       },
-      "shape": "bullet_list"
+      "shape": "paragraph"
     },
     "isolation_note": {
       "label": {

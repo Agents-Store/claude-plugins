@@ -475,6 +475,10 @@ def r_12_17(c):
     if not c.files:
         return []
     out = []
+    # Сгенерированный документ не сверяют с кодом: его пересобирают, и это
+    # проверяет правило 12.18. Требовать с него дату «когда сверяли» значит
+    # требовать проверку, которой для него не существует.
+
     today = datetime.date.today()
     # A spec that fails pass 1 still reaches pass 3 — the live corpus does exactly that
     # today, with three schema errors standing — so every value read here is treated as
@@ -490,6 +494,9 @@ def r_12_17(c):
         fresh_days = 30
     latest_review = _latest_conformance_date(c.root)
     for key in sorted(c.files):
+
+        if ((c.contract.get('documents') or {}).get(key) or {}).get('generated'):
+            continue
         meta = c.files.get(key)
         if not isinstance(meta, dict):
             out.append(Finding('12.17', ERROR, 'macstack.json', 0,
@@ -526,9 +533,19 @@ def r_12_17(c):
 
 
 # ================================================================== 12.18
-_RENDER_JOB = {'architecture': os.path.join('generated', 'ARCHITECTURE.md'),
-              'index': os.path.join('generated', 'INDEX.md'),
-              'readme': 'README.md'}
+def _render_jobs():
+    """Работы рендера читаются ИЗ render.py, а не перечисляются здесь.
+
+    Список жил копией в этом правиле и разошёлся с оригиналом ровно тогда, когда
+    появились REQUIREMENTS.md и TEST-CASES.md: генераторы есть, а правило
+    докладывало, что их нет. Ровно тот же класс, что и README.md, из-за которого
+    12.18 три релиза было невыполнимо.
+    """
+    try:
+        src = io.open(os.path.join(_lf.DOCS, 'render.py'), encoding='utf-8').read()
+    except IOError:
+        return set()
+    return set(re.findall(r"only in \(None, '([a-z_]+)'\)", src))
 
 
 @rule('12.18', "A generated document equals its source")
@@ -538,7 +555,7 @@ def r_12_18(c):
     if not gen_keys:
         return []
     out = []
-    uncovered = [k for k in gen_keys if k not in _RENDER_JOB]
+    uncovered = [k for k in gen_keys if k not in _render_jobs()]
     for k in uncovered:
         # This is exactly the historical README.md failure: a contract entry says
         # `generated` and no generator exists for it, so the rule was unsatisfiable
@@ -547,7 +564,7 @@ def r_12_18(c):
         out.append(Finding('12.18', ERROR, docs[k].get('path') or k, 0,
                            'the contract marks `%s` generated but render.py has no '
                            '--only job for it — this rule cannot verify it' % k))
-    checked = [k for k in gen_keys if k in _RENDER_JOB]
+    checked = [k for k in gen_keys if k in _render_jobs()]
     if not checked:
         return out
     render_py = os.path.join(_lf.DOCS, 'render.py')
@@ -572,7 +589,7 @@ def r_12_18(c):
     # ERRORs against files render.py had just called byte-identical to their source.
     out_lang = i18n.doc_lang(c.root)
     for k in checked:
-        path = os.path.join(c.root, _RENDER_JOB[k])
+        path = os.path.join(c.root, (c.contract.get('documents') or {}).get(k, {}).get('path', k))
         drift = i18n.msg(out_lang, 'drift', path=path)
         insync = i18n.msg(out_lang, 'in_sync', path=path)
         if drift in lines:
@@ -583,19 +600,19 @@ def r_12_18(c):
                 # edit that does not exist.
                 out.append(Finding('12.18', ERROR, c.rel(path), 0,
                                    '%s has never been rendered from `%s` — run render.py '
-                                   'rather than writing it' % (_RENDER_JOB[k],
+                                   'rather than writing it' % ((c.contract.get('documents') or {}).get(k, {}).get('path', k),
                                                                docs[k].get('generated'))))
             else:
                 out.append(Finding('12.18', ERROR, c.rel(path), 0,
                                    '%s no longer matches a fresh render of `%s` — either '
                                    'it was hand-edited or the source moved and nobody '
                                    're-rendered; re-render it, never hand-fix it'
-                                   % (_RENDER_JOB[k], docs[k].get('generated'))))
+                                   % ((c.contract.get('documents') or {}).get(k, {}).get('path', k), docs[k].get('generated'))))
         elif insync not in lines:
             out.append(Finding('12.18', ERROR, c.rel(path), 0,
                                'render.py --check gave no verdict for %s — cannot '
                                'confirm it is in sync (stderr: %s)'
-                               % (_RENDER_JOB[k], (proc.stderr or '').strip()[:200])))
+                               % ((c.contract.get('documents') or {}).get(k, {}).get('path', k), (proc.stderr or '').strip()[:200])))
     return out
 
 

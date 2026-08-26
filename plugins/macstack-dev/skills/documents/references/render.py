@@ -482,53 +482,68 @@ def scan_tests(project_root):
 
 
 def render_test_cases(root, lang):
-    """Один тест на пункт приёмки — и честное «не покрыт» там, где его нет.
+    """Покрытие считается ПО КЕЙСАМ, а не по пунктам приёмки.
 
-    Считает по тому, что тесты говорят о себе сами. Пункт без теста — это не
-    забытая строчка в таблице, а обещание, которое нечем проверить.
+    Первая версия считала по пунктам: 384 обещания — 384 связи. Это неверная
+    единица. Пункт приёмки не тест, а строка чек-листа ВНУТРИ кейса: «кнопка
+    видна», «геолокация проверяется», «отказ называет расстояние» — человек
+    проходит это одним сценарием, а не пятью.
+
+    Поэтому здесь два разных слоя, и путать их нельзя:
+
+    - СЦЕНАРНЫЙ тест проходит кейс целиком, как человек. Он и есть доказательство
+      обещания. В этом проекте такие живут в tests/e2e/.
+    - ИНЖЕНЕРНЫЙ тест проверяет функцию или кусок кода. Их 2315, они нужны, и
+      размечать их не надо: они отвечают на вопрос «код не сломался», а не на
+      вопрос «обещание выполнено».
+
+    Инженерный тест, называющий кейс, показывается как поддержка, но за
+    доказательство не считается: «эта функция работает» и «человек может это
+    сделать» — разные утверждения.
     """
     h, m = L(HEAD, lang), L(MISC, lang)
     spec = load_spec(root)
     project = os.path.normpath(os.path.join(root, '..'))
     hits = scan_tests(project)
 
+    def is_scenario(path):
+        p = path.replace(os.sep, '/')
+        return '/e2e/' in p or 'scenario' in p or p.endswith('.e2e.spec.ts')
+
     out_lines = ['# ' + L(TITLE, lang).get('test_cases', 'Test cases'), '']
     out_lines += [m.get('tests_lead',
-                        'По пункту приёмки на строку. Связь живёт в названии теста: '
-                        'напишите его id в заголовке — `it(\'... (C-04.a2)\')` — и '
-                        'покрытие посчитается само.'), '']
+                        'Кейс проверен, когда есть сценарный тест, проходящий его целиком. '
+                        'Связь — в названии теста: `test(\'... (C-04)\')`. Инженерные '
+                        'тесты показаны отдельно: они поддержка, а не доказательство.'), '']
 
-    total = covered = 0
     rows = []
     for c in (spec.get('cases') or []):
-        acc = c.get('acceptance') or []
-        for aid in acc:
-            total += 1
-            hit = hits.get(aid) or hits.get(c['id'])
-            exact = aid in hits
-            if hit:
-                covered += 1
-            rows.append((c['id'], aid, hit, exact))
+        rows.append((c['id'], c.get('name') or '', len(c.get('acceptance') or [])))
     for pr in (spec.get('prohibitions') or []):
-        total += 1
-        hit = hits.get(pr['id'])
-        if hit:
-            covered += 1
-        rows.append((pr['id'], pr['id'], hit, bool(hit)))
+        rows.append((pr['id'], pr.get('name') or '', 0))
 
-    pct = (100 * covered // total) if total else 0
-    out_lines += ['**%d из %d · %d%%**' % (covered, total, pct), '']
-    cur = None
-    for cid, aid, hit, exact in rows:
-        if cid != cur:
-            cur = cid
-            out_lines += ['', '### %s' % cid, '']
-        if not hit:
-            out_lines.append('- `%s` — %s' % (aid, m.get('not_covered', 'не покрыт')))
+    proven = supported = 0
+    body = []
+    for cid, name, n_acc in rows:
+        found = hits.get(cid) or []
+        scen = [f for f, _ in found if is_scenario(f)]
+        eng = sorted({f for f, _ in found if not is_scenario(f)})
+        if scen:
+            proven += 1
+            mark = '`%s`' % sorted(set(scen))[0]
+        elif eng:
+            supported += 1
+            mark = '%s · %s' % (m.get('no_scenario', 'сценарного теста нет'),
+                                m.get('supported_by', 'есть инженерные: %d') % len(eng))
         else:
-            f, title = hit[0]
-            mark = '' if exact else ' *(по кейсу, не по пункту)*'
-            out_lines.append('- `%s` — `%s`%s' % (aid, f, mark))
+            mark = m.get('not_covered', 'не покрыт')
+        body.append('- `%s` %s — %s' % (cid, name[:52], mark))
+
+    total = len(rows)
+    pct = (100 * proven // total) if total else 0
+    out_lines += ['**Проверено сценарием: %d из %d · %d%%.** Ещё %d имеют только '
+                  'инженерные тесты.' % (proven, total, pct, supported), '']
+    out_lines += body
     return '\n'.join(out_lines).rstrip('\n') + '\n'
 
 

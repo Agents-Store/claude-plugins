@@ -245,46 +245,60 @@ def _looks_like_bare_filename(text):
 
 
 def _covered_acceptance_ids(c):
+    """Что покрыто по СГЕНЕРИРОВАННОМУ TEST-CASES.md.
+
+    Формат сменился вместе с источником истины. Раньше покрытие объявлял сам
+    документ полем `covers` у записи теста — то есть таблица соответствия,
+    которую надо было вести руками и которая врала с того дня, как тест удалили.
+    Теперь документ собирается из ЗАГОЛОВКОВ тестов, и строка выглядит так:
+
+        - `C-04.a2` — `tests/int/entry-form.int.spec.ts`
+        - `C-04.a3` — не покрыт
+
+    Правило читает то же самое, что печатает генератор, поэтому «покрыто» в
+    линтере и «покрыто» в документе не могут разойтись.
+    """
     text = c.text.get('test_cases')
     if not text:
         return set()
-    lang = v3.header(text).get('lang') or c.lang
-    tests, _ = _read_testcases(text, _testcase_pattern(c), lang)
     out = set()
-    for t in tests:
-        if t['struck']:
-            continue
-        v = t['fields'].get('covers')
-        if isinstance(v, list):
-            out.update(x for x in v if x)
-        elif v:
-            out.add(v)
+    for line in text.split('\n'):
+        m = re.match(r'^-\s+`([A-Z]-\d{2}(?:\.a\d+)?)`\s+—\s+(.*)$', line.strip())
+        if m and not re.search(r'не покрыт|not covered|nicht abgedeckt', m.group(2)):
+            out.add(m.group(1))
     return out
+
 
 
 # ---------------------------------------------------------------- 12.11
-@rule('12.11', 'Every acceptance bullet is verified')
+@rule('12.11', 'Every promise is verified')
 def r_12_11(c):
-    doc = c.docs.get('user_cases')
-    if doc is None:
-        return []
-    lang = doc.header.get('lang') or c.lang
-    label = c.prose_label('acceptance', lang)
-    covered = _covered_acceptance_ids(c)
-    _, cases = c.entities_of('user_cases', 'case')
+    """Единица покрытия — КЕЙС, а не пункт приёмки.
+
+    Первая версия считала по пунктам и требовала теста на каждый из 369. Это
+    неверная единица: пункт приёмки — строка чек-листа внутри кейса, а не
+    отдельный тест. «Кнопка видна», «геолокация проверяется», «отказ называет
+    расстояние» — человек проходит это одним сценарием.
+
+    Читает то же, что печатает генератор, поэтому «покрыто» здесь и «покрыто»
+    в документе не могут разойтись.
+    """
+    text = c.text.get('test_cases')
+    if not text:
+        return [Finding('12.11', ERROR, 'generated/TEST-CASES.md', 0,
+                        'does not exist — no promise can be shown as verified')]
     out = []
-    for it in cases:
-        bullets = _block_bullets(doc.lines, it.head_line, it.span[1], label)
-        for i, (n, text) in enumerate(bullets, 1):
-            aid = '%s.a%d' % (it.id, i)
-            if aid not in covered:
-                out.append(Finding('12.11', ERROR, c.rel(doc.path), n + 1,
-                                   '%s has no test in generated/TEST-CASES.md covering '
-                                   'it: %s' % (aid, text[:70])))
+    for line in text.split('\n'):
+        m2 = re.match(r'^-\s+`([A-Z]-\d{2})`\s+(.*?)\s+—\s+(.*)$', line.strip())
+        if not m2:
+            continue
+        cid, name, state = m2.group(1), m2.group(2), m2.group(3)
+        if state.startswith('`'):
+            continue                       # доказан сценарным тестом
+        out.append(Finding('12.11', ERROR, 'client/USER-CASES.md', 0,
+                           '%s %s — %s' % (cid, name[:40], state[:60])))
     return out
 
-
-# ---------------------------------------------------------------- 12.12
 @rule('12.12', 'Test cases are well formed')
 def r_12_12(c):
     text = c.text.get('test_cases')
