@@ -14,7 +14,9 @@ Pointer binding is not one relation (v3.py's own docstring has the census): a ro
 a trigger points at itself (identity), a screen points at the interface it belongs to
 even before it has siblings there (container), and a procedure seeded from a critical
 user case points at the role's case glob, because a procedure has no entry of its own
-in macstack.json (member). Where the id a pointer needs is missing, this writes
+in macstack.json — container too, since `coach-c-04` is not a member of the glob `C-*`
+that lives there; it is one of many procedures filed under it, exactly as many screens
+are filed under one interface. Where the id a pointer needs is missing, this writes
 `TODO reason=...` rather than a pointer that merely LOOKS resolved — every downstream
 check trusts a `macstack:ref` line, and a wrong one is invisible until it is acted on.
 
@@ -41,6 +43,18 @@ def case_role(c):
     (X-/S-/Z-) has neither and comes back ''."""
     m = CASE_ROLE_REF.match(c.ref or '')
     return m.group(1) if m else (c.get('role') or '')
+
+
+def known(fields, lang):
+    """Only the fields the spec actually has a value for.
+
+    v2 put the rest in the yaml block as `screens: []` / `workflow: —`, where a machine
+    read them as empty-AND-known. A bullet has no such notation: `- **Экраны:**` reads
+    back as the string '', which asserts the screens ARE empty rather than unknown. The
+    migrator drops them — the live AUTOMATION.md carries 123 bullets and not one empty
+    — and a reseed must not put 227 of them back.
+    """
+    return {k: v for k, v in fields.items() if v3.value_text(v, lang)}
 
 
 def load_spec(root):
@@ -96,9 +110,13 @@ MISC = {
         no_roles="В спецификации нет ни одной роли.", no_tasks="В спецификации нет ни одной задачи.",
         no_triggers="В спецификации нет ни одного триггера.",
         sees_label="Что видит", can_label="Что может",
-        flow_label="Как это проходит",
+        # v2 found a prose block by the anchor above it, so the wording was free. v3 has
+        # no anchors: the LABEL is the key, and it has to be the word doc-contracts.json
+        # `prose` declares for that block, or nothing can find it. `happens` reads
+        # «Что происходит» for a task and for a trigger alike — one block, one word, two
+        # hints, because what a person should write under it differs.
+        happens_label="Что происходит",
         flow_hint="_Опишите шаги: кто и что делает от начала до конца этой задачи._",
-        what_happens_label="Что при этом происходит",
         what_happens_hint="_Опишите, что видит роль, чья задача сдвигается, когда этот триггер срабатывает._",
         ux_howto=(
             "**Этот документ пишете вы.** Сквозные разделы ниже применяются к каждому экрану и\n"
@@ -133,10 +151,9 @@ MISC = {
             "it is never regenerated again."),
         no_roles="The spec declares no roles.", no_tasks="The spec declares no tasks.",
         no_triggers="The spec declares no triggers.",
-        sees_label="Sees", can_label="Can",
-        flow_label="How it runs",
+        sees_label="What it sees", can_label="What it can do",
+        happens_label="What happens",
         flow_hint="_Describe the steps: who does what, start to finish, for this task._",
-        what_happens_label="What happens",
         what_happens_hint="_Describe what the role whose task moves sees when this trigger fires._",
         ux_howto=(
             "**You write this document.** The cross-cutting sections below apply to every screen and\n"
@@ -149,9 +166,9 @@ MISC = {
         accessibility_hint="_Describe accessibility requirements: contrast, keyboard, screen readers._",
         tone_hint="_Describe the tone of the interface text: formality, address, message length._",
         no_screens="No matching interfaces in the spec.",
-        content_label="What is on this screen", content_hint="_Describe what is visible here._",
+        content_label="What is on it", content_hint="_Describe what is visible here._",
         actions_label="What can be done", actions_hint="_Describe the actions available._",
-        forbidden_label="What must NOT be visible", forbidden_hint="_Describe what is forbidden here._",
+        forbidden_label="What must not be here", forbidden_hint="_Describe what is forbidden here._",
         handbook_howto=(
             "**You write this document**, for the person who will use the platform day to day — not\n"
             "for the person who commissioned it. The procedure seeds below are built from the critical\n"
@@ -198,12 +215,15 @@ def seed_automation(spec, lang):
     if not roles:
         out_lines += ['_%s_' % m['no_roles'], '']
     for r in roles:
-        fields = {'cases': r.get('cases') or [], 'isolation': r.get('isolation')}
+        # roles[].cases живёт в спеке — документ несёт про роль то, что человек
+        # ВИДИТ и МОЖЕТ, прозой. Второй список кейсов пришлось бы держать руками.
+        fields = {'isolation': r.get('isolation')}
         prose = []
         if r.get('sees'):
             prose.append((m['sees_label'], [r['sees']]))
         if r.get('can'):
             prose.append((m['can_label'], [r['can']]))
+        fields = known(fields, lang)
         out_lines += v3.emit_entity('role', r['id'], r.get('name', r['id']),
                                      fields=fields, prose=prose,
                                      pointer='roles[id=%s]' % r['id'],
@@ -224,15 +244,18 @@ def seed_automation(spec, lang):
             fields = {
                 'role': human.get('role'),
                 'gate': human.get('gate') or ('none' if task.get('workflow') else None),
-                'trigger': (trig[0] if len(trig) == 1 else trig) if trig else None,
+                # связь «триггер → задача» записана ОДИН раз, на самом триггере
+                # («Чьи задачи двигает»). Здесь она была бы вторым экземпляром,
+                # который расходится с первым при первой же правке.
                 'workflow': task.get('workflow'),
-                'process': pid,
+                # процесс — это указатель сущности, а не её поле
             }
-            prose = [(m['flow_label'], [m['flow_hint']])]
+            prose = [(m['happens_label'], [m['flow_hint']])]
             # identity binding is two levels deep here: a task lives at
             # processes[id=].tasks[id=], never at a top-level tasks[].
             pointer = ('processes[id=%s].tasks[id=%s]' % (pid, task['id']) if pid
                        else 'TODO reason=no-process')
+            fields = known(fields, lang)
             out_lines += v3.emit_entity('role_task', task['id'], task.get('name', task['id']),
                                          fields=fields, prose=prose, pointer=pointer,
                                          lang=lang, form='slug', order=list(fields))
@@ -255,7 +278,8 @@ def seed_automation(spec, lang):
         if cfg_key and cfg_key in emit_labels:
             fields[cfg_key] = cfg_val
         fields['raises'] = raises_of(g['id'], workflows)
-        prose = [(m['what_happens_label'], [m['what_happens_hint']])]
+        prose = [(m['happens_label'], [m['what_happens_hint']])]
+        fields = known(fields, lang)
         out_lines += v3.emit_entity('trigger', g['id'], g.get('name', g['id']),
                                      fields=fields, prose=prose,
                                      pointer='triggers[id=%s]' % g['id'],
@@ -291,6 +315,7 @@ def seed_ux_ui(spec, lang):
         # screen headings — they all keep pointing at the same container.
         area = i.get('id')
         pointer = 'interfaces[id=%s]' % area if area else 'TODO reason=no-container'
+        fields = known(fields, lang)
         out_lines += v3.emit_entity('screen', i['id'], i.get('name', i['id']),
                                      fields=fields, prose=prose, pointer=pointer,
                                      lang=lang, form='slug', order=list(fields))
@@ -317,10 +342,13 @@ def seed_handbook(spec, root, lang):
     uc_path = os.path.join(root, 'client', 'USER-CASES.md')
     critical_by_role = {}
     if os.path.exists(uc_path):
-        # USER-CASES.md is a v3 document now. Reading it with the v2 parser does not
-        # error, it returns nothing — every "no critical cases" here would have been
-        # a lie, not an absence.
-        for c in v3.load(uc_path, lang):
+        # USER-CASES.md is a v3 document now. Reading it with the v2 parser did not
+        # error, it returned nothing — every "no critical cases" here would have been a
+        # lie, not an absence. Read it in the language IT declares, never in the
+        # project's: v3 matches bullet labels per language, so handing a ru document the
+        # project's `en` misses every label and lands in the same silent zero by a new
+        # route. `v3.load` with no lang takes it from the document's own header.
+        for c in v3.load(uc_path):
             if c.id and (c.get('priority') or '') == 'critical':
                 critical_by_role.setdefault(case_role(c), []).append(c)
     if not critical_by_role:
@@ -335,11 +363,14 @@ def seed_handbook(spec, root, lang):
                 fields = {'role': role, 'screens': c.get('screens') or [],
                           'cases': [c.id], 'frequency': None}
                 prose = [(m['steps_label'], [m['steps_hint']])]
-                # member binding: a procedure has no entry of its own in
-                # macstack.json — it points at the glob on the role it belongs to,
-                # the same target the source case's own pointer would use.
+                # container binding, not member: a procedure has no entry of its
+                # own in macstack.json, so it points at the case glob on its role — the
+                # same target the source case uses. The case `C-04` IS a member of that
+                # glob; the procedure `coach-c-04` is not, it is one of many filed under
+                # it. Calling this member is what would make a later binding check fail.
                 pointer = ('roles[id=%s].cases' % role if role
                            else 'TODO reason=no-role')
+                fields = known(fields, lang)
                 out_lines += v3.emit_entity('procedure', slug, c.title,
                                              fields=fields, prose=prose, pointer=pointer,
                                              lang=lang, form='slug', order=list(fields))
@@ -370,6 +401,11 @@ def main():
     i = 0
     while i < len(argv):
         a = argv[i]
+        # --date is still accepted and consumed for CLI compatibility, even though
+        # nothing below reads it any more: it only ever fed the journal row, and a
+        # seeded document carries no journal (see build_full).
+        if a == '--date' and i + 1 < len(argv):
+            i += 2; continue
         if a == '--only' and i + 1 < len(argv):
             only = argv[i + 1]; i += 2; continue
         if a == '--force':

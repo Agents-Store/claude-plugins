@@ -144,9 +144,14 @@ def screen_target(it):
     'coach-portal'. NOT it.id: UX-UI.md writes one heading per screen, macstack.json
     keeps one record per area, and matching on the screen's own heading id would
     report every non-entry screen `add` forever, since no screen slug is ever an
-    interfaces[].id."""
+    interfaces[].id.
+
+    A pointer that names the collection and no member — `interfaces[]` over a heading
+    that does carry a slug — leaves that slug as the only address the document
+    offers, so it stands in. Returning None instead reached the report as
+    `add screen None`: an id no human can look up and `path_of` can never resolve."""
     m = REF_ID.search(it.ref or '')
-    return m.group(1) if m else None
+    return m.group(1) if m else it.id
 
 
 def doc_screen(it):
@@ -293,12 +298,18 @@ def all_spec_tasks(spec):
     """Only tasks with a human touchpoint. AUTOMATION.md's task section is titled
     "Что делают люди" — what PEOPLE do — and structurally never mentions a
     workflow-only task, so comparing one against the document reported it `gone`
-    unconditionally. Measured on the live corpus: 17 spec tasks carry no `human` at
-    all, and dropping them is exactly what brings `gone` to zero against a document
-    that in fact describes every role task it has."""
+    unconditionally. Measured on the live corpus: 17 of 50 spec tasks carry no
+    `human` at all, and dropping them is exactly what brings `gone` to zero against a
+    document that in fact describes every role task it has.
+
+    The test is `human`, not `human.role`. A task whose human block exists but has
+    lost its role is the ONE case where the document's `Кто делает` bullet is the
+    repair — and requiring the role here hid that task from the comparison entirely,
+    so it surfaced as `add` for an id macstack.json already holds: a false report,
+    and an unappliable one, since `add` is never written back."""
     for p in (spec.get('processes') or []):
         for t in (p.get('tasks') or []):
-            if t.get('id') and (t.get('human') or {}).get('role'):
+            if t.get('id') and t.get('human'):
                 yield t
 
 
@@ -384,8 +395,12 @@ def compare_screens(doc_screens, spec_interfaces):
     heading id — see `screen_target`. Field values (name/path/roles) come only from
     the group's ENTRY screen, the one whose id equals the area id: a sub-screen's own
     path is its own address, not the area's, and comparing it would report `changed`
-    forever, since it structurally never equals the one value the area actually has."""
-    spec_interfaces = [i for i in spec_interfaces if is_screen(i)]
+    forever, since it structurally never equals the one value the area actually has.
+
+    SCREENISH narrows `gone` and only `gone` — that is what its comment claims and
+    the one direction it reasons about. Narrowing the existence index with it as well
+    made a documented API or channel interface report `add` for an id macstack.json
+    already holds, and told a human to create a second one."""
     add, gone, changed = [], [], []
     spec_by_id = dict((i.get('id'), i) for i in spec_interfaces)
 
@@ -408,9 +423,9 @@ def compare_screens(doc_screens, spec_interfaces):
                 appliable = f in SCREEN_APPLIABLE
                 fn = (lambda s=s, f=f, dv=dv: s.__setitem__(f, dv)) if appliable else None
                 changed.append(mk_change('screen', target, f, sv, dv, appliable, fn))
-    for sid, s in spec_by_id.items():
-        if sid not in by_target:
-            gone.append(('screen', sid, s.get('name')))
+    for s in spec_interfaces:
+        if is_screen(s) and s.get('id') not in by_target:
+            gone.append(('screen', s.get('id'), s.get('name')))
     return add, gone, changed
 
 

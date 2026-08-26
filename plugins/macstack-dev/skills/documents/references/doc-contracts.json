@@ -424,11 +424,14 @@
           "bullets_optional": [
             "isolation"
           ],
-          "bullets_note": "roles[].cases lives in the spec; the document carries what the role SEES and CAN DO as prose",
+          "bullets_note": "roles[].cases belongs to the spec, and this contract says so elsewhere in its own words. What the document carries about a role is what the person SEES and CAN DO, in prose.",
           "pointer": {
             "path": "roles[id=<id>]",
             "binding": "identity"
-          }
+          },
+          "bullets_forbidden": [
+            "cases"
+          ]
         },
         {
           "kind": "role_task",
@@ -450,7 +453,11 @@
           "pointer": {
             "path": "processes[id=<process>].tasks[id=<id>]",
             "binding": "identity"
-          }
+          },
+          "bullets_forbidden": [
+            "process"
+          ],
+          "bullets_note": "the process is already the pointer — processes[id=X].tasks[id=Y] — and a second copy of a fact the pointer carries is the hand-maintained duplicate 12.27 exists to stop. The same reasoning that forbids `role` on a case."
         },
         {
           "kind": "trigger",
@@ -469,9 +476,10 @@
             "schedule",
             "raises",
             "moves",
-            "entity"
+            "entity",
+            "path"
           ],
-          "bullets_note": "schedule only on a scheduled trigger (4 of 13), entity only on a db_event one (3 of 13) — partial by nature, not by neglect",
+          "bullets_note": "path is optional and real: an inbound webhook trigger has an address and nowhere else to put it. It is absent on the other twelve because a scheduled trigger has no address, not because it was forgotten.",
           "pointer": {
             "path": "triggers[id=<id>]",
             "binding": "identity"
