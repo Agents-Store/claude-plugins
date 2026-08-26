@@ -49,6 +49,13 @@ Every candidate lands in exactly one:
 Sort by blast radius, not by count. Twenty missing admin screens matter less than one
 role that can download what the documents say it cannot.
 
+**Infrastructure gets a flag, not silence.** A file store, a delivery log, a numbering
+sequence — these belong in `entities[]` like anything else the system stores, with
+`technical: true` (schema rev 14). Without the flag, "not described to the client" and
+"must not be described to the client" are indistinguishable, so the audit reports the
+same infrastructure every run and the report stops being read. Leaving them out of the
+spec entirely has the same effect for the same reason.
+
 **An invented id is worse than an empty field.** An empty field is visible and somebody
 asks about it. An invented id passes downstream and every check below it reports green.
 When a candidate does not obviously map to an entity, say so and ask — the matching of
