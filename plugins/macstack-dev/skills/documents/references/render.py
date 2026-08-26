@@ -443,6 +443,95 @@ def _first_sentence(text):
     return text[:idx + 1] if idx != -1 else text.split('\n')[0]
 
 
+TEST_TITLE = re.compile(r"""^\s*(?:it|test)\s*\(\s*(['"`])(.*?)\1""", re.M)
+COVERS = re.compile(r'\b([A-Z]-\d{2})(\.a\d+)?\b')
+TEST_EXT = ('.spec.ts', '.test.ts', '.spec.tsx', '.test.tsx', '.spec.js', '.test.js',
+            '_test.py', '_spec.rb')
+
+
+def scan_tests(project_root):
+    """-> {covered_id: [(file, title)]} — что тесты САМИ про себя говорят.
+
+    Связь живёт в названии теста, а не в отдельной таблице соответствия. Таблица
+    — это второй документ, который надо держать в согласии с первым, и она врёт
+    ровно с того дня, как тест удалили: покрытие остаётся зелёным, а проверки
+    нет. Название теста удаляется вместе с тестом.
+
+    Соглашение уже существовало здесь неформально: в живом наборе 36 файлов
+    называют кейс прямо в заголовке — `(C-10)`, `(C-07/Z-03)`. Это его
+    продолжение, только точнее: до пункта приёмки, а не до кейса.
+    """
+    hits = {}
+    for base, dirs, files in os.walk(project_root):
+        dirs[:] = [d for d in dirs if d not in ('node_modules', '.git', '.next', 'dist')]
+        for f in files:
+            if not f.endswith(TEST_EXT):
+                continue
+            p = os.path.join(base, f)
+            try:
+                text = io.open(p, encoding='utf-8', errors='replace').read()
+            except IOError:
+                continue
+            rel = os.path.relpath(p, project_root)
+            for m in TEST_TITLE.finditer(text):
+                title = m.group(2)
+                for c in COVERS.finditer(title):
+                    key = c.group(1) + (c.group(2) or '')
+                    hits.setdefault(key, []).append((rel, title))
+    return hits
+
+
+def render_test_cases(root, lang):
+    """Один тест на пункт приёмки — и честное «не покрыт» там, где его нет.
+
+    Считает по тому, что тесты говорят о себе сами. Пункт без теста — это не
+    забытая строчка в таблице, а обещание, которое нечем проверить.
+    """
+    h, m = L(HEAD, lang), L(MISC, lang)
+    spec = load_spec(root)
+    project = os.path.normpath(os.path.join(root, '..'))
+    hits = scan_tests(project)
+
+    out_lines = ['# ' + L(TITLE, lang).get('test_cases', 'Test cases'), '']
+    out_lines += [m.get('tests_lead',
+                        'По пункту приёмки на строку. Связь живёт в названии теста: '
+                        'напишите его id в заголовке — `it(\'... (C-04.a2)\')` — и '
+                        'покрытие посчитается само.'), '']
+
+    total = covered = 0
+    rows = []
+    for c in (spec.get('cases') or []):
+        acc = c.get('acceptance') or []
+        for aid in acc:
+            total += 1
+            hit = hits.get(aid) or hits.get(c['id'])
+            exact = aid in hits
+            if hit:
+                covered += 1
+            rows.append((c['id'], aid, hit, exact))
+    for pr in (spec.get('prohibitions') or []):
+        total += 1
+        hit = hits.get(pr['id'])
+        if hit:
+            covered += 1
+        rows.append((pr['id'], pr['id'], hit, bool(hit)))
+
+    pct = (100 * covered // total) if total else 0
+    out_lines += ['**%d из %d · %d%%**' % (covered, total, pct), '']
+    cur = None
+    for cid, aid, hit, exact in rows:
+        if cid != cur:
+            cur = cid
+            out_lines += ['', '### %s' % cid, '']
+        if not hit:
+            out_lines.append('- `%s` — %s' % (aid, m.get('not_covered', 'не покрыт')))
+        else:
+            f, title = hit[0]
+            mark = '' if exact else ' *(по кейсу, не по пункту)*'
+            out_lines.append('- `%s` — `%s`%s' % (aid, f, mark))
+    return '\n'.join(out_lines).rstrip('\n') + '\n'
+
+
 def render_requirements(root, lang):
     """Всё, что утверждают клиентские документы, в машинном виде и на одном экране.
 
@@ -718,6 +807,9 @@ def main():
     if only in (None, 'requirements'):
         jobs.append(('requirements', os.path.join('generated', 'REQUIREMENTS.md'),
                      'client/*.md', render_requirements(root, lang)))
+    if only in (None, 'test_cases'):
+        jobs.append(('test_cases', os.path.join('generated', 'TEST-CASES.md'),
+                     'client/USER-CASES.md + tests/', render_test_cases(root, lang)))
     if only in (None, 'readme'):
         jobs.append(('readme', 'README.md', 'doc-contracts.json', render_readme(contract, lang)))
 
