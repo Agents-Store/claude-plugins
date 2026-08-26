@@ -96,6 +96,22 @@ Active only when macstack.json has a `docs` section, or a `macstack/` folder exi
 on disk. Errors block scaffolding exactly like Pass 2; lint red on a document that
 reads fine usually means stripped anchors (see `troubleshoot`).
 
+**Run it — this pass is a program now:**
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/lint/references/lint_folder.py" macstack \
+  [--rule 12.3 ...] [--warnings] [--json]
+```
+
+Exit 0 clean, 1 errors, 2 could not load. Rules live in `references/lint_folder.py`
+and the `references/rules_*.py` modules beside it, which register themselves on import.
+
+Until v3 this pass was prose and nothing executed it, which is why 12.21 demanded a
+fenced `yaml` block from documents that contain none and never once said so, and why
+12.18 was unsatisfiable for `README.md` across three releases with no way to tell
+whether it was failing or simply not running. **A rule nobody can run is not a rule.**
+If you add one here, add it there in the same change.
+
 Read the shape from
 `${CLAUDE_PLUGIN_ROOT}/skills/documents/references/doc-contracts.json` — every rule
 below is checked against that file, never against memory.
@@ -115,9 +131,11 @@ below is checked against that file, never against memory.
      entries present resolve is a rule that passes in a vacuum: `docs.files` is
      authored, so naming nothing at all used to approve an empty folder.
      Exactly one `macstack.json` in the repo.
-12.2 **Anchors** — each document carries the anchors its contract requires: the
-     `doc` header, every declared `section`, and an `entity` anchor above every entity
-     heading.
+12.2 **Headers and pointers** — each document carries its `<!-- macstack:doc= -->`
+     header, and every entity heading carries a `<!-- macstack:ref= -->` pointer unless
+     its contract puts it in the reserved `none` class. The per-kind anchors of v1 and
+     v2 (`macstack:case=`, `macstack:screen=`) are gone: there is one pointer form, and
+     what it means is decided by the binding its contract declares — see 12.28 and 12.29.
 12.3 **ID integrity** — unique per space; ASCII-only inside an ID token — the homoglyph
      rule: a Cyrillic capital KA (U+041A) renders exactly like `K` (U+004B), greps as
      absent and silently breaks every cross-reference check, so compare codepoints
@@ -133,26 +151,103 @@ below is checked against that file, never against memory.
      resolves to a trigger in `AUTOMATION.md`.
 12.5 **Checked copies** — `open_questions[].summary` equals the first sentence of its
      markdown item; for every versioned document, `docs.files.<key>.version` equals the
-     header version equals the last journal row. Three places, and all three must agree.
+     version in the document's own header. Two places now, not three: the journal row
+     was the third, and client documents no longer carry a journal (12.33).
+     The old three-way check passed on a document declaring `version=3.0` in its header
+     and "Версия 1.8" in its body, because the journal matcher only recognised one row
+     shape and the v3 rows were invisible to it. A comparison that cannot see one of its
+     operands reports agreement.
 12.6 **`needs_from_client` is a view** — contains no closed items, omits no open §A
      client item.
 
-### Shape (v2)
+### Shape (v3)
 
-12.21 **Entities parse** — every entity declared in the contract is found by its
-      anchor, carries exactly one fenced `yaml` block immediately after its heading,
-      and that block declares every `yaml_required` key for its kind and no key the
-      contract does not declare. Every `sections_required` anchor is present beneath
-      it, and the conditional sets (`sections_required_when`,
-      `sections_required_except_prefix`) are applied by the entity's own values — a
-      `manual` test needs preconditions and steps, an `auto` one needs evidence, a
-      `Z-` prohibition needs neither flow nor experience.
-      This rule replaces v1's column-position check. Columns were read by POSITION
-      because heading text follows `docs.language`; the anchor and the YAML key give
-      the same language independence without pulling prose into a grid.
-12.24 **Tables stay inside the budget** — at most 4 columns, at most 80 characters a
-      cell, at least 3 rows, and no `<br>`, bold, code fence or pipe inside a cell.
-      Journals are exempt. Report the file, the table's anchor or heading, the column
+12.21 **Entities parse** — every entity heading matches its contract's `id_pattern`,
+      carries every `bullets_required` label for its kind and no label the contract
+      does not declare for it, and carries every `prose_required` block — with the
+      conditional sets applied by the entity's own values. `bullets_conditional` reads
+      "required unless": a screen must name its roles unless it declares itself public.
+      `prose_required_except_prefix` reads by id: a `Z-` prohibition needs no acceptance
+      list, because it states what must be refused and the refusal is the behaviour.
+      `bullets_forbidden` is the mirror image: a case may not carry a `role` bullet,
+      because the role is already the pointer one line above, and a second copy of a
+      fact is the hand-maintained duplicate 12.27 exists to stop.
+      Two formats died to get here. v1 read table columns BY POSITION — deliberately,
+      because a header follows `docs.language` — and every paragraph that needed to sit
+      near the machine moved into a cell. v2 replaced the grid with an anchor plus a
+      fenced yaml block, and left markdown, yaml and tables stirred together in one
+      file. v3 keeps the language independence and drops the machine syntax entirely.
+
+12.28 **Every pointer resolves** — every `<!-- macstack:ref=P -->` resolves to a live
+      path in `macstack.json`. `coll[]` is the whole collection; `a[].b[]` is the union
+      of `b` over every `a`. Name the file, the line and the first segment that failed.
+
+12.29 **The pointer binds the way its contract declares** — and this is the rule that
+      looks simpler than it is. `identity`: the last `[id=…]` equals the heading id.
+      `member`: the heading id satisfies the glob at the pointed path. `container`: the
+      pointed entry exists and the heading id is unique in the document. `none`: no
+      pointer at all, and the id prefix is one the contract reserves.
+      Measured on a live project: AUTOMATION.md is 49 headings, 49 pointers and 49 id
+      matches; UX-UI.md is 37 screens onto 9 `interfaces[]` entries; USER-CASES.md is 78
+      headings, 51 pointers, 3 distinct targets and **zero** id matches, because
+      `roles[].cases` holds the glob `"C-*"`. Assume identity is the only binding and
+      one of two things follows: somebody invents 28 spec entries that nothing else
+      references in order to satisfy the linter, or the rule is downgraded to a warning
+      and stops catching the genuinely broken pointer in the document where it was true.
+
+12.30 **A client document is headings and bullets, and nothing else** — zero fenced
+      blocks, zero table rows, zero HTML other than the two macstack comments, no
+      heading deeper than `####`. Applies to every document whose audience is `client`
+      **or `both`**. There is no budget here and no exemption; 12.24's budget survives
+      only where the reader is a machine or a programmer.
+      `both` is not a loophole: OPEN-QUESTIONS.md is `both` because §A is owed by the
+      client and §B is the team's, and classifying it that way quietly exempted it from
+      every rule protecting the client's reading. It carried a journal for weeks.
+
+12.31 **Every bullet label is declared** — `- **X:**` reverses through
+      `fields.*.label`, `label_by_kind` or `label_aliases` for the document's language.
+      An undeclared label is prose that happens to be bold, and the parser leaves it as
+      prose rather than inventing a field from it — but the linter says so, because the
+      alternative is a key in the model that nothing reads.
+      This fired 103 times on first run against a corpus everyone believed was clean:
+      the shipped table said "что требуется от человека" while all 33 live bullets say
+      "что от человека требуется" — the same words, transposed.
+
+12.33 **A client document carries no journal** — no `## История изменений` section and
+      no `- **Версия N · date**` row. History lives in `history/`, and the client sees
+      it per statement in the review package rather than as a wall of versions at the
+      bottom of every document.
+
+12.34 **Pointer uniqueness** — no two headings share an `identity` pointer. A
+      `container` pointer may repeat; that is what makes it a container.
+
+12.32 **Acceptance ids are stable** (warning) — a case's acceptance bullet count is
+      not below what it was at the last tag unless the document version was bumped.
+      The ids are positional within their entity, so inserting a bullet above an
+      existing one moves every id below it — and a client quoting `C-04.a2` from an
+      email last month then lands on a different sentence. When there is no tag to
+      compare against, the rule reports nothing and says so rather than guessing.
+
+12.35 **`generated/` carries everything `client/` says** — every id appearing in a
+      client document also appears in `generated/REQUIREMENTS.md`, and the acceptance
+      bullet counts match. This is what makes "absolutely all of it, in machine form"
+      a check instead of a promise. While `REQUIREMENTS.md` does not exist, the rule
+      emits one finding saying so — not one per id.
+
+12.36 **Every edit left a row in the ledger** — every change to a document under
+      `macstack/`, relative to the newest entry in `history/ledger.jsonl`, has a row
+      keyed by the id of the thing that changed. The ledger is what lets the review
+      package show a client, per statement, what moved since they last read it and
+      what they said about it. An edit with no row is a defect, because the next
+      package will present a changed sentence as if it had always said that.
+
+12.37 **The first bullet is not the heading again** — an entity whose opening bullet
+      restates its own title makes the client read the same sentence twice. Twenty-two
+      of thirty-six blocks in one live document did exactly that.
+12.24 **Tables stay inside the budget** — in `history/` and `generated/` only; in
+      `client/` a table is an error outright (12.30). At most 4 columns, at most 80
+      characters a cell, at least 3 rows, and no `<br>`, bold, code fence or pipe
+      inside a cell. Report the file, the table's anchor or heading, the column
       count and the longest cell verbatim, because "this table is too wide" is not
       actionable and "cell 4 of row 12 is 876 characters" is.
       The budget exists because every oversized table measured in the field started as
