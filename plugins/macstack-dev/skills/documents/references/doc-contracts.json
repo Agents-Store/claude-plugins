@@ -133,12 +133,13 @@
     },
     "contradiction": {
       "pattern": "^K-[0-9]+$",
-      "owner": "history/deltas/*.md",
-      "note": "ASCII K (U+004B) only. The Cyrillic capital KA (U+041A) renders identically and greps as absent — refuse it."
+      "owner": "—",
+      "note": "ASCII K (U+004B) only. The Cyrillic capital KA (U+041A) renders identically and greps as absent — refuse it. A delta is not a file any more: it is regenerated from inbox/, which is immutable, so the id is allocated and cited in the session and in the ruling, not stored. Historical deltas sit in history/archive/deltas/."
     },
     "addition": {
       "pattern": "^N-[0-9]+$",
-      "owner": "history/deltas/*.md"
+      "owner": "—",
+      "note": " A delta is not a file any more: it is regenerated from inbox/, which is immutable, so the id is allocated and cited in the session and in the ruling, not stored. Historical deltas sit in history/archive/deltas/."
     },
     "result": {
       "pattern": "^[a-z][a-z0-9-]*$",
