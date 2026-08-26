@@ -139,6 +139,51 @@
     "addition": {
       "pattern": "^N-[0-9]+$",
       "owner": "history/deltas/*.md"
+    },
+    "result": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "A measurable asset a goal is realised by. Lives in results[]; the document names it, the spec defines it."
+    },
+    "integration": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "An external system the platform talks to. Lives in connections; the overview names it in the client’s words."
+    },
+    "process": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "The high-level unit of value: what produces a result. Tasks live inside it, never beside it — processes[id=<id>].tasks[id=<id>]."
+    },
+    "software": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "A tool the stack is made of. The id is the registry slug where one exists, so a passport can be copied instead of retyped."
+    },
+    "entity": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "A thing the system stores. Singular, always: `invoice`, not `invoices` — a collection in code is plural, and matching the two is the audit’s job, not the id’s."
+    },
+    "workflow": {
+      "pattern": "^wf-[a-z0-9-]+$",
+      "owner": "macstack.json",
+      "note": "A deterministic implementation. The wf- prefix is what lets a workflow id be told from a process id at a glance, in a document where both appear."
+    },
+    "rulings": {
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "owner": "history/DECISIONS.md",
+      "note": "A ruling session is addressed by its date: rulings are made in sittings, and the sitting is what a decision cites."
+    },
+    "slug": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "—",
+      "note": "Not an id space of its own: the heading FORM `Name — `slug`` used by entities whose id lives elsewhere. Declared so the checker stops reporting it as missing."
+    },
+    "filename": {
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "owner": "inbox/",
+      "note": "A file in inbox/, addressed by its name. ASCII only — a client’s attachment named in Cyrillic breaks every tool that later cites it."
     }
   },
   "documents": {
