@@ -108,6 +108,7 @@ MISC = {
             "процесс на это отвечает. Заготовка ниже собрана из `macstack.json`; правьте её как свой\n"
             "текст — она больше не пересобирается."),
         no_roles="В спецификации нет ни одной роли.", no_tasks="В спецификации нет ни одной задачи.",
+        driven_by='Приводится в движение: %s.',
         no_triggers="В спецификации нет ни одного триггера.",
         sees_label="Что видит", can_label="Что может",
         # v2 found a prose block by the anchor above it, so the wording was free. v3 has
@@ -150,6 +151,7 @@ MISC = {
             "process answers. The seed below is built from `macstack.json`; edit it as your own text —\n"
             "it is never regenerated again."),
         no_roles="The spec declares no roles.", no_tasks="The spec declares no tasks.",
+        driven_by='Driven by: %s.',
         no_triggers="The spec declares no triggers.",
         sees_label="What it sees", can_label="What it can do",
         happens_label="What happens",
@@ -233,9 +235,30 @@ def seed_automation(spec, lang):
     out_lines += ['## ' + h['tasks'], '']
     procs = spec.get('processes') or []
     wfs = {w['id']: w for w in (spec.get('workflows') or [])}
+    trigs = {x['id']: x for x in (spec.get('triggers') or [])}
     any_task = False
     for p in procs:
         pid = p.get('id')
+        # Процесс — заголовок, его задачи — под ним. Парадигма плагина это
+        # trigger -> task -> process, и заготовка, которая печатает один
+        # плоский список задач, учит неверной форме с первого дня. Контракт
+        # объявляет здесь сущность `process`, а сеятель её не писал: правило
+        # 12.0 поймало это на первой же чистой папке.
+        if pid:
+            driven = []
+            for task in (p.get('tasks') or []):
+                wf = wfs.get(task.get('workflow'))
+                for tid in ((wf.get('triggers') or []) if wf else []):
+                    tg = trigs.get(tid)
+                    label = '%s (`%s`)' % (tg.get('name', tid), tid) if tg else '`%s`' % tid
+                    if label not in driven:
+                        driven.append(label)
+            prose = [(None, [m['driven_by'] % ', '.join(driven)])] if driven else []
+            out_lines += v3.emit_entity('process', pid, p.get('name', pid),
+                                        prose=prose,
+                                        pointer='processes[id=%s]' % pid,
+                                        lang=lang, level=3, form='slug')
+            out_lines.append('')
         for task in (p.get('tasks') or []):
             any_task = True
             human = task.get('human') or {}
@@ -258,7 +281,8 @@ def seed_automation(spec, lang):
             fields = known(fields, lang)
             out_lines += v3.emit_entity('role_task', task['id'], task.get('name', task['id']),
                                          fields=fields, prose=prose, pointer=pointer,
-                                         lang=lang, form='slug', order=list(fields))
+                                         lang=lang, level=4 if pid else 3,
+                                         form='slug', order=list(fields))
             out_lines.append('')
     if not any_task:
         out_lines += ['_%s_' % m['no_tasks'], '']

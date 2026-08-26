@@ -72,13 +72,29 @@ HEAD = {
                integrations="Интеграции и контекст", journal="Журнал документа",
                cases="Кейсы", screens="Экраны", triggers="Триггеры", coverage="Покрытие",
                map="Карта", ownership="Кто чем владеет", idspaces="Пространства id",
-               loop="Цикл работы"),
+               loop="Цикл работы",
+        processes='Процессы',
+        roles='Роли',
+        tasks='Задачи',
+        invariants='Правила, которые не нарушаются',
+        prohibitions='Запреты',
+        glossary='Словарь',
+        open_questions='Открытые вопросы',
+    ),
     'en': dict(howto="How to read this", stack="What it is made of",
                entities="Entities and where they live", workflows="What runs",
                integrations="Integrations and context", journal="Document journal",
                cases="Cases", screens="Screens", triggers="Triggers", coverage="Coverage",
                map="Map", ownership="Who owns what", idspaces="ID spaces",
-               loop="Working loop"),
+               loop="Working loop",
+        processes='Processes',
+        roles='Roles',
+        tasks='Tasks',
+        invariants='Invariants',
+        prohibitions='Prohibitions',
+        glossary='Glossary',
+        open_questions='Open questions',
+    ),
 }
 
 MISC = {
@@ -117,6 +133,14 @@ MISC = {
             'data': "Держит данные — источник фактов для остального стека.",
             'storage': "Хранит и раздаёт — инфраструктурный слой под данными и процессами.",
         },
+    
+        nothing_found='В %s не нашлось ни одной сущности — либо документ пуст, либо его формат не разбирается',
+        requirements_lead='Каждое проверяемое утверждение клиентских документов, с его постоянным адресом. Ничего руками: правьте client/.',
+        tests_lead="Кейс проверен, когда есть сценарный тест, проходящий его целиком. Связь — в названии теста: `test('... (C-04)')`. Инженерные тесты показаны отдельно: они поддержка, а не доказательство.",
+        no_acceptance='нет пунктов приёмки',
+        no_scenario='сценарного теста нет',
+        supported_by='есть инженерные: %d',
+        not_covered='не покрыт',
     ),
     'en': dict(
         banner_note="Generated from `{src}`. Hand edits are lost on the next render — edit the source.",
@@ -153,6 +177,14 @@ MISC = {
             'data': "Holds the data — the source of facts for the rest of the stack.",
             'storage': "Stores and serves — the infrastructure layer under the data and the processes.",
         },
+    
+        nothing_found='No entities were found in %s — the document is either empty or its format does not parse',
+        requirements_lead='Every checkable statement of the client documents, at its permanent address. Nothing by hand: edit client/.',
+        tests_lead="A case is verified when a scenario test covers it end to end. The link is in the test title: `test('... (C-04)')`. Engineering tests are shown separately: they are support, not proof.",
+        no_acceptance='no acceptance bullets',
+        no_scenario='no scenario test',
+        supported_by='engineering tests: %d',
+        not_covered='not covered',
     ),
 }
 
@@ -511,10 +543,7 @@ def render_test_cases(root, lang):
         return '/e2e/' in p or 'scenario' in p or p.endswith('.e2e.spec.ts')
 
     out_lines = ['# ' + L(TITLE, lang).get('test_cases', 'Test cases'), '']
-    out_lines += [m.get('tests_lead',
-                        'Кейс проверен, когда есть сценарный тест, проходящий его целиком. '
-                        'Связь — в названии теста: `test(\'... (C-04)\')`. Инженерные '
-                        'тесты показаны отдельно: они поддержка, а не доказательство.'), '']
+    out_lines += [m['tests_lead'], '']
 
     rows = []
     for c in (spec.get('cases') or []):
@@ -583,9 +612,7 @@ def render_requirements(root, lang):
     does_label = _prose_label('actions', lang)
 
     out_lines = ['# ' + L(TITLE, lang).get('requirements', 'Requirements'), '']
-    out_lines += [m.get('requirements_lead',
-                        'Каждое проверяемое утверждение клиентских документов, с его '
-                        'постоянным адресом. Ничего руками: правьте client/.'), '']
+    out_lines += [m['requirements_lead'], '']
 
     out_lines += ['## ' + h.get('cases', 'Cases'), '']
     if not cases:
