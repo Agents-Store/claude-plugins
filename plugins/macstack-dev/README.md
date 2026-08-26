@@ -91,8 +91,7 @@ bold in a long cell. Journals are exempt. Lint measures it.
 
 | Skill | What it holds |
 |---|---|
-| `documents` | The folder standard: layout, path resolution, invariants, ownership, rendering, migration |
-| `document-format` | The entity + YAML + anchored-prose shape, the table budget, the language rule |
+| `documents` | The folder standard AND the document shape: layout, path resolution, invariants, ownership, the pointer bindings, rendering, migration |
 | `spec-authoring` | `macstack.json` itself — audit path, design path, discovery, examples |
 | `scaffold-project` | Project files, in the mandatory prototype → stack plugins → dev plugins order |
 | `intake` | Client material → delta → gates → rulings → apply → log |

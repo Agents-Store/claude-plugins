@@ -24,7 +24,8 @@ Usage:  render.py <macstack-dir> [--date YYYY-MM-DD] [--check] [--only architect
 import sys, os, io, re, json, datetime, difflib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from mdblocks import parse, entities, entity, anchor, doc_header
+# Only the section/doc anchors are still mdblocks' — every entity below is v3's now.
+from mdblocks import anchor, doc_header
 from i18n import doc_lang, msg, out
 import v3                                            # noqa: E402
 
@@ -45,26 +46,12 @@ def load_spec(root):
         return {}
 
 
-def load_doc(path):
-    """Parse an existing markdown document. (header, blocks) — ([], {}) if absent."""
-    if not os.path.exists(path):
-        return None, []
-    with io.open(path, encoding='utf-8') as f:
-        return parse(f.read())
-
-
 def esc(s):
     return str(s).replace('|', '\\|').replace('\n', ' ').strip() if s is not None else ''
 
 
 def L(table, lang):
     return table.get(lang) or table['en']
-
-
-def _title(block):
-    """A block's heading is '<id> · <title>' — split off the title half."""
-    h = block.heading or ''
-    return h.split('·', 1)[1].strip() if '·' in h else h
 
 
 # ---------------------------------------------------------------- prose catalogue
@@ -101,9 +88,7 @@ MISC = {
         col_date="дата", col_what="что изменилось",
         arch_howto=(
             "Машинная половина спецификации, разложенная для человека и для агента, которому предстоит\n"
-            "здесь строить: чем собрано, что хранится и где, что исполняется и в каком файле.\n\n"
-            "Этот документ **не заменяет** `../docs/architecture.md`. Там — то, чего в спеке не выразить:\n"
-            "измеренные ловушки, аргументы за решения, грабли, на которые уже наступали."),
+            "здесь строить: чем собрано, что хранится и где, что исполняется и в каком файле."),
         patterns="паттерны", no_software="В спецификации нет ни одного software.",
         no_entities="В спецификации нет ни одной сущности.",
         single_master="**master для всех сущностей этого раздела:** `{master}`.",
@@ -139,9 +124,7 @@ MISC = {
         col_date="date", col_what="what changed",
         arch_howto=(
             "The machine half of the spec laid out for a human and for the agent that has to build here:\n"
-            "what it is made of, what is stored and where, what runs and in which file.\n\n"
-            "This does **not** replace `../docs/architecture.md`. That one holds what the spec cannot\n"
-            "express — measured traps, the argument behind a decision, the rake already stepped on."),
+            "what it is made of, what is stored and where, what runs and in which file."),
         patterns="patterns", no_software="The spec declares no software.",
         no_entities="The spec declares no entities.",
         single_master="**master for every entity in this section:** `{master}`.",
@@ -175,6 +158,47 @@ MISC = {
 
 
 # ---------------------------------------------------------------- ARCHITECTURE.md
+# form='slug' on every entity here, never form='id'. v3 takes the id from the
+# HEADING, not from the pointer, and _split_heading's id-first branch only
+# accepts a spoken id — C-04, A5, M3-T1, Z-03. software/entities/workflows are
+# technical slugs (payload, coach, wf-entry-capture), so '### payload · Payload'
+# parses as a titled heading with NO id: 39 pointers, 39 headings, 0 entities,
+# and not one error. The em-dash form '### Payload — `payload`' is what
+# format-rules §3 declares for a slug, and it is the only one v3 can read back.
+def _bullet(key, value, lang):
+    """'- **key:** value'.
+
+    The key is the literal ASCII macstack.json field name, never translated —
+    doc-contracts.format.yaml_rule already made that promise for the fenced yaml
+    block this line replaces, and a bullet label is that same key wearing v3's
+    punctuation instead of a colon inside a fence. Only the VALUE goes through
+    v3's own rules (v3.value_text): booleans become words, bare identifiers get
+    backticked, an empty value leaves no trailing space rather than a dash.
+    """
+    text = v3.value_text(value, lang)
+    return '- **%s:**%s' % (key, (' ' + text) if text else '')
+
+
+def _agentic_text(agentic, lang):
+    """'mcp да, api да, cli да, rating `full`' — macstack.json nests this one field;
+    everything else in a software entity is already flat. The old dump_yaml path
+    pre-stringified True/False here because a nested Python bool round-tripped as
+    the WORD 'True'; v3.value_text has no such bug, so mcp/api/cli/partial go
+    through it exactly like any other bullet value, in the one order the schema
+    declares them (never dict order, which agentic dicts don't reliably keep).
+
+    A key present but empty is DROPPED rather than rendered as a bare word: it
+    would leave '- **agentic:** rating ' with a hanging space, which is the same
+    defect v3.emit_field guards against and which put 41 such lines into a live
+    HANDBOOK.md. False is not empty — it renders as 'нет' and stays."""
+    parts = []
+    for k in ('mcp', 'api', 'cli', 'rating'):
+        text = v3.value_text(agentic[k], lang) if k in agentic else ''
+        if text:
+            parts.append('%s %s' % (k, text))
+    return ', '.join(parts)
+
+
 def render_architecture(spec, lang):
     h, m = L(HEAD, lang), L(MISC, lang)
     out_lines = ['# ' + L(TITLE, lang)['architecture'], '',
@@ -189,21 +213,22 @@ def render_architecture(spec, lang):
     if not software:
         out_lines += ['_%s_' % m['no_software'], '']
     for s in software:
-        # dump_yaml lower-cases a top-level bool but not one nested in a dict — pre-stringify
-        # so a nested {mcp: true} does not come back out as Python's {mcp: True}.
-        agentic = dict((k, ('true' if v is True else 'false' if v is False else v))
-                       for k, v in (s.get('agentic') or {}).items())
-        yaml_fields = {
-            'category': s.get('category'), 'type': s.get('type'),
-            'layers': s.get('layers') or [], 'license': s.get('license'),
-            'hosting': s.get('hosting'), 'agentic': agentic,
-            'role': s.get('role'),
-        }
-        fields = []
+        bullets = [
+            _bullet('category', s.get('category'), lang),
+            _bullet('type', s.get('type'), lang),
+            _bullet('layers', s.get('layers') or [], lang),
+            _bullet('license', s.get('license'), lang),
+            _bullet('hosting', s.get('hosting'), lang),
+            _bullet('agentic', _agentic_text(s.get('agentic') or {}, lang), lang),
+            _bullet('role', s.get('role'), lang),
+        ]
+        prose = [(None, bullets)]
         if s.get('value'):
-            prose = m['value_prose'].get(s['value'], s['value'])
-            fields.append(('role', None, [prose]))
-        out_lines.append(entity('software', s['id'], s.get('name', s['id']), yaml_fields, fields))
+            prose.append((None, [m['value_prose'].get(s['value'], s['value'])]))
+        out_lines += v3.emit_entity('software', s['id'], s.get('name', s['id']),
+                                     prose=prose, pointer='software[id=%s]' % s['id'],
+                                     lang=lang, level=3, form='slug')
+        out_lines.append('')
 
     # ---- entities ----
     out_lines += [anchor('section', 'entities'), '## ' + h['entities'], '']
@@ -216,9 +241,15 @@ def render_architecture(spec, lang):
         if single_master:
             out_lines += [m['single_master'].format(master=single_master), '']
             for e in ents:
-                yaml_fields = {'stores': [st.get('software') for st in (e.get('stores') or [])],
-                                'volume': e.get('volume')}
-                out_lines.append(entity('entity', e['id'], e.get('name', e['id']), yaml_fields, []))
+                bullets = [
+                    _bullet('stores', [st.get('software') for st in (e.get('stores') or [])], lang),
+                    _bullet('volume', e.get('volume'), lang),
+                ]
+                out_lines += v3.emit_entity('entity', e['id'], e.get('name', e['id']),
+                                             prose=[(None, bullets)],
+                                             pointer='entities[id=%s]' % e['id'],
+                                             lang=lang, level=3, form='slug')
+                out_lines.append('')
         else:
             by_master = {}
             for e in ents:
@@ -226,10 +257,16 @@ def render_architecture(spec, lang):
             for master in sorted(by_master):
                 out_lines += ['**%s:** `%s`' % (m['master_label'], master or '—'), '']
                 for e in by_master[master]:
-                    yaml_fields = {'master': e.get('master'),
-                                    'stores': [st.get('software') for st in (e.get('stores') or [])],
-                                    'volume': e.get('volume')}
-                    out_lines.append(entity('entity', e['id'], e.get('name', e['id']), yaml_fields, []))
+                    bullets = [
+                        _bullet('master', e.get('master'), lang),
+                        _bullet('stores', [st.get('software') for st in (e.get('stores') or [])], lang),
+                        _bullet('volume', e.get('volume'), lang),
+                    ]
+                    out_lines += v3.emit_entity('entity', e['id'], e.get('name', e['id']),
+                                                 prose=[(None, bullets)],
+                                                 pointer='entities[id=%s]' % e['id'],
+                                                 lang=lang, level=3, form='slug')
+                    out_lines.append('')
 
     # ---- workflows ----
     out_lines += [anchor('section', 'workflows'), '## ' + h['workflows'], '']
@@ -243,12 +280,18 @@ def render_architecture(spec, lang):
         for status in sorted(by_status):
             out_lines += ['**%s:** `%s`' % (m['status_label'], status or '—'), '']
             for w in by_status[status]:
-                yaml_fields = {
-                    'engine': w.get('engine'), 'triggers': w.get('triggers') or [],
-                    'invocation': w.get('invocation') or [], 'implements': w.get('implements'),
-                    'location': w.get('location'),
-                }
-                out_lines.append(entity('workflow', w['id'], w.get('name', w['id']), yaml_fields, []))
+                bullets = [
+                    _bullet('engine', w.get('engine'), lang),
+                    _bullet('triggers', w.get('triggers') or [], lang),
+                    _bullet('invocation', w.get('invocation') or [], lang),
+                    _bullet('implements', w.get('implements'), lang),
+                    _bullet('location', w.get('location'), lang),
+                ]
+                out_lines += v3.emit_entity('workflow', w['id'], w.get('name', w['id']),
+                                             prose=[(None, bullets)],
+                                             pointer='workflows[id=%s]' % w['id'],
+                                             lang=lang, level=3, form='slug')
+                out_lines.append('')
 
     # ---- integrations ----
     out_lines += [anchor('section', 'integrations'), '## ' + h['integrations'], '']
@@ -388,54 +431,6 @@ def _coverage_v3(cases, tests, lang):
                      % (esc(key), n_cases, n_acc, n_cov,
                         (', без теста %d' % gap) if gap else ''))
     lines.append('')
-    return lines
-
-
-def _coverage(cases, tests, lang):
-    m = L(MISC, lang)
-    per_role = {}
-    for c in cases:
-        role = c.yaml.get('role') or ''
-        acc = c.field('acceptance')
-        bullets = [ln for ln in (acc.body if acc is not None else []) if ln.strip().startswith('-')]
-        ids = ['%s.a%d' % (c.id, i + 1) for i in range(len(bullets))]
-        d = per_role.setdefault(role, {'cases': 0, 'acc_ids': []})
-        d['cases'] += 1
-        d['acc_ids'].extend(ids)
-
-    covers_map = {}
-    for t in tests:
-        covers = t.yaml.get('covers')
-        covers = covers if isinstance(covers, list) else ([covers] if covers else [])
-        for aid in covers:
-            covers_map.setdefault(aid, []).append(t.yaml.get('kind'))
-
-    rows = []
-    for role in sorted(per_role):
-        d = per_role[role]
-        auto = manual = open_n = 0
-        for aid in d['acc_ids']:
-            kinds = covers_map.get(aid) or []
-            if not kinds:
-                open_n += 1
-            else:
-                auto += sum(1 for k in kinds if k == 'auto')
-                manual += sum(1 for k in kinds if k == 'manual')
-        rows.append((role or '—', d['cases'], len(d['acc_ids']), auto + manual, auto, manual, open_n))
-
-    lines = []
-    if len(rows) >= 3:
-        lines.append('| %s | %s | %s | %s |' % (m['role_col'], m['cases_col'], m['acc_col'], m['tests_col']))
-        lines.append('|---|---|---|---|')
-        for role, n_cases, acc_n, tests_n, auto, manual, open_n in rows:
-            cell = m['tests_cell'].format(n=tests_n, auto=auto, manual=manual, open=open_n)
-            lines.append('| %s | %s | %s | %s |' % (esc(role), n_cases, acc_n, cell))
-        lines.append('')
-    else:
-        for role, n_cases, acc_n, tests_n, auto, manual, open_n in rows:
-            lines.append('- **%s** · %s' % (esc(role), m['coverage_line'].format(
-                cases=n_cases, acc=acc_n, tests=tests_n, auto=auto, manual=manual, open=open_n)))
-        lines.append('')
     return lines
 
 

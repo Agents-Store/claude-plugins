@@ -25,8 +25,8 @@ Then, in order and without skipping:
 1. **`spec-authoring`** — produce or complete `macstack.json`. For a hard case,
    delegate to the `macstack-architect` agent.
 2. **`documents`** — create or repair `macstack/`, seeding the authored client
-   documents once and rendering the generated ones. Read `document-format` before
-   writing any document.
+   documents once and rendering the generated ones. Read `documents/references/format-rules.md`
+   before writing any document.
 3. **`infisical-env`** — wire the environment if the spec declares accesses.
 4. **`best-practices`** — install the project rules and commands.
 5. **`scaffold-project`** — only in scaffold mode, and only in the mandatory source

@@ -1,6 +1,6 @@
 ---
 name: documents
-description: This skill should be used when the user asks to "create the macstack folder", "set up project docs", "where do user cases live", "add a screen", "add a trigger", "standardize the project documents", "repair the macstack folder", "migrate docs into macstack", mentions `macstack/`, OVERVIEW, USER-CASES, UX-UI, AUTOMATION, HANDBOOK, OPEN-QUESTIONS, DECISIONS, the client inbox or the document log — and BEFORE any other skill reads or writes anything under `macstack/`. Defines the folder standard: layout, path resolution, ID spaces, anchors, the language rule, the immutability guardrails, rendering and migration.
+description: This skill should be used when the user asks to "create the macstack folder", "set up project docs", "where do user cases live", "add a screen", "add a trigger", "standardize the project documents", "repair the macstack folder", "migrate docs into macstack", mentions `macstack/`, OVERVIEW, USER-CASES, UX-UI, AUTOMATION, HANDBOOK, OPEN-QUESTIONS, DECISIONS, the client inbox or the document log — and BEFORE any other skill reads or writes anything under `macstack/`. Defines the folder standard AND the document shape: layout, path resolution, ID spaces, the pointer bindings, the bullet-label form, the language rule, the immutability guardrails, rendering and migration.
 ---
 
 # The `macstack/` folder — standard
@@ -16,9 +16,11 @@ Structure is defined once in
 this skill (the writer) and `lint` (the checker) read. Never restate that file's
 anchors, YAML keys or ID patterns from memory — open it.
 
-**Shape before content:** read `document-format` before writing a single line. Every
-document here is entities + YAML blocks + anchored prose, and a table only inside a
-budget. A document written in the old table shape passes no check in this plugin.
+**Shape before content:** read `references/format-rules.md` before writing a single
+line. A client document is headings and bullet lists — nothing else. No fenced blocks,
+no tables, no journal section. The machine half lives in `macstack.json`, and each
+entity carries an invisible pointer to it. A document written in the v1 table shape or
+the v2 yaml shape passes no check in this plugin.
 
 ## Layout
 
@@ -263,7 +265,7 @@ folders with `git mv`, recomputing every relative link against the old location,
 relocates a legacy root `macstack.json`.
 
 **Format migration** converts v1 table-shaped documents into v2 entities. Per the
-conversion checklist in `document-format`:
+conversion checklist in `references/format-rules.md`:
 
 - one row becomes one entity; the first column becomes the id and the title;
 - short factual columns become YAML keys, long prose columns become anchored sections;
@@ -285,7 +287,7 @@ nineteen.
 
 | Task | Skill |
 |---|---|
-| How a document is shaped | `document-format` |
+| How a document is shaped | `references/format-rules.md`, in this skill |
 | Client material arrived, or "improve X" | `intake` |
 | Turn the acceptance bullets into checks | `test-cases` |
 | Plan work, or reconcile with the tracker | `planning` |

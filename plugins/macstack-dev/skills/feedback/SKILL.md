@@ -21,7 +21,7 @@ severity (critical / major / minor). Then route by WHAT is wrong:
 | The schema: a missing/wrong property, enum value, required rule; a lint rule; an example | **Standard** | `github.com/macstacks/macstack` |
 | A software passport, category, entity/trigger/agent template | **Registry** | `github.com/macstacks/registry` |
 | A `macstack/` folder-convention problem (anchors, IDs, layout, the merge loop) | **Plugin** | this plugin's `documents` / `intake` skills |
-| A document-format problem (table budget, entity/YAML shape, `docs.language` ratio) | **Plugin** | this plugin's `document-format` skill |
+| A document-shape problem (a table where a list belongs, an undeclared bullet label, `docs.language` ratio) | **Plugin** | this plugin's `documents` skill and `doc-contracts.json` |
 | The `docs` schema section itself (fields, `docRef` shape) | **Standard** | `github.com/macstacks/macstack` |
 
 One report may touch several targets (a new schema field usually needs: schema +

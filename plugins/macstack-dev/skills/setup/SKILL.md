@@ -135,7 +135,7 @@ Never write code that contradicts macstack.json — update the specification fir
 | Project rules and commands | `best-practices` |
 | Validation, and "where are we and what next" | `lint` |
 | Create/seed the `macstack/` folder, or relocate an existing `docs/` into the new layout | `documents` |
-| The entity + YAML + anchored-prose shape and the table budget | `document-format` |
+| The heading + bullet-label shape, the pointer bindings and the table budget | `documents` |
 | Merge new client material into the folder | `intake` |
 | Turn the acceptance bullets into checks | `test-cases` |
 | Plan work, or reconcile with the tracker | `planning` |
