@@ -110,7 +110,7 @@ not a risk.
 | `code-audit` | From a file: what is in the code that no document mentions? Enumerates by the conventions the spec declares, sorts into three lists, proposes — never edits |
 | `journal` | `history/ledger.jsonl` — one row per edit, comment and audit verdict — and its curated client-facing `CHANGELOG.md` |
 | `client-package` | The client package — HTML and published page — with each statement's own history, and reading the answers back into the ledger |
-| `lint` | Schema, referential integrity, the folder (39 rules, 12.0–12.38), and the status dashboard |
+| `lint` | Schema, referential integrity, the folder (40 rules, 12.0–12.39), and the status dashboard |
 | `infisical-env` | `.env` wiring from `resources.accesses` |
 | `best-practices` | Project rules and commands |
 | `setup` | Orientation, tooling, path resolution, the CLAUDE.md and AGENTS.md blocks |

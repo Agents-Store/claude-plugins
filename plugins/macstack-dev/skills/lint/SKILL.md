@@ -268,6 +268,16 @@ below is checked against that file, never against memory.
       Leaving it in `client/` creates a seventh document that no renderer, no package
       and no spec knows about — and a month later nobody can say whether it is a
       source of truth or somebody's draft.
+
+12.39 **A workflow's `source` path still exists** — `workflows[].source` says where the
+      workflow lives in code. Rename or delete the file and the field stays behind, and
+      the next audit reports green against a path that is gone. An empty `source` is not
+      an error — the workflow may not be written yet; a filled-in wrong one is.
+      The field exists because names do not bridge the two sides: measured on a live
+      project, code names a workflow for its domain and the spec for its step, and only
+      3 of 17 match. A link that cannot be derived has to be stored, and a stored link
+      has to be checked — otherwise it is worse than none, because it is believed.
+
 12.24 **Tables stay inside the budget** — in `history/` and `generated/` only; in
       `client/` a table is an error outright (12.30). At most 4 columns, at most 80
       characters a cell, at least 3 rows, and no `<br>`, bold, code fence or pipe

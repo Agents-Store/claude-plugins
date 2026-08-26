@@ -82,9 +82,13 @@ Workflows cannot be matched this way at all. The code names them for their domai
 (`wf-entry-capture`, `wf-mark-verified`). Both are right, and no normalisation bridges
 them. So do not guess:
 
-- ask the owner, once, and record the mapping in the spec — a `source` alongside the
-  workflow, so the next audit is arithmetic instead of a re-derivation;
-- or report the two lists side by side and say plainly that they are unmatched.
+- record the mapping in the spec — `workflows[].source`, the path where it lives
+  (schema rev 15), so the next audit is arithmetic instead of a re-derivation. Match by
+  what each file DOES, not by what it is called, and let lint rule 12.39 keep the paths
+  honest afterwards. One file may hold more than one workflow: `source` says where it
+  lives, not that it lives there alone;
+- or, until that is done, report the two lists side by side and say plainly that they
+  are unmatched. Never turn an unmatched list into a count of missing work.
 
 Reporting "14 of 17 workflows missing from the code" when they are all present under
 other names is the worst available outcome: it is a confident number, it is wrong, and

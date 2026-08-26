@@ -851,3 +851,30 @@ def r_12_38(c):
                            'не один из документов — входящий материал: перенесите '
                            'в inbox/ и разберите через /macstack-dev:intake'))
     return out
+
+
+@rule('12.39', 'Every workflow source path still exists')
+def r_12_39(c):
+    """`workflows[].source` говорит, где workflow живёт в коде. Файл переименуют
+    или удалят — поле останется, и следующий аудит отчитается зелёным по пути,
+    которого нет.
+
+    Поле появилось потому, что имена две стороны не связывают: на живом проекте
+    код зовёт workflow по предметной области, спека — по шагу, и сходятся 3 из
+    17. Связь, которую нельзя вывести, приходится хранить; хранимую связь надо
+    проверять, иначе она хуже отсутствующей — ей верят.
+
+    Пустое `source` здесь не ошибка: workflow может быть ещё не написан. Ошибка
+    — заполненное и неверное.
+    """
+    root = os.path.normpath(os.path.join(c.root, '..'))
+    out = []
+    for w in (c.spec.get('workflows') or []):
+        src = w.get('source')
+        if not src:
+            continue
+        if not os.path.exists(os.path.join(root, src)):
+            out.append(Finding('12.39', ERROR, 'macstack.json', 0,
+                               '%s: source указывает на %s — файла нет'
+                               % (w.get('id'), src)))
+    return out
