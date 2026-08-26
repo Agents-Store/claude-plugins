@@ -123,6 +123,14 @@ class Ctx(object):
         doc = self.docs.get(key)
         if decl is None or doc is None:
             return None, []
+        if decl.get('pointerless'):
+            # Сущность, у которой указателя нет по существу: сессия решений — не
+            # запись в macstack.json, и lifecycle.decisions указывает в обратную
+            # сторону. Сопоставлять её по коллекции нечем, значит по id-шаблону.
+            pat = decl.get('id_pattern')
+            return decl, [i for i in doc.items
+                          if i.level >= 3 and i.id
+                          and (not pat or re.match(pat, i.id))]
         want = set(decl.get('collections') or [_CONTRACT_KIND.get(kind, kind)])
         return decl, [i for i in doc.items
                       if i.level >= 3 and self.entity_kind(i) in want]
@@ -222,7 +230,10 @@ def r_12_2(c):
         # проверки, поэтому искать его среди найденных сущностей бесполезно —
         # его там по определению нет. Признак: заголовок несёт идентификатор.
         reserved = set()
+        pointerless = set()
         for e in ((c.contract.get('documents') or {}).get(key) or {}).get('entities') or []:
+            if e.get('pointerless'):
+                pointerless.add(e.get('id_pattern') or '.')
             for pref, r in ((e.get('pointer') or {}).get('by_id_prefix') or {}).items():
                 if r.get('binding') == 'none':
                     reserved.add(pref)
@@ -230,6 +241,8 @@ def r_12_2(c):
             if it.level < 3 or not it.id or it.ref:
                 continue
             if any(it.id.startswith(pref) for pref in reserved):
+                continue
+            if any(re.match(pat, it.id) for pat in pointerless):
                 continue
             if '~~' in (doc.lines[it.head_line] if it.head_line is not None else ''):
                 continue                      # зачёркнутый — закрыт, адреса больше нет

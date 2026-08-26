@@ -916,7 +916,7 @@
     },
     "decisions": {
       "path": "history/DECISIONS.md",
-      "audience": "both",
+      "audience": "internal",
       "append_only": true,
       "sections": [
         "howto",
@@ -931,25 +931,22 @@
       "registry_item": "- **<id>** · <date> · <title> — <decided by>",
       "entities": [
         {
-          "kind": "rulings_group",
-          "id_space": "path",
-          "in_section": "registry",
-          "heading": "### <date> · <slug>",
-          "prose_required": [
-            "decisions"
-          ],
-          "bullets_required": [
-            "file"
-          ],
-          "bullets_optional": [
-            "branch"
-          ],
-          "collections": [
-            "rulings_group"
-          ]
+          "kind": "ruling_session",
+          "id_space": "rulings",
+          "collections": [],
+          "heading": "### <title> — `<slug>`",
+          "bullets_required": [],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": [],
+          "note": "One sitting at which the owner ruled on several things at once. It carries no pointer: a sitting is not a record in macstack.json, and lifecycle.decisions points the other way — at this file, by decision id.",
+          "pointerless": true,
+          "id_pattern": "^\\d{4}-\\d{2}-\\d{2}-[a-z0-9-]+$"
         }
       ],
-      "note": "A registry, grouped by the rulings file that holds the argument. v1 used a five-column table whose last column repeated the same path twenty-one times in a row — the grouping is that column, promoted to a heading."
+      "note": "A registry, grouped by the rulings file that holds the argument. v1 used a five-column table whose last column repeated the same path twenty-one times in a row — the grouping is that column, promoted to a heading.  The argued rulings live here too since the decisions/ folder was absorbed: a registry line said WHAT was decided and a separate file said WHY, and the title was copied into both. One file now, and the argument sits under the ruling it argues.",
+      "format": "v3",
+      "audience_note": "The client sees a decision through the review package, not by reading the registry. Calling this `both` put it under every rule that protects the client's reading — no tables, no fences — for a file no client opens, and the rules were right to fire."
     },
     "changelog": {
       "path": "history/CHANGELOG.md",
@@ -992,71 +989,6 @@
       "supersession": "In place, never by deletion: append '**Superseded by <id>:** …' to the old entry. A changelog that edits its own past cannot be trusted about its present.",
       "note": "The curated, audience-facing half of the journal: what reached the people who use the product. log.md holds everything that happened; this holds what mattered to them. Never a git log dump — an entry claims a PROPERTY the system now has, in the words of someone who does not read code."
     },
-    "log": {
-      "path": "history/log.md",
-      "audience": "internal",
-      "append_only": true,
-      "sections": [
-        "howto",
-        "entries"
-      ],
-      "entities": [
-        {
-          "kind": "log_entry",
-          "id_space": "date-kind",
-          "in_section": "entries",
-          "heading": "## [<YYYY-MM-DD>] <kind> | <title>",
-          "sections_required_when": {
-            "work": [
-              "what",
-              "notes"
-            ],
-            "merge": [
-              "note"
-            ],
-            "intake": [],
-            "handoff": [],
-            "release": []
-          },
-          "note": "v1 declared a flat `entry_requires` of the six merge fields AND a per-kind table that disagreed with it, so a `work` entry was contractually required to carry a `delta`. There is one shape now, keyed by kind. `notes` on a work entry is the half git cannot hold — the dead end taken, the thing that turned out harder. A work entry with an empty notes is usually a work entry not worth writing.",
-          "bullets_required": [
-            "kind"
-          ],
-          "bullets_optional": [],
-          "bullets_required_when": {
-            "intake": [
-              "source"
-            ],
-            "handoff": [
-              "document",
-              "version",
-              "file",
-              "to"
-            ],
-            "merge": [
-              "source",
-              "delta",
-              "decisions",
-              "applied",
-              "opened",
-              "closed"
-            ],
-            "work": [
-              "tasks"
-            ],
-            "release": [
-              "release",
-              "milestone",
-              "changelog"
-            ]
-          },
-          "collections": [
-            "log_entry"
-          ]
-        }
-      ],
-      "note": "Append-only journal of everything that happened to this project: client material in, merges, work done, releases out. Scaffolding does not log — a freshly created folder has no entry, and that absence is intentional. CHANGELOG.md is this file's curated, client-facing derivative; the two are never merged."
-    },
     "inbox_manifest": {
       "path": "inbox/README.md",
       "audience": "internal",
@@ -1091,113 +1023,6 @@
         }
       ],
       "note": "The ONLY writable file under inbox/. v1 used a six-column table of which three columns were empty on every row."
-    },
-    "delta": {
-      "path": "history/deltas/YYYY-MM-DD-<slug>.md",
-      "audience": "internal",
-      "write_once": true,
-      "sections": [
-        "howto",
-        "contradictions",
-        "additions",
-        "confirmed",
-        "absent",
-        "journal"
-      ],
-      "journal_columns": [
-        "date",
-        "what changed"
-      ],
-      "entities": [
-        {
-          "kind": "contradiction",
-          "id_space": "contradiction",
-          "in_section": "contradictions",
-          "heading": "### <id> · <title>",
-          "prose_required": [
-            "document_says",
-            "current_says"
-          ],
-          "prose_optional": [
-            "recommendation"
-          ],
-          "bullets_required": [
-            "blast_radius"
-          ],
-          "bullets_optional": [
-            "cases",
-            "source_page"
-          ],
-          "collections": [
-            "contradiction"
-          ]
-        },
-        {
-          "kind": "addition",
-          "id_space": "addition",
-          "in_section": "additions",
-          "heading": "### <id> · <title>",
-          "prose_required": [
-            "what"
-          ],
-          "bullets_required": [
-            "role"
-          ],
-          "bullets_optional": [
-            "priority",
-            "becomes",
-            "source_page"
-          ],
-          "collections": [
-            "addition"
-          ]
-        }
-      ],
-      "applied_anchor": "applied",
-      "age_budget_days": {
-        "warn": 14,
-        "error": 30
-      },
-      "note": "A proposal, not an edit. Declares the bar (USER-CASES.md) and stays history. Gets one applied banner and is never otherwise revised."
-    },
-    "rulings": {
-      "path": "history/decisions/YYYY-MM-DD-<slug>-rulings.md",
-      "audience": "internal",
-      "write_once": true,
-      "header_requires": [
-        "date",
-        "branch",
-        "result"
-      ],
-      "sections": [
-        "rulings",
-        "left-to-client",
-        "where-applied"
-      ],
-      "entities": [
-        {
-          "kind": "ruling",
-          "id_space": "decision",
-          "in_section": "rulings",
-          "heading": "### <id> · <title>",
-          "prose_required": [
-            "ruling",
-            "cost_if_wrong"
-          ],
-          "bullets_required": [
-            "decided_by"
-          ],
-          "bullets_optional": [
-            "closes",
-            "opens",
-            "applies_to"
-          ],
-          "collections": [
-            "ruling"
-          ]
-        }
-      ],
-      "note": "Cost-if-wrong is written AT DECISION TIME, before the outcome is known. A retrospective cost clause is worthless."
     },
     "review": {
       "path": "history/reviews/YYYY-MM-DD-<slug>-conformance.md",
@@ -1237,6 +1062,42 @@
         }
       ],
       "note": "Ships in pairs: a technical audit and its business-language twin, same date and slug, same commit. The twin was a WARNING 'until a generator exists' for three releases; the generator exists in v2, so the twin is required."
+    },
+    "ledger": {
+      "path": "history/ledger.jsonl",
+      "audience": "internal",
+      "format": "jsonl",
+      "append_only": true,
+      "record": {
+        "required": [
+          "date",
+          "doc",
+          "item",
+          "kind"
+        ],
+        "optional": [
+          "was",
+          "now",
+          "why",
+          "source",
+          "task",
+          "decision",
+          "by",
+          "scope"
+        ],
+        "kinds": [
+          "added",
+          "changed",
+          "removed",
+          "comment",
+          "answer",
+          "audit",
+          "handoff",
+          "release",
+          "work"
+        ]
+      },
+      "note": "Every edit and every client comment, one JSON object per line, keyed by the id of the thing that changed. It replaces history/log.md, whose entries were about the SESSION and never said which statement moved — so a review package could not show a client what had changed since they last read it. intake and merge lost their entry kinds on the way: the trace of a merge is the edits it produced, and a row saying \"material was merged\" beside rows saying what it changed is a summary of its own neighbours."
     }
   },
   "prohibitions": [

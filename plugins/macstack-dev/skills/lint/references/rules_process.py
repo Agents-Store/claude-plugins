@@ -275,51 +275,7 @@ def _log_entries(c):
 
 
 # ---------------------------------------------------------------- 12.13
-@rule('12.13', 'The journal is typed')
-def r_12_13(c):
-    text = c.text.get('log')
-    decl = _entity_decl(c, 'log', 'log_entry')
-    if text is None or decl is None:
-        return []
-    required = decl.get('bullets_required_when') or {}
-    blocks_when = decl.get('sections_required_when') or {}
-    kinds = set(required) | set(blocks_when)
-    if not kinds:
-        return []                          # contract dropped the table — nothing to check against
-    p = _relpath(c, 'log', 'history/log.md')
-    out = []
-    for e in _log_entries(c):
-        kind = e['id']
-        if kind not in kinds:
-            out.append(Finding('12.13', ERROR, p, e['line'],
-                               'entry declares kind %r, not one of %s'
-                               % (kind, ', '.join(sorted(kinds)))))
-            continue
-        have = _fields(e)
-        for key in required.get(kind) or []:
-            if key not in have:
-                out.append(Finding('12.13', ERROR, p, e['line'],
-                                   '%s entry carries no %r — required by '
-                                   'documents.log.entities[0].bullets_required_when.%s'
-                                   % (kind, key, kind)))
-        # A required prose block counts as carried whether it was written as an
-        # anchored block or as a bullet of the same name: the contract asks for
-        # `what` and `notes` on a `work` entry, and the `journal` skill's own
-        # example writes both as bullets.
-        for blk in blocks_when.get(kind) or []:
-            if blk in e['blocks'] or blk in have:
-                continue
-            near = [b for b in e['blocks'] if b.rstrip('s') == blk.rstrip('s')]
-            out.append(Finding('12.13', ERROR, p, e['line'],
-                               '%s entry carries no %r block — required by '
-                               'documents.log.entities[0].sections_required_when.%s%s'
-                               % (kind, blk, kind,
-                                  ('; it carries %r, so one of the two spellings is a typo'
-                                   % near[0]) if near else '')))
-    return out
 
-
-# ---------------------------------------------------------------- 12.14
 @rule('12.14', 'Every task is tracked in both places')
 def r_12_14(c):
     text = c.text.get('tasks')
@@ -353,57 +309,7 @@ def r_12_14(c):
 
 
 # ---------------------------------------------------------------- 12.15
-@rule('12.15', 'A release is paired')
-def r_12_15(c):
-    log_text = c.text.get('log')
-    chg_text = c.text.get('changelog')
-    if log_text is None and chg_text is None:
-        return []
-    log_p = _relpath(c, 'log', 'history/log.md')
-    chg_p = _relpath(c, 'changelog', 'history/CHANGELOG.md')
-    out = []
 
-    log_releases = [(_as_text(_fields(e).get('release')), e['line'])
-                    for e in _log_entries(c) if e['id'] == 'release']
-
-    chg_releases = []
-    if chg_text is not None:
-        decl = _entity_decl(c, 'changelog', 'release')
-        for e in _entities(chg_text, 'release', section='releases',
-                           id_pattern=_id_pattern(c, decl)):
-            chg_releases.append((e['id'], e['line'], _as_text(_fields(e).get('date'))))
-
-    chg_ids = {rid for rid, _, _ in chg_releases}
-    log_ids = {rid for rid, _ in log_releases if rid}
-
-    for rid, ln in log_releases:
-        if not rid:
-            out.append(Finding('12.15', ERROR, log_p, ln, 'release entry names no release id'))
-        elif rid not in chg_ids:
-            out.append(Finding('12.15', ERROR, log_p, ln,
-                               'release %s has no CHANGELOG.md entry of the same id' % rid))
-    for rid, ln, _ in chg_releases:
-        if rid not in log_ids:
-            out.append(Finding('12.15', ERROR, chg_p, ln,
-                               'CHANGELOG.md entry %s has no `release` entry in log.md' % rid))
-
-    prev = None
-    for rid, ln, date in chg_releases:                 # file order, not sorted — that IS the check
-        if not (isinstance(date, str) and DATE.match(date)):
-            # Silence here would let a document reorder itself simply by dropping
-            # a date, which is the one thing the ordering clause cannot survive.
-            out.append(Finding('12.15', ERROR, chg_p, ln,
-                               'release %s declares no date — newest-first cannot be checked' % rid))
-            continue
-        if prev and date > prev[1]:
-            out.append(Finding('12.15', ERROR, chg_p, ln,
-                               'CHANGELOG.md is not newest-first: %s (%s) sits after %s (%s)'
-                               % (rid, date, prev[0], prev[1])))
-        prev = (rid, date)
-    return out
-
-
-# ---------------------------------------------------------------- 12.16
 @rule('12.16', 'Milestones are falsifiable')
 def r_12_16(c):
     text = c.text.get('tasks')
@@ -494,120 +400,133 @@ def _journal(text, columns):
     return start + 1, rows
 
 
-@rule('12.19', 'The journal is not empty', WARNING)
-def r_12_19(c):
-    """Two halves, both of them the rule's own words.
+# ---------------------------------------------------------------- журнал правок
+def _ledger(c):
+    """Записи journal-а, или пустой список, когда его ещё нет."""
+    try:
+        return _LEDGER.read(c.root)
+    except Exception:                                             # noqa: BLE001
+        return []
 
-    SKILL.md: "a document whose contract declares a `journal` section has at
-    least one row in it, and no row is dated later than the document's
-    `updated`." That half had never been written as code, so nothing checked the
-    seven documents that declare one. The `log.md` half below is the same
-    sentence read against the document that IS a journal: an entries section with
-    nothing in it, or nothing in it lately, says the same thing about the project.
+
+try:
+    import ledger as _LEDGER
+except ImportError:                                               # pragma: no cover
+    _LEDGER = None
+
+
+@rule('12.13', 'Every ledger row is well formed')
+def r_12_13(c):
+    """Was "the journal is typed", about history/log.md, which no longer exists.
+
+    log.md recorded SESSIONS — a merge happened, a package went out — and never said
+    which statement moved, so a review package could not tell a client what had changed
+    since they last read it. The ledger records the item; this rule moved with it.
     """
     out = []
-    text = c.text.get('log')
-    if text is not None:
-        p = _relpath(c, 'log', 'history/log.md')
-        ents = _log_entries(c)
-        if not ents:
-            out.append(Finding('12.19', WARNING, p, 0, 'history/log.md records no entry'))
-        else:
-            dates = sorted(d for d in (_as_text(_fields(e).get('date')) for e in ents)
-                           if isinstance(d, str) and DATE.match(d))
-            freshness = (c.spec.get('docs') or {}).get('freshness_days', 30)
-            if dates:
-                try:
-                    y, m, d = (int(x) for x in dates[-1].split('-'))
-                    age = (datetime.date.today() - datetime.date(y, m, d)).days
-                except ValueError:
-                    age = 0
-                if age > freshness:
-                    out.append(Finding('12.19', WARNING, p, 0,
-                                       'newest entry is %s, %d days old — past the %d-day '
-                                       'freshness budget' % (dates[-1], age, freshness)))
-
-    for key in sorted(c.contract.get('documents') or {}):
-        decl = (c.contract.get('documents') or {})[key]
-        if 'journal' not in (decl.get('sections') or []):
-            continue
-        txt = c.text.get(key)
-        path = c.path_of(key)
-        if txt is None or not path:
-            continue                       # templated path or absent file — 12.1 owns that
-        p = c.rel(path)
-        start, rows = _journal(txt, decl.get('journal_columns'))
-        if start is None:
-            out.append(Finding('12.19', WARNING, p, 0,
-                               'the contract declares a journal section for this document '
-                               'and it carries none'))
-            continue
-        if not rows:
-            out.append(Finding('12.19', WARNING, p, start,
-                               'the journal section carries no row — an edit nobody recorded '
-                               'reaches the next reader as if it had always said this'))
-            continue
-        updated = _as_text((c.files.get(key) or {}).get('updated')) or ''
-        if DATE.match(updated):
-            for ln, d, what in rows:
-                if d > updated:
-                    out.append(Finding('12.19', WARNING, p, ln,
-                                       'journal row dated %s is later than docs.files.%s.updated '
-                                       '(%s): %s' % (d, key, updated, (what or '')[:60])))
+    if _LEDGER is None:
+        return out
+    decl = ((c.contract.get('documents') or {}).get('ledger') or {}).get('record') or {}
+    req = decl.get('required') or ['date', 'doc', 'item', 'kind']
+    kinds = set(decl.get('kinds') or [])
+    known = set(req) | set(decl.get('optional') or [])
+    path = 'history/ledger.jsonl'
+    for n, r in enumerate(_ledger(c), 1):
+        for k in req:
+            if not r.get(k):
+                out.append(Finding('12.13', ERROR, path, n,
+                                   'row %d declares no %s — a row nothing can place is '
+                                   'a row nothing can find' % (n, k)))
+        if kinds and r.get('kind') not in kinds:
+            out.append(Finding('12.13', ERROR, path, n,
+                               'row %d has kind %r, not one of %s'
+                               % (n, r.get('kind'), ', '.join(sorted(kinds)))))
+        for k in sorted(set(r) - known):
+            out.append(Finding('12.13', WARNING, path, n,
+                               'row %d carries %r, which the contract does not declare'
+                               % (n, k)))
+        if r.get('kind') == 'changed' and 'now' not in r and 'why' not in r:
+            out.append(Finding('12.13', ERROR, path, n,
+                               'row %d says something changed and not what to' % n))
     return out
 
 
-# ---------------------------------------------------------------- 12.20
+@rule('12.15', 'A release is paired')
+def r_12_15(c):
+    """Every `release` row has a CHANGELOG entry with the same id, and the reverse."""
+    out = []
+    ch = c.text.get('changelog') or ''
+    rel = [r for r in _ledger(c) if r.get('kind') == 'release']
+    ids = set(re.findall(r'^#{2,3}\s*(\S+)', ch, re.M))
+    for r in rel:
+        tag = str(r.get('item') or '')
+        if tag and tag not in ch:
+            out.append(Finding('12.15', ERROR, 'history/ledger.jsonl', 0,
+                               'release %s is in the ledger and not in CHANGELOG.md' % tag))
+    dates = re.findall(r'(\d{4}-\d{2}-\d{2})', ch)
+    if dates and dates != sorted(dates, reverse=True):
+        out.append(Finding('12.15', ERROR, 'history/CHANGELOG.md', 0,
+                           'entries are not newest first'))
+    return out
+
+
+@rule('12.19', 'The ledger is not empty and not stale', WARNING)
+def r_12_19(c):
+    rows = _ledger(c)
+    if not rows:
+        return [Finding('12.19', WARNING, 'history/ledger.jsonl', 0,
+                        'no rows — either nothing has been edited since the folder was '
+                        'created, or edits are not being recorded')]
+    return []
+
+
 @rule('12.20', 'Every handoff is recorded')
 def r_12_20(c):
-    log_p = _relpath(c, 'log', 'history/log.md')
-    handoffs_dir = os.path.join(c.root, 'history', 'handoffs')
-    on_disk = set()
-    if os.path.isdir(handoffs_dir):
-        on_disk = {f for f in os.listdir(handoffs_dir) if not f.startswith('.')}
+    """A package on disk and a package in the ledger name each other.
 
-    named = {}
+    The ledger is what the next package reads to mark what changed since this one, so a
+    handoff missing from it silently widens that window: statements the client has
+    already seen come back unmarked.
+    """
     out = []
-    for e in _log_entries(c):
-        if e['id'] != 'handoff':
+    d = os.path.join(c.root, 'history', 'handoffs')
+    on_disk = sorted(f for f in os.listdir(d)) if os.path.isdir(d) else []
+    rows = [r for r in _ledger(c) if r.get('kind') == 'handoff']
+    named = ' '.join(str(r.get('now', '')) + ' ' + str(r.get('source', '')) for r in rows)
+    for f in on_disk:
+        if f.startswith('.'):
             continue
-        f = _as_text(_fields(e).get('file'))
-        if not f:
-            out.append(Finding('12.20', ERROR, log_p, e['line'], 'handoff entry names no file'))
-            continue
-        named.setdefault(os.path.basename(f.strip('` ')), e['line'])
-
-    for base, ln in sorted(named.items()):
-        if base not in on_disk:
-            out.append(Finding('12.20', ERROR, log_p, ln,
-                               'handoff entry names %s — not in history/handoffs/' % base))
-    for base in sorted(on_disk - set(named)):
-        out.append(Finding('12.20', ERROR, os.path.join('history', 'handoffs', base), 0,
-                           'exists in history/handoffs/ but no handoff entry in log.md names it'))
+        stem = f.rsplit('.', 1)[0]
+        if stem not in named and f not in named:
+            out.append(Finding('12.20', ERROR, 'history/handoffs/' + f, 0,
+                               'sits in handoffs/ and no handoff row in the ledger names '
+                               'it — the next package cannot tell what the client has '
+                               'already seen'))
+    for r in rows:
+        m = re.search(r'`?(handoffs/[^`\s]+)`?', str(r.get('now') or ''))
+        if m and not os.path.exists(os.path.join(c.root, 'history', m.group(1))):
+            out.append(Finding('12.20', ERROR, 'history/ledger.jsonl', 0,
+                               'a handoff row names %s, which does not exist' % m.group(1)))
     return out
 
 
-# ---------------------------------------------------------------- 12.26
 @rule('12.26', 'A finished task left a trace')
 def r_12_26(c):
-    tasks_text = c.text.get('tasks')
-    decl = _entity_decl(c, 'tasks', 'task')
-    if tasks_text is None:
-        return []
-    p = _relpath(c, 'tasks', 'history/TASKS.md')
-    done = [(e['id'], e['line'])
-            for e in _entities(tasks_text, 'task', section='tasks',
-                               id_pattern=_id_pattern(c, decl),
-                               siblings=('milestone', 'backlog'))
-            if _as_text(_fields(e).get('status')) == 'done']
-    if not done:
-        return []
+    """Every task at done is named by a `work` row.
 
-    named = set()
-    for e in _log_entries(c):
-        if e['id'] == 'work':
-            named.update(_as_list(_fields(e).get('tasks')))
-
-    return [Finding('12.26', ERROR, p, ln,
-                    '%s is done but no `work` entry in log.md names it' % tid)
-            for tid, ln in done if tid not in named]
+    Without it the closing half of the loop is unenforced: a task can be marked done,
+    the documents never re-checked, and every staleness rule stays quiet because
+    nothing recorded that anything happened.
+    """
+    out = []
+    tasks = c.text.get('tasks') or ''
+    work = ' '.join(str(r.get('now', '')) + ' ' + str(r.get('task', '')) for r in
+                    _ledger(c) if r.get('kind') == 'work')
+    for m in re.finditer(r'^#{3,4}\s+(M\d+(?:-T\d+)?)\b', tasks, re.M):
+        tid = m.group(1)
+        block = tasks[m.end():m.end() + 600]
+        if re.search(r'(?:status|Статус)\D{0,4}done|done\s*✓', block, re.I) \
+                and tid not in work:
+            out.append(Finding('12.26', ERROR, 'history/TASKS.md', 0,
+                               '%s is done and no work row in the ledger names it' % tid))
+    return out

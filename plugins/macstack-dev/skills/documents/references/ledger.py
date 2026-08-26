@@ -37,13 +37,24 @@ A record:
     comment   the client said something ABOUT it
     answer    we replied to that comment
     audit     a conformance run reached a verdict on it
+    handoff   a review package went to the client
+    release   something reached the people who use it
+    work      a task was finished
 
-One stream for all six on purpose: the package needs them interleaved in time for a
-single item, and a client's comment and the edit it caused are the same story.
+One stream on purpose: the package needs them interleaved in time for a single item,
+and a client's comment and the edit it caused are the same story.
+
+The last three carry an `item` of `project` or `doc:<key>` rather than a statement id,
+because a package and a release are events about the whole thing. They replace the five
+entry kinds of the old `history/log.md`, minus two: `intake` and `merge` get no kind of
+their own, because their trace is the EDITS they produced. A row saying "material was
+merged" beside rows saying what the merge changed is a summary of its own neighbours,
+and it is the row that goes stale first.
 """
 import collections, io, json, os, re, sys
 
-KINDS = ('added', 'changed', 'removed', 'comment', 'answer', 'audit')
+KINDS = ('added', 'changed', 'removed', 'comment', 'answer', 'audit',
+         'handoff', 'release', 'work')
 NAME = 'ledger.jsonl'
 
 Record = dict
