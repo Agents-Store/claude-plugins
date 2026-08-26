@@ -615,7 +615,8 @@ def r_12_35(c):
     except IOError:
         return []
     out = []
-    for key in c.client_keys():
+    for key in [k for k in c.client_keys()
+                if (c.path_of(k) or '').replace(os.sep, '/').find('/client/') >= 0]:
         doc = c.docs[key]
         for it in doc.items:
             if not it.id:

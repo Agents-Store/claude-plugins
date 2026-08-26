@@ -443,6 +443,141 @@ def _first_sentence(text):
     return text[:idx + 1] if idx != -1 else text.split('\n')[0]
 
 
+def render_requirements(root, lang):
+    """Всё, что утверждают клиентские документы, в машинном виде и на одном экране.
+
+    Это тот файл, по которому агент — Claude Code, Codex, любой другой — сверяет код с
+    договорённостью. INDEX.md перечисляет ЧТО существует; здесь написано, ЧТО ОБЕЩАНО:
+    каждый пункт приёмки с его постоянным адресом, каждый экранный запрет, каждый
+    инвариант, каждый открытый вопрос.
+
+    Полнота проверяется, а не обещается: правило 12.35 сверяет множество id здесь с
+    множеством id в client/, и расхождение — ошибка. «Абсолютно вся информация»
+    становится проверкой.
+    """
+    h, m = L(HEAD, lang), L(MISC, lang)
+    spec = load_spec(root)
+    cl = os.path.join(root, 'client')
+    cases = [i for i in v3.load(os.path.join(cl, 'USER-CASES.md'), lang) if i.id]
+    screens = [i for i in v3.load(os.path.join(cl, 'UX-UI.md'), lang)
+               if i.id and (i.ref or '').startswith('interfaces[')]
+    trig = [i for i in v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
+            if i.id and (i.ref or '').startswith('triggers[id=')]
+    tasks = [i for i in v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
+             if i.id and '.tasks[' in (i.ref or '')]
+    opens = [i for i in v3.load(os.path.join(cl, 'OPEN-QUESTIONS.md'), lang) if i.id]
+
+    def prose(it, name):
+        for k, v in it.sections.items():
+            if k.rstrip(':.').strip() == name:
+                return [x for x in v if x.strip().startswith('-')]
+        return []
+
+    acc_label = _prose_label('acceptance', lang)
+    forb_label = _prose_label('forbidden', lang)
+    shows_label = _prose_label('content', lang)
+    does_label = _prose_label('actions', lang)
+
+    out_lines = ['# ' + L(TITLE, lang).get('requirements', 'Requirements'), '']
+    out_lines += [m.get('requirements_lead',
+                        'Каждое проверяемое утверждение клиентских документов, с его '
+                        'постоянным адресом. Ничего руками: правьте client/.'), '']
+
+    out_lines += ['## ' + h.get('cases', 'Cases'), '']
+    if not cases:
+        out_lines += ['**' + m['nothing_found'] % 'client/USER-CASES.md' + '**', '']
+    for it in cases:
+        bits = []
+        for k in ('priority', 'screens', 'triggers', 'workflow'):
+            v = it.get(k)
+            if v:
+                bits.append('%s=%s' % (k, ','.join(v) if isinstance(v, list) else v))
+        role = ''
+        mm = re.findall(r'roles\[id=([^\]]+)\]', it.ref or '')
+        if mm:
+            role = 'role=%s ' % mm[0]
+        out_lines.append('### %s · %s' % (it.id, it.title))
+        out_lines.append('')
+        if role or bits:
+            out_lines += ['- ' + role + ' '.join(bits), '']
+        acc = prose(it, acc_label)
+        for n, a in enumerate(acc, 1):
+            out_lines.append('- `%s.a%d` %s' % (it.id, n, a.lstrip('- ').rstrip(';')))
+        if not acc:
+            out_lines.append('- ' + m.get('no_acceptance', 'нет пунктов приёмки'))
+        out_lines.append('')
+
+    out_lines += ['## ' + h.get('screens', 'Screens'), '']
+    for it in screens:
+        out_lines += ['### %s · %s' % (it.id, it.title), '']
+        p_ = it.get('path')
+        r_ = it.get('roles')
+        out_lines += ['- path=%s roles=%s' % (p_ or '—',
+                                              ','.join(r_) if isinstance(r_, list) else (r_ or '—')), '']
+        for lbl, tag in ((shows_label, 'c'), (does_label, 'd'), (forb_label, 'f')):
+            items = prose(it, lbl)
+            for n, x in enumerate(items, 1):
+                out_lines.append('- `%s.%s%d` %s' % (it.id, tag, n, x.lstrip('- ').rstrip(';')))
+        out_lines.append('')
+
+    procs = [i for i in v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
+             if i.id and (i.ref or '').startswith('processes[id=')]
+    roles = [i for i in v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
+             if i.id and (i.ref or '').startswith('roles[id=')]
+    out_lines += ['## ' + h.get('processes', 'Processes'), '']
+    for it in procs:
+        out_lines.append('- `%s` %s' % (it.id, it.title))
+    out_lines.append('')
+    out_lines += ['## ' + h.get('roles', 'Roles'), '']
+    for it in roles:
+        out_lines.append('- `%s` %s' % (it.id, it.title))
+    out_lines.append('')
+    # цели, результаты и интеграции документ называет в OVERVIEW.md, и без них
+    # «всё, что обещано» неполно ровно на десять записей
+    for key in ('goals', 'results', 'integrations'):
+        rows = [i for i in v3.load(os.path.join(cl, 'OVERVIEW.md'), lang)
+                if i.id and (i.ref or '').startswith(key + '[id=')]
+        if not rows:
+            continue
+        out_lines += ['## ' + h.get(key, key.title()), '']
+        for it in rows:
+            extra = ' '.join('%s=%s' % (k, v) for k, v in sorted(it.fields.items()))
+            out_lines.append('- `%s` %s%s' % (it.id, it.title, (' · ' + extra) if extra else ''))
+        out_lines.append('')
+
+    out_lines += ['## ' + h.get('triggers', 'Triggers'), '']
+    for it in trig:
+        out_lines += ['- `%s` type=%s source=%s raises=%s' %
+                      (it.id, it.get('type') or '—', it.get('source') or '—',
+                       it.get('raises') or '—')]
+    out_lines.append('')
+
+    out_lines += ['## ' + h.get('tasks', 'Tasks'), '']
+    for it in tasks:
+        out_lines.append('- `%s` role=%s gate=%s' %
+                         (it.id, it.get('role') or '—', it.get('gate') or '—'))
+    out_lines.append('')
+
+    for key, label in (('invariants', h.get('invariants', 'Invariants')),
+                       ('prohibitions', h.get('prohibitions', 'Prohibitions')),
+                       ('glossary', h.get('glossary', 'Glossary'))):
+        rows = spec.get(key) or []
+        out_lines += ['## ' + label, '']
+        for r in rows:
+            out_lines.append('- `%s` %s' % (r.get('id'), r.get('name') or r.get('term') or ''))
+        out_lines.append('')
+
+    out_lines += ['## ' + h.get('open_questions', 'Open questions'), '']
+    for it in opens:
+        out_lines.append('- `%s` %s' % (it.id, it.title))
+    return '\n'.join(out_lines).rstrip('\n') + '\n'
+
+
+def _prose_label(key, lang):
+    pr = (load_contract().get('prose') or {}).get(key) or {}
+    return (pr.get('label') or {}).get(lang, key)
+
+
 def render_readme(contract, lang):
     h, m = L(HEAD, lang), L(MISC, lang)
     docs = contract.get('documents') or {}
@@ -580,6 +715,9 @@ def main():
     if only in (None, 'index'):
         jobs.append(('index', os.path.join('generated', 'INDEX.md'), 'client/*.md',
                       render_index(root, lang)))
+    if only in (None, 'requirements'):
+        jobs.append(('requirements', os.path.join('generated', 'REQUIREMENTS.md'),
+                     'client/*.md', render_requirements(root, lang)))
     if only in (None, 'readme'):
         jobs.append(('readme', 'README.md', 'doc-contracts.json', render_readme(contract, lang)))
 
