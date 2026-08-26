@@ -212,15 +212,29 @@ def cur_version(text, default='1'):
 
 
 def strip_index_tables(text):
-    """Drop hand-written index tables whose first column is an ID token. 12.27."""
+    """Drop hand-written index tables. 12.27.
+
+    An index is a table that DUPLICATES headings standing below it. A table of ids that
+    has no headings below is not an index — it is the content, and dropping it destroys
+    the document.
+
+    This cost fifteen prohibitions on the live project. The Z- table listed what the
+    platform must refuse; there were no `### Z-01` headings under it because the table
+    WAS the list. The first cut of this rule only asked "does column one look like an
+    id", answered yes, and deleted every one of them silently.
+    """
     lines = text.splitlines()
+    headings = set(re.findall(r'^#{2,6}\s+~*([A-Z]-\d{2})~*\s*[·.]', text, re.M))
     kill = set()
     for start, head, rows in M.tables(text):
         if not rows:
             continue
         first = [r[0] for r in rows if r]
-        idish = sum(1 for c in first if re.match(r'^\*{0,2}[A-Z]-\d{2}\*{0,2}$', c.strip()))
-        if idish >= max(2, len(first) // 2):
+        ids = [re.sub(r'[*~`\s]', '', c) for c in first]
+        idish = sum(1 for c in ids if re.match(r'^[A-Z]-\d{2}$', c))
+        # индексом считается только то, что дублирует заголовки ниже
+        duplicated = sum(1 for c in ids if c in headings)
+        if idish >= max(2, len(first) // 2) and duplicated >= max(2, idish // 2):
             end = start + 2 + len(rows)
             for i in range(start, end):
                 kill.add(i)

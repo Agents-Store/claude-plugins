@@ -26,6 +26,7 @@ import sys, os, io, re, json, datetime, difflib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mdblocks import parse, entities, entity, anchor, doc_header
 from i18n import doc_lang, msg, out
+import v3                                            # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONTRACT_PATH = os.path.join(HERE, 'doc-contracts.json')
@@ -284,76 +285,110 @@ def render_architecture(spec, lang):
 
 # ---------------------------------------------------------------- INDEX.md
 def render_index(root, lang):
+    """Оглавление: все кейсы, экраны и триггеры плюс счёт покрытия.
+
+    Читает КЛИЕНТСКИЕ документы в формате v3 — заголовки и списки. v2-читатель искал
+    здесь якоря сущностей и, когда их убрали, молча отдал пустой указатель: пять
+    разделов по нулю пунктов, и ни одной ошибки. Отсюда правило: генератор, не нашедший
+    ни одного элемента там, где документ не пуст, обязан сказать об этом вслух.
+    """
     h, m = L(HEAD, lang), L(MISC, lang)
     out_lines = ['# ' + L(TITLE, lang)['index'], '']
 
-    _, uc_blocks = load_doc(os.path.join(root, 'client', 'USER-CASES.md'))
-    _, ux_blocks = load_doc(os.path.join(root, 'client', 'UX-UI.md'))
-    _, au_blocks = load_doc(os.path.join(root, 'client', 'AUTOMATION.md'))
-    _, tc_blocks = load_doc(os.path.join(root, 'generated', 'TEST-CASES.md'))
+    cases = [i for i in v3.load(os.path.join(root, 'client', 'USER-CASES.md'), lang) if i.id]
+    screens = [i for i in v3.load(os.path.join(root, 'client', 'UX-UI.md'), lang)
+               if i.id and (i.ref or '').startswith('interfaces[')]
+    triggers = [i for i in v3.load(os.path.join(root, 'client', 'AUTOMATION.md'), lang)
+                if i.id and (i.ref or '').startswith('triggers[id=')]
+    tests = [i for i in v3.load(os.path.join(root, 'generated', 'TEST-CASES.md'), lang) if i.id]
 
-    cases = entities(uc_blocks, 'case')
-    screens = entities(ux_blocks, 'screen')
-    triggers = entities(au_blocks, 'trigger')
-    tests = entities(tc_blocks, 'test')
-
-    # ---- cases ----
-    out_lines += [anchor('section', 'cases'), '## ' + h['cases'], '']
+    # ---- кейсы, сгруппированные по разделу документа ----
+    out_lines += ['## ' + h['cases'], '']
     if not cases:
         out_lines += ['_%s_' % m['no_cases'], '']
     else:
-        by_role = {}
+        by_sec = []
         for c in cases:
-            by_role.setdefault(c.yaml.get('role') or '', []).append(c)
-        for role in sorted(by_role):
-            out_lines.append('**%s**' % (role or '—'))
-            out_lines.append('')
-            for c in sorted(by_role[role], key=lambda b: b.id):
-                prio = c.yaml.get('priority')
-                out_lines.append('- **%s** · %s — `%s`' % (c.id, esc(_title(c)), esc(prio or '—')))
+            key = c.section or '—'
+            if not by_sec or by_sec[-1][0] != key:
+                by_sec.append((key, []))
+            by_sec[-1][1].append(c)
+        for sec, items in by_sec:
+            out_lines += ['**%s**' % esc(sec), '']
+            for c in items:
+                prio = c.get('priority')
+                out_lines.append('- **%s** · %s%s' % (
+                    c.id, esc(c.title or ''), (' — `%s`' % esc(prio)) if prio else ''))
             out_lines.append('')
 
-    # ---- screens ----
-    out_lines += [anchor('section', 'screens'), '## ' + h['screens'], '']
+    # ---- экраны ----
+    out_lines += ['## ' + h['screens'], '']
     if not screens:
         out_lines += ['_%s_' % m['no_screens'], '']
     else:
         for sc in sorted(screens, key=lambda b: b.id):
-            path = sc.yaml.get('path')
-            roles = sc.yaml.get('roles') or []
-            roles_s = ', '.join(roles) if isinstance(roles, list) else esc(roles)
-            out_lines.append('- **%s** · %s — `%s` (%s)' % (
-                sc.id, esc(_title(sc)), esc(path or '—'), roles_s or '—'))
+            path = sc.get('path')
+            roles = sc.get('roles')
+            roles_s = ', '.join(roles) if isinstance(roles, list) else (roles or '')
+            out_lines.append('- **%s** · %s%s%s' % (
+                sc.id, esc(sc.title or ''),
+                (' — `%s`' % esc(str(path))) if path else '',
+                (' (%s)' % esc(str(roles_s))) if roles_s else ''))
         out_lines.append('')
 
-    # ---- triggers ----
-    out_lines += [anchor('section', 'triggers'), '## ' + h['triggers'], '']
+    # ---- триггеры ----
+    out_lines += ['## ' + h['triggers'], '']
     if not triggers:
         out_lines += ['_%s_' % m['no_triggers'], '']
     else:
         for tg in sorted(triggers, key=lambda b: b.id):
-            ttype = tg.yaml.get('type')
-            src = tg.yaml.get('source')
-            raises = tg.yaml.get('raises') or []
-            if not isinstance(raises, list):
-                raises = [raises]
-            # A workflow name is an identifier, not prose. Backticked it reads as one and
-            # the language check stops counting it as foreign text — which it was doing,
-            # putting a generated index at 45% "not Russian" when every Russian word in
-            # it was Russian.
-            raises_s = ', '.join('`%s`' % str(r) for r in raises)
-            out_lines.append('- **%s** · %s — %s / %s — %s' % (
-                tg.id, esc(_title(tg)), esc(ttype or '—'), esc(src or '—'), raises_s or '—'))
+            bits = [x for x in (tg.get('type'), tg.get('source')) if x]
+            raises = tg.get('raises')
+            out_lines.append('- **%s** · %s%s%s' % (
+                tg.id, esc(tg.title or ''),
+                (' — %s' % esc(' / '.join(str(b) for b in bits))) if bits else '',
+                (' — %s' % esc(str(raises))) if raises else ''))
         out_lines.append('')
 
-    # ---- coverage ----
-    out_lines += [anchor('section', 'coverage'), '## ' + h['coverage'], '']
+    # ---- покрытие ----
+    out_lines += ['## ' + h['coverage'], '']
     if not cases:
         out_lines += ['_%s_' % m['no_coverage'], '']
     else:
-        out_lines += _coverage(cases, tests, lang)
+        out_lines += _coverage_v3(cases, tests, lang)
 
     return '\n'.join(out_lines).rstrip('\n') + '\n'
+
+
+def _coverage_v3(cases, tests, lang):
+    """Счёт покрытия списком: пунктов приёмки против тестов, по разделам документа."""
+    m = L(MISC, lang)
+    covered = set()
+    for t in tests:
+        cov = t.get('covers')
+        for aid in (cov if isinstance(cov, list) else ([cov] if cov else [])):
+            covered.add(str(aid))
+    per = []
+    for c in cases:
+        key = c.section or '—'
+        bullets = 0
+        for label, body in c.sections.items():
+            if any(w in label.lower() for w in ('готово', 'done when', 'acceptance')):
+                bullets = sum(1 for ln in body if ln.strip().startswith('-'))
+        ids = ['%s.a%d' % (c.id, i + 1) for i in range(bullets)]
+        if not per or per[-1][0] != key:
+            per.append([key, 0, 0, 0])
+        per[-1][1] += 1
+        per[-1][2] += len(ids)
+        per[-1][3] += sum(1 for a in ids if a in covered)
+    lines = []
+    for key, n_cases, n_acc, n_cov in per:
+        gap = n_acc - n_cov
+        lines.append('- **%s** — кейсов %d, пунктов приёмки %d, покрыто тестами %d%s'
+                     % (esc(key), n_cases, n_acc, n_cov,
+                        (', без теста %d' % gap) if gap else ''))
+    lines.append('')
+    return lines
 
 
 def _coverage(cases, tests, lang):
@@ -464,26 +499,50 @@ def render_readme(contract, lang):
 
 
 # ---------------------------------------------------------------- journal
-JOURNAL_ROW = re.compile(r'^\|\s*\d{4}-\d{2}-\d{2}\s*\|')
+# Журнал — список, а не таблица. Строка v2-формата ещё читается, чтобы история,
+# написанная до перехода, не пропала при первой же пересборке.
+JOURNAL_ROW = re.compile(r'^\|\s*(\d{4}-\d{2}-\d{2})\s*\|\s*(.+?)\s*\|\s*$')
+JOURNAL_ITEM = re.compile(r'^-\s+\*\*(\d{4}-\d{2}-\d{2})\*\*\s+—\s+(.+?)\s*$')
 
 
 def split_journal(text):
-    a = anchor('section', 'journal')
-    if a not in text:
+    """Тело документа и строки журнала: (date, what)."""
+    head = None
+    for cand in ('## ' + L(HEAD, 'ru')['journal'], '## ' + L(HEAD, 'en')['journal'],
+                 anchor('section', 'journal')):
+        if cand in text:
+            head = cand
+            break
+    if head is None:
         return text, []
-    body, _, jr = text.partition(a)
-    rows = [ln for ln in jr.split('\n') if JOURNAL_ROW.match(ln)]
+    body, _, jr = text.partition(head)
+    rows = []
+    for ln in jr.split('\n'):
+        m = JOURNAL_ROW.match(ln) or JOURNAL_ITEM.match(ln)
+        if m:
+            item = (m.group(1), m.group(2).strip())
+            # «пересобран из client/*.md» пять раз подряд — это не история,
+            # это шум от пяти прогонов. Подряд идущие одинаковые схлопываются.
+            if rows and rows[-1][1] == item[1]:
+                rows[-1] = item
+                continue
+            rows.append(item)
     return body, rows
 
 
 def with_journal(body, rows, lang, date, changed, seed_text):
     m = L(MISC, lang)
     if changed:
-        rows = rows + ['| %s | %s |' % (date, seed_text)]
+        # одна и та же запись подряд ничего не сообщает: пять «пересобран из
+        # client/*.md» в живом документе появились ровно так
+        if not rows or rows[-1][1] != seed_text:
+            rows = rows + [(date, seed_text)]
+        else:
+            rows = rows[:-1] + [(date, seed_text)]
     if not rows:
-        rows = ['| %s | %s |' % (date, m['created'])]
-    j = [anchor('section', 'journal'), '## ' + L(HEAD, lang)['journal'], '',
-         '| %s | %s |' % (m['col_date'], m['col_what']), '|---|---|'] + rows
+        rows = [(date, m['created'])]
+    j = ['## ' + L(HEAD, lang)['journal'], '']
+    j += ['- **%s** — %s' % (d, w) for d, w in rows]
     return body.rstrip('\n') + '\n\n' + '\n'.join(j) + '\n'
 
 
