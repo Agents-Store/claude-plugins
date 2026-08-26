@@ -272,6 +272,7 @@ h3 .code{font-size:12px}
  border-left:2px solid var(--mark-line)}
 .said{margin:0;font-size:.89rem;color:var(--dim);padding-left:.75rem;
  border-left:2px solid var(--line)}
+.prev{margin:0;font-size:.87rem;color:var(--accent);font-weight:500}
 .ans{display:flex;flex-wrap:wrap;gap:.4rem}
 .r{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--line);
  border-radius:999px;padding:.32rem .85rem;font-size:.92rem;cursor:pointer;
@@ -308,23 +309,31 @@ footer{margin-top:3.5rem;padding-top:1.3rem;border-top:1px solid var(--line);
 """
 
 JS = """
+/* Ищет СЕКЦИИ, а не строки таблицы. Первая версия после перехода на карточки
+   продолжала спрашивать tr[data-id] и собирала ноль ответов — молча, потому что
+   пустой список это тоже список. */
 function collect(){
-  var rows=document.querySelectorAll('tr[data-id]'),out=[];
-  for(var i=0;i<rows.length;i++){
-    var r=rows[i],id=r.getAttribute('data-id');
-    var picked=r.querySelector('input[type=radio]:checked');
-    var note=(r.querySelector('.c')||{}).innerText||'';
+  var els=document.querySelectorAll('section.e[data-id]'),out=[];
+  for(var i=0;i<els.length;i++){
+    var e=els[i],id=e.getAttribute('data-id');
+    var picked=e.querySelector('input[type=radio]:checked');
+    var note=(e.querySelector('.c')||{}).innerText||'';
     note=note.replace(/\\s+/g,' ').trim();
+    var was=e.getAttribute('data-was')||'';
     if(!picked&&!note)continue;
-    out.push({id:id,answer:picked?picked.value:'',comment:note});
+    var v=picked?picked.value:'';
+    if(v===was&&!note)continue;            /* прошлый ответ без правки — не шлём */
+    out.push({id:id,answer:v,comment:note});
   }
   return out;
 }
 function save(){
-  var d=document.getElementById('dump');
-  d.value=JSON.stringify({document:document.title,answers:collect()},null,2);
+  var d=document.getElementById('dump'),a=collect();
+  d.value=JSON.stringify({package:(document.title||''),date:PKG_DATE,answers:a},null,2);
   d.style.display='block';d.focus();d.select();
   try{document.execCommand('copy')}catch(e){}
+  var n=document.getElementById('cnt');
+  if(n)n.textContent=COUNTED.replace('%d',a.length);
 }
 """
 
@@ -353,6 +362,8 @@ STR = {
             n_handbook='Пошагово, для того, кто сядет работать в платформе.',
             ok='верно', no='не так', q='вопрос',
             changed='изменилось', was='было:', you='вы', us='мы',
+            answered='Вы отвечали %s: «%s». Ответ подставлен — можно оставить или изменить.',
+            counted='Собрано ответов: %d',
             btn='Собрать мои ответы', dump='Скопируйте этот текст и пришлите нам',
             foot=('Верните этот файл — с ответами в браузере, сканом от руки или текстом из '
                   'кнопки выше. Мы разберём каждый пункт и вернёмся с решением по каждому.')),
@@ -379,6 +390,8 @@ STR = {
             n_handbook='Step by step, for the person who will work in it.',
             ok='right', no='not so', q='question',
             changed='changed', was='was:', you='you', us='we',
+            answered='You answered on %s: \u201c%s\u201d. It is pre-filled — keep it or change it.',
+            counted='Answers collected: %d',
             btn='Collect my answers', dump='Copy this text and send it to us',
             foot=('Send this file back — answered in the browser, scanned from paper, or as the '
                   'text from the button above. We will work through every item and come back '
@@ -393,9 +406,19 @@ def rows(T, group, hist, since):
     moved = [r for r in rec if r.get('kind') in ('added', 'changed')
              and (r.get('date') or '') > (since or '')]
     said = [r for r in rec if r.get('kind') in ('comment', 'answer')]
+    # Последний ответ клиента по этому куску: он подставляется галочкой и
+    # остаётся изменяемым. Клиент не должен отвечать заново на то, что уже
+    # прошёл, — но и запирать его в прошлом ответе нельзя: документ поменялся,
+    # и «верно» полугодовой давности может перестать быть верным.
+    prev = None
+    for r in rec:
+        if r.get('kind') == 'comment' and r.get('verdict'):
+            prev = r
 
-    out = ['<section class="e%s"%s>' % (' changed' if moved else '',
-                                        ' data-id="%s"' % html.escape(ident) if ident else '')]
+    attrs = ' data-id="%s"' % html.escape(ident) if ident else ''
+    if prev:
+        attrs += ' data-was="%s"' % html.escape(prev.get('verdict') or '')
+    out = ['<section class="e%s"%s>' % (' changed' if moved else '', attrs)]
     head = md(group['title'] or '')
     if ident:
         head += ' <span class="code">%s</span>' % html.escape(ident)
@@ -414,9 +437,14 @@ def rows(T, group, hist, since):
                    % (who, html.escape(r.get('date') or ''),
                       md(str(r.get('why') or r.get('now') or '')[:400])))
     if ident:
+        if prev:
+            out.append('<p class="prev">%s</p>'
+                       % (T['answered'] % (html.escape(prev.get('date') or ''),
+                                           T.get(prev.get('verdict'), prev.get('verdict')))))
         radios = ''.join(
-            '<label class="r"><input type="radio" name="%s" value="%s">%s</label>'
-            % (html.escape(ident), val, T[key])
+            '<label class="r"><input type="radio" name="%s" value="%s"%s>%s</label>'
+            % (html.escape(ident), val,
+               ' checked' if prev and prev.get('verdict') == val else '', T[key])
             for val, key in (('ok', 'ok'), ('no', 'no'), ('q', 'q')))
         out.append('<div class="ans">%s</div>' % radios)
         out.append('<div class="c" contenteditable="true" data-ph="%s"></div>' % T['c_c'])
@@ -535,6 +563,52 @@ def _contract():
         return {}
 
 
+VERDICT = {'ok': 'ok', 'no': 'no', 'q': 'q',
+           'верно': 'ok', 'не так': 'no', 'вопрос': 'q',
+           'right': 'ok', 'not so': 'no', 'question': 'q'}
+
+
+def read_answers(root, src, date=None):
+    """Ответы клиента -> строки журнала. Один путь, оба канала.
+
+    Клиент возвращает JSON из кнопки внизу страницы — неважно, скопировал он
+    его из HTML-файла или из опубликованной страницы. Второго пути для
+    вернувшихся пакетов строить нельзя: он уже однажды оказался местом, где
+    правки теряются.
+
+    Строка пишется на КАЖДЫЙ ответ, включая «верно». Молчаливое согласие и
+    отсутствие ответа выглядят одинаково, а это разные вещи: первое означает,
+    что человек прочёл и согласился.
+    """
+    raw = io.open(src, encoding='utf-8').read().strip()
+    try:
+        data = json.loads(raw)
+    except ValueError as e:
+        raise SystemExit('не разбирается как JSON: %s' % e)
+    answers = data.get('answers') if isinstance(data, dict) else data
+    if not isinstance(answers, list):
+        raise SystemExit('в файле нет списка ответов')
+    pkg = (data.get('package') or '') if isinstance(data, dict) else ''
+    when = date or (data.get('date') if isinstance(data, dict) else None) or _today(root)
+    rows_ = []
+    for a in answers:
+        ident = (a.get('id') or '').strip()
+        if not ident:
+            continue
+        v = VERDICT.get(str(a.get('answer') or '').strip().lower())
+        note = (a.get('comment') or '').strip()
+        if not v and not note:
+            continue
+        rows_.append({'date': when, 'doc': 'client/', 'item': ident, 'kind': 'comment',
+                      'verdict': v or '', 'why': note or _VERDICT_WORD.get(v, v or ''),
+                      'source': 'handoff:%s' % (data.get('handoff') or pkg or 'unknown'),
+                      'by': 'client'})
+    return rows_
+
+
+_VERDICT_WORD = {'ok': 'верно', 'no': 'не так', 'q': 'вопрос'}
+
+
 def main():
     argv = sys.argv[1:]
     args, flags, i = [], {}, 0
@@ -554,6 +628,19 @@ def main():
     if not os.path.isdir(root):
         print('no macstack/ folder at %s' % root)
         return 1
+    if flags.get('read'):
+        rows_ = read_answers(root, flags['read'], flags.get('date'))
+        import collections as _c
+        by = _c.Counter(r['verdict'] or '—' for r in rows_)
+        print('ответов: %d  %s' % (len(rows_), dict(by)))
+        if flags.get('dry'):
+            for r in rows_[:12]:
+                print('   %-14s %-5s %s' % (r['item'], r['verdict'], r['why'][:60]))
+            print('сухой прогон — в журнал не записано')
+            return 0
+        ledger.append(root, rows_)
+        print('записано в history/ledger.jsonl — следующий пакет подставит эти ответы')
+        return 0
     date = flags.get('date') or _today(root)
     slug = flags.get('slug') or 'user-cases'
     artifact = flags.get('artifact') is True or flags.get('artifact') == 'true'
