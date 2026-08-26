@@ -474,7 +474,20 @@ def r_12_21(c):
                         out.append(Finding('12.21', ERROR, p, ln,
                                            '%s: a %s must declare %s' % (it.id, e['kind'], k)))
                 for k, r in cond.items():
-                    if k not in it.fields and not it.fields.get(r.get('unless')):
+                    if k in it.fields:
+                        continue
+                    uv = r.get('unless_value')
+                    if uv:
+                        # «нужен, ЕСЛИ значение другого поля не такое-то»: задача в
+                        # бэклоге ещё не заведена в трекере, и требовать с неё номер
+                        # значит требовать выдумать его.
+                        if str(it.fields.get(uv.get('field'))) in [str(x) for x in uv.get('in') or []]:
+                            continue
+                        out.append(Finding('12.21', ERROR, p, ln,
+                                           '%s: %s is required unless %s is one of %s'
+                                           % (it.id, k, uv.get('field'), ', '.join(uv.get('in') or []))))
+                        continue
+                    if not it.fields.get(r.get('unless')):
                         out.append(Finding('12.21', ERROR, p, ln,
                                            '%s: %s is required unless %s' % (it.id, k, r.get('unless'))))
                 for k in sorted(set(it.fields) - allowed):

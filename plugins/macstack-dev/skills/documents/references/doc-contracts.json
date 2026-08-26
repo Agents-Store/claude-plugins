@@ -824,10 +824,8 @@
       "audience": "both",
       "sections": [
         "howto",
-        "milestones",
         "tasks",
-        "backlog",
-        "journal"
+        "milestones"
       ],
       "journal_columns": [
         "date",
@@ -842,77 +840,83 @@
       },
       "entities": [
         {
+          "kind": "task",
+          "id_space": "task",
+          "collections": [
+            "cases",
+            "prohibitions"
+          ],
+          "id_pattern": "^M\\d+-T\\d+$",
+          "heading": "### <id> · <title>",
+          "pointer": {
+            "binding": "container",
+            "by_id_prefix": {
+              "Z": {
+                "path": "prohibitions[id=<case>]",
+                "binding": "container"
+              },
+              "*": {
+                "path": "cases[id=<case>]",
+                "binding": "container"
+              }
+            },
+            "$comment": "A task points at the case it CLOSES. Not identity: the heading is the task and the pointer is the promise, and one task may be the only way several promises get kept."
+          },
+          "bullets_required": [
+            "status",
+            "opened",
+            "closes"
+          ],
+          "bullets_optional": [
+            "started",
+            "finished",
+            "tracker",
+            "priority",
+            "blocked_by",
+            "role"
+          ],
+          "bullets_conditional": {
+            "tracker": {
+              "unless_value": {
+                "field": "status",
+                "in": [
+                  "backlog",
+                  "cancelled"
+                ]
+              }
+            }
+          },
+          "prose_required": [
+            "acceptance"
+          ],
+          "prose_optional": [
+            "what",
+            "how"
+          ],
+          "note": "A task carries what the work IS; the tracker carries the conversation about it. Status vocabulary is the tracker's five and nothing else — two vocabularies for two systems is two opinions about whether the work is done."
+        },
+        {
           "kind": "milestone",
           "id_space": "milestone",
-          "in_section": "milestones",
-          "heading": "## <id> · <title>",
-          "note": "done_when is a list of FALSIFIABLE checks — each one either passes or does not. 'Works well' is not a check.",
-          "prose_required": [
-            "done_when"
-          ],
+          "collections": [],
+          "pointerless": true,
+          "id_pattern": "^M\\d+$",
+          "heading": "### <id> · <title>",
           "bullets_required": [
             "status"
           ],
-          "bullets_optional": [
-            "target",
-            "released"
+          "bullets_optional": [],
+          "prose_required": [
+            "acceptance"
           ],
-          "collections": [
-            "milestone"
-          ]
-        },
-        {
-          "kind": "task",
-          "id_space": "task",
-          "in_section": "tasks",
-          "heading": "### <id> · <title>",
-          "field_notes": {
-            "tracker": "REQUIRED — the id of this task in the team's own tracker. The file is the source of truth for what the work IS; the tracker is where the conversation happens. A task in only one of them is a task half the team cannot see.",
-            "spec": "pointer into the client documents — a reference, never a restatement. This is the link that lets `update` know which documents a finished task touched.",
-            "files": "paths this task is expected to touch",
-            "acceptance": "named tests or TEST-CASES ids, never a line number. The strongest form is 'remove X and this named test reddens'.",
-            "blocked_by": "task ids or open-item ids; an A-id here is how a client question becomes visibly load-bearing"
-          },
-          "prose_optional": [
-            "what",
-            "notes"
-          ],
-          "bullets_required": [
-            "status",
-            "tracker"
-          ],
-          "bullets_optional": [
-            "spec",
-            "files",
-            "acceptance",
-            "blocked_by",
-            "milestone",
-            "done_on"
-          ],
-          "collections": [
-            "task"
-          ]
-        },
-        {
-          "kind": "backlog",
-          "id_space": "backlog",
-          "in_section": "backlog",
-          "heading": "### <id> · <title>",
-          "prose_optional": [
-            "what"
-          ],
-          "bullets_required": [],
-          "bullets_optional": [
-            "spec",
-            "size"
-          ],
-          "collections": [
-            "backlog"
-          ]
+          "prose_optional": [],
+          "note": "A milestone is falsifiable or it is not a milestone: its checks are «file exists», «route answers», «migration recorded» — never «looks done»."
         }
       ],
       "struck_form": "~~M11-T9~~ · DROPPED 2026-08-24 — <why>",
-      "note": "The forward-looking half of the folder. OPEN-QUESTIONS.md §B records debt the team consciously accepted and argues why NOT to act; this document says what will be done, in what order. Do not merge them: an item can sit in §B for a year and only becomes a task when its trigger fires."
+      "note": "The forward-looking half of the folder. OPEN-QUESTIONS.md §B records debt the team consciously accepted and argues why NOT to act; this document says what will be done, in what order. Do not merge them: an item can sit in §B for a year and only becomes a task when its trigger fires.",
+      "format": "v3",
+      "journal": false
     },
     "decisions": {
       "path": "history/DECISIONS.md",
@@ -1552,16 +1556,29 @@
         "ru": "Состояние",
         "en": "Status"
       },
-      "type": "text",
+      "type": "enum",
       "render": "text",
       "label_aliases": {
         "ru": [
-          "status"
+          "status",
+          "Статус"
         ],
         "de": [
           "status"
-        ]
-      }
+        ],
+        "en": []
+      },
+      "enum": [
+        "backlog",
+        "todo",
+        "in_progress",
+        "done",
+        "cancelled",
+        "planned",
+        "building",
+        "live",
+        "dropped"
+      ]
     },
     "trigger": {
       "label": {
@@ -1760,6 +1777,46 @@
       "type": "text",
       "render": "text",
       "scope": "generated"
+    },
+    "opened": {
+      "label": {
+        "ru": "Заведена",
+        "en": "Opened"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "started": {
+      "label": {
+        "ru": "Взята",
+        "en": "Started"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "finished": {
+      "label": {
+        "ru": "Закрыта",
+        "en": "Finished"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "closes": {
+      "label": {
+        "ru": "Закрывает",
+        "en": "Closes"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "tracker": {
+      "label": {
+        "ru": "Plane",
+        "en": "Tracker"
+      },
+      "type": "text",
+      "render": "text"
     }
   },
   "prose": {
@@ -1867,6 +1924,20 @@
       "label": {
         "ru": "Какую проблему закрывает",
         "en": "What problem it closes"
+      },
+      "shape": "paragraph"
+    },
+    "what": {
+      "label": {
+        "ru": "Что сделать",
+        "en": "What to do"
+      },
+      "shape": "paragraph"
+    },
+    "how": {
+      "label": {
+        "ru": "Как",
+        "en": "How"
       },
       "shape": "paragraph"
     }

@@ -278,37 +278,43 @@ def _log_entries(c):
 
 @rule('12.14', 'Every task is tracked in both places')
 def r_12_14(c):
-    text = c.text.get('tasks')
-    decl = _entity_decl(c, 'tasks', 'task')
-    if text is None:
-        return []
-    p = _relpath(c, 'tasks', 'history/TASKS.md')
-    statuses = set(((c.contract.get('documents') or {}).get('tasks') or {}).get('statuses') or {})
+    """The file says what the work IS; the tracker is where the conversation happens.
+
+    A task living in only one of the two is a task half the team cannot see. A task
+    still in `backlog` is exempt: it has not been sent anywhere yet, and demanding a
+    tracker id from it demands that somebody invent one.
+    """
     out = []
-    for e in _entities(text, 'task', section='tasks', id_pattern=_id_pattern(c, decl),
-                       siblings=('milestone', 'backlog')):
-        fields = _fields(e)
-        if not fields.get('tracker'):
-            out.append(Finding('12.14', ERROR, p, e['line'],
-                               '%s declares no tracker id' % e['id']))
-        status = fields.get('status')
-        if not status:
-            out.append(Finding('12.14', ERROR, p, e['line'],
-                               '%s declares no status' % e['id']))
-        elif statuses and status not in statuses:
-            out.append(Finding('12.14', ERROR, p, e['line'],
-                               '%s status %r is not one of %s'
-                               % (e['id'], status, ', '.join(sorted(statuses)))))
-        if e['struck'] and not e['why']:
-            out.append(Finding('12.14', ERROR, p, e['line'],
-                               '%s is struck but its heading states no reason after an '
-                               'em dash — struck_form: %s'
-                               % (e['id'], (c.contract.get('documents') or {})
-                                  .get('tasks', {}).get('struck_form', ''))))
+    doc = c.docs.get('tasks')
+    if doc is None:
+        return out
+    decl = None
+    for e in ((c.contract.get('documents') or {}).get('tasks') or {}).get('entities') or []:
+        if e['kind'] == 'task':
+            decl = e
+    states = set((c.contract.get('fields') or {}).get('status', {}).get('enum') or [])
+    exempt = {'backlog', 'cancelled'}
+    for it in doc.items:
+        if it.level < 3 or not it.id or not re.match(r'^M\d+-T\d+$', it.id):
+            continue
+        ln = (it.head_line or 0) + 1
+        st = str(it.get('status') or '').strip().lower()
+        if not st:
+            out.append(Finding('12.14', ERROR, 'history/TASKS.md', ln,
+                               '%s declares no status' % it.id))
+        elif states and st not in states:
+            out.append(Finding('12.14', ERROR, 'history/TASKS.md', ln,
+                               '%s has status %r, not one of %s'
+                               % (it.id, st, ', '.join(sorted(states)))))
+        if not it.get('tracker') and st not in exempt:
+            out.append(Finding('12.14', ERROR, 'history/TASKS.md', ln,
+                               '%s is %s and carries no tracker id' % (it.id, st or '—')))
+        head = doc.lines[it.head_line] if it.head_line is not None else ''
+        if '~~' in head and 'why' not in ' '.join(it.body).lower() \
+                and not re.search(r'снят|cancel|отменен', ' '.join(it.body), re.I):
+            out.append(Finding('12.14', ERROR, 'history/TASKS.md', ln,
+                               '%s is struck through and does not say why' % it.id))
     return out
-
-
-# ---------------------------------------------------------------- 12.15
 
 @rule('12.16', 'Milestones are falsifiable')
 def r_12_16(c):
@@ -512,21 +518,29 @@ def r_12_20(c):
 
 @rule('12.26', 'A finished task left a trace')
 def r_12_26(c):
-    """Every task at done is named by a `work` row.
+    """Every task at done is named by a `work` row in the ledger.
 
     Without it the closing half of the loop is unenforced: a task can be marked done,
     the documents never re-checked, and every staleness rule stays quiet because
     nothing recorded that anything happened.
+
+    Reads the entity's own span rather than a fixed window after its heading. The first
+    version took 600 characters, and the LAST task in the file ran past the end of its
+    section into «## Вехи», picked up a milestone's `Статус: done` and reported a
+    backlog task as finished — a false positive produced by looking at the neighbours.
     """
     out = []
-    tasks = c.text.get('tasks') or ''
-    work = ' '.join(str(r.get('now', '')) + ' ' + str(r.get('task', '')) for r in
-                    _ledger(c) if r.get('kind') == 'work')
-    for m in re.finditer(r'^#{3,4}\s+(M\d+(?:-T\d+)?)\b', tasks, re.M):
-        tid = m.group(1)
-        block = tasks[m.end():m.end() + 600]
-        if re.search(r'(?:status|Статус)\D{0,4}done|done\s*✓', block, re.I) \
-                and tid not in work:
-            out.append(Finding('12.26', ERROR, 'history/TASKS.md', 0,
-                               '%s is done and no work row in the ledger names it' % tid))
+    doc = c.docs.get('tasks')
+    if doc is None:
+        return out
+    work = ' '.join(str(r.get('now', '')) + ' ' + str(r.get('task', '')) + ' '
+                    + str(r.get('item', '')) for r in _ledger(c) if r.get('kind') == 'work')
+    for it in doc.items:
+        if it.level < 3 or not it.id or not re.match(r'^M\d+-T\d+$', it.id):
+            continue
+        if str(it.get('status') or '').strip().lower() != 'done':
+            continue
+        if it.id not in work:
+            out.append(Finding('12.26', ERROR, 'history/TASKS.md', (it.head_line or 0) + 1,
+                               '%s is done and no work row in the ledger names it' % it.id))
     return out

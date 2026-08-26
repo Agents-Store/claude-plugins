@@ -11,7 +11,7 @@ answer by reading either file alone:
   3. Which cases are blocked, because an open question they depend on is still open.
   4. Which tasks point at a case that no longer exists — a plan for a requirement withdrawn.
 
-The third input is the newest `history/reviews/*-conformance.md`. Without it the report says
+The third input is the `audit` rows of `history/ledger.jsonl`. Without them the report says
 "N cases with no plan" on a project where nearly all of them are built, which is true and
 useless: a work list nobody believes is a work list nobody reads.
 
@@ -168,12 +168,22 @@ def main():
 
     live_a = live_open_ids(oq_p, lang)
 
-    rdir = os.path.join(root, 'history', 'reviews')
-    revs = sorted(f for f in os.listdir(rdir) if f.endswith('conformance.md')) if os.path.isdir(rdir) else []
+    # Вердикт аудита — данные, а не документ: он спрашивается по id кейса, а не
+    # перечитывается подряд, и отчёт устаревает быстрее, чем его читают. Строки
+    # `audit` в журнале правок и есть этот вердикт; markdown-отчёты уехали в
+    # archive/ вместе с остальными рабочими продуктами.
     yml, legacy, rev_name = {}, {}, None
-    if revs:
-        rev_name = revs[-1]
-        yml, legacy = read_verdicts(os.path.join(rdir, rev_name))
+    _here = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, os.path.normpath(
+        os.path.join(_here, '..', '..', 'documents', 'references')))
+    import ledger as _L                # намеренно без try: если журнал не читается,
+                                       # отчёт скажет «ничего не проверено» — и это
+                                       # ложь, которую тихий except делает незаметной
+    rows = [r for r in _L.read(root) if r.get('kind') == 'audit']
+    for r in sorted(rows, key=lambda x: x.get('date') or ''):
+        if r.get('item') and r.get('now'):
+            legacy[r['item']] = r['now']
+            rev_name = r.get('source') or rev_name
 
     covered = {}
     for t in tasks:
