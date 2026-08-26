@@ -45,7 +45,7 @@ Create each file; content = a short version of the rule + the WHY:
    means `macstack.json` **and** the affected documents under `macstack/client/`,
    `generated/` or `history/` land in the same commit — the specification and its
    documents are one definition of done.
-   **A day of work ends with a `work` entry in `macstack/history/log.md`** naming the task
+   **A day of work ends with a `work` row in `macstack/history/ledger.jsonl`** naming the task
    ids it advanced and what did not go as planned. Git records what changed; the log
    records why it went that way and what was tried first, which is the half nobody
    can reconstruct later. Put the task id in the commit subject — `(M11-T9)` — and

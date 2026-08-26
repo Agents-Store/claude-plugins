@@ -60,7 +60,7 @@ Backed by sources 1→3, create:
 | `.mcp.json` (`${VAR}`) | stack plugin / connections |
 | `.env.example`, **`.env.prod`, `.env.dev`** (always created), `.infisical.json` | the `infisical-env` skill (mandatory to invoke) — variables = union of macstack.json `resources.accesses` AND the `${VAR}` tokens required by the project's enabled Claude plugins (settings.json → stack plugin `.mcp.json`/`.env.example`); required-but-empty keys appear as `KEY=''` with a FILL ME comment |
 | `.claude/rules/`, `.claude/commands/`, `scripts/` | the `best-practices` skill (mandatory to invoke) |
-| `macstack/` (README.md, client/OVERVIEW.md, USER-CASES.md, UX-UI.md, AUTOMATION.md, HANDBOOK.md, OPEN-QUESTIONS.md, history/DECISIONS.md, log.md) | the `documents` skill (mandatory to invoke) |
+| `macstack/` (README.md, client/OVERVIEW.md, USER-CASES.md, UX-UI.md, AUTOMATION.md, HANDBOOK.md, OPEN-QUESTIONS.md, history/DECISIONS.md, ledger.jsonl) | the `documents` skill (mandatory to invoke) |
 | Workflow stubs (from `workflows[]` + `triggers[]`) and entity schemas/migrations | macstack.json + dev plugins |
 
 ## Rules

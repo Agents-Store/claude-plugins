@@ -76,7 +76,7 @@ macstack/
     ├── TASKS.md              milestones and tasks — what will be done, in what order
     ├── DECISIONS.md          decision registry (D14, D15 …) → files in decisions/
     ├── CHANGELOG.md          [client] what reached the people who use it, newest first
-    ├── log.md                append-only journal: intake · merge · work · release
+    ├── ledger.jsonl          append-only, one row per edit, comment and verdict
     ├── deltas/               proposals, not edits
     ├── decisions/            rulings, each with cost-if-wrong
     ├── reviews/              <slug>-conformance.md + its -business.md twin
@@ -112,7 +112,7 @@ code-style.md, runbooks) — it never moves into `macstack/`.
      documents exist (`client/OVERVIEW.md`, `USER-CASES.md`, `UX-UI.md`,
      `AUTOMATION.md`, `HANDBOOK.md`, `OPEN-QUESTIONS.md`; `generated/ARCHITECTURE.md`,
      `TEST-CASES.md`, `INDEX.md`; `history/TASKS.md`, `DECISIONS.md`, `CHANGELOG.md`,
-     `log.md`). If not, offer `documents` to create the folder.
+     `ledger.jsonl`). If not, offer `documents` to create the folder.
 3. **CLAUDE.md link**: check that CLAUDE.md contains a "Stack Specification" section
    pointing to macstack.json. If missing, offer to add:
 

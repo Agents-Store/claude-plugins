@@ -330,7 +330,7 @@ below is checked against that file, never against memory.
       `manual` test also declares preconditions and steps; an `auto` test names the
       test title that proves it (a bare filename is not evidence, and a `file.ts:NNN`
       pointer is already banned by 12.8); a struck test states why.
-12.13 **The journal is typed** — every `log.md` entry declares a `kind` and carries
+12.13 **The journal is typed** — every `history/ledger.jsonl` row declares a `kind` and carries
       that kind's required fields and sections per the contract. There is one shape,
       keyed by kind: v1 declared a flat six-field requirement AND a per-kind table that
       disagreed with it, so a `work` entry was contractually required to carry a
@@ -340,7 +340,7 @@ below is checked against that file, never against memory.
       tracker is where the conversation about it happens, and a task in only one of
       them is a task half the team cannot see. Also: `status` declared and one of the
       five; a struck task states why.
-12.15 **A release is paired** — every `release` entry in `log.md` has a `CHANGELOG.md`
+12.15 **A release is paired** — every `release` row in `history/ledger.jsonl` has a `CHANGELOG.md`
       entry with the same id, and every `CHANGELOG.md` entry has its `release` entry in
       the log. `CHANGELOG.md` is ordered newest first.
 12.16 **Milestones are falsifiable** — every milestone declares a non-empty
@@ -348,7 +348,7 @@ below is checked against that file, never against memory.
       milestone whose tasks are all `done` but whose checks are not recorded is not
       done — it is unverified.
 12.26 **A finished task left a trace** — every task at `done ✓` is named by a `work`
-      entry in `log.md`. Without this the closing half of the loop is unenforced: a
+      row in `history/ledger.jsonl`. Without this the closing half of the loop is unenforced: a
       task can be marked done, the documents never re-checked, and every staleness
       rule below stays quiet because nothing recorded that anything happened.
 12.17 **Documents have a shelf life** — every document with a `docs.files` entry
@@ -372,7 +372,7 @@ below is checked against that file, never against memory.
       section has at least one row in it, and no row is dated later than the document's
       `updated`.
 12.20 **Every handoff is recorded** — each file in `handoffs/` has a `handoff` entry in
-      `log.md` naming it, and each `handoff` entry names a file that exists. The mirror
+      `history/ledger.jsonl` naming it, and each `handoff` row names a file that exists. The mirror
       of 12.7 for the outbound direction: when the client's edits come back, the only
       way to know WHICH version they reviewed is that entry. An artifact handoff also
       records its URL and version label.
@@ -412,8 +412,8 @@ below is checked against that file, never against memory.
 - **Ambiguous coverage**: an area claimed by 2+ plugins where none narrows it with
   `scope`.
 - **Unprocessed source**: a file in `inbox/` with no `merge` entry naming it.
-- `lifecycle.updated` older than the newest `log.md` entry (name the date).
-- **The project has gone quiet**: a task sitting in `doing` while `log.md` has had no
+- `lifecycle.updated` older than the newest `history/ledger.jsonl` row (name the date).
+- **The project has gone quiet**: a task sitting in `doing` while the ledger has had no
   `work` entry for 14 days. The older staleness check compares `lifecycle.updated`
   against the newest log entry, and with no client input both freeze in agreement — a
   project can run for months with a perfectly green lint and no record of the work.

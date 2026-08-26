@@ -8,7 +8,7 @@ The closing half of the loop. Everything else in this plugin moves a requirement
 towards code; this moves finished code back into the documents.
 
 With no argument, find every task that reached `done ✓` since the newest `work` entry
-in `log.md`, and run the sequence for them together.
+in `history/ledger.jsonl`, and run the sequence for them together.
 
 1. **Read the finished tasks' `spec` pointers.** That set of case ids is what
    determines which documents this pass has to look at. A task with no `spec` pointer
