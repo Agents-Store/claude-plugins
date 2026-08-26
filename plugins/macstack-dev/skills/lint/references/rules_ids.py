@@ -51,9 +51,44 @@ _HEAD_TOKEN = re.compile(r'^#{2,6}\s+~*([^\s~]+)~*(?:\s|$)')
 _SLUG_TOKEN = re.compile(r'^#{2,6}\s+.*`([^`]+)`\s*$')
 # Decisions are not headings at all - one registry bullet per decision.
 _BULLET_TOKEN = re.compile(r'^\s*-\s+\*\*([^*]+)\*\*')
+# A slug is an id only under an ENTITY heading, and an entity heading is the line
+# right below its pointer. Without that gate `_SLUG_TOKEN` reads any heading whose
+# title happens to end in a backticked term, and two howto headings quoting the same
+# file name become a duplicate-id error against a document that has none.
+_POINTER = re.compile(r'^\s*<!--\s*macstack:ref=')
+_FENCE = re.compile(r'^\s*```')
+
+
+def _unfenced(lines):
+    """The same lines, every fenced region blanked, every position kept.
+
+    Everything else in this codebase strips fences before reading text - v3,
+    mdblocks, 12.24, 12.25 - and these three scanners did not. A ```markdown block
+    in DECISIONS.md's own "how to use this" section, showing a specimen registry
+    row `- **D99** ...`, registered D99 as a real decision and turned the gap check
+    into fifty-four invented findings. Quoted text is not an assignment. Blanking
+    rather than dropping is what keeps the line number a finding quotes truthful.
+    """
+    out, inside = [], False
+    for line in lines:
+        if _FENCE.match(line):
+            inside = not inside
+            out.append('')
+            continue
+        out.append('' if inside else line)
+    return out
+
+
+def _prev_nonblank(lines, i):
+    """The line above index `i`, skipping blanks. '' when there is none."""
+    j = i - 1
+    while j >= 0 and not lines[j].strip():
+        j -= 1
+    return lines[j] if j >= 0 else ''
 
 
 def _heading_tokens(lines):
+    lines = _unfenced(lines)
     out = []
     for n, line in enumerate(lines, 1):
         m = _HEAD_TOKEN.match(line)
@@ -63,15 +98,17 @@ def _heading_tokens(lines):
 
 
 def _slug_tokens(lines):
+    lines = _unfenced(lines)
     out = []
     for n, line in enumerate(lines, 1):
         m = _SLUG_TOKEN.match(line)
-        if m:
+        if m and _POINTER.match(_prev_nonblank(lines, n - 1)):
             out.append((n, m.group(1), line))
     return out
 
 
 def _bullet_tokens(lines):
+    lines = _unfenced(lines)
     out = []
     for n, line in enumerate(lines, 1):
         m = _BULLET_TOKEN.match(line)
@@ -252,12 +289,27 @@ def _v3_style_field(body_lines, field_key, lang):
     currently empty, so which shape the FIRST real entry will use is not yet
     decided; trying both means the rule keeps working either way instead of
     silently going blind the day someone writes the first one by hand.
+
+    What "both" reaches is bounded by the contract, and the bound is worth stating
+    because it was measured rather than assumed: `covers` carries a declared label
+    (`Проверяет`) and so reads from a bullet in any language the contract knows;
+    `blocked_by` carries none, so only its yaml form and a literal `**blocked_by:**`
+    bullet read. Give it a label in `doc-contracts.json` and the rest follows.
     """
     labels = v3.READ.get(lang) or v3.READ['en']
     bullet = re.compile(r'^\s*[-*]\s+\*\*(.+?):\*\*\s*(.*)$')
     for line in body_lines:
         m = bullet.match(line)
-        if m and labels.get(m.group(1).strip().lower()) == field_key:
+        if not m:
+            continue
+        lab = m.group(1).strip().lower()
+        # The ASCII key itself counts as a label. `blocked_by` is declared nowhere in
+        # `doc-contracts.json` `fields`, so `v3.READ` has no translation to look up and
+        # this fallback was structurally dead for it - measured, by writing the bullet
+        # form and watching the rule stay silent on a dangling id. Accepting the key is
+        # not an invented translation; it is the key. Anything else must be declared in
+        # the contract first, and until it is, the yaml form is the only shape that reads.
+        if labels.get(lab) == field_key or lab == field_key:
             return v3._value(m.group(2), lang)
     return None
 
@@ -305,7 +357,10 @@ def r_12_4(c):
                 text = io.open(p, encoding='utf-8').read()
             except IOError:
                 continue
-            for n, line in enumerate(text.splitlines(), 1):
+            # `_unfenced`, not `splitlines`: a howto that shows how a citation is
+            # written ("следующий номер - D45") is quoting a form, not naming a
+            # decision, and reporting it as dangling is how a linter gets muted.
+            for n, line in enumerate(_unfenced(text.splitlines()), 1):
                 for m in D_CITE.finditer(line):
                     tok = m.group(0)
                     if tok not in known_d:

@@ -203,6 +203,52 @@ def r_12_1(c):
     return out
 
 
+@rule('12.2', 'Headers and pointers — every entity heading carries one')
+def r_12_2(c):
+    """The rule that had no implementation anywhere, and it showed.
+
+    Delete a screen's pointer and nothing in the pass said a word: 12.28 and 12.29
+    only look at pointers that exist, and 12.21 only at fields. A heading with no
+    pointer simply left the model — which also took it out of the uniqueness check,
+    so removing one pointer could hide a duplicate id as a bonus.
+    """
+    out = []
+    for key in sorted(c.docs):
+        doc = c.docs[key]
+        if not doc.header.get('doc'):
+            out.append(Finding('12.2', ERROR, c.rel(doc.path), 1,
+                               'no <!-- macstack:doc=… --> header'))
+        # Заголовок БЕЗ указателя выпадает из фильтра сущностей раньше любой
+        # проверки, поэтому искать его среди найденных сущностей бесполезно —
+        # его там по определению нет. Признак: заголовок несёт идентификатор.
+        reserved = set()
+        for e in ((c.contract.get('documents') or {}).get(key) or {}).get('entities') or []:
+            for pref, r in ((e.get('pointer') or {}).get('by_id_prefix') or {}).items():
+                if r.get('binding') == 'none':
+                    reserved.add(pref)
+        for it in doc.items:
+            if it.level < 3 or not it.id or it.ref:
+                continue
+            if any(it.id.startswith(pref) for pref in reserved):
+                continue
+            if '~~' in (doc.lines[it.head_line] if it.head_line is not None else ''):
+                continue                      # зачёркнутый — закрыт, адреса больше нет
+            out.append(Finding('12.2', ERROR, c.rel(doc.path), (it.head_line or 0) + 1,
+                               '%s carries an id and no pointer — a heading outside the '
+                               'model is checked by nothing below it' % it.id))
+        # заголовок с id, который не попал ни в один объявленный вид
+        claimed = set()
+        for e in ((c.contract.get('documents') or {}).get(key) or {}).get('entities') or []:
+            claimed.update(id(x) for x in c.entities_of(key, e['kind'])[1])
+        for it in doc.items:
+            if it.level >= 3 and it.id and id(it) not in claimed and it.ref:
+                out.append(Finding('12.2', ERROR, c.rel(doc.path), (it.head_line or 0) + 1,
+                                   '%s points at %s, which matches no entity kind the '
+                                   'contract declares for this document'
+                                   % (it.id, it.ref)))
+    return out
+
+
 @rule('12.28', 'Every pointer resolves into macstack.json')
 def r_12_28(c):
     out = []

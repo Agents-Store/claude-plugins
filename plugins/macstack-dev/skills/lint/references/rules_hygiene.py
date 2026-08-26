@@ -16,46 +16,105 @@ import i18n                               # render.py's own output catalogue
 
 
 # ---------------------------------------------------------------- shared walk
-def _walk_files(root, exts):
-    """Every file under `root` whose extension is in `exts`, dot-dirs and
-    dot-files skipped — .git and .DS_Store are the filesystem's litter, not the
-    folder's content, and a rule that trips on them teaches people to ignore it
-    (12.1's own reasoning for the six-entries check, reused here)."""
+_MAX_SCAN_BYTES = 8 * 1024 * 1024        # past this it is an asset, not a document
+
+
+def _walk_files(root, exts=None):
+    """Every file under `root`; `exts` narrows it to those extensions.
+
+    Dot-DIRECTORIES are skipped (.git is the tool's storage, not the folder's
+    content, and walking it would be both wrong and enormous). Dot-FILES are NOT:
+    12.9 says "no secrets anywhere under macstack/", and `.env` is the first place
+    anyone looks for one. Excluding it because .DS_Store is litter would have made
+    the rule blind to exactly the file it exists for — the extension allowlist this
+    replaced already was, and let an AWS key in client/leaked.txt, a token in a
+    handoff .html and a password in history/ledger.jsonl through untouched.
+
+    Binaries drop out by themselves: `_read` returns None when the bytes are not
+    UTF-8, which is what every PDF in inbox/ does.
+    """
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if not d.startswith('.')]
         for fn in sorted(filenames):
-            if fn.startswith('.'):
+            if exts is not None and os.path.splitext(fn)[1] not in exts:
                 continue
-            if os.path.splitext(fn)[1] in exts:
-                yield os.path.join(dirpath, fn)
+            yield os.path.join(dirpath, fn)
 
 
 def _read(path):
+    """The file as text, or None when it is not text.
+
+    The size cap lives HERE and not in the walk. Putting it in the walk made every
+    caller inherit it, and 12.7 — which only needs a file's NAME and its size — then
+    stopped seeing the corpus's own 9.5 MB `client-portal-spec-2026-08-24.pdf`
+    entirely: no name check, no manifest check, no immutability check, and the intake
+    size warning silently green on the one file in the folder that trips it.
+    """
     try:
-        return io.open(path, encoding='utf-8').read()
-    except (IOError, OSError, UnicodeDecodeError):
+        if os.path.getsize(path) > _MAX_SCAN_BYTES:
+            return None
+        text = io.open(path, encoding='utf-8').read()
+    except (IOError, OSError, UnicodeDecodeError, ValueError):
         return None
+    return None if '\x00' in text else text     # decoded, but still not text
 
 
 # ================================================================== 12.7
+# The contract declares the shape itself (`inbox.filename`) rather than leaving it at
+# "ASCII-only": a space, a leading underscore or a bracket are all pure ASCII and all
+# break the manifest, because mdblocks.ANCHOR reads an intake id as `\S+` and stops at
+# the first space. `client spec (2).pdf` therefore CANNOT be given a manifest entry at
+# all — checking only for non-ASCII bytes passed it and then blamed the manifest.
+_ASCII_FALLBACK = r'^[A-Za-z0-9][A-Za-z0-9._-]*$'
+
+
+def _inbox_rules(c):
+    inb = (c.contract.get('inbox') or {})
+    pat = inb.get('filename') or _ASCII_FALLBACK
+    try:
+        rx = re.compile(pat)
+    except re.error:
+        rx = re.compile(_ASCII_FALLBACK)
+        pat = _ASCII_FALLBACK
+    warn_mb = inb.get('size_warn_mb')
+    return rx, pat, (warn_mb if isinstance(warn_mb, (int, float)) else None)
+
+
 @rule('12.7', 'Inbox hygiene')
 def r_12_7(c):
     inbox = os.path.join(c.root, 'inbox')
     if not os.path.isdir(inbox):
         return []                         # a fresh folder legitimately lacks intake
     out = []
-    names = sorted(f for f in os.listdir(inbox)
-                    if not f.startswith('.') and os.path.isfile(os.path.join(inbox, f)))
-    files = [f for f in names if f != 'README.md']
+    rx, pat, warn_mb = _inbox_rules(c)
 
-    # ---- ASCII-only filenames — a non-ASCII byte greps as absent the same way
-    # a homoglyph id does (12.3's argument, extended to the filesystem).
+    # Recursive on purpose. A flat os.listdir made `inbox/round-2/секрет.pdf` invisible
+    # to all three legs at once — no name check, no manifest check, no immutability
+    # check — and no other rule in the pass looks below the folder's root either.
+    files = []
+    for p in _walk_files(inbox):
+        rel = os.path.relpath(p, inbox)
+        if rel == 'README.md':
+            continue                      # the manifest itself, and the one writable file
+        files.append(rel)
+    files.sort()
+
     for f in files:
-        try:
-            f.encode('ascii')
-        except UnicodeEncodeError:
+        name = os.path.basename(f)
+        if not rx.match(name):
+            try:
+                name.encode('ascii')
+                why = 'does not match the contract\'s inbox.filename %s' % pat
+            except UnicodeEncodeError:
+                # A non-ASCII byte greps as absent the same way a homoglyph id does
+                # (12.3's argument, extended to the filesystem).
+                why = 'is not ASCII, so it greps as absent'
             out.append(Finding('12.7', ERROR, c.rel(os.path.join(inbox, f)), 0,
-                               'inbox filename is not ASCII: %r' % f))
+                               'inbox filename %r %s' % (name, why)))
+        if os.sep in f:
+            out.append(Finding('12.7', ERROR, c.rel(os.path.join(inbox, f)), 0,
+                               'inbox/ has no sub-folders: %s sits under %r, where the '
+                               'manifest cannot name it' % (name, os.path.dirname(f))))
 
     # ---- every file has a manifest entry. inbox/README.md is v2-format (no
     # `format: v3` in the contract), so it is read with mdblocks, not v3.
@@ -64,7 +123,7 @@ def r_12_7(c):
         _, blocks = mdblocks.parse(manifest_raw)
         named = {e.id for e in mdblocks.entities(blocks, kind='intake') if e.id}
         for f in files:
-            if f not in named:
+            if f not in named and os.path.basename(f) not in named:
                 out.append(Finding('12.7', ERROR, c.rel(os.path.join(inbox, f)), 0,
                                    '%s has no entry in inbox/README.md — the manifest '
                                    'is silent about a file that exists' % f))
@@ -72,6 +131,22 @@ def r_12_7(c):
         out.append(Finding('12.7', ERROR, c.rel(os.path.join(inbox, 'README.md')), 0,
                            'inbox/ holds %d file(s) but README.md does not exist or '
                            'could not be read — nothing says what they are' % len(files)))
+
+    # ---- size. A WARNING by SKILL.md's own warnings list ("an inbox/ file heavier
+    # than 5 MB") and by the contract's size_warn_mb; no other rule in the pass owns
+    # it, so an unenforced number in the contract is what it stayed until now.
+    if warn_mb:
+        for f in files:
+            p = os.path.join(inbox, f)
+            try:
+                mb = os.path.getsize(p) / (1024.0 * 1024.0)
+            except OSError:
+                continue
+            if mb > warn_mb:
+                out.append(Finding('12.7', WARNING, c.rel(p), 0,
+                                   '%.1f MB — over the %g MB intake budget; ask for the '
+                                   'source in a lighter form rather than committing this'
+                                   % (mb, warn_mb)))
 
     # ---- content-modifying commits after the add commit. README.md is exempt:
     # it is "the ONLY writable file under inbox/" by the contract's own words, so
@@ -123,7 +198,10 @@ LINK = re.compile(r'\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
 @rule('12.8', 'No rotting pointers')
 def r_12_8(c):
     out = []
-    for path in _walk_files(c.root, ('.md', '.json')):
+    # "anywhere under macstack/" is the rule's own wording, so every readable text
+    # file, not an .md/.json allowlist that silently exempted history/ledger.jsonl
+    # and the handoff .html twins.
+    for path in _walk_files(c.root):
         text = _read(path)
         if text is None:
             continue
@@ -176,11 +254,13 @@ def _r_12_8_links(c):
 
 # ================================================================== 12.9
 # Names of env keys are the spec's business on purpose (they are what a deploy needs
-# to set) — only VALUES that look like real credentials are the violation. Every
-# pattern below was run against the live corpus (78 cases, 37 screens, the full
-# macstack.json) with the results in the module's own report; each produced zero
-# hits, which is what keeps this at zero false positives rather than a rule that
-# cries wolf and gets switched off.
+# to set) — only VALUES that look like real credentials are the violation. The named
+# patterns (AWS, GitHub, sk-, PEM, user:pass@) are specific enough to stand alone and
+# measure zero across every readable file in the live corpus. The two SHAPE patterns
+# are not: on their own, `_HEX_RUN` reports every 40-character commit hash in
+# history/ as a credential. They are therefore gated behind a key that names a
+# secret, because a rule that reddens on an ordinary journal line gets switched off
+# and then catches nothing at all.
 _AWS_KEY = re.compile(r'\bAKIA[0-9A-Z]{16}\b')
 _GH_TOKEN = re.compile(r'\bgh[pousr]_[A-Za-z0-9]{20,}\b')
 _SK_KEY = re.compile(r'\bsk-[A-Za-z0-9_-]{20,}\b')
@@ -198,6 +278,51 @@ _ENV_ASSIGN = re.compile(r'^[ \t]*([A-Z][A-Z0-9_]{2,})\s*=\s*(\S.*)$')
 _PLACEHOLDER_RHS = re.compile(
     r'^(["\']?)(<.*>|\.\.\.|x{3,}|\*{3,}|-|—|change[_-]?me|your[_-].*|'
     r'replace[_-]?me|todo|tbd|example.*|placeholder.*)\1$', re.I)
+# A key that NAMES a credential. The generic shape heuristics below fire only as the
+# value of one of these: a bare 40-hex run in prose is a commit hash, which every
+# history/ file cites and which is not a secret in any sense — reporting it as one was
+# a blocking ERROR on the most ordinary line a journal can contain.
+# The prefix is optional on purpose: `api_key: …` is the commonest form there is, and
+# requiring one leading character made the pattern match `X_API_KEY` but never `api_key`.
+_CRED_KEY = re.compile(
+    r'(?i)([A-Za-z0-9_.\-]*'
+    r'(?:secret|token|password|passwd|pwd|api[_-]?key|apikey|access[_-]?key|'
+    r'private[_-]?key|credential|bearer|signature|salt)'
+    r'[A-Za-z0-9_.\-]*)["\']?\s*[:=]\s*["\']?([^\s"\',;]+)')
+_BEARER = re.compile(r'(?i)\bbearer\s+([A-Za-z0-9+/=._\-]{16,})')
+_LATIN_WORD_ONLY = re.compile(r'^[A-Za-z]+$')
+_NUMBER_ONLY = re.compile(r'^[0-9]+([.,][0-9]+)?$')
+_URL_VALUE = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.-]*://')
+
+
+def _env_value_is_credential_shaped(v):
+    """A value that could BE a credential, as opposed to prose that happens to sit
+    after an equals sign. Four exclusions, each one a measured false positive:
+
+      `FIO = Иванов Иван`   — whitespace, and letters outside the Latin alphabet;
+                              this is a Russian sentence, not a shell assignment.
+      `MAX_ITEMS = 50`      — a bare number is a count.
+      `BASE_URL=https://…`  — a URL with no user:pass in it; _URL_CRED owns the
+                              credentialed form and a public endpoint is not a secret.
+      `NODE_ENV=production` — one plain dictionary word, no digit and no separator.
+                              No credential in the world looks like that, and the rule
+                              is titled "no SECRETS", not "no assignments".
+
+    Everything else stays a finding, because the contract's wording is flat: "names of
+    env keys only, never values".
+    """
+    v = v.strip().strip('"\'')
+    if not v or re.search(r'\s', v):
+        return False
+    if _NUMBER_ONLY.match(v) or len(v) < 8:
+        return False
+    if re.search(r'[^\x00-\x7f]', v):
+        return False                      # a non-ASCII value is prose, never a token
+    if _URL_VALUE.match(v):
+        return False
+    if _LATIN_WORD_ONLY.match(v):
+        return False
+    return bool(re.search(r'[A-Za-z0-9]', v))
 
 
 def _secret_findings(path, text, rel):
@@ -217,27 +342,41 @@ def _secret_findings(path, text, rel):
                 out.append(Finding('12.9', ERROR, rel, n,
                                    '%s (%d characters) — value withheld from this '
                                    'finding on purpose' % (why, len(m.group(0)))))
-        for pat, why in ((_HEX_RUN, 'a long hex run'), (_B64_RUN, 'a long base64-shaped run')):
-            m = pat.search(line)
-            if m:
-                out.append(Finding('12.9', ERROR, rel, n,
-                                   '%s that reads like a credential (%d characters) — '
-                                   'value withheld from this finding on purpose'
-                                   % (why, len(m.group(0)))))
+        for cand, whose in _credential_values(line):
+            for pat, why in ((_HEX_RUN, 'a long hex run'),
+                             (_B64_RUN, 'a long base64-shaped run')):
+                if pat.search(cand):
+                    out.append(Finding('12.9', ERROR, rel, n,
+                                       '%s assigned to %s (%d characters) — value '
+                                       'withheld from this finding on purpose'
+                                       % (why, whose, len(cand))))
+                    break
         m = _ENV_ASSIGN.match(line)
-        if m and not _PLACEHOLDER_RHS.match(m.group(2).strip()):
+        if (m and not _PLACEHOLDER_RHS.match(m.group(2).strip())
+                and _env_value_is_credential_shaped(m.group(2))):
             out.append(Finding('12.9', ERROR, rel, n,
-                               '%s is assigned a value that is not an obvious '
-                               'placeholder (%d characters) — value withheld from '
-                               'this finding on purpose'
+                               '%s carries a value (%d characters), and the contract '
+                               'allows the NAME of an env key only — value withheld '
+                               'from this finding on purpose'
                                % (m.group(1), len(m.group(2).strip()))))
     return out
+
+
+def _credential_values(line):
+    """(value, what named it) for every value on this line a credential key claims."""
+    for m in _CRED_KEY.finditer(line):
+        yield m.group(2), '`%s`' % m.group(1)
+    for m in _BEARER.finditer(line):
+        yield m.group(1), 'a Bearer header'
 
 
 @rule('12.9', 'No secrets anywhere under macstack/')
 def r_12_9(c):
     out = []
-    for path in _walk_files(c.root, ('.md', '.json')):
+    # Every readable file, dot-files included. The .md/.json allowlist this replaced
+    # left `macstack/.env`, `client/leaked.txt`, `history/ledger.jsonl` and the handoff
+    # .html files unopened — a secrets rule that cannot see .env is not a secrets rule.
+    for path in _walk_files(c.root):
         text = _read(path)
         if text is None:
             continue
@@ -263,11 +402,23 @@ def _delta_settled(text):
     return bool(_SUPERSEDED.search(text))
 
 
-@rule('12.10', 'No parallel spec', WARNING)
+@rule('12.10', 'No parallel spec')
 def r_12_10(c):
+    """Two bands, and the contract names both.
+
+    `delta.age_budget_days` is `{warn: 14, error: 30}`, and SKILL.md says the same
+    thing in two places: 12.10 sits unmarked in the Pass-3 list (so, an ERROR, like
+    every rule there that is not tagged "(warning)"), and its warnings list carries
+    "a delta aged 14–30 days with no applied banner" separately. Shipping one band at
+    WARNING collapsed the two: a year-old parallel specification never blocked, and
+    the warn band never fired at all.
+    """
     deltas = os.path.join(c.root, 'history', 'deltas')
     if not os.path.isdir(deltas):
         return []
+    budget = ((c.contract.get('documents') or {}).get('delta') or {}).get('age_budget_days') or {}
+    warn_at = budget.get('warn') if isinstance(budget.get('warn'), int) else 14
+    error_at = budget.get('error') if isinstance(budget.get('error'), int) else 30
     out = []
     today = datetime.date.today()
     for name in sorted(os.listdir(deltas)):
@@ -279,15 +430,17 @@ def r_12_10(c):
                                          int(m.group(3)))).days
         except ValueError:
             continue
-        if age <= 30:
+        if age <= warn_at:
             continue
         text = _read(os.path.join(deltas, name))
         if text is None or _delta_settled(text):
             continue
-        out.append(Finding('12.10', WARNING, c.rel(os.path.join(deltas, name)), 0,
+        sev = ERROR if age > error_at else WARNING
+        out.append(Finding('12.10', sev, c.rel(os.path.join(deltas, name)), 0,
                            'a %d-day-old delta with neither an applied banner nor a '
-                           'superseded note — it is read as a second specification, '
-                           'not a settled proposal' % age))
+                           'superseded note (budget: warn %d, error %d) — it is read as '
+                           'a second specification, not a settled proposal'
+                           % (age, warn_at, error_at)))
     return out
 
 
@@ -323,10 +476,26 @@ def r_12_17(c):
         return []
     out = []
     today = datetime.date.today()
-    fresh_days = (c.spec.get('docs') or {}).get('freshness_days') or 30
+    # A spec that fails pass 1 still reaches pass 3 — the live corpus does exactly that
+    # today, with three schema errors standing — so every value read here is treated as
+    # untrusted. `freshness_days: "thirty"` and `reviewed: 20260101` (an unquoted date)
+    # each killed this rule outright, and a rule that dies reports nothing at all.
+    fresh_days = (c.spec.get('docs') or {}).get('freshness_days')
+    if not isinstance(fresh_days, int) or isinstance(fresh_days, bool) or fresh_days <= 0:
+        if fresh_days is not None:
+            out.append(Finding('12.17', ERROR, 'macstack.json', 0,
+                               'docs.freshness_days is not a positive whole number of '
+                               'days: %r — the shelf life is measured against 30 instead'
+                               % (fresh_days,)))
+        fresh_days = 30
     latest_review = _latest_conformance_date(c.root)
     for key in sorted(c.files):
-        meta = c.files.get(key) or {}
+        meta = c.files.get(key)
+        if not isinstance(meta, dict):
+            out.append(Finding('12.17', ERROR, 'macstack.json', 0,
+                               'docs.files.%s is not an object (%s) — nothing can carry '
+                               'a `reviewed` date' % (key, type(meta).__name__)))
+            continue
         path = c.path_of(key)
         rel = c.rel(path) if path else 'macstack.json'
         reviewed = meta.get('reviewed')
@@ -337,8 +506,8 @@ def r_12_17(c):
                                'worse than being stale' % key))
             continue
         try:
-            d = datetime.date(*(int(x) for x in reviewed.split('-')))
-        except (ValueError, TypeError):
+            d = datetime.date(*(int(x) for x in str(reviewed).split('-')))
+        except (ValueError, TypeError, AttributeError):
             out.append(Finding('12.17', ERROR, rel, 0,
                                'docs.files.%s.reviewed is not a YYYY-MM-DD date: %r'
                                % (key, reviewed)))
@@ -395,16 +564,33 @@ def r_12_18(c):
                            'could not run the renderer: %s: %s' % (type(e).__name__, e)))
         return out
     lines = set((proc.stdout or '').splitlines())
+    # render.py picks its output language with i18n.doc_lang, NOT with the raw
+    # docs.language string: it lowercases, drops a BCP-47 region and falls back to 'en'
+    # for anything unsupported. Reading its verdict through `c.lang` (raw, defaulting to
+    # 'ru') therefore matched nothing whenever the two disagreed — `"language": "ru-RU"`,
+    # which the schema explicitly invites, produced three "cannot confirm it is in sync"
+    # ERRORs against files render.py had just called byte-identical to their source.
+    out_lang = i18n.doc_lang(c.root)
     for k in checked:
         path = os.path.join(c.root, _RENDER_JOB[k])
-        drift = i18n.msg(c.lang, 'drift', path=path)
-        insync = i18n.msg(c.lang, 'in_sync', path=path)
+        drift = i18n.msg(out_lang, 'drift', path=path)
+        insync = i18n.msg(out_lang, 'in_sync', path=path)
         if drift in lines:
-            out.append(Finding('12.18', ERROR, c.rel(path), 0,
-                               '%s no longer matches a fresh render of `%s` — either it '
-                               'was hand-edited or the source moved and nobody '
-                               're-rendered; re-render it, never hand-fix it'
-                               % (_RENDER_JOB[k], docs[k].get('generated'))))
+            if not os.path.exists(path):
+                # A first run has no generated/ yet, and render.py calls a missing file
+                # a difference. Saying "either it was hand-edited or the source moved"
+                # about a file nobody has ever rendered sends the reader looking for an
+                # edit that does not exist.
+                out.append(Finding('12.18', ERROR, c.rel(path), 0,
+                                   '%s has never been rendered from `%s` — run render.py '
+                                   'rather than writing it' % (_RENDER_JOB[k],
+                                                               docs[k].get('generated'))))
+            else:
+                out.append(Finding('12.18', ERROR, c.rel(path), 0,
+                                   '%s no longer matches a fresh render of `%s` — either '
+                                   'it was hand-edited or the source moved and nobody '
+                                   're-rendered; re-render it, never hand-fix it'
+                                   % (_RENDER_JOB[k], docs[k].get('generated'))))
         elif insync not in lines:
             out.append(Finding('12.18', ERROR, c.rel(path), 0,
                                'render.py --check gave no verdict for %s — cannot '
@@ -449,13 +635,29 @@ def _strip_for_language(text):
     return '\n'.join(out)
 
 
+# Which script a language is written in. The rule is a two-way split — one alphabet is
+# the document's, the other is foreign — so it needs the language NORMALISED first.
+# `docs.language` is a BCP-47 code by the schema's own description, and comparing it
+# raw against the literals 'ru'/'uk' inverted the whole measurement for "RU" and
+# "ru-RU": every correctly-Russian document in the corpus was reported at 97–99%
+# foreign, ten blocking ERRORs on a folder with nothing wrong with it.
+_CYRILLIC_LANGS = frozenset(('ru', 'uk', 'be', 'bg', 'sr', 'mk', 'kk', 'ky', 'mn', 'tg'))
+
+
+def _norm_lang(lang):
+    """i18n.doc_lang's own normalisation, applied to a code from anywhere."""
+    if not lang:
+        return None
+    return str(lang).strip().split('-')[0].split('_')[0].lower() or None
+
+
 def _foreign_ratio(text, lang):
     body = mdblocks.IDTOK.sub(' ', _strip_for_language(text))
     cyr, lat = len(mdblocks.CYR.findall(body)), len(mdblocks.LAT.findall(body))
     total = cyr + lat
     if total < _MIN_LETTERS:
         return None
-    wrong = lat if lang in ('ru', 'uk') else cyr
+    wrong = lat if lang in _CYRILLIC_LANGS else cyr
     return wrong / float(total)
 
 
@@ -469,7 +671,7 @@ def _worst_line(text, lang):
         total = cyr + lat
         if total < _MIN_LINE_LETTERS:
             continue
-        ratio = (lat if lang in ('ru', 'uk') else cyr) / float(total)
+        ratio = (lat if lang in _CYRILLIC_LANGS else cyr) / float(total)
         if ratio > best_ratio:
             best_ratio, best_n = ratio, n
     if best_n and best_n <= len(raw_lines):
@@ -478,7 +680,8 @@ def _worst_line(text, lang):
 
 
 def _lang_for(c, key, decl, text):
-    override = (c.files.get(key) or {}).get('language')
+    meta = c.files.get(key)
+    override = _norm_lang(meta.get('language')) if isinstance(meta, dict) else None
     if override:
         return override
     if not decl.get('format') == 'v3':
@@ -486,9 +689,15 @@ def _lang_for(c, key, decl, text):
         # its v2 header can carry its own `lang=`, and a document that says so
         # honestly should not be measured against a default it never claimed.
         header, _ = mdblocks.parse(text)
-        if header.get('lang'):
-            return header['lang']
-    return c.lang
+        if _norm_lang(header.get('lang')):
+            return _norm_lang(header['lang'])
+    # The project default, read raw and normalised here rather than taken from
+    # c.lang: the schema says "Absent = en" and every other tool in the plugin
+    # resolves it through i18n.doc_lang, while Ctx.lang falls back to 'ru'. Guessing
+    # Russian for a folder that never said so measures an English document against
+    # the wrong alphabet and reports it at ~99% foreign.
+    declared = _norm_lang((c.spec.get('docs') or {}).get('language'))
+    return declared or i18n.doc_lang(c.root)
 
 
 @rule('12.25', 'The document is written in its declared language')

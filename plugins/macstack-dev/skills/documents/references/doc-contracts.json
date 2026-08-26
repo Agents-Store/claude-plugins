@@ -665,8 +665,75 @@
         "workflows": "workflows[] as one block per workflow: engine, triggers, location, invocation, status. Grouped by status, so 'what is not built yet' is one section rather than a column to scan.",
         "integrations": "connections.mcp[], interfaces[] and context.plugins with what each covers, as lists."
       },
-      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand. It does NOT replace docs/architecture.md, which holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise rediscover.",
-      "format": "v3"
+      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand. It does NOT replace docs/architecture.md, which holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise rediscover.  Generated, and parsed like everything else: it declares format v3, so its entities are declared too. Leaving them undeclared meant every heading in it pointed at a kind the contract did not know, which 12.2 reports and 12.0 would have reported the moment anyone looked.",
+      "format": "v3",
+      "entities": [
+        {
+          "kind": "software",
+          "id_space": "software",
+          "collections": [
+            "software"
+          ],
+          "heading": "### <title> — `<id>`",
+          "pointer": {
+            "path": "software[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_required": [
+            "agentic",
+            "category",
+            "hosting",
+            "layers",
+            "license",
+            "role",
+            "type"
+          ],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": []
+        },
+        {
+          "kind": "entity",
+          "id_space": "entity",
+          "collections": [
+            "entities"
+          ],
+          "heading": "### <title> — `<id>`",
+          "pointer": {
+            "path": "entities[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_required": [
+            "stores",
+            "volume"
+          ],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": []
+        },
+        {
+          "kind": "workflow",
+          "id_space": "workflow",
+          "collections": [
+            "workflows"
+          ],
+          "heading": "### <title> — `<id>`",
+          "pointer": {
+            "path": "workflows[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_required": [
+            "engine",
+            "implements",
+            "invocation",
+            "location",
+            "triggers"
+          ],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": []
+        }
+      ]
     },
     "test_cases": {
       "path": "generated/TEST-CASES.md",
