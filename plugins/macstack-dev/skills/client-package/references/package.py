@@ -674,20 +674,17 @@ def main():
     if artifact:
         print('  artifact body — publish with the Artifact tool, then record its URL below')
         print('')
-    print('Append to history/log.md:')
-    print('')
-    print('<!-- macstack:entry=%s-handoff -->' % date)
-    print('## [%s] handoff | %s' % (date, 'Client review package'))
-    print('')
-    print('```yaml')
-    print('kind: handoff')
-    print('sections: [%s]' % ', '.join(k for k, gs in data if gs))
-    print('version: %s' % version)
-    print('file: history/handoffs/%s' % os.path.basename(out))
     if artifact:
-        print('url:')
-    print('to:')
-    print('```')
+        print('  тело артефакта — опубликуйте его инструментом Artifact,')
+        print('  затем впишите URL в строку handoff журнала.')
+        print('')
+    # Журнал пакет уже записал сам, строкой выше. Печатать инструкцию «допишите
+    # в log.md» значило бы отправлять человека в файл, которого больше нет.
+    print('Дальше:')
+    print('  1. отдайте файл клиенту;')
+    print('  2. клиент жмёт «Собрать мои ответы» и присылает текст;')
+    print('  3. /macstack-dev:review --read <файл> — ответы лягут в журнал,')
+    print('     и следующий пакет подставит их под теми же пунктами.')
     return 0
 
 

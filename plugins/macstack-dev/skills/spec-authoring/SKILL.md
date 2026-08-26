@@ -231,4 +231,4 @@ register it in the root's `substacks[]`.
 keys, its workflows and triggers → lint → scaffold (idempotent, it grows) → add the key
 in Infisical → commit the spec **in the same commit** as the code.
 
-**The client drops a PDF** — that is `/macstack-dev:inbox`, not this skill.
+**The client drops a PDF** — that is `/macstack-dev:intake`, not this skill.

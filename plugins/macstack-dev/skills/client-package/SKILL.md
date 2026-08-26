@@ -1,72 +1,91 @@
 ---
 name: client-package
-description: This skill should be used when the user asks to "send the cases to the client", "give the client something to edit", "собрать пакет для клиента", "отдать клиенту на согласование", "prepare the user cases for review", or needs the outbound half of the client loop — turning the five client documents into one artifact a client can annotate and send back, as a self-contained HTML file or as a published artifact with comment threads.
+description: This skill should be used when the user asks to "send the documents to the client", "give the client something to comment on", "собрать пакет для клиента", "отдать клиенту на согласование", "показать клиенту артефакт", or needs either half of the client loop — turning the six client documents into one page a client can read and answer, and taking their answers back into the ledger.
 ---
 
-# Hand the client something they can actually edit
+# Hand the client something they can actually read and answer
 
-The inbound half of the loop has always worked: client material lands in `inbox/`, a delta
-analyses it, rulings decide it, `USER-CASES.md` absorbs it. **The outbound half did not
-exist.** Nobody sends a client an 88 KB markdown file and expects edits back, so in practice
-the client writes a fresh document of their own and somebody transcribes it by hand — which
-is where a hundred small changes go missing.
+Nobody sends a client an 88 KB markdown file and expects edits back. In practice the client
+writes a document of their own and somebody transcribes it by hand — which is where a hundred
+small changes go missing.
 
-This skill builds one self-contained HTML: every acceptance bullet numbered, with an empty
-box beside it to write in. It opens in any browser, prints to PDF, and needs nothing
-installed.
+This skill builds one self-contained HTML page from the six client documents, and reads the
+answers back. It opens in any browser, prints to PDF, and needs nothing installed.
 
-## Run it
+## Build
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/client-package/references/package.py" macstack \
-        [--date YYYY-MM-DD] [--slug user-cases]
+        [--date YYYY-MM-DD] [--slug user-cases] [--artifact]
 ```
 
-Writes `macstack/history/handoffs/<date>-<slug>.html` and prints a ready `handoff` entry. **Append
-that entry to `log.md`** — lint rule 12.20 requires it, and it is the only record of which
-version the client actually reviewed.
+Writes `macstack/history/handoffs/<date>-<slug>.html` and records itself in the ledger as a
+`handoff` row. That row is what the NEXT package measures "changed since you last read this"
+against — without it the next round marks either everything or nothing.
 
-## `history/handoffs/` is immutable, and that is what makes the numbers work
+`--artifact` builds the version for publishing. Publish it with the Artifact tool and put the
+URL into the handoff row.
 
-Bullet numbers (`C-04.2`) are **positional within one package**, not global ids.
-`USER-CASES.md` does not carry them, so inserting a bullet shifts everything below it in the
-next package.
+## What the client sees
 
-That is safe for exactly one reason: **the handoff file never changes.** A comment written on
-`history/handoffs/2026-08-24-user-cases.html` is resolved against that file, which still exists, byte for byte,
-with the numbering the client saw. Regenerating for a new round writes a new dated file; it
-never overwrites the old one.
+**Whole entities, as prose.** A case reads as a case: what it is, who does it, what has to be
+true when it is done. Acceptance bullets stay inside their case, as part of it.
 
-So: never edit a file in `handoffs/`, and never present these numbers to anyone as stable
-identifiers. If a client cites `C-04.2` six months later, open the package they were sent —
-not today's document.
+Acceptance bullets are test cases — written for a machine. A package that flattens them into
+hundreds of separate questions is an interrogation, not a document, and the client stops
+reading. One answer per entity, not one per bullet.
 
-## The return trip needs nothing new
+Eight sections: what the product is · goals · who does what · what starts work and who does
+it · what must be delivered · questions for you · screens · how to use it.
 
-The client sends the file back. It lands in `inbox/` like any other incoming material, with an
-`intake` entry, and from there the existing `intake` loop takes over: delta → rulings →
-`USER-CASES.md`. Do not build a second path for returned packages — the one that exists is the
-best-tested part of this plugin, and a parallel one would be a second place for a client's
-change to get lost.
+**Closed questions do not go in.** Six of the questions in `OPEN-QUESTIONS.md` are struck
+through and marked CLOSED; asking them again spends attention the client has a fixed amount
+of. Lint rule 12.6 already says the same thing.
 
-## What goes in, and what deliberately does not
+## Permanent ids, and why `handoffs/` is immutable
 
-**In:** everything in `client/` except the open questions — `OVERVIEW.md` as context in
-plain words, then `USER-CASES.md` case by case, then `UX-UI.md` screen by screen, then
-`AUTOMATION.md`, then `HANDBOOK.md`. Those five are the client's documents by definition;
-handing over four of them and keeping the fifth back is how a client reviews a product they
-have not seen. v1 promised four and its builder read two, which is the same failure with a
-smaller number.
+The id on an entity (`C-04`) comes from the document, not from its position in the package.
+It does not move when something is inserted above it, so a client quoting `C-04` from a
+six-month-old email lands on the same thing.
 
-**Not in:** `history/` in any form, `generated/ARCHITECTURE.md`, `generated/TEST-CASES.md`. Some of it is internal, some of it would invite the client to re-open decisions
-already taken, and all of it makes the package longer without making it more answerable. A
-package the client does not finish reading produces fewer corrections, not more.
+The handoff file still never changes: the client's answers come back against THAT file. A new
+round writes a new dated file, and refuses to overwrite an existing one. Never edit a file in
+`handoffs/`.
 
-`OPEN-QUESTIONS.md` §A goes separately when needed — it is short, written for exactly that, and
-mixing "what we still need from you" into "what we will build for you" invites the two to be
-answered as one.
+## Read the answers back
+
+The client presses **"Собрать мои ответы"** at the bottom of the page and sends you the text.
+Channel does not matter — file, email, message, or pasted into the chat. If it came through
+the chat, write it to `macstack/inbox/<date>-answers.json` first: the inbox is what gives a
+correction a traceable source.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/client-package/references/package.py" macstack \
+        --read <file.json> [--dry]
+```
+
+`--dry` prints what would be recorded and writes nothing.
+
+Every answer becomes a `comment` row in `history/ledger.jsonl` with a `verdict` field —
+including a plain "верно". Silent agreement and no answer at all look identical otherwise,
+and they are not the same thing: one means somebody read it and agreed.
+
+## What the next round then does by itself
+
+Under each entity the client answered, the next package shows what they said with its date,
+and pre-selects their previous verdict — **still changeable**. Locking a client into an old
+answer is wrong: the document may have moved since, and a "верно" from six months ago can
+stop being true.
+
+An answer the client did not touch is not re-asked. Otherwise every round returns all two
+hundred answers and nobody can see what actually got reconsidered.
+
+## Then it is ordinary incoming material
+
+An answer that asks for a change goes through `intake`: delta → ruling → apply. Do not put a
+client's comment straight into a document. A comment is a request; what it costs to be wrong
+about it is the owner's call, not this session's.
 
 ## Language
 
-Taken from `docs.language`. A client-facing document is the one place to confirm the language
-before sending rather than after.
+The page follows `docs.language`. Ids and keys stay Latin. The client never sees a key.
