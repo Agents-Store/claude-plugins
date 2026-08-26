@@ -1817,6 +1817,16 @@
       },
       "type": "text",
       "render": "text"
+    },
+    "blocked_by": {
+      "label": {
+        "ru": "Чем заблокирована",
+        "en": "Blocked by",
+        "de": "Blockiert durch"
+      },
+      "type": "id_list",
+      "render": "code_list",
+      "$comment": "Not the same field as `blocks`. «Что блокирует» is what this entity holds up; «Чем заблокирована» is what holds IT up. One bullet used the first label to mean the second, and the contract caught it."
     }
   },
   "prose": {

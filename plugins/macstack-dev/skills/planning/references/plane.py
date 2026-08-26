@@ -66,6 +66,28 @@ def read_tasks(root):
     return out
 
 
+def summary(task):
+    """Что уезжает в трекер: суть и указатель на файл, а не весь текст задачи.
+
+    Файл — источник правды о том, ЧТО за работа; трекер — место, где о ней идёт
+    разговор. Гнать туда полное описание значит держать две копии одного текста и
+    расходиться на первой же правке. Сводка выводится ДЕТЕРМИНИРОВАННО из того же
+    файла, поэтому сравнение стабильно: иначе синк докладывал бы «обновить всё»
+    на каждом прогоне, а правило, которое всегда красное, никто не читает.
+    """
+    body = task.get('body') or ''
+    what = re.search(r'\*\*(?:Что сделать|What to do)\.\*\*\s*(.*?)(?=\n\n\*\*|\Z)',
+                     body, re.S)
+    first = ''
+    if what:
+        first = re.split(r'(?<=[.;])\s', re.sub(r'\s+', ' ', what.group(1)).strip())[0]
+    closes = task.get('closes') or '—'
+    if isinstance(closes, (list, tuple)):
+        closes = ', '.join(closes)
+    return ('Закрывает кейс %s. %s\n\nПолное описание — macstack/history/TASKS.md, задача %s.'
+            % (closes, first[:400], task['id']))
+
+
 def plan(root, tracker=None):
     """-> {'create': [...], 'update': [...], 'conflict': [...], 'binding': {...}}."""
     tasks = read_tasks(root)
@@ -83,7 +105,7 @@ def plan(root, tracker=None):
         w = known.get(t['id'])
         payload = {'external_id': t['id'], 'external_source': SOURCE,
                    'name': '%s · %s' % (t['id'], t['title']),
-                   'description_stripped': t['body'],
+                   'description_stripped': summary(t),
                    'state': t['status']}
         if w is None:
             create.append(payload)
@@ -96,8 +118,9 @@ def plan(root, tracker=None):
             conflict.append({'task': t['id'], 'document': t['status'], 'tracker': theirs,
                              'why': 'the two disagree about whether this is done'})
             continue
-        if (w.get('name') or '') != payload['name'] or \
-           (w.get('description_stripped') or '') != payload['description_stripped']:
+        # сравниваем только имя: описание в трекере ведёт человек, и перезаписывать
+        # его на каждом прогоне значит стирать разговор, ради которого трекер и есть
+        if (w.get('name') or '') != payload['name']:
             update.append(dict(payload, workitem_id=w.get('id')))
     orphan = [ext for ext in known if ext not in {t['id'] for t in tasks}]
     return {'binding': binding(root), 'create': create, 'update': update,
