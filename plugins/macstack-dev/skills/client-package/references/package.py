@@ -333,6 +333,9 @@ h3 .code{font-size:12px}
 .c:focus{outline:2px solid var(--accent);outline-offset:1px;border-style:solid}
 .c:empty:before{content:attr(data-ph);color:var(--dim);opacity:.65}
 #bar{margin-top:2.5rem;display:flex;flex-direction:column;gap:.6rem}
+/* Пустой, пока не нажали: подтверждение появляется только после действия. */
+.cnt{margin:0;font-size:.92rem;color:var(--accent);font-weight:500}
+.cnt:empty{display:none}
 button{font:500 .95rem/1 "IBM Plex Sans",sans-serif;padding:.7rem 1.2rem;
  border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);
  border-radius:8px;cursor:pointer;align-self:flex-start}
@@ -373,13 +376,32 @@ function collect(){
   return out;
 }
 function save(){
-  var d=document.getElementById('dump'),a=collect();
+  var d=document.getElementById('dump'),n=document.getElementById('cnt'),a=collect();
   d.value=JSON.stringify({package:(document.title||''),date:PKG_DATE,answers:a},null,2);
   d.style.display='block';d.focus();d.select();
-  try{document.execCommand('copy')}catch(e){}
-  var n=document.getElementById('cnt');
-  if(n)n.textContent=COUNTED.replace('%d',a.length);
+  /* Копирование в буфер может быть запрещено (песочница, отказ в разрешении) —
+     тогда текст всё равно виден и выделен, и его копируют руками. Поэтому
+     сообщение НЕ обещает, что уже скопировано, пока это не подтвердилось. */
+  var done=false;
+  try{done=document.execCommand('copy')}catch(e){}
+  if(n)n.textContent=(a.length?COUNTED.replace('%d',a.length):EMPTY)+(done?COPIED:'');
+  if(!done&&navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(d.value).then(function(){
+      if(n)n.textContent=(a.length?COUNTED.replace('%d',a.length):EMPTY)+COPIED;
+    },function(){});
+  }
 }
+/* Обработчик вешается ИЗ СКРИПТА, а не атрибутом onclick: инлайновый атрибут
+   запрещён политикой безопасности строже той, при которой сам этот блок ещё
+   выполняется, и кнопка тогда молчит без единого сообщения. */
+(function(){
+  function bind(){
+    var b=document.getElementById('go');
+    if(b)b.addEventListener('click',save);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);
+  else bind();
+})();
 """
 
 STR = {
@@ -421,7 +443,9 @@ STR = {
             ok='верно', no='не так', q='вопрос',
             changed='изменилось', was='было:', you='вы', us='мы',
             answered='Вы отвечали %s: «%s». Ответ подставлен — можно оставить или изменить.',
-            counted='Собрано ответов: %d',
+            counted='Собрано ответов: %d.',
+            empty='Пока ничего не отмечено — отметьте хотя бы один пункт или напишите комментарий.',
+            copied=' Текст скопирован — вставьте его в письмо.',
             btn='Собрать мои ответы', dump='Скопируйте этот текст и пришлите нам',
             foot=('Верните этот файл — с ответами в браузере, сканом от руки или текстом из '
                   'кнопки выше. Мы разберём каждый пункт и вернёмся с решением по каждому.')),
@@ -462,7 +486,9 @@ STR = {
             ok='right', no='not so', q='question',
             changed='changed', was='was:', you='you', us='we',
             answered='You answered on %s: \u201c%s\u201d. It is pre-filled — keep it or change it.',
-            counted='Answers collected: %d',
+            counted='Answers collected: %d.',
+            empty='Nothing marked yet — mark at least one item or write a comment.',
+            copied=' Copied — paste it into your reply.',
             btn='Collect my answers', dump='Copy this text and send it to us',
             foot=('Send this file back — answered in the browser, scanned from paper, or as the '
                   'text from the button above. We will work through every item and come back '
@@ -695,11 +721,26 @@ def build(root, date, slug, lang=None, artifact=False,
             P.extend(rows(T, g, hist, since))
             counted += 1 if g['id'] else 0
 
-    P.append('<div id="bar"><button onclick="save()">%s</button>'
+    # `id="go"` вместо `onclick`, и `id="cnt"` — элемент, в который скрипт пишет,
+    # сколько ответов собрано. Раньше скрипт искал `cnt`, а такого элемента в
+    # странице не было вовсе, так что подтверждения не появлялось никогда.
+    P.append('<div id="bar"><button id="go" type="button">%s</button>'
+             '<p id="cnt" class="cnt"></p>'
              '<textarea id="dump" placeholder="%s"></textarea></div>'
              % (html.escape(T['btn']), html.escape(T['dump'])))
     P.append('<footer>%s</footer>' % html.escape(T['foot']))
-    P.append('<script>%s</script>%s' % (JS, '' if artifact else '</body></html>'))
+    # Константы, которые скрипт ЧИТАЕТ. Их не было ни одной: `save()` падал на
+    # `PKG_DATE` первой же строкой — до того, как что-либо попадало в поле, — и
+    # кнопка «Собрать мои ответы» не работала ни в одном пакете, который этот
+    # сборщик когда-либо выпустил. Тихо: исключение в обработчике никак не видно
+    # тому, кто нажал. Это же объясняет, почему в журнале OHAWO тринадцать строк
+    # `handoff` и ноль строк `comment`: возвращать ответы было нечем.
+    P.append('<script>var PKG_DATE=%s,COUNTED=%s,EMPTY=%s,COPIED=%s;%s</script>%s'
+             % (json.dumps(date, ensure_ascii=False),
+                json.dumps(T['counted'], ensure_ascii=False),
+                json.dumps(T['empty'], ensure_ascii=False),
+                json.dumps(T['copied'], ensure_ascii=False),
+                JS, '' if artifact else '</body></html>'))
     return '\n'.join(P), version, counted, sections
 
 
