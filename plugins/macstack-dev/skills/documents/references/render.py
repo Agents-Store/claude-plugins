@@ -477,6 +477,13 @@ def _first_sentence(text):
 
 TEST_TITLE = re.compile(r"""^\s*(?:it|test)\s*\(\s*(['"`])(.*?)\1""", re.M)
 COVERS = re.compile(r'\b([A-Z]-\d{2})(\.a\d+)?\b')
+# Каталоги, в которые сканер тестов не заходит. Помимо очевидного мусора здесь
+# `.claude` и `.codex`: оба держат worktree'ы, а worktree — это второй экземпляр
+# того же дерева. Соседняя проверка на вложенный `.git` ловит остальные случаи,
+# включая чекаут, положенный внутрь проекта руками.
+SKIP_DIRS = ('node_modules', '.git', '.next', 'dist', 'build', 'coverage',
+             '.turbo', '.claude', '.codex', '.venv', '__pycache__')
+
 TEST_EXT = ('.spec.ts', '.test.ts', '.spec.tsx', '.test.tsx', '.spec.js', '.test.js',
             '_test.py', '_spec.rb')
 
@@ -495,7 +502,13 @@ def scan_tests(project_root):
     """
     hits = {}
     for base, dirs, files in os.walk(project_root):
-        dirs[:] = [d for d in dirs if d not in ('node_modules', '.git', '.next', 'dist')]
+        # `.claude` и `.codex` держат worktree'ы агентов — это ПОЛНЫЕ чекауты
+        # того же репозитория, и без этой строки покрытие считается по чужой
+        # ветке, а в TEST-CASES.md уезжают пути вида
+        # `.claude/worktrees/agent-…/tests/e2e/…`. Документ читает заказчик.
+        dirs[:] = [d for d in dirs
+                   if d not in SKIP_DIRS
+                   and not os.path.exists(os.path.join(base, d, '.git'))]
         for f in files:
             if not f.endswith(TEST_EXT):
                 continue
@@ -815,6 +828,14 @@ def build_full(doc_key, lang, src, body):
 
 
 # ---------------------------------------------------------------- main
+USAGE = '''Использование: render.py [КАТАЛОГ] [--check] [--date ГГГГ-ММ-ДД] [--only ИМЯ]
+
+  КАТАЛОГ   папка macstack (по умолчанию: macstack)
+  --check   не писать, а сказать, разошлись ли файлы со спекой (код 1 при расхождении)
+  --date    дата для строк журнала вместо сегодняшней
+  --only    собрать один документ: architecture | index | requirements | test-cases | readme'''
+
+
 def main():
     argv = sys.argv[1:]
     check = '--check' in argv
@@ -829,6 +850,15 @@ def main():
             only = argv[i + 1]; i += 2; continue
         if a == '--check':
             i += 1; continue
+        if a in ('-h', '--help'):
+            print(USAGE); return 0
+        # Иначе `--help` попадал в positional и становился КОРНЕМ ПРОЕКТА:
+        # скрипт создавал каталог с именем `--help` и писал в него пять
+        # документов. Любой флаг, которого мы не знаем, — это опечатка, и
+        # молча принимать её за путь дороже, чем отказать.
+        if a.startswith('-'):
+            sys.stderr.write('render.py: неизвестный флаг %s\n\n%s\n' % (a, USAGE))
+            return 2
         positional.append(a); i += 1
     root = positional[0] if positional else 'macstack'
     date = date or datetime.date.today().isoformat()
