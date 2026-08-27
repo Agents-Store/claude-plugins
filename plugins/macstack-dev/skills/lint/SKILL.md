@@ -278,6 +278,19 @@ below is checked against that file, never against memory.
       3 of 17 match. A link that cannot be derived has to be stored, and a stored link
       has to be checked — otherwise it is worse than none, because it is believed.
 
+12.40 **The project tells its agents when to update the folder** — `CLAUDE.md` and
+      `AGENTS.md` each name `/macstack-dev:update` and `/macstack-dev:intake`, not just
+      the path to `macstack/`. A block that says "read macstack.json first" and stays
+      silent about what to do afterwards produces an agent that reads the folder and
+      lets it go stale. "Keep the documents current" with no trigger and no command
+      named is a wish, not an instruction.
+      Two command names, not the whole table: wording gets rewritten, and a rule that
+      quibbles about phrasing gets routed around. These two are what keep the folder
+      updated at all. Both files, because the documents are read by whichever agent the
+      team runs — a specification only Claude Code can find is one half the team cannot
+      use.
+
+
 12.24 **Tables stay inside the budget** — in `history/` and `generated/` only; in
       `client/` a table is an error outright (12.30). At most 4 columns, at most 80
       characters a cell, at least 3 rows, and no `<br>`, bold, code fence or pipe

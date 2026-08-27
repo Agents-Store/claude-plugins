@@ -449,24 +449,52 @@ _REVIEW_DATE = re.compile(r'^(\d{4}-\d{2}-\d{2})-.*-conformance\.md$')
 
 
 def _latest_conformance_date(root):
-    """The newest history/reviews/<date>-*-conformance.md date, or None. The
-    contract gives this ONE global meaning ("counts as the check") rather than
-    scoping it per document, so it is applied the same way here — a project-wide
-    audit moves every document's clock forward together, not one at a time."""
-    reviews = os.path.join(root, 'history', 'reviews')
-    if not os.path.isdir(reviews):
-        return None
+    """The newest audit date, or None — the day somebody last checked the documents
+    against the code.
+
+    The contract gives this ONE global meaning ("counts as the check") rather than
+    scoping it per document, so a project-wide audit moves every document's clock
+    forward together, not one at a time.
+
+    Read from `history/ledger.jsonl`, kind `audit`. It used to read
+    `history/reviews/<date>-*-conformance.md`, and that folder moved to archive/ when
+    the verdicts became ledger rows — so this returned None on every project and the
+    clock-lift silently stopped working. `archive/reviews/` is still read for projects
+    audited before the move; without it their documents would appear never-checked.
+    """
     best = None
-    for name in os.listdir(reviews):
-        m = _REVIEW_DATE.match(name)
-        if not m:
-            continue
+    led = os.path.join(root, 'history', 'ledger.jsonl')
+    if os.path.exists(led):
         try:
-            d = datetime.date(*(int(x) for x in m.group(1).split('-')))
-        except ValueError:
+            for line in io.open(led, encoding='utf-8'):
+                line = line.strip()
+                if not line:
+                    continue
+                row = json.loads(line)
+                if row.get('kind') != 'audit':
+                    continue
+                try:
+                    d = datetime.date(*(int(x) for x in str(row.get('date')).split('-')))
+                except (ValueError, TypeError):
+                    continue
+                if best is None or d > best:
+                    best = d
+        except (IOError, ValueError):
+            pass
+    for reviews in (os.path.join(root, 'history', 'reviews'),
+                    os.path.join(root, 'history', 'archive', 'reviews')):
+        if not os.path.isdir(reviews):
             continue
-        if best is None or d > best:
-            best = d
+        for name in os.listdir(reviews):
+            m = _REVIEW_DATE.match(name)
+            if not m:
+                continue
+            try:
+                d = datetime.date(*(int(x) for x in m.group(1).split('-')))
+            except ValueError:
+                continue
+            if best is None or d > best:
+                best = d
     return best
 
 
@@ -877,4 +905,52 @@ def r_12_39(c):
             out.append(Finding('12.39', ERROR, 'macstack.json', 0,
                                '%s: source указывает на %s — файла нет'
                                % (w.get('id'), src)))
+    return out
+
+
+# Команды, без которых папка перестаёт обновляться. Не весь список из семи: правило
+# требует того, что держит документы в согласии с кодом, а не полноты перечисления.
+_KEEPERS = ('/macstack-dev:update', '/macstack-dev:intake')
+
+
+@rule('12.40', 'The project tells its agents when to update the folder')
+def r_12_40(c):
+    """`CLAUDE.md` и `AGENTS.md` должны называть команды, которыми папку
+    поддерживают, а не только путь к ней.
+
+    Блок, который говорит «читай macstack.json первым» и молчит о том, что делать
+    после работы, даёт агента, который по папке сверяется и оставляет её стареть.
+    Указание «поддерживай документы в актуальном состоянии» без названного повода
+    и команды — пожелание, а не инструкция.
+
+    Требуются два имени, а не таблица целиком: формулировку перепишут, и правило,
+    придирающееся к словам, будут обходить. `update` и `intake` — то, без чего
+    папка перестаёт обновляться вообще; остальные команды её не ведут.
+
+    Оба файла, а не один: документы читает тот агент, которого запустила команда,
+    и спецификация, которую находит только Claude Code, — это спецификация,
+    которой половина команды пользоваться не может.
+    """
+    root = os.path.normpath(os.path.join(c.root, '..'))
+    out = []
+    for name in ('CLAUDE.md', 'AGENTS.md'):
+        p = os.path.join(root, name)
+        if not os.path.exists(p):
+            out.append(Finding('12.40', ERROR, '../' + name, 0,
+                               'файла нет — агент, работающий в этом проекте, не '
+                               'узнает ни про macstack/, ни про то, когда её '
+                               'обновлять. Заводит /macstack-dev:start'))
+            continue
+        try:
+            body = io.open(p, encoding='utf-8').read()
+        except IOError as e:
+            out.append(Finding('12.40', ERROR, '../' + name, 0,
+                               'не читается: %s' % e))
+            continue
+        missing = [k for k in _KEEPERS if k not in body]
+        if missing:
+            out.append(Finding('12.40', ERROR, '../' + name, 0,
+                               'не называет %s — сказано, ГДЕ лежит спецификация, '
+                               'и не сказано, КОГДА её обновлять'
+                               % ' и '.join(missing)))
     return out

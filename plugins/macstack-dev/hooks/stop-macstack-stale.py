@@ -16,11 +16,13 @@
 который говорит невпопад, обучает себя игнорировать — и тогда он не сработает
 в тот единственный раз, когда был нужен.
 """
-import io
 import json
 import os
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import macstack_freshness                                       # noqa: E402
 
 # Изменения, которые не меняют поведение системы и потому не повод трогать
 # документы. Список короткий намеренно: чем он длиннее, тем больше настоящих
@@ -122,6 +124,16 @@ def main():
         'дальше — это напоминание, а не запрет.'
         % (len(code), shown)
     )
+    # Про отставание документов говорим ТОЛЬКО здесь, вместе с уже заслуженным
+    # сообщением. Отдельная фраза об этом на каждом ходу была бы шумом, который
+    # всегда одинаков, — а такой шум учит не читать и остальное.
+    stale_line = None
+    try:
+        stale_line = macstack_freshness.sentence(root)
+    except Exception:                                            # noqa: BLE001
+        stale_line = None
+    if stale_line:
+        msg += '\n' + stale_line
     json.dump({'hookSpecificOutput': {'hookEventName': 'Stop',
                                       'additionalContext': msg}},
               sys.stdout, ensure_ascii=False)

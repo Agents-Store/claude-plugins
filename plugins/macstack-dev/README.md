@@ -110,7 +110,7 @@ not a risk.
 | `code-audit` | From a file: what is in the code that no document mentions? Enumerates by the conventions the spec declares, sorts into three lists, proposes — never edits |
 | `journal` | `history/ledger.jsonl` — one row per edit, comment and audit verdict — and its curated client-facing `CHANGELOG.md` |
 | `client-package` | The client package — HTML and published page — with each statement's own history, and reading the answers back into the ledger |
-| `lint` | Schema, referential integrity, the folder (40 rules, 12.0–12.39), and the status dashboard |
+| `lint` | Schema, referential integrity, the folder (41 rules, 12.0–12.40), and the status dashboard |
 | `infisical-env` | `.env` wiring from `resources.accesses` |
 | `best-practices` | Project rules and commands |
 | `setup` | Orientation, tooling, path resolution, the CLAUDE.md and AGENTS.md blocks |
@@ -136,6 +136,16 @@ It stays quiet whenever it is not sure: no git, no `macstack/`, a clean tree, a 
 file, `macstack/` already touched, or a second pass over the same turn. A hook that
 speaks out of turn trains you to ignore it — and then it fails on the one occasion it
 was needed.
+
+A second hook runs at session start and says how far the documents have drifted from
+the code — how long since anyone checked, and which documents nobody has ever checked.
+It measures with the same code rule 12.17 uses, reading the same `docs.freshness_days`
+and the same `audit` rows, because two copies of one threshold diverge silently and the
+first sign would be the hook and the linter disagreeing about freshness.
+
+Session start rather than every turn: repeated thirty times in a session, that sentence
+stops being read by the third. The Stop hook mentions drift too, but only when it has
+already earned a word — code changed, folder untouched.
 
 ## Prerequisites
 
