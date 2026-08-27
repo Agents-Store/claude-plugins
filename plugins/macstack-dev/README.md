@@ -164,3 +164,24 @@ GitHub first, bundled copy as the offline fallback:
 When the schema changes it changes in all three places at once. Verify a push with
 `gh api repos/macstacks/macstack/contents/<path>?ref=main` — a plain `curl` against the
 CDN right after a push serves the previous revision and prints an entirely false diff.
+
+## Тесты
+
+```bash
+./run-tests.sh
+```
+
+Находит каждый `test_*.py` под `skills/` и прогоняет; ненулевой код — есть падения.
+Списка файлов нет намеренно: забытый в списке файл выглядел бы как «тестов больше
+нет», то есть как успех.
+
+Документы для прогона — свои, в `skills/documents/references/tests/corpus/`
+(выдуманный прокат велосипедов). `MACSTACK_FIXTURE=<путь к macstack/client>`
+направляет их на настоящий проект; перепись сущностей при этом пропускается, она
+описывает свой корпус.
+
+**Страница, содержащая скрипт, проверяется исполнением, а не чтением.** Кнопка
+«Собрать мои ответы» не работала ни в одном пакете за всю жизнь плагина: скрипт
+читал константу, которой сборщик никогда не выводил, и падал до того, как
+что-либо попадало в поле. Все проверки до того работали с текстом страницы, и ни
+одна не спросила, запустится ли скрипт.
