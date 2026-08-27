@@ -24,22 +24,67 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 import v3
 
-CLIENT = os.environ.get('MACSTACK_FIXTURE') or (
-    '/Users/valentynkubrak/STACKS/stackmakers-dev-ops/'
-    'projects/ohawo-payload-nextjs/macstack/client')
-DOCS = sorted(glob.glob(os.path.join(CLIENT, '*.md')))
+# Корпус, на котором прогоняются тесты: СВОЙ, лежит рядом с ними.
+#
+# Здесь стоял абсолютный путь к чужому рабочему проекту — с именем пользователя
+# и названием клиента, в публичном репозитории. Он ломал тест двумя способами
+# сразу, и оба замерены 2026-08-27:
+#
+#   на той машине     15 тестов, один красный — числа переписи сняты с ЖИВЫХ
+#                     документов, а они законно растут (триггеров стало 61
+#                     против 57, вопросов 28 против 26, экранов 39 против 37).
+#                     Тест, который краснеет от нормальной работы, перестают
+#                     читать;
+#   на любой другой   каталога нет, glob пуст, DOCS пуст — и двенадцать тестов
+#                     из пятнадцати ПРОСТО НЕ СОЗДАЮТСЯ, потому что они
+#                     порождаются по документам. Прогон печатает
+#                     `Ran 3 tests ... OK`. Зелено, и не проверено ничего.
+#
+# Второе хуже первого: тест не падал у чужого, он молча переставал существовать.
+# Ровно тот класс, о котором предупреждает LEARNINGS.md этого плагина — пустой
+# результат принят за «там ничего нет» вместо «я не смог это прочитать».
+#
+# `corpus/` — выдуманный прокат велосипедов, шесть документов, минимальные, но
+# настоящей формы: в них есть все ТРИ вида привязки указателя, ради которых
+# перепись и существует (тождество, контейнер, отсутствие). MACSTACK_FIXTURE
+# по-прежнему работает — так тесты можно прогнать против настоящего проекта, —
+# но по умолчанию плагин проверяет себя на своём.
+CORPUS = os.path.join(HERE, 'corpus')
+CLIENT = os.environ.get('MACSTACK_FIXTURE') or CORPUS
 
-# Measured 2026-08-26 on the live corpus. A change here is never a test to
-# relax: it means a pointer relation moved, and the only way that happens
-# quietly is somebody inventing a spec entry to satisfy a lint rule.
+# README.md рядом с корпусом — объяснение для человека, а не документ v3, и
+# `*.md` его подхватывает. Поймано `assert`-ом ниже в ту же минуту, в которую
+# README был написан: ради этого assert и стоит.
+DOCS = sorted(d for d in glob.glob(os.path.join(CLIENT, '*.md'))
+              if os.path.basename(d) != 'README.md')
+
+if not DOCS:
+    raise SystemExit('нет документов в %s — прогон остановлен.\n'
+                     'Пустой корпус даёт три зелёных теста вместо пятнадцати, '
+                     'и это выглядит как успех.' % CLIENT)
+
+# Перепись снята с corpus/. Изменение здесь — никогда не повод ослабить тест:
+# оно означает, что сдвинулась связь указателя, а тихо это происходит ровно
+# одним способом — кто-то придумал запись в спеке, чтобы удовлетворить правило
+# линта.
+#
+#   тождество   AUTOMATION, OVERVIEW, USER-CASES   id заголовка == id указателя
+#   контейнер   UX-UI                              3 экрана -> 2 области
+#   отсутствие  OPEN-QUESTIONS                     1 зачёркнутый пункт без указателя
 CENSUS = {
-    'AUTOMATION.md':     dict(headings=57, pointers=57, targets=57, same=57, none=0),
-    'HANDBOOK.md':       dict(headings=0,  pointers=0,  targets=0,  same=0,  none=0),
-    'OPEN-QUESTIONS.md': dict(headings=26, pointers=22, targets=22, same=22, none=4),
-    'OVERVIEW.md':       dict(headings=10, pointers=10, targets=10, same=10, none=0),
-    'USER-CASES.md':     dict(headings=78, pointers=78, targets=78, same=78, none=0),
-    'UX-UI.md':          dict(headings=37, pointers=37, targets=9,  same=9,  none=0),
+    'AUTOMATION.md':     dict(headings=4, pointers=4, targets=4, same=4, none=0),
+    'HANDBOOK.md':       dict(headings=0, pointers=0, targets=0, same=0, none=0),
+    'OPEN-QUESTIONS.md': dict(headings=3, pointers=2, targets=2, same=2, none=1),
+    'OVERVIEW.md':       dict(headings=2, pointers=2, targets=2, same=2, none=0),
+    'USER-CASES.md':     dict(headings=3, pointers=3, targets=3, same=3, none=0),
+    'UX-UI.md':          dict(headings=3, pointers=3, targets=2, same=0, none=0),
 }
+
+# Корпус должен ОСТАВАТЬСЯ полным: если чья-то правка выбросит из него документ,
+# соответствующие тесты исчезнут так же тихо, как исчезали при пустом пути.
+assert sorted(os.path.basename(d) for d in glob.glob(os.path.join(CORPUS, '*.md'))
+              if os.path.basename(d) != 'README.md') == sorted(CENSUS), \
+    'corpus/ и CENSUS разошлись по составу документов'
 
 
 def read(p):
@@ -109,6 +154,12 @@ class CardinalityCensus(unittest.TestCase):
 
     def test_census_unchanged(self):
         import re
+        # Перепись описывает СВОЙ корпус. Направив тесты на чужой через
+        # MACSTACK_FIXTURE, её нужно пропустить, а не красить: остальные
+        # четырнадцать проверяют читатель и писатель и осмысленны на любых
+        # документах, а эта одна — нет.
+        if CLIENT != CORPUS:
+            self.skipTest('перепись снята с corpus/; запущено на %s' % CLIENT)
         for p in DOCS:
             name = os.path.basename(p)
             if name not in CENSUS:
