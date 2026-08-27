@@ -547,13 +547,53 @@ def _md_block(lines):
     return '\n'.join(out)
 
 
-def build(root, date, slug, lang=None, artifact=False):
+SECTION_KEYS = ('product', 'goals', 'roles', 'automation', 'cases',
+                'questions', 'screens', 'handbook')
+
+
+def _select(sections, only, skip):
+    """Разделить пакет на несколько, не потеряв ни одного раздела молча.
+
+    Открытые вопросы — единственная часть, которую заказчик читает НЕ так, как
+    остальное: там он не подтверждает наше описание, а отдаёт то, чего у нас нет,
+    и до его ответа работа стоит. Отсюда просьба владельца (2026-08-27) разложить
+    пакет надвое — документы отдельно, вопросы отдельно.
+
+    Ошибка в имени раздела — отказ, а не пустой пакет: `--only question` (без «s»)
+    иначе собрал бы файл из нуля пунктов, записал бы его в журнал как состоявшийся
+    круг и сдвинул бы точку отсчёта «что изменилось» для СЛЕДУЮЩЕГО пакета. Дороже
+    всего здесь именно последнее — про сам файл видно, что он пуст, а про сдвинутую
+    отметку не видно ничего.
+    """
+    def parse(v):
+        if v in (None, True, False):
+            return None
+        got = [x.strip() for x in str(v).replace(',', ' ').split() if x.strip()]
+        bad = [x for x in got if x not in SECTION_KEYS]
+        if bad:
+            raise SystemExit('неизвестный раздел: %s\nизвестные: %s'
+                             % (', '.join(bad), ', '.join(SECTION_KEYS)))
+        return got
+
+    only, skip = parse(only), parse(skip)
+    out = sections
+    if only:
+        out = [(k, v) for k, v in out if k in only]
+    if skip:
+        out = [(k, v) for k, v in out if k not in skip]
+    if not out:
+        raise SystemExit('выбор не оставил ни одного раздела — пакет не собран')
+    return out
+
+
+def build(root, date, slug, lang=None, artifact=False,
+          only=None, skip=None):
     spec = _spec(root)
     lang = lang or doc_lang(root)
     T = STR.get(lang, STR['en'])
     name = (spec.get('identity') or {}).get('title') or spec.get('name', '')
     contract = _contract()
-    sections = collect(root, contract, lang)
+    sections = _select(collect(root, contract, lang), only, skip)
 
     # История по пункту и точка отсчёта «что изменилось». Дата берётся из имени
     # ПРОШЛОГО пакета, а не из даты записи: комментарий несёт день, когда его
@@ -565,17 +605,26 @@ def build(root, date, slug, lang=None, artifact=False):
     version = ((spec.get('docs') or {}).get('files') or {}).get(
         'user_cases', {}).get('version', '?')
 
+    # Пакет из ОДНОГО раздела называет себя этим разделом. Иначе два пакета,
+    # собранные в один день, уходят клиенту под одним и тем же именем и в галерее
+    # артефактов различаются только ссылкой — а выбирать из них будет человек.
+    solo = sections[0][0] if len(sections) == 1 else None
+    head = T.get('s_' + solo, T['title']) if solo else T['title']
+
     if artifact:
-        P = ['<title>%s</title>' % html.escape(T['short'].format(n=name) if name
-                                                else T['title']), FONTS,
+        # Полный пакет держит короткую форму, какой была: менять имя круга,
+        # который клиент уже видел, значит терять его в галерее.
+        tab = (('%s — %s' % (name, head)) if solo else T['short'].format(n=name)) \
+            if name else head
+        P = ['<title>%s</title>' % html.escape(tab), FONTS,
              '<style>%s</style>' % CSS]
     else:
         P = ['<!doctype html><html lang="%s"><head><meta charset="utf-8">' % lang,
              '<meta name="viewport" content="width=device-width,initial-scale=1">',
              FONTS,
              '<title>%s — %s</title><style>%s</style></head><body>'
-             % (html.escape(name), html.escape(T['title']), CSS)]
-    P += ['<h1>%s</h1>' % html.escape(T['title']),
+             % (html.escape(name), html.escape(head), CSS)]
+    P += ['<h1>%s</h1>' % html.escape(head),
           '<p class="lead">%s</p>' % html.escape(T['lead'].format(n=name, v=version, d=date)),
           '<div class="howto">%s</div>' % T['howto']]
     if since:
@@ -585,7 +634,8 @@ def build(root, date, slug, lang=None, artifact=False):
     for key, groups in sections:
         if not groups:
             continue
-        P.append('<h2>%s</h2>' % html.escape(T.get('s_' + key, key)))
+        if key != solo:                      # у пакета из одного раздела это <h1>
+            P.append('<h2>%s</h2>' % html.escape(T.get('s_' + key, key)))
         note = T.get('n_' + key)
         if note:
             P.append('<p class="sec-note">%s</p>' % html.escape(note))
@@ -692,7 +742,8 @@ def main():
     date = flags.get('date') or _today(root)
     slug = flags.get('slug') or 'user-cases'
     artifact = flags.get('artifact') is True or flags.get('artifact') == 'true'
-    doc, version, counted, data = build(root, date, slug, flags.get('lang'), artifact)
+    doc, version, counted, data = build(root, date, slug, flags.get('lang'), artifact,
+                                       flags.get('only'), flags.get('skip'))
 
     outdir = os.path.join(root, 'history', 'handoffs')
     os.makedirs(outdir, exist_ok=True)
