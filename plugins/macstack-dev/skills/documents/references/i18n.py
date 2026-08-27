@@ -70,6 +70,7 @@ CAT = {
         'cases_audited':  'confirmed by audit: {n}',
         'cases_partial':  'audit found partial or blocked: {n}',
         'cases_open':     'NOT planned and NOT checked: {n}',
+        'cases_await':    'awaiting the client, NOT a task: {n}',
         'emit_hint':      'run again with --emit to print task skeletons for these',
         'sections':       'sections',
         'entities':       'entities',
@@ -97,6 +98,7 @@ CAT = {
         'cases_audited':  'подтверждено аудитом: {n}',
         'cases_partial':  'аудит нашёл частично или заблокировано: {n}',
         'cases_open':     'НЕ запланировано и НЕ проверено: {n}',
+        'cases_await':    'ждёт ответа клиента, в задачи НЕ идёт: {n}',
         'emit_hint':      'запустите ещё раз с --emit, чтобы получить скелеты задач',
         'sections':       'разделов',
         'entities':       'сущностей',
@@ -124,6 +126,7 @@ CAT = {
         'cases_audited':  'durch Audit bestätigt: {n}',
         'cases_partial':  'Audit: teilweise oder blockiert: {n}',
         'cases_open':     'NICHT geplant und NICHT geprüft: {n}',
+        'cases_await':    'wartet auf den Kunden, KEINE Aufgabe: {n}',
         'emit_hint':      'erneut mit --emit ausführen für Aufgabenskelette',
     },
     'uk': {
@@ -143,6 +146,7 @@ CAT = {
         'cases_audited':  'підтверджено аудитом: {n}',
         'cases_partial':  'аудит знайшов частково або заблоковано: {n}',
         'cases_open':     'НЕ заплановано і НЕ перевірено: {n}',
+        'cases_await':    'чекає на відповідь клієнта, у задачі НЕ йде: {n}',
         'emit_hint':      'запустіть ще раз із --emit, щоб отримати скелети задач',
     },
 }

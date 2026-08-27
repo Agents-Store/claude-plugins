@@ -11,6 +11,33 @@ team's own task tracker — where the *conversation* happens: comments, attachme
 assignment, notifications. `TASKS.md` is the **source of truth** for scope and order;
 the tracker is never edited around it.
 
+## A task in this file can be finished today
+
+`TASKS.md` is a **queue somebody picks from**, not an inventory of everything that will
+ever be built. So one rule governs what may enter it:
+
+> **A requirement that depends on an unanswered client question does not become a task.**
+> The question in `OPEN-QUESTIONS.md` §A holds that work until it is answered; the task
+> is written the day the answer lands.
+
+Owner's ruling, 2026-08-27, and it replaces the older `blocked_by`-on-a-task practice for
+the client-question case. The reason is what happens to a person: they open the file, take
+the top item, get two hours in, and hit a sentence nobody can write but the client. Now the
+work is half-done, the branch is open, and the queue lied. A `blocked` status does not fix
+that — it only tells you afterwards, and only if you read the field before starting.
+
+`blocked_by` stays for **internal** blockers — one task waiting on another task, or on a §B
+item whose trigger has fired. Those a team can unblock by itself. A client question it
+cannot, and that is the whole difference.
+
+**What keeps the work visible** is the §A item's own `Куда пойдёт` / *where the answer
+goes*: it names the screens and behaviour the answer unlocks. That is the record. Absence
+from `TASKS.md` is not cancellation — it is the statement that nobody can start yet.
+
+`uncovered.py` enforces this: a case whose text names a live §A id is reported under
+*awaiting the client* and **gets no skeleton from `--emit`**, which says out loud how many
+it withheld and which.
+
 Open `${CLAUDE_PLUGIN_ROOT}/skills/documents/references/doc-contracts.json`
 (`documents.tasks`) for the anchors, id patterns and required fields first — this
 skill assumes both and does not repeat them beyond the worked examples below.
@@ -41,7 +68,7 @@ dropped task is struck, not deleted:
 |---|---|---|
 | `todo` | · | not started |
 | `doing` | ▶ | active now |
-| `blocked` | ⏸ | `blocked_by` names what's in the way |
+| `blocked` | ⏸ | `blocked_by` names what's in the way — an INTERNAL blocker only; a task waiting on a client answer does not exist yet (see the rule at the top) |
 | `done` | ✓ | acceptance passed |
 | `dropped` | ⊘ | struck — see the form above |
 
@@ -159,6 +186,8 @@ ending `(M11-T9)` links a commit to its task for free — worth the convention.
 | "milestone status" | Report the milestone's `done_when` checks, pass/fail |
 | "sync tasks with the tracker" / "синхронизировать задачи" | Run the reconcile procedure above |
 | Debt that's fine to sit | `OPEN-QUESTIONS.md` §B, not here |
+| Work that needs a client answer first | `OPEN-QUESTIONS.md` §A, not here — and no task until the answer lands |
+| An §A item just got answered | Write the task now; the question closes with a pointer to its id |
 | A §B trigger just fired | Promote it — see above |
 | "what needs building" / nothing planned yet | Run the gap pass below |
 | A task just reached `done` | `/macstack-dev:update` — it sweeps the documents |
@@ -184,6 +213,7 @@ It reads three inputs — the cases, the tasks, and the newest
 | audited: done | the newest review found it implemented | nothing |
 | audited: partial | found partial or externally blocked | read the verdict first |
 | **neither** | nobody planned it, nobody checked it | **this is the work** |
+| **awaiting the client** | its text names a live §A id | not work, and not a task — chase the answer |
 
 **Read the verdicts before reporting a number.** The first version of this reported
 63 cases with no plan where 35 were already confirmed implemented by an audit — true,
@@ -200,8 +230,9 @@ checked reports the size of the document, not the size of the work.
 2. Write `files` as the expected footprint.
 3. Write `acceptance` as a named test and what it asserts. Strongest form: *remove X and
    this named test reddens*. A bare filename is not acceptance; a line number is banned.
-4. Carry `blocked_by` through from the case's open items — an `A<n>` here is how a
-   client question becomes visibly load-bearing.
+4. Do **not** carry a client question through as `blocked_by`: a case naming a live §A id
+   is not planned at all, and the script already withheld its skeleton. Carry through only
+   an internal blocker — another task, or a §B item whose trigger fired.
 
 ### Three things this refuses to do
 
@@ -210,6 +241,9 @@ checked reports the size of the document, not the size of the work.
   rather than filling it plausibly. A plausible wrong path costs more than an empty one,
   because somebody will follow it.
 - **Plan a case an audit already passed.**
+- **Plan a case that is waiting on the client.** Report it under *awaiting the client*,
+  name the §A ids, and stop. Writing the task anyway is how a queue acquires an item
+  nobody can finish.
 - **Invent a milestone.** A new milestone is a decision about scope and dates and it
   belongs to the owner. The script takes the last `M<n>` from `TASKS.md`; going past it
   is a question, not a default.

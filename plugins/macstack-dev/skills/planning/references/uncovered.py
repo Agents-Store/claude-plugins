@@ -8,7 +8,11 @@ answer by reading either file alone:
 
   1. Which cases nobody scheduled AND no audit has confirmed — the real work list.
   2. Which cases an audit already found implemented — planning those wastes everyone's time.
-  3. Which cases are blocked, because an open question they depend on is still open.
+  3. Which cases are waiting on the client — an open question they depend on is unanswered.
+     Those are NOT work and do NOT become tasks: `TASKS.md` is a queue somebody picks
+     from, and a task that cannot be finished without a client answer stops the person
+     who picked it. The question in `OPEN-QUESTIONS.md` §A already holds the work; the
+     task is written the day the answer lands (owner's ruling, 2026-08-27).
   4. Which tasks point at a case that no longer exists — a plan for a requirement withdrawn.
 
 The third input is the `audit` rows of `history/ledger.jsonl`. Without them the report says
@@ -209,13 +213,17 @@ def main():
     planned = [r for r in rows if r[1] == 'planned']
     done = [r for r in rows if r[1] == 'done']
     partial = [r for r in rows if r[1] == 'partial']
-    unc = [r for r in rows if r[1] == 'todo']
+    unc_all = [r for r in rows if r[1] == 'todo']
+    # Ждущие ответа клиента отделяются ДО отчёта и до --emit: они не работа.
+    await_client = [r for r in unc_all if r[0].id in blocked]
+    unc = [r for r in unc_all if r[0].id not in blocked]
 
     print(msg(lang, 'cases_total', n=len(cases)))
     print('  ' + msg(lang, 'cases_planned', n=len(planned)))
     print('  ' + msg(lang, 'cases_audited', n=len(done)) + (' (%s)' % rev_name if rev_name else ''))
     print('  ' + msg(lang, 'cases_partial', n=len(partial)))
     print('  ' + msg(lang, 'cases_open', n=len(unc)))
+    print('  ' + msg(lang, 'cases_await', n=len(await_client)))
 
     if partial:
         print('\n=== audit found partial or blocked (%d) ===' % len(partial))
@@ -238,6 +246,12 @@ def main():
             print('    %-7s %s%s' % (c.id, title_of(c)[:66], mark))
             print('        spec: client/USER-CASES.md %s — %d пункт(ов) приёмки' % (c.id, acceptance_count(c)))
 
+    if await_client:
+        print('\n=== awaiting the client — no task is written for these (%d) ===' % len(await_client))
+        for c, st, v in await_client:
+            print('    %-7s %-52s ⏸ %s' % (c.id, title_of(c)[:52], ','.join(blocked[c.id])))
+        print('    the answer lands -> the question closes -> the task is written then')
+
     if orphan:
         print('\n=== tasks pointing at a missing case (%d) ===' % len(orphan))
         for tid, spec in orphan:
@@ -259,7 +273,6 @@ def main():
                 'spec': 'client/USER-CASES.md#%s' % c.id,
                 'files': [],
                 'acceptance': None,
-                'blocked_by': blocked.get(c.id, []),
             }
             print('<!-- macstack:task=%s -->' % task_id)
             print('### %s · %s' % (task_id, title_of(c)))
@@ -270,6 +283,9 @@ def main():
             print()
             print('<!-- macstack:notes -->')
             print()
+        if await_client:
+            print('# %d case(s) awaiting the client got NO skeleton: %s'
+                  % (len(await_client), ', '.join(c.id for c, _, _ in await_client)))
     elif unc:
         print()
         print(msg(lang, 'emit_hint'))

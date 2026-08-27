@@ -548,3 +548,45 @@ source. `/macstack-dev:inbox` renamed `/macstack-dev:intake`: there are three so
 could reach it. Those are different questions, and only the second one is delivery.
 
 **Severity:** Major
+
+## 2026-08-27 — planning: a queue with an unfinishable item in it is not a queue
+
+**Problem:** `TASKS.md` was allowed to hold a task that cannot be finished without an
+answer from the client. The mechanism for it was deliberate — a `blocked` status and a
+`blocked_by` field carrying `A<n>` ids, and `uncovered.py --emit` filled `blocked_by`
+from the case's open items on purpose. The owner: *«в файле TASKS должны быть задачи
+которые уже квалифицированы и не требуют уточнения у клиента… это надо что бы выполнять
+TASKS и не было блокеров, не ждать ответа от клиента»*.
+
+They are right, and the failure is one a status field cannot reach. A person opens the
+file, takes the top item and starts. `blocked_by` is discovered two hours in, if it is
+read at all — by then the branch is open and the work is half-done. Measured on
+`ohawo-payload-nextjs` the same day: `M15-T7` sat as `backlog` next to twelve runnable
+tasks, and its own text named `A20` and `A26`. Nothing on the row said so. Worse, this
+project's `TASKS.md` uses the five Plane statuses (`backlog · todo · in_progress · done ·
+cancelled`) and has **no `blocked` value at all**, so the escape hatch the standard
+provided did not exist there — a project can adopt a tracker's vocabulary and silently
+lose the one status the rule depended on.
+
+**Fix:** a requirement that depends on an unanswered client question does not become a
+task. `uncovered.py` splits the fourth state in two — *not planned and not checked* stays
+the work, *awaiting the client* is reported separately, gets its own section naming the
+`§A` ids, and **`--emit` withholds its skeleton and prints how many it withheld**. The
+skeleton no longer carries `blocked_by` at all. `planning/SKILL.md` opens with the rule,
+adds it as a fourth refusal, and routes such work to `§A`; `commands/plan.md` mirrors it;
+`i18n.py` gains `cases_await` in all four languages. `blocked_by` survives for INTERNAL
+blockers — another task, a fired `§B` trigger — because those a team can clear itself.
+
+What keeps the work visible is the `§A` item's own *where the answer goes* line: it
+already names the screens and behaviour the answer unlocks, so absence from `TASKS.md` is
+not cancellation.
+
+**Root cause:** the rule was written as a property of a ROW (`status: blocked`) when it
+is a property of the FILE. `TASKS.md` is read as a queue — top item, start working — and
+a queue is trusted or it is not used. Any design that makes the reader check a field
+before trusting the list has already lost the property the list was for. Same class as
+the positional-id defect of 2026-08-25: correct data, reachable only by somebody who
+knew to look.
+
+**Severity:** Major
+

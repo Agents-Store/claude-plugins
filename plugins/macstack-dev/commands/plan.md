@@ -12,9 +12,16 @@ With no argument: find the work nobody has planned. Run
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/planning/references/uncovered.py" macstack [--emit]
 ```
 
-which classifies every case into four states — already planned · confirmed done by the
-newest conformance review · found partial or blocked by it · **neither planned nor
-checked**. Only the fourth is work.
+which classifies every case into five states — already planned · confirmed done by the
+newest conformance review · found partial or blocked by it · **awaiting the client** ·
+**neither planned nor checked**. Only the fifth is work.
+
+**A case awaiting the client does not become a task.** Its text names a live `§A` id, so
+nobody can finish it today; `TASKS.md` is a queue somebody picks from, and an item that
+stops the person who picked it makes the whole queue untrustworthy. The `§A` question
+holds that work — its *where the answer goes* line says what the answer unlocks — and the
+task is written the day the answer lands. `--emit` withholds those skeletons and says how
+many it withheld.
 
 Read the audit verdicts before reporting a number. The first version of this reported
 "63 cases with no plan" where 35 were already confirmed implemented: true, and useless.
@@ -31,6 +38,7 @@ Three things this refuses to do:
   answer where something belongs, that is a finding — say so and leave the field empty
   rather than filling it plausibly.
 - **Plan a case an audit already passed.**
+- **Plan a case that is waiting on the client.** Name the `§A` ids and stop.
 - **Invent a milestone.** A new milestone is a decision about scope and dates and it
   belongs to the owner. Take the last `M<n>` and ask before going past it.
 
