@@ -63,6 +63,10 @@ ROLE_APPLIABLE = {'name', 'sees', 'can', 'cases', 'isolation'}
 TASK_APPLIABLE = {'name', 'gate', 'role', 'workflow'}
 TRIGGER_APPLIABLE = {'name', 'type', 'source', 'schedule', 'entity', 'event', 'condition', 'path'}
 SCREEN_APPLIABLE = {'name', 'path', 'roles'}
+# Кейс: документ владеет тем, ЧТО человек должен получить и насколько это важно.
+# `acceptance` сюда не входит намеренно — список пунктов приёмки выделяется
+# рендером и живёт в generated/, а не переписывается из прозы.
+CASE_APPLIABLE = {'name', 'priority', 'role', 'screens', 'triggers', 'workflow'}
 
 # Never written from a client document, whatever it says. These are the architect's,
 # measured against the code; generating them from a client's words would be a promise
@@ -137,6 +141,26 @@ def doc_trigger(it):
 
 
 REF_ID = re.compile(r'\[id=([^\]]+)\]')
+
+
+def doc_case(it):
+    """Кейс из USER-CASES.md.
+
+    Роль читается из УКАЗАТЕЛЯ, а не из пункта: на живом корпусе у кейса нет
+    пункта «Кто» — принадлежность роли несёт `roles[id=coach].cases`, и до схемы
+    rev 13 это был единственный её адрес. Сквозные `X-`, сценарии `S-` и запреты
+    `Z-` не принадлежат роли по существу и указателя не несут вовсе.
+    """
+    m = re.search(r'roles\[id=([^\]]+)\]', it.ref or '')
+    return {
+        'id': it.id,
+        'name': title_of(it),
+        'role': m.group(1) if m else field(it, 'role'),
+        'priority': field(it, 'priority'),
+        'screens': field(it, 'screens'),
+        'triggers': field(it, 'triggers'),
+        'workflow': field(it, 'workflow'),
+    }
 
 
 def screen_target(it):
@@ -390,6 +414,31 @@ def compare_triggers(doc_triggers, spec_triggers):
     return add, gone, changed
 
 
+def compare_cases(doc_cases, spec_cases):
+    """Запреты `Z-` живут в prohibitions[], а не в cases[] — сверять их здесь
+    значило бы объявлять пятнадцать штук `add` при каждом прогоне."""
+    add, gone, changed = [], [], []
+    spec_by_id = dict((c.get('id'), c) for c in spec_cases)
+    doc_by_id = dict((c['id'], c) for c in doc_cases if not (c['id'] or '').startswith('Z-'))
+    for cid, d in doc_by_id.items():
+        if cid not in spec_by_id:
+            add.append(('case', cid, d['name']))
+            continue
+        s = spec_by_id[cid]
+        for key in ('name', 'priority', 'role', 'screens', 'triggers', 'workflow'):
+            dv, sv = d.get(key), s.get(key)
+            if dv is None or dv == sv:
+                continue
+            changed.append(mk_change(
+                'case', cid, key, sv, dv, key in CASE_APPLIABLE,
+                (lambda s=s, k=key, v=dv: s.__setitem__(k, v))
+                if key in CASE_APPLIABLE else None))
+    for cid, s in spec_by_id.items():
+        if cid not in doc_by_id:
+            gone.append(('case', cid, s.get('name')))
+    return add, gone, changed
+
+
 def compare_screens(doc_screens, spec_interfaces):
     """Existence is checked at the AREA the pointer names, never at the screen's own
     heading id — see `screen_target`. Field values (name/path/roles) come only from
@@ -450,11 +499,20 @@ def main():
         return 1
     auto_items = v3.load(auto_p)
     doc_roles = [doc_role(it) for it in v3.entities(auto_items, 'roles')]
-    # 'processes' also matches each process's own container heading, but a container
-    # heading has no id of its own in v3 (only its tasks do), and v3.entities() only
-    # ever returns headings that carry one — so this yields tasks alone.
-    doc_tasks = [doc_task(it) for it in v3.entities(auto_items, 'processes')]
+    # 'processes' matches BOTH the process heading and its tasks. The assumption
+    # that a process heading carries no id was true when this was written and is not
+    # any more: seeded and live documents both give the process its own id and
+    # pointer. Without the `.tasks[` filter the eight processes of a live project
+    # were reported as eight new role_tasks on every run — a wrong list, printed
+    # confidently, that somebody would eventually act on.
+    doc_tasks = [doc_task(it) for it in v3.entities(auto_items, 'processes')
+                 if '.tasks[' in (it.ref or '')]
     doc_triggers = [doc_trigger(it) for it in v3.entities(auto_items, 'triggers')]
+
+    doc_cases = []
+    uc_p = os.path.join(root, 'client', 'USER-CASES.md')
+    if os.path.exists(uc_p):
+        doc_cases = [doc_case(it) for it in v3.entities(v3.load(uc_p), 'cases')]
 
     doc_screens = []
     ux_p = os.path.join(root, 'client', 'UX-UI.md')
@@ -467,6 +525,7 @@ def main():
         compare_tasks(doc_tasks, spec),
         compare_triggers(doc_triggers, spec.get('triggers') or []),
         compare_screens(doc_screens, spec.get('interfaces') or []),
+        compare_cases(doc_cases, spec.get('cases') or []),
     ):
         add += a
         gone += g
@@ -478,18 +537,36 @@ def main():
     print('\n=== gone (%d) — in the spec, not in the document ===' % len(gone))
     for kind, id_, name in gone:
         print('  - %-10s %-20s %s' % (kind, id_, name or ''))
+    # Расхождение имени, отклонённое ЗАЩИТОЙ ПИСЬМЕННОСТИ, — это не новость, а
+    # постоянное состояние по замыслу: macstack.json всегда латиница, документ
+    # написан на языке проекта. На живом проекте таких 79 из 90, и печатать их
+    # каждый прогон значит топить одиннадцать настоящих в шуме, который всегда
+    # одинаковый. Одна строка вместо семидесяти девяти — и она честно называет
+    # число, а не скрывает его.
+    script_only = [r for r in changed
+                   if not r['appliable'] and not is_english(r['want'])]
+    rest = [r for r in changed if r not in script_only]
     print('\n=== changed (%d) — id matched, values differ ===' % len(changed))
-    for rec in changed:
+    for rec in rest:
         if rec['appliable']:
             tag = ''
-        elif not is_english(rec['want']):
-            tag = '  [not applied — macstack.json stays in the Latin script]'
         elif would_erase(rec['want'], rec['have']):
             tag = '  [not applied — a blank in the document would erase the spec]'
         else:
             tag = '  [report only, not applied]'
         print('  ~ %-10s %-16s %-10s spec=%r  doc=%r%s' %
               (rec['kind'], rec['id'], rec['field'], rec['have'], rec['want'], tag))
+    if script_only:
+        kinds = {}
+        for r in script_only:
+            kinds[r['kind']] = kinds.get(r['kind'], 0) + 1
+        print('  · ещё %d — имя на языке проекта против латиницы в спеке, '
+              'так и задумано (%s). Показать: --script'
+              % (len(script_only), ', '.join('%s %d' % kv for kv in sorted(kinds.items()))))
+        if '--script' in sys.argv:
+            for rec in script_only:
+                print('    ~ %-10s %-16s %-10s spec=%r  doc=%r'
+                      % (rec['kind'], rec['id'], rec['field'], rec['have'], rec['want']))
 
     if apply_:
         raw = io.open(spec_p, encoding='utf-8').read()
