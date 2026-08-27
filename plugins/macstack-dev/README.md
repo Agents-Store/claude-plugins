@@ -120,6 +120,23 @@ not a risk.
 Agent: `macstack-architect`, for a spec spanning many domains or an ambiguous software
 choice.
 
+## The one thing that runs by itself
+
+Every check here fires when somebody types `/macstack-dev:check`. The person who does
+not type it is the person in a hurry — which is the person whose documents have drifted.
+A check you have to remember to run only ever catches the disciplined.
+
+So one hook runs on its own: when a turn ends with uncommitted changes outside
+`macstack/` and nothing touched inside it, it tells Claude so. It returns
+`additionalContext` — feedback, not a block: the turn continues and nothing is refused.
+A hard gate is more reliable right up until the first trivial edit it blocks, after
+which people route around it and it catches nobody.
+
+It stays quiet whenever it is not sure: no git, no `macstack/`, a clean tree, a lock
+file, `macstack/` already touched, or a second pass over the same turn. A hook that
+speaks out of turn trains you to ignore it — and then it fails on the one occasion it
+was needed.
+
 ## Prerequisites
 
 `python3` (plus `jsonschema` for full schema validation), `jq`, `gh`, and the
