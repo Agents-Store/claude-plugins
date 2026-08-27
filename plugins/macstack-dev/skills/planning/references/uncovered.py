@@ -166,9 +166,44 @@ def main():
 
     cases = [i for i in v3.load(uc_p, lang) if i.id and CASE_HEADING.match(i.id)]
 
-    _, tk_blocks = parse(read(tk_p))
-    tasks = entities(tk_blocks, 'task')
-    milestones = entities(tk_blocks, 'milestone')
+    # `TASKS.md` живёт в двух формах: v2 — якорь `<!-- macstack:task= -->` плюс блок
+    # yaml, и v3 — заголовок `### M15-T1 · Название` с буллетами. Читаем v3 ПЕРВЫМ,
+    # потому что документ мог быть переведён, а читатель за ним не пошёл — и тогда
+    # `entities(...,'task')` возвращает пустоту молча. Измерено 2026-08-27 на
+    # ohawo-payload-nextjs: отчёт сказал «запланировано 0» и предложил завести восемь
+    # задач, все восемь из которых уже лежали в файле. Это ровно та ложная работа,
+    # против которой написан абзац про вердикты аудита выше.
+    class _Task(object):
+        __slots__ = ('id', 'yaml')
+
+        def __init__(self, ident, fields):
+            self.id, self.yaml = ident, fields
+
+    TASK_ID = re.compile(r'^M\d+-T\d+$')
+    MIL_ID = re.compile(r'^M\d+$')
+    tasks, milestones = [], []
+    try:
+        v3_items = v3.load(tk_p, lang)
+    except Exception:
+        v3_items = []
+    v3_tasks = [i for i in v3_items if i.id and TASK_ID.match(i.id)]
+    if v3_tasks:
+        for i in v3_tasks:
+            y = dict(i.fields)
+            if not y.get('spec'):
+                # В v3 связь с кейсом несёт буллет «Закрывает» -> поле `closes`.
+                cl = y.get('closes')
+                if isinstance(cl, (list, tuple)):
+                    cl = ' '.join(str(x) for x in cl)
+                if cl:
+                    y['spec'] = str(cl)
+            tasks.append(_Task(i.id, y))
+        milestones = [_Task(i.id, dict(i.fields))
+                      for i in v3_items if i.id and MIL_ID.match(i.id)]
+    if not tasks:
+        _, tk_blocks = parse(read(tk_p))
+        tasks = entities(tk_blocks, 'task')
+        milestones = entities(tk_blocks, 'milestone')
 
     live_a = live_open_ids(oq_p, lang)
 
@@ -189,11 +224,17 @@ def main():
             legacy[r['item']] = r['now']
             rev_name = r.get('source') or rev_name
 
+    DEAD = ('cancelled', 'dropped', 'отменена', 'снята')
     covered = {}
     for t in tasks:
         spec = str(t.yaml.get('spec') or '')
         for cid in CASE_ID.findall(spec):
             covered.setdefault(cid, []).append((t.id, t.yaml.get('status')))
+    # Кейс, чья единственная задача снята, всё равно считается решённым: снятие — это
+    # тоже решение, и оно записано в самой задаче с причиной. Но молчать об этом нельзя,
+    # иначе снятая работа исчезает из виду. Поэтому — отдельная строка отчёта.
+    withdrawn = {cid: v for cid, v in covered.items()
+                 if v and all(str(s or '').lower() in DEAD for _, s in v)}
 
     known = {c.id for c in cases}
     orphan = []
@@ -229,6 +270,12 @@ def main():
         print('\n=== audit found partial or blocked (%d) ===' % len(partial))
         for c, st, v in partial:
             print('    %-7s %-52s %s' % (c.id, title_of(c)[:52], (v or '')[:34]))
+
+    if withdrawn:
+        print('\n=== planned once, then withdrawn (%d) ===' % len(withdrawn))
+        for cid, v in sorted(withdrawn.items()):
+            print('    %-7s %s' % (cid, ', '.join('%s (%s)' % (i, s) for i, s in v)))
+        print('    still counted as planned — the reason is written in the struck task')
 
     print('\n=== not planned and not checked ===')
     by_pri = {}

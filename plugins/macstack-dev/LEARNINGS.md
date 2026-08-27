@@ -590,3 +590,41 @@ knew to look.
 
 **Severity:** Major
 
+## 2026-08-27 — uncovered.py: the document moved to v3, the reader did not
+
+**Problem:** `/macstack-dev:plan` reported **8 cases with no plan** on a project whose
+`TASKS.md` holds thirteen tasks — and all eight were already planned, by name. Had the
+report been believed, it would have produced eight duplicate tasks pointing at cases that
+already had one.
+
+Cause: `uncovered.py` reads `TASKS.md` through `mdblocks.entities(blocks, 'task')`, which
+needs the v2 shape — a `<!-- macstack:task=M15-T1 -->` anchor plus a fenced yaml block.
+This project's file is already v3: `### M15-T1 · Название` with bullets. `entities()`
+found nothing and returned an empty list **silently**, so every case looked unplanned.
+The script's own docstring even records the decision — *"`TASKS.md` … still read through
+`mdblocks` — they carry their own migration later"* — but nothing checked whether a given
+file had migrated ahead of the reader.
+
+Same failure class as the v3 port of `USER-CASES.md` two days earlier, which reported all
+78 cases unplanned for exactly the same reason. It was fixed there and not generalised.
+
+**Fix:** read `TASKS.md` through `v3.load` first and fall back to `mdblocks` only when v3
+finds no task ids — the reverse order would keep the silent-empty path alive. The v3
+shape carries the case link in the `Закрывает` / *Closes* bullet, which lands in
+`fields['closes']`, so it is mapped onto `spec` for everything downstream. Verified on
+the live corpus: `12 planned · 46 audited done · 20 partial · 0 unplanned`, and the four
+numbers now sum to 78, which they did not before.
+
+Also: a case whose only task was **withdrawn** still counts as planned — withdrawal is a
+decision, and its reason is written in the struck task — but it is now printed in its own
+`planned once, then withdrawn` section. Counting it silently would let cancelled work
+vanish; counting it as unplanned would re-propose exactly what a human just withdrew.
+
+**Root cause:** an empty result from a parser was treated as "nothing there" instead of
+"I could not read this". A reader that cannot tell those two apart turns a format
+migration into a wrong number, and the wrong number is confident. Where a probe can come
+back empty for two different reasons, it must say which — the same rule lint 12.0 already
+states for conventions that match zero files.
+
+**Severity:** Major
+
