@@ -76,7 +76,7 @@ macstack/
     ├── TASKS.md              milestones and tasks — what will be done, in what order
     ├── DECISIONS.md          decision registry (D14, D15 …) → files in decisions/
     ├── CHANGELOG.md          [client] what reached the people who use it, newest first
-    ├── log.md                append-only journal: intake · merge · work · release
+    ├── ledger.jsonl          append-only, one row per edit, comment and verdict
     ├── deltas/               proposals, not edits
     ├── decisions/            rulings, each with cost-if-wrong
     ├── reviews/              <slug>-conformance.md + its -business.md twin
@@ -112,18 +112,42 @@ code-style.md, runbooks) — it never moves into `macstack/`.
      documents exist (`client/OVERVIEW.md`, `USER-CASES.md`, `UX-UI.md`,
      `AUTOMATION.md`, `HANDBOOK.md`, `OPEN-QUESTIONS.md`; `generated/ARCHITECTURE.md`,
      `TEST-CASES.md`, `INDEX.md`; `history/TASKS.md`, `DECISIONS.md`, `CHANGELOG.md`,
-     `log.md`). If not, offer `documents` to create the folder.
+     `ledger.jsonl`). If not, offer `documents` to create the folder.
 3. **CLAUDE.md link**: check that CLAUDE.md contains a "Stack Specification" section
    pointing to macstack.json. If missing, offer to add:
 
 ```markdown
 ## Stack Specification
+
 The business and technical specification of this project is **`macstack.json`**
 (MACSTACK standard, canonical at `macstack/macstack.json`). Read it first: goals →
-results → processes → workflows → software → entities → interfaces. The working
-documents (cases, decisions, open questions) are described in `macstack/README.md`.
-Never write code that contradicts macstack.json — update the specification first.
+results → processes → workflows → software → entities → interfaces. What a person
+must be able to GET is in `macstack/client/USER-CASES.md`; the folder is mapped in
+`macstack/README.md`.
+
+Never write code that contradicts `macstack.json` — change the specification first.
+
+**Keep the folder current. These are triggers, not suggestions:**
+
+| When | Run |
+|---|---|
+| A task is finished — code merged, behaviour changed | `/macstack-dev:update` |
+| The client sent anything: a file, an email, a sentence in chat | `/macstack-dev:intake` |
+| The client's answers came back from a review package | `/macstack-dev:review --read <file>` |
+| Before promising the client a date, or when asked what is left | `/macstack-dev:plan` |
+| You added a collection, route, job or role the documents never mentioned | `/macstack-dev:check --new` |
+| Before handing anything to the client | `/macstack-dev:check` |
+
+Never edit `macstack/generated/**` by hand — it is rebuilt and the edit is lost.
+Never edit `macstack/client/**` on the client's behalf without a recorded ruling:
+their words are the source, and `/macstack-dev:intake` is how a change gets in.
 ```
+
+The table is the half that matters, and it is the half that was missing. A block
+that says only "read this first" produces an agent that reads the folder and lets it
+go stale — and a document that reads perfectly while describing yesterday's system is
+worse than no document, because it is believed. Naming the trigger and the command
+together is what makes "keep the docs current" an instruction instead of a wish.
 
 ## Skill routing
 
@@ -135,7 +159,7 @@ Never write code that contradicts macstack.json — update the specification fir
 | Project rules and commands | `best-practices` |
 | Validation, and "where are we and what next" | `lint` |
 | Create/seed the `macstack/` folder, or relocate an existing `docs/` into the new layout | `documents` |
-| The entity + YAML + anchored-prose shape and the table budget | `document-format` |
+| The heading + bullet-label shape, the pointer bindings and the table budget | `documents` |
 | Merge new client material into the folder | `intake` |
 | Turn the acceptance bullets into checks | `test-cases` |
 | Plan work, or reconcile with the tracker | `planning` |

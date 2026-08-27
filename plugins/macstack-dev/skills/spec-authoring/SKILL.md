@@ -80,6 +80,46 @@ than an incomplete one**, because the incomplete one is visibly incomplete.
 The order is NON-NEGOTIABLE: money first, software last. Never start from "which
 technologies" — start from "which result makes money".
 
+## B0 — The interview, when there is nothing to read
+
+An empty folder has no evidence, so everything comes from the owner. Six questions, in
+this order, from the Result-First framework. **The order is the method, not a style
+choice**: the value chain is read right to left — Goal ← Result ← Process ← Task ←
+Workflow ← Software — so an answer to question 4 given before question 1 is an answer to
+a question nobody has asked yet.
+
+| # | Ask | Produces |
+|---|---|---|
+| 1 | Which results are needed, in money? | `goals[]`, `results[]` |
+| 2 | Which processes produce those results? | `processes[]` |
+| 3 | How exactly is each one done? | `workflows[]`, `triggers[]` |
+| 4 | What is it done with? | `software[]`, `connections`, `entities[]` |
+| 5 | Who confirms? Where must a person decide? | human gates in `processes[].tasks` |
+| 6 | What does the agent need to know to do it alone? | `agents[]`, `context` |
+
+**Ask each one through AskUserQuestion, never as plain text in a reply.** Two to four
+concrete options, the recommendation first and labelled so. A free-text question at this
+stage gets a free-text answer, and a spec assembled from prose is a spec assembled from
+guesses.
+
+Three rules that decide whether this produces a usable spec or a plausible one:
+
+- **Never ask what you can derive.** If question 2 is already answered by the answer to
+  question 1, say what you derived and ask for confirmation instead. Asking the owner to
+  restate what they just said is how an interview turns into an interrogation and stops
+  getting real answers.
+- **Do not proceed past an unanswered question.** "I want a bot" is not a result. The
+  result question gets asked out loud — *what measurable result must the bot produce, and
+  what is it worth per month?* — and the interview stops there until it is answered.
+  Everything downstream is derived from that number.
+- **Write down what was not asked.** Anything the owner deferred goes into
+  `lifecycle.open_questions` as a pointer and into `OPEN-QUESTIONS.md` as wording, on
+  the day it was deferred. An unrecorded gap becomes an invented fact within a week.
+
+Money before software is not a preference here. Start from "which technologies" and you
+get a stack looking for a use; start from "which result makes money" and the stack is
+determined by the answer.
+
 ## B1 — Goals and results
 
 **goals[]** — 1–3 business goals with a horizon and a metric. **results[]** —
@@ -231,4 +271,4 @@ register it in the root's `substacks[]`.
 keys, its workflows and triggers → lint → scaffold (idempotent, it grows) → add the key
 in Infisical → commit the spec **in the same commit** as the code.
 
-**The client drops a PDF** — that is `/macstack-dev:inbox`, not this skill.
+**The client drops a PDF** — that is `/macstack-dev:intake`, not this skill.

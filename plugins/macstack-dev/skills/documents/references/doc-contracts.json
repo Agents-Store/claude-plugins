@@ -1,11 +1,27 @@
 {
-  "version": "2.0.0",
-  "$comment": "Structural contract for the macstack/ folder. Read by `documents` (the writer) and by `lint` (the checker) — one source of truth, so the two cannot drift. v2 replaces column-position parsing with anchor + YAML-block parsing: an entity is a HEADING with an id, its machine fields live in one fenced yaml block under that heading, and its prose lives in anchored sections. Tables stop being a machine interface and go back to being what they are good at — a handful of short values. Anchors and YAML KEYS are byte-exact ASCII and NEVER translated; headings and prose follow docs.language.",
+  "version": "3.0.0",
+  "$comment": "v3 replaces the yaml block with bullet labels. v2 moved the machine fields out of the table and into a fenced yaml block; the owner's verdict on the first real document was that markdown, yaml and tables had been stirred together and a client cannot tell what is safe to edit. A client document is now headings and lists, and the machine half lives in macstack.json with an invisible pointer above each entity. Measured on the live corpus: the model represents 955 of 3837 lines (25%); the other 75% is prose. That is why the writer patches a named line and never re-renders an authored file.",
   "format": {
-    "$comment": "The readability contract. v1 made the table the machine interface, because column POSITION was the only language-independent handle available. Prose then followed the machine into the cells: a live project reached 56 tables with cells up to 1353 characters, one document at 6 columns by 37 rows of 600-880 characters a row. The anchor + yaml block gives the same language independence without pulling prose into a grid.",
-    "entity_rule": "One entity = one heading carrying its id, one anchor above it, one yaml block under it, prose below in anchored sections. Never a table row. This holds for cases, screens, triggers, role tasks, tasks, milestones, open items, releases, intake files and log entries.",
-    "yaml_rule": "Exactly one fenced ```yaml block per entity, immediately after the heading, before any prose. Keys are ASCII and never translated. Values that are IDENTIFIERS (role ids, slugs, statuses, enum members, paths) are English; values that are free text follow docs.language. A key the contract does not declare for that entity kind is an error, not an extension — extend the contract instead.",
+    "$comment": "A client document is headings and bullet lists. v1 read TABLE COLUMNS BY POSITION — deliberately, because a header follows docs.language and matching its text would break a German project — and the consequence was that every piece of prose needing to sit near the machine moved into a cell: 56 tables across 20 documents, cells up to 1353 characters, one client document 6 columns by 37 rows at 600-880 characters a row. v2 replaced the grid with an anchor plus a fenced yaml block, which fixed the columns and left markdown, yaml and tables stirred together in one file. v3 keeps the language independence and drops the machine syntax entirely: the label is declared in `fields`, the id is in the heading, and the only markup left is a comment the reader never sees.",
+    "kind": "v3",
+    "entity_rule": "One entity = one heading carrying its id, one pointer comment above it, its machine fields as \"- **Label:** value\" bullets, prose below. Never a table row, never a yaml block.",
+    "bullet_rule": "- **<Label>:** <value>. A bullet is a FIELD only when its label is declared in `fields`. An undeclared bold-and-colon opening is prose that looks like a field, and inventing a field from it puts a key into the model that nothing reads.",
     "prose_rule": "Prose sections are located by their anchor, never by matching heading text. This is what makes docs.language real: the same parser reads a Russian and a German document.",
+    "pointer": "<!-- macstack:ref=<path> -->",
+    "pointer_grammar": "seg ('.' seg)* ;  seg = name ( '[' ( 'id=' <id> )? ']' )?",
+    "pointer_empty_brackets": "coll[] = the section covers the whole collection; a[].b[] = the union of b over every a. Never on an entity.",
+    "pointer_bindings": {
+      "identity": "the last [id=…] equals the heading id",
+      "member": "the heading id satisfies the glob at the pointed path",
+      "container": "the pointed entry exists; the heading id is unique in the document",
+      "none": "the entity carries no pointer, and its id prefix is reserved",
+      "$comment": "Binding is not one relation, and assuming it is is the expensive mistake. Measured: AUTOMATION 49 headings / 49 pointers / 49 id matches (identity); UX-UI 37 headings onto 9 interfaces[] (container); USER-CASES 78 headings, 51 pointers, 3 targets and ZERO id matches, because roles[].cases holds the glob \"C-*\" (member); 27 X-/S-/Z- cases belong to every role, so to none."
+    },
+    "heading_id_forms": [
+      "<ID> · <title>",
+      "<title> — `<slug>`"
+    ],
+    "doc_header": "<!-- macstack:doc=<type> lang=<code> version=<v> -->",
     "table_budget": {
       "max_columns": 4,
       "max_cell_chars": 80,
@@ -16,16 +32,14 @@
         "```",
         "|"
       ],
-      "note": "A table is allowed only when ALL of these hold. Anything else is a list or a yaml block. The rule exists because every oversized table measured in the field started life as a reasonable one and grew a paragraph at a time."
+      "note": "A table is allowed only when ALL of these hold. Anything else is a list. The rule exists because every oversized table measured in the field started life as a reasonable one and grew a paragraph at a time."
     },
-    "table_exempt": [
-      "journal"
-    ],
+    "table_scope": "history/ and generated/ only. In client/ the budget is zero: rule 12.30 forbids a table row outright, with no exemption.",
     "language": {
       "prose_follows": "docs.language",
       "always_english": [
         "ids",
-        "yaml keys",
+        "field keys",
         "role ids",
         "entity names",
         "workflow names",
@@ -36,7 +50,7 @@
         "the whole of macstack.json"
       ],
       "max_foreign_ratio": 0.15,
-      "measured_over": "letters outside code spans, yaml blocks, anchors and ID tokens",
+      "measured_over": "letters outside code spans, pointers and ID tokens",
       "note": "A live project ran docs.language=ru with one client document 100% English and another at 21% Cyrillic — Russian headings over an English body copied out of the spec. Both read as finished documents and neither was one. Terminology stays English on purpose; the glossary section of overview carries the mapping.",
       "not_measured_for": "generated documents",
       "identifiers_must_be_backticked": "Anything a renderer emits that is an identifier — a workflow name, a software id, a path — is written in backticks. It reads as an identifier to a person and it is stripped before the language count, which is the same fact seen twice."
@@ -50,19 +64,6 @@
       "rule": "A required section a migration or a seed could not fill carries a line starting with this marker. The section EXISTS, so 12.21 passes and the document is structurally whole; the marker is what makes the gap visible instead of letting an empty section read as a finished one. Lint warns on every placeholder still standing and names them, so the count only ever goes down.",
       "never": "A placeholder is never written over content. If a converter cannot tell what a block of prose meant, it leaves the prose where it is and reports the file — mangling a client's words to fit a shape is worse than an unconverted document."
     }
-  },
-  "anchor_syntax": {
-    "doc": "<!-- macstack:doc=<type> lang=<code> version=<v> -->",
-    "section": "<!-- macstack:section=<key> -->",
-    "entity": "<!-- macstack:<space>=<id> -->",
-    "item": "<!-- macstack:<key> -->",
-    "generated": "<!-- macstack:generated from=<source> on=<YYYY-MM-DD> -->",
-    "rule": "One anchor line immediately ABOVE the heading or block it marks. Byte-exact: no extra spaces inside the comment. Re-inserted idempotently before any other write; never a reason to rewrite a document.",
-    "entity_rule": "Marks an entity heading and names its id space: `<!-- macstack:case=C-04 -->`, `<!-- macstack:screen=coach-today -->`, `<!-- macstack:trigger=trg-week-close -->`. v1 deliberately did NOT anchor items, on the argument that anchoring 68 cases would be noise. That held while the machine read tables. Now the machine reads the entities, so they carry the handle.",
-    "item_rule": "Marks a PROSE SECTION inside an entity — the acceptance list of a case, the cost-if-wrong clause of a ruling, the applied banner of a delta.",
-    "generated_rule": "First line of a document whose `generated` field names its source. The document is REBUILT from that source, so a hand edit is lost on the next render and 12.18 reports it. Anything a human needs to say about a generated subject goes into the document the source points BACK to.",
-    "table": "<!-- macstack:table=<kind> -->",
-    "table_rule": "One line above the table it marks. Only journals and tables inside format.table_budget are legal. Columns are still read by POSITION where a table is machine-read at all — but after v2 that is the journal and nothing else."
   },
   "id_spaces": {
     "case": {
@@ -132,12 +133,58 @@
     },
     "contradiction": {
       "pattern": "^K-[0-9]+$",
-      "owner": "history/deltas/*.md",
-      "note": "ASCII K (U+004B) only. The Cyrillic capital KA (U+041A) renders identically and greps as absent — refuse it."
+      "owner": "—",
+      "note": "ASCII K (U+004B) only. The Cyrillic capital KA (U+041A) renders identically and greps as absent — refuse it. A delta is not a file any more: it is regenerated from inbox/, which is immutable, so the id is allocated and cited in the session and in the ruling, not stored. Historical deltas sit in history/archive/deltas/."
     },
     "addition": {
       "pattern": "^N-[0-9]+$",
-      "owner": "history/deltas/*.md"
+      "owner": "—",
+      "note": " A delta is not a file any more: it is regenerated from inbox/, which is immutable, so the id is allocated and cited in the session and in the ruling, not stored. Historical deltas sit in history/archive/deltas/."
+    },
+    "result": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "A measurable asset a goal is realised by. Lives in results[]; the document names it, the spec defines it."
+    },
+    "integration": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "An external system the platform talks to. Lives in connections; the overview names it in the client’s words."
+    },
+    "process": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "The high-level unit of value: what produces a result. Tasks live inside it, never beside it — processes[id=<id>].tasks[id=<id>]."
+    },
+    "software": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "A tool the stack is made of. The id is the registry slug where one exists, so a passport can be copied instead of retyped."
+    },
+    "entity": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "macstack.json",
+      "note": "A thing the system stores. Singular, always: `invoice`, not `invoices` — a collection in code is plural, and matching the two is the audit’s job, not the id’s."
+    },
+    "workflow": {
+      "pattern": "^wf-[a-z0-9-]+$",
+      "owner": "macstack.json",
+      "note": "A deterministic implementation. The wf- prefix is what lets a workflow id be told from a process id at a glance, in a document where both appear."
+    },
+    "rulings": {
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "owner": "history/DECISIONS.md",
+      "note": "A ruling session is addressed by its date: rulings are made in sittings, and the sitting is what a decision cites."
+    },
+    "slug": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "owner": "—",
+      "note": "Not an id space of its own: the heading FORM `Name — `slug`` used by entities whose id lives elsewhere. Declared so the checker stops reporting it as missing."
+    },
+    "filename": {
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "owner": "inbox/",
+      "note": "A file in inbox/, addressed by its name. ASCII only — a client’s attachment named in Cyrillic breaks every tool that later cites it."
     }
   },
   "documents": {
@@ -167,69 +214,72 @@
         "product",
         "goals",
         "audience",
-        "processes",
+        "results",
+        "integrations",
         "invariants",
         "refuses",
         "glossary",
         "related",
-        "journal"
-      ],
-      "journal_columns": [
-        "version",
-        "date",
-        "what changed",
-        "source"
+        "processes"
       ],
       "entities": [
         {
           "kind": "goal",
-          "anchor": "goal",
           "id_space": "slug",
           "in_section": "goals",
           "heading": "### <id> · <title>",
-          "yaml_required": [
-            "horizon"
+          "prose_required": [],
+          "bullets_required": [
+            "horizon",
+            "metric_unit",
+            "metric_target"
           ],
-          "yaml_optional": [
-            "metric",
-            "owner",
-            "status"
-          ],
-          "sections_required": [
-            "statement"
-          ],
-          "sections_optional": [
-            "why"
+          "bullets_optional": [],
+          "pointer": {
+            "path": "goals[id=<id>]",
+            "binding": "identity"
+          },
+          "collections": [
+            "goals"
           ]
         },
         {
-          "kind": "process",
-          "anchor": "process",
-          "id_space": "slug",
-          "in_section": "processes",
-          "heading": "### <id> · <title>",
-          "yaml_required": [
-            "automation"
-          ],
-          "yaml_optional": [
-            "produces",
-            "roles",
-            "schedule",
+          "kind": "result",
+          "id_space": "result",
+          "heading": "### <title> — `<id>`",
+          "bullets_required": [
+            "metric_unit",
+            "metric_target",
             "status"
           ],
-          "yaml_enums": {
-            "automation": [
-              "workflow",
-              "agent",
-              "hybrid",
-              "manual"
-            ]
-          },
-          "sections_required": [
-            "flow"
+          "bullets_optional": [],
+          "prose_optional": [
+            "problem"
           ],
-          "sections_optional": [
-            "why"
+          "note": "What the client gets, and honestly: a result carries the problem it closes and the state it is actually in. Two of four in the live project are partial, and the document says which open question blocks each.",
+          "collections": [
+            "results"
+          ]
+        },
+        {
+          "kind": "integration",
+          "id_space": "integration",
+          "heading": "### <title> — `<id>`",
+          "bullets_required": [
+            "direction",
+            "status"
+          ],
+          "bullets_optional": [
+            "approach",
+            "entities",
+            "legal_deadline"
+          ],
+          "prose_optional": [
+            "open"
+          ],
+          "note": "Where the platform touches something it does not own.",
+          "collections": [
+            "integrations"
           ]
         }
       ],
@@ -247,7 +297,10 @@
           "statuses of technical work"
         ]
       },
-      "note": "What the product is, who it is for, what it must never do — in the words of someone who does not read code. Owns goals, the high-level processes and the glossary. Does NOT define roles: it names them in `audience` with one sentence each and points at AUTOMATION.md, which owns the definition. Splitting a role's definition across two documents is how the two start disagreeing."
+      "note": "What the product is, who it is for, what it must never do — in the words of someone who does not read code. Owns goals, the high-level processes and the glossary. Does NOT define roles: it names them in `audience` with one sentence each and points at AUTOMATION.md, which owns the definition. Splitting a role's definition across two documents is how the two start disagreeing.  Processes are NAMED here and OWNED by client/AUTOMATION.md, where the paradigm lives: trigger -> task -> workflow, grouped by process. Heading them in both documents put the same id and the same title in two places, one rename away from a disagreement nobody would notice; here they are a list under a collection pointer.",
+      "format": "v3",
+      "journal": false,
+      "journal_moved_to": "history/"
     },
     "user_cases": {
       "path": "client/USER-CASES.md",
@@ -260,60 +313,63 @@
         "scenarios",
         "prohibitions",
         "outofscope",
-        "maintaining",
-        "journal"
-      ],
-      "journal_columns": [
-        "version",
-        "date",
-        "what changed",
-        "source"
+        "maintaining"
       ],
       "entities": [
         {
           "kind": "case",
-          "anchor": "case",
           "id_space": "case",
           "heading": "### <id> · <title>",
-          "yaml_required": [
-            "role",
+          "acceptance_ids": "acceptance",
+          "note": "`experience` is the UX bar for THIS case — what the person must feel and be able to do, not how the screen is built. UX-UI.md owns the screen; this owns the demand the case makes of it. A Z- prohibition has neither flow nor experience: it states what must be refused and how the refusal explains itself.",
+          "prose_required": [
+            "acceptance"
+          ],
+          "prose_required_except_prefix": {
+            "acceptance": [
+              "Z"
+            ]
+          },
+          "bullets_required": [
             "priority"
           ],
-          "yaml_optional": [
+          "bullets_optional": [
             "screens",
             "triggers",
             "workflow",
             "entities",
             "status"
           ],
-          "yaml_enums": {
-            "priority": [
-              "critical",
-              "important",
-              "nice-to-have"
-            ]
-          },
-          "sections_required": [
-            "acceptance"
+          "bullets_forbidden": [
+            "role"
           ],
-          "sections_required_except_prefix": {
-            "flow": [
-              "Z"
-            ],
-            "experience": [
-              "Z"
-            ]
+          "bullets_note": "the role is already the pointer one line above; a second copy is the hand-maintained duplicate 12.27 exists to stop",
+          "pointer": {
+            "binding": "identity",
+            "by_id_prefix": {
+              "Z": {
+                "path": "prohibitions[id=<id>]",
+                "binding": "identity",
+                "why": "a prohibition is its own record: no acceptance list, and it belongs to no single role"
+              },
+              "*": {
+                "path": "cases[id=<id>]",
+                "binding": "identity"
+              }
+            },
+            "$comment": "Until schema rev 13 there was no cases[] to point at, so a case heading pointed at the ROLE that owned it — membership in the glob \"C-*\" — and the 27 cross-cutting cases and prohibitions, which belong to no role, carried no pointer at all. They were addressable only inside their own document."
           },
-          "sections_optional": [
-            "why",
-            "notes"
-          ],
-          "acceptance_ids": "acceptance",
-          "note": "`experience` is the UX bar for THIS case — what the person must feel and be able to do, not how the screen is built. UX-UI.md owns the screen; this owns the demand the case makes of it. A Z- prohibition has neither flow nor experience: it states what must be refused and how the refusal explains itself."
+          "collections": [
+            "cases",
+            "prohibitions"
+          ]
         }
       ],
       "index": "generated/INDEX.md",
-      "note": "The acceptance bar. Every case carries an id, a priority, an acceptance list whose bullets are individually addressable, and — new in v2 — its own experience requirements. Role sections are bound to roles[].cases in macstack.json. The per-role index tables of v1 are gone: they were a hand-maintained copy of the headings below them and are now generated into INDEX.md."
+      "note": "The acceptance bar. Every case carries an id, a priority, an acceptance list whose bullets are individually addressable, and — new in v2 — its own experience requirements. Role sections are bound to roles[].cases in macstack.json. The per-role index tables of v1 are gone: they were a hand-maintained copy of the headings below them and are now generated into INDEX.md.",
+      "format": "v3",
+      "journal": false,
+      "journal_moved_to": "history/"
     },
     "ux_ui": {
       "path": "client/UX-UI.md",
@@ -327,43 +383,43 @@
         "responsive",
         "accessibility",
         "tone",
-        "screens",
-        "journal"
-      ],
-      "journal_columns": [
-        "version",
-        "date",
-        "what changed",
-        "source"
+        "screens"
       ],
       "entities": [
         {
           "kind": "screen",
-          "anchor": "screen",
           "id_space": "screen",
           "in_section": "screens",
           "heading": "### <id> · <title>",
-          "yaml_required": [
-            "path",
-            "roles"
-          ],
-          "yaml_optional": [
-            "cases",
-            "entities",
-            "views",
-            "languages",
-            "status"
-          ],
-          "sections_required": [
+          "note": "`forbidden` is the section that earns this document. A prohibition written per screen is checkable by opening that screen; the same prohibition written once in USER-CASES is a rule somebody has to remember to apply on fifty-seven routes. It was a table column in v1 and routinely held 200+ characters of prose.",
+          "prose_required": [
             "content",
             "actions",
             "forbidden"
           ],
-          "sections_optional": [
-            "states",
-            "notes"
+          "bullets_required": [
+            "path"
           ],
-          "note": "`forbidden` is the section that earns this document. A prohibition written per screen is checkable by opening that screen; the same prohibition written once in USER-CASES is a rule somebody has to remember to apply on fifty-seven routes. It was a table column in v1 and routinely held 200+ characters of prose."
+          "bullets_optional": [
+            "roles",
+            "public",
+            "views",
+            "languages"
+          ],
+          "bullets_conditional": {
+            "roles": {
+              "unless": "public"
+            }
+          },
+          "bullets_note": "36 of 37 screens carry roles; the one that does not is `register`, which carries public: true. A screen open to anyone has no role list — that is a rule, not an omission.",
+          "pointer": {
+            "path": "interfaces[id=<area>]",
+            "binding": "container",
+            "why": "interfaces[] stays at AREA level by decision — 37 screens onto 9 entries. The heading id is the route slug, not the interface id."
+          },
+          "collections": [
+            "interfaces"
+          ]
         }
       ],
       "feeds": {
@@ -377,7 +433,10 @@
           "interfaces[].entities"
         ]
       },
-      "note": "The interface bar, in two halves. The cross-cutting half — navigation, empty/loading/error states, responsive behaviour, accessibility, the tone the product speaks in — applies to every screen and is written once. The per-screen half says what is on this screen, what can be done here and what must NOT be visible here. Replaces v1's SCREENS.md, whose six-column table was the least readable artifact the plugin produced."
+      "note": "The interface bar, in two halves. The cross-cutting half — navigation, empty/loading/error states, responsive behaviour, accessibility, the tone the product speaks in — applies to every screen and is written once. The per-screen half says what is on this screen, what can be done here and what must NOT be visible here. Replaces v1's SCREENS.md, whose six-column table was the least readable artifact the plugin produced.",
+      "format": "v3",
+      "journal": false,
+      "journal_moved_to": "history/"
     },
     "automation": {
       "path": "client/AUTOMATION.md",
@@ -387,116 +446,111 @@
         "howto",
         "roles",
         "tasks",
-        "triggers",
-        "journal"
-      ],
-      "journal_columns": [
-        "version",
-        "date",
-        "what changed",
-        "source"
+        "triggers"
       ],
       "entities": [
         {
           "kind": "role",
-          "anchor": "role",
           "id_space": "role",
           "in_section": "roles",
           "heading": "### <id> · <title>",
-          "yaml_required": [
+          "note": "One sentence each. Detail belongs to acl[] in the spec and to USER-CASES.md.",
+          "prose_required": [],
+          "prose_optional": [
+            "sees",
+            "can",
+            "isolation_note"
+          ],
+          "bullets_required": [],
+          "bullets_optional": [
+            "isolation"
+          ],
+          "bullets_note": "roles[].cases belongs to the spec, and this contract says so elsewhere in its own words. What the document carries about a role is what the person SEES and CAN DO, in prose.",
+          "pointer": {
+            "path": "roles[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_forbidden": [
             "cases"
           ],
-          "yaml_optional": [
-            "isolation",
-            "count"
+          "collections": [
+            "roles"
+          ]
+        },
+        {
+          "kind": "process",
+          "id_space": "process",
+          "collections": [
+            "processes"
           ],
-          "sections_required": [
-            "sees",
-            "can"
-          ],
-          "sections_optional": [
-            "notes"
-          ],
-          "note": "One sentence each. Detail belongs to acl[] in the spec and to USER-CASES.md."
+          "heading": "### <title> — `<id>`",
+          "pointer": {
+            "path": "processes[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_required": [],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": [],
+          "note": "The high-level layer of the paradigm: a PROCESS is the big thing the business does, a WORKFLOW is the small deterministic thing software runs, and tasks are grouped under processes. Eight of them stood in this document unchecked by anything, because the contract declared processes only for OVERVIEW.md — where they are summarised, not where their tasks live."
         },
         {
           "kind": "role_task",
-          "anchor": "task",
           "id_space": "role_task",
           "in_section": "tasks",
           "heading": "### <id> · <title>",
-          "yaml_required": [
+          "note": "A task is EITHER a gate a person passes (gate + role) OR a workflow a machine runs (workflow), never a vague both. That either/or is the seam between the human half and the machine half of the spec.",
+          "prose_required": [
+            "happens"
+          ],
+          "bullets_required": [
             "role",
             "gate"
           ],
-          "yaml_optional": [
-            "trigger",
+          "bullets_optional": [
             "workflow",
-            "process",
-            "status"
+            "frequency"
           ],
-          "yaml_enums": {
-            "gate": [
-              "input",
-              "execute",
-              "approve",
-              "review",
-              "none"
-            ]
+          "pointer": {
+            "path": "processes[id=<process>].tasks[id=<id>]",
+            "binding": "identity"
           },
-          "sections_required": [
-            "flow"
+          "bullets_forbidden": [
+            "process"
           ],
-          "sections_optional": [
-            "notes"
-          ],
-          "note": "A task is EITHER a gate a person passes (gate + role) OR a workflow a machine runs (workflow), never a vague both. That either/or is the seam between the human half and the machine half of the spec."
+          "bullets_note": "the process is already the pointer — processes[id=X].tasks[id=Y] — and a second copy of a fact the pointer carries is the hand-maintained duplicate 12.27 exists to stop. The same reasoning that forbids `role` on a case.",
+          "collections": [
+            "role_task"
+          ]
         },
         {
           "kind": "trigger",
-          "anchor": "trigger",
           "id_space": "trigger",
           "in_section": "triggers",
           "heading": "### <id> · <title>",
-          "yaml_required": [
+          "note": "`source` answers the question the client actually asks: WHO starts this — a person on a screen, our own backend, an outside system, or the clock. `type` is the mechanism; `source` is the origin, and the two are not the same question.",
+          "prose_required": [
+            "happens"
+          ],
+          "bullets_required": [
             "type",
             "source"
           ],
-          "yaml_optional": [
+          "bullets_optional": [
             "schedule",
-            "entity",
-            "event",
-            "condition",
-            "path",
             "raises",
-            "software",
-            "status"
+            "moves",
+            "entity",
+            "path"
           ],
-          "yaml_enums": {
-            "type": [
-              "schedule",
-              "webhook",
-              "db_event",
-              "form",
-              "email",
-              "queue",
-              "manual"
-            ],
-            "source": [
-              "interface",
-              "backend",
-              "integration",
-              "schedule",
-              "manual"
-            ]
+          "bullets_note": "path is optional and real: an inbound webhook trigger has an address and nowhere else to put it. It is absent on the other twelve because a scheduled trigger has no address, not because it was forgotten.",
+          "pointer": {
+            "path": "triggers[id=<id>]",
+            "binding": "identity"
           },
-          "sections_required": [
-            "what_happens"
-          ],
-          "sections_optional": [
-            "notes"
-          ],
-          "note": "`source` answers the question the client actually asks: WHO starts this — a person on a screen, our own backend, an outside system, or the clock. `type` is the mechanism; `source` is the origin, and the two are not the same question."
+          "collections": [
+            "triggers"
+          ]
         }
       ],
       "feeds": {
@@ -515,7 +569,10 @@
           "statuses"
         ]
       },
-      "note": "The universal trigger -> task -> workflow -> role model, in a form a non-technical client can read AND correct. Authored, never generated: a client cannot edit a generated file, and the client is the one who knows whether a task belongs to a role. Its blocks write the BUSINESS half of macstack.json. The TECHNICAL half — where a workflow lives in the code, what engine runs it, what is actually implemented — is not derivable from any client document and stays with the architect. Promising to generate it would be a promise the format cannot keep."
+      "note": "The universal trigger -> task -> workflow -> role model, in a form a non-technical client can read AND correct. Authored, never generated: a client cannot edit a generated file, and the client is the one who knows whether a task belongs to a role. Its blocks write the BUSINESS half of macstack.json. The TECHNICAL half — where a workflow lives in the code, what engine runs it, what is actually implemented — is not derivable from any client document and stays with the architect. Promising to generate it would be a promise the format cannot keep.",
+      "format": "v3",
+      "journal": false,
+      "journal_moved_to": "history/"
     },
     "handbook": {
       "path": "client/HANDBOOK.md",
@@ -527,36 +584,33 @@
         "roles",
         "procedures",
         "problems",
-        "glossary",
-        "journal"
-      ],
-      "journal_columns": [
-        "version",
-        "date",
-        "what changed",
-        "source"
+        "glossary"
       ],
       "entities": [
         {
           "kind": "procedure",
-          "anchor": "procedure",
           "id_space": "slug",
           "in_section": "procedures",
           "heading": "### <id> · <title>",
-          "yaml_required": [
+          "prose_required": [
+            "steps"
+          ],
+          "prose_optional": [
+            "result",
+            "notes"
+          ],
+          "bullets_required": [
             "role"
           ],
-          "yaml_optional": [
+          "bullets_optional": [
             "screens",
             "cases",
             "frequency"
           ],
-          "sections_required": [
-            "steps"
-          ],
-          "sections_optional": [
-            "result",
-            "notes"
+          "status": "unrealised",
+          "status_note": "Measured 2026-08-26: HANDBOOK.md carries zero headings with an id and zero pointers. Procedures are not addressable, so a client cannot comment on one and the ledger cannot record an edit to one. Either the document gains ids or this entity leaves the contract — it must not stay a silent promise.",
+          "collections": [
+            "procedure"
           ]
         }
       ],
@@ -564,7 +618,10 @@
         "user_cases",
         "ux_ui"
       ],
-      "note": "How to actually work with the platform, written for the person who will use it — not for the person who commissioned it. Seeded from the cases and screens, then written by a human: a case says what must be possible, a procedure says how a person does it on a Tuesday. This document is the one the client's own staff reads, and it is the reason the case documents can stay abstract."
+      "note": "How to actually work with the platform, written for the person who will use it — not for the person who commissioned it. Seeded from the cases and screens, then written by a human: a case says what must be possible, a procedure says how a person does it on a Tuesday. This document is the one the client's own staff reads, and it is the reason the case documents can stay abstract.",
+      "format": "v3",
+      "journal": false,
+      "journal_moved_to": "history/"
     },
     "open_questions": {
       "path": "client/OPEN-QUESTIONS.md",
@@ -573,47 +630,13 @@
       "sections": [
         "howto",
         "client-inputs",
-        "deferred",
-        "journal"
-      ],
-      "journal_columns": [
-        "version",
-        "date",
-        "what changed",
-        "source"
+        "deferred"
       ],
       "entities": [
         {
           "kind": "open_item",
-          "anchor": "open",
           "id_space": "open_item",
           "heading": "### <id> · <title>",
-          "yaml_required": [
-            "owner"
-          ],
-          "yaml_optional": [
-            "asked_on",
-            "goes_to",
-            "blocks",
-            "closed_by",
-            "promoted_to"
-          ],
-          "yaml_enums": {
-            "owner": [
-              "client",
-              "team"
-            ]
-          },
-          "yaml_required_when": {
-            "client": [
-              "asked_on",
-              "goes_to"
-            ],
-            "team": []
-          },
-          "sections_required": [
-            "what"
-          ],
           "sections_required_when": {
             "team": [
               "reason_safe_to_defer",
@@ -623,7 +646,36 @@
               "if_wrong"
             ]
           },
-          "note": "v1 held §A in a five-column table whose cells reached 1353 characters of bold, italics, code and parenthetical history. Each item is a block now; §B was already blocks and stays."
+          "note": "v1 held §A in a five-column table whose cells reached 1353 characters of bold, italics, code and parenthetical history. Each item is a block now; §B was already blocks and stays.",
+          "prose_required": [
+            "consequence"
+          ],
+          "bullets_required": [
+            "goes_to"
+          ],
+          "bullets_optional": [
+            "asked_on",
+            "blocks"
+          ],
+          "bullets_note": "asked_on is recorded on 4 of 25 — every other question has no record of ever being put to the client, and that is the finding, not a reason to drop the field",
+          "pointer": {
+            "path": "lifecycle.needs_from_client[id=<id>]",
+            "binding": "identity"
+          },
+          "prose_optional": [
+            "safe_defer",
+            "until"
+          ],
+          "bullets_required_when": {
+            "client": [
+              "asked_on",
+              "goes_to"
+            ],
+            "team": []
+          },
+          "collections": [
+            "lifecycle"
+          ]
         }
       ],
       "closed_form": "~~A6~~ · CLOSED D14, 2026-08-24",
@@ -632,7 +684,10 @@
         "warn": 14,
         "error": 45
       },
-      "note": "§A is owed by the client, §B is engineering the team deferred. An §A item carries the date it was asked, because a question nobody has actually put to the client is not blocked — it is forgotten. §B argues why NOT to act now; TASKS.md says what WILL be done. Keep them apart. A §B item that becomes real work is PROMOTED, not copied: strike it with a pointer to the new task id and leave its original text untouched, so the argument for having deferred it survives next to the decision to stop deferring."
+      "note": "§A is owed by the client, §B is engineering the team deferred. An §A item carries the date it was asked, because a question nobody has actually put to the client is not blocked — it is forgotten. §B argues why NOT to act now; TASKS.md says what WILL be done. Keep them apart. A §B item that becomes real work is PROMOTED, not copied: strike it with a pointer to the new task id and leave its original text untouched, so the argument for having deferred it survives next to the decision to stop deferring.",
+      "format": "v3",
+      "journal": false,
+      "journal_moved_to": "history/"
     },
     "architecture": {
       "path": "generated/ARCHITECTURE.md",
@@ -656,7 +711,75 @@
         "workflows": "workflows[] as one block per workflow: engine, triggers, location, invocation, status. Grouped by status, so 'what is not built yet' is one section rather than a column to scan.",
         "integrations": "connections.mcp[], interfaces[] and context.plugins with what each covers, as lists."
       },
-      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand. It does NOT replace docs/architecture.md, which holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise rediscover."
+      "note": "How this project is BUILT, for the agent that has to build in it — the human-readable face of the machine half of the spec. Generated on purpose: this is the document that rots first when written by hand. It does NOT replace docs/architecture.md, which holds what the spec cannot express — the measured gotcha, the argument for a decision, the trap a future reader will otherwise rediscover.  Generated, and parsed like everything else: it declares format v3, so its entities are declared too. Leaving them undeclared meant every heading in it pointed at a kind the contract did not know, which 12.2 reports and 12.0 would have reported the moment anyone looked.",
+      "format": "v3",
+      "entities": [
+        {
+          "kind": "software",
+          "id_space": "software",
+          "collections": [
+            "software"
+          ],
+          "heading": "### <title> — `<id>`",
+          "pointer": {
+            "path": "software[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_required": [
+            "agentic",
+            "category",
+            "hosting",
+            "layers",
+            "license",
+            "role",
+            "type"
+          ],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": []
+        },
+        {
+          "kind": "entity",
+          "id_space": "entity",
+          "collections": [
+            "entities"
+          ],
+          "heading": "### <title> — `<id>`",
+          "pointer": {
+            "path": "entities[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_required": [
+            "stores",
+            "volume"
+          ],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": []
+        },
+        {
+          "kind": "workflow",
+          "id_space": "workflow",
+          "collections": [
+            "workflows"
+          ],
+          "heading": "### <title> — `<id>`",
+          "pointer": {
+            "path": "workflows[id=<id>]",
+            "binding": "identity"
+          },
+          "bullets_required": [
+            "engine",
+            "implements",
+            "invocation",
+            "location",
+            "triggers"
+          ],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": []
+        }
+      ]
     },
     "test_cases": {
       "path": "generated/TEST-CASES.md",
@@ -682,46 +805,11 @@
         "what changed",
         "source"
       ],
-      "entities": [
-        {
-          "kind": "testcase",
-          "anchor": "test",
-          "id_space": "testcase",
-          "heading": "### <id> · <title>",
-          "yaml_required": [
-            "covers",
-            "kind"
-          ],
-          "yaml_optional": [
-            "role",
-            "screen",
-            "trigger",
-            "status"
-          ],
-          "yaml_enums": {
-            "kind": [
-              "auto",
-              "manual"
-            ]
-          },
-          "sections_required": [
-            "expected"
-          ],
-          "sections_required_when": {
-            "manual": [
-              "preconditions",
-              "steps"
-            ],
-            "auto": [
-              "evidence"
-            ]
-          },
-          "note": "`covers` names the acceptance id it verifies (C-06.a2), not just the case. That is what makes the coverage count checkable rather than plausible."
-        }
-      ],
       "section_order_mirrors": "user_cases",
       "struck_form": "~~C-04.T2~~ · DROPPED in v1.9 — the acceptance bullet it covered is gone",
-      "note": "Sits between the client documents (what must be true) and reviews/ (what was found when someone checked): this document says HOW each acceptance bullet is verified. At least one test per bullet. Evidence cites a test title, never a file:line. A bullet needing human judgement is `manual` and carries steps; an `auto` test names the automated test that proves it. v2 widens the source from user_cases alone to the screens and triggers as well — a screen prohibition and a trigger that must fire on a schedule are both verifiable claims, and neither had a home before. Regeneration is by id: update in place, never clobber hand-written steps."
+      "note": "Собирается из ЗАГОЛОВКОВ тестов. Раньше это был авторский документ, который кто-то должен был вести руками, и он врал с того дня, как тест удаляли: покрытие оставалось зелёным, а проверки уже не было. Единица покрытия — кейс, а не пункт приёмки: пункт это строка чек-листа внутри кейса, а не отдельный тест.",
+      "generated": "client/USER-CASES.md + tests/",
+      "format": "v3"
     },
     "index": {
       "path": "generated/INDEX.md",
@@ -751,10 +839,8 @@
       "audience": "both",
       "sections": [
         "howto",
-        "milestones",
         "tasks",
-        "backlog",
-        "journal"
+        "milestones"
       ],
       "journal_columns": [
         "date",
@@ -769,75 +855,87 @@
       },
       "entities": [
         {
+          "kind": "task",
+          "id_space": "task",
+          "collections": [
+            "cases",
+            "prohibitions"
+          ],
+          "id_pattern": "^M\\d+-T\\d+$",
+          "heading": "### <id> · <title>",
+          "pointer": {
+            "binding": "container",
+            "by_id_prefix": {
+              "Z": {
+                "path": "prohibitions[id=<case>]",
+                "binding": "container"
+              },
+              "*": {
+                "path": "cases[id=<case>]",
+                "binding": "container"
+              }
+            },
+            "$comment": "A task points at the case it CLOSES. Not identity: the heading is the task and the pointer is the promise, and one task may be the only way several promises get kept."
+          },
+          "bullets_required": [
+            "status",
+            "opened",
+            "closes"
+          ],
+          "bullets_optional": [
+            "started",
+            "finished",
+            "tracker",
+            "priority",
+            "blocked_by",
+            "role"
+          ],
+          "bullets_conditional": {
+            "tracker": {
+              "unless_value": {
+                "field": "status",
+                "in": [
+                  "backlog",
+                  "cancelled"
+                ]
+              }
+            }
+          },
+          "prose_required": [
+            "acceptance"
+          ],
+          "prose_optional": [
+            "what",
+            "how"
+          ],
+          "note": "A task carries what the work IS; the tracker carries the conversation about it. Status vocabulary is the tracker's five and nothing else — two vocabularies for two systems is two opinions about whether the work is done."
+        },
+        {
           "kind": "milestone",
-          "anchor": "milestone",
           "id_space": "milestone",
-          "in_section": "milestones",
-          "heading": "## <id> · <title>",
-          "yaml_required": [
+          "collections": [],
+          "pointerless": true,
+          "id_pattern": "^M\\d+$",
+          "heading": "### <id> · <title>",
+          "bullets_required": [
             "status"
           ],
-          "yaml_optional": [
-            "target",
-            "released"
+          "bullets_optional": [],
+          "prose_required": [
+            "acceptance"
           ],
-          "sections_required": [
-            "done_when"
-          ],
-          "note": "done_when is a list of FALSIFIABLE checks — each one either passes or does not. 'Works well' is not a check."
-        },
-        {
-          "kind": "task",
-          "anchor": "task",
-          "id_space": "task",
-          "in_section": "tasks",
-          "heading": "### <id> · <title>",
-          "yaml_required": [
-            "status",
-            "tracker"
-          ],
-          "yaml_optional": [
-            "spec",
-            "files",
-            "acceptance",
-            "blocked_by",
-            "milestone",
-            "done_on"
-          ],
-          "sections_optional": [
-            "what",
-            "notes"
-          ],
-          "field_notes": {
-            "tracker": "REQUIRED — the id of this task in the team's own tracker. The file is the source of truth for what the work IS; the tracker is where the conversation happens. A task in only one of them is a task half the team cannot see.",
-            "spec": "pointer into the client documents — a reference, never a restatement. This is the link that lets `update` know which documents a finished task touched.",
-            "files": "paths this task is expected to touch",
-            "acceptance": "named tests or TEST-CASES ids, never a line number. The strongest form is 'remove X and this named test reddens'.",
-            "blocked_by": "task ids or open-item ids; an A-id here is how a client question becomes visibly load-bearing"
-          }
-        },
-        {
-          "kind": "backlog",
-          "anchor": "backlog",
-          "id_space": "backlog",
-          "in_section": "backlog",
-          "heading": "### <id> · <title>",
-          "yaml_required": [],
-          "yaml_optional": [
-            "spec",
-            "size"
-          ],
-          "sections_optional": [
-            "what"
-          ]
+          "prose_optional": [],
+          "note": "A milestone is falsifiable or it is not a milestone: its checks are «file exists», «route answers», «migration recorded» — never «looks done»."
         }
       ],
       "struck_form": "~~M11-T9~~ · DROPPED 2026-08-24 — <why>",
-      "note": "The forward-looking half of the folder. OPEN-QUESTIONS.md §B records debt the team consciously accepted and argues why NOT to act; this document says what will be done, in what order. Do not merge them: an item can sit in §B for a year and only becomes a task when its trigger fires."
+      "note": "The forward-looking half of the folder. OPEN-QUESTIONS.md §B records debt the team consciously accepted and argues why NOT to act; this document says what will be done, in what order. Do not merge them: an item can sit in §B for a year and only becomes a task when its trigger fires.",
+      "format": "v3",
+      "journal": false
     },
     "decisions": {
       "path": "history/DECISIONS.md",
-      "audience": "both",
+      "audience": "internal",
       "append_only": true,
       "sections": [
         "howto",
@@ -852,23 +950,22 @@
       "registry_item": "- **<id>** · <date> · <title> — <decided by>",
       "entities": [
         {
-          "kind": "rulings_group",
-          "anchor": "rulings",
-          "id_space": "path",
-          "in_section": "registry",
-          "heading": "### <date> · <slug>",
-          "yaml_required": [
-            "file"
-          ],
-          "yaml_optional": [
-            "branch"
-          ],
-          "sections_required": [
-            "decisions"
-          ]
+          "kind": "ruling_session",
+          "id_space": "rulings",
+          "collections": [],
+          "heading": "### <title> — `<slug>`",
+          "bullets_required": [],
+          "bullets_optional": [],
+          "prose_required": [],
+          "prose_optional": [],
+          "note": "One sitting at which the owner ruled on several things at once. It carries no pointer: a sitting is not a record in macstack.json, and lifecycle.decisions points the other way — at this file, by decision id.",
+          "pointerless": true,
+          "id_pattern": "^\\d{4}-\\d{2}-\\d{2}-[a-z0-9-]+$"
         }
       ],
-      "note": "A registry, grouped by the rulings file that holds the argument. v1 used a five-column table whose last column repeated the same path twenty-one times in a row — the grouping is that column, promoted to a heading."
+      "note": "A registry, grouped by the rulings file that holds the argument. v1 used a five-column table whose last column repeated the same path twenty-one times in a row — the grouping is that column, promoted to a heading.  The argued rulings live here too since the decisions/ folder was absorbed: a registry line said WHAT was decided and a separate file said WHY, and the title was copied into both. One file now, and the argument sits under the ruling it argues.",
+      "format": "v3",
+      "audience_note": "The client sees a decision through the review package, not by reading the registry. Calling this `both` put it under every rule that protects the client's reading — no tables, no fences — for a file no client opens, and the rules were right to fire."
     },
     "changelog": {
       "path": "history/CHANGELOG.md",
@@ -889,96 +986,27 @@
       "entities": [
         {
           "kind": "release",
-          "anchor": "release",
           "id_space": "release",
           "in_section": "releases",
           "heading": "## <id> · <milestone or version> — <what a user can now do that they could not before>",
-          "yaml_required": [
+          "prose_required": [
+            "what_changed"
+          ],
+          "bullets_required": [
             "date"
           ],
-          "yaml_optional": [
+          "bullets_optional": [
             "milestone",
             "tasks",
             "superseded_by"
           ],
-          "sections_required": [
-            "what_changed"
+          "collections": [
+            "release"
           ]
         }
       ],
       "supersession": "In place, never by deletion: append '**Superseded by <id>:** …' to the old entry. A changelog that edits its own past cannot be trusted about its present.",
       "note": "The curated, audience-facing half of the journal: what reached the people who use the product. log.md holds everything that happened; this holds what mattered to them. Never a git log dump — an entry claims a PROPERTY the system now has, in the words of someone who does not read code."
-    },
-    "log": {
-      "path": "history/log.md",
-      "audience": "internal",
-      "append_only": true,
-      "sections": [
-        "howto",
-        "entries"
-      ],
-      "entities": [
-        {
-          "kind": "log_entry",
-          "anchor": "entry",
-          "id_space": "date-kind",
-          "in_section": "entries",
-          "heading": "## [<YYYY-MM-DD>] <kind> | <title>",
-          "yaml_required": [
-            "kind"
-          ],
-          "yaml_enums": {
-            "kind": [
-              "intake",
-              "handoff",
-              "merge",
-              "work",
-              "release"
-            ]
-          },
-          "yaml_required_when": {
-            "intake": [
-              "source"
-            ],
-            "handoff": [
-              "document",
-              "version",
-              "file",
-              "to"
-            ],
-            "merge": [
-              "source",
-              "delta",
-              "decisions",
-              "applied",
-              "opened",
-              "closed"
-            ],
-            "work": [
-              "tasks"
-            ],
-            "release": [
-              "release",
-              "milestone",
-              "changelog"
-            ]
-          },
-          "sections_required_when": {
-            "work": [
-              "what",
-              "notes"
-            ],
-            "merge": [
-              "note"
-            ],
-            "intake": [],
-            "handoff": [],
-            "release": []
-          },
-          "note": "v1 declared a flat `entry_requires` of the six merge fields AND a per-kind table that disagreed with it, so a `work` entry was contractually required to carry a `delta`. There is one shape now, keyed by kind. `notes` on a work entry is the half git cannot hold — the dead end taken, the thing that turned out harder. A work entry with an empty notes is usually a work entry not worth writing."
-        }
-      ],
-      "note": "Append-only journal of everything that happened to this project: client material in, merges, work done, releases out. Scaffolding does not log — a freshly created folder has no entry, and that absence is intentional. CHANGELOG.md is this file's curated, client-facing derivative; the two are never merged."
     },
     "inbox_manifest": {
       "path": "inbox/README.md",
@@ -991,14 +1019,16 @@
       "entities": [
         {
           "kind": "intake",
-          "anchor": "intake",
           "id_space": "filename",
           "in_section": "files",
           "heading": "### <filename>",
-          "yaml_required": [
+          "prose_optional": [
+            "what"
+          ],
+          "bullets_required": [
             "received"
           ],
-          "yaml_optional": [
+          "bullets_optional": [
             "from",
             "channel",
             "supersedes",
@@ -1006,119 +1036,12 @@
             "size_mb",
             "pages"
           ],
-          "sections_optional": [
-            "what"
+          "collections": [
+            "intake"
           ]
         }
       ],
       "note": "The ONLY writable file under inbox/. v1 used a six-column table of which three columns were empty on every row."
-    },
-    "delta": {
-      "path": "history/deltas/YYYY-MM-DD-<slug>.md",
-      "audience": "internal",
-      "write_once": true,
-      "sections": [
-        "howto",
-        "contradictions",
-        "additions",
-        "confirmed",
-        "absent",
-        "journal"
-      ],
-      "journal_columns": [
-        "date",
-        "what changed"
-      ],
-      "entities": [
-        {
-          "kind": "contradiction",
-          "anchor": "k",
-          "id_space": "contradiction",
-          "in_section": "contradictions",
-          "heading": "### <id> · <title>",
-          "yaml_required": [
-            "blast_radius"
-          ],
-          "yaml_optional": [
-            "cases",
-            "source_page"
-          ],
-          "sections_required": [
-            "document_says",
-            "current_says"
-          ],
-          "sections_optional": [
-            "recommendation"
-          ]
-        },
-        {
-          "kind": "addition",
-          "anchor": "n",
-          "id_space": "addition",
-          "in_section": "additions",
-          "heading": "### <id> · <title>",
-          "yaml_required": [
-            "role"
-          ],
-          "yaml_optional": [
-            "priority",
-            "becomes",
-            "source_page"
-          ],
-          "sections_required": [
-            "what"
-          ]
-        }
-      ],
-      "applied_anchor": "applied",
-      "age_budget_days": {
-        "warn": 14,
-        "error": 30
-      },
-      "note": "A proposal, not an edit. Declares the bar (USER-CASES.md) and stays history. Gets one applied banner and is never otherwise revised."
-    },
-    "rulings": {
-      "path": "history/decisions/YYYY-MM-DD-<slug>-rulings.md",
-      "audience": "internal",
-      "write_once": true,
-      "header_requires": [
-        "date",
-        "branch",
-        "result"
-      ],
-      "sections": [
-        "rulings",
-        "left-to-client",
-        "where-applied"
-      ],
-      "entities": [
-        {
-          "kind": "ruling",
-          "anchor": "d",
-          "id_space": "decision",
-          "in_section": "rulings",
-          "heading": "### <id> · <title>",
-          "yaml_required": [
-            "decided_by"
-          ],
-          "yaml_optional": [
-            "closes",
-            "opens",
-            "applies_to"
-          ],
-          "yaml_enums": {
-            "decided_by": [
-              "owner",
-              "session"
-            ]
-          },
-          "sections_required": [
-            "ruling",
-            "cost_if_wrong"
-          ]
-        }
-      ],
-      "note": "Cost-if-wrong is written AT DECISION TIME, before the outcome is known. A retrospective cost clause is worthless."
     },
     "review": {
       "path": "history/reviews/YYYY-MM-DD-<slug>-conformance.md",
@@ -1134,36 +1057,73 @@
       "entities": [
         {
           "kind": "finding",
-          "anchor": "finding",
           "id_space": "case",
           "in_section": "findings",
           "heading": "### <id> · <title>",
-          "yaml_required": [
+          "note": "`verdict` is a closed enum on purpose: `plan` reads these to decide what still needs work, and it can only do that if 'done' is one token rather than six phrasings of it.",
+          "prose_required": [
+            "evidence"
+          ],
+          "prose_optional": [
+            "remaining"
+          ],
+          "bullets_required": [
             "verdict"
           ],
-          "yaml_optional": [
+          "bullets_optional": [
             "surfaces",
             "blocked_by",
             "tests"
           ],
-          "yaml_enums": {
-            "verdict": [
-              "implemented",
-              "partial",
-              "absent",
-              "externally-blocked"
-            ]
-          },
-          "sections_required": [
-            "evidence"
-          ],
-          "sections_optional": [
-            "remaining"
-          ],
-          "note": "`verdict` is a closed enum on purpose: `plan` reads these to decide what still needs work, and it can only do that if 'done' is one token rather than six phrasings of it."
+          "collections": [
+            "finding"
+          ]
         }
       ],
       "note": "Ships in pairs: a technical audit and its business-language twin, same date and slug, same commit. The twin was a WARNING 'until a generator exists' for three releases; the generator exists in v2, so the twin is required."
+    },
+    "ledger": {
+      "path": "history/ledger.jsonl",
+      "audience": "internal",
+      "format": "jsonl",
+      "append_only": true,
+      "record": {
+        "required": [
+          "date",
+          "doc",
+          "item",
+          "kind"
+        ],
+        "optional": [
+          "was",
+          "now",
+          "why",
+          "source",
+          "task",
+          "decision",
+          "by",
+          "scope"
+        ],
+        "kinds": [
+          "added",
+          "changed",
+          "removed",
+          "comment",
+          "answer",
+          "audit",
+          "handoff",
+          "release",
+          "work"
+        ]
+      },
+      "note": "Every edit and every client comment, one JSON object per line, keyed by the id of the thing that changed. It replaces history/log.md, whose entries were about the SESSION and never said which statement moved — so a review package could not show a client what had changed since they last read it. intake and merge lost their entry kinds on the way: the trace of a merge is the edits it produced, and a row saying \"material was merged\" beside rows saying what it changed is a summary of its own neighbours."
+    },
+    "requirements": {
+      "path": "generated/REQUIREMENTS.md",
+      "audience": "internal",
+      "format": "v3",
+      "generated": "client/*.md",
+      "note": "Каждое проверяемое утверждение клиентских документов с постоянным адресом. То, по чему агент сверяет код с договорённостью, не читая шесть документов прозы. Правило 12.35 держит его полным."
     }
   },
   "prohibitions": [
@@ -1228,5 +1188,790 @@
     "inbox": "What the client sent, exactly as sent. Immutable.",
     "history": "Journals and records: what happened, what was decided, what was checked, what we sent. Append-only by nature; the plan of work lives here too because it is the same working record.",
     "_note": "Exactly four, plus README.md and macstack.json at the root — six entries in all. The count is a constraint, not an accident: the field's own criticism of spec-driven tooling is that a specification spread over many files becomes more tedious to review than the code it describes. A fifth folder needs an argument that beats that."
+  },
+  "fields": {
+    "approach": {
+      "label": {
+        "ru": "Как",
+        "en": "How"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "asked_on": {
+      "label": {
+        "ru": "Когда спросили",
+        "en": "Asked on"
+      },
+      "type": "date",
+      "render": "text"
+    },
+    "blocks": {
+      "label": {
+        "ru": "Что блокирует",
+        "en": "Blocks"
+      },
+      "type": "id_list",
+      "render": "code_list"
+    },
+    "cases": {
+      "label": {
+        "ru": "Кейсы",
+        "en": "Cases"
+      },
+      "type": "id_list",
+      "resolves_to": "cases[]",
+      "render": "code_list"
+    },
+    "covers": {
+      "label": {
+        "ru": "Проверяет",
+        "en": "Covers"
+      },
+      "type": "id_list",
+      "resolves_to": "cases[]",
+      "render": "code_list"
+    },
+    "direction": {
+      "label": {
+        "ru": "Направление",
+        "en": "Direction"
+      },
+      "type": "enum",
+      "enum": [
+        "in",
+        "out",
+        "both"
+      ],
+      "render": "text"
+    },
+    "entities": {
+      "label": {
+        "ru": "Данные",
+        "en": "Data"
+      },
+      "label_aliases": {
+        "ru": [
+          "что переносим",
+          "entities"
+        ],
+        "en": [
+          "entities"
+        ],
+        "de": [
+          "entities"
+        ]
+      },
+      "type": "id_list",
+      "resolves_to": "entities[]",
+      "render": "code_list"
+    },
+    "entity": {
+      "label": {
+        "ru": "За чем следит",
+        "en": "What it watches"
+      },
+      "type": "id",
+      "resolves_to": "entities[]",
+      "render": "code"
+    },
+    "entry_kind": {
+      "label": {
+        "ru": "Вид записи",
+        "en": "Entry kind"
+      },
+      "type": "enum",
+      "enum": [
+        "intake",
+        "handoff",
+        "merge",
+        "work",
+        "release"
+      ],
+      "render": "text",
+      "$comment": "Renamed from `kind` in v3.0.0: the log entry's kind and a test case's kind are different fields that shared one ASCII key. A global fields block makes that collision visible instead of letting one enum quietly overwrite the other."
+    },
+    "frequency": {
+      "label": {
+        "ru": "Как часто",
+        "en": "How often"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "gate": {
+      "label": {
+        "ru": "Что от человека требуется",
+        "en": "What the person must do"
+      },
+      "label_aliases": {
+        "ru": [
+          "что требуется от человека"
+        ]
+      },
+      "type": "enum",
+      "enum": [
+        "input",
+        "execute",
+        "approve",
+        "review",
+        "none"
+      ],
+      "value_label": {
+        "ru": {
+          "input": "внести данные",
+          "execute": "совершить действие",
+          "approve": "утвердить",
+          "review": "проверить"
+        }
+      },
+      "render": "text",
+      "$comment": "label_aliases is read-only: the reader accepts them, the writer never emits one. The shipped table said \"что требуется от человека\" while all 33 live bullets say \"что от человека требуется\" — the words are transposed, and 33 fields vanished."
+    },
+    "goes_to": {
+      "label": {
+        "ru": "Куда пойдёт",
+        "en": "Where it goes"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "horizon": {
+      "label": {
+        "ru": "К какому сроку",
+        "en": "By when"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "isolation": {
+      "label": {
+        "ru": "Чужого не видит",
+        "en": "Sees nothing else"
+      },
+      "type": "bool",
+      "render": "text"
+    },
+    "kind": {
+      "label": {
+        "ru": "Как проверяется",
+        "en": "How it is checked"
+      },
+      "type": "enum",
+      "enum": [
+        "auto",
+        "manual"
+      ],
+      "value_label": {
+        "ru": {
+          "manual": "запуск вручную",
+          "auto": "автоматически"
+        }
+      },
+      "render": "text"
+    },
+    "languages": {
+      "label": {
+        "ru": "Языки",
+        "en": "Languages"
+      },
+      "type": "id_list",
+      "render": "code_list"
+    },
+    "legal_deadline": {
+      "label": {
+        "ru": "Срок диктует закон",
+        "en": "Legal deadline"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "metric_target": {
+      "label": {
+        "ru": "Цель",
+        "en": "Target"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "metric_unit": {
+      "label": {
+        "ru": "Чем измеряем",
+        "en": "What we measure"
+      },
+      "label_by_kind": {
+        "result": {
+          "ru": "Что измеряем"
+        }
+      },
+      "type": "text",
+      "render": "text",
+      "$comment": "goals say \"Чем измеряем\", results say \"Что измеряем\", and they are the same field."
+    },
+    "moves": {
+      "label": {
+        "ru": "Чьи задачи двигает",
+        "en": "Whose tasks it moves"
+      },
+      "type": "id_list",
+      "render": "code_list"
+    },
+    "path": {
+      "label": {
+        "ru": "Адрес",
+        "en": "Address"
+      },
+      "type": "text",
+      "render": "text",
+      "label_aliases": {
+        "ru": [
+          "path"
+        ],
+        "en": [
+          "path"
+        ],
+        "de": [
+          "path"
+        ]
+      }
+    },
+    "priority": {
+      "label": {
+        "ru": "Насколько важно",
+        "en": "How important"
+      },
+      "type": "enum",
+      "enum": [
+        "critical",
+        "important",
+        "nice-to-have"
+      ],
+      "value_label": {
+        "ru": {
+          "critical": "критично",
+          "important": "важно",
+          "nice-to-have": "желательно"
+        }
+      },
+      "render": "text"
+    },
+    "process": {
+      "label": {
+        "ru": "Процесс",
+        "en": "Process"
+      },
+      "type": "id",
+      "resolves_to": "processes[]",
+      "render": "code"
+    },
+    "public": {
+      "label": {
+        "ru": "Открытый доступ",
+        "en": "Public"
+      },
+      "type": "bool",
+      "render": "text"
+    },
+    "raises": {
+      "label": {
+        "ru": "Что поднимает",
+        "en": "What it raises"
+      },
+      "type": "id_list",
+      "render": "code_list"
+    },
+    "role": {
+      "label": {
+        "ru": "Кто",
+        "en": "Who"
+      },
+      "label_by_kind": {
+        "role_task": {
+          "ru": "Кто делает",
+          "en": "Who does it"
+        }
+      },
+      "type": "id",
+      "resolves_to": "roles[]",
+      "render": "code",
+      "$comment": "label_by_kind exists because one field is spoken two ways in the live corpus: HANDBOOK procedures say \"Кто\" (41x), AUTOMATION tasks say \"Кто делает\" (33x). A single label silently dropped all 33.",
+      "label_aliases": {
+        "ru": [
+          "role"
+        ],
+        "en": [
+          "role"
+        ],
+        "de": [
+          "role"
+        ]
+      }
+    },
+    "roles": {
+      "label": {
+        "ru": "Кто видит",
+        "en": "Who sees it"
+      },
+      "type": "id_list",
+      "resolves_to": "roles[]",
+      "render": "code_list"
+    },
+    "safe_because": {
+      "label": {
+        "ru": "Безопасно отложить, потому что",
+        "en": "Safe to defer because"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "schedule": {
+      "label": {
+        "ru": "Когда срабатывает",
+        "en": "When it fires"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "screens": {
+      "label": {
+        "ru": "Экраны",
+        "en": "Screens"
+      },
+      "type": "id_list",
+      "resolves_to": "interfaces[]",
+      "render": "code_list"
+    },
+    "source": {
+      "label": {
+        "ru": "Кто его создаёт",
+        "en": "Who creates it"
+      },
+      "type": "enum",
+      "enum": [
+        "interface",
+        "backend",
+        "integration",
+        "schedule",
+        "manual"
+      ],
+      "value_label": {
+        "ru": {
+          "schedule": "расписание",
+          "manual": "запуск вручную"
+        }
+      },
+      "render": "text",
+      "label_aliases": {
+        "ru": [
+          "source"
+        ],
+        "en": [
+          "source"
+        ],
+        "de": [
+          "source"
+        ]
+      }
+    },
+    "status": {
+      "label": {
+        "ru": "Состояние",
+        "en": "Status"
+      },
+      "type": "enum",
+      "render": "text",
+      "label_aliases": {
+        "ru": [
+          "status",
+          "Статус"
+        ],
+        "de": [
+          "status"
+        ],
+        "en": []
+      },
+      "enum": [
+        "backlog",
+        "todo",
+        "in_progress",
+        "done",
+        "cancelled",
+        "planned",
+        "building",
+        "live",
+        "dropped"
+      ]
+    },
+    "trigger": {
+      "label": {
+        "ru": "Триггер",
+        "en": "Trigger"
+      },
+      "type": "id",
+      "resolves_to": "triggers[]",
+      "render": "code"
+    },
+    "triggers": {
+      "label": {
+        "ru": "Триггеры",
+        "en": "Triggers"
+      },
+      "type": "id_list",
+      "resolves_to": "triggers[]",
+      "render": "code_list",
+      "label_aliases": {
+        "ru": [
+          "triggers"
+        ],
+        "de": [
+          "triggers"
+        ]
+      }
+    },
+    "type": {
+      "label": {
+        "ru": "Что это за событие",
+        "en": "Kind of event"
+      },
+      "type": "enum",
+      "enum": [
+        "schedule",
+        "webhook",
+        "db_event",
+        "form",
+        "email",
+        "queue",
+        "manual"
+      ],
+      "value_label": {
+        "ru": {
+          "schedule": "расписание",
+          "db_event": "событие в данных",
+          "form": "форма на экране",
+          "webhook": "вызов извне",
+          "manual": "запуск вручную"
+        }
+      },
+      "render": "text",
+      "scope": "generated",
+      "label_aliases": {
+        "ru": [
+          "type"
+        ],
+        "en": [
+          "type"
+        ],
+        "de": [
+          "type"
+        ]
+      },
+      "$comment": "The ASCII key is a read-only alias for generated documents, whose reader is an agent and whose values are identifiers. A human label over an identifier value makes the line worse, not clearer — the same reason 12.25 does not measure the language of a generated document."
+    },
+    "unsafe_when": {
+      "label": {
+        "ru": "Станет небезопасно в тот момент, когда",
+        "en": "Stops being safe when"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "views": {
+      "label": {
+        "ru": "Виды",
+        "en": "Views"
+      },
+      "type": "id_list",
+      "render": "code_list"
+    },
+    "workflow": {
+      "label": {
+        "ru": "Workflow",
+        "en": "Workflow"
+      },
+      "label_aliases": {
+        "ru": [
+          "что платформа делает сама"
+        ],
+        "de": [
+          "workflow"
+        ]
+      },
+      "type": "id",
+      "resolves_to": "workflows[]",
+      "render": "code"
+    },
+    "category": {
+      "label": {
+        "ru": "category",
+        "en": "category"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "layers": {
+      "label": {
+        "ru": "layers",
+        "en": "layers"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "license": {
+      "label": {
+        "ru": "license",
+        "en": "license"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "hosting": {
+      "label": {
+        "ru": "hosting",
+        "en": "hosting"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "agentic": {
+      "label": {
+        "ru": "agentic",
+        "en": "agentic"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "stores": {
+      "label": {
+        "ru": "stores",
+        "en": "stores"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated",
+      "$comment": "The architecture labels stay ASCII in every language on purpose: their values are software ids, entity names and file paths, which the standard forbids translating. A translated label over an untranslatable value reads worse than an English one, and 12.25 exempts a generated document from the language ratio for the same reason."
+    },
+    "volume": {
+      "label": {
+        "ru": "volume",
+        "en": "volume"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "engine": {
+      "label": {
+        "ru": "engine",
+        "en": "engine"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "location": {
+      "label": {
+        "ru": "location",
+        "en": "location"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "implements": {
+      "label": {
+        "ru": "implements",
+        "en": "implements"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "invocation": {
+      "label": {
+        "ru": "invocation",
+        "en": "invocation"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "opened": {
+      "label": {
+        "ru": "Заведена",
+        "en": "Opened"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "started": {
+      "label": {
+        "ru": "Взята",
+        "en": "Started"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "finished": {
+      "label": {
+        "ru": "Закрыта",
+        "en": "Finished"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "closes": {
+      "label": {
+        "ru": "Закрывает",
+        "en": "Closes"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "tracker": {
+      "label": {
+        "ru": "Plane",
+        "en": "Tracker"
+      },
+      "type": "text",
+      "render": "text"
+    },
+    "blocked_by": {
+      "label": {
+        "ru": "Чем заблокирована",
+        "en": "Blocked by",
+        "de": "Blockiert durch"
+      },
+      "type": "id_list",
+      "render": "code_list",
+      "$comment": "Not the same field as `blocks`. «Что блокирует» is what this entity holds up; «Чем заблокирована» is what holds IT up. One bullet used the first label to mean the second, and the contract caught it."
+    }
+  },
+  "prose": {
+    "acceptance": {
+      "label": {
+        "ru": "Готово, если",
+        "en": "Done when",
+        "de": "Fertig, wenn"
+      },
+      "shape": "bullet_list",
+      "ids": "acceptance",
+      "id_form": "<entity>.a<n>",
+      "order": "append_only",
+      "$comment": "the address a client comment and a test resolve against; inserting a bullet above another renumbers every id below it"
+    },
+    "content": {
+      "label": {
+        "ru": "Что на экране",
+        "en": "What is on it"
+      },
+      "shape": "bullet_list"
+    },
+    "actions": {
+      "label": {
+        "ru": "Что можно сделать",
+        "en": "What can be done"
+      },
+      "shape": "bullet_list"
+    },
+    "forbidden": {
+      "label": {
+        "ru": "Чего здесь быть не должно",
+        "en": "What must not be here"
+      },
+      "shape": "bullet_list",
+      "$comment": "the block that earns the document its keep — what must NEVER appear"
+    },
+    "happens": {
+      "label": {
+        "ru": "Что происходит",
+        "en": "What happens"
+      },
+      "shape": "paragraph"
+    },
+    "consequence": {
+      "label": {
+        "ru": "Что будет, если этого нет или оно неверно",
+        "en": "What happens if this is missing or wrong"
+      },
+      "shape": "bullet_list"
+    },
+    "open": {
+      "label": {
+        "ru": "Что нужно решить",
+        "en": "What must be decided"
+      },
+      "shape": "paragraph"
+    },
+    "sees": {
+      "label": {
+        "ru": "Что видит",
+        "en": "What it sees"
+      },
+      "shape": "paragraph"
+    },
+    "can": {
+      "label": {
+        "ru": "Что может",
+        "en": "What it can do"
+      },
+      "shape": "paragraph"
+    },
+    "isolation_note": {
+      "label": {
+        "ru": "Чужого не видит",
+        "en": "Sees nothing else"
+      },
+      "shape": "paragraph"
+    },
+    "safe_defer": {
+      "label": {
+        "ru": "Безопасно отложить, потому что",
+        "en": "Safe to defer because"
+      },
+      "shape": "paragraph"
+    },
+    "until": {
+      "label": {
+        "ru": "Станет небезопасно в тот момент, когда",
+        "en": "Stops being safe when"
+      },
+      "shape": "paragraph",
+      "$comment": "a deferral without the trigger that ends it is not a decision, it is a hope"
+    },
+    "steps": {
+      "label": {
+        "ru": "Шаги",
+        "en": "Steps",
+        "de": "Schritte"
+      },
+      "shape": "ordered_list",
+      "$comment": "What the person actually does, in order. 42 live blocks in HANDBOOK procedures and the contract did not know the block existed, so nothing could require it: a procedure with no steps passed every check."
+    },
+    "problem": {
+      "label": {
+        "ru": "Какую проблему закрывает",
+        "en": "What problem it closes"
+      },
+      "shape": "paragraph"
+    },
+    "what": {
+      "label": {
+        "ru": "Что сделать",
+        "en": "What to do"
+      },
+      "shape": "paragraph"
+    },
+    "how": {
+      "label": {
+        "ru": "Как",
+        "en": "How"
+      },
+      "shape": "paragraph"
+    }
   }
 }

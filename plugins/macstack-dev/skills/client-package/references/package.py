@@ -26,137 +26,184 @@ import sys, os, io, re, json, html
 
 sys.path.insert(0, os.path.normpath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..', 'documents', 'references')))
-import mdblocks as M                                  # noqa: E402
+import v3                                             # noqa: E402
+import ledger                                         # noqa: E402
 from i18n import doc_lang                             # noqa: E402
 
 TODO = '_TODO —'
 
 
 # ---------------------------------------------------------------- reading
-def _bullets(block, anchor):
-    f = block.field(anchor) if block else None
-    if not f:
-        return []
-    out = []
-    for line in f.body:
-        s = line.strip()
-        if s.startswith('- '):
-            out.append(s[2:].strip().rstrip(';.'))
-        elif out and s and not s.startswith('**') and not s.startswith('_'):
-            out[-1] += ' ' + s
-    return [b for b in out if b and not b.startswith(TODO)]
+PROSE_LABEL = {}
 
 
-def read_doc(root, rel):
-    p = os.path.join(root, rel)
-    if not os.path.exists(p):
-        return None, [], {}
-    text = io.open(p, encoding='utf-8').read()
-    hdr, blocks = M.parse(text)
-    return text, blocks, hdr
+def _label(contract, key, lang):
+    pr = (contract.get('prose') or {}).get(key) or {}
+    return (pr.get('label') or {}).get(lang, key)
 
 
-def collect(root):
-    """Everything the package shows, with its stable id."""
-    out = dict(overview=[], cases=[], screens=[], triggers=[], procedures=[], versions={})
+def _block(item, label):
+    """Содержимое прозаического блока сущности, по его ярлыку.
 
-    text, blocks, hdr = read_doc(root, 'client/OVERVIEW.md')
-    if text:
-        out['versions']['overview'] = hdr.get('version', '?')
-        for sec in blocks:
-            if sec.kind != 'section' or sec.id in ('journal', 'howto', 'glossary'):
-                continue
-            paras, buf = [], []
-            for line in sec.body:
-                s = line.rstrip()
-                if not s.strip():
-                    if buf:
-                        paras.append(' '.join(buf)); buf = []
-                    continue
-                if s.startswith(('- ', '#', '|', '<!--', '```')):
-                    if buf:
-                        paras.append(' '.join(buf)); buf = []
-                    if s.startswith('- '):
-                        paras.append(s)
-                    continue
-                buf.append(s.strip())
-            if buf:
-                paras.append(' '.join(buf))
-            if paras:
-                out['overview'].append((sec.heading or sec.id, paras))
+    Блок бывает и списком, и абзацем: экран перечисляет, что на нём, списком, а
+    роль описывает, что она видит, одним предложением. Первая версия брала
+    только списки и молча теряла все три роли целиком.
+    """
+    for k, v in item.sections.items():
+        if k.rstrip(':.').strip() != label:
+            continue
+        bullets = [x.lstrip('- ').rstrip(';').strip() for x in v
+                   if x.strip().startswith('-')]
+        if bullets:
+            return bullets
+        para = ' '.join(x.strip() for x in v if x.strip()).strip()
+        return [para] if para else []
+    return []
 
-    text, blocks, hdr = read_doc(root, 'client/USER-CASES.md')
-    if text:
-        out['versions']['user_cases'] = hdr.get('version', '?')
-        for sec in blocks:
-            if sec.kind != 'section':
-                continue
-            for c in sec.children:
-                if c.kind != 'case':
-                    continue
-                acc = _bullets(c, 'acceptance')
-                exp = _bullets(c, 'experience')
-                out['cases'].append(dict(
-                    id=c.id, title=(c.heading or '').split('·', 1)[-1].strip(),
-                    section=sec.heading or sec.id,
-                    priority=c.yaml.get('priority', ''),
-                    items=[('%s.a%d' % (c.id, i + 1), b) for i, b in enumerate(acc)]
-                          + [('%s.x%d' % (c.id, i + 1), b) for i, b in enumerate(exp)]))
 
-    text, blocks, hdr = read_doc(root, 'client/UX-UI.md')
-    if text:
-        out['versions']['ux_ui'] = hdr.get('version', '?')
-        for s in M.entities(blocks, 'screen'):
-            forb = _bullets(s, 'forbidden')
-            cont = _bullets(s, 'content')
-            act = _bullets(s, 'actions')
-            out['screens'].append(dict(
-                id=s.id, title=(s.heading or '').split('·', 1)[-1].strip(),
-                path=s.yaml.get('path', ''),
-                items=[('%s.c%d' % (s.id, i + 1), b) for i, b in enumerate(cont)]
-                      + [('%s.d%d' % (s.id, i + 1), b) for i, b in enumerate(act)]
-                      + [('%s.f%d' % (s.id, i + 1), b) for i, b in enumerate(forb)]))
+ENTITY_MD = re.compile(r'^#{1,6}\s')
 
-    text, blocks, hdr = read_doc(root, 'client/AUTOMATION.md')
-    if text:
-        out['versions']['automation'] = hdr.get('version', '?')
-        for t in M.entities(blocks, 'trigger'):
-            what = _bullets(t, 'what_happens') or [x.strip() for x in (t.field('what_happens').body if t.field('what_happens') else []) if x.strip() and not x.strip().startswith(TODO)]
-            y = t.yaml
-            desc = 'starts: %s' % y.get('source', '?')
-            if y.get('schedule'):
-                desc += ' · %s' % y['schedule']
-            out['triggers'].append(dict(
-                id=t.id, title=(t.heading or '').split('·', 1)[-1].strip(), meta=desc,
-                items=[('%s.w%d' % (t.id, i + 1), b) for i, b in enumerate(what)]))
-        for r in M.entities(blocks, 'role'):
-            sees = ' '.join(x.strip() for x in (r.field('sees').body if r.field('sees') else []) if x.strip())
-            can = ' '.join(x.strip() for x in (r.field('can').body if r.field('can') else []) if x.strip())
-            items = []
-            if sees and not sees.startswith(TODO):
-                items.append(('%s.s1' % r.id, sees))
-            if can and not can.startswith(TODO):
-                items.append(('%s.n1' % r.id, can))
-            if items:
-                out['procedures'].append(dict(
-                    id=r.id, title=(r.heading or '').split('·', 1)[-1].strip(), meta='role', items=items))
 
-    text, blocks, hdr = read_doc(root, 'client/HANDBOOK.md')
-    if text:
-        out['versions']['handbook'] = hdr.get('version', '?')
-        for pr in M.entities(blocks, 'procedure'):
-            steps = _bullets(pr, 'steps') or [re.sub(r'^\d+\.\s*', '', x.strip())
-                                              for x in (pr.field('steps').body if pr.field('steps') else [])
-                                              if re.match(r'^\s*\d+\.', x)]
-            if steps:
-                out['procedures'].append(dict(
-                    id=pr.id, title=(pr.heading or '').split('·', 1)[-1].strip(),
-                    meta=pr.yaml.get('role', ''),
-                    items=[('%s.p%d' % (pr.id, i + 1), b) for i, b in enumerate(steps)]))
+def _entity_md(doc_lines, item, drop_labels):
+    """Сущность целиком, как её читает человек — без машинных пунктов.
+
+    Клиенту показывают ЛОГИКУ, а не чек-лист. Пункты приёмки — это тест-кейсы,
+    они для машины; в документе они живут внутри кейса и читаются как его часть,
+    а не как отдельные вопросы. Первая версия расплющила их в 611 отдельных
+    строк по 400 символов, и получился длинный опросник вместо документа.
+
+    Машинные пункты (`- **Насколько важно:** критично`) убираются: клиенту они
+    ничего не говорят, а приоритет показывается отдельной пометкой.
+    """
+    a, b = item.span
+    out, seen_head = [], False
+    for raw in doc_lines[a:b]:
+        s = raw.rstrip()
+        if s.lstrip().startswith('<!--'):
+            continue
+        if ENTITY_MD.match(s):
+            if seen_head:
+                break
+            seen_head = True
+            continue                      # заголовок печатаем отдельно
+        m = re.match(r'^\s*-\s+\*\*(.+?):\*\*', s)
+        if m and m.group(1).strip() in drop_labels:
+            continue
+        out.append(s)
+    while out and not out[0].strip():
+        out.pop(0)
+    while out and not out[-1].strip():
+        out.pop()
     return out
 
 
-# ---------------------------------------------------------------- rendering
+def _machine_labels(contract, lang):
+    """Ярлыки машинных полей на языке документа — их клиенту не показывают."""
+    out = set()
+    for f in (contract.get('fields') or {}).values():
+        lab = (f.get('label') or {}).get(lang)
+        if lab:
+            out.add(lab)
+        for per in (f.get('label_by_kind') or {}).values():
+            if per.get(lang):
+                out.add(per[lang])
+    return out
+
+
+def collect(root, contract, lang):
+    """Семь разделов, и в каждом — сущности ЦЕЛИКОМ.
+
+    Единица, на которую отвечает клиент, — кейс, экран, триггер, вопрос. Не
+    строка внутри него. Клиент читает связный текст и говорит про него одно из
+    трёх; разбивать документ на шестьсот отдельных вопросов значит превращать
+    его в опросник, который никто не дочитает. Пункты приёмки — тест-кейсы, они
+    для машины и живут внутри кейса как его часть.
+    """
+    cl = os.path.join(root, 'client')
+    drop = _machine_labels(contract, lang)
+
+    def load(name):
+        p_ = os.path.join(cl, name)
+        return v3.load_doc(p_) if os.path.exists(p_) else None
+
+    docs = dict((n, load(n)) for n in ('OVERVIEW.md', 'USER-CASES.md', 'UX-UI.md',
+                                       'AUTOMATION.md', 'HANDBOOK.md',
+                                       'OPEN-QUESTIONS.md'))
+
+    def ents(name, pref=None, level=3, want_id=True):
+        d = docs.get(name)
+        if d is None:
+            return []
+        out = []
+        for it in d.items:
+            if it.level != level:
+                continue
+            if want_id and not it.id:
+                continue
+            if pref is not None and not (it.ref or '').startswith(pref):
+                continue
+            body = _entity_md(d.lines, it, drop)
+            if not body and not it.id:
+                continue
+            out.append(dict(id=it.id or '', title=it.title or '', section=it.section,
+                            meta=_meta(it, lang), body=body))
+        return out
+
+    def prose(name, heads):
+        d = docs.get(name)
+        if d is None:
+            return []
+        out = []
+        for it in d.items:
+            if it.level != 2 or (it.title or '') not in heads:
+                continue
+            body = _entity_md(d.lines, it, drop)
+            if body:
+                out.append(dict(id='', title=it.title, section=None, meta='', body=body))
+        return out
+
+    tasks = [e for e in ents('AUTOMATION.md', None, level=4) if e['id']]
+    sections = [
+        ('product', prose('OVERVIEW.md',
+                          (u'О продукте', u'Как это работает', u'Для кого',
+                           u'Правила, которые не нарушаются',
+                           u'Что платформа отказывается делать',
+                           'About the product', 'How it works', 'Who it is for'))),
+        ('goals', ents('OVERVIEW.md', 'goals[') + ents('OVERVIEW.md', 'results[')),
+        ('roles', ents('AUTOMATION.md', 'roles[')),
+        ('automation', ents('AUTOMATION.md', 'processes[')
+                       + ents('AUTOMATION.md', 'triggers[') + tasks),
+        ('cases', ents('USER-CASES.md')),
+        ('questions', [e for e in ents('OPEN-QUESTIONS.md')
+                       if '~~' not in (e['title'] or '')]),
+        ('screens', ents('UX-UI.md', 'interfaces[')),
+        ('handbook', ents('HANDBOOK.md', None, level=3, want_id=False)),
+    ]
+    return [(k, v) for k, v in sections if v]
+
+
+def _meta(item, lang):
+    PRI = {'critical': {'ru': u'критично', 'en': 'critical'},
+           'important': {'ru': u'важно', 'en': 'important'},
+           'nice-to-have': {'ru': u'желательно', 'en': 'nice to have'}}
+    bits = []
+    p_ = item.get('priority')
+    if p_:
+        bits.append((PRI.get(p_) or {}).get(lang, p_))
+    for k in ('path', 'horizon', 'metric_target'):
+        v = item.get(k)
+        if v:
+            bits.append(str(v))
+    return ' · '.join(bits)
+
+
+def _spec(root):
+    try:
+        return json.load(io.open(os.path.join(root, 'macstack.json'), encoding='utf-8'))
+    except (IOError, ValueError):
+        return {}
+
+
 def md(s):
     s = html.escape(s)
     s = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', s)
@@ -165,170 +212,401 @@ def md(s):
     return s
 
 
+FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
+         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
+         'family=IBM+Plex+Sans:wght@400;500;600&'
+         'family=IBM+Plex+Serif:wght@500;600&'
+         'family=IBM+Plex+Mono:wght@400;500&display=swap">')
+
 CSS = """
-:root{--ink:#1a1a1a;--mut:#6b7280;--line:#d4d4d8;--accent:#1d4ed8;--box:#fafafa;--ok:#047857;--no:#b91c1c}
+/* IBM Plex: сделано для технических документов и несёт полную кириллицу.
+   Документ русский, и половина фамильных гарнитур отпала бы на первом же слове. */
+:root{
+  --paper:#fcfcfd; --ink:#15181e; --dim:#5c6270; --line:#e4e6eb; --soft:#f4f5f7;
+  --accent:#0f5f61; --accent-ink:#ffffff;
+  --mark:#8a5a00; --mark-bg:#fdf6e7; --mark-line:#dbb96a;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#101318; --ink:#e8eaee; --dim:#98a0ad; --line:#272c35; --soft:#171b22;
+  --accent:#4fd0cf; --accent-ink:#0a1416;
+  --mark:#e0b866; --mark-bg:#201c10; --mark-line:#6b5423;
+}}
+:root[data-theme="dark"]{
+  --paper:#101318; --ink:#e8eaee; --dim:#98a0ad; --line:#272c35; --soft:#171b22;
+  --accent:#4fd0cf; --accent-ink:#0a1416;
+  --mark:#e0b866; --mark-bg:#201c10; --mark-line:#6b5423;
+}
 *{box-sizing:border-box}
-body{margin:0 auto;padding:0 24px 80px;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);max-width:940px}
-h1{font-size:26px;margin:32px 0 4px}
-h2{font-size:20px;margin:44px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
-h3{font-size:17px;margin:28px 0 4px}
-.lead{color:var(--mut);margin:0 0 24px}
-.howto{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px 20px;margin:24px 0}
-.howto p{margin:6px 0}
-.grp{margin:22px 0 0;padding-top:6px}
-.grp .meta{color:var(--mut);font-size:13px;margin:0 0 8px}
-.pri{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;background:#f3f4f6;border:1px solid var(--line)}
-table.b{width:100%;border-collapse:collapse;margin:8px 0 0}
-table.b td{border:1px solid var(--line);padding:8px 10px;vertical-align:top}
-td.n{width:92px;white-space:nowrap;font:13px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent);background:var(--box)}
-td.t{width:auto}
-td.a{width:150px;background:var(--box);font-size:13px;white-space:nowrap}
-td.c{width:28%;background:var(--box)}
-td.c:focus{outline:2px solid var(--accent);background:#fff}
-.chdr td{background:#f3f4f6;font-size:12px;color:var(--mut);font-weight:600}
-label.r{display:block;cursor:pointer;line-height:1.5}
-label.r input{margin-right:5px}
-code{background:#f3f4f6;padding:1px 4px;border-radius:3px;font-size:.9em}
-#bar{position:sticky;bottom:0;background:#fff;border-top:2px solid var(--line);padding:12px 0;margin-top:40px}
-button{font:inherit;padding:8px 16px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:6px;cursor:pointer}
-#dump{width:100%;height:180px;margin-top:10px;font:12px ui-monospace,Menlo,monospace;display:none}
-footer{color:var(--mut);font-size:14px;margin-top:32px}
+body{background:var(--paper);color:var(--ink);margin:0 auto;max-width:44rem;
+ padding:2.5rem 1.15rem 6rem;
+ font:400 16.5px/1.6 "IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+ -webkit-text-size-adjust:100%}
+h1{font:600 1.75rem/1.2 "IBM Plex Serif",Georgia,serif;margin:0 0 .35rem;
+ text-wrap:balance;letter-spacing:-.01em}
+h2{font:600 1.22rem/1.3 "IBM Plex Serif",Georgia,serif;margin:3.2rem 0 .25rem;
+ padding-top:1.15rem;border-top:2px solid var(--ink);text-wrap:balance}
+h3{font:500 1.02rem/1.35 "IBM Plex Serif",Georgia,serif;margin:2rem 0 .55rem;
+ display:flex;flex-wrap:wrap;align-items:baseline;gap:.55rem;text-wrap:balance}
+.lead{color:var(--dim);margin:0 0 1.6rem;font-size:.96rem}
+.howto{background:var(--soft);border-radius:10px;padding:1rem 1.15rem;font-size:.94rem;
+ display:flex;flex-direction:column;gap:.6rem}
+.howto p{margin:0}
+.sec-note,.meta{color:var(--dim);font-size:.9rem;margin:.15rem 0 1.1rem}
+.grp{margin-bottom:.4rem}
+.code{font:400 11.5px/1 "IBM Plex Mono",ui-monospace,Menlo,monospace;color:var(--dim);
+ letter-spacing:.02em}
+h3 .code{font-size:12px}
+.e{border:1px solid var(--line);border-radius:12px;padding:1.05rem 1.15rem;
+ display:flex;flex-direction:column;gap:.55rem;margin-bottom:.75rem;background:var(--paper)}
+.e.changed{border-color:var(--mark-line);background:var(--mark-bg)}
+.e h3{margin:0}
+.body{display:flex;flex-direction:column;gap:.55rem;max-width:64ch}
+.body p{margin:0}
+.body ul{margin:0;padding-left:1.15rem;display:flex;flex-direction:column;gap:.3rem}
+.body li{margin:0}
+.body .sub{font-weight:600;margin-top:.15rem}
+.tag{font:500 10.5px/1 "IBM Plex Mono",monospace;text-transform:uppercase;
+ letter-spacing:.09em;color:var(--mark)}
+.was{margin:0;font-size:.89rem;color:var(--mark);padding-left:.75rem;
+ border-left:2px solid var(--mark-line)}
+.said{margin:0;font-size:.89rem;color:var(--dim);padding-left:.75rem;
+ border-left:2px solid var(--line)}
+.prev{margin:0;font-size:.87rem;color:var(--accent);font-weight:500}
+.ans{display:flex;flex-wrap:wrap;gap:.4rem}
+.r{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--line);
+ border-radius:999px;padding:.32rem .85rem;font-size:.92rem;cursor:pointer;
+ user-select:none;transition:background .12s,border-color .12s,color .12s}
+.r:hover{border-color:var(--dim)}
+.r:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.r input{accent-color:var(--accent);margin:0}
+.r:has(input:checked){background:var(--accent);border-color:var(--accent);
+ color:var(--accent-ink)}
+.r:has(input:checked) input{accent-color:var(--accent-ink)}
+.c{border:1px dashed var(--line);border-radius:8px;min-height:2.2rem;
+ padding:.5rem .65rem;font-size:.94rem}
+.c:focus{outline:2px solid var(--accent);outline-offset:1px;border-style:solid}
+.c:empty:before{content:attr(data-ph);color:var(--dim);opacity:.65}
+#bar{margin-top:2.5rem;display:flex;flex-direction:column;gap:.6rem}
+button{font:500 .95rem/1 "IBM Plex Sans",sans-serif;padding:.7rem 1.2rem;
+ border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);
+ border-radius:8px;cursor:pointer;align-self:flex-start}
+button:hover{filter:brightness(1.08)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+textarea{width:100%;min-height:11rem;border:1px solid var(--line);border-radius:8px;
+ padding:.75rem;background:var(--soft);color:var(--ink);
+ font:400 13px/1.55 "IBM Plex Mono",ui-monospace,Menlo,monospace}
+footer{margin-top:3.5rem;padding-top:1.3rem;border-top:1px solid var(--line);
+ color:var(--dim);font-size:.93rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{
-  #bar,.howto{display:none}
-  body{max-width:none;font-size:12px}
-  table.b{page-break-inside:auto}
-  tr{page-break-inside:avoid}
-  td.c{min-height:48px}
+  body{max-width:none;padding:0;font-size:11pt}
+  .ans,.c,.e{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  button,textarea,#bar{display:none}
+  .e{break-inside:avoid;page-break-inside:avoid}
+  h2{break-after:avoid}
 }
 """
 
 JS = """
+/* Ищет СЕКЦИИ, а не строки таблицы. Первая версия после перехода на карточки
+   продолжала спрашивать tr[data-id] и собирала ноль ответов — молча, потому что
+   пустой список это тоже список. */
 function collect(){
-  var rows=document.querySelectorAll('tr[data-id]'),out=[];
-  for(var i=0;i<rows.length;i++){
-    var r=rows[i],id=r.getAttribute('data-id');
-    var picked=r.querySelector('input[type=radio]:checked');
-    var note=(r.querySelector('.c')||{}).innerText||'';
+  var els=document.querySelectorAll('section.e[data-id]'),out=[];
+  for(var i=0;i<els.length;i++){
+    var e=els[i],id=e.getAttribute('data-id');
+    var picked=e.querySelector('input[type=radio]:checked');
+    var note=(e.querySelector('.c')||{}).innerText||'';
     note=note.replace(/\\s+/g,' ').trim();
+    var was=e.getAttribute('data-was')||'';
     if(!picked&&!note)continue;
-    out.push({id:id,answer:picked?picked.value:'',comment:note});
+    var v=picked?picked.value:'';
+    if(v===was&&!note)continue;            /* прошлый ответ без правки — не шлём */
+    out.push({id:id,answer:v,comment:note});
   }
   return out;
 }
 function save(){
-  var d=document.getElementById('dump');
-  d.value=JSON.stringify({document:document.title,answers:collect()},null,2);
+  var d=document.getElementById('dump'),a=collect();
+  d.value=JSON.stringify({package:(document.title||''),date:PKG_DATE,answers:a},null,2);
   d.style.display='block';d.focus();d.select();
   try{document.execCommand('copy')}catch(e){}
+  var n=document.getElementById('cnt');
+  if(n)n.textContent=COUNTED.replace('%d',a.length);
 }
 """
 
 STR = {
  'ru': dict(title='Что платформа должна делать — на согласование',
+            short='{n} — на согласование',
             lead='{n}. Версия {v} · {d}',
-            howto=('<p><strong>Как пользоваться.</strong> Каждая строка — утверждение о платформе. '
-                   'Отметьте «верно», «не так» или «вопрос», и допишите комментарий, если есть что сказать.</p>'
-                   '<p>Можно печатать прямо в браузере, потом «Печать» → «Сохранить как PDF»; можно распечатать '
-                   'и писать от руки; можно нажать кнопку внизу и прислать нам текст ответов.</p>'
-                   '<p>Код слева (например <code>C-04.a3</code>) — постоянный адрес пункта. Он не меняется между '
-                   'версиями, поэтому на него можно ссылаться и через полгода.</p>'),
-            s_over='Как это работает в целом', s_cases='Что должно быть сделано',
-            s_screens='Экраны', s_trig='Что происходит само', s_proc='Роли и порядок работы',
-            c_n='код', c_t='утверждение', c_a='ваш ответ', c_c='комментарий',
+            howto=('<p><strong>Как этим пользоваться.</strong> Каждый блок — одно утверждение '
+                   'о платформе. Отметьте «верно», «не так» или «вопрос» и допишите комментарий, '
+                   'если есть что сказать.</p>'
+                   '<p>Можно отвечать прямо в браузере, потом «Печать» → «Сохранить как PDF». '
+                   'Можно распечатать и писать от руки. Можно нажать кнопку внизу и прислать нам '
+                   'текст ответов.</p>'
+                   '<p>Код над утверждением — например <code>C-04.a3</code> — это его постоянный '
+                   'адрес. Он не меняется между версиями, на него можно сослаться и через год.</p>'),
+            since='Жёлтым помечено то, что изменилось после прошлого пакета от %s. '
+                  'Под таким утверждением написано, как было.',
+            s_product='О продукте', s_goals='Цели', s_roles='Кто чем занимается',
+            s_automation='Что запускает работу и кто её делает', s_cases='Что должно быть сделано',
+            s_questions='Вопросы к вам', s_screens='Экраны',
+            n_product='Правила, которые платформа держит всегда, без исключений.',
+            n_questions='На эти вопросы можем ответить только вы. Пока ответа нет, работа по ним стоит.',
+            n_cases='Главное в пакете. Каждый пункт — то, что человек должен смочь сделать.',
+            c_c='комментарий, если есть',
+            s_handbook='Как этим пользоваться',
+            n_handbook='Пошагово, для того, кто сядет работать в платформе.',
             ok='верно', no='не так', q='вопрос',
+            changed='изменилось', was='было:', you='вы', us='мы',
+            answered='Вы отвечали %s: «%s». Ответ подставлен — можно оставить или изменить.',
+            counted='Собрано ответов: %d',
             btn='Собрать мои ответы', dump='Скопируйте этот текст и пришлите нам',
-            foot=('Верните этот файл — с ответами в браузере, сканом от руки или текстом из кнопки выше. '
-                  'Мы разберём каждый пункт и вернёмся с решением по каждому.')),
+            foot=('Верните этот файл — с ответами в браузере, сканом от руки или текстом из '
+                  'кнопки выше. Мы разберём каждый пункт и вернёмся с решением по каждому.')),
  'en': dict(title='What the platform must do — for review',
+            short='{n} — for review',
             lead='{n}. Version {v} · {d}',
-            howto=('<p><strong>How to use this.</strong> Each row is a claim about the platform. Mark it '
-                   '"right", "not so" or "question", and add a comment if you have one.</p>'
-                   '<p>Type straight into the browser and Print → Save as PDF, print it and write by hand, or '
-                   'press the button at the bottom and send us the text of your answers.</p>'
-                   "<p>The code on the left (<code>C-04.a3</code>) is that item&#39;s permanent address. It does not "
-                   'change between versions, so it is still quotable six months from now.</p>'),
-            s_over='How it works, in short', s_cases='What must be delivered',
-            s_screens='Screens', s_trig='What happens by itself', s_proc='Roles and how work runs',
-            c_n='code', c_t='claim', c_a='your answer', c_c='comment',
+            howto=('<p><strong>How to use this.</strong> Each block is one claim about the '
+                   'platform. Mark it "right", "not so" or "question", and add a comment if you '
+                   'have one.</p>'
+                   '<p>Answer straight in the browser and Print → Save as PDF, print it and write '
+                   'by hand, or press the button at the bottom and send us the text.</p>'
+                   '<p>The code above a claim — <code>C-04.a3</code> — is its permanent address. '
+                   'It does not change between versions and is still quotable a year from now.</p>'),
+            since='Marked yellow: changed since the last package of %s. What it said before is '
+                  'written underneath.',
+            s_product='About the product', s_goals='Goals', s_roles='Who does what',
+            s_automation='What starts work, and who does it', s_cases='What must be delivered',
+            s_questions='Questions for you', s_screens='Screens',
+            n_product='Rules the platform keeps always, without exception.',
+            n_questions='Only you can answer these. Work on them is stopped until you do.',
+            n_cases='The heart of the package. Each item is something a person must be able to do.',
+            c_c='a comment, if you have one',
+            s_handbook='How to use it',
+            n_handbook='Step by step, for the person who will work in it.',
             ok='right', no='not so', q='question',
+            changed='changed', was='was:', you='you', us='we',
+            answered='You answered on %s: \u201c%s\u201d. It is pre-filled — keep it or change it.',
+            counted='Answers collected: %d',
             btn='Collect my answers', dump='Copy this text and send it to us',
-            foot=('Send this file back — answered in the browser, scanned from paper, or as the text from the '
-                  'button above. We will work through every item and come back with a decision on each.')),
+            foot=('Send this file back — answered in the browser, scanned from paper, or as the '
+                  'text from the button above. We will work through every item and come back '
+                  'with a decision on each.')),
 }
 
 
-def rows(T, group):
-    out = ['<div class="grp">',
-           '<h3>%s <span class="pri">%s</span></h3>' % (md(group['title']), html.escape(group.get('id', '')))]
+def rows(T, group, hist, since):
+    """Сущность как кусок документа, и ОДИН ответ на неё."""
+    ident = group['id']
+    rec = hist.get(ident, []) if ident else []
+    moved = [r for r in rec if r.get('kind') in ('added', 'changed')
+             and (r.get('date') or '') > (since or '')]
+    said = [r for r in rec if r.get('kind') in ('comment', 'answer')]
+    # Последний ответ клиента по этому куску: он подставляется галочкой и
+    # остаётся изменяемым. Клиент не должен отвечать заново на то, что уже
+    # прошёл, — но и запирать его в прошлом ответе нельзя: документ поменялся,
+    # и «верно» полугодовой давности может перестать быть верным.
+    prev = None
+    for r in rec:
+        if r.get('kind') == 'comment' and r.get('verdict'):
+            prev = r
+
+    attrs = ' data-id="%s"' % html.escape(ident) if ident else ''
+    if prev:
+        attrs += ' data-was="%s"' % html.escape(prev.get('verdict') or '')
+    out = ['<section class="e%s"%s>' % (' changed' if moved else '', attrs)]
+    head = md(group['title'] or '')
+    if ident:
+        head += ' <span class="code">%s</span>' % html.escape(ident)
+    out.append('<h3>%s</h3>' % head)
     if group.get('meta'):
-        out.append('<p class="meta">%s</p>' % md(group['meta']))
-    out.append('<table class="b"><tr class="chdr"><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
-               % (T['c_n'], T['c_t'], T['c_a'], T['c_c']))
-    for ident, claim in group['items']:
+        out.append('<p class="meta">%s</p>' % md(str(group['meta'])))
+    if moved:
+        out.append('<p class="tag">%s</p>' % T['changed'])
+    out.append('<div class="body">%s</div>' % _md_block(group['body']))
+    for r in moved:
+        if r.get('was'):
+            out.append('<p class="was">%s %s</p>' % (T['was'], md(str(r['was'])[:400])))
+    for r in said:
+        who = T['you'] if r.get('by') == 'client' else T['us']
+        out.append('<p class="said"><strong>%s, %s:</strong> %s</p>'
+                   % (who, html.escape(r.get('date') or ''),
+                      md(str(r.get('why') or r.get('now') or '')[:400])))
+    if ident:
+        if prev:
+            out.append('<p class="prev">%s</p>'
+                       % (T['answered'] % (html.escape(prev.get('date') or ''),
+                                           T.get(prev.get('verdict'), prev.get('verdict')))))
         radios = ''.join(
-            '<label class="r"><input type="radio" name="%s" value="%s">%s</label>' % (ident, val, T[key])
+            '<label class="r"><input type="radio" name="%s" value="%s"%s>%s</label>'
+            % (html.escape(ident), val,
+               ' checked' if prev and prev.get('verdict') == val else '', T[key])
             for val, key in (('ok', 'ok'), ('no', 'no'), ('q', 'q')))
-        out.append('<tr data-id="%s"><td class="n">%s</td><td class="t">%s</td>'
-                   '<td class="a">%s</td><td class="c" contenteditable="true"></td></tr>'
-                   % (html.escape(ident), html.escape(ident), md(claim), radios))
-    out.append('</table></div>')
+        out.append('<div class="ans">%s</div>' % radios)
+        out.append('<div class="c" contenteditable="true" data-ph="%s"></div>' % T['c_c'])
+    out.append('</section>')
     return out
 
 
+def _md_block(lines):
+    """Абзацы, списки и жирные подзаголовки — как в самом документе.
+
+    Строки абзаца склеиваются ДО преобразования. В документе жирный текст
+    свободно переносится на следующую строку, и построчное преобразование
+    оставляло от него половину: «**центр» на одной строке и «подтверждает
+    часы**» на другой — ни одна не пара сама себе.
+    """
+    out, ul, para = [], False, []
+
+    def flush():
+        if not para:
+            return
+        s = ' '.join(x.strip() for x in para).strip()
+        del para[:]
+        if not s:
+            return
+        if re.match(r'^\*\*[^*]+[.:]?\*\*$', s):
+            out.append('<p class="sub">%s</p>' % md(s))
+        else:
+            out.append('<p>%s</p>' % md(s))
+
+    for raw in lines:
+        s = raw.strip()
+        if not s:
+            flush()
+            if ul:
+                out.append('</ul>')
+                ul = False
+            continue
+        if s.startswith('- '):
+            flush()
+            if not ul:
+                out.append('<ul>')
+                ul = True
+            out.append('<li>%s</li>' % md(s[2:].rstrip(';')))
+            continue
+        if ul:
+            out.append('</ul>')
+            ul = False
+        para.append(s)
+    flush()
+    if ul:
+        out.append('</ul>')
+    return '\n'.join(out)
+
+
 def build(root, date, slug, lang=None, artifact=False):
-    spec = {}
-    sp = os.path.join(root, 'macstack.json')
-    if os.path.exists(sp):
-        spec = json.load(io.open(sp, encoding='utf-8'))
+    spec = _spec(root)
     lang = lang or doc_lang(root)
     T = STR.get(lang, STR['en'])
     name = (spec.get('identity') or {}).get('title') or spec.get('name', '')
-    data = collect(root)
-    version = data['versions'].get('user_cases', '?')
+    contract = _contract()
+    sections = collect(root, contract, lang)
 
-    # The Artifact host supplies <!doctype>, <head> and <body> and refuses a page that
-    # brings its own. Same content, one wrapper less.
+    # История по пункту и точка отсчёта «что изменилось». Дата берётся из имени
+    # ПРОШЛОГО пакета, а не из даты записи: комментарий несёт день, когда его
+    # написал клиент, и он сдвинул бы отметку за утверждения, которых клиент не
+    # видел, пометив их неизменными.
+    hist = ledger.index(root)
+    since = ledger.last_handoff(root)
+
+    version = ((spec.get('docs') or {}).get('files') or {}).get(
+        'user_cases', {}).get('version', '?')
+
     if artifact:
-        P = ['<title>%s</title>' % html.escape(name or T['title']), '<style>%s</style>' % CSS]
+        P = ['<title>%s</title>' % html.escape(T['short'].format(n=name) if name
+                                                else T['title']), FONTS,
+             '<style>%s</style>' % CSS]
     else:
         P = ['<!doctype html><html lang="%s"><head><meta charset="utf-8">' % lang,
              '<meta name="viewport" content="width=device-width,initial-scale=1">',
+             FONTS,
              '<title>%s — %s</title><style>%s</style></head><body>'
              % (html.escape(name), html.escape(T['title']), CSS)]
     P += ['<h1>%s</h1>' % html.escape(T['title']),
           '<p class="lead">%s</p>' % html.escape(T['lead'].format(n=name, v=version, d=date)),
           '<div class="howto">%s</div>' % T['howto']]
+    if since:
+        P.append('<p class="sec-note">%s</p>' % html.escape(T['since'] % since))
 
-    if data['overview']:
-        P.append('<h2>%s</h2>' % html.escape(T['s_over']))
-        for h, body in data['overview']:
-            P.append('<h3>%s</h3>' % md(h))
-            for b in body:
-                P.append('<li>%s</li>' % md(b[2:]) if b.startswith('- ') else '<p>%s</p>' % md(b))
-
-    for key, sect in (('cases', 's_cases'), ('screens', 's_screens'),
-                      ('triggers', 's_trig'), ('procedures', 's_proc')):
-        groups = [g for g in data[key] if g['items']]
+    counted = 0
+    for key, groups in sections:
         if not groups:
             continue
-        P.append('<h2>%s</h2>' % html.escape(T[sect]))
-        last = None
+        P.append('<h2>%s</h2>' % html.escape(T.get('s_' + key, key)))
+        note = T.get('n_' + key)
+        if note:
+            P.append('<p class="sec-note">%s</p>' % html.escape(note))
         for g in groups:
-            if key == 'cases' and g.get('section') and g['section'] != last:
-                last = g['section']
-                P.append('<h3 style="color:#6b7280;font-size:14px;text-transform:uppercase;letter-spacing:.04em">%s</h3>' % md(last))
-            if key == 'screens' and g.get('path'):
-                g = dict(g, meta='<code>%s</code>' % g['path'])
-            P.extend(rows(T, g))
+            P.extend(rows(T, g, hist, since))
+            counted += 1 if g['id'] else 0
 
     P.append('<div id="bar"><button onclick="save()">%s</button>'
              '<textarea id="dump" placeholder="%s"></textarea></div>'
              % (html.escape(T['btn']), html.escape(T['dump'])))
     P.append('<footer>%s</footer>' % html.escape(T['foot']))
     P.append('<script>%s</script>%s' % (JS, '' if artifact else '</body></html>'))
+    return '\n'.join(P), version, counted, sections
 
-    counted = sum(len(g['items']) for k in ('cases', 'screens', 'triggers', 'procedures') for g in data[k])
-    return '\n'.join(P), version, counted, data
+
+def _contract():
+    p = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                      '..', '..', 'documents', 'references',
+                                      'doc-contracts.json'))
+    try:
+        return json.load(io.open(p, encoding='utf-8'))
+    except (IOError, ValueError):
+        return {}
+
+
+VERDICT = {'ok': 'ok', 'no': 'no', 'q': 'q',
+           'верно': 'ok', 'не так': 'no', 'вопрос': 'q',
+           'right': 'ok', 'not so': 'no', 'question': 'q'}
+
+
+def read_answers(root, src, date=None):
+    """Ответы клиента -> строки журнала. Один путь, оба канала.
+
+    Клиент возвращает JSON из кнопки внизу страницы — неважно, скопировал он
+    его из HTML-файла или из опубликованной страницы. Второго пути для
+    вернувшихся пакетов строить нельзя: он уже однажды оказался местом, где
+    правки теряются.
+
+    Строка пишется на КАЖДЫЙ ответ, включая «верно». Молчаливое согласие и
+    отсутствие ответа выглядят одинаково, а это разные вещи: первое означает,
+    что человек прочёл и согласился.
+    """
+    raw = io.open(src, encoding='utf-8').read().strip()
+    try:
+        data = json.loads(raw)
+    except ValueError as e:
+        raise SystemExit('не разбирается как JSON: %s' % e)
+    answers = data.get('answers') if isinstance(data, dict) else data
+    if not isinstance(answers, list):
+        raise SystemExit('в файле нет списка ответов')
+    pkg = (data.get('package') or '') if isinstance(data, dict) else ''
+    when = date or (data.get('date') if isinstance(data, dict) else None) or _today(root)
+    rows_ = []
+    for a in answers:
+        ident = (a.get('id') or '').strip()
+        if not ident:
+            continue
+        v = VERDICT.get(str(a.get('answer') or '').strip().lower())
+        note = (a.get('comment') or '').strip()
+        if not v and not note:
+            continue
+        rows_.append({'date': when, 'doc': 'client/', 'item': ident, 'kind': 'comment',
+                      'verdict': v or '', 'why': note or _VERDICT_WORD.get(v, v or ''),
+                      'source': 'handoff:%s' % (data.get('handoff') or pkg or 'unknown'),
+                      'by': 'client'})
+    return rows_
+
+
+_VERDICT_WORD = {'ok': 'верно', 'no': 'не так', 'q': 'вопрос'}
 
 
 def main():
@@ -348,7 +626,21 @@ def main():
         i += 1
     root = args[0] if args else 'macstack'
     if not os.path.isdir(root):
-        print('no macstack/ folder at %s' % root); return 1
+        print('no macstack/ folder at %s' % root)
+        return 1
+    if flags.get('read'):
+        rows_ = read_answers(root, flags['read'], flags.get('date'))
+        import collections as _c
+        by = _c.Counter(r['verdict'] or '—' for r in rows_)
+        print('ответов: %d  %s' % (len(rows_), dict(by)))
+        if flags.get('dry'):
+            for r in rows_[:12]:
+                print('   %-14s %-5s %s' % (r['item'], r['verdict'], r['why'][:60]))
+            print('сухой прогон — в журнал не записано')
+            return 0
+        ledger.append(root, rows_)
+        print('записано в history/ledger.jsonl — следующий пакет подставит эти ответы')
+        return 0
     date = flags.get('date') or _today(root)
     slug = flags.get('slug') or 'user-cases'
     artifact = flags.get('artifact') is True or flags.get('artifact') == 'true'
@@ -363,26 +655,36 @@ def main():
         return 2
     io.open(out, 'w', encoding='utf-8').write(doc)
 
+    # Пакет записывает себя в журнал сам. Без этой строки СЛЕДУЮЩИЙ пакет не знает,
+    # от чего считать «что изменилось с прошлого раза», и пометит либо всё, либо
+    # ничего. Дата берётся из имени файла — по ней и считает ledger.last_handoff.
+    try:
+        stem = os.path.basename(out).rsplit('.', 1)[0]
+        ledger.append(root, {'date': date, 'doc': 'history/handoffs/' + os.path.basename(out),
+                             'item': 'project', 'kind': 'handoff',
+                             'now': 'пакет на согласование: %d пунктов, версия %s'
+                                    % (counted, version),
+                             'source': 'handoff:' + stem, 'by': 'claude'})
+    except Exception as e:                                        # noqa: BLE001
+        sys.stderr.write('ledger не записан: %s\n' % e)
+
     print('%s  ·  %d answerable items' % (out, counted))
-    print('  documents: ' + ' · '.join('%s v%s' % (k, v) for k, v in sorted(data['versions'].items())))
+    print('  ' + ' · '.join('%s %d' % (k, len(gs)) for k, gs in data if gs))
     print('')
     if artifact:
         print('  artifact body — publish with the Artifact tool, then record its URL below')
         print('')
-    print('Append to history/log.md:')
-    print('')
-    print('<!-- macstack:entry=%s-handoff -->' % date)
-    print('## [%s] handoff | %s' % (date, 'Client review package'))
-    print('')
-    print('```yaml')
-    print('kind: handoff')
-    print('document: [%s]' % ', '.join(sorted(data['versions'])))
-    print('version: %s' % version)
-    print('file: history/handoffs/%s' % os.path.basename(out))
     if artifact:
-        print('url:')
-    print('to:')
-    print('```')
+        print('  тело артефакта — опубликуйте его инструментом Artifact,')
+        print('  затем впишите URL в строку handoff журнала.')
+        print('')
+    # Журнал пакет уже записал сам, строкой выше. Печатать инструкцию «допишите
+    # в log.md» значило бы отправлять человека в файл, которого больше нет.
+    print('Дальше:')
+    print('  1. отдайте файл клиенту;')
+    print('  2. клиент жмёт «Собрать мои ответы» и присылает текст;')
+    print('  3. /macstack-dev:review --read <файл> — ответы лягут в журнал,')
+    print('     и следующий пакет подставит их под теми же пунктами.')
     return 0
 
 

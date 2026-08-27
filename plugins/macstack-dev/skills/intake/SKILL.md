@@ -13,11 +13,19 @@ Open `${CLAUDE_PLUGIN_ROOT}/skills/documents/SKILL.md` for the folder layout and
 `${CLAUDE_PLUGIN_ROOT}/skills/documents/references/doc-contracts.json` for anchors,
 section keys and ID regexes first — this skill assumes both and does not repeat them.
 
-## Two entry points
+## Three ways material arrives
 
-A file arrives (client email, upload, path already in this repo) → start at Step 1
-Intake. "надо улучшить X" / "improve X" with no file → skip straight to Step 3 Delta,
-source = `"chat, YYYY-MM-DD"`.
+1. **A file** — client email, upload, a path already in this repo. Start at Step 1.
+2. **A stray file in `client/`** — anything there that is not one of the six documents
+   is incoming material, not a document. Move it to `inbox/` first, then Step 1. Lint
+   rule 12.22 already refuses to let it sit there.
+3. **Text in chat** — "надо убрать геолокацию", "improve X". Write it to
+   `inbox/<date>-<slug>.md` FIRST, then Step 1 like any other file.
+
+The third is the one people skip, and it is the one that costs most. A correction that
+lives only in a chat transcript has no source: six months later nobody can say who
+asked for it or when, and the document states something nobody can trace. Cost of
+writing it down: one file. Cost of not: an unexplainable document.
 
 ## 0. Resolve
 
@@ -117,27 +125,30 @@ its cases — the letter is retired with it and never reassigned.
   history. DECISIONS.md rows were already written in step 4 — do not re-add them here;
   only fill in a row's `file` link now if it was not yet known at allocation time.
 
-## 8. Log
+## 8. Journal — one row per statement that changed
 
-Append to `log.md` — kind `merge`, one of the four the journal accepts
-(`intake · merge · work · release`; `work` and `release` belong to the
-`journal` skill, not this one):
+Every edit gets its own row in `history/ledger.jsonl`, keyed by the id of the thing
+that changed, not by the document:
 
-```
-## [2026-08-24] merge | OHAWO Client Portal Functional Spec
-- source: macstack/inbox/ohawo-client-portal-spec-2026-08-24.pdf (Read, pages 1-18)
-- delta: macstack/deltas/2026-08-24-client-portal.md — K-1..K-9, N-1..N-18
-- decisions: macstack/decisions/2026-08-24-client-feedback-rulings.md — D13..D23
-- applied: USER-CASES.md 1.7→1.8 · UX-UI.md 1.2→1.3 · macstack.json (roles, lifecycle)
-- opened: A10..A14 · closed: A6
-- note: <the one thing a reader six months from now needs>
+```json
+{"date":"2026-08-24","doc":"client/USER-CASES.md","item":"C-04","kind":"changed",
+ "was":"…прошлый текст…","now":"…новый…",
+ "why":"комментарий клиента в пакете 2026-08-25",
+ "source":"inbox/ohawo-client-portal-spec-2026-08-24.pdf","decision":"D42","by":"claude"}
 ```
 
-Bump `lifecycle.updated` to today's date in this same step — the two dates must
-never disagree.
+An edit without a row is a defect, and lint 12.36 says so. Document-level logging
+cannot replace it: the client package shows each statement with ITS history, and a row
+that names only the file cannot be attached to a statement.
 
-Second entry point (no file): record the source as `chat, YYYY-MM-DD` in both the
-delta and this entry — there is no inbox row and no Gate 1 for it.
+Then one `CHANGELOG.md` line for what actually reached the people who use the system —
+that file is read by humans, so a re-formatting does not belong in it.
+
+Bump `lifecycle.updated` to today's date in the same step — the dates must never
+disagree.
+
+Material that came through the chat is cited by its inbox path like anything else,
+because Step 1 wrote it there. There is no second citation format.
 
 ## 9. Verify — and what's machine-checkable vs. judgment
 
@@ -145,10 +156,10 @@ Run the `lint` skill → report 🟢/🟡/🔴 with numbered next steps. Lint pl
 together cover:
 
 **Script it:** inbox file with no manifest row · inbox file with no merge entry naming
-it in log.md · missing anchors · non-unique / non-ASCII / gap-numbered IDs · a cited
+it in the ledger · missing pointers · non-unique / non-ASCII / gap-numbered IDs · a cited
 D<n> that doesn't resolve in DECISIONS.md · a struck A<n> with no closing decision id and date ·
 USER-CASES header version ≠ last journal row · `lifecycle.updated` older than the
-newest log.md entry · a delta past its age budget with no applied banner.
+newest ledger row · a delta past its age budget with no applied banner.
 
 **Call it yourself:** whether a contradiction is real or the client's silence ·
 whether an addition duplicates an existing case · whether a §B trigger has already

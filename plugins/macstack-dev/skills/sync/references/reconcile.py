@@ -18,7 +18,8 @@ import sys, os, io, re, json
 
 sys.path.insert(0, os.path.normpath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..', 'documents', 'references')))
-import v3                                              # noqa: E402
+import v3
+import render as _render                   # покрытие считаем ЕГО функцией, не своей                                              # noqa: E402
 
 RESERVED = ('X', 'S', 'Z')          # сквозное, сценарии, запреты — ничьи по определению
 NOT_SCREENS = ('channel', 'api_portal', 'report')      # интерфейсы, которые человек не открывает
@@ -86,7 +87,11 @@ def run(root):
     dtasks = set()
     for i in ids_of('AUTOMATION.md', 'processes['):
         m = re.search(r'\.tasks\[id=([^\]]+)\]', i.ref or '')
-        dtasks.add(m.group(1) if m else i.id)
+        # Без `.tasks[` это САМ процесс, а не его задача. Раньше он попадал сюда
+        # по своему id и сравнивался со списком задач — восемь процессов давали
+        # восемь «есть в документе, в спеке нет» на записи, которые в спеке есть.
+        if m:
+            dtasks.add(m.group(1))
     human = set(k for k, v in stasks.items() if v)
     say(OK, u'задачи: в спеке %d (человеческих %d), в документе %d'
         % (len(stasks), len(human), len(dtasks)))
@@ -126,7 +131,14 @@ def run(root):
                        ('processes', u'процессы'), ('integrations', u'интеграции'),
                        ('workflows', u'workflow'), ('entities', u'сущности данных'),
                        ('software', u'софт')):
-        ids = [i.get('id') for i in (spec.get(key) or []) if isinstance(i, dict) and i.get('id')]
+        recs = [i for i in (spec.get(key) or []) if isinstance(i, dict) and i.get('id')]
+        # `technical: true` — запись существует в системе и в клиентских
+        # документах ей места нет: файловое хранилище, журнал доставки,
+        # последовательность номеров. Без этого «не описано клиенту» и «описано
+        # быть не должно» неразличимы, отчёт повторяет одну и ту же
+        # инфраструктуру каждый прогон и его перестают читать.
+        tech = [i['id'] for i in recs if i.get('technical')]
+        ids = [i['id'] for i in recs if not i.get('technical')]
         miss = [i for i in ids if i not in all_client]
         if not ids:
             continue
@@ -137,7 +149,9 @@ def run(root):
             say(INFO, u'%s: упомянуто %d из %d · нет: %s'
                 % (label, len(ids) - len(miss), len(ids), u', '.join(miss[:6])))
         else:
-            say(OK, u'%s: все %d упомянуты' % (label, len(ids)))
+            say(OK, u'%s: все %d упомянуты%s'
+                % (label, len(ids),
+                   u' (+%d технических, им там места нет)' % len(tech) if tech else u''))
 
     # ── generated
     arch = io.open(os.path.join(G, 'ARCHITECTURE.md'), encoding='utf-8').read() \
@@ -148,11 +162,31 @@ def run(root):
         hit = [i for i in ids if i and i in arch]
         say(OK if len(hit) == len(ids) else HOLE,
             u'ARCHITECTURE.md: %s %d из %d' % (label, len(hit), len(ids)))
+    # Покрытие считается ПО КЕЙСАМ. Прошлая версия искала здесь сущности с id
+    # вида `C-04.T1` — форму, в которой документ не пишется с тех пор, как
+    # единицей покрытия стал кейс, а не пункт приёмки. Она находила ноль и
+    # печатала «тестов 0 на 78 кейсов» рядом с документом, где написано 14.
+    # Ноль от несовпадения формы неотличим от нуля от отсутствия тестов.
     tc = os.path.join(G, 'TEST-CASES.md')
-    tests = [i for i in v3.load(tc) if i.id and re.match(r'^[A-Z]-\d{2}\.T\d+$', i.id)] \
-        if os.path.exists(tc) else []
-    say(OK if tests else HOLE,
-        u'TEST-CASES.md: тестов %d на %d кейсов' % (len(tests), len(cases)))
+    if not os.path.exists(tc):
+        say(HOLE, u'TEST-CASES.md: файла нет, покрытие неизвестно')
+    else:
+        # Считаем ТОЙ ЖЕ функцией, что и рендер, а не разбором готового
+        # документа. Разбор зависит от строки «не покрыт», которую рендер берёт
+        # из каталога и переводит; первая же попытка совпасть с ней вслепую дала
+        # «покрыт 71 из 78» рядом с документом, где написано 14.
+        hits = _render.scan_tests(os.path.normpath(os.path.join(root, '..')))
+        def _scenario(path):
+            q = path.replace(os.sep, '/')
+            return '/e2e/' in q or 'scenario' in q or q.endswith('.e2e.spec.ts')
+        covered = {cid for cid, refs in hits.items()
+                   if any(_scenario(f) for f, _ in refs)}
+        covered &= set(cases)
+        if not cases:
+            say(HOLE, u'кейсов не найдено — сверять покрытие не с чем')
+        else:
+            say(OK if covered else HOLE,
+                u'сценарным тестом покрыто %d из %d кейсов' % (len(covered), len(cases)))
 
     holes = sum(1 for m, _ in rep if m == HOLE)
     for m, txt in rep:

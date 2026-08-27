@@ -493,3 +493,58 @@ checked. The plugin lints the projects it manages and lints nothing about itself
 hold a `SKILL.md` whose `name` matches it, does every path referenced in a skill exist,
 does every document the contract calls `generated` have a generator, do the two manifests
 agree. It belongs in `/macstack-dev:feedback` or in CI.
+
+## 2026-08-27 — documents/lint: a format change carried only as far as the reader
+
+**Problem:** v3 — pure markdown, no yaml, no tables — was implemented in the parser and
+then abandoned. Six scripts still imported the v2 parser, which against a v3 document
+filters by `Block.kind` and finds nothing. It returns **empty, not an error.** So
+`/review` would have built a package with zero items, `/plan` would have called all 78
+cases unplanned, `/sync` would have called every entity deleted, and `/start` would have
+seeded yaml into a folder whose own rules forbid it. Nothing failed. Everything passed.
+
+The same defect class then recurred five more times in one week: the port agents
+reintroduced it twice; repointing the case pointers made 35 rules run over an empty list
+and all 35 passed; rule 12.18 kept a stale copy of the render job list; rule 12.2 had no
+implementation at all; rule 12.36 was documented in SKILL.md for three releases with no
+code behind it; and the client package's own JS collected zero answers because it still
+queried `tr[data-id]` after the switch to cards.
+
+**Fix:** all six consumers ported. Rule 12.0 added as the guard: for every entity kind
+the contract declares in a document, the loader must return at least one. Rules 12.36 and
+12.38 implemented. A three-line cross-check now compares `@rule(...)` in the code against
+the rule list in SKILL.md; before it, they differed by two.
+
+**Root cause:** every parser here returns empty on a shape it does not recognise, and
+empty is indistinguishable from "checked, and it was fine". A format change that cannot
+break compilation must be made to break a rule instead.
+
+**Generalisation worth keeping:** a check that can return "nothing to check" must be able
+to say which of the two it means. Where it cannot, it is decoration — and decoration that
+prints green is worse than no check, because it is believed.
+
+**Severity:** Critical
+
+## 2026-08-27 — client-package/commands: the loop existed, the command did not
+
+**Problem:** the closed client loop was built and working — the page collects answers,
+`read_answers` writes them into the ledger, the next package pre-fills them. But it was
+explained to the owner as `package.py macstack --read answers.json`. The owner's reply:
+"я тебя просил сделать понятные команды в плагине macstack-dev." Correct. A plugin whose
+capability is reachable only by knowing a script path and its flags does not have that
+capability in any sense that matters.
+
+Alongside it, three documents stated things that were no longer true: `README.md`
+described the v2 shape the owner had rejected, `client-package/SKILL.md` described
+positional bullet numbers and told the reader to append to `history/log.md` (archived),
+and the marketplace description advertised yaml blocks to buyers.
+
+**Fix:** `/macstack-dev:review --read <file>` documented as the path, and it accepts text
+pasted into the chat — written to `inbox/` first, so the correction has a traceable
+source. `/macstack-dev:inbox` renamed `/macstack-dev:intake`: there are three sources and
+"inbox" named one. README, SKILL and both manifests rewritten to v3; version 3.0.0.
+
+**Root cause:** the work was measured by whether the code ran, not by whether a person
+could reach it. Those are different questions, and only the second one is delivery.
+
+**Severity:** Major

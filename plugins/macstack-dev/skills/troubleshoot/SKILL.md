@@ -15,8 +15,8 @@ description: This skill should be used when the user reports "macstack lint fail
 | `trigger unknown` | a workflow references a trigger code missing from `triggers[]` → triggers live ONLY in the collection, never inline |
 | `delegation not downward` | an orchestrator appears in a worker's delegates_to → the hierarchy is strictly control_plane → orchestrator → worker |
 | `cross-stack not declared` | the `foo:` prefix is not declared → add the stack to `stacks.root/substacks/links` |
-| `lint red on rule 12.24` | a table exceeds the format budget (>4 columns, a cell >80 chars, <3 rows, or `<br>`/bold/code/pipes in a cell) → convert it to a list, see `document-format` |
-| `lint red on rule 12.25` | prose is not in `docs.language` → translate the prose; identifiers (ids, YAML keys, anchors, statuses, file paths) always stay English, see `document-format` |
+| `lint red on rule 12.24` | a table exceeds the format budget (>4 columns, a cell >80 chars, <3 rows, or `<br>`/bold/code/pipes in a cell) → convert it to a list, see `documents/references/format-rules.md` |
+| `lint red on rule 12.25` | prose is not in `docs.language` → translate the prose; identifiers (ids, YAML keys, anchors, statuses, file paths) always stay English, see `documents/references/format-rules.md` |
 
 ## Prototype resolution
 

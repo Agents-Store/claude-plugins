@@ -89,7 +89,7 @@ required in prose. A `manual` test additionally needs `preconditions` and `steps
 an `auto` test additionally needs `evidence` (and skips `preconditions`/`steps`).
 One anchor above the heading, one YAML block right under it, prose in anchored
 sections below — the shape every document under `macstack/` uses; see
-`document-format` for the full rule.
+`${CLAUDE_PLUGIN_ROOT}/skills/documents/references/format-rules.md` for the full rule.
 
 ## auto or manual
 

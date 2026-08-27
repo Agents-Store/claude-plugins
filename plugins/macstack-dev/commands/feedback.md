@@ -10,7 +10,7 @@ applied to a mirror is silently overwritten by the next sync.
 | What broke | Where it is fixed |
 |---|---|
 | A skill's instructions, the folder convention, the merge loop | this plugin |
-| The document shape, a table that should be a list, a language rule | this plugin, `document-format` and `doc-contracts.json` |
+| The document shape, a table that should be a list, a language rule | this plugin, `documents` and `doc-contracts.json` |
 | The schema, a field, an enum, a lint rule of the standard | `macstacks/macstack` |
 | A software category, a coverage area | `macstacks/registry` |
 

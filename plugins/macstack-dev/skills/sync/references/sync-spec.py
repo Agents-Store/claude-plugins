@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Reconcile the BUSINESS half of macstack.json against the client's authored v2 documents.
+"""Reconcile the BUSINESS half of macstack.json against the client's authored v3 documents.
 
 client/AUTOMATION.md and client/UX-UI.md are written by a human and corrected by the
 client; this reads their entities (roles, role tasks, triggers, screens) and reports
 exactly where the spec disagrees. v1 read two tables by column POSITION and applied
-value changes by regex substitution over the raw JSON text; both are gone here — entities
-carry ids now (mdblocks), and the spec is edited as a Python structure
-(`json.load(object_pairs_hook=collections.OrderedDict)` -> mutate -> `json.dump`) so
-formatting and key order survive the round trip.
+value changes by regex substitution over the raw JSON text; v2 moved the machine
+fields into a per-entity YAML block. Both are gone here — v3 keeps only a heading and
+one `macstack:ref=<path-into-macstack.json>` pointer above it (`v3.py`), and the spec
+is edited as TEXT (`jsonedit.py`), never reparsed and reserialized, so formatting and
+key order survive the round trip: `json.dump(indent=2)` on this project's live spec
+turned 959 lines into 4119.
 
 WILL change — values of entities matched unambiguously BY ID: a role_task's gate, a
 trigger's schedule, a screen's path/roles, and any entity's name (its heading title).
@@ -22,11 +24,20 @@ decision: workflows, tests and prose reference it, so a machine that invents one
 machine that silently orphans a reference on the next rename. New and missing entities
 are reported as `add` / `gone` for a human to resolve.
 
-v1 -> v2: the document entity now carries an id in its heading, so unlike v1 (where a
-task was matched by normalizing its NAME text, because no id existed anywhere) a v2
-entity is matched by id alone. That makes a TITLE rename detectable and applicable — it
-shows up as a `changed` `name`. Changing the ID itself still looks like one `add` plus
-one `gone`, and this script reports that rather than guessing a rename.
+v1 -> v2 -> v3: the document entity has carried an id in its heading since v2, so
+unlike v1 (where a task was matched by normalizing its NAME text, because no id
+existed anywhere) an entity is matched by id alone. That makes a TITLE rename
+detectable and applicable — it shows up as a `changed` `name`. Changing the ID itself
+still looks like one `add` plus one `gone`, and this script reports that rather than
+guessing a rename.
+
+Screens are the one place id-matching does not hold. UX-UI.md writes one heading per
+SCREEN (37 on the corpus this was measured against) but macstack.json keeps one record
+per interface AREA (9) — the pointer above a screen heading names the area, not the
+screen. `compare_screens` matches on the pointer's target, and only the screen whose
+own id equals that target (the area's entry screen, a convention every area in the
+corpus follows) stands for the area's name/path/roles; the other screens count only
+toward whether the area is described at all.
 
 Usage: sync-spec.py <macstack-dir> [--apply]
 """
@@ -34,7 +45,7 @@ import sys, os, io, re, json, collections
 
 sys.path.insert(0, os.path.normpath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..', 'documents', 'references')))
-from mdblocks import parse, entities  # noqa: E402
+import v3                                              # noqa: E402
 import jsonedit as J  # noqa: E402
 from i18n import doc_lang, msg  # noqa: E402
 
@@ -52,6 +63,10 @@ ROLE_APPLIABLE = {'name', 'sees', 'can', 'cases', 'isolation'}
 TASK_APPLIABLE = {'name', 'gate', 'role', 'workflow'}
 TRIGGER_APPLIABLE = {'name', 'type', 'source', 'schedule', 'entity', 'event', 'condition', 'path'}
 SCREEN_APPLIABLE = {'name', 'path', 'roles'}
+# Кейс: документ владеет тем, ЧТО человек должен получить и насколько это важно.
+# `acceptance` сюда не входит намеренно — список пунктов приёмки выделяется
+# рендером и живёт в generated/, а не переписывается из прозы.
+CASE_APPLIABLE = {'name', 'priority', 'role', 'screens', 'triggers', 'workflow'}
 
 # Never written from a client document, whatever it says. These are the architect's,
 # measured against the code; generating them from a client's words would be a promise
@@ -72,63 +87,104 @@ def is_screen(iface):
     return (iface.get('audience') or 'human') in ('human', 'both', '')
 
 
-def read(path):
-    with io.open(path, encoding='utf-8') as f:
-        return f.read()
+# v3 fields the schema declares an ARRAY: v3._value() returns a bare string when the
+# document names exactly one id and a list only for several (comma is a list
+# separator, not a marker of arrayness), so a screen naming one role would otherwise
+# hand jsonedit a string where interfaces[].roles wants ["coach"]. Coercing at the
+# read boundary means every caller downstream — comparison and apply alike — already
+# sees the shape the schema expects.
+ARRAY_FIELDS = frozenset((
+    'roles', 'screens', 'triggers', 'entities', 'cases', 'languages', 'views'))
 
 
-def title_of(block):
-    h = (block.heading or '').strip()
-    if '·' in h:
-        return h.split('·', 1)[1].strip()
-    return h
+def field(item, key):
+    v = item.get(key)
+    if key in ARRAY_FIELDS and v is not None and not isinstance(v, (list, tuple)):
+        return [v]
+    return v
 
 
-def text_of(block):
-    if block is None:
-        return None
-    t = block.text()
-    return t if t else None
+def title_of(item):
+    return item.title or ''
 
 
 # ------------------------------------------------------------------- documents
-def doc_role(b):
+def doc_role(it):
     return {
-        'id': b.id,
-        'name': title_of(b),
-        'cases': b.yaml.get('cases'),
-        'isolation': b.yaml.get('isolation'),
-        'sees': text_of(b.field('sees')),
-        'can': text_of(b.field('can')),
+        'id': it.id,
+        'name': title_of(it),
+        'cases': field(it, 'cases'),
+        'isolation': field(it, 'isolation'),
+        'sees': field(it, 'sees'),
+        'can': field(it, 'can'),
     }
 
 
-def doc_task(b):
+def doc_task(it):
     return {
-        'id': b.id,
-        'name': title_of(b),
-        'role': b.yaml.get('role'),
-        'gate': b.yaml.get('gate'),
-        'workflow': b.yaml.get('workflow'),
+        'id': it.id,
+        'name': title_of(it),
+        'role': field(it, 'role'),
+        'gate': field(it, 'gate'),
+        'workflow': field(it, 'workflow'),
     }
 
 
-def doc_trigger(b):
-    config = dict((k, b.yaml.get(k)) for k in CONFIG_KEYS if b.yaml.get(k) is not None)
+def doc_trigger(it):
+    config = dict((k, field(it, k)) for k in CONFIG_KEYS if field(it, k) is not None)
     return {
-        'id': b.id,
-        'name': title_of(b),
-        'type': b.yaml.get('type'),
+        'id': it.id,
+        'name': title_of(it),
+        'type': field(it, 'type'),
         'config': config,
     }
 
 
-def doc_screen(b):
+REF_ID = re.compile(r'\[id=([^\]]+)\]')
+
+
+def doc_case(it):
+    """Кейс из USER-CASES.md.
+
+    Роль читается из УКАЗАТЕЛЯ, а не из пункта: на живом корпусе у кейса нет
+    пункта «Кто» — принадлежность роли несёт `roles[id=coach].cases`, и до схемы
+    rev 13 это был единственный её адрес. Сквозные `X-`, сценарии `S-` и запреты
+    `Z-` не принадлежат роли по существу и указателя не несут вовсе.
+    """
+    m = re.search(r'roles\[id=([^\]]+)\]', it.ref or '')
     return {
-        'id': b.id,
-        'name': title_of(b),
-        'path': b.yaml.get('path'),
-        'roles': b.yaml.get('roles'),
+        'id': it.id,
+        'name': title_of(it),
+        'role': m.group(1) if m else field(it, 'role'),
+        'priority': field(it, 'priority'),
+        'screens': field(it, 'screens'),
+        'triggers': field(it, 'triggers'),
+        'workflow': field(it, 'workflow'),
+    }
+
+
+def screen_target(it):
+    """The interface AREA the pointer names — `interfaces[id=coach-portal]` ->
+    'coach-portal'. NOT it.id: UX-UI.md writes one heading per screen, macstack.json
+    keeps one record per area, and matching on the screen's own heading id would
+    report every non-entry screen `add` forever, since no screen slug is ever an
+    interfaces[].id.
+
+    A pointer that names the collection and no member — `interfaces[]` over a heading
+    that does carry a slug — leaves that slug as the only address the document
+    offers, so it stands in. Returning None instead reached the report as
+    `add screen None`: an id no human can look up and `path_of` can never resolve."""
+    m = REF_ID.search(it.ref or '')
+    return m.group(1) if m else it.id
+
+
+def doc_screen(it):
+    return {
+        'id': it.id,
+        'target': screen_target(it),
+        'name': title_of(it),
+        'path': field(it, 'path'),
+        'roles': field(it, 'roles'),
     }
 
 
@@ -263,9 +319,21 @@ def compare_roles(doc_roles, spec_roles):
 
 
 def all_spec_tasks(spec):
+    """Only tasks with a human touchpoint. AUTOMATION.md's task section is titled
+    "Что делают люди" — what PEOPLE do — and structurally never mentions a
+    workflow-only task, so comparing one against the document reported it `gone`
+    unconditionally. Measured on the live corpus: 17 of 50 spec tasks carry no
+    `human` at all, and dropping them is exactly what brings `gone` to zero against a
+    document that in fact describes every role task it has.
+
+    The test is `human`, not `human.role`. A task whose human block exists but has
+    lost its role is the ONE case where the document's `Кто делает` bullet is the
+    repair — and requiring the role here hid that task from the comparison entirely,
+    so it surfaced as `add` for an id macstack.json already holds: a false report,
+    and an unappliable one, since `add` is never written back."""
     for p in (spec.get('processes') or []):
         for t in (p.get('tasks') or []):
-            if t.get('id'):
+            if t.get('id') and t.get('human'):
                 yield t
 
 
@@ -346,25 +414,67 @@ def compare_triggers(doc_triggers, spec_triggers):
     return add, gone, changed
 
 
+def compare_cases(doc_cases, spec_cases):
+    """Запреты `Z-` живут в prohibitions[], а не в cases[] — сверять их здесь
+    значило бы объявлять пятнадцать штук `add` при каждом прогоне."""
+    add, gone, changed = [], [], []
+    spec_by_id = dict((c.get('id'), c) for c in spec_cases)
+    doc_by_id = dict((c['id'], c) for c in doc_cases if not (c['id'] or '').startswith('Z-'))
+    for cid, d in doc_by_id.items():
+        if cid not in spec_by_id:
+            add.append(('case', cid, d['name']))
+            continue
+        s = spec_by_id[cid]
+        for key in ('name', 'priority', 'role', 'screens', 'triggers', 'workflow'):
+            dv, sv = d.get(key), s.get(key)
+            if dv is None or dv == sv:
+                continue
+            changed.append(mk_change(
+                'case', cid, key, sv, dv, key in CASE_APPLIABLE,
+                (lambda s=s, k=key, v=dv: s.__setitem__(k, v))
+                if key in CASE_APPLIABLE else None))
+    for cid, s in spec_by_id.items():
+        if cid not in doc_by_id:
+            gone.append(('case', cid, s.get('name')))
+    return add, gone, changed
+
+
 def compare_screens(doc_screens, spec_interfaces):
-    spec_interfaces = [i for i in spec_interfaces if is_screen(i)]
+    """Existence is checked at the AREA the pointer names, never at the screen's own
+    heading id — see `screen_target`. Field values (name/path/roles) come only from
+    the group's ENTRY screen, the one whose id equals the area id: a sub-screen's own
+    path is its own address, not the area's, and comparing it would report `changed`
+    forever, since it structurally never equals the one value the area actually has.
+
+    SCREENISH narrows `gone` and only `gone` — that is what its comment claims and
+    the one direction it reasons about. Narrowing the existence index with it as well
+    made a documented API or channel interface report `add` for an id macstack.json
+    already holds, and told a human to create a second one."""
     add, gone, changed = [], [], []
     spec_by_id = dict((i.get('id'), i) for i in spec_interfaces)
-    doc_by_id = dict((s['id'], s) for s in doc_screens)
-    for sid, d in doc_by_id.items():
-        if sid not in spec_by_id:
-            add.append(('screen', sid, d['name']))
+
+    by_target = collections.OrderedDict()
+    for d in doc_screens:
+        by_target.setdefault(d['target'], []).append(d)
+
+    for target, group in by_target.items():
+        if target not in spec_by_id:
+            home = next((g for g in group if g['id'] == target), group[0])
+            add.append(('screen', target, home['name']))
             continue
-        s = spec_by_id[sid]
+        s = spec_by_id[target]
+        home = next((g for g in group if g['id'] == target), None)
+        if home is None:
+            continue
         for f in SCREEN_FIELDS:
-            dv, sv = d.get(f), s.get(f)
+            dv, sv = home.get(f), s.get(f)
             if dv is not None and dv != sv:
                 appliable = f in SCREEN_APPLIABLE
                 fn = (lambda s=s, f=f, dv=dv: s.__setitem__(f, dv)) if appliable else None
-                changed.append(mk_change('screen', sid, f, sv, dv, appliable, fn))
-    for sid, s in spec_by_id.items():
-        if sid not in doc_by_id:
-            gone.append(('screen', sid, s.get('name')))
+                changed.append(mk_change('screen', target, f, sv, dv, appliable, fn))
+    for s in spec_interfaces:
+        if is_screen(s) and s.get('id') not in by_target:
+            gone.append(('screen', s.get('id'), s.get('name')))
     return add, gone, changed
 
 
@@ -387,16 +497,27 @@ def main():
     if not os.path.exists(auto_p):
         print('missing: %s' % auto_p)
         return 1
-    _, auto_blocks = parse(read(auto_p))
-    doc_roles = [doc_role(b) for b in entities(auto_blocks, 'role')]
-    doc_tasks = [doc_task(b) for b in entities(auto_blocks, 'task')]
-    doc_triggers = [doc_trigger(b) for b in entities(auto_blocks, 'trigger')]
+    auto_items = v3.load(auto_p)
+    doc_roles = [doc_role(it) for it in v3.entities(auto_items, 'roles')]
+    # 'processes' matches BOTH the process heading and its tasks. The assumption
+    # that a process heading carries no id was true when this was written and is not
+    # any more: seeded and live documents both give the process its own id and
+    # pointer. Without the `.tasks[` filter the eight processes of a live project
+    # were reported as eight new role_tasks on every run — a wrong list, printed
+    # confidently, that somebody would eventually act on.
+    doc_tasks = [doc_task(it) for it in v3.entities(auto_items, 'processes')
+                 if '.tasks[' in (it.ref or '')]
+    doc_triggers = [doc_trigger(it) for it in v3.entities(auto_items, 'triggers')]
+
+    doc_cases = []
+    uc_p = os.path.join(root, 'client', 'USER-CASES.md')
+    if os.path.exists(uc_p):
+        doc_cases = [doc_case(it) for it in v3.entities(v3.load(uc_p), 'cases')]
 
     doc_screens = []
     ux_p = os.path.join(root, 'client', 'UX-UI.md')
     if os.path.exists(ux_p):
-        _, ux_blocks = parse(read(ux_p))
-        doc_screens = [doc_screen(b) for b in entities(ux_blocks, 'screen')]
+        doc_screens = [doc_screen(it) for it in v3.entities(v3.load(ux_p), 'interfaces')]
 
     add, gone, changed = [], [], []
     for a, g, c in (
@@ -404,6 +525,7 @@ def main():
         compare_tasks(doc_tasks, spec),
         compare_triggers(doc_triggers, spec.get('triggers') or []),
         compare_screens(doc_screens, spec.get('interfaces') or []),
+        compare_cases(doc_cases, spec.get('cases') or []),
     ):
         add += a
         gone += g
@@ -415,18 +537,36 @@ def main():
     print('\n=== gone (%d) — in the spec, not in the document ===' % len(gone))
     for kind, id_, name in gone:
         print('  - %-10s %-20s %s' % (kind, id_, name or ''))
+    # Расхождение имени, отклонённое ЗАЩИТОЙ ПИСЬМЕННОСТИ, — это не новость, а
+    # постоянное состояние по замыслу: macstack.json всегда латиница, документ
+    # написан на языке проекта. На живом проекте таких 79 из 90, и печатать их
+    # каждый прогон значит топить одиннадцать настоящих в шуме, который всегда
+    # одинаковый. Одна строка вместо семидесяти девяти — и она честно называет
+    # число, а не скрывает его.
+    script_only = [r for r in changed
+                   if not r['appliable'] and not is_english(r['want'])]
+    rest = [r for r in changed if r not in script_only]
     print('\n=== changed (%d) — id matched, values differ ===' % len(changed))
-    for rec in changed:
+    for rec in rest:
         if rec['appliable']:
             tag = ''
-        elif not is_english(rec['want']):
-            tag = '  [not applied — macstack.json stays in the Latin script]'
         elif would_erase(rec['want'], rec['have']):
             tag = '  [not applied — a blank in the document would erase the spec]'
         else:
             tag = '  [report only, not applied]'
         print('  ~ %-10s %-16s %-10s spec=%r  doc=%r%s' %
               (rec['kind'], rec['id'], rec['field'], rec['have'], rec['want'], tag))
+    if script_only:
+        kinds = {}
+        for r in script_only:
+            kinds[r['kind']] = kinds.get(r['kind'], 0) + 1
+        print('  · ещё %d — имя на языке проекта против латиницы в спеке, '
+              'так и задумано (%s). Показать: --script'
+              % (len(script_only), ', '.join('%s %d' % kv for kv in sorted(kinds.items()))))
+        if '--script' in sys.argv:
+            for rec in script_only:
+                print('    ~ %-10s %-16s %-10s spec=%r  doc=%r'
+                      % (rec['kind'], rec['id'], rec['field'], rec['have'], rec['want']))
 
     if apply_:
         raw = io.open(spec_p, encoding='utf-8').read()

@@ -24,7 +24,8 @@ Usage:  render.py <macstack-dir> [--date YYYY-MM-DD] [--check] [--only architect
 import sys, os, io, re, json, datetime, difflib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from mdblocks import parse, entities, entity, anchor, doc_header
+# Only the section/doc anchors are still mdblocks' — every entity below is v3's now.
+from mdblocks import anchor, doc_header
 from i18n import doc_lang, msg, out
 import v3                                            # noqa: E402
 
@@ -45,26 +46,12 @@ def load_spec(root):
         return {}
 
 
-def load_doc(path):
-    """Parse an existing markdown document. (header, blocks) — ([], {}) if absent."""
-    if not os.path.exists(path):
-        return None, []
-    with io.open(path, encoding='utf-8') as f:
-        return parse(f.read())
-
-
 def esc(s):
     return str(s).replace('|', '\\|').replace('\n', ' ').strip() if s is not None else ''
 
 
 def L(table, lang):
     return table.get(lang) or table['en']
-
-
-def _title(block):
-    """A block's heading is '<id> · <title>' — split off the title half."""
-    h = block.heading or ''
-    return h.split('·', 1)[1].strip() if '·' in h else h
 
 
 # ---------------------------------------------------------------- prose catalogue
@@ -85,13 +72,29 @@ HEAD = {
                integrations="Интеграции и контекст", journal="Журнал документа",
                cases="Кейсы", screens="Экраны", triggers="Триггеры", coverage="Покрытие",
                map="Карта", ownership="Кто чем владеет", idspaces="Пространства id",
-               loop="Цикл работы"),
+               loop="Цикл работы",
+        processes='Процессы',
+        roles='Роли',
+        tasks='Задачи',
+        invariants='Правила, которые не нарушаются',
+        prohibitions='Запреты',
+        glossary='Словарь',
+        open_questions='Открытые вопросы',
+    ),
     'en': dict(howto="How to read this", stack="What it is made of",
                entities="Entities and where they live", workflows="What runs",
                integrations="Integrations and context", journal="Document journal",
                cases="Cases", screens="Screens", triggers="Triggers", coverage="Coverage",
                map="Map", ownership="Who owns what", idspaces="ID spaces",
-               loop="Working loop"),
+               loop="Working loop",
+        processes='Processes',
+        roles='Roles',
+        tasks='Tasks',
+        invariants='Invariants',
+        prohibitions='Prohibitions',
+        glossary='Glossary',
+        open_questions='Open questions',
+    ),
 }
 
 MISC = {
@@ -101,9 +104,7 @@ MISC = {
         col_date="дата", col_what="что изменилось",
         arch_howto=(
             "Машинная половина спецификации, разложенная для человека и для агента, которому предстоит\n"
-            "здесь строить: чем собрано, что хранится и где, что исполняется и в каком файле.\n\n"
-            "Этот документ **не заменяет** `../docs/architecture.md`. Там — то, чего в спеке не выразить:\n"
-            "измеренные ловушки, аргументы за решения, грабли, на которые уже наступали."),
+            "здесь строить: чем собрано, что хранится и где, что исполняется и в каком файле."),
         patterns="паттерны", no_software="В спецификации нет ни одного software.",
         no_entities="В спецификации нет ни одной сущности.",
         single_master="**master для всех сущностей этого раздела:** `{master}`.",
@@ -132,6 +133,14 @@ MISC = {
             'data': "Держит данные — источник фактов для остального стека.",
             'storage': "Хранит и раздаёт — инфраструктурный слой под данными и процессами.",
         },
+    
+        nothing_found='В %s не нашлось ни одной сущности — либо документ пуст, либо его формат не разбирается',
+        requirements_lead='Каждое проверяемое утверждение клиентских документов, с его постоянным адресом. Ничего руками: правьте client/.',
+        tests_lead="Кейс проверен, когда есть сценарный тест, проходящий его целиком. Связь — в названии теста: `test('... (C-04)')`. Инженерные тесты показаны отдельно: они поддержка, а не доказательство.",
+        no_acceptance='нет пунктов приёмки',
+        no_scenario='сценарного теста нет',
+        supported_by='есть инженерные: %d',
+        not_covered='не покрыт',
     ),
     'en': dict(
         banner_note="Generated from `{src}`. Hand edits are lost on the next render — edit the source.",
@@ -139,9 +148,7 @@ MISC = {
         col_date="date", col_what="what changed",
         arch_howto=(
             "The machine half of the spec laid out for a human and for the agent that has to build here:\n"
-            "what it is made of, what is stored and where, what runs and in which file.\n\n"
-            "This does **not** replace `../docs/architecture.md`. That one holds what the spec cannot\n"
-            "express — measured traps, the argument behind a decision, the rake already stepped on."),
+            "what it is made of, what is stored and where, what runs and in which file."),
         patterns="patterns", no_software="The spec declares no software.",
         no_entities="The spec declares no entities.",
         single_master="**master for every entity in this section:** `{master}`.",
@@ -170,11 +177,60 @@ MISC = {
             'data': "Holds the data — the source of facts for the rest of the stack.",
             'storage': "Stores and serves — the infrastructure layer under the data and the processes.",
         },
+    
+        nothing_found='No entities were found in %s — the document is either empty or its format does not parse',
+        requirements_lead='Every checkable statement of the client documents, at its permanent address. Nothing by hand: edit client/.',
+        tests_lead="A case is verified when a scenario test covers it end to end. The link is in the test title: `test('... (C-04)')`. Engineering tests are shown separately: they are support, not proof.",
+        no_acceptance='no acceptance bullets',
+        no_scenario='no scenario test',
+        supported_by='engineering tests: %d',
+        not_covered='not covered',
     ),
 }
 
 
 # ---------------------------------------------------------------- ARCHITECTURE.md
+# form='slug' on every entity here, never form='id'. v3 takes the id from the
+# HEADING, not from the pointer, and _split_heading's id-first branch only
+# accepts a spoken id — C-04, A5, M3-T1, Z-03. software/entities/workflows are
+# technical slugs (payload, coach, wf-entry-capture), so '### payload · Payload'
+# parses as a titled heading with NO id: 39 pointers, 39 headings, 0 entities,
+# and not one error. The em-dash form '### Payload — `payload`' is what
+# format-rules §3 declares for a slug, and it is the only one v3 can read back.
+def _bullet(key, value, lang):
+    """'- **key:** value'.
+
+    The key is the literal ASCII macstack.json field name, never translated —
+    doc-contracts.format.yaml_rule already made that promise for the fenced yaml
+    block this line replaces, and a bullet label is that same key wearing v3's
+    punctuation instead of a colon inside a fence. Only the VALUE goes through
+    v3's own rules (v3.value_text): booleans become words, bare identifiers get
+    backticked, an empty value leaves no trailing space rather than a dash.
+    """
+    text = v3.value_text(value, lang)
+    return '- **%s:**%s' % (key, (' ' + text) if text else '')
+
+
+def _agentic_text(agentic, lang):
+    """'mcp да, api да, cli да, rating `full`' — macstack.json nests this one field;
+    everything else in a software entity is already flat. The old dump_yaml path
+    pre-stringified True/False here because a nested Python bool round-tripped as
+    the WORD 'True'; v3.value_text has no such bug, so mcp/api/cli/partial go
+    through it exactly like any other bullet value, in the one order the schema
+    declares them (never dict order, which agentic dicts don't reliably keep).
+
+    A key present but empty is DROPPED rather than rendered as a bare word: it
+    would leave '- **agentic:** rating ' with a hanging space, which is the same
+    defect v3.emit_field guards against and which put 41 such lines into a live
+    HANDBOOK.md. False is not empty — it renders as 'нет' and stays."""
+    parts = []
+    for k in ('mcp', 'api', 'cli', 'rating'):
+        text = v3.value_text(agentic[k], lang) if k in agentic else ''
+        if text:
+            parts.append('%s %s' % (k, text))
+    return ', '.join(parts)
+
+
 def render_architecture(spec, lang):
     h, m = L(HEAD, lang), L(MISC, lang)
     out_lines = ['# ' + L(TITLE, lang)['architecture'], '',
@@ -189,21 +245,22 @@ def render_architecture(spec, lang):
     if not software:
         out_lines += ['_%s_' % m['no_software'], '']
     for s in software:
-        # dump_yaml lower-cases a top-level bool but not one nested in a dict — pre-stringify
-        # so a nested {mcp: true} does not come back out as Python's {mcp: True}.
-        agentic = dict((k, ('true' if v is True else 'false' if v is False else v))
-                       for k, v in (s.get('agentic') or {}).items())
-        yaml_fields = {
-            'category': s.get('category'), 'type': s.get('type'),
-            'layers': s.get('layers') or [], 'license': s.get('license'),
-            'hosting': s.get('hosting'), 'agentic': agentic,
-            'role': s.get('role'),
-        }
-        fields = []
+        bullets = [
+            _bullet('category', s.get('category'), lang),
+            _bullet('type', s.get('type'), lang),
+            _bullet('layers', s.get('layers') or [], lang),
+            _bullet('license', s.get('license'), lang),
+            _bullet('hosting', s.get('hosting'), lang),
+            _bullet('agentic', _agentic_text(s.get('agentic') or {}, lang), lang),
+            _bullet('role', s.get('role'), lang),
+        ]
+        prose = [(None, bullets)]
         if s.get('value'):
-            prose = m['value_prose'].get(s['value'], s['value'])
-            fields.append(('role', None, [prose]))
-        out_lines.append(entity('software', s['id'], s.get('name', s['id']), yaml_fields, fields))
+            prose.append((None, [m['value_prose'].get(s['value'], s['value'])]))
+        out_lines += v3.emit_entity('software', s['id'], s.get('name', s['id']),
+                                     prose=prose, pointer='software[id=%s]' % s['id'],
+                                     lang=lang, level=3, form='slug')
+        out_lines.append('')
 
     # ---- entities ----
     out_lines += [anchor('section', 'entities'), '## ' + h['entities'], '']
@@ -216,9 +273,15 @@ def render_architecture(spec, lang):
         if single_master:
             out_lines += [m['single_master'].format(master=single_master), '']
             for e in ents:
-                yaml_fields = {'stores': [st.get('software') for st in (e.get('stores') or [])],
-                                'volume': e.get('volume')}
-                out_lines.append(entity('entity', e['id'], e.get('name', e['id']), yaml_fields, []))
+                bullets = [
+                    _bullet('stores', [st.get('software') for st in (e.get('stores') or [])], lang),
+                    _bullet('volume', e.get('volume'), lang),
+                ]
+                out_lines += v3.emit_entity('entity', e['id'], e.get('name', e['id']),
+                                             prose=[(None, bullets)],
+                                             pointer='entities[id=%s]' % e['id'],
+                                             lang=lang, level=3, form='slug')
+                out_lines.append('')
         else:
             by_master = {}
             for e in ents:
@@ -226,10 +289,16 @@ def render_architecture(spec, lang):
             for master in sorted(by_master):
                 out_lines += ['**%s:** `%s`' % (m['master_label'], master or '—'), '']
                 for e in by_master[master]:
-                    yaml_fields = {'master': e.get('master'),
-                                    'stores': [st.get('software') for st in (e.get('stores') or [])],
-                                    'volume': e.get('volume')}
-                    out_lines.append(entity('entity', e['id'], e.get('name', e['id']), yaml_fields, []))
+                    bullets = [
+                        _bullet('master', e.get('master'), lang),
+                        _bullet('stores', [st.get('software') for st in (e.get('stores') or [])], lang),
+                        _bullet('volume', e.get('volume'), lang),
+                    ]
+                    out_lines += v3.emit_entity('entity', e['id'], e.get('name', e['id']),
+                                                 prose=[(None, bullets)],
+                                                 pointer='entities[id=%s]' % e['id'],
+                                                 lang=lang, level=3, form='slug')
+                    out_lines.append('')
 
     # ---- workflows ----
     out_lines += [anchor('section', 'workflows'), '## ' + h['workflows'], '']
@@ -243,12 +312,18 @@ def render_architecture(spec, lang):
         for status in sorted(by_status):
             out_lines += ['**%s:** `%s`' % (m['status_label'], status or '—'), '']
             for w in by_status[status]:
-                yaml_fields = {
-                    'engine': w.get('engine'), 'triggers': w.get('triggers') or [],
-                    'invocation': w.get('invocation') or [], 'implements': w.get('implements'),
-                    'location': w.get('location'),
-                }
-                out_lines.append(entity('workflow', w['id'], w.get('name', w['id']), yaml_fields, []))
+                bullets = [
+                    _bullet('engine', w.get('engine'), lang),
+                    _bullet('triggers', w.get('triggers') or [], lang),
+                    _bullet('invocation', w.get('invocation') or [], lang),
+                    _bullet('implements', w.get('implements'), lang),
+                    _bullet('location', w.get('location'), lang),
+                ]
+                out_lines += v3.emit_entity('workflow', w['id'], w.get('name', w['id']),
+                                             prose=[(None, bullets)],
+                                             pointer='workflows[id=%s]' % w['id'],
+                                             lang=lang, level=3, form='slug')
+                out_lines.append('')
 
     # ---- integrations ----
     out_lines += [anchor('section', 'integrations'), '## ' + h['integrations'], '']
@@ -391,54 +466,6 @@ def _coverage_v3(cases, tests, lang):
     return lines
 
 
-def _coverage(cases, tests, lang):
-    m = L(MISC, lang)
-    per_role = {}
-    for c in cases:
-        role = c.yaml.get('role') or ''
-        acc = c.field('acceptance')
-        bullets = [ln for ln in (acc.body if acc is not None else []) if ln.strip().startswith('-')]
-        ids = ['%s.a%d' % (c.id, i + 1) for i in range(len(bullets))]
-        d = per_role.setdefault(role, {'cases': 0, 'acc_ids': []})
-        d['cases'] += 1
-        d['acc_ids'].extend(ids)
-
-    covers_map = {}
-    for t in tests:
-        covers = t.yaml.get('covers')
-        covers = covers if isinstance(covers, list) else ([covers] if covers else [])
-        for aid in covers:
-            covers_map.setdefault(aid, []).append(t.yaml.get('kind'))
-
-    rows = []
-    for role in sorted(per_role):
-        d = per_role[role]
-        auto = manual = open_n = 0
-        for aid in d['acc_ids']:
-            kinds = covers_map.get(aid) or []
-            if not kinds:
-                open_n += 1
-            else:
-                auto += sum(1 for k in kinds if k == 'auto')
-                manual += sum(1 for k in kinds if k == 'manual')
-        rows.append((role or '—', d['cases'], len(d['acc_ids']), auto + manual, auto, manual, open_n))
-
-    lines = []
-    if len(rows) >= 3:
-        lines.append('| %s | %s | %s | %s |' % (m['role_col'], m['cases_col'], m['acc_col'], m['tests_col']))
-        lines.append('|---|---|---|---|')
-        for role, n_cases, acc_n, tests_n, auto, manual, open_n in rows:
-            cell = m['tests_cell'].format(n=tests_n, auto=auto, manual=manual, open=open_n)
-            lines.append('| %s | %s | %s | %s |' % (esc(role), n_cases, acc_n, cell))
-        lines.append('')
-    else:
-        for role, n_cases, acc_n, tests_n, auto, manual, open_n in rows:
-            lines.append('- **%s** · %s' % (esc(role), m['coverage_line'].format(
-                cases=n_cases, acc=acc_n, tests=tests_n, auto=auto, manual=manual, open=open_n)))
-        lines.append('')
-    return lines
-
-
 # ---------------------------------------------------------------- README.md
 def _first_sentence(text):
     text = (text or '').strip()
@@ -446,6 +473,240 @@ def _first_sentence(text):
         return ''
     idx = text.find('. ')
     return text[:idx + 1] if idx != -1 else text.split('\n')[0]
+
+
+TEST_TITLE = re.compile(r"""^\s*(?:it|test)\s*\(\s*(['"`])(.*?)\1""", re.M)
+COVERS = re.compile(r'\b([A-Z]-\d{2})(\.a\d+)?\b')
+TEST_EXT = ('.spec.ts', '.test.ts', '.spec.tsx', '.test.tsx', '.spec.js', '.test.js',
+            '_test.py', '_spec.rb')
+
+
+def scan_tests(project_root):
+    """-> {covered_id: [(file, title)]} — что тесты САМИ про себя говорят.
+
+    Связь живёт в названии теста, а не в отдельной таблице соответствия. Таблица
+    — это второй документ, который надо держать в согласии с первым, и она врёт
+    ровно с того дня, как тест удалили: покрытие остаётся зелёным, а проверки
+    нет. Название теста удаляется вместе с тестом.
+
+    Соглашение уже существовало здесь неформально: в живом наборе 36 файлов
+    называют кейс прямо в заголовке — `(C-10)`, `(C-07/Z-03)`. Это его
+    продолжение, только точнее: до пункта приёмки, а не до кейса.
+    """
+    hits = {}
+    for base, dirs, files in os.walk(project_root):
+        dirs[:] = [d for d in dirs if d not in ('node_modules', '.git', '.next', 'dist')]
+        for f in files:
+            if not f.endswith(TEST_EXT):
+                continue
+            p = os.path.join(base, f)
+            try:
+                text = io.open(p, encoding='utf-8', errors='replace').read()
+            except IOError:
+                continue
+            rel = os.path.relpath(p, project_root)
+            for m in TEST_TITLE.finditer(text):
+                title = m.group(2)
+                for c in COVERS.finditer(title):
+                    key = c.group(1) + (c.group(2) or '')
+                    hits.setdefault(key, []).append((rel, title))
+    return hits
+
+
+def render_test_cases(root, lang):
+    """Покрытие считается ПО КЕЙСАМ, а не по пунктам приёмки.
+
+    Первая версия считала по пунктам: 384 обещания — 384 связи. Это неверная
+    единица. Пункт приёмки не тест, а строка чек-листа ВНУТРИ кейса: «кнопка
+    видна», «геолокация проверяется», «отказ называет расстояние» — человек
+    проходит это одним сценарием, а не пятью.
+
+    Поэтому здесь два разных слоя, и путать их нельзя:
+
+    - СЦЕНАРНЫЙ тест проходит кейс целиком, как человек. Он и есть доказательство
+      обещания. В этом проекте такие живут в tests/e2e/.
+    - ИНЖЕНЕРНЫЙ тест проверяет функцию или кусок кода. Их 2315, они нужны, и
+      размечать их не надо: они отвечают на вопрос «код не сломался», а не на
+      вопрос «обещание выполнено».
+
+    Инженерный тест, называющий кейс, показывается как поддержка, но за
+    доказательство не считается: «эта функция работает» и «человек может это
+    сделать» — разные утверждения.
+    """
+    h, m = L(HEAD, lang), L(MISC, lang)
+    spec = load_spec(root)
+    project = os.path.normpath(os.path.join(root, '..'))
+    hits = scan_tests(project)
+
+    def is_scenario(path):
+        p = path.replace(os.sep, '/')
+        return '/e2e/' in p or 'scenario' in p or p.endswith('.e2e.spec.ts')
+
+    out_lines = ['# ' + L(TITLE, lang).get('test_cases', 'Test cases'), '']
+    out_lines += [m['tests_lead'], '']
+
+    rows = []
+    for c in (spec.get('cases') or []):
+        rows.append((c['id'], c.get('name') or '', len(c.get('acceptance') or [])))
+    for pr in (spec.get('prohibitions') or []):
+        rows.append((pr['id'], pr.get('name') or '', 0))
+
+    proven = supported = 0
+    body = []
+    for cid, name, n_acc in rows:
+        found = hits.get(cid) or []
+        scen = [f for f, _ in found if is_scenario(f)]
+        eng = sorted({f for f, _ in found if not is_scenario(f)})
+        if scen:
+            proven += 1
+            mark = '`%s`' % sorted(set(scen))[0]
+        elif eng:
+            supported += 1
+            mark = '%s · %s' % (m.get('no_scenario', 'сценарного теста нет'),
+                                m.get('supported_by', 'есть инженерные: %d') % len(eng))
+        else:
+            mark = m.get('not_covered', 'не покрыт')
+        body.append('- `%s` %s — %s' % (cid, name[:52], mark))
+
+    total = len(rows)
+    pct = (100 * proven // total) if total else 0
+    out_lines += ['**Проверено сценарием: %d из %d · %d%%.** Ещё %d имеют только '
+                  'инженерные тесты.' % (proven, total, pct, supported), '']
+    out_lines += body
+    return '\n'.join(out_lines).rstrip('\n') + '\n'
+
+
+def render_requirements(root, lang):
+    """Всё, что утверждают клиентские документы, в машинном виде и на одном экране.
+
+    Это тот файл, по которому агент — Claude Code, Codex, любой другой — сверяет код с
+    договорённостью. INDEX.md перечисляет ЧТО существует; здесь написано, ЧТО ОБЕЩАНО:
+    каждый пункт приёмки с его постоянным адресом, каждый экранный запрет, каждый
+    инвариант, каждый открытый вопрос.
+
+    Полнота проверяется, а не обещается: правило 12.35 сверяет множество id здесь с
+    множеством id в client/, и расхождение — ошибка. «Абсолютно вся информация»
+    становится проверкой.
+    """
+    h, m = L(HEAD, lang), L(MISC, lang)
+    spec = load_spec(root)
+    cl = os.path.join(root, 'client')
+    cases = [i for i in v3.load(os.path.join(cl, 'USER-CASES.md'), lang) if i.id]
+    screens = [i for i in v3.load(os.path.join(cl, 'UX-UI.md'), lang)
+               if i.id and (i.ref or '').startswith('interfaces[')]
+    trig = [i for i in v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
+            if i.id and (i.ref or '').startswith('triggers[id=')]
+    tasks = [i for i in v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
+             if i.id and '.tasks[' in (i.ref or '')]
+    opens = [i for i in v3.load(os.path.join(cl, 'OPEN-QUESTIONS.md'), lang) if i.id]
+
+    def prose(it, name):
+        for k, v in it.sections.items():
+            if k.rstrip(':.').strip() == name:
+                return [x for x in v if x.strip().startswith('-')]
+        return []
+
+    acc_label = _prose_label('acceptance', lang)
+    forb_label = _prose_label('forbidden', lang)
+    shows_label = _prose_label('content', lang)
+    does_label = _prose_label('actions', lang)
+
+    out_lines = ['# ' + L(TITLE, lang).get('requirements', 'Requirements'), '']
+    out_lines += [m['requirements_lead'], '']
+
+    out_lines += ['## ' + h.get('cases', 'Cases'), '']
+    if not cases:
+        out_lines += ['**' + m['nothing_found'] % 'client/USER-CASES.md' + '**', '']
+    for it in cases:
+        bits = []
+        for k in ('priority', 'screens', 'triggers', 'workflow'):
+            v = it.get(k)
+            if v:
+                bits.append('%s=%s' % (k, ','.join(v) if isinstance(v, list) else v))
+        role = ''
+        mm = re.findall(r'roles\[id=([^\]]+)\]', it.ref or '')
+        if mm:
+            role = 'role=%s ' % mm[0]
+        out_lines.append('### %s · %s' % (it.id, it.title))
+        out_lines.append('')
+        if role or bits:
+            out_lines += ['- ' + role + ' '.join(bits), '']
+        acc = prose(it, acc_label)
+        for n, a in enumerate(acc, 1):
+            out_lines.append('- `%s.a%d` %s' % (it.id, n, a.lstrip('- ').rstrip(';')))
+        if not acc:
+            out_lines.append('- ' + m.get('no_acceptance', 'нет пунктов приёмки'))
+        out_lines.append('')
+
+    out_lines += ['## ' + h.get('screens', 'Screens'), '']
+    for it in screens:
+        out_lines += ['### %s · %s' % (it.id, it.title), '']
+        p_ = it.get('path')
+        r_ = it.get('roles')
+        out_lines += ['- path=%s roles=%s' % (p_ or '—',
+                                              ','.join(r_) if isinstance(r_, list) else (r_ or '—')), '']
+        for lbl, tag in ((shows_label, 'c'), (does_label, 'd'), (forb_label, 'f')):
+            items = prose(it, lbl)
+            for n, x in enumerate(items, 1):
+                out_lines.append('- `%s.%s%d` %s' % (it.id, tag, n, x.lstrip('- ').rstrip(';')))
+        out_lines.append('')
+
+    procs = [i for i in v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
+             if i.id and (i.ref or '').startswith('processes[id=')]
+    roles = [i for i in v3.load(os.path.join(cl, 'AUTOMATION.md'), lang)
+             if i.id and (i.ref or '').startswith('roles[id=')]
+    out_lines += ['## ' + h.get('processes', 'Processes'), '']
+    for it in procs:
+        out_lines.append('- `%s` %s' % (it.id, it.title))
+    out_lines.append('')
+    out_lines += ['## ' + h.get('roles', 'Roles'), '']
+    for it in roles:
+        out_lines.append('- `%s` %s' % (it.id, it.title))
+    out_lines.append('')
+    # цели, результаты и интеграции документ называет в OVERVIEW.md, и без них
+    # «всё, что обещано» неполно ровно на десять записей
+    for key in ('goals', 'results', 'integrations'):
+        rows = [i for i in v3.load(os.path.join(cl, 'OVERVIEW.md'), lang)
+                if i.id and (i.ref or '').startswith(key + '[id=')]
+        if not rows:
+            continue
+        out_lines += ['## ' + h.get(key, key.title()), '']
+        for it in rows:
+            extra = ' '.join('%s=%s' % (k, v) for k, v in sorted(it.fields.items()))
+            out_lines.append('- `%s` %s%s' % (it.id, it.title, (' · ' + extra) if extra else ''))
+        out_lines.append('')
+
+    out_lines += ['## ' + h.get('triggers', 'Triggers'), '']
+    for it in trig:
+        out_lines += ['- `%s` type=%s source=%s raises=%s' %
+                      (it.id, it.get('type') or '—', it.get('source') or '—',
+                       it.get('raises') or '—')]
+    out_lines.append('')
+
+    out_lines += ['## ' + h.get('tasks', 'Tasks'), '']
+    for it in tasks:
+        out_lines.append('- `%s` role=%s gate=%s' %
+                         (it.id, it.get('role') or '—', it.get('gate') or '—'))
+    out_lines.append('')
+
+    for key, label in (('invariants', h.get('invariants', 'Invariants')),
+                       ('prohibitions', h.get('prohibitions', 'Prohibitions')),
+                       ('glossary', h.get('glossary', 'Glossary'))):
+        rows = spec.get(key) or []
+        out_lines += ['## ' + label, '']
+        for r in rows:
+            out_lines.append('- `%s` %s' % (r.get('id'), r.get('name') or r.get('term') or ''))
+        out_lines.append('')
+
+    out_lines += ['## ' + h.get('open_questions', 'Open questions'), '']
+    for it in opens:
+        out_lines.append('- `%s` %s' % (it.id, it.title))
+    return '\n'.join(out_lines).rstrip('\n') + '\n'
+
+
+def _prose_label(key, lang):
+    pr = (load_contract().get('prose') or {}).get(key) or {}
+    return (pr.get('label') or {}).get(lang, key)
 
 
 def render_readme(contract, lang):
@@ -585,6 +846,12 @@ def main():
     if only in (None, 'index'):
         jobs.append(('index', os.path.join('generated', 'INDEX.md'), 'client/*.md',
                       render_index(root, lang)))
+    if only in (None, 'requirements'):
+        jobs.append(('requirements', os.path.join('generated', 'REQUIREMENTS.md'),
+                     'client/*.md', render_requirements(root, lang)))
+    if only in (None, 'test_cases'):
+        jobs.append(('test_cases', os.path.join('generated', 'TEST-CASES.md'),
+                     'client/USER-CASES.md + tests/', render_test_cases(root, lang)))
     if only in (None, 'readme'):
         jobs.append(('readme', 'README.md', 'doc-contracts.json', render_readme(contract, lang)))
 

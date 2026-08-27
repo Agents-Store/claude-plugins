@@ -11,17 +11,26 @@ answer by reading either file alone:
   3. Which cases are blocked, because an open question they depend on is still open.
   4. Which tasks point at a case that no longer exists — a plan for a requirement withdrawn.
 
-The third input is the newest `history/reviews/*-conformance.md`. Without it the report says
+The third input is the `audit` rows of `history/ledger.jsonl`. Without them the report says
 "N cases with no plan" on a project where nearly all of them are built, which is true and
 useless: a work list nobody believes is a work list nobody reads.
 
-v2 change: documents are entity+yaml blocks, not table columns. Parsing goes through
-`mdblocks` (the shared v2 parser) instead of a private regex grid. A case's `spec` pointer
-is now a yaml field on a task entity, not a list-item string; a review's verdict is a yaml
-`verdict` enum on a `finding` entity, closed to `implemented | partial | absent |
-externally-blocked`. Old table-shaped conformance files (verdict as free text in a column)
-are still read as a FALLBACK — the yaml reading takes priority where both exist for the
-same case id.
+v3 change: `client/USER-CASES.md` and `client/OPEN-QUESTIONS.md` moved to headings-and-
+bullets — no anchor names the kind of a heading the way v2's `<!-- macstack:case=C-04 -->`
+did, so `mdblocks.entities(blocks, 'case')` saw an empty document and this script reported
+all 78 live cases as unplanned, silently. They now read through `v3` instead. A case is
+identified by its HEADING ID (`^[A-Z]-\\d{2}$`), never by its pointer: the comment above a
+case reads `<!-- macstack:ref=roles[id=coach].cases -->` — the OWNING ROLE's glob-covered
+case list in macstack.json — and repeats no case id, so matching cases by pointer target
+finds zero of them on the live corpus. 27 cases (`X-`, `S-`, `Z-` — cross-cutting, end-to-end
+scenarios, prohibitions) carry no such pointer at all and belong to no single role; they are
+still collected by heading id like every other case, never dropped for lacking one. (The role
+itself, when a case has one, is the `id=` inside that pointer — nothing here reads it off a
+bullet, because no bullet carries it.)
+
+`history/TASKS.md` and `history/reviews/*-conformance.md` are unaffected by this port and
+still read through `mdblocks` — they carry their own migration later, and reading them here
+would collide with it.
 
 WHAT IT DOES NOT DO: decide which files a task touches or what proves it done. That is
 judgement over the codebase, and a machine that guesses it produces a plan nobody can
@@ -34,10 +43,12 @@ import sys, os, io, re
 
 sys.path.insert(0, os.path.normpath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..', 'documents', 'references')))
-from mdblocks import parse, entities, dump_yaml  # noqa: E402
+from mdblocks import parse, entities, dump_yaml  # noqa: E402  — TASKS.md + reviews only
+import v3                                        # noqa: E402  — USER-CASES.md + OPEN-QUESTIONS.md
 from i18n import doc_lang, msg  # noqa: E402
 
 CASE_ID = re.compile(r'\b([A-Z]-\d{2})\b')
+CASE_HEADING = re.compile(r'^[A-Z]-\d{2}$')      # a case's own heading id, full match
 OPEN_ID = re.compile(r'\b([AB]\d+)\b')
 # Fallback for the v1 table format: | C-01 | Implemented | evidence... |
 LEGACY_ROW = re.compile(r'^\|\s*\*?\*?([A-Z]-\d+)\*?\*?\s*\|\s*([^|]+?)\s*\|', re.M)
@@ -50,35 +61,47 @@ def read(path):
         return f.read()
 
 
-def title_of(block):
-    """'<id> · Title' -> 'Title'. Struck headings ('~~id~~ · DROPPED ...') survive too."""
-    h = (block.heading or '').strip()
-    if '·' in h:  # ·
-        return h.split('·', 1)[1].strip()
-    return h
+def title_of(item):
+    """v3 already splits '<id> · Title' at read time; struck titles ('~~Title~~ · CLOSED
+    …') keep their tildes, same as v2's heading text did, so callers see the same thing."""
+    return (item.title or '').strip()
 
 
-def case_full_text(block):
-    return '\n'.join(line for c in block.children for line in c.body)
+def case_full_text(item):
+    return '\n'.join(item.body)
 
 
-def acceptance_count(block):
-    acc = block.field('acceptance')
-    if acc is None:
-        return 0
-    return sum(1 for line in acc.body if line.strip().startswith('- '))
+def acceptance_count(item):
+    """Every dash-bullet in the entity's body. A case has exactly one bulleted section
+    (`**Готово, если:**` / `**Done if:**`) on the live corpus, so counting body-wide
+    dashes gives the same number as counting that section alone, without hard-coding
+    the section's label in a language it might not be written in."""
+    return sum(1 for line in item.body if line.strip().startswith('- '))
 
 
-def live_open_ids(oq_path):
-    """Open-item ids from OPEN-QUESTIONS.md that are not struck (closed/promoted)."""
+def live_open_ids(oq_path, lang):
+    """Open-item ids from OPEN-QUESTIONS.md that are not struck (closed/promoted).
+
+    Deferred-work items (`### B1 — Сделать до того…`) use an em-dash heading v3's
+    id/title split does not recognise, so they never carry an id. They were outside this
+    set before the port too, and not by accident: the v2 file this document replaced
+    anchored §A and nothing else — all 25 of its `macstack:open=` anchors are A-items.
+
+    Struck-ness is read off the WHOLE heading line, the way v2 read it, and not off
+    `Item.title`: v3 strips the tildes while splitting the id, so `~~A6~~ · Payment terms`
+    parses to a clean id and a clean title and would read as still open. An open question
+    blocks every case citing it, so a closed one that still looks open blocks them forever.
+    """
     if not os.path.exists(oq_path):
         return set()
-    _, blocks = parse(read(oq_path))
+    doc = v3.load_doc(oq_path, lang)
     out = set()
-    for b in entities(blocks, 'open'):
-        h = (b.heading or '').strip()
-        if not h.startswith('~~'):
-            out.add(b.id)
+    for it in doc.items:
+        if not (it.id and OPEN_ID.match(it.id)):
+            continue
+        heading = doc.lines[it.head_line].lstrip('#').strip()
+        if not heading.startswith('~~'):
+            out.add(it.id)
     return out
 
 
@@ -137,21 +160,30 @@ def main():
             print('missing: %s' % p)
             return 1
 
-    _, uc_blocks = parse(read(uc_p))
-    cases = entities(uc_blocks, 'case')
+    cases = [i for i in v3.load(uc_p, lang) if i.id and CASE_HEADING.match(i.id)]
 
     _, tk_blocks = parse(read(tk_p))
     tasks = entities(tk_blocks, 'task')
     milestones = entities(tk_blocks, 'milestone')
 
-    live_a = live_open_ids(oq_p)
+    live_a = live_open_ids(oq_p, lang)
 
-    rdir = os.path.join(root, 'history', 'reviews')
-    revs = sorted(f for f in os.listdir(rdir) if f.endswith('conformance.md')) if os.path.isdir(rdir) else []
+    # Вердикт аудита — данные, а не документ: он спрашивается по id кейса, а не
+    # перечитывается подряд, и отчёт устаревает быстрее, чем его читают. Строки
+    # `audit` в журнале правок и есть этот вердикт; markdown-отчёты уехали в
+    # archive/ вместе с остальными рабочими продуктами.
     yml, legacy, rev_name = {}, {}, None
-    if revs:
-        rev_name = revs[-1]
-        yml, legacy = read_verdicts(os.path.join(rdir, rev_name))
+    _here = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, os.path.normpath(
+        os.path.join(_here, '..', '..', 'documents', 'references')))
+    import ledger as _L                # намеренно без try: если журнал не читается,
+                                       # отчёт скажет «ничего не проверено» — и это
+                                       # ложь, которую тихий except делает незаметной
+    rows = [r for r in _L.read(root) if r.get('kind') == 'audit']
+    for r in sorted(rows, key=lambda x: x.get('date') or ''):
+        if r.get('item') and r.get('now'):
+            legacy[r['item']] = r['now']
+            rev_name = r.get('source') or rev_name
 
     covered = {}
     for t in tasks:
@@ -193,7 +225,7 @@ def main():
     print('\n=== not planned and not checked ===')
     by_pri = {}
     for c, st, v in unc:
-        pri = c.yaml.get('priority') or '—'
+        pri = c.get('priority') or '—'
         by_pri.setdefault(pri, []).append(c)
     order = list(PRIORITY_ORDER) + [p for p in by_pri if p not in PRIORITY_ORDER]
     for pri in order:

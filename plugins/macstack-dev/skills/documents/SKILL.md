@@ -1,6 +1,6 @@
 ---
 name: documents
-description: This skill should be used when the user asks to "create the macstack folder", "set up project docs", "where do user cases live", "add a screen", "add a trigger", "standardize the project documents", "repair the macstack folder", "migrate docs into macstack", mentions `macstack/`, OVERVIEW, USER-CASES, UX-UI, AUTOMATION, HANDBOOK, OPEN-QUESTIONS, DECISIONS, the client inbox or the document log — and BEFORE any other skill reads or writes anything under `macstack/`. Defines the folder standard: layout, path resolution, ID spaces, anchors, the language rule, the immutability guardrails, rendering and migration.
+description: This skill should be used when the user asks to "create the macstack folder", "set up project docs", "where do user cases live", "add a screen", "add a trigger", "standardize the project documents", "repair the macstack folder", "migrate docs into macstack", mentions `macstack/`, OVERVIEW, USER-CASES, UX-UI, AUTOMATION, HANDBOOK, OPEN-QUESTIONS, DECISIONS, the client inbox or the document log — and BEFORE any other skill reads or writes anything under `macstack/`. Defines the folder standard AND the document shape: layout, path resolution, ID spaces, the pointer bindings, the bullet-label form, the language rule, the immutability guardrails, rendering and migration.
 ---
 
 # The `macstack/` folder — standard
@@ -16,9 +16,11 @@ Structure is defined once in
 this skill (the writer) and `lint` (the checker) read. Never restate that file's
 anchors, YAML keys or ID patterns from memory — open it.
 
-**Shape before content:** read `document-format` before writing a single line. Every
-document here is entities + YAML blocks + anchored prose, and a table only inside a
-budget. A document written in the old table shape passes no check in this plugin.
+**Shape before content:** read `references/format-rules.md` before writing a single
+line. A client document is headings and bullet lists — nothing else. No fenced blocks,
+no tables, no journal section. The machine half lives in `macstack.json`, and each
+entity carries an invisible pointer to it. A document written in the v1 table shape or
+the v2 yaml shape passes no check in this plugin.
 
 ## Layout
 
@@ -43,8 +45,8 @@ macstack/
 ├── inbox/             WHAT THE CLIENT SENT, exactly as sent · README.md = manifest
 │
 └── history/           JOURNALS AND RECORDS
-    ├── log.md · CHANGELOG.md · TASKS.md · DECISIONS.md
-    └── decisions/ · deltas/ · reviews/ · handoffs/
+    ├── ledger.jsonl · TASKS.md · DECISIONS.md · CHANGELOG.md
+    └── handoffs/ · archive/
 ```
 
 **Six entries in the root, and the count is a constraint.** The field's own criticism
@@ -171,11 +173,11 @@ is still a copy.
 | What starts what | `AUTOMATION.md` | `triggers[]`, `processes[].tasks[]`, `workflows[]` name and trigger |
 | How a bullet is checked | `TEST-CASES.md` | ids carry the bullet they verify (`C-06.T3` covers `C-06.a2`) |
 | What will be done, in what order | `TASKS.md` | `lifecycle.next_steps[]` and `milestones[]` as pointers; every task also lives in the team's tracker |
-| What happened | `log.md` | typed entries — `work` is the development log, the half git cannot hold |
+| What happened | `ledger.jsonl` | one row per edit and per client comment, keyed by the id of the thing that changed |
 | What reached the client | `CHANGELOG.md` | curated from the log's `work` and `release` entries; never a commit history in disguise |
 | Open questions | `OPEN-QUESTIONS.md` | `lifecycle.open_questions[]` as pointers |
 | Owed by the client | `OPEN-QUESTIONS.md §A` | `lifecycle.needs_from_client[]` — a **derived view**: live §A client items only |
-| Decisions | `decisions/*.md` | `lifecycle.decisions[]` pointers; prose cites `D<n>` |
+| Decisions | `DECISIONS.md` | registry and argument in one file; `lifecycle.decisions[]` points here by id |
 | Prose, rationale, cost-if-wrong | markdown | JSON never |
 
 Pointer form carries no prose, so there is nothing to drift. Where a human genuinely
@@ -202,8 +204,8 @@ the `glossary` section of `OVERVIEW.md`. Lint measures the ratio and errors past
 2. Create only what is missing — **never overwrite an existing document.** For a file
    that exists but lacks anchors or sections, add what is missing in place and report
    it; do not regenerate. Materialize eagerly: every document in the contract whose
-   `path` is a fixed name, plus `inbox/` with its manifest. Create `deltas/`,
-   `decisions/`, `reviews/` and `handoffs/` **lazily, on first use** — git does not
+   `path` is a fixed name, plus `inbox/` with its manifest. Create `handoffs/` and
+   `archive/` **lazily, on first use** — git does not
    track an empty directory, so creating them up front either leaves untracked empties
    that vanish on clone or scatters four `.gitkeep` files. Their absence in a fresh
    folder is correct, not a gap; lint must not report it.
@@ -218,7 +220,7 @@ the `glossary` section of `OVERVIEW.md`. Lint measures the ratio and errors past
    over a client's correction is worse.
 5. **Render the generated documents** with `render.py` — `README.md`,
    `generated/ARCHITECTURE.md`, `generated/INDEX.md` — never by hand.
-6. Scaffolding does not write to `log.md`. That journal records material coming in,
+6. Scaffolding does not write to `ledger.jsonl`. That ledger records material coming in,
    work done and things going out; a freshly created folder has no entry, and that
    absence is correct, not forgotten.
 7. `.gitignore` — leave `inbox/` committed (an immutable zone must be durable).
@@ -263,7 +265,7 @@ folders with `git mv`, recomputing every relative link against the old location,
 relocates a legacy root `macstack.json`.
 
 **Format migration** converts v1 table-shaped documents into v2 entities. Per the
-conversion checklist in `document-format`:
+conversion checklist in `references/format-rules.md`:
 
 - one row becomes one entity; the first column becomes the id and the title;
 - short factual columns become YAML keys, long prose columns become anchored sections;
@@ -285,7 +287,7 @@ nineteen.
 
 | Task | Skill |
 |---|---|
-| How a document is shaped | `document-format` |
+| How a document is shaped | `references/format-rules.md`, in this skill |
 | Client material arrived, or "improve X" | `intake` |
 | Turn the acceptance bullets into checks | `test-cases` |
 | Plan work, or reconcile with the tracker | `planning` |

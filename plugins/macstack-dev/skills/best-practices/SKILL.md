@@ -45,7 +45,7 @@ Create each file; content = a short version of the rule + the WHY:
    means `macstack.json` **and** the affected documents under `macstack/client/`,
    `generated/` or `history/` land in the same commit — the specification and its
    documents are one definition of done.
-   **A day of work ends with a `work` entry in `macstack/history/log.md`** naming the task
+   **A day of work ends with a `work` row in `macstack/history/ledger.jsonl`** naming the task
    ids it advanced and what did not go as planned. Git records what changed; the log
    records why it went that way and what was tried first, which is the half nobody
    can reconstruct later. Put the task id in the commit subject — `(M11-T9)` — and
@@ -68,8 +68,15 @@ clean + the domain returns 200).
 ## CLAUDE.md wiring
 
 Ensure CLAUDE.md: (1) has the "Stack Specification" section → macstack.json and
-`macstack/README.md`; (2) lists the rules as MANDATORY, one line each; (3) stays
+`macstack/README.md`, **including its trigger table** — the exact block is in
+`macstack-dev:setup`; (2) lists the rules as MANDATORY, one line each; (3) stays
 short (<100 lines) — details live in rules/skills/macstack.json, not in CLAUDE.md.
+
+The trigger table is not optional and not decoration. Without it the block says only
+"read this first", and an agent that reads the folder without ever being told when to
+update it leaves it to go stale. A document that reads perfectly while describing
+yesterday's system is worse than no document, because it is believed. Check for the
+table, not just for the heading.
 
 ## Rules for applying
 

@@ -96,168 +96,36 @@ Active only when macstack.json has a `docs` section, or a `macstack/` folder exi
 on disk. Errors block scaffolding exactly like Pass 2; lint red on a document that
 reads fine usually means stripped anchors (see `troubleshoot`).
 
+**Run it — this pass is a program now:**
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/lint/references/lint_folder.py" macstack \
+  [--rule 12.3 ...] [--warnings] [--json]
+```
+
+Exit 0 clean, 1 errors, 2 could not load. Rules live in `references/lint_folder.py`
+and the `references/rules_*.py` modules beside it, which register themselves on import.
+
+Until v3 this pass was prose and nothing executed it, which is why 12.21 demanded a
+fenced `yaml` block from documents that contain none and never once said so, and why
+12.18 was unsatisfiable for `README.md` across three releases with no way to tell
+whether it was failing or simply not running. **A rule nobody can run is not a rule.**
+If you add one here, add it there in the same change.
+
 Read the shape from
 `${CLAUDE_PLUGIN_ROOT}/skills/documents/references/doc-contracts.json` — every rule
 below is checked against that file, never against memory.
 
-### Layout and identity
+### The forty-one rules
 
-12.1 **Layout** — `docs.root` resolves and holds exactly SIX entries: `README.md`,
-     `macstack.json` and the four folders `client/`, `generated/`, `inbox/`,
-     `history/`. Dot-files do not count — `.DS_Store` and friends are the operating
-     system's litter, not the project's documents, and failing a folder for them
-     teaches people to ignore the rule. A seventh real entry is an error, not a
-     preference. Every document in the contract whose `path` is a FIXED NAME exists at
-     that path. Documents whose `path` carries a `<placeholder>` (`delta`, `rulings`,
-     `review`) are dated instances, not required files — their directories are created
-     lazily and their absence in a fresh folder is correct.
-     **`docs.files` must name every fixed-path document.** Checking only that the
-     entries present resolve is a rule that passes in a vacuum: `docs.files` is
-     authored, so naming nothing at all used to approve an empty folder.
-     Exactly one `macstack.json` in the repo.
-12.2 **Anchors** — each document carries the anchors its contract requires: the
-     `doc` header, every declared `section`, and an `entity` anchor above every entity
-     heading.
-12.3 **ID integrity** — unique per space; ASCII-only inside an ID token — the homoglyph
-     rule: a Cyrillic capital KA (U+041A) renders exactly like `K` (U+004B), greps as
-     absent and silently breaks every cross-reference check, so compare codepoints
-     rather than glyphs; no gaps in D-numbering; A/B numbers never reused after a
-     strike.
-12.4 **Cross-file refs** — every `D<n>` cited anywhere resolves in `DECISIONS.md`;
-     every `A<n>` **and every `B<n>`** in `lifecycle.*` resolves to a live item; every
-     `roles[].cases` prefix yields ≥1 case heading; every case-section letter maps to
-     exactly one role; every `<case>.T<n>` carries a case that still exists; every
-     `covers` in `TEST-CASES.md` names an acceptance id that still exists; every
-     `blocked_by` in `TASKS.md` resolves to a live task or open item; every `screens`
-     entry in a case resolves to a screen in `UX-UI.md`; every `triggers` entry
-     resolves to a trigger in `AUTOMATION.md`.
-12.5 **Checked copies** — `open_questions[].summary` equals the first sentence of its
-     markdown item; for every versioned document, `docs.files.<key>.version` equals the
-     header version equals the last journal row. Three places, and all three must agree.
-12.6 **`needs_from_client` is a view** — contains no closed items, omits no open §A
-     client item.
+The full catalogue — what each rule checks, what it costs to ignore, and the measurement
+that bought it — is in
+`${CLAUDE_PLUGIN_ROOT}/skills/lint/references/rules-group-12.md`.
 
-### Shape (v2)
-
-12.21 **Entities parse** — every entity declared in the contract is found by its
-      anchor, carries exactly one fenced `yaml` block immediately after its heading,
-      and that block declares every `yaml_required` key for its kind and no key the
-      contract does not declare. Every `sections_required` anchor is present beneath
-      it, and the conditional sets (`sections_required_when`,
-      `sections_required_except_prefix`) are applied by the entity's own values — a
-      `manual` test needs preconditions and steps, an `auto` one needs evidence, a
-      `Z-` prohibition needs neither flow nor experience.
-      This rule replaces v1's column-position check. Columns were read by POSITION
-      because heading text follows `docs.language`; the anchor and the YAML key give
-      the same language independence without pulling prose into a grid.
-12.24 **Tables stay inside the budget** — at most 4 columns, at most 80 characters a
-      cell, at least 3 rows, and no `<br>`, bold, code fence or pipe inside a cell.
-      Journals are exempt. Report the file, the table's anchor or heading, the column
-      count and the longest cell verbatim, because "this table is too wide" is not
-      actionable and "cell 4 of row 12 is 876 characters" is.
-      The budget exists because every oversized table measured in the field started as
-      a reasonable one and grew a paragraph at a time.
-12.25 **The document is written in its declared language** — measure the ratio of
-      letters from the wrong alphabet outside code spans, YAML blocks, anchors and ID
-      tokens against `docs.files.<key>.language` or `docs.language`. Past 15% it is an
-      ERROR for a document whose `audience` is `client`, a WARNING otherwise, and **not
-      measured at all for a `generated` document**. The severity split is the whole point:
-      the rule exists so the client can read the documents written for them. An internal
-      journal drifting into English costs nothing; a client document doing it costs the
-      review. A generated document is exempt because its body is identifiers — software
-      ids, entity names, workflow names — which the language rule forbids translating, so
-      measuring it would demand the one thing the standard prohibits.
-      Terminology is excluded by the measurement, not by an exception list: it sits in
-      code spans, YAML blocks and ID tokens, all of which are stripped before counting.
-      Anything a renderer emits that IS an identifier must be backticked for the same
-      reason — an unquoted workflow name put a generated index at 45% foreign when every
-      Russian word in it was Russian.
-      A live project ran `docs.language: ru` with one client document 100% English and
-      another at 21% Cyrillic — Russian headings over an English body copied out of the
-      spec. Both read as finished documents and neither was one.
-12.27 **No hand-written index** — an authored document contains no index, summary or
-      coverage table of the entities below it. It is a second copy that drifts the
-      first time somebody edits one and not the other: a live `USER-CASES.md` printed
-      all 63 of its cases twice, once as index rows and once as headings, with zero
-      divergence — 15% of the file existing only to be kept in sync by hand. Indexes
-      live in `generated/INDEX.md`.
-
-### Content and truth
-
-12.7 **Inbox hygiene** — ASCII-only filenames; every inbox file has an entry in
-     `inbox/README.md`; no content-modifying commit has touched an inbox path after
-     its add commit.
-12.8 **No rotting pointers** — no `path.ext:NNN` line-number citation anywhere under
-     `macstack/`; no link resolving outside the repo root.
-12.9 **No secrets anywhere under `macstack/`** — extends rule 10 past
-     `resources.accesses`.
-12.10 **No parallel spec** — a delta older than 30 days with neither an applied
-      banner nor a superseded note.
-12.11 **Every acceptance bullet is verified** — each acceptance bullet in
-      `USER-CASES.md` is covered by at least one test in `TEST-CASES.md`, matched by
-      the bullet's id. An uncovered bullet is an unverified promise; that is the whole
-      point of the document.
-12.12 **Test cases are well formed** — every test declares `covers` and `kind`; a
-      `manual` test also declares preconditions and steps; an `auto` test names the
-      test title that proves it (a bare filename is not evidence, and a `file.ts:NNN`
-      pointer is already banned by 12.8); a struck test states why.
-12.13 **The journal is typed** — every `log.md` entry declares a `kind` and carries
-      that kind's required fields and sections per the contract. There is one shape,
-      keyed by kind: v1 declared a flat six-field requirement AND a per-kind table that
-      disagreed with it, so a `work` entry was contractually required to carry a
-      `delta`.
-12.14 **Every task is tracked in both places** — every task in `TASKS.md` declares a
-      `tracker` id. The file is the source of truth for what the work IS; the team's
-      tracker is where the conversation about it happens, and a task in only one of
-      them is a task half the team cannot see. Also: `status` declared and one of the
-      five; a struck task states why.
-12.15 **A release is paired** — every `release` entry in `log.md` has a `CHANGELOG.md`
-      entry with the same id, and every `CHANGELOG.md` entry has its `release` entry in
-      the log. `CHANGELOG.md` is ordered newest first.
-12.16 **Milestones are falsifiable** — every milestone declares a non-empty
-      `done_when`, and a milestone marked `done` has every check recorded as met. A
-      milestone whose tasks are all `done` but whose checks are not recorded is not
-      done — it is unverified.
-12.26 **A finished task left a trace** — every task at `done ✓` is named by a `work`
-      entry in `log.md`. Without this the closing half of the loop is unenforced: a
-      task can be marked done, the documents never re-checked, and every staleness
-      rule below stays quiet because nothing recorded that anything happened.
-12.17 **Documents have a shelf life** — every document with a `docs.files` entry
-      carries `reviewed`, the date it was last checked AGAINST THE CODE. Past
-      `freshness_days` (default 30) it is a WARNING; past twice that, an ERROR. A
-      `reviews/<date>-*-conformance.md` dated later than `reviewed` counts as the check
-      and moves the date forward. This is the one rule aimed at the failure the whole
-      folder exists to prevent: a document that reads perfectly and describes a system
-      that no longer exists. Everything else here checks shape; this checks that truth
-      has been looked at recently.
-12.18 **A generated document equals its source** — for every document whose contract
-      carries `generated`, re-render and compare. A difference is an ERROR and is
-      exactly one of two things: somebody edited the rendered file by hand, or the
-      source moved and nobody re-rendered. Both are the same defect from the reader's
-      side — the document lies — so both are reported the same way, naming which. The
-      remedy is a re-render, never a hand fix.
-      This now includes `README.md` and `generated/INDEX.md`. v1 declared `README.md`
-      generated and shipped no generator for it, which made this rule unsatisfiable for
-      that document across three releases.
-12.19 **The journal is not empty** — a document whose contract declares a `journal`
-      section has at least one row in it, and no row is dated later than the document's
-      `updated`.
-12.20 **Every handoff is recorded** — each file in `handoffs/` has a `handoff` entry in
-      `log.md` naming it, and each `handoff` entry names a file that exists. The mirror
-      of 12.7 for the outbound direction: when the client's edits come back, the only
-      way to know WHICH version they reviewed is that entry. An artifact handoff also
-      records its URL and version label.
-12.22 **The spec agrees with the client's documents** — `sync` reports no disagreement
-      between `client/AUTOMATION.md` and the business half of `macstack.json`: same
-      roles, same human tasks, same gates, same triggers. A spec that disagrees with the
-      document the client signed off on is the failure the whole folder exists to
-      prevent. Additions and removals are ERRORS here even though `sync` will not apply
-      them: they mean a human still owes an id.
-12.23 **Every screen is declared** — every `interfaces[]` entry a person opens (`web`,
-      `admin_ui`, `dashboard`, `approval_center`, `form`) has an entity in
-      `client/UX-UI.md`, and every screen's `path` belongs to a declared interface. The
-      `forbidden` section is non-empty wherever the project declares a prohibition
-      touching that role — an empty one there is a promise nobody checked.
+Read it when adding a rule, when a finding needs explaining to somebody, or when
+deciding whether a red rule is worth the fix. The runner needs none of it: it prints the
+rule number, the file, the line and a verbatim excerpt, because "this table is too wide"
+is not actionable and "cell 4 of row 12 is 876 characters" is.
 
 ## Warnings (non-blocking)
 
@@ -283,8 +151,8 @@ below is checked against that file, never against memory.
 - **Ambiguous coverage**: an area claimed by 2+ plugins where none narrows it with
   `scope`.
 - **Unprocessed source**: a file in `inbox/` with no `merge` entry naming it.
-- `lifecycle.updated` older than the newest `log.md` entry (name the date).
-- **The project has gone quiet**: a task sitting in `doing` while `log.md` has had no
+- `lifecycle.updated` older than the newest `history/ledger.jsonl` row (name the date).
+- **The project has gone quiet**: a task sitting in `doing` while the ledger has had no
   `work` entry for 14 days. The older staleness check compares `lifecycle.updated`
   against the newest log entry, and with no client input both freeze in agreement — a
   project can run for months with a perfectly green lint and no record of the work.
