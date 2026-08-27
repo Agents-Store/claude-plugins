@@ -68,8 +68,15 @@ clean + the domain returns 200).
 ## CLAUDE.md wiring
 
 Ensure CLAUDE.md: (1) has the "Stack Specification" section → macstack.json and
-`macstack/README.md`; (2) lists the rules as MANDATORY, one line each; (3) stays
+`macstack/README.md`, **including its trigger table** — the exact block is in
+`macstack-dev:setup`; (2) lists the rules as MANDATORY, one line each; (3) stays
 short (<100 lines) — details live in rules/skills/macstack.json, not in CLAUDE.md.
+
+The trigger table is not optional and not decoration. Without it the block says only
+"read this first", and an agent that reads the folder without ever being told when to
+update it leaves it to go stale. A document that reads perfectly while describing
+yesterday's system is worse than no document, because it is believed. Check for the
+table, not just for the heading.
 
 ## Rules for applying
 

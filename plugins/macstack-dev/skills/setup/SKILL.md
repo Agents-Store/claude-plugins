@@ -118,12 +118,36 @@ code-style.md, runbooks) — it never moves into `macstack/`.
 
 ```markdown
 ## Stack Specification
+
 The business and technical specification of this project is **`macstack.json`**
 (MACSTACK standard, canonical at `macstack/macstack.json`). Read it first: goals →
-results → processes → workflows → software → entities → interfaces. The working
-documents (cases, decisions, open questions) are described in `macstack/README.md`.
-Never write code that contradicts macstack.json — update the specification first.
+results → processes → workflows → software → entities → interfaces. What a person
+must be able to GET is in `macstack/client/USER-CASES.md`; the folder is mapped in
+`macstack/README.md`.
+
+Never write code that contradicts `macstack.json` — change the specification first.
+
+**Keep the folder current. These are triggers, not suggestions:**
+
+| When | Run |
+|---|---|
+| A task is finished — code merged, behaviour changed | `/macstack-dev:update` |
+| The client sent anything: a file, an email, a sentence in chat | `/macstack-dev:intake` |
+| The client's answers came back from a review package | `/macstack-dev:review --read <file>` |
+| Before promising the client a date, or when asked what is left | `/macstack-dev:plan` |
+| You added a collection, route, job or role the documents never mentioned | `/macstack-dev:check --new` |
+| Before handing anything to the client | `/macstack-dev:check` |
+
+Never edit `macstack/generated/**` by hand — it is rebuilt and the edit is lost.
+Never edit `macstack/client/**` on the client's behalf without a recorded ruling:
+their words are the source, and `/macstack-dev:intake` is how a change gets in.
 ```
+
+The table is the half that matters, and it is the half that was missing. A block
+that says only "read this first" produces an agent that reads the folder and lets it
+go stale — and a document that reads perfectly while describing yesterday's system is
+worse than no document, because it is believed. Naming the trigger and the command
+together is what makes "keep the docs current" an instruction instead of a wish.
 
 ## Skill routing
 
