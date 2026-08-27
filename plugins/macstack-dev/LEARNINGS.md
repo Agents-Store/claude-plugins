@@ -628,3 +628,77 @@ states for conventions that match zero files.
 
 **Severity:** Major
 
+
+## 2026-08-27 — client-package, one session on OHAWO: six defects, and five of them were silent
+
+The session set out to build one review package and ended with six fixes. Every one of the
+first five had the same shape: **the page told the client something the code did not do**,
+and nothing in a test, a log or an exit code said so. That shape is the finding.
+
+**1 · "Marked yellow: changed since the last package" marked nothing.** `since` is the
+previous package's DATE, ledger rows are dated by day, and a package is rebuilt on the same
+day the documents were edited — so `>` dropped every change made that day. Measured: 16
+entities had genuinely moved (8 new, 8 with new text), `0 of 209` were marked, and the page
+went on promising yellow. Fixed by comparing `>=`. A day is the whole precision available,
+so an error is unavoidable; the error was chosen toward OVER-marking. A spurious mark costs
+the client a second look at something already seen (2 of 18 on the same measurement); a
+missed one costs an edit the client never reads, which is the entire reason the mark exists.
+**Severity: Major.**
+
+**2 · The scaffolder's own prompt was shipped to the client as content.** `seed.py` writes
+each unfilled procedure as an italic hint. Until somebody writes the procedure, that hint is
+the whole body — so an untouched `HANDBOOK.md` became a section of 41 headings each reading
+*"describe the steps of this procedure"*, an instruction addressed to US, with no answer
+field under any of them. `_is_stub` now drops an entity that holds nothing but its hint, and
+only where the entity has no id, so no case, screen or question can pass through it. The
+condition is deliberately narrow — an italic line among real text is the author's emphasis
+and stays, because silently deleting words the client wrote is worse than a visible stub.
+Nothing to remember and re-enable: `collect` already drops a section with no entities, so it
+returns by itself the day the first procedure is written. Proven by mutation both ways.
+**Severity: Major.**
+
+**3 · An unknown flag was ignored in silence.** zsh does not word-split an unquoted
+parameter, so a whole argument set reached the parser as one string, no flag was recognised,
+and the command built the DEFAULT package under the DEFAULT slug and journalled it as a
+completed round — moving the "changed since" baseline for the next one. The empty package is
+visible; the moved baseline is not. Flag names are now checked against a whitelist and an
+unknown one is refused, the way section names already were. **Severity: Major.**
+
+**4 · §B reached the client only by accident of punctuation.** The questions section filtered
+on "has an id", and §B — the work the team deferred — failed that test only because its
+headings use `B1 — …` while §A uses `A1 · …`, and the id parser does not know the dash. The
+first §B item ever typed with a middle dot would have gone to the client as a question about
+our own backlog. It now selects on the pointer the contract already defines,
+`lifecycle.needs_from_client`, which is the actual semantics: §A is what the client owes.
+**Severity: Major.**
+
+**5 · A one-section package spoke the whole package's language.** Splitting the package
+(`--only` / `--skip`, added this session) made the questions a document of their own, and its
+opening line still read *"each block is one claim about the platform — mark it right, not so
+or a question"*, with the answer field labelled *"a comment, if you have one"*. Against
+"give us your company's invoicing details" that is nonsense, and it is the first line the
+reader sees. A section may now carry its own `howto_<section>` and field label; one without
+falls back to the shared text. The same package also showed `USER-CASES.md`'s version — a
+version that would not move when the questions themselves were rewritten. **Severity: Minor.**
+
+**6 · The build output was the least clear thing in the loop.** Two consecutive `if artifact:`
+blocks printed the same instruction in English and then in Russian, the header line was
+English and the "next steps" block was Russian regardless of `docs.language`, and nothing
+anywhere said the one thing that matters: `-artifact.html` is a body, not a page — it has no
+`<html>` and no `<body>`, a browser will not render it, and it must never be sent to a
+client. The output is now single-language, states what each file is and is not, prints the
+exact `file_path` for the Artifact tool, and prints the command that records the returned URL
+(`--record-url … --handoff …`) instead of leaving somebody to hand-edit a 200-line JSONL —
+which happened three times in this one session, each time with a throwaway script nobody
+reviewed. **Severity: Minor, and it is the one the user reported.**
+
+**Root cause, common to 1, 2, 4 and 6:** the package is a document that makes CLAIMS about
+itself — "yellow means changed", "these are the steps", "these are your questions", "here is
+what to do next". Nothing checked a claim against what the code produced, so each stayed
+wrong for as long as nobody read the output beside the input. Where a generated page asserts
+something about its own contents, that assertion needs a test, or it is a comment that
+happens to be printed.
+
+**Residual:** the `--read` path has still never run on real client answers — 13 `handoff`
+rows in the OHAWO ledger and 0 `comment` rows. Everything about pre-filling a previous
+verdict is therefore argued and not measured.

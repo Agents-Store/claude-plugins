@@ -210,7 +210,16 @@ def collect(root, contract, lang):
         ('automation', ents('AUTOMATION.md', 'processes[')
                        + ents('AUTOMATION.md', 'triggers[') + tasks),
         ('cases', ents('USER-CASES.md')),
-        ('questions', [e for e in ents('OPEN-QUESTIONS.md')
+        # Клиенту уходит §A — то, что должен ОН, — и различается это по указателю
+        # `lifecycle.needs_from_client`, которым §A связан со спекой, а §B нет.
+        # Раньше фильтром было «есть id», и §B выпадал лишь потому, что его
+        # заголовки написаны через тире (`B1 — …`), а §A через точку (`A1 · …`):
+        # разбор id не узнавал тире, id получался пустым. Работало, но случайно —
+        # первый же пункт §B, набранный по образцу соседнего раздела, ушёл бы
+        # клиенту вопросом про нашу отложенную работу. Зачёркнутое отсеивается
+        # отдельно: указатель говорит «должен заказчик», зачёркивание — «уже
+        # закрыто», и это два разных условия.
+        ('questions', [e for e in ents('OPEN-QUESTIONS.md', 'lifecycle.needs_from_client')
                        if '~~' not in (e['title'] or '')]),
         ('screens', ents('UX-UI.md', 'interfaces[')),
         ('handbook', ents('HANDBOOK.md', None, level=3, want_id=False)),
@@ -750,6 +759,111 @@ def read_answers(root, src, date=None):
 _VERDICT_WORD = {'ok': 'верно', 'no': 'не так', 'q': 'вопрос'}
 
 
+# Что печатается после сборки. Отдельно от STR, потому что STR — это текст
+# ДОКУМЕНТА для заказчика, а это текст ДЛЯ ТОГО, кто собрал: их читают разные
+# люди в разных местах, и смешивать их в одном словаре значит переводить их
+# вместе, когда переводить надо порознь.
+OUT = {
+ 'ru': dict(
+    items='%s к ответу',        # число + слово согласует plural_ru()
+    is_file='ФАЙЛ ДЛЯ КЛИЕНТА. Открывается в любом браузере, печатается в PDF, '
+            'внизу кнопка «Собрать мои ответы».',
+    is_artifact='ЭТО НЕ ФАЙЛ ДЛЯ КЛИЕНТА — это тело артефакта. В браузере оно не '
+                'откроется: в нём нет ни <html>, ни <body>, их дописывает издатель.',
+    next='Дальше:',
+    f1='отдайте файл клиенту;',
+    f2='клиент жмёт «Собрать мои ответы» и присылает текст;',
+    a1='опубликуйте инструментом Artifact:',
+    a2='впишите полученный URL в журнал — командой, а не руками по JSON:',
+    a3='отдайте клиенту ссылку;',
+    back='ответы вернутся так: /macstack-dev:review --read <файл> — они лягут в '
+         'журнал, и следующий пакет подставит их под теми же пунктами.'),
+ 'en': dict(
+    items='%s',                 # 'N answerable item(s)' — согласует plural_en()
+    is_file='THE FILE FOR THE CLIENT. Opens in any browser, prints to PDF, and '
+            'carries the "collect my answers" button at the bottom.',
+    is_artifact='NOT THE FILE FOR THE CLIENT — this is an artifact body. A browser '
+                'will not render it: it has no <html> and no <body>; the publisher '
+                'adds them.',
+    next='Next:',
+    f1='give the file to the client;',
+    f2='the client presses "collect my answers" and sends you the text;',
+    a1='publish it with the Artifact tool:',
+    a2='record the URL it returns — with the command, not by hand-editing JSON:',
+    a3='give the client the link;',
+    back='answers come back this way: /macstack-dev:review --read <file> — they land '
+         'in the ledger, and the next package pre-fills them under the same items.'),
+}
+
+
+def plural_ru(n, one, few, many):
+    """«24 пунктов» — это не опечатка машины, это машина, которая не умеет
+    согласовывать. Строка, которую человек читает после каждой сборки, читается
+    десятки раз, и небрежность в ней читается как небрежность во всём остальном."""
+    n = abs(int(n))
+    if n % 10 == 1 and n % 100 != 11:
+        return '%d %s' % (n, one)
+    if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
+        return '%d %s' % (n, few)
+    return '%d %s' % (n, many)
+
+
+def plural_en(n, one, many):
+    return '%d %s' % (n, one if abs(int(n)) == 1 else many)
+
+
+def counted_words(lang, n):
+    if lang == 'ru':
+        return plural_ru(n, 'пункт', 'пункта', 'пунктов')
+    return plural_en(n, 'answerable item', 'answerable items')
+
+
+def lang_of(root):
+    try:
+        return doc_lang(root)
+    except Exception:                                             # noqa: BLE001
+        return 'en'
+
+
+def record_url(root, handoff, url):
+    """Вписать URL опубликованного артефакта в его строку журнала.
+
+    Руками это правка JSONL в 200 строк, и делать её приходится каждый раз после
+    публикации. Трижды за одну сессию (OHAWO, 2026-08-27) она делалась одноразовым
+    скриптом на месте — то есть кодом, который никто не проверял и который негде
+    исправить, когда он ошибётся.
+
+    Строка ищется по ИМЕНИ ФАЙЛА, а не по дате: за день собирают несколько
+    пакетов, и дата их не различает.
+    """
+    p_ = os.path.join(root, 'history', 'ledger.jsonl')
+    if not os.path.exists(p_):
+        raise SystemExit('нет %s' % p_)
+    lines, hit = [], 0
+    for ln in io.open(p_, encoding='utf-8').read().splitlines():
+        if ln.strip():
+            r = json.loads(ln)
+            if r.get('kind') == 'handoff' and os.path.basename(r.get('doc') or '') == handoff:
+                r['url'] = url
+                hit += 1
+                ln = json.dumps(r, ensure_ascii=False, sort_keys=True)
+        lines.append(ln)
+    if hit != 1:
+        raise SystemExit('строк handoff с именем %s: %d — ожидалась ровно одна'
+                         % (handoff, hit))
+    io.open(p_, 'w', encoding='utf-8').write('\n'.join(lines) + '\n')
+    return hit
+
+
+# Имена флагов, которые эта команда понимает. Неизвестный флаг — ОТКАЗ, а не
+# молчание: `--slug` без значения (и весь набор, склеенный оболочкой в одну
+# строку) раньше просто не узнавался, команда собирала пакет по умолчанию под
+# именем по умолчанию и записывала его в журнал как состоявшийся круг. Про
+# опечатку не говорилось ничего.
+FLAGS = ('date', 'slug', 'artifact', 'lang', 'only', 'skip',
+         'read', 'dry', 'record-url', 'handoff')
+
+
 def main():
     argv = sys.argv[1:]
     args, flags, i = [], {}, 0
@@ -766,9 +880,22 @@ def main():
             args.append(a)
         i += 1
     root = args[0] if args else 'macstack'
+    bad = [k for k in flags if k not in FLAGS]
+    if bad:
+        print('неизвестный ключ: %s' % ', '.join('--' + b for b in bad))
+        print('известные: %s' % ' '.join('--' + f for f in FLAGS))
+        return 2
     if not os.path.isdir(root):
         print('no macstack/ folder at %s' % root)
         return 1
+    if flags.get('record-url'):
+        h = flags.get('handoff')
+        if not h or h is True:
+            print('--record-url требует --handoff <имя файла в history/handoffs/>')
+            return 2
+        record_url(root, h, flags['record-url'])
+        print('URL записан в строку handoff: %s' % h)
+        return 0
     if flags.get('read'):
         rows_ = read_answers(root, flags['read'], flags.get('date'))
         import collections as _c
@@ -810,23 +937,37 @@ def main():
     except Exception as e:                                        # noqa: BLE001
         sys.stderr.write('ledger не записан: %s\n' % e)
 
-    print('%s  ·  %d answerable items' % (out, counted))
-    print('  ' + ' · '.join('%s %d' % (k, len(gs)) for k, gs in data if gs))
+    # Вывод — на языке документов, и говорит РАЗНОЕ про два разных файла.
+    # Прежняя версия печатала два подряд идущих `if artifact:` с одной и той же
+    # инструкцией на английском и на русском, а «Дальше» было русским всегда,
+    # при английской же первой строке. Читателю это не сообщало главного: что
+    # `-artifact.html` НЕЛЬЗЯ отдать клиенту и нельзя открыть в браузере — в нём
+    # нет ни <html>, ни <body>, их дописывает издатель.
+    W = OUT.get(lang_of(root), OUT['en'])
+    print('')
+    print(out)
+    print('  %s  ·  %s' % (W['items'] % counted_words(lang_of(root), counted),
+                           ' · '.join('%s %d' % (k, len(gs)) for k, gs in data if gs)))
     print('')
     if artifact:
-        print('  artifact body — publish with the Artifact tool, then record its URL below')
+        print('  ' + W['is_artifact'])
         print('')
-    if artifact:
-        print('  тело артефакта — опубликуйте его инструментом Artifact,')
-        print('  затем впишите URL в строку handoff журнала.')
+        print('  ' + W['next'])
+        print('    1. ' + W['a1'])
+        print('       file_path: %s' % out)
+        print('    2. ' + W['a2'])
+        print('       python3 <package.py> %s --record-url <URL> --handoff %s'
+              % (root, os.path.basename(out)))
+        print('    3. ' + W['a3'])
+        print('    4. ' + W['back'])
+    else:
+        print('  ' + W['is_file'])
         print('')
-    # Журнал пакет уже записал сам, строкой выше. Печатать инструкцию «допишите
-    # в log.md» значило бы отправлять человека в файл, которого больше нет.
-    print('Дальше:')
-    print('  1. отдайте файл клиенту;')
-    print('  2. клиент жмёт «Собрать мои ответы» и присылает текст;')
-    print('  3. /macstack-dev:review --read <файл> — ответы лягут в журнал,')
-    print('     и следующий пакет подставит их под теми же пунктами.')
+        print('  ' + W['next'])
+        print('    1. ' + W['f1'])
+        print('    2. ' + W['f2'])
+        print('    3. ' + W['back'])
+    print('')
     return 0
 
 

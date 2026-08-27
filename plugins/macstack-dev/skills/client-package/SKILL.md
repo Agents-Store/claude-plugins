@@ -16,15 +16,61 @@ answers back. It opens in any browser, prints to PDF, and needs nothing installe
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/client-package/references/package.py" macstack \
-        [--date YYYY-MM-DD] [--slug user-cases] [--artifact]
+        [--date YYYY-MM-DD] [--slug user-cases] [--artifact] \
+        [--only <sections>] [--skip <sections>]
 ```
 
 Writes `macstack/history/handoffs/<date>-<slug>.html` and records itself in the ledger as a
 `handoff` row. That row is what the NEXT package measures "changed since you last read this"
 against — without it the next round marks either everything or nothing.
 
-`--artifact` builds the version for publishing. Publish it with the Artifact tool and put the
-URL into the handoff row.
+An unknown flag is refused, not ignored. A shell that collapses the arguments into one string
+used to leave every flag unrecognised: the command then built the DEFAULT package under the
+DEFAULT slug and journalled it as a completed round, which silently moved the "changed since"
+baseline for the next one.
+
+**The command prints what to do next, and it differs per file.** Read that output rather than
+guessing — it names the file, says whether it can go to a client, and gives the exact
+`file_path` and the exact follow-up command.
+
+### Two files, and only one of them goes to the client
+
+Without `--artifact` you get `<date>-<slug>.html`: **the file for the client.** Self-contained,
+opens in any browser, prints to PDF.
+
+With `--artifact` you get `<date>-<slug>-artifact.html`: **an artifact body, not a page.** It
+carries no `<html>` and no `<body>` — the publisher adds them — so a browser will not render
+it and a client must never be sent it. Publish it, then record the URL it returns:
+
+```bash
+# 1. publish with the Artifact tool, passing that exact path as file_path
+# 2. put the URL it returns into the ledger — with the command, not by editing JSON:
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/client-package/references/package.py" macstack \
+        --record-url <URL> --handoff <date>-<slug>-artifact.html
+```
+
+`--record-url` finds the `handoff` row by FILE NAME (several packages share one date) and
+refuses unless it matches exactly one row.
+
+### Splitting the package — `--only` / `--skip`
+
+Both take section keys, comma- or space-separated: `product goals roles automation cases
+questions screens handbook`. An unknown key is refused.
+
+Open questions are the one part a client reads differently: there they do not confirm our
+description, they hand over what we do not have, and until they answer the work stands still.
+So they are worth sending on their own:
+
+```bash
+… --slug documents --skip questions      # everything except the questions
+… --slug questions --only questions      # the questions alone
+```
+
+A package of ONE section names itself after that section — in the `<title>` and the `<h1>` —
+and shows the version of that section's own document. Two packages built on one day would
+otherwise reach the client under the same name and differ only by URL. A section may also
+carry its own instructions at the top: `questions` does, because "mark it right / not so" is
+meaningless against "give us your company's invoicing details".
 
 ## What the client sees
 
@@ -36,7 +82,15 @@ hundreds of separate questions is an interrogation, not a document, and the clie
 reading. One answer per entity, not one per bullet.
 
 Eight sections: what the product is · goals · who does what · what starts work and who does
-it · what must be delivered · questions for you · screens · how to use it.
+it · what must be delivered · questions for you · screens · how to use it. A section with
+nothing in it is dropped, and so is an entity that holds nothing but the scaffolder's own
+italic prompt — an unwritten `HANDBOOK.md` is 41 headings each saying *"describe the steps of
+this procedure"*, which is an instruction addressed to US. It returns by itself the day
+somebody writes the first procedure.
+
+**Questions for you means §A — what the CLIENT owes.** §B is the work the team deferred, and
+it is selected out by its pointer (`lifecycle.needs_from_client`), not by how its headings
+happen to be punctuated. Closed items are filtered separately, by their strikethrough.
 
 **Closed questions do not go in.** Six of the questions in `OPEN-QUESTIONS.md` are struck
 through and marked CLOSED; asking them again spends attention the client has a fixed amount

@@ -1,6 +1,6 @@
 ---
 description: Give the client the documents to read and answer — a self-contained HTML file, a published page, or both — and take their answers back
-argument-hint: [--read | --html | --artifact | (empty = both)]
+argument-hint: [--read | --artifact | --only <sections> | --skip <sections> | (empty = the whole package)]
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, Skill, Artifact]
 ---
 
@@ -15,8 +15,12 @@ hundred small changes go missing.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/client-package/references/package.py" macstack \
-  [--slug <name>] [--artifact]
+  [--slug <name>] [--artifact] [--only <sections>] [--skip <sections>]
 ```
+
+**Read what the command prints.** It names the file it wrote, says whether that file can go
+to a client, and gives the exact next step — which differs between the plain file and the
+artifact body. An unknown flag is refused rather than ignored.
 
 The package carries the client's own documents, section by section, as prose — **not a
 checklist**. Acceptance bullets are test cases: they are written for a machine and live
@@ -30,8 +34,26 @@ The unit the client answers is the **entity** — a case, a screen, a trigger, a
 Each carries its permanent id (`C-04`), which does not change between rounds, so a
 comment quoted six months later still lands on the same thing.
 
-`--artifact` also builds the version for publishing. Publish it with the Artifact tool,
-then paste the URL into the `handoff` row the script prints.
+`--artifact` builds an **artifact body, which is not a page and must never be sent to a
+client**: it has no `<html>` and no `<body>`, so a browser will not render it. Publish it
+with the Artifact tool using the exact path printed, then record the URL with the command
+the output gives you — `--record-url <URL> --handoff <file>` — rather than editing
+`ledger.jsonl` by hand.
+
+## Splitting it — `--only` / `--skip`
+
+Section keys: `product goals roles automation cases questions screens handbook`.
+
+Open questions are the one part a client reads differently — there they do not confirm our
+description, they hand over what we do not have — so they are worth sending on their own:
+
+```bash
+… --slug documents --skip questions      # everything except the questions
+… --slug questions --only questions      # the questions alone
+```
+
+A one-section package names itself after that section and shows that document's own version,
+so two packages built on one day are told apart by name and not only by URL.
 
 `history/handoffs/` is immutable for the same reason `inbox/` is: the client's answers
 come back against THAT file. A new round writes a new dated file.
