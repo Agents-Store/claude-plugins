@@ -69,7 +69,7 @@ the things it summarises.
 
 ## Writing rows
 
-Use `references/ledger.py` from the `documents` skill; never append by hand.
+Use `${CLAUDE_PLUGIN_ROOT}/skills/documents/references/ledger.py`; never append by hand.
 
 ```python
 import ledger
