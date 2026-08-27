@@ -394,6 +394,19 @@ STR = {
             n_questions='На эти вопросы можем ответить только вы. Пока ответа нет, работа по ним стоит.',
             n_cases='Главное в пакете. Каждый пункт — то, что человек должен смочь сделать.',
             c_c='комментарий, если есть',
+            c_c_questions='ваш ответ',
+            howto_questions=(
+                '<p><strong>Как этим пользоваться.</strong> Ниже — вопросы, ответить на '
+                'которые можем только мы вместе: всё это либо ваши данные, либо ваши '
+                'решения. Под каждым вопросом написано, что будет, если ответа не будет.</p>'
+                '<p>Пишите ответ прямо в поле под вопросом. Отметка рядом — про сам вопрос: '
+                '«верно» — написанное верно, добавить нечего; «не так» — мы что-то поняли '
+                'неправильно; «вопрос» — непонятно, что именно от вас нужно.</p>'
+                '<p>Можно отвечать прямо в браузере, потом «Печать» → «Сохранить как PDF». '
+                'Можно распечатать и писать от руки. Можно нажать кнопку внизу и прислать '
+                'нам текст ответов.</p>'
+                '<p>Код у вопроса — например <code>A1</code> — это его постоянный адрес. Он '
+                'не меняется между версиями, на него можно сослаться письмом и через год.</p>'),
             s_handbook='Как этим пользоваться',
             n_handbook='Пошагово, для того, кто сядет работать в платформе.',
             ok='верно', no='не так', q='вопрос',
@@ -422,6 +435,19 @@ STR = {
             n_questions='Only you can answer these. Work on them is stopped until you do.',
             n_cases='The heart of the package. Each item is something a person must be able to do.',
             c_c='a comment, if you have one',
+            c_c_questions='your answer',
+            howto_questions=(
+                '<p><strong>How to use this.</strong> Below are the questions only you can '
+                'answer: each is either your data or your decision. Under each one is what '
+                'happens if the answer does not come.</p>'
+                '<p>Write your answer in the field under the question. The mark beside it is '
+                'about the question itself: "right" — it is correct and there is nothing to '
+                'add; "not so" — we got something wrong; "question" — it is unclear what is '
+                'being asked of you.</p>'
+                '<p>Answer straight in the browser and Print → Save as PDF, print it and '
+                'write by hand, or press the button at the bottom and send us the text.</p>'
+                '<p>The code on a question — <code>A1</code> — is its permanent address. It '
+                'does not change between versions and is still quotable a year from now.</p>'),
             s_handbook='How to use it',
             n_handbook='Step by step, for the person who will work in it.',
             ok='right', no='not so', q='question',
@@ -602,14 +628,31 @@ def build(root, date, slug, lang=None, artifact=False,
     hist = ledger.index(root)
     since = ledger.last_handoff(root)
 
-    version = ((spec.get('docs') or {}).get('files') or {}).get(
-        'user_cases', {}).get('version', '?')
-
     # Пакет из ОДНОГО раздела называет себя этим разделом. Иначе два пакета,
     # собранные в один день, уходят клиенту под одним и тем же именем и в галерее
     # артефактов различаются только ссылкой — а выбирать из них будет человек.
     solo = sections[0][0] if len(sections) == 1 else None
     head = T.get('s_' + solo, T['title']) if solo else T['title']
+
+    # Пакет из одного раздела показывает версию СВОЕГО документа. Иначе на пакете
+    # вопросов стоит версия USER-CASES.md — чужая, и она не сдвинется, когда
+    # перепишут сами вопросы: клиент увидит ту же цифру над новым текстом.
+    DOC_OF = {'questions': 'open_questions', 'cases': 'user_cases', 'screens': 'ux_ui',
+              'automation': 'automation', 'roles': 'automation', 'handbook': 'handbook',
+              'product': 'overview', 'goals': 'overview'}
+    files = ((spec.get('docs') or {}).get('files') or {})
+    version = files.get(DOC_OF.get(solo, 'user_cases') if solo else 'user_cases',
+                        {}).get('version', '?')
+
+    # Вопросы читают не так, как остальное: там не подтверждают наше описание, а
+    # отдают то, чего у нас нет. Общая инструкция зовёт отметить «верно» — для «дайте
+    # реквизиты OHAWO» это бессмыслица, и она стоит первой строкой, которую человек
+    # читает. Своя инструкция и своя подпись поля есть только у этого раздела.
+    if solo and T.get('howto_' + solo):
+        T = dict(T)
+        T['howto'] = T['howto_' + solo]
+        if T.get('c_c_' + solo):
+            T['c_c'] = T['c_c_' + solo]
 
     if artifact:
         # Полный пакет держит короткую форму, какой была: менять имя круга,
