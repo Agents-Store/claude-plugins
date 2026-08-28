@@ -51,7 +51,7 @@ from mdblocks import parse, entities, dump_yaml  # noqa: E402  — TASKS.md + re
 import v3                                        # noqa: E402  — USER-CASES.md + OPEN-QUESTIONS.md
 from i18n import doc_lang, msg  # noqa: E402
 
-CASE_ID = re.compile(r'\b([A-Z]-\d{2})\b')
+CASE_ID = re.compile(r'\b(C?[A-Z]-\d{2})\b')
 CASE_HEADING = re.compile(r'^[A-Z]-\d{2}$')      # a case's own heading id, full match
 OPEN_ID = re.compile(r'\b([AB]\d+)\b')
 # Fallback for the v1 table format: | C-01 | Implemented | evidence... |

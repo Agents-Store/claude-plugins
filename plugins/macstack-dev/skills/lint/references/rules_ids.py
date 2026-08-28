@@ -162,7 +162,7 @@ def r_12_3(c):
     # case - X-01..Z-15 &c, headings in USER-CASES.md
     if 'user_cases' in c.docs:
         doc = c.docs['user_cases']
-        scan(doc.lines, c.rel(doc.path), _heading_tokens, r'^[A-Z]-[0-9]{2}$', 'case')
+        scan(doc.lines, c.rel(doc.path), _heading_tokens, r'^C?[A-Z]-[0-9]{2}$', 'case')
 
     # open_item - A<n>/B<n>, headings in OPEN-QUESTIONS.md (see module docstring
     # for why this reads raw lines instead of it.id)
@@ -398,9 +398,15 @@ def r_12_4(c):
                     out.append(Finding('12.4', ERROR, 'macstack.json', 0,
                                         "roles[id=%s].cases glob %r matches no case "
                                         "heading in USER-CASES.md" % (r.get('id'), g)))
+        # Буква РОЛИ — та, что стоит непосредственно перед дефисом, а не первая
+        # в строке. В двухбуквенной форме первая буква всегда `C` («case»), и
+        # `cid[0]` сложил бы все кейсы всех ролей в одну корзину `C`, после чего
+        # правило 12.4 сообщало бы, что кейсы заявлены более чем одной ролью —
+        # на совершенно исправном файле.
         by_letter = {}
         for cid in case_ids:
-            by_letter.setdefault(cid[0], set()).add(cid)
+            head = cid.split('-', 1)[0]
+            by_letter.setdefault(head[-1], set()).add(cid)
         reserved = set('XSZ')          # never assigned to a role - id_spaces.case
         upath = c.rel(c.docs['user_cases'].path)
         for letter, ids in sorted(by_letter.items()):
@@ -433,7 +439,7 @@ def r_12_4(c):
             _header, blocks = mdblocks.parse(tc_text)
             counts = _acceptance_counts(c)
             for e in mdblocks.entities(blocks):
-                m = re.match(r'^([A-Z]-[0-9]{2})\.T[0-9]+$', e.id or '')
+                m = re.match(r'^(C?[A-Z]-[0-9]{2})\.T[0-9]+$', e.id or '')
                 if not m:
                     continue
                 line = (e.start or 0) + 2
@@ -442,7 +448,7 @@ def r_12_4(c):
                                         '%s covers case %s, which no longer exists in '
                                         'USER-CASES.md' % (e.id, m.group(1))))
                 for token in _as_list(_entity_value(e, 'covers', c.lang)):
-                    cm = re.match(r'^([A-Z]-[0-9]{2})\.a([0-9]+)$', str(token))
+                    cm = re.match(r'^(C?[A-Z]-[0-9]{2})\.a([0-9]+)$', str(token))
                     if not cm or int(cm.group(2)) > counts.get(cm.group(1), 0) \
                             or int(cm.group(2)) < 1:
                         out.append(Finding('12.4', ERROR, c.rel(tc_path), line,

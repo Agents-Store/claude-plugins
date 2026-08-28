@@ -476,7 +476,7 @@ def _first_sentence(text):
 
 
 TEST_TITLE = re.compile(r"""^\s*(?:it|test)\s*\(\s*(['"`])(.*?)\1""", re.M)
-COVERS = re.compile(r'\b([A-Z]-\d{2})(\.a\d+)?\b')
+COVERS = re.compile(r'\b(C?[A-Z]-\d{2})(\.a\d+)?\b')
 # Каталоги, в которые сканер тестов не заходит. Помимо очевидного мусора здесь
 # `.claude` и `.codex`: оба держат worktree'ы, а worktree — это второй экземпляр
 # того же дерева. Соседняя проверка на вложенный `.git` ловит остальные случаи,

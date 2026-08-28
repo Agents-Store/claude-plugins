@@ -110,7 +110,7 @@ class Item(object):
 
 def _split_heading(text):
     """«C-04 · Название» или «Название — `slug`» -> (id, title)."""
-    m = re.match(r'^~*([A-Z]-\d{2}|[AB]\d+|M\d+(?:-T\d+)?|Z-\d{2})~*\s*·\s*(.+)$', text)
+    m = re.match(r'^~*(C?[A-Z]-\d{2}|Q?[AB]\d+|M\d+(?:-T\d+)?)~*\s*·\s*(.+)$', text)
     if m:
         return m.group(1), m.group(2).strip()
     m = re.search(r'^(.*?)\s+—\s+`([A-Za-z0-9][A-Za-z0-9._-]*)`\s*$', text)

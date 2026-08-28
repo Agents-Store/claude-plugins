@@ -107,6 +107,42 @@ Resolve once, at the start of every operation, in this order:
 truths. Report both paths and stop: the remedy is migration mode, which relocates the
 legacy root file into the folder (or `git rm`s it once the moved copy is verified).
 
+## The id prefix names the file
+
+An id is read by a person before it is read by a program, and the person's first
+question is always "which file is that in". So the prefix answers it:
+
+| Prefix | Kind | File |
+|---|---|---|
+| `CC-14` `CT-19` `CO-16` `CX-03` `CZ-14` `CS-04` | case | `client/USER-CASES.md` |
+| `QA27` `QB3` | open item | `client/OPEN-QUESTIONS.md` |
+| `D58` | decision | `history/DECISIONS.md` |
+| `M15` `M15-T11` `BL-7` | milestone · task · backlog | `history/TASKS.md` |
+| `R-2026-08-28` | release | `history/CHANGELOG.md` |
+
+The **first** letter names the file; the **second** narrows the kind — the role a
+case belongs to (`C` coach, `T` training centre, `O` admin, plus the reserved
+`X` cross-cutting, `S` scenario, `Z` prohibition), or who owes an open item (`A`
+the client, `B` us, deferred).
+
+`M15-T11` is the one that looks like an exception and is not: `M` names the
+MILESTONE and `T` names the task inside it, so the id reads "task 11 of milestone
+15" and both live in `TASKS.md`. The form is deliberate — a commit subject ending
+`(M15-T11)` links the commit to the task for free.
+
+**One-letter case ids and un-prefixed open items are LEGACY.** `C-14`, `T-19`,
+`A27` are still accepted so that projects already under way keep linting, and
+every reader of an old document keeps finding what it cites. They are not written
+any more. The old form had two defects a reader hit immediately: nothing in `A27`
+said which file to open, and `T` meant a training-centre case in `T-19` and a task
+in `M15-T11` — the same letter, two spaces, no way to tell them apart by looking.
+
+To convert a project: `python3 references/migrate_ids.py <root>` shows the change,
+`--apply` writes it. It renames only ids DECLARED as headings in the two client
+documents — never a look-alike from someone else's paper, and never anything under
+`inbox/` or `history/handoffs/`, which are immutable and already in the client's
+hands.
+
 ## Ten invariants
 
 1. **`inbox/` is immutable.** Never edit, rename or delete anything in it. A source

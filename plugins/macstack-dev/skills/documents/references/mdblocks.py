@@ -392,7 +392,7 @@ def table_violations(text, exempt_anchors=('journal',)):
 CYR = re.compile(r'[\u0400-\u04FF]')
 LAT = re.compile(r'[A-Za-z]')
 STRIP = re.compile(r'(```.*?```|`[^`]*`|<!--.*?-->|\[[^\]]*\]\([^)]*\))', re.S)
-IDTOK = re.compile(r'\b[A-Z]-\d{2}(\.[aT]\d+)?\b|\bM\d+(-T\d+)?\b|\b[AB]\d+\b|\bD\d+\b|\bBL-\d+\b')
+IDTOK = re.compile(r'\bC?[A-Z]-\d{2}(\.[aT]\d+)?\b|\bM\d+(-T\d+)?\b|\bQ?[AB]\d+\b|\bD\d+\b|\bBL-\d+\b')
 
 
 def strip_fences(text):

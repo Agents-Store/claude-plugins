@@ -67,17 +67,17 @@
   },
   "id_spaces": {
     "case": {
-      "pattern": "^[A-Z]-[0-9]{2}$",
+      "pattern": "^C?[A-Z]-[0-9]{2}$",
       "owner": "client/USER-CASES.md",
-      "note": "X = cross-cutting, S = end-to-end scenario, Z = prohibition are RESERVED and never assigned to a role; any other uppercase ASCII letter is a role letter, recorded in roles[].cases; on collision take the next unused letter; a letter, once used, is never reassigned."
+      "note": "ПРЕФИКС НАЗЫВАЕТ ФАЙЛ. C = case, и живёт кейс в client/USER-CASES.md. Вторая буква — роль: CC коуч, CT тренинг-центр, CO администратор. CX сквозное, CS сценарий, CZ запрет — эти три ЗАРЕЗЕРВИРОВАНЫ и роли не назначаются никогда; любая другая заглавная ASCII-буква — буква роли, записанная в roles[].cases; при коллизии берётся следующая свободная; однажды использованная буква не переназначается. Однобуквенная форма (C-14, T-19) — НАСЛЕДИЕ и принимается, чтобы не ломать заведённые проекты, но новые кейсы заводятся только в двухбуквенной. Почему: в старой форме T значило и кейс тренинг-центра (T-19), и задачу (M15-T11), а по букве нельзя было догадаться, в каком файле искать. Миграция — skills/documents/references/migrate_ids.py."
     },
     "testcase": {
-      "pattern": "^[A-Z]-[0-9]{2}\\.T[0-9]+$",
+      "pattern": "^C?[A-Z]-[0-9]{2}\\.T[0-9]+$",
       "owner": "generated/TEST-CASES.md",
       "note": "The case id it verifies, plus .T<n>. Traceability is built into the id: `grep 'C-06\\.'` finds every test for C-06. Numbers are never reused after a strike."
     },
     "acceptance": {
-      "pattern": "^[A-Z]-[0-9]{2}\\.a[0-9]+$",
+      "pattern": "^C?[A-Z]-[0-9]{2}\\.a[0-9]+$",
       "owner": "client/USER-CASES.md",
       "note": "Position of an acceptance bullet inside its case, allocated on render and STABLE across regenerations. This is the address a client's comment resolves against; v1 numbered bullets positionally per handoff package, which only worked because handoffs/ is immutable and broke the moment a bullet was inserted above."
     },
@@ -104,7 +104,7 @@
     "task": {
       "pattern": "^M[0-9]+-T[0-9]+$",
       "owner": "history/TASKS.md",
-      "note": "Milestone-scoped and permanent. Chosen to match the commit convention — a subject ending '(M11-T9)' links the commit to the task for free. Never renumbered."
+      "note": "M — это ВЕХА, T — задача внутри неё: M15-T11 читается «одиннадцатая задача пятнадцатой вехи». Обе живут в history/TASKS.md. Форма выбрана под соглашение о коммитах — тема, кончающаяся «(M11-T9)», связывает коммит с задачей бесплатно. Не перенумеровывается никогда. Частая ошибка чтения: M принимают за букву файла. Она называет веху, а файл называет T."
     },
     "backlog": {
       "pattern": "^BL-[0-9]+$",
@@ -114,7 +114,7 @@
     "milestone": {
       "pattern": "^M[0-9]+$",
       "owner": "history/TASKS.md",
-      "note": "A coherent increment someone could review or demo. Carries a falsifiable done_when."
+      "note": "M — веха, живёт в history/TASKS.md рядом со своими задачами. Несёт фальсифицируемое done_when: критерий, который можно проверить, а не оценить."
     },
     "release": {
       "pattern": "^R-[0-9]{4}-[0-9]{2}-[0-9]{2}$",
@@ -122,9 +122,9 @@
       "note": "One shipped increment, dated. Written when something reached the people who use it — not when a branch merged."
     },
     "open_item": {
-      "pattern": "^[AB][0-9]+$",
+      "pattern": "^Q?[AB][0-9]+$",
       "owner": "client/OPEN-QUESTIONS.md",
-      "note": "A = owed by the client, B = deferred engineering. Numbers are never reused."
+      "note": "ПРЕФИКС НАЗЫВАЕТ ФАЙЛ. Q = question, и живёт запись в client/OPEN-QUESTIONS.md. Вторая буква — кто должен ответить: QA — заказчик, QB — отложенная инженерная работа. Номера не переиспользуются никогда. Форма без Q (A27, B3) — НАСЛЕДИЕ и принимается, чтобы не ломать заведённые проекты; новые записи заводятся с Q. Миграция — skills/documents/references/migrate_ids.py."
     },
     "decision": {
       "pattern": "^D[0-9]+$",
