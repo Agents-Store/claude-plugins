@@ -52,7 +52,7 @@ import v3                                        # noqa: E402  — USER-CASES.md
 from i18n import doc_lang, msg  # noqa: E402
 
 CASE_ID = re.compile(r'\b(C?[A-Z]-\d{2})\b')
-CASE_HEADING = re.compile(r'^[A-Z]-\d{2}$')      # a case's own heading id, full match
+CASE_HEADING = re.compile(r'^C?[A-Z]-\d{2}$')    # a case's own heading id, full match
 OPEN_ID = re.compile(r'\b([AB]\d+)\b')
 # Fallback for the v1 table format: | C-01 | Implemented | evidence... |
 LEGACY_ROW = re.compile(r'^\|\s*\*?\*?([A-Z]-\d+)\*?\*?\s*\|\s*([^|]+?)\s*\|', re.M)

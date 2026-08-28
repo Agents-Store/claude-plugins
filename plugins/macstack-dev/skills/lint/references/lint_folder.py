@@ -506,7 +506,16 @@ def r_12_21(c):
                                        '%s: bullet %s — %s' % (it.id, k, why)))
                 heads = {h.rstrip('.:').strip() for h in it.sections}
                 for k in preq:
-                    if any((it.id or '').startswith(x) for x in pexc.get(k, [])):
+                    # Сравнение по букве ВИДА, а не по началу строки. В
+                    # двухбуквенной форме id первая буква всегда `C` («case»), и
+                    # `startswith('Z')` перестал бы узнавать запрет `CZ-01` —
+                    # после чего правило требовало бы с запрета список приёмки,
+                    # которого у запрета нет по устройству. Опущенный `C`
+                    # обрабатывается тем же выражением.
+                    head = (it.id or '').split('-', 1)[0]
+                    kind_letter = head[-1:] if head else ''
+                    if any(kind_letter == x or (it.id or '').startswith(x)
+                           for x in pexc.get(k, [])):
                         continue
                     if c.prose_label(k, lang) not in heads:
                         out.append(Finding('12.21', ERROR, p, ln,

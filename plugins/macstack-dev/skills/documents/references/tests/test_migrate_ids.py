@@ -131,6 +131,21 @@ class MigrateIds(unittest.TestCase):
         self.assertIn(u'CC-14', got)
         self.assertIn(u'CT-19', got)
 
+    def test_role_globs_in_the_spec_follow_the_cases(self):
+        """`roles[].cases` — шаблон `C-*`, а не id, и регулярка по id его не видит.
+
+        Без этой правки линт после миграции сообщает «кейсы C-* не принадлежат
+        ни одной роли» и «glob 'C-*' не совпадает ни с одним заголовком»: роль
+        молча теряет свои кейсы, а документы выглядят исправными.
+        """
+        spec = os.path.join(self.root, 'macstack', 'macstack.json')
+        write(spec, u'{"roles": [{"id": "coach", "cases": ["C-*"]},'
+                    u' {"id": "centre", "cases": ["T-*"]}]}\n')
+        self.run_script('--apply')
+        got = read(spec)
+        self.assertIn(u'"CC-*"', got)
+        self.assertIn(u'"CT-*"', got)
+
     def test_showing_changes_nothing(self):
         before = read(os.path.join(self.root, 'macstack', 'history', 'TASKS.md'))
         out = self.run_script()

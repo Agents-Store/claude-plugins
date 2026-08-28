@@ -263,7 +263,7 @@ def _covered_acceptance_ids(c):
         return set()
     out = set()
     for line in text.split('\n'):
-        m = re.match(r'^-\s+`([A-Z]-\d{2}(?:\.a\d+)?)`\s+—\s+(.*)$', line.strip())
+        m = re.match(r'^-\s+`(C?[A-Z]-\d{2}(?:\.a\d+)?)`\s+—\s+(.*)$', line.strip())
         if m and not re.search(r'не покрыт|not covered|nicht abgedeckt', m.group(2)):
             out.add(m.group(1))
     return out
@@ -289,7 +289,7 @@ def r_12_11(c):
                         'does not exist — no promise can be shown as verified')]
     out = []
     for line in text.split('\n'):
-        m2 = re.match(r'^-\s+`([A-Z]-\d{2})`\s+(.*?)\s+—\s+(.*)$', line.strip())
+        m2 = re.match(r'^-\s+`(C?[A-Z]-\d{2})`\s+(.*?)\s+—\s+(.*)$', line.strip())
         if not m2:
             continue
         cid, name, state = m2.group(1), m2.group(2), m2.group(3)

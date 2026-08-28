@@ -102,7 +102,7 @@ def run(root):
 
     # кейсы и роли
     cases = [i.id for i in v3.load(os.path.join(C, 'USER-CASES.md'))
-             if i.id and re.match(r'^[A-Z]-\d{2}$', i.id)]
+             if i.id and re.match(r'^C?[A-Z]-\d{2}$', i.id)]
     declared = {}
     for r in (spec.get('roles') or []):
         for pat in (r.get('cases') or []):

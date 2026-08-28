@@ -141,6 +141,14 @@ def main():
     re_all = build(everywhere)
     re_ms = build(dict(everywhere, **macstack_only))
 
+    # `roles[].cases` в macstack.json — это ШАБЛОНЫ (`C-*`), а не id, и под
+    # регулярку по id они не подпадают. Без этой правки линт после миграции
+    # сообщает «кейсы C-* не принадлежат ни одной роли» и «glob 'C-*' не
+    # совпадает ни с одним заголовком» — то есть роль теряет свои кейсы.
+    letters = sorted({cid.split('-', 1)[0][-1] for cid in cases})
+    re_glob = (re.compile(r'\b(' + '|'.join(letters) + r')-\*')
+               if letters else None)
+
     print('объявлено кейсов: %d, вопросов: %d' % (len(cases), len(opens)))
     print('кейсы правятся везде; вопросы — только внутри %s/ (вне её A4 это размер страницы)'
           % MACSTACK)
@@ -157,6 +165,9 @@ def main():
         except IOError:
             continue
         new, n = rx.subn(lambda m: mapping[m.group(1)], text)
+        if inside and re_glob is not None:
+            new, g = re_glob.subn(lambda m: 'C' + m.group(1) + '-*', new)
+            n += g
         if n:
             touched += 1
             total += n
