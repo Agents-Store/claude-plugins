@@ -155,7 +155,7 @@ class MigrateIds(unittest.TestCase):
     def test_running_twice_does_not_double_the_prefix(self):
         self.run_script('--apply')
         again = self.run_script('--apply')
-        self.assertIn(u'уже переведён', again)
+        self.assertIn(u'уже переведён', again)  # ноль замен при непустой карте
         tasks = read(os.path.join(self.root, 'macstack', 'history', 'TASKS.md'))
         self.assertIn('CC-14', tasks)
         self.assertNotIn('CCC-14', tasks)

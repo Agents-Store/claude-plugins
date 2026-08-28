@@ -54,6 +54,11 @@ EXT = ('.md', '.json', '.jsonl', '.ts', '.tsx', '.js', '.jsx', '.html')
 
 CASE_HEADING = re.compile(r'^#{2,6}\s+~*([A-Z]-[0-9]{2})~*\s*[·.]', re.M)
 OPEN_HEADING = re.compile(r'^#{2,6}\s+~*([AB][0-9]+)~*\s*[·.—-]', re.M)
+# Те же заголовки, уже переведённые. Нужны для ДОГОНЯЮЩЕГО прохода по папкам,
+# которые обычный прогон не трогает: к этому моменту client/ уже в новой форме,
+# и старую форму больше неоткуда прочитать.
+CASE_DONE = re.compile(r'^#{2,6}\s+~*C([A-Z]-[0-9]{2})~*\s*[·.]', re.M)
+OPEN_DONE = re.compile(r'^#{2,6}\s+~*Q([AB][0-9]+)~*\s*[·.—-]', re.M)
 
 
 def declared(root):
@@ -64,8 +69,10 @@ def declared(root):
             return ''
         return io.open(p, encoding='utf-8', errors='replace').read()
 
-    cases = set(CASE_HEADING.findall(read(os.path.join('client', 'USER-CASES.md'))))
-    opens = set(OPEN_HEADING.findall(read(os.path.join('client', 'OPEN-QUESTIONS.md'))))
+    uc = read(os.path.join('client', 'USER-CASES.md'))
+    oq = read(os.path.join('client', 'OPEN-QUESTIONS.md'))
+    cases = set(CASE_HEADING.findall(uc)) or set(CASE_DONE.findall(uc))
+    opens = set(OPEN_HEADING.findall(oq)) or set(OPEN_DONE.findall(oq))
     return cases, opens
 
 
@@ -94,14 +101,16 @@ def rename_map(cases, opens):
     return everywhere, macstack_only
 
 
-def walkable(root):
+def walkable(root, sent=False):
     for base, dirs, files in os.walk(root):
         parts = os.path.relpath(base, root).split(os.sep)
-        if any(part in NEVER_DIRS for part in parts):
+        blocked = NEVER_DIRS if not sent else tuple(
+            d for d in NEVER_DIRS if d not in ('inbox', 'handoffs'))
+        if any(part in blocked for part in parts):
             dirs[:] = []
             continue
         dirs[:] = [d for d in dirs
-                   if d not in NEVER_DIRS
+                   if d not in blocked
                    and not os.path.exists(os.path.join(base, d, '.git'))]
         for f in files:
             if f.endswith(EXT):
@@ -111,6 +120,12 @@ def walkable(root):
 def main():
     argv = [a for a in sys.argv[1:] if not a.startswith('-')]
     apply_ = '--apply' in sys.argv[1:]
+    # `history/handoffs/` и `inbox/` по умолчанию неприкосновенны: первое — копии
+    # того, что заказчик УЖЕ прочитал, второе — его собственные слова. Переписать
+    # их значит утверждать, что мы отправили не то, что отправили. Открывается
+    # только явным флагом и только решением владельца — у него могут быть свои
+    # причины предпочесть единый код по всему дереву расхождению с архивом.
+    sent = '--include-sent' in sys.argv[1:]
     if any(a in ('-h', '--help') for a in sys.argv[1:]) or not argv:
         print(__doc__)
         return 0
@@ -154,7 +169,7 @@ def main():
           % MACSTACK)
     ms_root = os.path.join(os.path.abspath(root), MACSTACK)
     touched, total = 0, 0
-    for path in walkable(root):
+    for path in walkable(root, sent):
         inside = os.path.abspath(path).startswith(ms_root + os.sep)
         rx = re_ms if inside else re_all
         mapping = dict(everywhere, **macstack_only) if inside else everywhere
@@ -177,6 +192,12 @@ def main():
                     f.write(new)
 
     print('\nфайлов: %d, замен: %d' % (touched, total))
+    if total == 0:
+        # Ноль замен при НЕПУСТОЙ карте — нормальный исход повторного запуска, а
+        # не отказ. Раньше это ловилось пустой картой, но карта теперь строится и
+        # из новой формы (для догоняющего прохода), поэтому сигналом стал нуль.
+        print('старой формы не осталось — проект уже переведён, делать нечего')
+        return 0
     if not apply_:
         print('это показ. чтобы переписать — добавьте --apply')
     else:
