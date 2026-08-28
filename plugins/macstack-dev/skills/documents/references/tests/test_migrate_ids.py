@@ -101,6 +101,36 @@ class MigrateIds(unittest.TestCase):
         self.assertIn(u'C-14', read(raw))
         self.assertNotIn(u'CC-14', read(raw))
 
+    def test_an_open_item_id_is_left_alone_outside_macstack(self):
+        """`A4` вне macstack/ — это размер страницы, а не вопрос заказчику.
+
+        Измерено на ohawo: `<Page size="A4">` в генераторе счёта и
+        `export const A4 = {width: 595.28, …}` в тестовом хелпере. Переименовав
+        любое из них, мы бы сломали выпуск PDF молча — тип не возражает, строка
+        просто перестаёт быть известным форматом бумаги.
+        """
+        pdf = os.path.join(self.root, 'src', 'InvoiceDocument.tsx')
+        write(pdf, u'export const A4 = { width: 595.28 }\n<Page size="A4" />\n// см. вопрос A2\n')
+        self.run_script('--apply')
+        got = read(pdf)
+        self.assertIn(u'size="A4"', got)
+        self.assertIn(u'const A4 =', got)
+        self.assertNotIn(u'QA4', got)
+        self.assertNotIn(u'QA2', got, u'вне macstack/ вопросы не трогаются вовсе')
+
+    def test_a_case_id_is_renamed_even_outside_macstack(self):
+        """Кейс несёт дефис — форма своеобразная, коллизий не даёт.
+
+        Обратная сторона предыдущего случая: без неё «не трогать вне macstack»
+        зелено на скрипте, который не трогает ничего.
+        """
+        src = os.path.join(self.root, 'src', 'notes.ts')
+        write(src, u"// закрывает C-14\nconst msg = 'Beleg unverändert (T-19).'\n")
+        self.run_script('--apply')
+        got = read(src)
+        self.assertIn(u'CC-14', got)
+        self.assertIn(u'CT-19', got)
+
     def test_showing_changes_nothing(self):
         before = read(os.path.join(self.root, 'macstack', 'history', 'TASKS.md'))
         out = self.run_script()

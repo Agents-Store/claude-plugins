@@ -70,12 +70,28 @@ def declared(root):
 
 
 def rename_map(cases, opens):
-    out = {}
-    for cid in cases:
-        out[cid] = 'C' + cid
-    for oid in opens:
-        out[oid] = 'Q' + oid
-    return out
+    """-> (везде, только-в-macstack) — два набора, и разделение НЕ косметическое.
+
+    Кейс несёт дефис (`C-14`, `T-19`). Форма достаточно своеобразная, чтобы
+    встречаться только там, где её и написали, поэтому кейсы переименовываются во
+    всём дереве — включая названия тестов и комментарии в коде, которые обязаны
+    остаться ссылками на существующую запись.
+
+    Открытый пункт — голая буква с цифрами (`A4`, `B3`), и вот это вне `macstack/`
+    значит совсем другое. Измерено на проекте ohawo:
+
+        src/pdf/InvoiceDocument.tsx:441   <Page size="A4" …>
+        tests/int/helpers/pdf-text.ts:189 export const A4 = { width: 595.28, … }
+
+    Первое — размер страницы выпущенного счёта, второе — экспортируемая
+    константа, на которую ссылаются четыре теста. Переименование любого из них
+    ломает генерацию PDF молча: тип не возражает, строка просто перестаёт быть
+    известным Playwright'у форматом. Поэтому открытые пункты правятся только
+    внутри `macstack/`, где `A4` не значит ничего, кроме вопроса заказчику.
+    """
+    everywhere = dict((cid, 'C' + cid) for cid in cases)
+    macstack_only = dict((oid, 'Q' + oid) for oid in opens)
+    return everywhere, macstack_only
 
 
 def walkable(root):
@@ -113,19 +129,34 @@ def main():
         # выглядел бы в скрипте вызывающего как сломанная миграция.
         print('старой формы id в заголовках нет — проект уже переведён, делать нечего')
         return 0
-    mapping = rename_map(cases, opens)
-    # Длинные сначала: иначе `A2` съел бы префикс `A27`.
-    ordered = sorted(mapping, key=len, reverse=True)
-    pattern = re.compile(r'\b(' + '|'.join(re.escape(k) for k in ordered) + r')\b')
+    everywhere, macstack_only = rename_map(cases, opens)
+
+    def build(mapping):
+        if not mapping:
+            return None
+        # Длинные сначала — защита сверх `\b`, а не вместо неё.
+        keys = sorted(mapping, key=len, reverse=True)
+        return re.compile(r'\b(' + '|'.join(re.escape(k) for k in keys) + r')\b')
+
+    re_all = build(everywhere)
+    re_ms = build(dict(everywhere, **macstack_only))
 
     print('объявлено кейсов: %d, вопросов: %d' % (len(cases), len(opens)))
+    print('кейсы правятся везде; вопросы — только внутри %s/ (вне её A4 это размер страницы)'
+          % MACSTACK)
+    ms_root = os.path.join(os.path.abspath(root), MACSTACK)
     touched, total = 0, 0
     for path in walkable(root):
+        inside = os.path.abspath(path).startswith(ms_root + os.sep)
+        rx = re_ms if inside else re_all
+        mapping = dict(everywhere, **macstack_only) if inside else everywhere
+        if rx is None:
+            continue
         try:
             text = io.open(path, encoding='utf-8', errors='replace').read()
         except IOError:
             continue
-        new, n = pattern.subn(lambda m: mapping[m.group(1)], text)
+        new, n = rx.subn(lambda m: mapping[m.group(1)], text)
         if n:
             touched += 1
             total += n
