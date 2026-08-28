@@ -136,7 +136,7 @@ MISC = {
     
         nothing_found='В %s не нашлось ни одной сущности — либо документ пуст, либо его формат не разбирается',
         requirements_lead='Каждое проверяемое утверждение клиентских документов, с его постоянным адресом. Ничего руками: правьте client/.',
-        tests_lead="Кейс проверен, когда есть сценарный тест, проходящий его целиком. Связь — в названии теста: `test('... (C-04)')`. Инженерные тесты показаны отдельно: они поддержка, а не доказательство.",
+        tests_lead="Кейс проверен, когда есть сценарный тест, проходящий его целиком. Связь — в названии теста: `test('... (CC-04)')`. Инженерные тесты показаны отдельно: они поддержка, а не доказательство.",
         no_acceptance='нет пунктов приёмки',
         no_scenario='сценарного теста нет',
         supported_by='есть инженерные: %d',
@@ -180,7 +180,7 @@ MISC = {
     
         nothing_found='No entities were found in %s — the document is either empty or its format does not parse',
         requirements_lead='Every checkable statement of the client documents, at its permanent address. Nothing by hand: edit client/.',
-        tests_lead="A case is verified when a scenario test covers it end to end. The link is in the test title: `test('... (C-04)')`. Engineering tests are shown separately: they are support, not proof.",
+        tests_lead="A case is verified when a scenario test covers it end to end. The link is in the test title: `test('... (CC-04)')`. Engineering tests are shown separately: they are support, not proof.",
         no_acceptance='no acceptance bullets',
         no_scenario='no scenario test',
         supported_by='engineering tests: %d',
@@ -192,7 +192,7 @@ MISC = {
 # ---------------------------------------------------------------- ARCHITECTURE.md
 # form='slug' on every entity here, never form='id'. v3 takes the id from the
 # HEADING, not from the pointer, and _split_heading's id-first branch only
-# accepts a spoken id — C-04, A5, M3-T1, Z-03. software/entities/workflows are
+# accepts a spoken id — CC-04, QA5, M3-T1, CZ-03. software/entities/workflows are
 # technical slugs (payload, coach, wf-entry-capture), so '### payload · Payload'
 # parses as a titled heading with NO id: 39 pointers, 39 headings, 0 entities,
 # and not one error. The em-dash form '### Payload — `payload`' is what
