@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "$comment": "v3 replaces the yaml block with bullet labels. v2 moved the machine fields out of the table and into a fenced yaml block; the owner's verdict on the first real document was that markdown, yaml and tables had been stirred together and a client cannot tell what is safe to edit. A client document is now headings and lists, and the machine half lives in macstack.json with an invisible pointer above each entity. Measured on the live corpus: the model represents 955 of 3837 lines (25%); the other 75% is prose. That is why the writer patches a named line and never re-renders an authored file.",
   "format": {
     "$comment": "A client document is headings and bullet lists. v1 read TABLE COLUMNS BY POSITION — deliberately, because a header follows docs.language and matching its text would break a German project — and the consequence was that every piece of prose needing to sit near the machine moved into a cell: 56 tables across 20 documents, cells up to 1353 characters, one client document 6 columns by 37 rows at 600-880 characters a row. v2 replaced the grid with an anchor plus a fenced yaml block, which fixed the columns and left markdown, yaml and tables stirred together in one file. v3 keeps the language independence and drops the machine syntax entirely: the label is declared in `fields`, the id is in the heading, and the only markup left is a comment the reader never sees.",
@@ -888,7 +888,8 @@
             "tracker",
             "priority",
             "blocked_by",
-            "role"
+            "role",
+            "docs"
           ],
           "bullets_conditional": {
             "tracker": {
@@ -920,12 +921,14 @@
           "bullets_required": [
             "status"
           ],
-          "bullets_optional": [],
+          "bullets_optional": [
+            "docs"
+          ],
           "prose_required": [
             "acceptance"
           ],
           "prose_optional": [],
-          "note": "A milestone is falsifiable or it is not a milestone: its checks are «file exists», «route answers», «migration recorded» — never «looks done»."
+          "note": "A milestone is falsifiable or it is not a milestone: its checks are «file exists», «route answers», «migration recorded» — never «looks done». Если веха описана отдельным планом или спекой — файл называется в `docs`: критерии здесь фальсифицируемы и коротки НАРОЧНО, а разворачивать их некуда, если ссылки на разворот нет."
         }
       ],
       "struck_form": "~~M11-T9~~ · DROPPED 2026-08-24 — <why>",
@@ -1190,6 +1193,15 @@
     "_note": "Exactly four, plus README.md and macstack.json at the root — six entries in all. The count is a constraint, not an accident: the field's own criticism of spec-driven tooling is that a specification spread over many files becomes more tedious to review than the code it describes. A fifth folder needs an argument that beats that."
   },
   "fields": {
+    "agentic": {
+      "label": {
+        "ru": "agentic",
+        "en": "agentic"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
     "approach": {
       "label": {
         "ru": "Как",
@@ -1205,6 +1217,16 @@
       },
       "type": "date",
       "render": "text"
+    },
+    "blocked_by": {
+      "label": {
+        "ru": "Чем заблокирована",
+        "en": "Blocked by",
+        "de": "Blockiert durch"
+      },
+      "type": "id_list",
+      "render": "code_list",
+      "$comment": "Not the same field as `blocks`. «Что блокирует» is what this entity holds up; «Чем заблокирована» is what holds IT up. One bullet used the first label to mean the second, and the contract caught it."
     },
     "blocks": {
       "label": {
@@ -1222,6 +1244,23 @@
       "type": "id_list",
       "resolves_to": "cases[]",
       "render": "code_list"
+    },
+    "category": {
+      "label": {
+        "ru": "category",
+        "en": "category"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "closes": {
+      "label": {
+        "ru": "Закрывает",
+        "en": "Closes"
+      },
+      "type": "text",
+      "render": "text"
     },
     "covers": {
       "label": {
@@ -1244,6 +1283,40 @@
         "both"
       ],
       "render": "text"
+    },
+    "docs": {
+      "label": {
+        "ru": "Документы",
+        "en": "Documents"
+      },
+      "label_aliases": {
+        "ru": [
+          "План",
+          "Планы",
+          "Спека",
+          "docs"
+        ],
+        "en": [
+          "Plan",
+          "Spec",
+          "docs"
+        ],
+        "de": [
+          "docs"
+        ]
+      },
+      "type": "id_list",
+      "render": "code_list",
+      "$comment": "Пути к документам, которые эта работа ПОРОДИЛА или которыми она описана: план `superpowers`, файл дизайна, PDF заказчика из `inbox/`. Заведено 3.1.0, потому что план, на который не ссылается ни одна задача, — это план, который никто не найдёт: `TASKS.md` называет РАБОТУ, а подробности живут в отдельном файле, и связь между ними существовала только в памяти той сессии, где обе половины писались. Измерено на M16: девятизадачный план был написан скиллом `superpowers:writing-plans` в `docs/superpowers/plans/`, и до этой правки объявленного места под ссылку не было — буллет пришлось выдумать, а `bullet_rule` ровно это и запрещает. `id_list` без `resolves_to`, как `blocks` и `languages`: содержимое — пути, а не id коллекций, и разрешать их не во что. Псевдонимы читаются, но НЕ пишутся (см. `gate`): они существуют, чтобы уже написанное «- **План:**» читалось как поле, а не как проза."
+    },
+    "engine": {
+      "label": {
+        "ru": "engine",
+        "en": "engine"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
     },
     "entities": {
       "label": {
@@ -1290,6 +1363,14 @@
       ],
       "render": "text",
       "$comment": "Renamed from `kind` in v3.0.0: the log entry's kind and a test case's kind are different fields that shared one ASCII key. A global fields block makes that collision visible instead of letting one enum quietly overwrite the other."
+    },
+    "finished": {
+      "label": {
+        "ru": "Закрыта",
+        "en": "Finished"
+      },
+      "type": "text",
+      "render": "text"
     },
     "frequency": {
       "label": {
@@ -1344,6 +1425,33 @@
       "type": "text",
       "render": "text"
     },
+    "hosting": {
+      "label": {
+        "ru": "hosting",
+        "en": "hosting"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "implements": {
+      "label": {
+        "ru": "implements",
+        "en": "implements"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "invocation": {
+      "label": {
+        "ru": "invocation",
+        "en": "invocation"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
     "isolation": {
       "label": {
         "ru": "Чужого не видит",
@@ -1378,6 +1486,15 @@
       "type": "id_list",
       "render": "code_list"
     },
+    "layers": {
+      "label": {
+        "ru": "layers",
+        "en": "layers"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
     "legal_deadline": {
       "label": {
         "ru": "Срок диктует закон",
@@ -1385,6 +1502,24 @@
       },
       "type": "text",
       "render": "text"
+    },
+    "license": {
+      "label": {
+        "ru": "license",
+        "en": "license"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
+    "location": {
+      "label": {
+        "ru": "location",
+        "en": "location"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
     },
     "metric_target": {
       "label": {
@@ -1415,6 +1550,14 @@
       },
       "type": "id_list",
       "render": "code_list"
+    },
+    "opened": {
+      "label": {
+        "ru": "Заведена",
+        "en": "Opened"
+      },
+      "type": "text",
+      "render": "text"
     },
     "path": {
       "label": {
@@ -1573,6 +1716,14 @@
         ]
       }
     },
+    "started": {
+      "label": {
+        "ru": "Взята",
+        "en": "Started"
+      },
+      "type": "text",
+      "render": "text"
+    },
     "status": {
       "label": {
         "ru": "Состояние",
@@ -1601,6 +1752,24 @@
         "live",
         "dropped"
       ]
+    },
+    "stores": {
+      "label": {
+        "ru": "stores",
+        "en": "stores"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated",
+      "$comment": "The architecture labels stay ASCII in every language on purpose: their values are software ids, entity names and file paths, which the standard forbids translating. A translated label over an untranslatable value reads worse than an English one, and 12.25 exempts a generated document from the language ratio for the same reason."
+    },
+    "tracker": {
+      "label": {
+        "ru": "Plane",
+        "en": "Tracker"
+      },
+      "type": "text",
+      "render": "text"
     },
     "trigger": {
       "label": {
@@ -1683,6 +1852,15 @@
       "type": "id_list",
       "render": "code_list"
     },
+    "volume": {
+      "label": {
+        "ru": "volume",
+        "en": "volume"
+      },
+      "type": "text",
+      "render": "text",
+      "scope": "generated"
+    },
     "workflow": {
       "label": {
         "ru": "Workflow",
@@ -1699,156 +1877,6 @@
       "type": "id",
       "resolves_to": "workflows[]",
       "render": "code"
-    },
-    "category": {
-      "label": {
-        "ru": "category",
-        "en": "category"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "layers": {
-      "label": {
-        "ru": "layers",
-        "en": "layers"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "license": {
-      "label": {
-        "ru": "license",
-        "en": "license"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "hosting": {
-      "label": {
-        "ru": "hosting",
-        "en": "hosting"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "agentic": {
-      "label": {
-        "ru": "agentic",
-        "en": "agentic"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "stores": {
-      "label": {
-        "ru": "stores",
-        "en": "stores"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated",
-      "$comment": "The architecture labels stay ASCII in every language on purpose: their values are software ids, entity names and file paths, which the standard forbids translating. A translated label over an untranslatable value reads worse than an English one, and 12.25 exempts a generated document from the language ratio for the same reason."
-    },
-    "volume": {
-      "label": {
-        "ru": "volume",
-        "en": "volume"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "engine": {
-      "label": {
-        "ru": "engine",
-        "en": "engine"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "location": {
-      "label": {
-        "ru": "location",
-        "en": "location"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "implements": {
-      "label": {
-        "ru": "implements",
-        "en": "implements"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "invocation": {
-      "label": {
-        "ru": "invocation",
-        "en": "invocation"
-      },
-      "type": "text",
-      "render": "text",
-      "scope": "generated"
-    },
-    "opened": {
-      "label": {
-        "ru": "Заведена",
-        "en": "Opened"
-      },
-      "type": "text",
-      "render": "text"
-    },
-    "started": {
-      "label": {
-        "ru": "Взята",
-        "en": "Started"
-      },
-      "type": "text",
-      "render": "text"
-    },
-    "finished": {
-      "label": {
-        "ru": "Закрыта",
-        "en": "Finished"
-      },
-      "type": "text",
-      "render": "text"
-    },
-    "closes": {
-      "label": {
-        "ru": "Закрывает",
-        "en": "Closes"
-      },
-      "type": "text",
-      "render": "text"
-    },
-    "tracker": {
-      "label": {
-        "ru": "Plane",
-        "en": "Tracker"
-      },
-      "type": "text",
-      "render": "text"
-    },
-    "blocked_by": {
-      "label": {
-        "ru": "Чем заблокирована",
-        "en": "Blocked by",
-        "de": "Blockiert durch"
-      },
-      "type": "id_list",
-      "render": "code_list",
-      "$comment": "Not the same field as `blocks`. «Что блокирует» is what this entity holds up; «Чем заблокирована» is what holds IT up. One bullet used the first label to mean the second, and the contract caught it."
     }
   },
   "prose": {

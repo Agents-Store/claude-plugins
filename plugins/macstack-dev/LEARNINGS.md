@@ -940,3 +940,39 @@ verdict is therefore argued and not measured.
   роли»: роль теряла свои кейсы, а документы выглядели исправными.
 
 Оба закрыты тестами, оба доказаны мутацией.
+
+## 2026-08-29 — a plan written by another tool had nowhere to be linked (3.1.0 / 3.6.0)
+
+- **Feature**: `docs` — an optional bullet on a TASKS.md **task** and on a **milestone**,
+  listing repository-relative paths of every document that describes the work: a plan
+  from `superpowers:writing-plans`, a design spec, the client PDF a requirement came
+  out of. Label «Документы» / «Documents»; read-only aliases «План»/«Plan»/«Спека».
+- **Problem**: planning a nine-task milestone produced a full plan in
+  `docs/superpowers/plans/`, and `TASKS.md` had **no declared place to name it**. The
+  contract's own `bullet_rule` says an undeclared bold-and-colon opening is prose, so a
+  hand-written `- **План:**` would have been silently read as prose — a pointer nothing
+  parses — and lint rule 12.21 errors on any bullet outside
+  `bullets_required | bullets_optional | bullets_conditional`. Milestones were worse:
+  `bullets_optional` was `[]`, so a milestone could carry no pointer at all.
+- **Fix**: field declared in `fields`; added to `bullets_optional` of both `task` and
+  `milestone`; `planning/SKILL.md` gained the rule («a plan file created during planning
+  is ALWAYS linked, from the milestone and from every task it covers»); `format-rules.md`
+  gained a worked TASKS.md example and now says a field value may be a PATH, not only ids.
+- **Root cause**: `TASKS.md` says what the work IS and deliberately keeps milestone
+  criteria short and falsifiable; the HOW has always lived elsewhere. Nothing in the
+  contract joined the two, so the join existed only in the session that wrote both
+  halves — and died with it. Aliases are read-only on purpose (same reasoning as `gate`):
+  they rescue already-written documents without letting the writer emit two spellings.
+- **Severity**: medium — nothing was corrupted, but every plan written by an external
+  skill was unfindable from the one file that is supposed to be the queue.
+
+- **Second defect, found while verifying the first**: `v3._value()` splits a comma list
+  only when EVERY part matches `IDENT`, which does not know `/`. So
+  `- **Документы:** \`a/b.md\`, \`c/d.pdf\`` came back as ONE string with the backticks
+  still inside, while `screens` beside it split correctly. Fixed with a narrow `PATHISH`
+  predicate (no whitespace, contains `/`) beside `IDENT` — deliberately tight, so the
+  regression the predicate exists for stays fixed: cron `0 6 1,16 * *` contains spaces
+  and is still text, and `einsaetze.rate_unit` has no slash and stays a scalar. Guarded
+  by `ValueSplitting` in `tests/test_v3_writer.py` (6 cases, proven by mutation: reverting
+  `PATHISH` reddens exactly one). Severity: medium — a two-document bullet parsed to a
+  single unusable token, and no test would have said so.

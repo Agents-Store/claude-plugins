@@ -137,6 +137,44 @@ pinning test unchanged and green · full suite, zero skipped · a contract froze
 downstream milestones. State an ordering note, with its reason, only when task
 order genuinely may not change.
 
+## Every document the work produced is NAMED — `docs`
+
+`TASKS.md` says what the work IS. Anything that says HOW — a plan written by
+`superpowers:writing-plans`, a design spec, the client PDF the requirement came out
+of — lives in another file, and the link between the two exists only in the session
+that wrote both. Close that session and the plan is unfindable: nobody greps
+`docs/superpowers/plans/` on the chance something is there.
+
+So a task or a milestone whose work is described elsewhere carries a **`docs`**
+bullet listing every such file:
+
+```markdown
+### M16-T3 · Half the day rate below 4.5 hours
+
+- **Status:** todo
+- **Opened:** 2026-08-29
+- **Closes:** `CC-08`
+- **Documents:** `docs/superpowers/plans/2026-08-29-m16.md`, `macstack/inbox/client-portal-spec.pdf`
+```
+
+Three rules, and the third is the one that gets forgotten:
+
+- **A plan file created during planning is ALWAYS linked** — from the milestone, and
+  from every task it covers. Point at the section too when the plan is long
+  (`…/2026-08-29-m16.md → Task 3`): a nine-task plan opened at the top makes the
+  reader hunt for their own task.
+- **An external skill or plugin counts.** `superpowers:writing-plans`,
+  `superpowers:brainstorming`, a design doc from any other plugin — the file it left
+  behind is a document of this project now, whoever generated it.
+- **The link is one-way and this file owns it.** A plan does not have to point back;
+  it is written once and goes stale. `TASKS.md` is maintained, so the pointer lives
+  here. If a plan is superseded, the task's `docs` moves — the plan file is not edited
+  to say so.
+
+`docs` is optional by design: a one-line task with no separate plan does not get an
+empty bullet. But **the moment a plan file exists, the link is not optional** — an
+unlinked plan is work the next person redoes.
+
 ## Tracker sync — reconcile, never push
 
 `TASKS.md` is the record; the tracker is the conversation. Never let one side

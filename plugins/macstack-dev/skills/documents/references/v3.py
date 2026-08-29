@@ -120,6 +120,12 @@ def _split_heading(text):
 
 
 IDENT = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._*-]*$')
+# Путь тоже делится по запятой. IDENT не знает `/`, поэтому «- **Документы:**
+# `a/b.md`, `c/d.pdf`» возвращался ОДНОЙ строкой с кавычками внутри, а `screens`
+# рядом честно становился списком. Требование «без пробелов и есть `/`» узкое
+# нарочно: cron `0 6 1,16 * *` содержит пробелы и остаётся текстом, а
+# `einsaetze.rate_unit` в «Куда пойдёт» не содержит слэша и остаётся скаляром.
+PATHISH = re.compile(r'^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._#-]+)+$')
 
 
 def _value(raw, lang):
@@ -141,7 +147,8 @@ def _value(raw, lang):
 
     if ',' in v:
         parts = [p.strip().strip('`').strip() for p in v.split(',')]  # список — только из id
-        if len(parts) > 1 and all(IDENT.match(p) for p in parts if p):
+        if len(parts) > 1 and all(IDENT.match(p) or PATHISH.match(p)
+                                  for p in parts if p):
             return [one(p) for p in parts if p]
     return one(v)
 

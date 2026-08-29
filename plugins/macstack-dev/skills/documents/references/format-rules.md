@@ -58,7 +58,9 @@ goes last, in backticks, after an em dash. Both are ids; neither is decoration.
 ```
 
 The label is in the document's language and is declared in `doc-contracts.json`. The
-value is a word, a number, or backticked ids separated by commas.
+value is a word, a number, or a comma-separated backticked list — ids for most fields,
+repository-relative PATHS for `docs`, which points at plans and specs rather than at
+collection entries and therefore declares no `resolves_to`.
 
 **A bullet is a field only when its label is declared.** An undeclared bold-and-colon
 opening is prose that happens to look like a field — a sentence in an ordinary list —
@@ -282,6 +284,30 @@ deferral without that sentence is not a decision, it is a hope.
 
 A closed item keeps its heading, struck through, and loses its pointer: it is no longer
 something the client owes.
+
+### A task and its milestone — `history/TASKS.md`
+
+```markdown
+### M16-T3 · Половина дневной ставки при работе меньше 4,5 часов
+
+- **Состояние:** todo
+- **Заведена:** 2026-08-29
+- **Закрывает:** `CC-08`
+- **Документы:** `docs/superpowers/plans/2026-08-29-m16.md` → Задача 3
+
+**Готово, если:** день на 3 ч даёт `quantity 0.5` в обе стороны; замена `<` на `<=`
+краснит случай «ровно 4,5 — полный день».
+```
+
+`Документы` is where a plan written by another tool is named — `superpowers`, a design
+doc, the client PDF a requirement came out of. `TASKS.md` says what the work IS; the
+plan says how, and the only thing joining them is this bullet. Written once, in the
+session that produced both — after which nobody greps a plans directory on the chance
+something is in it.
+
+The same bullet is legal on a milestone, and for the sharper reason: milestone criteria
+are falsifiable and short **on purpose**, so there is nowhere to expand them unless the
+expansion is linked.
 
 ---
 

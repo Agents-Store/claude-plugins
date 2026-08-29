@@ -201,5 +201,56 @@ for _p in DOCS:
     _bind(P2IdempotentWrite, 'test_idempotent_' + _n, _p2)
 
 
+class ValueSplitting(unittest.TestCase):
+    """Когда запятая делит значение на список, а когда остаётся запятой.
+
+    Правило `_value`: список получается, только если КАЖДАЯ часть похожа на
+    идентификатор — наивное деление резало cron `0 6 1,16 * *` пополам. Поле
+    `docs` (3.1.0) несёт ПУТИ, а `IDENT` не знает `/`, поэтому два документа
+    склеивались в одну строку с обратными кавычками внутри, пока `screens`
+    рядом честно становился списком. Обе половины закреплены здесь: и то, что
+    путь теперь делится, и то, что cron по-прежнему нет.
+    """
+
+    def _field(self, bullet, lang='ru'):
+        doc = ('<!-- macstack:doc=tasks lang=%s version=1.5 -->\n# T\n\n'
+               '### M1-T1 · X\n\n%s\n' % (lang, bullet))
+        return dict([i for i in v3.read(doc, lang=lang) if i.id][0].fields)
+
+    def test_several_paths_become_a_clean_list(self):
+        self.assertEqual(
+            self._field('- **Документы:** `a/b.md`, `c/d.pdf`'),
+            {'docs': ['a/b.md', 'c/d.pdf']})
+
+    def test_one_path_stays_scalar(self):
+        # Соглашение всего документа: одно значение — скаляр, несколько — список;
+        # потребители приводят к списку у себя (`ARRAY_FIELDS`, `_as_list`).
+        self.assertEqual(
+            self._field('- **Документы:** `docs/plans/m16.md`'),
+            {'docs': 'docs/plans/m16.md'})
+
+    def test_ids_still_split(self):
+        self.assertEqual(
+            self._field('- **Экраны:** `kalender`, `coach-portal`'),
+            {'screens': ['kalender', 'coach-portal']})
+
+    def test_cron_with_a_comma_is_not_a_list(self):
+        # Регрессия, ради которой предикат вообще существует.
+        self.assertEqual(
+            self._field('- **Как часто:** 0 6 1,16 * *'),
+            {'frequency': '0 6 1,16 * *'})
+
+    def test_plan_label_is_read_as_docs(self):
+        # Псевдоним читается, но не пишется: уже написанное «- **План:**»
+        # обязано разбираться как поле, иначе оно молча становится прозой.
+        self.assertEqual(
+            self._field('- **План:** `docs/plans/m16.md`'),
+            {'docs': 'docs/plans/m16.md'})
+
+    def test_writer_emits_the_canonical_label(self):
+        self.assertEqual(v3.emit_field('docs', ['a/b.md', 'c/d.pdf'], 'ru'),
+                         '- **Документы:** `a/b.md`, `c/d.pdf`')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
