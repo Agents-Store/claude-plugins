@@ -21,7 +21,10 @@ ROOT=$(cd "$(dirname "$0")" && pwd)
 LIST=$(mktemp)
 MARK=$(mktemp)
 trap 'rm -f "$LIST" "$MARK"' EXIT
-find "$ROOT/skills" -name 'test_*.py' | sort > "$LIST"
+# Ищутся и тесты скиллов, и тесты плагина как целого: сверка манифеста с
+# записью в каталоге маркетплейса ничьим скиллом не является. `-maxdepth`
+# нет намеренно — глубина каталогов у скиллов разная.
+find "$ROOT/skills" "$ROOT/tests" -name 'test_*.py' 2>/dev/null | sort > "$LIST"
 
 FOUND=$(wc -l < "$LIST" | tr -d ' ')
 if [ "$FOUND" -eq 0 ]; then

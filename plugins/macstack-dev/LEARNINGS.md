@@ -976,3 +976,40 @@ verdict is therefore argued and not measured.
   by `ValueSplitting` in `tests/test_v3_writer.py` (6 cases, proven by mutation: reverting
   `PATHISH` reddens exactly one). Severity: medium — a two-document bullet parsed to a
   single unusable token, and no test would have said so.
+
+## 2026-08-29 — tests/test_manifest.py: версия сверяется машиной, а не памятью (3.7.0)
+
+**Feature:** прогон тестов плагина проверяет, что `version` в
+`.claude-plugin/plugin.json` равен `version` в записи этого плагина в корневом
+`.claude-plugin/marketplace.json`. Плюс сверка `name` — расхождение имени выглядит
+как отсутствие записи, и без этого утверждения пропуск нельзя было бы отличить от успеха.
+
+**Implementation:** `tests/test_manifest.py` (3 случая); `run-tests.sh` теперь ищет
+`test_*.py` и под `$ROOT/tests`, а не только под `$ROOT/skills` — сверка манифеста
+ничьим скиллом не является. Каталог ищется ВВЕРХ по дереву, а не по фиксированной
+глубине: установленный плагин лежит не там, где исходник, и отсутствие каталога —
+не провал, а `skipTest`. Проверяется только своя запись: прогон принадлежит
+`macstack-dev` и краснеть из-за чужой версии не должен.
+
+**Rationale:** номер записан дважды, и ничто их не сверяло. Проверено на живом CLI
+(v2.1.251), а не предположено: `claude plugin validate .` на плагине с расхождением
+1.0.0 против 2.0.0 отвечает «Validation passed» — молча, и с `--strict` тоже;
+`claude plugin tag --help` обещает «validating that plugin.json and any enclosing
+marketplace entry agree», но читает только `plugin.json`; схема по адресу из
+`$schema` каталога отдаёт 404. Своего инструмента у Claude Code нет.
+
+Правило при этом было записано в процессе ТРИЖДЫ — `plugin-creator:improve` шаг 6
+(«Both versions MUST be identical»), его же шаг 8 и чек-лист
+`plugin-creator:validate` с заготовленным текстом ошибки. И всё равно из 51 плагина
+репозитория разошлись три (`document-generator`, `nocobase`, `plane-ops` — во всех
+трёх каталог отстал). Вывод, ради которого эта запись существует: правило,
+адресованное модели, исполняется только когда кто-то вызовет скилл. Четвёртая
+прозаическая копия ничего бы не изменила; исполняемая проверка меняет.
+
+**Не сделано намеренно:** дубль не убран из каталога, хотя документация советует
+именно это («Avoid setting `version` in both places; `plugin.json` takes
+precedence», и официальный каталог несёт `version` в 14 записях из 291). Причина:
+та же страница строкой выше даёт обратный порядок разрешения («1. Marketplace
+entry, 2. plugin.json»). Пока противоречие не разрешено, РАВЕНСТВО — единственное
+состояние, при котором любое из двух прочтений даёт один ответ; удаление поля —
+ставка на одно из двух несогласованных утверждений.
