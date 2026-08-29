@@ -591,7 +591,7 @@
           "kind": "procedure",
           "id_space": "slug",
           "in_section": "procedures",
-          "heading": "### <id> · <title>",
+          "heading": "### <title> — `<id>`",
           "prose_required": [
             "steps"
           ],
@@ -607,11 +607,10 @@
             "cases",
             "frequency"
           ],
-          "status": "unrealised",
-          "status_note": "Measured 2026-08-26: HANDBOOK.md carries zero headings with an id and zero pointers. Procedures are not addressable, so a client cannot comment on one and the ledger cannot record an edit to one. Either the document gains ids or this entity leaves the contract — it must not stay a silent promise.",
-          "collections": [
-            "procedure"
-          ]
+          "$comment": "Measured 2026-08-29 while filling a real HANDBOOK.md: this declaration could not be satisfied by ANY document. collections named `procedure`, a collection macstack.json has never had, and entity_kind derives the kind from the POINTER — so every procedure, whatever it pointed at, was reported by 12.2 as matching no declared kind. It went unnoticed for one reason: the seeded headings carried ids with a LEADING HYPHEN (role interpolated empty, `-c-02`), which _split_heading refuses, so it.id was None and both branches of 12.2 skipped the document entirely. A broken id was hiding a broken contract, and the 2026-08-26 note above read the symptom as the cause. A procedure has no entry of its own in macstack.json — seed.py says exactly that in its own comment — so it is pointerless, like milestone and ruling_session. The heading key is corrected in the same breath: id_space is slug and seed.py emits form=slug, while this key described the id form that cases use.",
+          "pointerless": true,
+          "id_pattern": "^[a-z][a-z0-9-]*$",
+          "collections": []
         }
       ],
       "derived_seed": [
