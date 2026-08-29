@@ -144,8 +144,9 @@ deterministic implementations: engine, trigger refs, invocation, named
 
 In priority order:
 
-1. **Prototype first.** A stackmakers-ai prototype that already covers the need beats
-   assembly. Set `prototype` and inherit its software.
+1. **Prototype first.** A prototype repo that already covers the need beats assembly.
+   Set `prototype` and inherit its software. Ask the user where their prototypes live
+   — never guess an org, and skip this step outright when there is no answer.
 2. **Open source first, agentic ready first.** Prefer MCP + API + CLI (rating full or
    good). A stack without MCP is just software.
 3. **Proven bundles.** Universal workspace = postgresql + nocodb + n8n (+trigger-dev);
@@ -214,14 +215,21 @@ gap urgent, and a pointer from `lifecycle.open_questions`. **Never invent a name
 
 ## Prototypes
 
+A prototype is a repo the user already owns; this plugin ships no catalogue of them
+and must not invent one. Ask which org or folder holds them, then list it:
+
 ```bash
-gh api "orgs/stackmakers-ai/repos?per_page=100" -q '.[] | .name + "\t" + (.description // "")'
+gh api "orgs/<org>/repos?per_page=100" -q '.[] | .name + "\t" + (.description // "")'
 ```
 
-`project-template` is the universal base; `project-{stack}` a stack template;
-`demo-{stack}` a demo with seed data; `{client}-{stack}` a real assembly. Prefer
-`project-*` over a client repo. Set `"prototype": "github:stackmakers-ai/<repo>"` — a
-local absolute path works too.
+No answer means no prototype step — say so and assemble from the bundles instead. A
+guessed org lists nothing and reads as "no prototype exists", which is a different and
+wrong conclusion.
+
+Where the convention holds: `project-template` is the universal base; `project-{stack}`
+a stack template; `demo-{stack}` a demo with seed data; `{client}-{stack}` a real
+assembly. Prefer `project-*` over a client repo. Set
+`"prototype": "github:<owner>/<repo>"` — a local absolute path works too.
 
 Check whether the prototype has its own `macstack.json` and inherit by merge-by-id. If
 it only has a legacy `stack.json`, it is a scaffold source and nothing more — open a

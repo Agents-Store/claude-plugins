@@ -13,6 +13,7 @@ from lint_folder import rule, Finding, ERROR, WARNING
 import lint_folder as _lf                 # only to reach _lf.DOCS, _lf.HERE
 import mdblocks                           # v2 parser + the language-ratio regexes
 import i18n                               # render.py's own output catalogue
+import macstack_freshness                 # 12.17: shared with both hooks
 
 
 # ---------------------------------------------------------------- shared walk
@@ -445,57 +446,13 @@ def r_12_10(c):
 
 
 # ================================================================== 12.17
-_REVIEW_DATE = re.compile(r'^(\d{4}-\d{2}-\d{2})-.*-conformance\.md$')
-
-
-def _latest_conformance_date(root):
-    """The newest audit date, or None — the day somebody last checked the documents
-    against the code.
-
-    The contract gives this ONE global meaning ("counts as the check") rather than
-    scoping it per document, so a project-wide audit moves every document's clock
-    forward together, not one at a time.
-
-    Read from `history/ledger.jsonl`, kind `audit`. It used to read
-    `history/reviews/<date>-*-conformance.md`, and that folder moved to archive/ when
-    the verdicts became ledger rows — so this returned None on every project and the
-    clock-lift silently stopped working. `archive/reviews/` is still read for projects
-    audited before the move; without it their documents would appear never-checked.
-    """
-    best = None
-    led = os.path.join(root, 'history', 'ledger.jsonl')
-    if os.path.exists(led):
-        try:
-            for line in io.open(led, encoding='utf-8'):
-                line = line.strip()
-                if not line:
-                    continue
-                row = json.loads(line)
-                if row.get('kind') != 'audit':
-                    continue
-                try:
-                    d = datetime.date(*(int(x) for x in str(row.get('date')).split('-')))
-                except (ValueError, TypeError):
-                    continue
-                if best is None or d > best:
-                    best = d
-        except (IOError, ValueError):
-            pass
-    for reviews in (os.path.join(root, 'history', 'reviews'),
-                    os.path.join(root, 'history', 'archive', 'reviews')):
-        if not os.path.isdir(reviews):
-            continue
-        for name in os.listdir(reviews):
-            m = _REVIEW_DATE.match(name)
-            if not m:
-                continue
-            try:
-                d = datetime.date(*(int(x) for x in m.group(1).split('-')))
-            except ValueError:
-                continue
-            if best is None or d > best:
-                best = d
-    return best
+# Дата последней сверки и срок годности считаются в `hooks/macstack_freshness.py`
+# — том же модуле, которым живут оба хука. Здесь была своя копия, и она разошлась:
+# копия линтера поднимала часы ещё и по `archive/reviews/`, хуковая — нет, так что
+# на проекте, отревьюенном до переезда вердиктов в журнал, правило молчало, а хук
+# на старте сессии заявлял «ни разу не сверяли». Расхождение двух копий одного
+# порога и должно было всплыть именно так — спором инструментов о свежести.
+_latest_conformance_date = macstack_freshness.last_audit
 
 
 @rule('12.17', 'Documents have a shelf life')
@@ -508,18 +465,22 @@ def r_12_17(c):
     # требовать проверку, которой для него не существует.
 
     today = datetime.date.today()
+    docs = c.spec.get('docs') or {}
     # A spec that fails pass 1 still reaches pass 3 — the live corpus does exactly that
     # today, with three schema errors standing — so every value read here is treated as
     # untrusted. `freshness_days: "thirty"` and `reviewed: 20260101` (an unquoted date)
     # each killed this rule outright, and a rule that dies reports nothing at all.
-    fresh_days = (c.spec.get('docs') or {}).get('freshness_days')
-    if not isinstance(fresh_days, int) or isinstance(fresh_days, bool) or fresh_days <= 0:
-        if fresh_days is not None:
-            out.append(Finding('12.17', ERROR, 'macstack.json', 0,
-                               'docs.freshness_days is not a positive whole number of '
-                               'days: %r — the shelf life is measured against 30 instead'
-                               % (fresh_days,)))
-        fresh_days = 30
+    #
+    # The budget is per document (`docs.files.<key>.freshness_days`, which is where the
+    # schema defines it) and falls back to the folder-wide `docs.freshness_days`, then
+    # to 30. Only the folder-wide one used to be read, so the per-document setting the
+    # schema documents did nothing at all — the quietest kind of wrong: the file says
+    # ninety days, the linter measures thirty, and neither ever mentions the other.
+    for where, value in macstack_freshness.bad_budget_values(docs):
+        out.append(Finding('12.17', ERROR, 'macstack.json', 0,
+                           '%s is not a positive whole number of days: %r — the shelf '
+                           'life is measured against %d instead'
+                           % (where, value, macstack_freshness.DEFAULT_DAYS)))
     latest_review = _latest_conformance_date(c.root)
     for key in sorted(c.files):
 
@@ -550,6 +511,7 @@ def r_12_17(c):
         if latest_review and latest_review > d:
             d = latest_review
         age = (today - d).days
+        fresh_days = macstack_freshness.budget(docs, meta)
         if age <= fresh_days:
             continue
         sev = ERROR if age > fresh_days * 2 else WARNING

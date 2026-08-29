@@ -1,6 +1,6 @@
 ---
 name: sync
-description: This skill should be used when the user says "sync the spec", "the client corrected the roles", "the spec and the documents disagree", "update macstack.json after the code changed", "reconcile the spec with reality", when lint reports rule 12.22, after anyone edits AUTOMATION.md or UX-UI.md, and as part of /macstack-dev:update. Reconciles macstack.json against the client's documents on one side and the code on the other.
+description: This skill should be used when the user says "sync the spec", "the client corrected the roles", "the spec and the documents disagree", "update macstack.json after the code changed", "reconcile the spec with reality", when lint reports rule 12.22, after anyone edits AUTOMATION.md or UX-UI.md, and as stage 3 of /macstack-dev:update and /macstack-dev:reconcile. Owns ONE file — it reconciles macstack.json against the client's documents on one side and the code on the other, and edits nothing else. For bringing the DOCUMENTS themselves up to date with the code, use the reconcile skill instead.
 ---
 
 # Reconcile the spec with the documents and with the code
@@ -84,6 +84,7 @@ later commit is a spec that was wrong for the length of a review.
 ## When to run
 
 After the client returns a package, after anyone edits the authored documents, after a
-task is finished (`/macstack-dev:update` calls this), and before a release. Lint calls
+task is finished (`/macstack-dev:update` calls this), as stage 3 of
+`/macstack-dev:reconcile`, and before a release. Lint calls
 the business half too: a spec that disagrees with the document the client signed off on
 is the failure this whole folder exists to prevent.

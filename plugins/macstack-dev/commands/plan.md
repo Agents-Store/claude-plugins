@@ -6,6 +6,18 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, Skill]
 
 Use `macstack-dev:planning`.
 
+**First, before any number is reported**, bring the statuses in line with what the audit
+actually found:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/planning/references/task_status.py" macstack [--apply]
+```
+
+A task sitting `todo` that the code finished weeks ago inflates every count below it; a
+task sitting `done` whose case the audit found `absent` deflates them, which is worse
+because nobody goes looking behind a closed task. Report the moves, apply them with
+`--apply` once the user agrees, and only then count.
+
 With no argument: find the work nobody has planned. Run
 
 ```bash

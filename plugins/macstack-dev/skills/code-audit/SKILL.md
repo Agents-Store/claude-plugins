@@ -102,6 +102,11 @@ missing screens here has misread the model.
 
 `client/` → `generated/` → `macstack.json`. Never the reverse, and never silently.
 
+This skill still only proposes. What APPLIES a proposal is a gate: `intake` for material
+the client sent, **`reconcile` for what the code turns out to say** — see *Who may write
+into `client/`* in `documents`. Applying here as well would put two writers on one file
+with two sets of guard rails, and the first sign would be an edit with no ledger row.
+
 Each contradiction goes to the owner as a question with two real options: the
 recommendation you would defend, and "write it into `OPEN-QUESTIONS.md` and let the
 client answer". Record the ruling in `history/DECISIONS.md` with its cost-if-wrong
@@ -124,7 +129,8 @@ rereads it.
 ## What this skill does NOT do
 
 - It does not edit code. It reads.
-- It does not edit a client document on its own. It proposes; the owner rules.
+- It does not edit a client document on its own. It proposes; the owner rules, and
+  `reconcile` applies through the gate.
 - It does not write verdicts — that is `conformance`. Overlapping the two produces two
   answers to one question and no way to tell which is current.
 - It does not add a probe for a stack the spec does not declare. A convention table that

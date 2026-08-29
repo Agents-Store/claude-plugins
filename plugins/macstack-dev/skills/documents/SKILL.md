@@ -192,8 +192,8 @@ hands.
    architect's and is never written by that tool.
 10. **`reviewed` is not `updated`.** `updated` is when the text last changed;
    `reviewed` is when the document was last checked AGAINST THE CODE. Only the second
-   one expires (`freshness_days`, default 30), because only the second one is a claim
-   about the world. A document can be edited daily and be wrong the whole time.
+   one expires (`freshness_days` on the document, else `docs.freshness_days`, else
+   30), because only the second one is a claim about the world. A document can be edited daily and be wrong the whole time.
 
 ## Who owns what
 
@@ -219,6 +219,34 @@ is still a copy.
 Pointer form carries no prose, so there is nothing to drift. Where a human genuinely
 needs text in the JSON, an optional `summary` (≤200 chars) **must equal the first
 sentence** of its markdown item — mismatch is an ERROR, not a warning.
+
+### Who may write into `client/`
+
+A client document is not read-only, and it never was — `intake` has always edited it.
+What has never been allowed is editing it **silently**. The rule is about the gate, not
+about the file:
+
+> Every write into `client/` passes delta → ruling → apply → journal, whoever proposed
+> it — the client, the code, or a person. An edit with no ledger row keyed by the id
+> that changed is a defect, and lint 12.36 says so.
+
+Two skills own gates onto that loop, and no third writes there: **`intake`** for
+material the client sends, **`reconcile`** for what the code turns out to say. Both use
+the `v3` writer, which patches the named line and leaves the surrounding prose alone —
+on the live corpus the model sees 955 of 3837 lines, so a tool that rebuilt the file
+from its model would destroy three quarters of the client's document.
+
+Three things stop a write and become a question instead, in either direction:
+
+- **The client answered this statement.** A `comment` row against that id means they
+  said something explicit about that sentence. Overruling it without asking is what the
+  ledger and the review package exist to prevent.
+- **It needs a new id.** Ids are decisions; workflows, tests and prose reference them.
+- **It contradicts a ruling** in `history/DECISIONS.md`. A decision is overturned
+  deliberately or not at all.
+
+`generated/` is the opposite case: never hand-edited by anyone, rebuilt from its source,
+and lint 12.18 reports the difference if somebody tried.
 
 ## Language
 

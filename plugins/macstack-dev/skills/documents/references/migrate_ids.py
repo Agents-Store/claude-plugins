@@ -85,7 +85,7 @@ def rename_map(cases, opens):
     остаться ссылками на существующую запись.
 
     Открытый пункт — голая буква с цифрами (`A4`, `B3`), и вот это вне `macstack/`
-    значит совсем другое. Измерено на проекте ohawo:
+    значит совсем другое. Измерено на живом проекте:
 
         src/pdf/InvoiceDocument.tsx:441   <Page size="A4" …>
         tests/int/helpers/pdf-text.ts:189 export const A4 = { width: 595.28, … }

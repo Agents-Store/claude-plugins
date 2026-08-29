@@ -81,7 +81,7 @@ Backed by sources 1→3, create:
 
 <example>
 user: "Scaffold the project from macstack.json"
-→ prototype github:stackmakers-ai/project-directus-nextjs-trigger-dev → clone, copy
+→ prototype github:<owner>/project-directus-nextjs-trigger-dev → clone, copy
   compose/scripts/.claude/layout
 → stack plugin stack-directus-nextjs-trigger-dev → enabledPlugins + .mcp.json (${VAR}) + CLAUDE.md merge
 → dev plugins directus-dev, nextjs-dev, trigger-dev → enable, follow their conventions in stubs

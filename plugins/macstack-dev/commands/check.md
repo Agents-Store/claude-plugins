@@ -10,6 +10,18 @@ Read-only in every mode. Nothing here writes to the spec or to a client document
 two ways of printing it: the dashboard is the lint findings ordered by cost of ignoring
 them, not a second set of predicates with its own opinion.
 
+The dashboard also reports **task statuses that disagree with the audit** — read-only,
+no `--apply`:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/planning/references/task_status.py" macstack
+```
+
+Both directions, and the second is the one worth reading first: a task standing `done`
+whose case the newest verdict found `absent`. A work list that looks shorter than the
+truth is one nobody goes looking behind. Print the moves it proposes and name
+`/macstack-dev:update` as what applies them — this command never writes.
+
 **`--docs`** — pass 3 and the judgment checks only. Use it after editing documents and
 before handing anything to a client.
 
@@ -30,6 +42,10 @@ Both read the source tree and neither writes to it. Run `--code` when you want t
 whether the promises hold; `--new` when you suspect the code has moved on without the
 documents. On a folder nobody has audited in months, run `--new` first: a verdict on a
 case the documents never described is a verdict on the wrong question.
+
+**When the answer is "both have moved"**, this command is the wrong one — it reports and
+stops by design. `/macstack-dev:reconcile --master=code|docs` is what closes the
+distance, and it makes you say which side is right before it touches anything.
 
 Report errors before warnings, and end with the single next command. If the spec fails
 lint, say plainly that it must not be scaffolded from.

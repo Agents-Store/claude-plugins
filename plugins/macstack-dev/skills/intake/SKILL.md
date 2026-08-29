@@ -134,7 +134,7 @@ that changed, not by the document:
 {"date":"2026-08-24","doc":"client/USER-CASES.md","item":"C-04","kind":"changed",
  "was":"…прошлый текст…","now":"…новый…",
  "why":"комментарий клиента в пакете 2026-08-25",
- "source":"inbox/ohawo-client-portal-spec-2026-08-24.pdf","decision":"D42","by":"claude"}
+ "source":"inbox/client-portal-spec-2026-08-24.pdf","decision":"D42","by":"claude"}
 ```
 
 An edit without a row is a defect, and lint 12.36 says so. Document-level logging

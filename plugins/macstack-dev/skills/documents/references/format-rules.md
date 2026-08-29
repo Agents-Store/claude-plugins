@@ -272,7 +272,7 @@ every bullet that used the other one.
 ### A5 · Точные формулировки об освобождении и о §19 Kleinunternehmer
 
 - **Куда пойдёт:** `company.vat_note_exempt_4nr21` / `company.vat_note_kleinunternehmer`,
-  заполняются на `/ohawo/firma`
+  заполняются на `/settings/firma`
 
 **Что будет, если этого нет или оно неверно**
 - Отрендерить можно любое предложение; ручаться за него мы не можем
