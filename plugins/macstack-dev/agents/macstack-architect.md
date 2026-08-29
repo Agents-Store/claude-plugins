@@ -46,8 +46,8 @@ in the root of a Claude project).
    deterministic workflows implement tasks; triggers live in their own collection
    (schedule/webhook/db_event/form/manual) and are referenced by id. Mark
    human-in-the-loop gates explicitly.
-3. **Software selection.** Prototype reuse first (stackmakers-ai repos); Open Source
-   first; Agentic IT Ready first (MCP + API + CLI). Proven bundles: workspace =
+3. **Software selection.** Prototype reuse first (any `project-*`/`demo-*` repo the
+   user points at); Open Source first; Agentic IT Ready first (MCP + API + CLI). Proven bundles: workspace =
    postgresql+nocodb+n8n(+trigger-dev); web app = directus+nextjs(+trigger-dev);
    headless agents = postgresql+qdrant+n8n/trigger-dev; BPMS = nocobase. Custom code
    only for what is unique to the business. Fill the full taxonomy: category (from
@@ -77,8 +77,8 @@ Produce (a) a compact result-first summary table (goals → results → processe
 only (id/ref/status) — the prose lives in `OPEN-QUESTIONS.md`, never in the JSON.
 Validate mentally against the schema at
 ${CLAUDE_PLUGIN_ROOT}/skills/lint/references/macstack.schema.json and state which
-lint rules the draft satisfies. Recommend a prototype (github:stackmakers-ai/...)
-whenever one fits, and list the context plugins ({tool}-{dev|ops|provision} +
+lint rules the draft satisfies. Recommend a prototype (`github:<owner>/<repo>`, or a
+local absolute path) whenever the user has one that fits, and list the context plugins ({tool}-{dev|ops|provision} +
 stack-*) the stack needs.
 
 Ask at most ONE compact block of clarifying questions before drafting; proceed with

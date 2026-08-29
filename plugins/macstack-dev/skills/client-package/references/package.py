@@ -119,7 +119,7 @@ def _is_stub(body):
     `seed.py` пишет заготовку строкой курсива — `_Опишите шаги от начала до конца
     этой процедуры._` — и рядом жирную подпись раздела. Пока никто не заполнил
     процедуру, это ВСЁ её содержимое, и в пакет уходит заголовок с просьбой,
-    обращённой к нам, а не к клиенту. Измерено 2026-08-27 на OHAWO: раздел
+    обращённой к нам, а не к клиенту. Измерено 2026-08-27 на живом проекте: раздел
     «Как этим пользоваться» — 41 такая заготовка, ни одной отвечаемой, и поля,
     куда клиент мог бы написать ответ, под ними нет. Раздел обещал пошаговые
     инструкции и отдавал 41 бланк.
@@ -257,16 +257,21 @@ def md(s):
     return s
 
 
-FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
-         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
-         'family=IBM+Plex+Sans:wght@400;500;600&'
-         'family=IBM+Plex+Serif:wght@500;600&'
-         'family=IBM+Plex+Mono:wght@400;500&display=swap">')
+# Ни одной внешней загрузки. Пакет обещан самодостаточным: его открывают из
+# почтового вложения, с флешки и в самолёте, и страница, которой для вида нужен
+# чужой сервер, этого обещания не держит. Вторая причина весомее первой: запрос за
+# шрифтом сообщает стороннему CDN IP клиента и момент, когда тот открыл документ со
+# своей же коммерческой спецификацией. Платить этим за начертание нельзя.
+#
+# IBM Plex остаётся первым в каждом стеке — у кого он установлен, тот его и увидит.
+# Дальше идут гарнитуры, которые есть в системе и НЕСУТ КИРИЛЛИЦУ: документ русский,
+# и стек, подобранный по латинице, отвалился бы на первом же слове.
+FONTS = ''
 
 CSS = """
 /* IBM Plex: сделано для технических документов и несёт полную кириллицу.
-   Документ русский, и половина фамильных гарнитур отпала бы на первом же слове. */
+   Документ русский, и половина фамильных гарнитур отпала бы на первом же слове.
+   Не загружается со стороны — см. комментарий у FONTS. */
 :root{
   --paper:#fcfcfd; --ink:#15181e; --dim:#5c6270; --line:#e4e6eb; --soft:#f4f5f7;
   --accent:#0f5f61; --accent-ink:#ffffff;
@@ -285,13 +290,13 @@ CSS = """
 *{box-sizing:border-box}
 body{background:var(--paper);color:var(--ink);margin:0 auto;max-width:44rem;
  padding:2.5rem 1.15rem 6rem;
- font:400 16.5px/1.6 "IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+ font:400 16.5px/1.6 "IBM Plex Sans","Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
  -webkit-text-size-adjust:100%}
-h1{font:600 1.75rem/1.2 "IBM Plex Serif",Georgia,serif;margin:0 0 .35rem;
+h1{font:600 1.75rem/1.2 "IBM Plex Serif","Charter","Times New Roman",Georgia,serif;margin:0 0 .35rem;
  text-wrap:balance;letter-spacing:-.01em}
-h2{font:600 1.22rem/1.3 "IBM Plex Serif",Georgia,serif;margin:3.2rem 0 .25rem;
+h2{font:600 1.22rem/1.3 "IBM Plex Serif","Charter","Times New Roman",Georgia,serif;margin:3.2rem 0 .25rem;
  padding-top:1.15rem;border-top:2px solid var(--ink);text-wrap:balance}
-h3{font:500 1.02rem/1.35 "IBM Plex Serif",Georgia,serif;margin:2rem 0 .55rem;
+h3{font:500 1.02rem/1.35 "IBM Plex Serif","Charter","Times New Roman",Georgia,serif;margin:2rem 0 .55rem;
  display:flex;flex-wrap:wrap;align-items:baseline;gap:.55rem;text-wrap:balance}
 .lead{color:var(--dim);margin:0 0 1.6rem;font-size:.96rem}
 .howto{background:var(--soft);border-radius:10px;padding:1rem 1.15rem;font-size:.94rem;
@@ -299,7 +304,7 @@ h3{font:500 1.02rem/1.35 "IBM Plex Serif",Georgia,serif;margin:2rem 0 .55rem;
 .howto p{margin:0}
 .sec-note,.meta{color:var(--dim);font-size:.9rem;margin:.15rem 0 1.1rem}
 .grp{margin-bottom:.4rem}
-.code{font:400 11.5px/1 "IBM Plex Mono",ui-monospace,Menlo,monospace;color:var(--dim);
+.code{font:400 11.5px/1 "IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--dim);
  letter-spacing:.02em}
 h3 .code{font-size:12px}
 .e{border:1px solid var(--line);border-radius:12px;padding:1.05rem 1.15rem;
@@ -311,7 +316,7 @@ h3 .code{font-size:12px}
 .body ul{margin:0;padding-left:1.15rem;display:flex;flex-direction:column;gap:.3rem}
 .body li{margin:0}
 .body .sub{font-weight:600;margin-top:.15rem}
-.tag{font:500 10.5px/1 "IBM Plex Mono",monospace;text-transform:uppercase;
+.tag{font:500 10.5px/1 "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;text-transform:uppercase;
  letter-spacing:.09em;color:var(--mark)}
 .was{margin:0;font-size:.89rem;color:var(--mark);padding-left:.75rem;
  border-left:2px solid var(--mark-line)}
@@ -336,14 +341,14 @@ h3 .code{font-size:12px}
 /* Пустой, пока не нажали: подтверждение появляется только после действия. */
 .cnt{margin:0;font-size:.92rem;color:var(--accent);font-weight:500}
 .cnt:empty{display:none}
-button{font:500 .95rem/1 "IBM Plex Sans",sans-serif;padding:.7rem 1.2rem;
+button{font:500 .95rem/1 "IBM Plex Sans","Inter","Segoe UI",Roboto,Arial,sans-serif;padding:.7rem 1.2rem;
  border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);
  border-radius:8px;cursor:pointer;align-self:flex-start}
 button:hover{filter:brightness(1.08)}
 button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 textarea{width:100%;min-height:11rem;border:1px solid var(--line);border-radius:8px;
  padding:.75rem;background:var(--soft);color:var(--ink);
- font:400 13px/1.55 "IBM Plex Mono",ui-monospace,Menlo,monospace}
+ font:400 13px/1.55 "IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 footer{margin-top:3.5rem;padding-top:1.3rem;border-top:1px solid var(--line);
  color:var(--dim);font-size:.93rem}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -504,7 +509,7 @@ def rows(T, group, hist, since):
     # «жёлтым не помечено ничего». Журнал датирован днём, а пакет пересобирают в
     # тот же день, в который правили документы: `since` — дата ПРОШЛОГО пакета,
     # и при `>` каждая правка того же дня отбрасывается. Измерено 2026-08-27 на
-    # OHAWO: 16 сущностей реально сдвинулись (8 новых, 8 с новым текстом), `>`
+    # На живом проекте: 16 сущностей реально сдвинулись (8 новых, 8 с новым текстом), `>`
     # пометил 0 из 209, а страница при этом продолжала обещать клиенту «жёлтым
     # помечено то, что изменилось после прошлого пакета от 2026-08-27».
     # День — это вся точность, какая есть, поэтому ошибка неизбежна; выбрана
@@ -681,7 +686,7 @@ def build(root, date, slug, lang=None, artifact=False,
 
     # Вопросы читают не так, как остальное: там не подтверждают наше описание, а
     # отдают то, чего у нас нет. Общая инструкция зовёт отметить «верно» — для «дайте
-    # реквизиты OHAWO» это бессмыслица, и она стоит первой строкой, которую человек
+    # реквизиты компании» это бессмыслица, и она стоит первой строкой, которую человек
     # читает. Своя инструкция и своя подпись поля есть только у этого раздела.
     if solo and T.get('howto_' + solo):
         T = dict(T)
@@ -733,7 +738,7 @@ def build(root, date, slug, lang=None, artifact=False,
     # `PKG_DATE` первой же строкой — до того, как что-либо попадало в поле, — и
     # кнопка «Собрать мои ответы» не работала ни в одном пакете, который этот
     # сборщик когда-либо выпустил. Тихо: исключение в обработчике никак не видно
-    # тому, кто нажал. Это же объясняет, почему в журнале OHAWO тринадцать строк
+    # тому, кто нажал. Это же объясняет, почему в журнале живого проекта тринадцать строк
     # `handoff` и ноль строк `comment`: возвращать ответы было нечем.
     P.append('<script>var PKG_DATE=%s,COUNTED=%s,EMPTY=%s,COPIED=%s;%s</script>%s'
              % (json.dumps(date, ensure_ascii=False),
@@ -870,7 +875,7 @@ def record_url(root, handoff, url):
     """Вписать URL опубликованного артефакта в его строку журнала.
 
     Руками это правка JSONL в 200 строк, и делать её приходится каждый раз после
-    публикации. Трижды за одну сессию (OHAWO, 2026-08-27) она делалась одноразовым
+    публикации. Трижды за одну сессию (живой проект, 2026-08-27) она делалась одноразовым
     скриптом на месте — то есть кодом, который никто не проверял и который негде
     исправить, когда он ошибётся.
 

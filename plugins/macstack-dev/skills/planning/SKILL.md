@@ -64,58 +64,72 @@ dropped task is struck, not deleted:
 
 ## Status vocabulary
 
+The tokens are the tracker's, and they come from **one place** — `fields.status.enum`
+in the document contract, which is what lint rule 12.14 judges against. Do not write a
+status from memory: this table used to list `doing` and `blocked`, which that rule
+rejects, so following it produced a lint error on the next run.
+
 | Status | Glyph | Means |
 |---|---|---|
+| `backlog` | ▫ | no milestone yet; exempt from needing a `tracker` id |
 | `todo` | · | not started |
-| `doing` | ▶ | active now |
-| `blocked` | ⏸ | `blocked_by` names what's in the way — an INTERNAL blocker only; a task waiting on a client answer does not exist yet (see the rule at the top) |
+| `in_progress` | ▶ | active now |
 | `done` | ✓ | acceptance passed |
+| `cancelled` | ✕ | called off; exempt from needing a `tracker` id |
 | `dropped` | ⊘ | struck — see the form above |
 
 `status` and `tracker` are the two REQUIRED task fields. A task with no `tracker`
 id is a lint ERROR — see Tracker sync below.
 
+`blocked` is not a status. An INTERNAL blocker is the `blocked_by` bullet on a task
+that stays `todo`; a task waiting on a client answer does not exist yet at all (see the
+rule at the top).
+
+**The same status is written twice** — the bullet in `TASKS.md` and, when the spec
+mirrors it, `lifecycle.tasks[].status` in `macstack.json`. They must agree, and nothing
+cross-checks them yet; the schema accepts both vocabularies so that a mirror of a real
+`TASKS.md` validates, but writing the tracker five in both is what keeps them readable.
+
 ## One task, worked
 
+The document is `format: v3` — headings and bullets, no YAML block. The pointer above
+the heading names the case the task closes; the bullets carry the state.
+
 ````markdown
-<!-- macstack:task=M2-T3 -->
+<!-- macstack:ref=cases[id=C-02] -->
 ### M2-T3 · Verify email before first login
 
-```yaml
-status: doing
-tracker: TRACK-142
-milestone: M2
-spec: client/USER-CASES.md#C-02
-files: [src/auth/verify.ts, src/auth/routes.ts]
-acceptance: 'auth.int.spec.ts — "rejects unverified login"'
-blocked_by: [A5]
-```
+- **Status:** in_progress
+- **Opened:** 2026-08-24
+- **Started:** 2026-08-28
+- **Closes:** C-02
+- **Tracker:** TRACK-142
+- **Files:** `src/auth/verify.ts`, `src/auth/routes.ts`
 
-<!-- macstack:notes -->
-Remove the verify guard and that named test reddens. That is the check.
+**Acceptance:**
+- `auth.int.spec.ts` — "rejects unverified login". Remove the verify guard and that
+  named test reddens. That is the check.
 ````
 
-The status lives in the YAML block, not in the heading — v1 put a glyph after the
-title and every tool had to parse a heading to learn a state. The glyph stays in the
-`INDEX.md` render, where it is for the reader.
+The status lives in a bullet, not in the heading — v1 put a glyph after the title and
+every tool had to parse a heading to learn a state. The glyph stays in the `INDEX.md`
+render, where it is for the reader.
 
-`spec` points, it never restates — the pointer plus `acceptance` is the row's whole
-value; a paraphrase only drifts. `acceptance` names the test(s) and what each
-asserts — where the project mutation-tests, "remove X and this named test reddens"
-is the strongest form. `files` is the expected footprint; correct it as the task's
-shape changes. `blocked_by` holds task or open-item ids (`A6`, `B3`) — an item
-blocking three tasks is the argument for chasing the client.
+`Closes` points, it never restates — the pointer plus the acceptance is the row's whole
+value; a paraphrase only drifts. Acceptance names the test(s) and what each asserts —
+where the project mutation-tests, "remove X and this named test reddens" is the
+strongest form. `Files` is the expected footprint; correct it as the task's shape
+changes. `blocked_by` holds task or §B ids — **never an §A id**: a task waiting on a
+client answer does not exist yet, which is the rule at the top of this file, and an
+earlier version of this very example broke it.
 
 ## One milestone, worked
 
 ````markdown
-<!-- macstack:milestone=M2 -->
-## M2 · Auth hardening
+### M2 · Auth hardening
 
-```yaml
-status: doing
-target: 2026-09-15
-```
+- **Status:** in_progress
+- **Target:** 2026-09-15
 
 <!-- macstack:done_when -->
 - works in every role area at both narrow and wide viewport
@@ -229,6 +243,8 @@ ending `(M11-T9)` links a commit to its task for free — worth the convention.
 | A §B trigger just fired | Promote it — see above |
 | "what needs building" / nothing planned yet | Run the gap pass below |
 | A task just reached `done` | `/macstack-dev:update` — it sweeps the documents |
+| "the code already does this" / statuses look wrong | `task_status.py` — see *Keeping the statuses honest* |
+| Code and documents have drifted apart wholesale | `/macstack-dev:reconcile --master=code\|docs` |
 | After any change | `macstack-dev:lint` |
 
 ## Finding the work nobody planned
@@ -292,3 +308,45 @@ Do not start coding here. The handoff is the point: open plan mode and say *"tak
 M15-T2 from macstack/history/TASKS.md"*. A planning session that slides into
 implementation produces a task list nobody finished writing and a change nobody
 reviewed the plan for.
+
+## Keeping the statuses honest — the same link, read backwards
+
+The gap pass above asks *"does this case have a task?"*. The opposite question — *"is
+this task still true?"* — was asked by nothing, and both of its answers were silent:
+
+- a task sits `todo` while the code has done the work for weeks. The list shows an
+  amount of work that does not exist, and somebody plans what is already built;
+- a task sits `done` while the audit found `absent`. **This one is worse:** the list
+  looks shorter than the truth, so nobody goes looking for what is presumed finished.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/planning/references/task_status.py" macstack [--apply]
+```
+
+It reads `TASKS.md`, the `audit` rows of the ledger, and the `Closes` bullet that ties
+them, then moves statuses **in both directions**. Closing without reopening would be a
+ratchet: a work list that can only ever shrink.
+
+| It reads | It writes |
+|---|---|
+| every case a task `Closes` is `implemented` | `done`, plus today's `Finished` date |
+| any of them is `absent` | back to `todo` |
+| any of them is `partial` | back to `in_progress` |
+| `externally-blocked` | nothing — the code is finished and the blocker is outside it |
+| `backlog`, `cancelled`, `dropped` | nothing — those are decisions, and an audit measures code |
+
+Four refusals, each for a reason worth keeping:
+
+- **Evidence must be newer than the claim.** A verdict dated before the task's own
+  `Opened`/`Started`/`Finished` is stale and is reported, never applied — otherwise an
+  audit run before the work reopens a task closed after it, and the script argues with
+  the person who knows more.
+- **Every case must be confirmed** before a task closes; **any one** failing reopens it.
+  Both rules lean the same way: do not call finished what nothing proves.
+- **The status vocabulary comes from the contract**, never from this file. Writing a
+  token lint 12.14 rejects is how a green run becomes a red one on the next pass.
+- **Without `--apply` it writes nothing.** Each applied move is one `changed` row in
+  the ledger with its evidence, so a status that moved can be explained six months on.
+
+Run it before reporting any work list — a number that counts built work is the same
+defect the gap pass already fixed once, arriving from the other side.

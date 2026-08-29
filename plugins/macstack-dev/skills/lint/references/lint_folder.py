@@ -21,7 +21,14 @@ import collections, glob, io, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DOCS = os.path.normpath(os.path.join(HERE, '..', '..', 'documents', 'references'))
+# Свежесть считает `hooks/macstack_freshness.py` — тот же код, что у обоих хуков.
+# Своя копия расчёта здесь уже была, и она разошлась с хуковой: линтер поднимал
+# часы ещё и по `archive/reviews/`, а хук — нет, так что на проекте, отревьюенном
+# до переезда вердиктов в журнал, линтер молчал, а хук звал сверяться. Путь
+# кладётся здесь по той же причине и тем же способом, что и DOCS.
+HOOKS = os.path.normpath(os.path.join(HERE, '..', '..', '..', 'hooks'))
 sys.path.insert(0, DOCS)
+sys.path.insert(0, HOOKS)
 import v3                                                       # noqa: E402
 
 ERROR, WARNING, INFO = 'error', 'warning', 'info'

@@ -846,10 +846,11 @@
         "what changed"
       ],
       "statuses": {
+        "backlog": "▫",
         "todo": "·",
-        "doing": "▶",
-        "blocked": "⏸",
+        "in_progress": "▶",
         "done": "✓",
+        "cancelled": "✕",
         "dropped": "⊘"
       },
       "entities": [
@@ -933,7 +934,8 @@
       "struck_form": "~~M11-T9~~ · DROPPED 2026-08-24 — <why>",
       "note": "The forward-looking half of the folder. OPEN-QUESTIONS.md §B records debt the team consciously accepted and argues why NOT to act; this document says what will be done, in what order. Do not merge them: an item can sit in §B for a year and only becomes a task when its trigger fires.",
       "format": "v3",
-      "journal": false
+      "journal": false,
+      "$comment_statuses": "Glyphs for the INDEX.md render. The KEYS are the tokens lint 12.14 accepts — they come from fields.status.enum and nowhere else. The map used to be keyed by `doing` and `blocked`, which that rule rejects, so it documented statuses no file was allowed to carry."
     },
     "decisions": {
       "path": "history/DECISIONS.md",

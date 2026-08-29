@@ -273,10 +273,16 @@ ever cited one.
       task can be marked done, the documents never re-checked, and every staleness
       rule below stays quiet because nothing recorded that anything happened.
 12.17 **Documents have a shelf life** — every document with a `docs.files` entry
-      carries `reviewed`, the date it was last checked AGAINST THE CODE. Past
-      `freshness_days` (default 30) it is a WARNING; past twice that, an ERROR. A
-      `reviews/<date>-*-conformance.md` dated later than `reviewed` counts as the check
-      and moves the date forward. This is the one rule aimed at the failure the whole
+      carries `reviewed`, the date it was last checked AGAINST THE CODE. Past its
+      budget it is a WARNING; past twice that, an ERROR. The budget resolves per
+      document — `docs.files.<key>.freshness_days`, then the folder-wide
+      `docs.freshness_days`, then 30 — so a business-logic document can outlive a
+      user-cases document instead of both sharing one number that fits neither. An
+      `audit` row in the ledger (or an archived `reviews/<date>-*-conformance.md`)
+      dated later than `reviewed` counts as the check and moves the date forward. The
+      date and the budget are computed by `hooks/macstack_freshness.py`, which the
+      session-start hook calls too — a second copy here once told the user something
+      the hook contradicted. This is the one rule aimed at the failure the whole
       folder exists to prevent: a document that reads perfectly and describes a system
       that no longer exists. Everything else here checks shape; this checks that truth
       has been looked at recently.

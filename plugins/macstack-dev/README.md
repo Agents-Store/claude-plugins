@@ -24,6 +24,25 @@ client material  ->  inbox/        immutable, exactly as sent
                   -> review package -> the client answers -> ledger -> inbox/
 ```
 
+And the same loop read backwards, which is the half that used to be missing: the code
+moves, and the documents have to catch up or the folder starts describing a system that
+no longer exists.
+
+```
+code  ->  conformance   a verdict per case: implemented · partial · absent
+          code-audit    what the code has that no document mentions
+          delta         the same proposal shape client material produces
+          rulings       the owner decides; a statement the CLIENT answered is never
+                        overruled silently — it becomes a question
+          client/*.md   corrected line by line, prose around it untouched
+          TASKS.md      statuses moved to what the audit found, both ways
+          ledger.jsonl  one row per edit, per verdict, per status move
+```
+
+`/macstack-dev:reconcile` runs it, and it makes you say which side is master before it
+touches anything. There is no default: a default picks the winner of every disagreement
+in the folder without anybody deciding.
+
 ## Commands
 
 | Command | What it does |
@@ -31,7 +50,8 @@ client material  ->  inbox/        immutable, exactly as sent
 | `/macstack-dev:start` | Spec from a codebase, from a business request, or migrate an older layout; then the folder, the env, the rules, the scaffold |
 | `/macstack-dev:intake` | Client material in — delta, gates, rulings, apply, log |
 | `/macstack-dev:plan` | Requirements nobody scheduled become tasks; tracker reconcile |
-| `/macstack-dev:update` | Close the loop after work: spec, generated documents, test cases, journal, changelog |
+| `/macstack-dev:update` | Close the loop after work: **the client documents**, the spec, the generated ones, test cases, task statuses, journal, changelog |
+| `/macstack-dev:reconcile` | Code and every document, synced in one declared direction — `--master=code` corrects the documents, `--master=docs` turns the gaps into tasks |
 | `/macstack-dev:check` | Lint and dashboard · `--docs` documents only · `--code` audit the implementation |
 | `/macstack-dev:review` | Build the client review package, HTML or artifact; read the answers back |
 | `/macstack-dev:feedback` | Fix a problem in the plugin, the schema or the registry — at the source |
@@ -105,6 +125,7 @@ not a risk.
 | `intake` | Client material → delta → gates → rulings → apply → log |
 | `planning` | Milestones, tasks, backlog, the tracker reconcile, and finding unplanned work |
 | `sync` | The spec against the client documents, and against the code |
+| `reconcile` | The whole folder against the code in ONE declared direction — the five stages, the gate onto `client/`, and the all-seventeen-documents report |
 | `test-cases` | One test per acceptance bullet, derived from cases, triggers and screens |
 | `conformance` | From a case id: does the code do what this case promises? One `audit` verdict per case, into the ledger |
 | `code-audit` | From a file: what is in the code that no document mentions? Enumerates by the conventions the spec declares, sorts into three lists, proposes — never edits |
@@ -139,9 +160,16 @@ was needed.
 
 A second hook runs at session start and says how far the documents have drifted from
 the code — how long since anyone checked, and which documents nobody has ever checked.
-It measures with the same code rule 12.17 uses, reading the same `docs.freshness_days`
-and the same `audit` rows, because two copies of one threshold diverge silently and the
-first sign would be the hook and the linter disagreeing about freshness.
+It measures with literally the same function rule 12.17 calls: `hooks/macstack_freshness.py`
+owns the shelf life and the audit date, and the linter imports it. It was two copies
+once, and they diverged exactly as predicted — the linter lifted the clock from archived
+verdicts and the hook did not, so on a project audited before those verdicts moved into
+the ledger the linter stayed silent while the hook called the documents unchecked. One
+implementation is not tidiness here; it is the only arrangement in which the two tools
+cannot tell you different things about the same document.
+
+The budget is per document (`docs.files.<key>.freshness_days`), falling back to the
+folder-wide `docs.freshness_days` and then to 30.
 
 Session start rather than every turn: repeated thirty times in a session, that sentence
 stops being read by the third. The Stop hook mentions drift too, but only when it has
@@ -171,9 +199,10 @@ CDN right after a push serves the previous revision and prints an entirely false
 ./run-tests.sh
 ```
 
-Находит каждый `test_*.py` под `skills/` и прогоняет; ненулевой код — есть падения.
-Списка файлов нет намеренно: забытый в списке файл выглядел бы как «тестов больше
-нет», то есть как успех.
+Находит каждый `test_*.py` под `skills/` и под `tests/` и прогоняет; ненулевой код —
+есть падения. Два корня, а не один: сверка манифеста с записью в каталоге маркетплейса
+и договор линтера с хуками ничьим скиллом не являются. Списка файлов нет намеренно:
+забытый в списке файл выглядел бы как «тестов больше нет», то есть как успех.
 
 Документы для прогона — свои, в `skills/documents/references/tests/corpus/`
 (выдуманный прокат велосипедов). `MACSTACK_FIXTURE=<путь к macstack/client>`

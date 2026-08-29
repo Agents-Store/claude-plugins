@@ -40,8 +40,12 @@ the document says something nobody can trace. Write it down first, then work.
    NOW, before the outcome is known — a retrospective cost clause is worthless.
 
 5. **Apply in one direction: `client/` → `generated/` → `macstack.json`.** Client prose
-   is edited by hand and never rewritten silently; the generated documents are rebuilt;
-   the spec is synced. Never the reverse.
+   is edited through this gate and never rewritten silently; the generated documents are
+   rebuilt; the spec is synced. Never the reverse.
+
+   This gate is for material the CLIENT sent. The other direction — what the code turns
+   out to say — has its own gate in `/macstack-dev:reconcile`, which enforces the same
+   three stops, the first being a statement the client has already answered.
 
 6. **Write every edit to `history/ledger.jsonl`**, keyed by the id of the statement that
    changed, with `was` and `now`. That row is what lets the next review package show the
