@@ -1,0 +1,134 @@
+name: Scrub check
+
+# Publication gate. Four passes, all blocking.
+#
+#   1. scrub_check.py  — a public plugin must not carry deployment-specific
+#      data: host and instance names, private endpoints, routable IPs, layout
+#      paths, internal identifiers, secret material, personal identifiers, or
+#      model ids that rot.
+#   2. plugin_lint.py  — a public plugin must be built the way the conventions
+#      say: an eight-block dry-run plan with an EXECUTABLE rollback on every
+#      mutating command, one skill name across SKILL.md / directory /
+#      evals.json, and plugin.json version equal to the marketplace.json entry.
+#   3. catalog-check.py — the finding ids the code can emit and the ids the
+#      findings catalog declares are one id space. They drift silently, one
+#      finding at a time, and the drift only shows up as a repair line nobody
+#      can resolve.
+#   4. unittest        — level 2 of the verification ladder: the plugin's own
+#      logic against dry fixtures, no server and no Docker daemon. The
+#      fixtures are scanned by pass 1 like any other file, because a
+#      captured fixture is the quietest way to publish a secret.
+#
+# Passes 1 and 2 read the WORKING TREE only. A value that already reached git
+# history is not caught here and cannot be fixed by editing a file — revoke it
+# at the source. Locally, ./scripts/scrub-check.sh runs both of them at once.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scrub:
+    name: No deployment data in the tree
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run the gate
+        id: gate
+        run: |
+          set +e
+          ./scripts/scrub-check.sh --no-lint | tee scrub.log
+          status="${PIPESTATUS[0]}"
+          set -e
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          case "$status" in
+            0) echo "::notice::scrub-check clean" ;;
+            2) grep '^WARN' scrub.log | while read -r line; do
+                 echo "::warning::${line}"
+               done ;;
+            *) grep '^FAIL' scrub.log | while read -r line; do
+                 echo "::error::${line}"
+               done
+               echo "::error::scrub-check found deployment data. Replace it with a placeholder (<instance>, <data-root>, example.com, 203.0.113.10), move it into runtime discovery or the operator's own config file, or — only if neither is possible — add a justified line to scripts/scrub-allow.txt in its own pull request."
+               exit 1 ;;
+          esac
+
+      # Second pass: structure, not content. Runs even when the scrub pass only
+      # warned, so a broken rollback is never hidden behind a clean scrub.
+      - name: Plugin structure lint
+        if: always() && steps.gate.outcome != 'cancelled'
+        run: |
+          set +e
+          python3 scripts/plugin_lint.py | tee lint.log
+          status="${PIPESTATUS[0]}"
+          set -e
+          case "$status" in
+            0) echo "::notice::plugin-lint clean" ;;
+            2) grep '^WARN' lint.log | while read -r line; do
+                 echo "::warning::${line}"
+               done ;;
+            *) grep '^FAIL' lint.log | while read -r line; do
+                 echo "::error::${line}"
+               done
+               echo "::error::plugin-lint found a structural defect. A mutating command must print all eight dry-run blocks (TARGET PRECHECK CHANGE BACKUP IMPACT VALIDATE ROLLBACK APPLY) and its ROLLBACK must be a runnable command line, not a description of one. A skill must carry one name across SKILL.md frontmatter, its directory and evals.json. plugin.json and .claude-plugin/marketplace.json must declare the same version. These are fixed, not baselined."
+               exit 1 ;;
+          esac
+
+      # scrub-allow.txt is the escape hatch, so it gets its own review.
+      # Removing a line is ordinary work. Adding one must be the only change in
+      # the pull request, otherwise an exception can ride along with a feature.
+      - name: Baseline may only shrink
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          baseline="scripts/scrub-allow.txt"
+          added="$(git diff --numstat "${BASE_SHA}...HEAD" -- "$baseline" | awk '{print $1}')"
+          added="${added:-0}"
+          if [ "$added" -eq 0 ]; then
+            echo "No lines added to ${baseline}."
+            exit 0
+          fi
+          others="$(git diff --name-only "${BASE_SHA}...HEAD" -- . ":(exclude)${baseline}" | wc -l | tr -d ' ')"
+          if [ "$others" -ne 0 ]; then
+            echo "::error file=${baseline}::This pull request adds ${added} exception line(s) to ${baseline} and also changes ${others} other file(s). An added exception must be its own pull request so it is reviewed on its own merits. Removing lines is always fine."
+            exit 1
+          fi
+          echo "Baseline grew by ${added} line(s) in a baseline-only pull request — reviewable."
+
+  tests:
+    name: Plugin logic on dry fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # The findings catalog is a contract with four consumers, and the loop
+      # audit -> report -> repair breaks silently per finding when the code and
+      # the catalog drift apart: the report prints a repair line nobody can
+      # resolve. Blocking, and before the suite, because a split id space makes
+      # every other result harder to read.
+      - name: openclaw-ops findings catalog
+        working-directory: plugins/openclaw-ops
+        run: python3 scripts/catalog-check.py
+
+      # Standard library only, deliberately: these scripts run on an operator's
+      # server, so a suite that needed a package index would be testing a
+      # machine the operator does not have.
+      - name: openclaw-ops
+        working-directory: plugins/openclaw-ops
+        run: python3 -m unittest discover -s tests -t tests -v
