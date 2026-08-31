@@ -242,8 +242,8 @@
     {
       "name": "openclaw-configurator",
       "source": "./plugins/openclaw-configurator",
-      "description": "OpenClaw instance configurator and operations plugin. Scan, analyze, and optimize all workspace files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOT.md, BOOTSTRAP.md) plus openclaw.json. Update instances from official GitHub releases and reconcile config against new releases (recommend new features, migrate legacy settings, run openclaw doctor). Set up model-provider authentication with an OAuth/CLI-backend-first, cost-saving bias (Claude CLI, Codex OAuth). Migrate .env secrets into self-hosted Infisical. Guided interviews, session log analysis, standing orders design, security audit, config validation, permission fix hooks, centralized doc research, and 6 industry-specific workspace templates. Supports OPENCLAW_INSTANCE_DIR (runtime instance) and OPENCLAW_PROJECT_DIR (git/docker source) env vars to target any instance from any working directory.",
-      "version": "1.6.0",
+      "description": "DEPRECATED — superseded by openclaw-ops, which operates instances from live Docker state instead of hard-coded paths. Kept for its workspace-authoring skills (AGENTS.md, SOUL.md, personas, standing orders); use openclaw-ops for anything operational. OpenClaw instance configurator and operations plugin. Scan, analyze, and optimize all workspace files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOT.md, BOOTSTRAP.md) plus openclaw.json. Update instances from official GitHub releases and reconcile config against new releases (recommend new features, migrate legacy settings, run openclaw doctor). Set up model-provider authentication with an OAuth/CLI-backend-first, cost-saving bias (Claude CLI, Codex OAuth). Migrate .env secrets into self-hosted Infisical. Guided interviews, session log analysis, standing orders design, security audit, config validation, permission fix hooks, centralized doc research, and 6 industry-specific workspace templates. Supports OPENCLAW_INSTANCE_DIR (runtime instance) and OPENCLAW_PROJECT_DIR (git/docker source) env vars to target any instance from any working directory.",
+      "version": "1.7.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -272,6 +272,38 @@
         "doctor"
       ],
       "category": "ai-agents"
+    },
+    {
+      "name": "openclaw-ops",
+      "source": "./plugins/openclaw-ops",
+      "description": "Day-two operations for a fleet of self-hosted OpenClaw gateway instances on one Docker host. Discovers every instance from the live Docker state instead of hard-coded paths, classifies it ok / degraded / down / alien, and drives the repair work: health and liveness reporting, provider-auth triage (expired, emptied and shadowed OAuth profiles, shared-credential token sink), config surgery with a snapshot and an executable rollback, memory and embedding repair, shared skills and plugins consolidation, secret-delivery audit by key name only, security audit, version-drift and channel-aware upgrades, and reference-instance cloning. Mutations are dry-run behind an eight-block plan, need --yes, and need a typed confirmation when irreversible. Secrets are reported as fingerprint, presence and expiry — never as values. No MCP server and no required environment variables: the one optional variable, OPENCLAW_OPS_CONFIG, is an escape hatch for the fleet-config path, and deployment specifics live in that operator-owned config outside the repository.",
+      "version": "1.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": [
+        "openclaw",
+        "fleet",
+        "operations",
+        "docker",
+        "docker-compose",
+        "self-hosted",
+        "gateway",
+        "diagnostics",
+        "health-check",
+        "oauth",
+        "provider-auth",
+        "secrets",
+        "infisical",
+        "upgrades",
+        "version-drift",
+        "memory",
+        "embeddings",
+        "security-audit",
+        "dry-run",
+        "agents-store"
+      ],
+      "category": "operations"
     },
     {
       "name": "multi-bank",

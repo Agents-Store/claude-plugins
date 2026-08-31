@@ -110,12 +110,12 @@ Following the skill's best practices:
 ### 9. Fix permissions (Docker deployments only)
 After writing files in Docker deployments, fix permissions. The instance NAME is derived from `OPENCLAW_INSTANCE_DIR`, but `docker compose` must run in the **project** dir (`OPENCLAW_PROJECT_DIR`) where `docker-compose.yaml` lives:
 ```bash
-# Instance name comes from the instance dir basename (e.g., /root/.openclaw-team → team)
+# Instance name comes from the instance dir basename (e.g., ~/.openclaw-<name> → <name>)
 INSTANCE_DIR="${OPENCLAW_INSTANCE_DIR:-${OPENCLAW_PROJECT_DIR:-$(pwd)}}"
 INSTANCE=$(basename "$INSTANCE_DIR" | sed 's/^\.openclaw-//')
 
 # docker compose runs in the PROJECT dir (where docker-compose.yaml lives)
-PROJECT_DIR="${OPENCLAW_PROJECT_DIR:-/docker/openclaw-$INSTANCE}"
+PROJECT_DIR="${OPENCLAW_PROJECT_DIR:?set it to the compose project dir holding docker-compose.yaml}"
 cd "$PROJECT_DIR"
 docker compose exec -u root openclaw-gateway chown -R node:node /home/node/.openclaw/
 ```

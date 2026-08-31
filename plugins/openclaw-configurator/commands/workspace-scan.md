@@ -13,7 +13,7 @@ Perform a quick health check of the current OpenClaw instance.
 2. `$OPENCLAW_PROJECT_DIR` — git/docker-compose project dir; used as a fallback only when `OPENCLAW_INSTANCE_DIR` is unset AND it happens to also be the instance root.
 3. `$(pwd)` — current directory.
 
-`OPENCLAW_INSTANCE_DIR` and `OPENCLAW_PROJECT_DIR` are distinct concepts and usually live in **different** places (e.g. project `/docker/openclaw-pitline/`, instance `~/.openclaw-pitline/`). Workspace commands like this one always target the **instance** dir.
+`OPENCLAW_INSTANCE_DIR` and `OPENCLAW_PROJECT_DIR` are distinct concepts and usually live in **different** places (e.g. project `<compose-root>/openclaw-<name>/`, instance `~/.openclaw-<name>/`). Workspace commands like this one always target the **instance** dir.
 
 ## Process
 

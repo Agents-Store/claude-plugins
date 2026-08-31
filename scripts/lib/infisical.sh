@@ -11,9 +11,9 @@
 #   inf_fetch           fetch one environment as JSON into a file (fails loudly)
 #
 # Auth order:
-#   1. A machine identity at $INFISICAL_IDENTITY_FILE (default
-#      /etc/infisical/claude-plugins.env, the server-wide convention: one file per
-#      project holding INFISICAL_UNIVERSAL_AUTH_CLIENT_ID / _CLIENT_SECRET). We
+#   1. A machine identity at $INFISICAL_IDENTITY_FILE (default: one file per
+#      project under /etc/infisical/, the server-wide convention, holding
+#      INFISICAL_UNIVERSAL_AUTH_CLIENT_ID / _CLIENT_SECRET). We
 #      exchange those for a short-lived token and pass it explicitly on every call.
 #      This is non-interactive and immune to the active-instance problem below.
 #   2. Otherwise the interactive user session, which needs the dance described next.
@@ -23,9 +23,13 @@
 # always reads the active one — `--domain` does not switch it for authenticated
 # reads. So we compare and, if needed, `infisical login --domain=...`.
 
-INFISICAL_DEFAULT_DOMAIN="https://k.macstack.ai"
+# The instance URL is deployment data and is deliberately NOT committed. It is
+# resolved at run time: INFISICAL_DOMAIN in the environment, then the machine-
+# identity file, then the gitignored .env, and finally the vendor's hosted
+# service. Set it once in whichever of those you already keep out of git.
+INFISICAL_DEFAULT_DOMAIN="https://app.infisical.com"
 INFISICAL_CONFIG_FILE="$HOME/.infisical/infisical-config.json"
-INFISICAL_DEFAULT_IDENTITY="/etc/infisical/claude-plugins.env"
+INFISICAL_DEFAULT_IDENTITY="/etc/infisical/${INFISICAL_PROJECT_SLUG:-claude-plugins}.env"
 
 # Repo root = parent of the directory holding this library's parent (scripts/lib -> repo).
 inf_repo_root() {
@@ -33,8 +37,22 @@ inf_repo_root() {
 }
 
 # Instance URL. Override with INFISICAL_DOMAIN=https://... for a one-off run.
+# Ladder: environment > machine-identity file > gitignored .env > vendor default.
+inf_read_domain_from() {
+  [ -r "$1" ] || return 0
+  sed -n 's/^[[:space:]]*INFISICAL_DOMAIN[[:space:]]*=[[:space:]]*//p' "$1" \
+    | tail -n1 | tr -d '"' | tr -d "'" | tr -d '\r'
+}
+
 inf_domain() {
-  local d="${INFISICAL_DOMAIN:-$INFISICAL_DEFAULT_DOMAIN}"
+  local d="${INFISICAL_DOMAIN:-}"
+  local id_file
+  if [ -z "$d" ]; then
+    id_file="$(inf_identity_file)"
+    [ -n "$id_file" ] && d="$(inf_read_domain_from "$id_file")"
+  fi
+  [ -z "$d" ] && d="$(inf_read_domain_from "$(inf_repo_root)/.env")"
+  d="${d:-$INFISICAL_DEFAULT_DOMAIN}"
   printf '%s' "${d%/}"
 }
 

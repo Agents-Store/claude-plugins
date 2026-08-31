@@ -10,7 +10,7 @@ Runs `./scripts/secrets-push.sh` — the reverse of `/setup-tokens`. Infisical i
 source of truth, so anything added or fixed in `.env` has to go up or the next pull
 throws it away.
 
-Instance `https://k.macstack.ai`, project `claude-plugins`.
+Project `claude-plugins`. The instance URL comes from `INFISICAL_DOMAIN` (environment, machine-identity file, or the gitignored `.env`) — it is not committed.
 
 ## Always dry-run first
 

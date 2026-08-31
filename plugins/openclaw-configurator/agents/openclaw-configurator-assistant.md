@@ -169,9 +169,9 @@ The plugin CAN edit `./openclaw.json`, but with strict safeguards:
 In Docker deployments, OpenClaw runs as `node` inside the container. After modifying workspace files from the host, fix permissions:
 
 ```bash
-# Derive instance name from CWD (e.g., /root/.openclaw-team → team)
+# Derive instance name from CWD (e.g., ~/.openclaw-<name> → <name>)
 INSTANCE=$(basename "$(pwd)" | sed 's/^\.openclaw-//')
-cd /docker/openclaw-$INSTANCE
+cd "${OPENCLAW_PROJECT_DIR:?set it to the compose project dir}"
 docker compose exec -u root openclaw-gateway chown -R node:node /home/node/.openclaw/
 ```
 

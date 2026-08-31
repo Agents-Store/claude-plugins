@@ -17,7 +17,7 @@
 
 ## 2026-05-22 — Separate OPENCLAW_INSTANCE_DIR from OPENCLAW_PROJECT_DIR
 
-**Problem:** v1.4.0 collapsed two distinct concepts onto a single `OPENCLAW_PROJECT_DIR` env var: the git/docker-compose project dir (e.g. `/docker/openclaw-pitline/`) and the runtime instance dir holding `openclaw.json` + `workspace/` (e.g. `~/.openclaw-pitline/`). For Docker deployments these are **different** paths. Workspace commands (`workspace-scan`, `config-validate`, `workspace-optimize`) followed `OPENCLAW_PROJECT_DIR` and looked for `openclaw.json` inside the source repo, where it doesn't exist — so users with split layouts couldn't validate/scan/optimize their instance without `cd`-ing into `~/.openclaw-{name}/` first, defeating the whole point of the env var.
+**Problem:** v1.4.0 collapsed two distinct concepts onto a single `OPENCLAW_PROJECT_DIR` env var: the git/docker-compose project dir (e.g. `<compose-root>/openclaw-<name>/`) and the runtime instance dir holding `openclaw.json` + `workspace/` (e.g. `~/.openclaw-<name>/`). For Docker deployments these are **different** paths. Workspace commands (`workspace-scan`, `config-validate`, `workspace-optimize`) followed `OPENCLAW_PROJECT_DIR` and looked for `openclaw.json` inside the source repo, where it doesn't exist — so users with split layouts couldn't validate/scan/optimize their instance without `cd`-ing into `~/.openclaw-{name}/` first, defeating the whole point of the env var.
 
 **Fix:** Introduced `OPENCLAW_INSTANCE_DIR` and split responsibilities:
 
@@ -33,7 +33,7 @@
 
 ## 2026-05-16 — Honor OPENCLAW_PROJECT_DIR env var across all instance-aware commands
 
-**Problem:** Every instance-aware command (`workspace-scan`, `workspace-optimize`, `instance-update`, `config-validate`) and the `PostToolUse` permission-fix hook derived the active instance from `$(pwd)`. That forced the user to `cd /docker/openclaw-<name>` before invoking Claude Code, which broke any workflow where Claude Code is launched from a sibling project (e.g. the plugin monorepo for testing) but should operate on a specific OpenClaw instance.
+**Problem:** Every instance-aware command (`workspace-scan`, `workspace-optimize`, `instance-update`, `config-validate`) and the `PostToolUse` permission-fix hook derived the active instance from `$(pwd)`. That forced the user to `cd <compose-root>/openclaw-<name>` before invoking Claude Code, which broke any workflow where Claude Code is launched from a sibling project (e.g. the plugin monorepo for testing) but should operate on a specific OpenClaw instance.
 
 **Fix:** Introduced `OPENCLAW_PROJECT_DIR` env var. Every command and the hook now resolves the target via `"${OPENCLAW_PROJECT_DIR:-$(pwd)}"`. When the var is set the command `cd`s into it and derives `INSTANCE_NAME` / docker-compose context from there; when unset, behavior is identical to v1.3.0.
 
