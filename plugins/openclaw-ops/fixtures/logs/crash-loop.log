@@ -1,0 +1,8 @@
+2026-08-31T05:58:02.110043118Z info  gateway starting
+2026-08-31T05:58:02.771221904Z fatal config load failed: state directory is not writable
+2026-08-31T05:59:14.008117223Z info  gateway starting
+2026-08-31T05:59:14.663902311Z fatal config load failed: state directory is not writable
+2026-08-31T06:01:38.220419077Z info  gateway starting
+2026-08-31T06:01:38.884511900Z fatal config load failed: state directory is not writable
+2026-08-31T06:06:20.551002418Z info  gateway starting
+2026-08-31T06:06:21.209884733Z fatal config load failed: state directory is not writable

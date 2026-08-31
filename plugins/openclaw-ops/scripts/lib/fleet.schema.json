@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openclaw-ops/fleet.schema.json",
+  "title": "openclaw-ops fleet config",
+  "description": "Frozen snapshot of autodetection plus the decisions autodetection cannot make. Lives OUTSIDE the plugin repository, mode 0600. Resolution ladder: $OPENCLAW_OPS_CONFIG -> ./.openclaw-ops.json -> ~/.config/openclaw-ops/fleet.json -> /etc/openclaw-ops/fleet.json.",
+  "type": "object",
+  "required": ["version", "project_prefix", "instances"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Config format version. 1 is the only accepted value.",
+      "enum": [1]
+    },
+    "host_fingerprint": {
+      "type": "string",
+      "description": "sha256(/etc/machine-id)[0:16] of the host this config was written on. A mismatch puts the plugin in read-only mode: the config describes a different machine, so every path in it is a guess. Omit only when the host has no machine-id.",
+      "pattern": "^[0-9a-f]{16}$"
+    },
+    "host_label": {
+      "type": "string",
+      "description": "Free-text label for the host, shown in reports. Not used for matching.",
+      "maxLength": 64
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "ISO-8601 timestamp of the last /init write."
+    },
+    "project_prefix": {
+      "type": "string",
+      "description": "Compose project-name prefix that selects this fleet, e.g. \"openclaw-\". Instance name = project name with the prefix removed.",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "compose_root": {
+      "type": "string",
+      "description": "Directory holding the per-instance compose project directories. Detected from ConfigFiles; recorded so a stopped instance is still locatable."
+    },
+    "data_root": {
+      "type": "string",
+      "description": "Directory holding per-instance state trees. Recorded for the same reason as compose_root; never used in place of the live mount table."
+    },
+    "gateway_service": {
+      "type": "string",
+      "description": "Compose service name of the gateway container. Detected per instance; this is only the fallback for a stopped project.",
+      "default": "gateway"
+    },
+    "reference": {
+      "type": "string",
+      "description": "Instance name used as the clone source and the config baseline. Selector @reference resolves to it."
+    },
+    "policy": {
+      "type": "object",
+      "description": "Operator decisions that autodetection cannot make.",
+      "additionalProperties": false,
+      "properties": {
+        "update_channel": {
+          "type": "string",
+          "description": "Release channel the fleet follows, by operator name. Resolved through npm dist-tags, never through semver-max or GitHub release ordering \u2014 and the two vocabularies are not spelled alike: channel 'stable' resolves through dist-tag 'latest'. Put the channel name here, never the dist-tag.",
+          "enum": ["stable", "extended-stable", "beta", "dev"],
+          "default": "stable"
+        },
+        "soak_days": {
+          "type": "integer",
+          "description": "Minimum days between a version being promoted on the channel and this fleet accepting it. A correction release on the same line resets the clock.",
+          "minimum": 0,
+          "maximum": 180,
+          "default": 14
+        },
+        "canary": {
+          "type": "string",
+          "description": "Instance that takes any multi-instance mutation first. Must be the least critical instance and must not be the reference."
+        },
+        "stale_log_hours": {
+          "type": "number",
+          "description": "Log silence after which a running, health-green instance is called a zombie.",
+          "minimum": 0.5,
+          "default": 24
+        },
+        "batch_max": {
+          "type": "integer",
+          "description": "Hard cap on instances touched by one batch mutation, canary included.",
+          "minimum": 1,
+          "default": 3
+        },
+        "snapshot_dir": {
+          "type": "string",
+          "description": "Where the plugin writes its own pre-mutation snapshots, outside the CLI's own .bak ring so an automated edit can never evict the human's last-known-good file."
+        },
+        "lock_dir": {
+          "type": "string",
+          "description": "Where the plugin keeps its fleet-wide front locks. Defaults to the locks sibling of snapshot_dir, else the XDG state home. Host-local state: the lock serialises fleet-level credential work across instances, which the runtime's own per-state-dir lock cannot do."
+        },
+        "snapshot_keep": {
+          "type": "integer",
+          "description": "How many plugin snapshots to keep per file.",
+          "minimum": 1,
+          "default": 20
+        },
+        "loopback_only": {
+          "type": "boolean",
+          "description": "Assert every published gateway port must bind to loopback. A non-loopback publish becomes a security finding.",
+          "default": true
+        }
+      }
+    },
+    "provisioner": {
+      "type": "object",
+      "description": "Optional external command that mints credentials for a newly cloned instance (machine identity, secret-store access, provider logins). This plugin never handles secret values, so cloning stops at the file layout and delegates the rest here; when absent, the remaining steps are printed for a human. Placeholders {name} {reference} {project} {port} {state_dir} {compose_file} are substituted into args.",
+      "additionalProperties": false,
+      "required": ["command"],
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Executable to run. No shell is used, so no quoting or redirection is interpreted.",
+          "minLength": 1
+        },
+        "args": {
+          "type": "array",
+          "description": "Arguments, with placeholders substituted.",
+          "items": {"type": "string"}
+        },
+        "notes": {
+          "type": "string",
+          "description": "What this provisioner does and does not cover, shown in the clone plan.",
+          "maxLength": 500
+        }
+      }
+    },
+    "instances": {
+      "type": "object",
+      "description": "Per-instance decisions, keyed by instance name (project name minus project_prefix). An instance discovered on the host but absent here is reported as unmanaged, never hidden.",
+      "patternProperties": {
+        "^[A-Za-z0-9][A-Za-z0-9_.-]{0,62}$": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "manage": {
+              "type": "boolean",
+              "description": "false makes the instance read-only for this plugin: it stays in the inventory and every mutation targeting it is refused.",
+              "default": true
+            },
+            "role": {
+              "type": "string",
+              "description": "reference = clone source and config baseline; canary = first target of any batch; standard = ordinary member; legacy = different layout, refuse to mutate; neighbour = not part of this fleet.",
+              "enum": ["reference", "canary", "standard", "legacy", "neighbour"],
+              "default": "standard"
+            },
+            "criticality": {
+              "type": "string",
+              "description": "Blast-radius hint used to order waves and to require a separate window for the highest tier.",
+              "enum": ["low", "normal", "high"],
+              "default": "normal"
+            },
+            "aliases": {
+              "type": "array",
+              "description": "Extra names the selector accepts for this instance.",
+              "items": {"type": "string", "minLength": 1, "maxLength": 64}
+            },
+            "secrets": {
+              "type": "object",
+              "description": "How secrets reach this instance. Names and locations only — never values.",
+              "additionalProperties": false,
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "description": "Secret-delivery mechanism wrapping the gateway command.",
+                  "enum": ["infisical", "env-file", "none"],
+                  "default": "infisical"
+                },
+                "identity_file": {
+                  "type": "string",
+                  "description": "Path to the machine-identity file used by the delivery wrapper."
+                },
+                "project_id": {
+                  "type": "string",
+                  "description": "Secret-store project id this instance reads from. An instance receiving far fewer keys than its siblings usually has the wrong one."
+                },
+                "environment": {
+                  "type": "string",
+                  "description": "Secret-store environment slug."
+                },
+                "expected_key_count": {
+                  "type": "integer",
+                  "description": "Key count a healthy delivery produces. Compared by count and by name, never by value.",
+                  "minimum": 0
+                }
+              }
+            },
+            "notes": {
+              "type": "string",
+              "description": "Free-text operator note carried into reports.",
+              "maxLength": 500
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

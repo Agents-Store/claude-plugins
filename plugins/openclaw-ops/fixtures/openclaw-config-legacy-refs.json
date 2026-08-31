@@ -1,0 +1,46 @@
+{
+  "agents": {
+    "defaults": {
+      "workspace": "/home/node/.openclaw/workspace",
+      "model": {
+        "primary": "demo-cli/demo-large",
+        "fallbacks": [
+          "demo-cli/demo-small",
+          "acme/demo-small"
+        ]
+      },
+      "models": {
+        "acme/demo-small": {
+          "agentRuntime": {
+            "id": "demo-cli"
+          }
+        }
+      },
+      "heartbeat": {
+        "every": "6h",
+        "model": "demo-cli/demo-large"
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "model": "demo-cli/demo-large"
+      }
+    ]
+  },
+  "gateway": {
+    "bind": "127.0.0.1",
+    "port": 18789,
+    "auth": {
+      "token": "<secret-ref:gateway-bearer>"
+    }
+  },
+  "memory": {
+    "enabled": true,
+    "embeddings": {
+      "provider": "acme",
+      "model": "acme/demo-embed"
+    }
+  }
+}

@@ -1,0 +1,95 @@
+[
+  {
+    "Id": "0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
+    "Name": "/acme-alpha-gateway-1",
+    "Image": "sha256:9c8b7a6d5e4f3021123456789abcdef09c8b7a6d5e4f3021123456789abcdef0",
+    "Created": "2026-06-14T08:12:44.000000000Z",
+    "RestartCount": 2,
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "ExitCode": 0,
+      "StartedAt": "2026-08-28T05:31:02.000000000Z",
+      "FinishedAt": "2026-08-28T05:30:58.000000000Z",
+      "Health": {
+        "Status": "healthy",
+        "FailingStreak": 0
+      }
+    },
+    "Config": {
+      "Image": "ghcr.io/example/openclaw:2026.6.10",
+      "Labels": {
+        "com.docker.compose.project": "acme-alpha",
+        "com.docker.compose.service": "gateway"
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "<data-root>/alpha/data",
+        "Destination": "/home/node/.openclaw",
+        "Mode": "rw",
+        "RW": true
+      },
+      {
+        "Type": "bind",
+        "Source": "<data-root>/alpha/auth-secrets",
+        "Destination": "/home/node/.config/openclaw",
+        "Mode": "rw",
+        "RW": true
+      },
+      {
+        "Type": "bind",
+        "Source": "<data-root>/alpha/claude",
+        "Destination": "/home/node/.claude",
+        "Mode": "rw",
+        "RW": true
+      },
+      {
+        "Type": "bind",
+        "Source": "<data-root>/alpha/claude.json",
+        "Destination": "/home/node/.claude.json",
+        "Mode": "rw",
+        "RW": true
+      },
+      {
+        "Type": "bind",
+        "Source": "<data-root>/alpha/codex-home",
+        "Destination": "/home/node/.codex",
+        "Mode": "rw",
+        "RW": true
+      },
+      {
+        "Type": "bind",
+        "Source": "<data-root>/shared/skills",
+        "Destination": "/opt/openclaw/shared-skills",
+        "Mode": "ro",
+        "RW": false
+      },
+      {
+        "Type": "bind",
+        "Source": "<data-root>/shared/plugins",
+        "Destination": "/opt/openclaw/shared-plugins",
+        "Mode": "ro",
+        "RW": false
+      },
+      {
+        "Type": "bind",
+        "Source": "<data-root>/shared/bin",
+        "Destination": "/opt/openclaw-tools",
+        "Mode": "ro",
+        "RW": false
+      }
+    ],
+    "NetworkSettings": {
+      "Ports": {
+        "18789/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "18789"
+          }
+        ]
+      }
+    }
+  }
+]

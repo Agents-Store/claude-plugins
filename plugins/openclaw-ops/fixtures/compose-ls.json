@@ -1,0 +1,27 @@
+[
+  {
+    "Name": "acme-alpha",
+    "Status": "running(2)",
+    "ConfigFiles": "<compose-root>/acme-alpha/docker-compose.yml"
+  },
+  {
+    "Name": "acme-beta",
+    "Status": "running(2)",
+    "ConfigFiles": "<compose-root>/acme-beta/docker-compose.yml"
+  },
+  {
+    "Name": "acme-gamma",
+    "Status": "exited(2)",
+    "ConfigFiles": "<compose-root>/acme-gamma/docker-compose.yml"
+  },
+  {
+    "Name": "acme-legacy-one",
+    "Status": "restarting(1)",
+    "ConfigFiles": "<compose-root>/acme-legacy-one/compose.yml"
+  },
+  {
+    "Name": "unrelated-neighbour",
+    "Status": "running(1)",
+    "ConfigFiles": "<compose-root>/unrelated-neighbour/docker-compose.yml"
+  }
+]
