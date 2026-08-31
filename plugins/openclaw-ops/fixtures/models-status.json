@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-08-31T06:00:00Z",
+  "profiles": [
+    {
+      "id": "acme-oauth-1",
+      "provider": "acme",
+      "mode": "oauth",
+      "status": "expired",
+      "expiresAt": "2026-07-09T11:20:00Z"
+    },
+    {
+      "id": "acme-key-1",
+      "provider": "acme",
+      "mode": "api_key",
+      "status": "expiring",
+      "expiresAt": "2026-09-04T00:00:00Z"
+    },
+    {
+      "id": "demo-cli-1",
+      "provider": "demo-cli",
+      "mode": "token",
+      "status": "ok",
+      "expiresAt": "2027-02-01T00:00:00Z"
+    }
+  ]
+}

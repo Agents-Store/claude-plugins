@@ -1,0 +1,33 @@
+{
+  "profiles": [
+    {
+      "id": "acme-oauth-1",
+      "provider": "acme",
+      "mode": "oauth",
+      "email": "operator@example.com",
+      "accountId": "acct-fixture-0001",
+      "scopes": ["chat"],
+      "createdAt": "2026-03-11T09:00:00Z",
+      "expiresAt": "2026-07-09T11:20:00Z",
+      "accessToken": "",
+      "refreshToken": ""
+    },
+    {
+      "id": "acme-key-1",
+      "provider": "acme",
+      "mode": "api_key",
+      "createdAt": "2026-05-02T12:00:00Z",
+      "expiresAt": null,
+      "apiKey": "sk-ant-api03-EXAMPLE-fixture-0000000000000000000000000000"
+    },
+    {
+      "id": "demo-cli-1",
+      "provider": "demo-cli",
+      "mode": "token",
+      "createdAt": "2026-06-20T21:30:00Z",
+      "expiresAt": "2027-02-01T00:00:00Z",
+      "token": "eyJEXAMPLEfixture.notarealpayload.0000signature",
+      "refreshToken": ""
+    }
+  ]
+}

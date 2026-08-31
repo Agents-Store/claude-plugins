@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "host_fingerprint": "0123456789abcdef",
+  "host_label": "demo-fleet-host",
+  "generated_at": "2020-01-01T00:00:00Z",
+  "project_prefix": "openclaw-",
+  "compose_root": "<compose-root>",
+  "data_root": "<data-root>",
+  "gateway_service": "gateway",
+  "reference": "alpha",
+  "policy": {
+    "update_channel": "stable",
+    "soak_days": 14,
+    "canary": "sandbox",
+    "stale_log_hours": 24,
+    "batch_max": 3,
+    "snapshot_dir": "<state-root>/openclaw-ops/snapshots",
+    "lock_dir": "<state-root>/openclaw-ops/locks",
+    "snapshot_keep": 20,
+    "loopback_only": true
+  },
+  "provisioner": {
+    "command": "<provisioner-command>",
+    "args": [
+      "--instance",
+      "{name}",
+      "--from",
+      "{reference}",
+      "--port",
+      "{port}"
+    ],
+    "notes": "Mints the machine identity and grants it read access to the secret project. Provider logins stay manual."
+  },
+  "instances": {
+    "alpha": {
+      "manage": true,
+      "role": "reference",
+      "criticality": "normal",
+      "aliases": [
+        "ref"
+      ],
+      "secrets": {
+        "provider": "infisical",
+        "identity_file": "<identity-dir>/openclaw-alpha.env",
+        "project_id": "00000000-0000-0000-0000-000000000000",
+        "environment": "prod",
+        "expected_key_count": 14
+      },
+      "notes": "Config baseline. Clone source for /openclaw-ops:clone."
+    },
+    "sandbox": {
+      "manage": true,
+      "role": "canary",
+      "criticality": "low",
+      "secrets": {
+        "provider": "infisical",
+        "expected_key_count": 14
+      },
+      "notes": "No cron jobs. Takes every batch mutation first."
+    },
+    "beta": {
+      "manage": true,
+      "role": "standard",
+      "criticality": "high",
+      "secrets": {
+        "provider": "infisical",
+        "expected_key_count": 14
+      },
+      "notes": "Revenue-bearing schedules. Separate maintenance window."
+    },
+    "vintage": {
+      "manage": false,
+      "role": "legacy",
+      "criticality": "normal",
+      "notes": "Pre-template layout: plaintext secrets, no healthcheck. Migration project, not a maintenance target. Every mutation is refused."
+    },
+    "someone-elses": {
+      "manage": false,
+      "role": "neighbour",
+      "notes": "Matches the prefix but belongs to another owner. Inventory only."
+    }
+  }
+}

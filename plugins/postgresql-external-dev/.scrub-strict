@@ -1,0 +1,5 @@
+# Presence of this file puts the plugin under the strict ruleset of
+# scripts/scrub-check.sh: no host that is not a vendor, upstream or example
+# host; no absolute path that upstream does not document; no hardcoded model
+# id outside an <!-- example-only --> block; no bound host port; no mailbox.
+# See scripts/scrub_check.py and scripts/scrub-allow.txt.

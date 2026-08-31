@@ -11,8 +11,8 @@ Runs `./scripts/secrets-pull.sh`, which writes **both** targets from a single fe
 - `.env` — for the shell tooling plugins invoke (`nb`, `gws`, `docker compose`, curl recipes)
 - `.claude/settings.local.json` — the `env` block Claude Code expands `${VAR}` in `.mcp.json` from
 
-Instance `https://k.macstack.ai`, project `claude-plugins`
-(`5374e01e-dd78-494c-a589-b29c5dd431bf`, pinned in `.infisical.json`).
+Project `claude-plugins`; the workspace id is pinned in `.infisical.json`. The instance URL
+comes from `INFISICAL_DOMAIN` (environment, machine-identity file, or the gitignored `.env`).
 
 ## Defaults
 

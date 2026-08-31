@@ -18,3 +18,7 @@
 **/grading.json
 **/timing.json
 **/feedback.json
+
+# python bytecode from plugin scripts
+__pycache__/
+*.py[cod]

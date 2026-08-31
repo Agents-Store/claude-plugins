@@ -1,0 +1,54 @@
+[
+  {
+    "Id": "5a4b3c2d1e0f6978a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718",
+    "Name": "/acme-legacy-one-app-1",
+    "Image": "sha256:1122334455667788990a0b0c0d0e0f101122334455667788990a0b0c0d0e0f10",
+    "Created": "2026-02-17T19:04:00.000000000Z",
+    "RestartCount": 7,
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "ExitCode": 0,
+      "StartedAt": "2026-08-31T02:10:11.000000000Z",
+      "FinishedAt": "2026-08-31T02:09:47.000000000Z",
+      "Health": {
+        "Status": "unhealthy",
+        "FailingStreak": 9
+      }
+    },
+    "Config": {
+      "Image": "ghcr.io/example/openclaw:2026.2.17",
+      "Labels": {
+        "com.docker.compose.project": "acme-legacy-one",
+        "com.docker.compose.service": "app"
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "<legacy-root>/state",
+        "Destination": "/home/node/data",
+        "Mode": "rw",
+        "RW": true
+      },
+      {
+        "Type": "volume",
+        "Name": "acme-legacy-one_cache",
+        "Source": "<docker-volume-root>/acme-legacy-one_cache/_data",
+        "Destination": "/home/node/cache",
+        "Mode": "rw",
+        "RW": true
+      }
+    ],
+    "NetworkSettings": {
+      "Ports": {
+        "18789/tcp": [
+          {
+            "HostIp": "0.0.0.0",
+            "HostPort": "18789"
+          }
+        ]
+      }
+    }
+  }
+]

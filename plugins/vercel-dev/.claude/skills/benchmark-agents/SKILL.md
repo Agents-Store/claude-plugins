@@ -70,7 +70,7 @@ npx add-plugin https://github.com/vercel/vercel-plugin -s project -y
 ### 2. Launch session via WezTerm
 
 ```bash
-wezterm cli spawn --cwd /Users/johnlindquist/dev/vercel-plugin-testing/$SLUG -- /bin/zsh -ic \
+wezterm cli spawn --cwd /Users/<user>/dev/vercel-plugin-testing/$SLUG -- /bin/zsh -ic \
   "unset CLAUDECODE; VERCEL_PLUGIN_LOG_LEVEL=debug x '<PROMPT>' --settings .claude/settings.json; exec zsh"
 ```
 

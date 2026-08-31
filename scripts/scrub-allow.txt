@@ -1,0 +1,67 @@
+# scrub-allow.txt — intentional exceptions to the publication gate.
+#
+# Format:  path:rule-id:reason
+#   path     repo-relative path or fnmatch glob
+#   rule-id  one rule from scrub_check.py (`*` exempts the file entirely —
+#            only ever for third-party payloads we do not author)
+#   reason   why this is not a leak. Mandatory; the gate rejects an empty one.
+#
+# GOVERNANCE: a line here may only be REMOVED in an ordinary pull request.
+# ADDING a line requires its own PR that touches nothing else, so the exception
+# is reviewed on its own merits instead of riding along with a feature. CI
+# enforces this (.github/workflows/scrub.yml, "baseline may only shrink").
+#
+# Before adding a line, try the fix first: a placeholder (<instance>,
+# <data-root>, <compose-root>, <domain>), a documentation address
+# (example.com, 203.0.113.10), or moving the value into runtime discovery or
+# the operator's own config file.
+
+# --- this repository's own secret tooling (not plugin content) --------------
+.infisical.json:uuid:workspace binding for the repo's own Infisical project, like .dokploy.json — functional, not documentation
+
+# --- third-party API specifications we vendor verbatim ----------------------
+plugins/atlassian-ops/skills/api-reference/references/jira-openapi-v3.json:uuid:vendor OpenAPI document, identifiers are Atlassian's own examples
+plugins/n8n-dev/skills/api-reference/references/n8n-api.json:uuid:vendor OpenAPI document, identifiers are n8n's own examples
+plugins/outline-ops/skills/api-reference/references/outline-openapi.yml:uuid:vendor OpenAPI document, identifiers are Outline's own examples
+plugins/outline-ops/skills/api-reference/references/outline-openapi.yml:public-ip:vendor OpenAPI document, address is Outline's own example value
+plugins/directus-dev/skills/item-operations/SKILL.md:uuid:illustrative primary keys in Directus request/response examples
+plugins/mem0/skills/examples/references/mcp/tool-patterns.md:uuid:illustrative memory ids in mem0 response examples
+plugins/teams-dev/skills/authentication/references/sso-setup.md:uuid:Microsoft Entra tenant/app id placeholders from the vendor quickstart
+plugins/atlassian-ops/skills/api-reference/references/jira-openapi-v3.json:high-entropy:vendor OpenAPI document, the long runs are Atlassian's own base64 example payloads (avatar SVG/XML, sample ids)
+plugins/atlassian-ops/skills/api-reference/references/jira-openapi-v3.json:private-host:vendor OpenAPI document minified onto ONE line, so every dotted token in 5 MB shares a "line" — Atlassian's published avatar CDN and doc links plus property keys such as an app-key or a field id
+plugins/n8n-dev/skills/api-reference/references/n8n-api.json:high-entropy:vendor OpenAPI document, the long runs are n8n's own example ids in `example:` fields
+plugins/nocodb-dev/skills/api-reference/references/nocodb-openapi.json:high-entropy:vendor OpenAPI document, the long run is NocoDB's own example token in an `example:` field
+plugins/nocodb-dev/skills/api-reference/references/nocodb-meta-openapi.json:high-entropy:vendor OpenAPI document, the long runs are NocoDB's own example token and an embedded sample image
+plugins/mattermost-ops/skills/api-reference/references/mattermost-openapi-v4.yaml:high-entropy:vendor OpenAPI document, the long runs are Mattermost's own example pagination cursors
+plugins/mattermost-ops/skills/api-reference/references/mattermost-openapi-v4.yaml:secret-kv:vendor OpenAPI document, the value is Mattermost's own example session token in the authentication section
+
+# --- documentation values that only LOOK like deployment data ---------------
+plugins/dataforseo-dev/skills/backlink-audit/SKILL.md:private-host#spamsite.com:illustrative domain in a disavow-file example, deliberately not a real site
+plugins/n8n-dev/skills/n8n-code-javascript/references/BUILTIN_FUNCTIONS.md:private-host#url.host:member access on a parsed URL object; `.host` is also a real TLD, which is what makes it parse as a hostname
+
+# --- third-party test fixtures we did not author ---------------------------
+# Editing an assertion string to satisfy the gate risks breaking a suite we do
+# not run here; the values are the upstream author's own test data.
+plugins/vercel-dev/tests/benchmark-analyze.test.ts:home-path:upstream test fixture, path is the plugin author's own machine in an assertion
+plugins/vercel-dev/tests/pretooluse-skill-inject.test.ts:private-host:upstream test fixture, short URL used to exercise link handling
+plugins/vercel-dev/tests/redaction.test.ts:private-host:upstream test fixture, short URL used to exercise the redaction code path
+
+# --- published product endpoints of plugins in this marketplace -------------
+# A plugin for a hosted product ships that product's own public MCP endpoint,
+# the same way the vendor plugins do. Judged here rather than allow-listed in
+# the gate, so the gate itself carries no deployment-adjacent name.
+#
+# The root .mcp.json is the aggregated catalogue and therefore the one surface
+# where a self-hosted, credential-bearing URL is most likely to be pasted by
+# accident. A file-wide permit here would wave that through, so the exception is
+# narrowed to ONE value with a `#sha256-<prefix>` selector: the digest of the
+# excerpt as the gate prints it. Every other real endpoint on this surface still
+# fails, and adding one means computing its digest in its own pull request:
+#   python3 scripts/scrub_check.py --no-baseline --format json .mcp.json
+#   printf '%s' "<excerpt, lowercased>" | shasum -a 256
+.mcp.json:private-host#sha256-ec7bc04324d59234:one product's published MCP endpoint, pinned by value digest so a self-hosted endpoint pasted into this catalogue is still caught
+plugins/teleshop/.mcp.json:private-host:the product's own published MCP endpoint, shipped for its users
+
+# --- vendor documentation mirrored into a plugin ----------------------------
+plugins/vercel-dev/agents/deployment-expert.md:public-ip:Vercel's published DNS A record, a public product value
+plugins/vercel-dev/agents/deployment-expert.md.tmpl:public-ip:Vercel's published DNS A record, a public product value

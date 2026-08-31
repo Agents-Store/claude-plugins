@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "uptimeSeconds": 372004,
+  "ingressPressure": 7,
+  "deliveryQueues": {
+    "depth": 3,
+    "oldestAgeSeconds": 5400,
+    "workers": 2
+  },
+  "subsystems": {
+    "gateway": "up",
+    "scheduler": "up",
+    "memory": "up"
+  }
+}

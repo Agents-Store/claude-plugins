@@ -1214,7 +1214,7 @@
             "properties": {
               "id": {
                 "$ref": "#/$defs/slug",
-                "description": "Agent identifier (openclaw-meg, claude-code-meg)"
+                "description": "Agent identifier (openclaw-<name>, claude-code-<name>)"
               },
               "name": {
                 "type": "string"

@@ -16,8 +16,8 @@ Load the **infisical-migration** skill for the full playbook, troubleshooting ma
 
 ```bash
 INSTANCE_DIR="${OPENCLAW_INSTANCE_DIR:-${OPENCLAW_PROJECT_DIR:-$(pwd)}}"   # secrets live here
-INSTANCE=$(basename "$INSTANCE_DIR" | sed 's/^\.openclaw-//')             # e.g. team
-PROJECT_DIR="${OPENCLAW_PROJECT_DIR:-/docker/openclaw-$INSTANCE}"          # docker files live here
+INSTANCE=$(basename "$INSTANCE_DIR" | sed 's/^\.openclaw-//')             # e.g. the instance name
+PROJECT_DIR="${OPENCLAW_PROJECT_DIR:?set it to the compose project dir holding docker-compose.yaml}"          # docker files live here
 ```
 
 - **Instance dir** → `openclaw.json` (SecretRef ids), `agents/main/agent/auth-profiles.json`, instance `.env`.
@@ -28,7 +28,7 @@ PROJECT_DIR="${OPENCLAW_PROJECT_DIR:-/docker/openclaw-$INSTANCE}"          # doc
 ### Step 1 — Inputs
 
 - Parse the Infisical **project id** from `$ARGUMENTS`. If absent, ask the user for it.
-- Ask for the environment slug (default `prod`) and domain (default `https://k.macstack.ai`).
+- Ask for the environment slug (default `prod`) and domain (default `https://infisical.example.com`).
 - Read machine-identity creds from `/etc/openclaw/infisical.env`. If missing, instruct the user to create it (mode 600, `INFISICAL_CLIENT_ID` + `INFISICAL_CLIENT_SECRET`) and stop — never hardcode creds.
 
 ### Step 2 — Preconditions & backups

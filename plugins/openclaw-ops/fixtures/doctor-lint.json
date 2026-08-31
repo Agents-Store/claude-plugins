@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-08-31T06:00:00Z",
+  "findings": [
+    {
+      "checkId": "config.model.legacy-ref",
+      "severity": "warn",
+      "message": "the model chain references a runtime and a model fused into one id; the provider form plus a runtime override is the current shape",
+      "path": "/home/node/.openclaw/openclaw.json",
+      "ocPath": "agents.defaults.model.primary",
+      "fixHint": "rewrite as <provider>/<model-id> and set agents.defaults.models[<ref>].agentRuntime.id"
+    },
+    {
+      "checkId": "config.channel.dm-policy-open",
+      "severity": "error",
+      "message": "a channel accepts direct messages from anyone",
+      "path": "/home/node/.openclaw/openclaw.json",
+      "ocPath": "channels.demo.dmPolicy",
+      "fixHint": "set dmPolicy to pairing or allowlist and populate allowFrom"
+    },
+    {
+      "checkId": "config.gateway.token-inline",
+      "severity": "critical",
+      "message": "the gateway bearer token is stored inline instead of as a secret reference",
+      "path": "/home/node/.openclaw/openclaw.json",
+      "ocPath": "gateway.auth.token",
+      "fixHint": "replace the literal with a secret reference and rotate the value out of band"
+    },
+    {
+      "checkId": "config.style.trailing-key",
+      "severity": "info",
+      "message": "an unknown key is carried along and ignored by the runtime",
+      "path": "/home/node/.openclaw/openclaw.json",
+      "ocPath": "agents.defaults.unknownKey",
+      "fixHint": "remove the key or move it under a documented section"
+    }
+  ]
+}
