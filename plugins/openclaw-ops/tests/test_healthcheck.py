@@ -43,3 +43,52 @@ class UpstreamSeverityTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AuthRouteProblemsTest(unittest.TestCase):
+    """`models status --check` exits 1 for two different worlds; only the document separates them."""
+
+    INDETERMINATE = {"auth": {
+        "modelRouteIssues": [{"kind": "indeterminate", "provider": "anthropic",
+                              "model": "claude-opus-5", "message": "could not be confirmed"}],
+        "runtimeAuthRoutes": [{"provider": "anthropic", "runtime": "claude-cli",
+                               "status": "indeterminate"},
+                              {"provider": "openai", "runtime": "codex", "status": "usable"}]}}
+    EXPIRED = {"auth": {
+        "modelRouteIssues": [{"kind": "expired", "provider": "openai", "model": "gpt-5.6-terra"}],
+        "runtimeAuthRoutes": [{"provider": "openai", "runtime": "codex", "status": "expired"}]}}
+
+    def test_a_cli_backed_route_reports_only_indeterminate(self):
+        kinds, labels = healthcheck._auth_route_problems(self.INDETERMINATE)
+        self.assertEqual(kinds, {"indeterminate"})
+        self.assertIn("anthropic/claude-opus-5", labels)
+
+    def test_a_usable_route_is_not_a_problem(self):
+        _kinds, labels = healthcheck._auth_route_problems(self.INDETERMINATE)
+        self.assertFalse([l for l in labels if "codex" in l])
+
+    def test_a_real_expiry_is_not_swallowed_by_the_indeterminate_branch(self):
+        kinds, _labels = healthcheck._auth_route_problems(self.EXPIRED)
+        self.assertIn("expired", kinds)
+        self.assertFalse(kinds <= {"indeterminate", "unknown"})
+
+    def test_a_document_without_an_auth_block_says_nothing(self):
+        for doc in ({}, {"auth": None}, [], None):
+            with self.subTest(doc=doc):
+                self.assertEqual(healthcheck._auth_route_problems(doc), (set(), []))
+
+
+class OrphanedTimerTest(unittest.TestCase):
+    """An isolated timer has no agent binding by construction — that is not an orphan."""
+
+    def test_an_isolated_timer_without_a_binding_is_not_orphaned(self):
+        self.assertFalse(healthcheck._timer_is_orphaned(
+            {"id": "a", "sessionTarget": "isolated"}))
+
+    def test_a_bound_timer_is_not_orphaned(self):
+        self.assertFalse(healthcheck._timer_is_orphaned(
+            {"id": "b", "sessionTarget": "main", "agentId": "main"}))
+
+    def test_a_main_timer_without_a_binding_is_still_orphaned(self):
+        self.assertTrue(healthcheck._timer_is_orphaned({"id": "c", "sessionTarget": "main"}))
+        self.assertTrue(healthcheck._timer_is_orphaned({"id": "d"}))

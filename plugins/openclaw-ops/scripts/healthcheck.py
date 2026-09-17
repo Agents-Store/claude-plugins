@@ -545,6 +545,32 @@ def check_health_cli(rec, record, opts):
                 evidence=json.dumps(redact.structure_only(doc))[:300])
 
 
+def _auth_route_problems(doc):
+    """``(kinds, labels)`` for every route ``models status --check --json`` flags.
+
+    A CLI-backed route (claude-cli, codex) keeps its login outside the auth store,
+    so the runtime answers ``indeterminate`` for it — and exits 1, exactly like a
+    real expiry. Only the document separates "could not confirm" from "expired".
+    """
+    auth = doc.get("auth") if isinstance(doc, dict) else None
+    if not isinstance(auth, dict):
+        return set(), []
+    kinds, labels = set(), []
+    for issue in auth.get("modelRouteIssues") or []:
+        if not isinstance(issue, dict):
+            continue
+        kinds.add(str(issue.get("kind") or "unknown").lower())
+        labels.append("%s/%s" % (issue.get("provider") or "?", issue.get("model") or "?"))
+    for route in auth.get("runtimeAuthRoutes") or []:
+        if not isinstance(route, dict):
+            continue
+        status = str(route.get("status") or "").lower()
+        if status and status not in ("usable", "ok", "healthy"):
+            kinds.add(status)
+            labels.append("%s via %s" % (route.get("provider") or "?", route.get("runtime") or "?"))
+    return kinds, labels
+
+
 def check_models(rec, record, opts):
     """``models status --check`` — exit code carries the answer, not the stdout."""
     if opts.skip_cli:
@@ -558,11 +584,20 @@ def check_models(rec, record, opts):
     if status == "unsupported":
         return
     if label == "expired":
-        finding(rec, "fleet.auth.expired", "critical",
-                "models status --check exited 1: %s" % explanation,
-                source="cli:models status --check",
-                fix="a repeat of an OAuth refresh burns the single-use token and logs out the "
-                    "other consumer — read the profile expiry instead of retrying")
+        kinds, labels = _auth_route_problems(result.json)
+        if kinds and kinds <= {"indeterminate", "unknown"}:
+            finding(rec, "fleet.auth.check-inconclusive", "warn",
+                    "models status --check exited 1, but every route it flags is %s, not expired: "
+                    "%s — a CLI-backed login lives outside the auth store, so readiness cannot be "
+                    "confirmed from it" % ("/".join(sorted(kinds)), ", ".join(labels[:4]) or "n/a"),
+                    source="cli:models status --check")
+        else:
+            finding(rec, "fleet.auth.expired", "critical",
+                    "models status --check exited 1: %s%s" % (explanation,
+                        (" (routes: %s)" % ", ".join(labels[:4])) if labels else ""),
+                    source="cli:models status --check",
+                    fix="a repeat of an OAuth refresh burns the single-use token and logs out the "
+                        "other consumer — read the profile expiry instead of retrying")
     elif label == "expiring":
         finding(rec, "fleet.auth.expiring", "high",
                 "models status --check exited 2: %s" % explanation,
@@ -605,6 +640,19 @@ def check_plugins(rec, record, opts):
                 "no plugins are loaded", source="cli:plugins list --json")
 
 
+def _timer_is_orphaned(row):
+    """True when a timer should carry an agent binding and does not.
+
+    A timer whose ``sessionTarget`` is ``isolated`` spawns a throwaway session per
+    tick and carries no binding by construction — counting those makes every healthy
+    isolated schedule read as broken, which is how this check used to flag a fleet
+    whose timers all ran fine.
+    """
+    if _dig(row, "agentId", "agent", depth=1):
+        return False
+    return str(_dig(row, "sessionTarget", "target", depth=1) or "").lower() != "isolated"
+
+
 def check_cron(rec, record, opts):
     """Timers: how many, how many enabled, and whether any timer has stalled."""
     if opts.skip_cli:
@@ -626,7 +674,7 @@ def check_cron(rec, record, opts):
         name = _dig(row, "name", "id", depth=1)
         schedule = _dig(row, "schedule", "cron", "expression", depth=1)
         groups.setdefault((str(name), str(schedule)), []).append(row)
-        if not _dig(row, "agentId", "agent", depth=1):
+        if _timer_is_orphaned(row):
             missing_agent.append(str(name))
         drift = _age_hours(_dig(row, "nextRun", "nextRunAt", "next", depth=2))
         if drift is not None and drift > opts.cron_drift_hours:
