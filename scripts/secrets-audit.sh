@@ -46,6 +46,7 @@ ENV_NAME="${POSITIONAL[0]:-$(inf_default_env)}"
 JSON=""
 if [ "$OFFLINE" = 0 ]; then
   inf_require_cli || exit 1
+  inf_require_project_match || exit 1
   inf_ensure_login "$(inf_domain)" || exit 1
   JSON=$(mktemp "${TMPDIR:-/tmp}/infisical_json_XXXXXX")
   trap 'rm -f "$JSON"' EXIT

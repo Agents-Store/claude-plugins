@@ -73,6 +73,7 @@ fi
 echo ""
 
 inf_require_cli || exit 1
+inf_require_project_match || exit 1
 inf_ensure_login "$(inf_domain)" || exit 1
 
 PROJECT_ID="$(inf_project)"
