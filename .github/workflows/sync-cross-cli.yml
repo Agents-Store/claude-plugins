@@ -1,16 +1,28 @@
 name: Sync to cross-CLI mirrors
 
-# Triggers the cross-cli-converter and pushes per-CLI output to 5 mirror repos.
+# Triggers the cross-cli-converter and pushes per-CLI output to all 11 mirror repos.
 # Source-of-truth: this repo (claude-public-plugins). Mirrors are auto-generated.
+#
+# The matrix below must stay in sync with IMPLEMENTED_TARGETS / OUT_DIRS in
+# Agents-Store/cross-cli-converter (src/index.ts). A target missing from the matrix is not
+# an error anywhere -- its mirror simply stops being updated and silently goes stale, which
+# is exactly what happened to the six non-cursor/codex/gemini/antigravity/opencode targets
+# between the initial import and 2026-09-06.
 #
 # Required secret: MIRROR_PUSH_TOKEN
 #   Fine-grained PAT with `contents: write` on:
-#     - Agents-Store/cross-cli-converter  (read)
-#     - Agents-Store/cursor-plugins        (write)
-#     - Agents-Store/codex-plugins         (write)
-#     - Agents-Store/gemini-extensions     (write)
-#     - Agents-Store/antigravity-skills    (write)
-#     - Agents-Store/opencode-plugins      (write)
+#     - Agents-Store/cross-cli-converter        (read)
+#     - Agents-Store/cursor-plugins             (write)
+#     - Agents-Store/codex-plugins              (write)
+#     - Agents-Store/gemini-extensions          (write)
+#     - Agents-Store/antigravity-skills         (write)
+#     - Agents-Store/opencode-plugins           (write)
+#     - Agents-Store/agentplugins               (write)
+#     - Agents-Store/openclaw-generated-plugins (write)
+#     - Agents-Store/kimi-plugins               (write)
+#     - Agents-Store/devin-plugins              (write)
+#     - Agents-Store/pi-extensions              (write)
+#     - Agents-Store/hermes-plugins             (write)
 
 on:
   push:
@@ -22,7 +34,7 @@ on:
   workflow_dispatch:
     inputs:
       targets:
-        description: 'Comma-separated targets (cursor,codex,gemini,antigravity,opencode) or "all"'
+        description: 'Comma-separated targets (cursor,codex,gemini,antigravity,opencode,agentplugins,openclaw,kimi,devin,pi,hermes) or "all"'
         required: false
         default: 'all'
 
@@ -46,6 +58,18 @@ jobs:
             repo: antigravity-skills
           - cli: opencode
             repo: opencode-plugins
+          - cli: agentplugins
+            repo: agentplugins
+          - cli: openclaw
+            repo: openclaw-generated-plugins
+          - cli: kimi
+            repo: kimi-plugins
+          - cli: devin
+            repo: devin-plugins
+          - cli: pi
+            repo: pi-extensions
+          - cli: hermes
+            repo: hermes-plugins
     env:
       CLI: ${{ matrix.cli }}
       REPO: ${{ matrix.repo }}
