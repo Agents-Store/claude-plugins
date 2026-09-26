@@ -218,7 +218,7 @@ that is not a vendor, upstream or example host; no absolute path that upstream d
 that lacks a placeholder; no hardcoded model id outside an `<!-- example-only -->` block; no bound
 host port; no mailbox — and the two hygiene lint rules become hard failures. **Every new plugin
 carries the marker**, and it is granted to an existing plugin as soon as that plugin passes
-`--strict` cleanly on **both** passes. Marked today: `mem0`, `openclaw-ops`,
+`--strict` cleanly on **both** passes. Marked today: `mem0-ops`, `openclaw-ops`,
 `postgresql-external-dev`, `stack-composable-stack-v1`. The rest are **debt, not policy** — run
 `./scripts/scrub-check.sh --strict plugins/<name>` to see what one owes before its marker can land
 (`codemap-dev` is one `skill-name` fix away; the large plugins are further).
@@ -243,7 +243,7 @@ endpoint, move the host), never by editing a file. A green gate means "nothing n
 
 ## Patterns Worth Knowing
 
-- **CONNECTORS pattern** (see `deep-research`): Uses `~~capability` placeholders instead of hard-coding tool names. Agents try providers in fallback order.
+- **CONNECTORS pattern** (see `deep-research-ops`): Uses `~~capability` placeholders instead of hard-coding tool names. Agents try providers in fallback order.
 - **Tool name indirection**: Skills reference generic tool names. Agents discover actual MCP tool names at runtime.
 - **Placeholder URLs**: `.mcp.json` uses placeholders (e.g. `https://your-instance.com/mcp`). Users replace with their own.
 - The root `.mcp.json` is **committed** and aggregates every plugin's MCP entry, so it is the surface most likely to catch a pasted credential URL. It must carry only `${VAR}` references and published product endpoints; the publication gate holds it to that with a value-pinned exception (see **Publication Gate**). Real values belong in `.env` / `.claude/settings.local.json`, which are gitignored.

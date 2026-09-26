@@ -33,7 +33,7 @@ These connectors interact with the user's n8n instance. Most have a single prima
 
 ## Web Discovery Connectors
 
-These connectors search the web for n8n workflows beyond the official template library. They follow the same fallback pattern as `deep-research`.
+These connectors search the web for n8n workflows beyond the official template library. They follow the same fallback pattern as `deep-research-ops`.
 
 | Category | Placeholder | Included Providers | Other Options |
 |----------|-------------|-------------------|---------------|
