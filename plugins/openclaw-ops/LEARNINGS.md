@@ -160,3 +160,10 @@ after, node already read an environment variable. No client receives the token o
 **Root cause:** "the token never leaves the container" was read as the whole requirement; inside the
 container it was still handed to the least private channel available.
 **Severity:** Minor
+
+## 2026-09-26 — tests: real model ids in the auth-route fixtures
+
+**Problem:** `tests/test_healthcheck.py` used two real model ids as fixture values. The plugin is under `.scrub-strict`, where the `model-id` rule fails on them, so the merged `main` failed the publication gate.
+**Fix:** Replaced with neutral ids (`example-model-a`, `example-model-b`); the tests only check route kinds and the `provider/model` label shape, not which model it is. 205 tests and `catalog-check.py` pass.
+**Root cause:** The fixtures were written in a commit that never ran the strict gate.
+**Severity:** Minor

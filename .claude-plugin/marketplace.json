@@ -286,7 +286,7 @@
       "name": "openclaw-ops",
       "source": "./plugins/openclaw-ops",
       "description": "Day-two operations for a fleet of self-hosted OpenClaw gateway instances on one Docker host. Discovers every instance from the live Docker state instead of hard-coded paths, classifies it ok / degraded / down / alien, and drives the repair work: health and liveness reporting, provider-auth triage (expired, emptied and shadowed OAuth profiles, shared-credential token sink), config surgery with a snapshot and an executable rollback, memory and embedding repair, shared skills and plugins consolidation, secret-delivery audit by key name only, security audit, version-drift and channel-aware upgrades, and reference-instance cloning. Mutations are dry-run behind an eight-block plan, need --yes, and need a typed confirmation when irreversible. Secrets are reported as fingerprint, presence and expiry — never as values. No MCP server and no required environment variables: the one optional variable, OPENCLAW_OPS_CONFIG, is an escape hatch for the fleet-config path, and deployment specifics live in that operator-owned config outside the repository.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "AGENTS.STORE"
       },

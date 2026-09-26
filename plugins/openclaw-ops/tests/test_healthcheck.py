@@ -50,18 +50,18 @@ class AuthRouteProblemsTest(unittest.TestCase):
 
     INDETERMINATE = {"auth": {
         "modelRouteIssues": [{"kind": "indeterminate", "provider": "anthropic",
-                              "model": "claude-opus-5", "message": "could not be confirmed"}],
+                              "model": "example-model-a", "message": "could not be confirmed"}],
         "runtimeAuthRoutes": [{"provider": "anthropic", "runtime": "claude-cli",
                                "status": "indeterminate"},
                               {"provider": "openai", "runtime": "codex", "status": "usable"}]}}
     EXPIRED = {"auth": {
-        "modelRouteIssues": [{"kind": "expired", "provider": "openai", "model": "gpt-5.6-terra"}],
+        "modelRouteIssues": [{"kind": "expired", "provider": "openai", "model": "example-model-b"}],
         "runtimeAuthRoutes": [{"provider": "openai", "runtime": "codex", "status": "expired"}]}}
 
     def test_a_cli_backed_route_reports_only_indeterminate(self):
         kinds, labels = healthcheck._auth_route_problems(self.INDETERMINATE)
         self.assertEqual(kinds, {"indeterminate"})
-        self.assertIn("anthropic/claude-opus-5", labels)
+        self.assertIn("anthropic/example-model-a", labels)
 
     def test_a_usable_route_is_not_a_problem(self):
         _kinds, labels = healthcheck._auth_route_problems(self.INDETERMINATE)
