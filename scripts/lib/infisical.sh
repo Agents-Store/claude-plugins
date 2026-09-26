@@ -68,6 +68,43 @@ inf_project() {
   sed -n 's/.*"workspaceId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$f" | head -1
 }
 
+# The project id this repo is pinned to, ignoring any environment override.
+inf_pinned_project() {
+  local f; f="$(inf_repo_root)/.infisical.json"
+  [ -f "$f" ] || { printf ''; return; }
+  sed -n 's/.*"workspaceId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$f" | head -1
+}
+
+# Refuse to operate when an exported INFISICAL_PROJECT_ID points somewhere other than
+# the project this repo pins. The override exists for deliberate one-off runs, but it is
+# inherited by every child process, so a variable left over from another project silently
+# retargets pull and push at a vault that has nothing to do with this one — pull wipes the
+# local .env with a foreign key set, push uploads this repo's credentials into someone
+# else's project. Neither failure announces itself: both directions "succeed".
+#
+# Pass INFISICAL_PROJECT_ID= (empty) to use the pinned value for one run, or export the
+# matching id if the override was intended.
+inf_require_project_match() {
+  local pinned override
+  override="${INFISICAL_PROJECT_ID:-}"
+  [ -n "$override" ] || return 0
+  pinned="$(inf_pinned_project)"
+  [ -n "$pinned" ] || return 0
+  [ "$override" = "$pinned" ] && return 0
+
+  echo "" >&2
+  echo "REFUSING TO RUN — wrong Infisical project." >&2
+  echo "  INFISICAL_PROJECT_ID is exported as : $override" >&2
+  echo "  .infisical.json pins this repo to   : $pinned" >&2
+  echo "" >&2
+  echo "  The exported value wins, so this run would read and write the wrong vault." >&2
+  echo "  Use the pinned project for one run:" >&2
+  echo "      INFISICAL_PROJECT_ID= $(basename "${BASH_SOURCE[1]:-this script}") ..." >&2
+  echo "  or unset the variable in the shell that launched this session." >&2
+  echo "" >&2
+  return 1
+}
+
 # Default environment slug from .infisical.json (falls back to dev).
 inf_default_env() {
   local f; f="$(inf_repo_root)/.infisical.json"
@@ -83,13 +120,24 @@ inf_require_cli() {
   return 1
 }
 
+# Normalise an instance URL so two spellings of the same host compare equal.
+# Strips a /api suffix, trailing slashes, and the DNS root dot some resolvers leave
+# on the hostname: the CLI stores "https://<host>./api" when it was reached through a
+# fully-qualified name, which never matches the "https://<host>" form used everywhere
+# else. Without this the active-instance check below fails on every run and the scripts
+# start an interactive re-login that cannot succeed in a non-interactive session.
+inf_normalise_domain() {
+  local d="$1"
+  d="${d%/}"; d="${d%/api}"; d="${d%/}"; d="${d%.}"
+  printf '%s' "$d"
+}
+
 # Currently-active instance, normalised (the config stores it with a /api suffix).
 inf_active_instance() {
   [ -f "$INFISICAL_CONFIG_FILE" ] || { printf ''; return; }
   local d
   d=$(sed -n 's/.*"LoggedInUserDomain"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$INFISICAL_CONFIG_FILE" 2>/dev/null | head -1)
-  d="${d%/}"; d="${d%/api}"; d="${d%/}"
-  printf '%s' "$d"
+  inf_normalise_domain "$d"
 }
 
 # Machine-identity credentials file. Override with INFISICAL_IDENTITY_FILE=...
@@ -152,7 +200,7 @@ inf_ensure_login() {
   fi
 
   active="$(inf_active_instance)"
-  [ "$active" = "$domain" ] && return 0
+  [ "$active" = "$(inf_normalise_domain "$domain")" ] && return 0
 
   if [ -n "$active" ]; then
     echo "Active Infisical instance is '$active', this repo uses '$domain'."

@@ -59,6 +59,7 @@ echo "Settings:    ${SETTINGS:-skipped}"
 echo ""
 
 inf_require_cli || exit 1
+inf_require_project_match || exit 1
 inf_ensure_login "$(inf_domain)" || exit 1
 
 JSON=$(mktemp "${TMPDIR:-/tmp}/infisical_json_XXXXXX")
