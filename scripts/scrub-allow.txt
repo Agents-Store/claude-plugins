@@ -65,3 +65,4 @@ plugins/teleshop-ops/.mcp.json:private-host:the product's own published MCP endp
 # --- vendor documentation mirrored into a plugin ----------------------------
 plugins/vercel-dev/agents/deployment-expert.md:public-ip:Vercel's published DNS A record, a public product value
 plugins/vercel-dev/agents/deployment-expert.md.tmpl:public-ip:Vercel's published DNS A record, a public product value
+.github/workflows/sync-cross-cli.yml:instance-name#sha256-497be8f50190c623:the OpenClaw mirror's real repository name; CI pushes to it, so it cannot be a placeholder
