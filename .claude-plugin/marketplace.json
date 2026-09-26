@@ -10,12 +10,21 @@
     "version": "1.0.0",
     "pluginRoot": "./plugins"
   },
+  "renames": {
+    "deep-research": "deep-research-ops",
+    "document-generator": "document-generator-ops",
+    "mem0": "mem0-ops",
+    "multi-bank": "multi-bank-ops",
+    "project-template-creator": "project-template-dev",
+    "sendpulse": "sendpulse-ops",
+    "teleshop": "teleshop-ops"
+  },
   "plugins": [
     {
-      "name": "sendpulse",
-      "source": "./plugins/sendpulse",
+      "name": "sendpulse-ops",
+      "source": "./plugins/sendpulse-ops",
       "description": "Sendpulse multi-channel marketing plugin. Manage chatbots (Telegram, WhatsApp, Instagram, Messenger, Viber), CRM (contacts, deals, pipelines, boards, tasks), email campaigns, templates, addressbooks, and SMTP transactional email via 133+ MCP tools.",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -39,10 +48,10 @@
       "category": "marketing"
     },
     {
-      "name": "teleshop",
-      "source": "./plugins/teleshop",
+      "name": "teleshop-ops",
+      "source": "./plugins/teleshop-ops",
       "description": "Teleshop store management plugin. Manage products, orders, categories, attributes, customers, webhooks, and addons for your Telegram store via 50 MCP tools.",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -147,10 +156,10 @@
       "category": "development"
     },
     {
-      "name": "mem0",
-      "source": "./plugins/mem0",
+      "name": "mem0-ops",
+      "source": "./plugins/mem0-ops",
       "description": "Mem0 memory management plugin. Store, search, update, and organize memories with semantic search, batch operations, file attachments, and change history tracking via 12 MCP tools.",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -191,10 +200,10 @@
       "category": "project-management"
     },
     {
-      "name": "deep-research",
-      "source": "./plugins/deep-research",
+      "name": "deep-research-ops",
+      "source": "./plugins/deep-research-ops",
       "description": "Deep Research plugin. Conduct comprehensive web research using 38 tools across 4 providers (Firecrawl, Jina, Exa, Perplexity) with intelligent fallback chains, parallel search, content extraction, and structured report generation.",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -215,10 +224,10 @@
       "category": "research"
     },
     {
-      "name": "document-generator",
-      "source": "./plugins/document-generator",
+      "name": "document-generator-ops",
+      "source": "./plugins/document-generator-ops",
       "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, puppeteer, pptxgenjs, pandoc).",
-      "version": "1.0.0",
+      "version": "3.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -306,10 +315,10 @@
       "category": "operations"
     },
     {
-      "name": "multi-bank",
-      "source": "./plugins/multi-bank",
+      "name": "multi-bank-ops",
+      "source": "./plugins/multi-bank-ops",
       "description": "Multi-Bank Account Manager with broadcast architecture pattern. Aggregates financial data from Monobank and PrivatBank via MCP tools, broadcasts balance updates and budget alerts, categorizes transactions, manages payments and salary projects, and exports financial reports in CSV/PDF.",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -551,10 +560,10 @@
       "category": "development"
     },
     {
-      "name": "project-template-creator",
-      "source": "./plugins/project-template-creator",
+      "name": "project-template-dev",
+      "source": "./plugins/project-template-dev",
       "description": "Manage project template hierarchy with unified improvement workflow. Route fixes to plugins or parent templates automatically, quick-capture ideas, unified end-of-session reviews covering both plugins and templates.",
-      "version": "1.3.0",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -848,7 +857,7 @@
       "name": "n8n-provision",
       "source": "./plugins/n8n-provision",
       "description": "n8n instance provisioning plugin. Discover workflows from the official template library (9,166+ templates), GitHub repos, and community platforms, then analyze, import, and batch-deploy them to provision an n8n instance.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1218,7 +1227,7 @@
       "name": "macstack-dev",
       "source": "./plugins/macstack-dev",
       "description": "Turns what a client says into documents they can correct, a machine spec an agent can build from, and a work list somebody can pick up. Keeps the macstack/ folder of a project: macstack.json — the standardized business + technical stack specification, always English — and the six client documents it is written from. OVERVIEW says what the product is and who it is for; USER-CASES carries each case with its UX bar and an addressable acceptance list; UX-UI states what each screen shows and what must never appear on it; AUTOMATION is the trigger -> task -> workflow -> role model; HANDBOOK is how a person actually uses the thing; OPEN-QUESTIONS splits what the client owes from what the team deferred. v3 makes those six pure markdown — headings and bullet lists, nothing else. No YAML blocks, no tables, no change-log sections: the only machine markup is an HTML comment the reader never sees, pointing each entity at its place in the spec. A client can edit the document in any editor and hand it back. Around them: an immutable inbox for anything a client sends, a gated delta/rulings loop that merges it, generated requirements, architecture, test cases and index that carry every id the client documents carry, an append-only ledger with one row per edit and per client comment, tasks reconciled with the team's own tracker, and a review package that shows each statement with its own history and reads the client's answers back into the ledger. Eight commands, one job each — including one that reconciles the whole folder against the source tree in a direction you have to declare: the code is master and every document is corrected through a gate that never silently overrules an answer the client gave, or the documents are master and the gaps become tasks. Every edit is journalled, every finished task sweeps the client documents and not only the generated ones, task statuses move to what the audit actually found — closing what is built and reopening what is not — and every document carries the date it was last checked against the code, so a document that reads perfectly cannot quietly describe a system that no longer exists.",
-      "version": "3.9.0",
+      "version": "3.9.1",
       "author": {
         "name": "AGENTS.STORE"
       },
