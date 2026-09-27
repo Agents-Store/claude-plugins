@@ -6,3 +6,10 @@
 **Fix:** Renamed to `document-generator-ops` — business documents (proposals, invoices, contracts, NDAs) for business users. Directory, `plugin.json` and the marketplace entry changed together; the marketplace `renames` map points `document-generator` at `document-generator-ops`, so installed copies follow the new name (Claude Code 2.1.193+). Major version bump: command and agent namespaces change from `document-generator:` to `document-generator-ops:`. The glob every command uses to find its own scripts (`**/document-generator/scripts/...`) now names the new directory — the old pattern would match nothing after the move. The user-data directory `~/.document-generator/` keeps its name on purpose: renaming it would orphan every existing user's preferences and logos.
 **Root cause:** Created before the naming convention existed; never revisited.
 **Severity:** Minor
+
+## 2026-09-27 — document-templates: example company name was a real studio
+
+**Problem:** The `companyInfo.name` example in the field table used the author's own studio name.
+**Fix:** Replaced with the fictional `Northwind Studio`.
+**Root cause:** Example filled in from real data.
+**Severity:** Minor

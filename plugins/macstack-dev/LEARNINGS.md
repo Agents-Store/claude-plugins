@@ -6,7 +6,7 @@ Severity. Enhancements use: date, component, Feature / Implementation / Rational
 ## 2026-08-09 — initial release notes
 
 - **Schema source of truth**: the bundled `macstack.schema.json` is a copy of the
-  standard (VK-OPS `docs/macstack/`, branch `feat/macstack-json`). When the standard
+  standard (then kept in a private ops repository, `docs/macstack/`). When the standard
   moves to its own repo/Software Directory, update the bundled copy AND this note.
 - **Infisical CLI gotcha** (baked into infisical-env skill): the CLI keeps one ACTIVE
   instance; `--domain` is ignored on authenticated reads — always
@@ -1170,4 +1170,11 @@ journal, что и `intake`, — сменился только источник 
 **Problem:** В `skills/lint/references/coverage-areas.json` область `documentation` приводила примером плагин `document-generator`; он переименован в `document-generator-ops`.
 **Fix:** Пример обновлён, версия 3.9.0 → 3.9.1 в `plugin.json` и в каталоге.
 **Root cause:** Ссылка на соседний плагин по имени; переименование прошло в другом плагине.
+**Severity:** Minor
+
+## 2026-09-27 — spec-authoring, infisical-env, lint, feedback: из плагина убраны имена клиентов
+
+**Problem:** Канонические примеры в `spec-authoring` назывались по реальным клиентам, пример workspace в `infisical-env` и пример ссылки в схеме — тоже; `feedback` и заметка о релизе называли приватный ops-репозиторий автора.
+**Fix:** Примеры описаны по роли (корень организации, сайт, бот поддержки, клиентский BPMS), имя организации в примерах — выдуманное `acme`; приватный репозиторий — «ops-репозиторий». Версия 3.9.1 → 3.9.2.
+**Root cause:** Примеры стандарта писались с живых стеков.
 **Severity:** Minor

@@ -14,7 +14,7 @@ applied to a mirror is silently overwritten by the next sync.
 | The schema, a field, an enum, a lint rule of the standard | `macstacks/macstack` |
 | A software category, a coverage area | `macstacks/registry` |
 
-When the schema changes, all three copies change together: the canon, the vk-ops
+When the schema changes, all three copies change together: the canon, any project
 mirror and this plugin's bundled fallback. Verify with
 `gh api repos/macstacks/macstack/contents/<path>?ref=main`, never with a plain `curl`
 against the CDN right after a push — it serves the previous revision and prints a full,

@@ -22,7 +22,7 @@ Report and fix an issue in a parent project template.
 
 1. Read the feedback skill at `${CLAUDE_PLUGIN_ROOT}/skills/feedback/SKILL.md`
 2. Follow all steps: identify improvement → read stack.json → locate parent → apply fix → record in LEARNINGS.md → commit
-3. If the parent template cannot be found locally, offer to clone from GitHub (stackmakers-ai org)
+3. If the parent template cannot be found locally, offer to clone from GitHub (the org in `$PROJECT_TEMPLATES_GITHUB_ORG`)
 4. For ambiguous Level 0 vs Level 1 routing, use the `template-architect` agent
 
 ## User request

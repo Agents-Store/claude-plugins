@@ -65,19 +65,21 @@ Add to `~/.claude/settings.json`:
 ```json
 {
   "env": {
-    "PROJECT_TEMPLATES_DIR": "/path/to/STACKMAKERS"
+    "PROJECT_TEMPLATES_DIR": "/path/to/project-templates",
+    "PROJECT_TEMPLATES_GITHUB_ORG": "your-github-org"
   }
 }
 ```
 
-This points to the directory containing all template repos (`project-template`, `project-directus-nextjs`, etc.).
+`PROJECT_TEMPLATES_DIR` points to the directory containing all template repos (`project-template`, `project-directus-nextjs`, etc.);
+`PROJECT_TEMPLATES_GITHUB_ORG` is the GitHub organization that hosts them. If it is unset, the plugin asks for it.
 
 ### How Template Routing Works
 
 When you give feedback, the plugin:
 1. Reads `stack.json` in the current project to find the `parent` field
 2. Looks for `$PROJECT_TEMPLATES_DIR/{parent}/`
-3. If not found locally, offers to clone from `git@github.com:stackmakers-ai/{parent}.git`
+3. If not found locally, offers to clone from `git@github.com:$PROJECT_TEMPLATES_GITHUB_ORG/{parent}.git`
 
 ### Optional: Plugin Search
 
