@@ -218,7 +218,7 @@ that is not a vendor, upstream or example host; no absolute path that upstream d
 that lacks a placeholder; no hardcoded model id outside an `<!-- example-only -->` block; no bound
 host port; no mailbox — and the two hygiene lint rules become hard failures. **Every new plugin
 carries the marker**, and it is granted to an existing plugin as soon as that plugin passes
-`--strict` cleanly on **both** passes. Marked today: `mem0-ops`, `openclaw-ops`,
+`--strict` cleanly on **both** passes. Marked today: `openclaw-ops`,
 `postgresql-external-dev`, `stack-composable-stack-v1`. The rest are **debt, not policy** — run
 `./scripts/scrub-check.sh --strict plugins/<name>` to see what one owes before its marker can land
 (`codemap-dev` is one `skill-name` fix away; the large plugins are further).

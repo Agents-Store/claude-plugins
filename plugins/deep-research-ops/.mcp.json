@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "deep-research": {
-      "type": "http",
-      "url": "${MCPWARE_MCP_URL}"
-    }
-  }
-}

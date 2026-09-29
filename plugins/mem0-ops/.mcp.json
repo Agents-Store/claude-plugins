@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "mem0" : {
-      "type":"http",
-      "url":"${MEM0_MCP_URL}"
-    }
-  }
-}
