@@ -31,7 +31,7 @@
 ## Установка
 
 1. Скопируйте папку `deep-research-ops` в директорию плагинов Claude Code
-2. MCP-сервер настроен в `.mcp.json`
+2. Установите плагин `web-search-dev` — он подключает MCP-серверы Exa, Firecrawl, Jina и Perplexity (подойдут и любые другие серверы поиска)
 3. Перезапустите Claude Code
 
 ## Быстрый старт

@@ -119,25 +119,9 @@
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"]
     },
-    "monobank": {
-      "type": "http",
-      "url": "${MONOBANK_MCP_URL}"
-    },
-    "privatbank": {
-      "type": "http",
-      "url": "${PRIVATBANK_MCP_URL}"
-    },
     "drawio": {
       "type": "http",
       "url": "https://mcp.draw.io/mcp"
-    },
-    "deep-research": {
-      "type": "http",
-      "url": "${MCPWARE_MCP_URL}"
-    },
-    "mem0": {
-      "type": "http",
-      "url": "${MEM0_MCP_URL}"
     },
     "sendpulse": {
       "type": "http",

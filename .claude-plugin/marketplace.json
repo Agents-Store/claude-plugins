@@ -13,8 +13,6 @@
   "renames": {
     "deep-research": "deep-research-ops",
     "document-generator": "document-generator-ops",
-    "mem0": "mem0-ops",
-    "multi-bank": "multi-bank-ops",
     "project-template-creator": "project-template-dev",
     "sendpulse": "sendpulse-ops",
     "teleshop": "teleshop-ops"
@@ -156,31 +154,10 @@
       "category": "development"
     },
     {
-      "name": "mem0-ops",
-      "source": "./plugins/mem0-ops",
-      "description": "Mem0 memory management plugin. Store, search, update, and organize memories with semantic search, batch operations, file attachments, and change history tracking via 12 MCP tools.",
-      "version": "2.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "mem0",
-        "memory",
-        "knowledge-base",
-        "vector-search",
-        "semantic-search",
-        "context",
-        "ai-memory",
-        "files",
-        "recall"
-      ],
-      "category": "development"
-    },
-    {
       "name": "plane-ops",
       "source": "./plugins/plane-ops",
       "description": "Plane Agile Ops knowledge plugin. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, standups, intake triage, modules, epics, milestones, roadmaps, dependencies, burndown, and page publishing. Tool- and instance-agnostic: works with any Plane MCP server or connector via a bootstrap skill that discovers tools across naming conventions.",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -203,7 +180,7 @@
       "name": "deep-research-ops",
       "source": "./plugins/deep-research-ops",
       "description": "Deep Research plugin. Conduct comprehensive web research using 38 tools across 4 providers (Firecrawl, Jina, Exa, Perplexity) with intelligent fallback chains, parallel search, content extraction, and structured report generation.",
-      "version": "2.0.0",
+      "version": "3.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -315,32 +292,6 @@
       "category": "operations"
     },
     {
-      "name": "multi-bank-ops",
-      "source": "./plugins/multi-bank-ops",
-      "description": "Multi-Bank Account Manager with broadcast architecture pattern. Aggregates financial data from Monobank and PrivatBank via MCP tools, broadcasts balance updates and budget alerts, categorizes transactions, manages payments and salary projects, and exports financial reports in CSV/PDF.",
-      "version": "2.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "multi-bank",
-        "monobank",
-        "privatbank",
-        "banking",
-        "finance",
-        "broadcast",
-        "balances",
-        "transactions",
-        "payments",
-        "salary",
-        "budget",
-        "reports",
-        "ukrainian-banks",
-        "mcp"
-      ],
-      "category": "finance"
-    },
-    {
       "name": "directus-dev",
       "source": "./plugins/directus-dev",
       "description": "Directus development plugin. Knowledge base for working with Directus MCP tools (12 tools), REST API, and @directus/sdk. Covers collections, items, fields, relations, files, flows, operations, and schema design.",
@@ -409,28 +360,6 @@
         "component-search",
         "base-ui",
         "registry-directory"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "dify-dev",
-      "source": "./plugins/dify-dev",
-      "description": "Dify API dev plugin for Agents Store. Complete coverage of the Dify App Service API (chat, completion, workflows, conversations, files, audio, annotations) and the Knowledge Base / Datasets API — auth, endpoints, streaming events, curl examples, and troubleshooting.",
-      "version": "1.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "dify",
-        "api",
-        "llm",
-        "chatbot",
-        "workflow",
-        "knowledge-base",
-        "rag",
-        "dev",
-        "agents-store",
-        "llm-platform"
       ],
       "category": "development"
     },

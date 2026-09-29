@@ -4,7 +4,7 @@
 
 Plugin files use `~~capability` as a placeholder for whatever tool handles that action. For example, `~~search` means "use any available web search tool" — the agent tries providers in fallback order until one succeeds.
 
-Plugins are **tool-agnostic** — they describe workflows in terms of actions (`~~search`, `~~scrape`, `~~crawl`) rather than specific tool names. The `.mcp.json` pre-configures MCP servers, but any server providing these capabilities works.
+Plugins are **tool-agnostic** — they describe workflows in terms of actions (`~~search`, `~~scrape`, `~~crawl`) rather than specific tool names. The plugin ships no MCP server of its own: it uses whatever search and scrape servers are installed. `web-search-dev` bundles Exa, Firecrawl, Jina and Perplexity — install it alongside, or bring any server that provides these capabilities.
 
 ## FALLBACK Rule
 
@@ -19,7 +19,7 @@ Every action goes through ALL available providers for that category, one by one:
 
 ## Connectors for this plugin
 
-| Category | Placeholder | Included servers | Other options |
+| Category | Placeholder | Servers (via `web-search-dev`) | Other options |
 |----------|-------------|-----------------|---------------|
 | Web search | `~~search` | Exa, Perplexity, Jina, Firecrawl | Tavily, Brave Search, SerpAPI |
 | Scrape / read page | `~~scrape` | Jina, Firecrawl | Browserbase, Apify |
