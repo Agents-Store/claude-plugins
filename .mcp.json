@@ -8,15 +8,6 @@
         "x-mcp-packages": "${NC_MCP_PACKAGES}"
       }
     },
-    "nocobase": {
-      "command": "npx",
-      "args": ["-y", "@nocobase/mcp-server"],
-      "env": {
-        "NOCOBASE_URL": "${NOCOBASE_URL}",
-        "NOCOBASE_EMAIL": "${NOCOBASE_EMAIL}",
-        "NOCOBASE_PASSWORD": "${NOCOBASE_PASSWORD}"
-      }
-    },
     "nocobase-dev": {
       "type": "http",
       "url": "${NOCOBASE_DEV_URL}/api/mcp",
