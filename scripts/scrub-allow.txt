@@ -44,6 +44,7 @@ plugins/n8n-dev/skills/n8n-code-javascript/references/BUILTIN_FUNCTIONS.md:priva
 plugins/vercel-dev/tests/benchmark-analyze.test.ts:home-path:upstream test fixture, path is the plugin author's own machine in an assertion
 plugins/vercel-dev/tests/pretooluse-skill-inject.test.ts:private-host:upstream test fixture, short URL used to exercise link handling
 plugins/vercel-dev/tests/redaction.test.ts:private-host:upstream test fixture, short URL used to exercise the redaction code path
+plugins/vercel-dev/tests/skill-telemetry.test.ts:uuid#sha256-9fa3d1a344c5:upstream test fixture, a session UUID the telemetry code validates as v4, so it cannot be a placeholder
 
 # --- published product endpoints of plugins in this marketplace -------------
 # A plugin for a hosted product ships that product's own public MCP endpoint,
@@ -64,4 +65,7 @@ plugins/teleshop-ops/.mcp.json:private-host:the product's own published MCP endp
 # --- vendor documentation mirrored into a plugin ----------------------------
 plugins/vercel-dev/agents/deployment-expert.md:public-ip:Vercel's published DNS A record, a public product value
 plugins/vercel-dev/agents/deployment-expert.md.tmpl:public-ip:Vercel's published DNS A record, a public product value
+plugins/vercel-dev/README.md:private-host#sha256-07fa4e17aacc:upstream README linking the Grok Build announcement on xAI's public site
+plugins/vercel-dev/skills/microfrontends/references/managing-microfrontends.md:private-host#sha256-ed81f666b1c4:links to the public Terraform Registry docs of Vercel's Terraform provider
+plugins/vercel-dev/skills/react-best-practices/upstream/README.md:private-host#sha256-7f7ed12dfe7a:upstream README crediting the author's public X profile
 .github/workflows/sync-cross-cli.yml:instance-name#sha256-497be8f50190c623:the OpenClaw mirror's real repository name; CI pushes to it, so it cannot be a placeholder
