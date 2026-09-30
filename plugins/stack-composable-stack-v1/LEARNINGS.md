@@ -1,5 +1,12 @@
 # LEARNINGS
 
+## 2026-09-30 — trigger-dev MCP: reads TRIGGER_ACCESS_TOKEN (PAT), no longer TRIGGER_SECRET_KEY
+
+**Problem:** `.mcp.json` passed `TRIGGER_SECRET_KEY` — documented here as the dev environment key (`tr_dev_xxx`) — to the Trigger.dev MCP server as its access token. The server's account-level tools answer an environment key with 401.
+**Fix:** The server now reads `TRIGGER_ACCESS_TOKEN`, a Personal Access Token; `templates/.env.example` and `init-project` document it. `TRIGGER_SECRET_KEY` stays the environment key the SDK uses. Major bump: projects must add `TRIGGER_ACCESS_TOKEN`.
+**Root cause:** One variable name carried two different Trigger.dev credentials.
+**Severity:** Major
+
 ## 2026-04-20 — nocobase-dev: Add dev-instance MCP server and env vars for NocoBase sandbox
 
 **Feature:** Introduced a dedicated NocoBase **dev instance** (separate from production) for building and testing new tables, fields, menus, pages, blocks, workflows, and dev/test apps. The dev instance is exposed through both the HTTP API and a new `nocobase-dev` HTTP MCP server at `${NOCOBASE_DEV_URL}/api/mcp` that uses the full `nc-mcp` toolset (~146 tools).

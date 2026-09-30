@@ -44,18 +44,19 @@ Copy `templates/.env.example` to your project root as `.env.local`:
 | `NEXTAUTH_URL` | NextAuth base URL | No |
 | `NEXTAUTH_SECRET` | NextAuth encryption secret | No |
 | `REVALIDATION_SECRET` | Shared secret for `/api/revalidate` (Directus webhooks + Trigger callbacks) | No |
-| `TRIGGER_SECRET_KEY` | Trigger.dev env secret OR PAT (also used by the MCP server — see note below) | No |
+| `TRIGGER_SECRET_KEY` | Trigger.dev environment secret key (`tr_dev_…`) — the SDK triggers tasks with it | No |
+| `TRIGGER_ACCESS_TOKEN` | Trigger.dev Personal Access Token (`tr_pat_…`) — the MCP server and `trigger deploy` | No |
 | `TRIGGER_API_URL` | Self-hosted Trigger.dev URL | No |
 | `TRIGGER_PROJECT_REF` | Trigger.dev project ref | No |
 
-> **Note on `TRIGGER_SECRET_KEY`**: the bundled `.mcp.json` wires `TRIGGER_SECRET_KEY` into the Trigger.dev MCP server's `TRIGGER_ACCESS_TOKEN`. The MCP server normally expects a Personal Access Token (`tr_pat_...`), not an environment secret key (`tr_dev_...`). If MCP rejects your env secret key, create a PAT in the Trigger.dev dashboard → Personal Access Tokens and put it in `TRIGGER_SECRET_KEY` instead — the SDK accepts PATs for task triggering too.
+> **Two Trigger.dev credentials.** `TRIGGER_SECRET_KEY` is the environment secret key the SDK uses to trigger tasks. `TRIGGER_ACCESS_TOKEN` is a Personal Access Token (dashboard → Account → Personal Access Tokens) for the MCP server and the CLI: the MCP server's account-level tools reject environment keys. The PAT's user must be a member of the organization that owns `TRIGGER_PROJECT_REF`.
 
 ## MCP Servers
 
 This plugin bundles `.mcp.json` with two MCP servers:
 
 - **`directus`** (http) — connects to `${NEXT_PUBLIC_DIRECTUS_URL}/mcp` with `DIRECTUS_ADMIN_TOKEN` for schema exploration, item CRUD, Flow management
-- **`trigger-dev`** (stdio) — spawns `npx trigger.dev@latest mcp` with `TRIGGER_ACCESS_TOKEN=${TRIGGER_SECRET_KEY}` and `TRIGGER_API_URL` for listing tasks, triggering runs, managing schedules
+- **`trigger-dev`** (stdio) — spawns `npx trigger.dev@latest mcp` with `TRIGGER_ACCESS_TOKEN` (a PAT) and `TRIGGER_API_URL` for listing tasks, triggering runs, managing schedules
 
 Values interpolate from your project `.env.local` automatically.
 
