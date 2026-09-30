@@ -248,6 +248,8 @@ jobs:
 5. **Pin the Vercel CLI version in CI** — `npm install -g vercel@latest` can break unexpectedly
 6. **Add `--yes` flag in CI** — prevents interactive prompts from hanging pipelines
 
+[No-Git CLI deploys and CMS deploy hooks](references/cli-deploys.md)
+
 ## Deployment Strategy Matrix
 
 | Scenario | Strategy | Commands |
