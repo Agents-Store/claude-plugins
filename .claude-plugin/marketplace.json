@@ -136,8 +136,8 @@
     {
       "name": "nocobase",
       "source": "./plugins/nocobase",
-      "description": "DEPRECATED — superseded by nocobase-dev, which bundles the official nocobase/skills library and works through the nb CLI and REST API. The MCP server this plugin wires has no counterpart in nocobase-dev yet. NocoBase platform development knowledge plugin. Expert guidance on collections, fields, relations, workflows, UI blocks, and plugin development for NocoBase applications.",
-      "version": "1.2.0",
+      "description": "DEPRECATED — superseded by nocobase-dev, which bundles the official nocobase/skills library and works through the nb CLI and REST API. Its MCP server package (@nocobase/mcp-server) was withdrawn from npm and is no longer wired; the MCP commands and agents work only if you register your own server named `nocobase`. NocoBase platform development knowledge plugin. Expert guidance on collections, fields, relations, workflows, UI blocks, and plugin development for NocoBase applications.",
+      "version": "1.2.1",
       "author": {
         "name": "AGENTS.STORE"
       },
