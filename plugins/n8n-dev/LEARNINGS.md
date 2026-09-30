@@ -22,3 +22,10 @@ Accumulated fixes and discoveries for the n8n-dev plugin.
 **Fix:** Added "Assigning Credentials to Workflow Nodes" subsection to Credential Management with a complete create → assign example using `n8n_update_partial_workflow`.
 **Root cause:** The credential and workflow management sections were documented independently with no cross-reference for the most common combined workflow.
 **Severity:** Minor
+
+## 2026-09-30 — api-reference, troubleshoot, setup: `/api/v1` appended twice
+
+**Problem:** Every curl recipe built `$N8N_API_URL/api/v1/...`, but the workspace catalogue (and `n8n-mcp` itself) stores `N8N_API_URL` with `/api/v1` already on the end, so each recipe hit `/api/v1/api/v1/...` and got 404. The native-MCP snippets had the same flaw: `${N8N_API_URL}/mcp-server/http`.
+**Fix:** The skills derive `N8N_BASE` once (`${N8N_API_URL%/}`, then strip `/api/v1`) and build every path from it — root, root with `/`, and `…/api/v1` all return 200. The native-MCP snippets now read `${N8N_NATIVE_MCP_URL}`, since `.mcp.json` cannot strip a suffix.
+**Root cause:** The skills were written for a root URL; `n8n-mcp` normalizes both forms, so the external MCP never exposed the mismatch.
+**Severity:** Major — every documented REST call failed against the workspace's own `.env`.
