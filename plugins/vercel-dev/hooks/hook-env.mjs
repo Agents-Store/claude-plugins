@@ -1,5 +1,5 @@
 // hooks/src/hook-env.mts
-import { createHash, randomUUID } from "crypto";
+import { createHash } from "crypto";
 import {
   appendFileSync,
   closeSync,
@@ -129,6 +129,10 @@ function removeSessionClaimDir(sessionId, kind, scopeId) {
     logCaughtError(log, "hook-env:remove-session-claim-dir-failed", error, { sessionId, kind, scopeId });
   }
 }
+var CLEARABLE_SESSION_KINDS = /* @__PURE__ */ new Set([
+  "seen-skills",
+  "seen-context-chunks"
+]);
 function removeAllSessionDedupArtifacts(sessionId) {
   const result = { removedFiles: 0, removedDirs: 0 };
   const tempRoot = resolve(tmpdir());
@@ -136,7 +140,15 @@ function removeAllSessionDedupArtifacts(sessionId) {
   let entries;
   try {
     entries = readdirSync(tempRoot).filter(
-      (name) => name.startsWith(prefix) && (name.endsWith("-seen-skills.d") || name.endsWith("-seen-skills.txt"))
+      (name) => {
+        if (!name.startsWith(prefix)) return false;
+        for (const kind of CLEARABLE_SESSION_KINDS) {
+          if (name.endsWith(`-${kind}.d`) || name.endsWith(`-${kind}.txt`)) {
+            return true;
+          }
+        }
+        return false;
+      }
     );
   } catch {
     return result;
@@ -161,12 +173,6 @@ function removeAllSessionDedupArtifacts(sessionId) {
   }
   return result;
 }
-function profileCachePath(sessionId) {
-  return resolveDedupTempPath(sessionId, "profile.json");
-}
-function generateVerificationId() {
-  return randomUUID();
-}
 function safeReadFile(path) {
   try {
     return readFileSync(path, "utf-8");
@@ -189,11 +195,9 @@ export {
   appendAuditLog,
   dedupClaimDirPath,
   dedupFilePath,
-  generateVerificationId,
   getDedupScopeId,
   listSessionKeys,
   pluginRoot,
-  profileCachePath,
   readSessionFile,
   removeAllSessionDedupArtifacts,
   removeSessionClaimDir,

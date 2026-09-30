@@ -25,7 +25,9 @@ import { normalizePromptText, compilePromptSignals, matchPromptWithReason, score
 import { searchSkills, initializeLexicalIndex } from "./lexical-index.mjs";
 import { analyzePrompt } from "./prompt-analysis.mjs";
 import { createLogger, logDecision } from "./logger.mjs";
-import { trackBaseEvents } from "./telemetry.mjs";
+import { queueSkillTelemetry } from "./skill-telemetry.mjs";
+import { SKILL_INJECTED_EVENT_KEY } from "./telemetry.mjs";
+import { selectManagedContextChunk } from "./vercel-context.mjs";
 var MAX_SKILLS = 2;
 var DEFAULT_INJECTION_BUDGET_BYTES = 8e3;
 var MIN_PROMPT_LENGTH = 10;
@@ -471,7 +473,7 @@ function deduplicateAndInject(matches, skills, logger, platform) {
     matchedSkills: allMatched
   };
 }
-function formatOutput(parts, matchedSkills, injectedSkills, summaryOnly, droppedByCap, droppedByBudget, promptMatchReasons, skillMap, platform = "claude-code", env) {
+function formatOutput(parts, matchedSkills, injectedSkills, contextChunks, summaryOnly, droppedByCap, droppedByBudget, promptMatchReasons, skillMap, platform = "claude-code", env) {
   if (parts.length === 0) {
     return formatEmptyOutput(platform, env);
   }
@@ -480,6 +482,7 @@ function formatOutput(parts, matchedSkills, injectedSkills, summaryOnly, dropped
     hookEvent: "UserPromptSubmit",
     matchedSkills,
     injectedSkills,
+    contextChunks,
     summaryOnly,
     droppedByBudget
   };
@@ -658,6 +661,20 @@ function run() {
   });
   if (log.active) timing.inject = Math.round(log.now() - tInject);
   const { parts, loaded, summaryOnly } = injectResult;
+  const injectedContextChunks = [];
+  const chunk = selectManagedContextChunk(loaded, {
+    pluginRoot: PLUGIN_ROOT,
+    sessionId
+  });
+  if (chunk) {
+    parts.push(chunk.wrapped);
+    injectedContextChunks.push(chunk.chunkId);
+    log.debug("managed-context-chunk-injected", {
+      chunkId: chunk.chunkId,
+      skill: chunk.skill,
+      bytes: chunk.bytes
+    });
+  }
   let syncedSeenSkills = seenState;
   if (hasFileDedup) {
     syncedSeenSkills = syncPromptSeenSkillClaims(sessionId, loaded);
@@ -685,23 +702,16 @@ function run() {
       hookEvent: "UserPromptSubmit",
       matchedSkills,
       injectedSkills: loaded,
+      contextChunks: injectedContextChunks,
       summaryOnly,
       droppedByCap,
       droppedByBudget
     }, cwd);
-  }
-  if (sessionId && loaded.length > 0) {
-    const telemetryEntries = [];
-    for (const skill of loaded) {
-      const r = report.perSkillResults[skill];
-      telemetryEntries.push(
-        { key: "prompt:skill", value: skill },
-        { key: "prompt:score", value: String(r?.score ?? 0) },
-        { key: "prompt:hook", value: "UserPromptSubmit" }
-      );
-    }
-    trackBaseEvents(sessionId, telemetryEntries).catch(() => {
-    });
+    queueSkillTelemetry(
+      SKILL_INJECTED_EVENT_KEY,
+      loaded.filter((skill) => skill in skills.skillMap),
+      sessionId
+    );
   }
   let outputEnv;
   const envFile = nonEmptyString(process.env.CLAUDE_ENV_FILE);
@@ -723,6 +733,7 @@ function run() {
     parts,
     matchedSkills,
     loaded,
+    injectedContextChunks,
     summaryOnly,
     droppedByCap,
     droppedByBudget,

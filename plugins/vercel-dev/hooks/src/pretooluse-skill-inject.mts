@@ -31,7 +31,6 @@ import {
   listSessionKeys,
   pluginRoot as resolvePluginRoot,
   readSessionFile,
-  safeReadJson,
   safeReadFile,
   syncSessionFileFromClaims,
   tryClaimSessionKey,
@@ -53,12 +52,14 @@ import {
   rankEntries,
   buildDocsBlock,
 } from "./patterns.mjs";
-import type { CompiledSkillEntry, CompiledPattern, CompileCallbacks, ManifestSkill } from "./patterns.mjs";
+import type { CompiledSkillEntry, CompileCallbacks } from "./patterns.mjs";
 import { resolveVercelJsonSkills, isVercelJsonPath, VERCEL_JSON_SKILLS } from "./vercel-config.mjs";
 import type { VercelJsonRouting } from "./vercel-config.mjs";
 import { createLogger, logDecision } from "./logger.mjs";
 import type { Logger } from "./logger.mjs";
-import { trackBaseEvents } from "./telemetry.mjs";
+import { queueSkillTelemetry } from "./skill-telemetry.mjs";
+import { SKILL_INJECTED_EVENT_KEY } from "./telemetry.mjs";
+import { selectManagedContextChunk } from "./vercel-context.mjs";
 
 const MAX_SKILLS = 3;
 const DEFAULT_INJECTION_BUDGET_BYTES = 18_000;
@@ -263,143 +264,79 @@ export function parseInput(
 export interface LoadedSkills {
   skillMap: Record<string, SkillConfig>;
   compiledSkills: CompiledSkillEntry[];
-  usedManifest: boolean;
-}
-
-interface Manifest {
-  skills?: Record<string, Partial<ManifestSkill>>;
-  generatedAt?: string;
-  version?: number;
 }
 
 /**
- * Load the skill map from the static manifest or live SKILL.md scan.
+ * Load and compile the skill map directly from SKILL.md files.
  * Returns null if the skill map cannot be loaded or is empty.
  */
 export function loadSkills(pluginRoot?: string, logger?: Logger): LoadedSkills | null {
   const root = pluginRoot || PLUGIN_ROOT;
   const l = logger || log;
-  let skillMap: Record<string, SkillConfig> | undefined;
-  const manifestPath = join(root, "generated", "skill-manifest.json");
-  let usedManifest = false;
+  let skillMap: Record<string, SkillConfig>;
+  try {
+    const built = buildSkillMap(join(root, "skills"));
 
-  let manifestVersion = 0;
-  let manifestSkillsFull: Record<string, Partial<ManifestSkill>> | null = null;
-  const manifest = safeReadJson<Manifest>(manifestPath);
-  if (manifest && manifest.skills && typeof manifest.skills === "object") {
-    skillMap = manifest.skills as Record<string, SkillConfig>;
-    manifestVersion = manifest.version || 1;
-    if (manifestVersion >= 2) manifestSkillsFull = manifest.skills;
-    usedManifest = true;
-    l.debug("manifest-loaded", { path: manifestPath, generatedAt: manifest.generatedAt as string, version: manifestVersion });
-  }
+    if (built.diagnostics && built.diagnostics.length > 0) {
+      for (const d of built.diagnostics) {
+        l.issue("SKILLMD_PARSE_FAIL", `Failed to parse SKILL.md: ${d.message}`, `Fix YAML frontmatter in ${d.file}`, { file: d.file, error: d.error });
+      }
+    }
 
-  if (!usedManifest) {
-    try {
-      const skillsDir = join(root, "skills");
-      const built = buildSkillMap(skillsDir);
+    if (built.warnings && built.warnings.length > 0) {
+      for (const w of built.warnings) {
+        l.debug("skillmap-coercion-warning", { warning: w });
+      }
+    }
 
-      if (built.diagnostics && built.diagnostics.length > 0) {
-        for (const d of built.diagnostics) {
-          l.issue("SKILLMD_PARSE_FAIL", `Failed to parse SKILL.md: ${d.message}`, `Fix YAML frontmatter in ${d.file}`, { file: d.file, error: d.error });
+    const validation = validateSkillMap(built);
+    if (validation.ok) {
+      if (validation.warnings && validation.warnings.length > 0) {
+        for (const w of validation.warnings) {
+          l.debug("skillmap-validation-warning", { warning: w });
         }
       }
-
-      if (built.warnings && built.warnings.length > 0) {
-        for (const w of built.warnings) {
-          l.debug("skillmap-coercion-warning", { warning: w });
-        }
-      }
-
-      const validation = validateSkillMap(built);
-      if (validation.ok) {
-        if (validation.warnings && validation.warnings.length > 0) {
-          for (const w of validation.warnings) {
-            l.debug("skillmap-validation-warning", { warning: w });
-          }
-        }
-        skillMap = validation.normalizedSkillMap.skills;
-      } else {
-        const validationErrors = "errors" in validation ? validation.errors : [];
-        l.issue(
-          "SKILLMAP_VALIDATE_FAIL",
-          "Skill map validation failed after build",
-          "Check SKILL.md frontmatter types: pathPatterns and bashPatterns must be arrays",
-          { errors: validationErrors },
-        );
-        l.complete("skillmap_fail");
-        return null;
-      }
-    } catch (err) {
-      l.issue("SKILLMAP_LOAD_FAIL", "Failed to build skill map from SKILL.md frontmatter", "Check that skills/*/SKILL.md files exist and contain valid YAML frontmatter with metadata.pathPatterns", { error: String(err) });
+      skillMap = validation.normalizedSkillMap.skills;
+    } else {
+      const validationErrors = "errors" in validation ? validation.errors : [];
+      l.issue(
+        "SKILLMAP_VALIDATE_FAIL",
+        "Skill map validation failed after build",
+        "Check SKILL.md frontmatter types: pathPatterns and bashPatterns must be arrays",
+        { errors: validationErrors },
+      );
       l.complete("skillmap_fail");
       return null;
     }
+  } catch (err) {
+    l.issue("SKILLMAP_LOAD_FAIL", "Failed to build skill map from SKILL.md frontmatter", "Check that skills/*/SKILL.md files exist and contain valid YAML frontmatter with metadata.pathPatterns", { error: String(err) });
+    l.complete("skillmap_fail");
+    return null;
   }
 
-  if (typeof skillMap !== "object" || Object.keys(skillMap!).length === 0) {
+  if (Object.keys(skillMap).length === 0) {
     l.issue("SKILLMAP_EMPTY", "Skill map is empty or has no skills", "Ensure skills/*/SKILL.md files have YAML frontmatter with metadata.pathPatterns or metadata.bashPatterns", { type: typeof skillMap });
     l.complete("skillmap_fail");
     return null;
   }
 
-  const skillCount = Object.keys(skillMap!).length;
+  const skillCount = Object.keys(skillMap).length;
   l.debug("skillmap-loaded", { skillCount });
 
-  let compiledSkills: CompiledSkillEntry[];
+  const callbacks: CompileCallbacks = {
+    onPathGlobError(skill: string, p: string, err: unknown) {
+      l.issue("PATH_GLOB_INVALID", `Invalid glob pattern in skill "${skill}": ${p}`, `Fix or remove the invalid pathPatterns entry in skills/${skill}/SKILL.md frontmatter`, { skill, pattern: p, error: String(err) });
+    },
+    onBashRegexError(skill: string, p: string, err: unknown) {
+      l.issue("BASH_REGEX_INVALID", `Invalid bash regex pattern in skill "${skill}": ${p}`, `Fix or remove the invalid bashPatterns entry in skills/${skill}/SKILL.md frontmatter`, { skill, pattern: p, error: String(err) });
+    },
+    onImportPatternError(skill: string, p: string, err: unknown) {
+      l.issue("IMPORT_PATTERN_INVALID", `Invalid import pattern in skill "${skill}": ${p}`, `Fix or remove the invalid importPatterns entry in skills/${skill}/SKILL.md frontmatter`, { skill, pattern: p, error: String(err) });
+    },
+  };
+  const compiledSkills = compileSkillPatterns(skillMap, callbacks);
 
-  // v2 manifests include pre-compiled regex sources — reconstruct RegExp objects directly
-  if (manifestSkillsFull) {
-    compiledSkills = Object.entries(manifestSkillsFull).map(([skill, config]) => {
-      const pathPats = config.pathPatterns || [];
-      const pathSrcs = config.pathRegexSources || [];
-      const compiledPaths: CompiledPattern[] = [];
-      for (let i = 0; i < pathPats.length && i < pathSrcs.length; i++) {
-        try { compiledPaths.push({ pattern: pathPats[i], regex: new RegExp(pathSrcs[i]) }); } catch (err) {
-          l.issue("PATH_REGEX_COMPILE_FAIL", `Failed to compile path regex for skill "${skill}": ${pathSrcs[i]}`, `Fix pathRegexSources in the manifest for skill "${skill}"`, { skill, pattern: pathPats[i], regexSource: pathSrcs[i], error: String(err) });
-        }
-      }
-      const bashPats = config.bashPatterns || [];
-      const bashSrcs = config.bashRegexSources || [];
-      const compiledBash: CompiledPattern[] = [];
-      for (let i = 0; i < bashPats.length && i < bashSrcs.length; i++) {
-        try { compiledBash.push({ pattern: bashPats[i], regex: new RegExp(bashSrcs[i]) }); } catch (err) {
-          l.issue("BASH_REGEX_COMPILE_FAIL", `Failed to compile bash regex for skill "${skill}": ${bashSrcs[i]}`, `Fix bashRegexSources in the manifest for skill "${skill}"`, { skill, pattern: bashPats[i], regexSource: bashSrcs[i], error: String(err) });
-        }
-      }
-      const importPats = config.importPatterns || [];
-      const importSrcs = config.importRegexSources || [];
-      const compiledImports: CompiledPattern[] = [];
-      for (let i = 0; i < importPats.length && i < importSrcs.length; i++) {
-        try { compiledImports.push({ pattern: importPats[i], regex: new RegExp(importSrcs[i].source, importSrcs[i].flags) }); } catch (err) {
-          l.issue("IMPORT_REGEX_COMPILE_FAIL", `Failed to compile import regex for skill "${skill}": ${JSON.stringify(importSrcs[i])}`, `Fix importRegexSources in the manifest for skill "${skill}"`, { skill, pattern: importPats[i], regexSource: importSrcs[i], error: String(err) });
-        }
-      }
-      return {
-        skill,
-        priority: typeof config.priority === "number" ? config.priority : 0,
-        compiledPaths,
-        compiledBash,
-        compiledImports,
-      };
-    });
-    l.debug("manifest-regexes-restored", { skillCount, version: manifestVersion });
-  } else {
-    const callbacks: CompileCallbacks = {
-      onPathGlobError(skill: string, p: string, err: unknown) {
-        l.issue("PATH_GLOB_INVALID", `Invalid glob pattern in skill "${skill}": ${p}`, `Fix or remove the invalid pathPatterns entry in skills/${skill}/SKILL.md frontmatter`, { skill, pattern: p, error: String(err) });
-      },
-      onBashRegexError(skill: string, p: string, err: unknown) {
-        l.issue("BASH_REGEX_INVALID", `Invalid bash regex pattern in skill "${skill}": ${p}`, `Fix or remove the invalid bashPatterns entry in skills/${skill}/SKILL.md frontmatter`, { skill, pattern: p, error: String(err) });
-      },
-      onImportPatternError(skill: string, p: string, err: unknown) {
-        l.issue("IMPORT_PATTERN_INVALID", `Invalid import pattern in skill "${skill}": ${p}`, `Fix or remove the invalid importPatterns entry in skills/${skill}/SKILL.md frontmatter`, { skill, pattern: p, error: String(err) });
-      },
-    };
-    compiledSkills = compileSkillPatterns(skillMap!, callbacks);
-  }
-
-  return { skillMap: skillMap!, compiledSkills, usedManifest };
+  return { skillMap, compiledSkills };
 }
 
 // ---------------------------------------------------------------------------
@@ -815,6 +752,7 @@ export interface FormatOutputParams {
   parts: string[];
   matched: Set<string>;
   injectedSkills: string[];
+  contextChunks?: string[];
   summaryOnly?: string[];
   droppedByCap: string[];
   droppedByBudget?: string[];
@@ -895,6 +833,7 @@ export function formatOutput({
   parts,
   matched,
   injectedSkills,
+  contextChunks,
   summaryOnly,
   droppedByCap,
   droppedByBudget,
@@ -916,6 +855,7 @@ export function formatOutput({
     toolTarget: toolName === "Bash" ? redactCommand(toolTarget) : toolTarget,
     matchedSkills: [...matched],
     injectedSkills,
+    contextChunks: contextChunks || [],
     summaryOnly: summaryOnly || [],
     droppedByBudget: droppedByBudget || [],
   };
@@ -959,27 +899,13 @@ function run(): string {
   const { toolName, toolInput, sessionId, cwd, platform, toolTarget, scopeId } = parsed;
   const runtimeEnvBefore = captureRuntimeEnvSnapshot();
 
-  // Base telemetry — always-on (no opt-in required)
-  if (sessionId) {
-    const toolEntries: Array<{ key: string; value: string }> = [
-      { key: "tool_call:tool_name", value: toolName },
-      { key: "tool_call:target", value: toolTarget },
-    ];
-    if (toolName === "Bash") {
-      toolEntries.push({ key: "tool_call:command", value: (toolInput.command as string) || "" });
-    } else {
-      toolEntries.push({ key: "tool_call:file_path", value: (toolInput.file_path as string) || "" });
-    }
-    trackBaseEvents(sessionId, toolEntries).catch(() => {});
-  }
-
   // Stage 2: loadSkills
   const tSkillmap = log.active ? log.now() : 0;
   const skills = loadSkills(PLUGIN_ROOT, log);
   if (!skills) return "{}";
   if (log.active) timing.skillmap_load = Math.round(log.now() - tSkillmap);
 
-  const { compiledSkills, usedManifest } = skills;
+  const { compiledSkills } = skills;
 
   // Session dedup state
   const dedupOff = process.env.VERCEL_PLUGIN_HOOK_DEDUP === "off";
@@ -1107,6 +1033,23 @@ function run(): string {
     log.debug("vercel-env-help-appended", { subcommand: vercelEnvHelp.subcommand || "" });
   }
 
+  const injectedContextChunks: string[] = [];
+  if (!scopeId) {
+    const chunk = selectManagedContextChunk(loaded, {
+      pluginRoot: PLUGIN_ROOT,
+      sessionId,
+    });
+    if (chunk) {
+      parts.push(chunk.wrapped);
+      injectedContextChunks.push(chunk.chunkId);
+      log.debug("managed-context-chunk-injected", {
+        chunkId: chunk.chunkId,
+        skill: chunk.skill,
+        bytes: chunk.bytes,
+      });
+    }
+  }
+
   if (parts.length === 0) {
     if (log.active) timing.total = log.elapsed();
     log.complete("no_matches", {
@@ -1155,6 +1098,7 @@ function run(): string {
     parts,
     matched,
     injectedSkills: loaded,
+    contextChunks: injectedContextChunks,
     summaryOnly,
     droppedByCap,
     droppedByBudget,
@@ -1174,26 +1118,17 @@ function run(): string {
       toolTarget: toolName === "Bash" ? redactCommand(toolTarget) : toolTarget,
       matchedSkills: [...matched],
       injectedSkills: loaded,
+      contextChunks: injectedContextChunks,
       summaryOnly,
       droppedByCap,
       droppedByBudget,
     }, cwd);
 
-    // Base telemetry — always-on (no opt-in required)
-    if (sessionId) {
-      const telemetryEntries: Array<{ key: string; value: string }> = [];
-      for (const skill of loaded) {
-        const reason = matchReasons?.[skill];
-        telemetryEntries.push(
-          { key: "skill:injected", value: skill },
-          { key: "skill:hook", value: "PreToolUse" },
-          { key: "skill:priority", value: "0" },
-          { key: "skill:match_type", value: reason?.matchType ?? "unknown" },
-          { key: "skill:tool_name", value: toolName },
-        );
-      }
-      trackBaseEvents(sessionId, telemetryEntries).catch(() => {});
-    }
+    queueSkillTelemetry(
+      SKILL_INJECTED_EVENT_KEY,
+      loaded.filter((skill) => skill in skills.skillMap),
+      sessionId || null,
+    );
   }
 
   return result;

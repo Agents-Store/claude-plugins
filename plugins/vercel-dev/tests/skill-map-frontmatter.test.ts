@@ -234,14 +234,6 @@ describe("parseSkillFrontmatter", () => {
     expect(result.validate).toEqual([]);
   });
 
-  test("parses skills/ncc frontmatter with regex chaining intact", () => {
-    const result = parseSkillFrontmatter(readSkillFrontmatter("ncc"));
-
-    expect(result.name).toBe("ncc");
-    expect(result.chainTo).toHaveLength(2);
-    expect(result.chainTo[1].pattern).toBe("ncc\\s+build|from\\s+['\"]@vercel/ncc['\"]");
-  });
-
   test("parses skills/next-forge frontmatter with nested promptSignals arrays", () => {
     const result = parseSkillFrontmatter(readSkillFrontmatter("next-forge"));
 
@@ -257,6 +249,14 @@ describe("parseSkillFrontmatter", () => {
       noneOf: ["create-t3-app"],
       minScore: 6,
     });
+  });
+
+  test("quotes @repo/* in next-forge YAML frontmatter for standard YAML parser compatibility", () => {
+    const overlay = readFileSync(join(SKILLS_DIR, "next-forge", "overlay.yaml"), "utf-8");
+    const frontmatter = readSkillFrontmatter("next-forge");
+
+    expect(overlay).toContain(`- '@repo/*'`);
+    expect(frontmatter).toContain(`- '@repo/*'`);
   });
 });
 
@@ -288,11 +288,15 @@ describe("scanSkillsDir", () => {
     }
   });
 
-  test("each skill has pathPatterns and bashPatterns arrays in metadata", () => {
+  test("skills with configured pathPatterns and bashPatterns expose arrays in metadata", () => {
     const { skills } = scanSkillsDir(SKILLS_DIR);
     for (const skill of skills) {
-      expect(Array.isArray(skill.metadata.pathPatterns)).toBe(true);
-      expect(Array.isArray(skill.metadata.bashPatterns)).toBe(true);
+      if ("pathPatterns" in skill.metadata) {
+        expect(Array.isArray(skill.metadata.pathPatterns)).toBe(true);
+      }
+      if ("bashPatterns" in skill.metadata) {
+        expect(Array.isArray(skill.metadata.bashPatterns)).toBe(true);
+      }
     }
   });
 
@@ -355,20 +359,14 @@ describe("scanSkillsDir", () => {
 });
 
 describe("buildSkillMap repo regressions", () => {
-  test("builds ncc and next-forge without frontmatter diagnostics", () => {
+  test("builds next-forge without frontmatter diagnostics", () => {
     const result = buildSkillMap(SKILLS_DIR);
     const normalizedDiagnosticFiles = result.diagnostics.map((diagnostic) =>
       diagnostic.file.replaceAll("\\", "/"),
     );
 
     expect(normalizedDiagnosticFiles).not.toContain(
-      `${SKILLS_DIR.replaceAll("\\", "/")}/ncc/SKILL.md`,
-    );
-    expect(normalizedDiagnosticFiles).not.toContain(
       `${SKILLS_DIR.replaceAll("\\", "/")}/next-forge/SKILL.md`,
-    );
-    expect(result.skills.ncc.chainTo[1].pattern).toBe(
-      "ncc\\s+build|from\\s+['\"]@vercel/ncc['\"]",
     );
     expect(result.skills["next-forge"].promptSignals?.allOf).toEqual([
       ["monorepo", "saas", "starter"],
@@ -1092,15 +1090,6 @@ describe("validateSkillMap — promptSignals", () => {
 // ─── buildSkillMap — promptSignals from SKILL.md frontmatter ──────
 
 describe("buildSkillMap — promptSignals", () => {
-  test("ai-elements skill has promptSignals with phrases and noneOf", () => {
-    const map = buildSkillMap(SKILLS_DIR);
-    const aiElements = map.skills["ai-elements"];
-    expect(aiElements).toBeDefined();
-    expect(aiElements.promptSignals).toBeDefined();
-    expect(aiElements.promptSignals.phrases.length).toBeGreaterThan(0);
-    expect(aiElements.promptSignals.noneOf).toContain("readme");
-  });
-
   test("workflow skill promptSignals include workflow durability language", () => {
     const map = buildSkillMap(SKILLS_DIR);
     const workflow = map.skills["workflow"];
@@ -1281,7 +1270,7 @@ describe("promptSignals malformed warnings via buildSkillMap", () => {
     }
   });
 
-  test("existing skills (ai-elements, ai-sdk, nextjs, swr) produce zero promptSignals warnings", () => {
+  test("current skills produce zero promptSignals warnings", () => {
     const map = buildSkillMap(SKILLS_DIR);
     const promptWarningCodes = new Set([
       "PROMPT_SIGNALS_EMPTY_PHRASES",

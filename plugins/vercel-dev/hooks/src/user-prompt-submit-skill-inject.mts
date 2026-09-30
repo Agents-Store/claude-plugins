@@ -47,7 +47,9 @@ import { analyzePrompt } from "./prompt-analysis.mjs";
 import type { PromptAnalysisReport } from "./prompt-analysis.mjs";
 import { createLogger, logDecision } from "./logger.mjs";
 import type { Logger } from "./logger.mjs";
-import { trackBaseEvents } from "./telemetry.mjs";
+import { queueSkillTelemetry } from "./skill-telemetry.mjs";
+import { SKILL_INJECTED_EVENT_KEY } from "./telemetry.mjs";
+import { selectManagedContextChunk } from "./vercel-context.mjs";
 
 const MAX_SKILLS = 2;
 const DEFAULT_INJECTION_BUDGET_BYTES = 8_000;
@@ -750,6 +752,7 @@ export function formatOutput(
   parts: string[],
   matchedSkills: string[],
   injectedSkills: string[],
+  contextChunks: string[],
   summaryOnly: string[],
   droppedByCap: string[],
   droppedByBudget: string[],
@@ -767,6 +770,7 @@ export function formatOutput(
     hookEvent: "UserPromptSubmit",
     matchedSkills,
     injectedSkills,
+    contextChunks,
     summaryOnly,
     droppedByBudget,
   };
@@ -834,9 +838,6 @@ export function run(): string {
 
   const { prompt, sessionId, cwd } = parsed;
   const promptEnvBefore = capturePromptEnvSnapshot();
-
-  // prompt:text telemetry is handled by user-prompt-submit-telemetry.mts
-  // where it is awaited before process.exit(), ensuring reliable delivery.
 
   const normalizedPrompt = normalizePromptText(prompt);
 
@@ -997,6 +998,20 @@ export function run(): string {
   if (log.active) timing.inject = Math.round(log.now() - tInject);
 
   const { parts, loaded, summaryOnly } = injectResult;
+  const injectedContextChunks: string[] = [];
+  const chunk = selectManagedContextChunk(loaded, {
+    pluginRoot: PLUGIN_ROOT,
+    sessionId,
+  });
+  if (chunk) {
+    parts.push(chunk.wrapped);
+    injectedContextChunks.push(chunk.chunkId);
+    log.debug("managed-context-chunk-injected", {
+      chunkId: chunk.chunkId,
+      skill: chunk.skill,
+      bytes: chunk.bytes,
+    });
+  }
   let syncedSeenSkills = seenState;
   if (hasFileDedup) {
     syncedSeenSkills = syncPromptSeenSkillClaims(sessionId as string, loaded);
@@ -1028,24 +1043,17 @@ export function run(): string {
       hookEvent: "UserPromptSubmit",
       matchedSkills,
       injectedSkills: loaded,
+      contextChunks: injectedContextChunks,
       summaryOnly,
       droppedByCap,
       droppedByBudget,
     }, cwd);
-  }
 
-  // Base telemetry — always-on (no opt-in required)
-  if (sessionId && loaded.length > 0) {
-    const telemetryEntries: Array<{ key: string; value: string }> = [];
-    for (const skill of loaded) {
-      const r = report.perSkillResults[skill];
-      telemetryEntries.push(
-        { key: "prompt:skill", value: skill },
-        { key: "prompt:score", value: String(r?.score ?? 0) },
-        { key: "prompt:hook", value: "UserPromptSubmit" },
-      );
-    }
-    trackBaseEvents(sessionId, telemetryEntries).catch(() => {});
+    queueSkillTelemetry(
+      SKILL_INJECTED_EVENT_KEY,
+      loaded.filter((skill) => skill in skills.skillMap),
+      sessionId,
+    );
   }
 
   let outputEnv: Record<string, string> | undefined;
@@ -1070,6 +1078,7 @@ export function run(): string {
     parts,
     matchedSkills,
     loaded,
+    injectedContextChunks,
     summaryOnly,
     droppedByCap,
     droppedByBudget,
