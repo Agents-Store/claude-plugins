@@ -433,11 +433,11 @@ async function validateSkillFrontmatter(): Promise<void> {
 async function validatePluginJson() {
   section("[3] plugin.json validity");
 
-  const manifestPath = join(ROOT, ".plugin", "plugin.json");
+  const manifestPath = join(ROOT, ".claude-plugin", "plugin.json");
   if (!(await exists(manifestPath))) {
-    fail("MANIFEST_MISSING", ".plugin/plugin.json not found", {
-      file: ".plugin/plugin.json",
-      hint: "Create .plugin/plugin.json with name, version, and description",
+    fail("MANIFEST_MISSING", ".claude-plugin/plugin.json not found", {
+      file: ".claude-plugin/plugin.json",
+      hint: "Create .claude-plugin/plugin.json with name, version, and description",
     });
     return;
   }
@@ -446,9 +446,9 @@ async function validatePluginJson() {
   try {
     manifest = JSON.parse(await readFile(manifestPath, "utf-8"));
   } catch (e) {
-    fail("MANIFEST_INVALID", `.plugin/plugin.json is not valid JSON: ${e}`, {
-      file: ".plugin/plugin.json",
-      hint: "Fix JSON syntax errors in .plugin/plugin.json",
+    fail("MANIFEST_INVALID", `.claude-plugin/plugin.json is not valid JSON: ${e}`, {
+      file: ".claude-plugin/plugin.json",
+      hint: "Fix JSON syntax errors in .claude-plugin/plugin.json",
     });
     return;
   }
@@ -459,8 +459,8 @@ async function validatePluginJson() {
       pass(`plugin.json has "${field}": "${String(manifest[field]).slice(0, 60)}${String(manifest[field]).length > 60 ? "…" : ""}"`);
     } else {
       fail("MANIFEST_FIELD_MISSING", `plugin.json missing required field "${field}"`, {
-        file: ".plugin/plugin.json",
-        hint: `Add "${field}" to .plugin/plugin.json`,
+        file: ".claude-plugin/plugin.json",
+        hint: `Add "${field}" to .claude-plugin/plugin.json`,
       });
     }
   }
