@@ -6,7 +6,7 @@
  * try/catch boilerplate.
  */
 
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import {
   appendFileSync,
   closeSync,
@@ -216,6 +216,11 @@ export interface RemoveArtifactsResult {
   removedDirs: number;
 }
 
+const CLEARABLE_SESSION_KINDS = new Set([
+  "seen-skills",
+  "seen-context-chunks",
+]);
+
 export function removeAllSessionDedupArtifacts(sessionId: string): RemoveArtifactsResult {
   const result: RemoveArtifactsResult = { removedFiles: 0, removedDirs: 0 };
   const tempRoot = resolve(tmpdir());
@@ -224,7 +229,17 @@ export function removeAllSessionDedupArtifacts(sessionId: string): RemoveArtifac
   let entries: string[];
   try {
     entries = readdirSync(tempRoot).filter(
-      (name) => name.startsWith(prefix) && (name.endsWith("-seen-skills.d") || name.endsWith("-seen-skills.txt")),
+      (name) => {
+        if (!name.startsWith(prefix)) return false;
+
+        for (const kind of CLEARABLE_SESSION_KINDS) {
+          if (name.endsWith(`-${kind}.d`) || name.endsWith(`-${kind}.txt`)) {
+            return true;
+          }
+        }
+
+        return false;
+      },
     );
   } catch {
     return result;
@@ -250,30 +265,6 @@ export function removeAllSessionDedupArtifacts(sessionId: string): RemoveArtifac
   }
 
   return result;
-}
-
-// ---------------------------------------------------------------------------
-// Profile cache helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Resolve the path for the session profile cache file.
- * Written by session-start-profiler, read by subagent-start-bootstrap.
- */
-export function profileCachePath(sessionId: string): string {
-  return resolveDedupTempPath(sessionId, "profile.json");
-}
-
-// ---------------------------------------------------------------------------
-// Verification ID
-// ---------------------------------------------------------------------------
-
-/**
- * Generate a unique verification ID (UUIDv4) for traceability across
- * dev-server verification injection events.
- */
-export function generateVerificationId(): string {
-  return randomUUID();
 }
 
 // ---------------------------------------------------------------------------

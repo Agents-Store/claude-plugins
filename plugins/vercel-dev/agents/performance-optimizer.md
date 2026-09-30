@@ -45,7 +45,7 @@ LCP > 2.5s?
 │  ├─ Using SSR for static content? → Switch to SSG or ISR
 │  ├─ Can use Cache Components? → Add `'use cache'` to slow Server Components
 │  ├─ Database queries slow? → Add connection pooling, check query plans
-│  ├─ Edge Config available? → Use for configuration data (< 5ms reads)
+│  ├─ Global Config available? → Use for configuration data (< 5ms reads)
 │  └─ Region mismatch? → Deploy function in same region as database
 │
 └─ Render-blocking resources?
@@ -375,7 +375,7 @@ import { revalidateTag } from 'next/cache'
 
 export async function createPost(data: FormData) {
   await db.posts.create({ data })
-  revalidateTag('posts')  // Background - next request sees fresh data
+  revalidateTag('posts', 'max')  // Stale-while-revalidate - next request sees stale content while revalidating
 }
 ```
 
@@ -524,13 +524,13 @@ import heroImage from './hero.png'
 
 ## Priority Loading
 
-Use `priority` for above-the-fold images (LCP):
+Use `preload` for above-the-fold images (LCP). `priority` was deprecated in Next.js 16 in favor of `preload`:
 
 ```tsx
 // Hero image - loads immediately
-<Image src="/hero.png" alt="Hero" fill priority />
+<Image src="/hero.png" alt="Hero" fill preload />
 
-// Below-fold images - lazy loaded by default (no priority needed)
+// Below-fold images - lazy loaded by default (no preload needed)
 <Image src="/card.png" alt="Card" width={400} height={300} />
 ```
 

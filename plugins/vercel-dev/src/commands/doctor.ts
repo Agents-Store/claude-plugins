@@ -1,9 +1,9 @@
 /**
  * `vercel-plugin doctor` — self-diagnosis command that checks:
- *   1. Manifest vs dynamic-scan parity
+ *   1. Skill map validation errors/warnings
  *   2. Hook timeout risk (skill count threshold)
  *   3. Dedup env var correctness
- *   4. Skill map validation errors/warnings
+ *   4. Agent and command template freshness
  *
  * Exit code 0 = all checks pass, non-zero = issues found.
  */
@@ -11,15 +11,6 @@
 import { existsSync, readFileSync, statSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { loadValidatedSkillMap } from "../shared/skill-map-loader.ts";
-
-/** Maximum allowed timeout (seconds) for subagent hooks. */
-const SUBAGENT_HOOK_TIMEOUT_MAX = 5;
-
-/** Expected subagent hook events that must be registered. */
-const REQUIRED_SUBAGENT_EVENTS = ["SubagentStart", "SubagentStop"] as const;
-
-/** Agent types that matchers should cover. */
-const EXPECTED_AGENT_TYPES = ["Explore", "Plan", "general-purpose"];
 
 /** Threshold at which pattern count may threaten the 5-second hook timeout. */
 const PATTERN_COUNT_WARN_THRESHOLD = 200;
@@ -37,7 +28,6 @@ export interface DoctorIssue {
 export interface DoctorResult {
   issues: DoctorIssue[];
   summary: {
-    manifestSkillCount: number | null;
     liveSkillCount: number;
     totalPatterns: number;
     dedupStrategy: string;
@@ -47,7 +37,39 @@ export interface DoctorResult {
 export function doctor(projectRoot: string): DoctorResult {
   const issues: DoctorIssue[] = [];
   const skillsDir = join(projectRoot, "skills");
-  const manifestPath = join(projectRoot, "generated", "skill-manifest.json");
+  const hooksJsonPath = join(projectRoot, "hooks", "hooks.json");
+
+  let hooksConfig: { hooks?: Record<string, any[]> } = {};
+  if (existsSync(hooksJsonPath)) {
+    try {
+      hooksConfig = JSON.parse(readFileSync(hooksJsonPath, "utf-8"));
+    } catch (err: any) {
+      issues.push({
+        severity: "error",
+        check: "hooks",
+        message: `Failed to parse hooks.json: ${err.message}`,
+      });
+    }
+  }
+
+  const registeredHooks = hooksConfig.hooks ?? {};
+  const hasAutomaticSkillInjectionHooks =
+    (registeredHooks.PreToolUse ?? []).some((entry: any) =>
+      Array.isArray(entry?.hooks)
+      && entry.hooks.some(
+        (hook: any) =>
+          typeof hook?.command === "string"
+          && hook.command.includes("pretooluse-skill-inject.mjs"),
+      ),
+    )
+    || (registeredHooks.UserPromptSubmit ?? []).some((entry: any) =>
+      Array.isArray(entry?.hooks)
+      && entry.hooks.some(
+        (hook: any) =>
+          typeof hook?.command === "string"
+          && hook.command.includes("user-prompt-submit-skill-inject.mjs"),
+      ),
+    );
 
   // --- Live scan ---
   const { validation, skills: loadedSkills, buildDiagnostics } = loadValidatedSkillMap(skillsDir);
@@ -89,101 +111,6 @@ export function doctor(projectRoot: string): DoctorResult {
 
   const liveSkillCount = Object.keys(liveSkills).length;
 
-  // --- Manifest parity ---
-  let manifestSkillCount: number | null = null;
-
-  if (!existsSync(manifestPath)) {
-    issues.push({
-      severity: "warning",
-      check: "manifest-exists",
-      message: "No generated/skill-manifest.json found",
-      hint: "Run `bun run build:manifest` to generate it",
-    });
-  } else {
-    let manifest: { skills: Record<string, any> };
-    try {
-      manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
-    } catch (err: any) {
-      issues.push({
-        severity: "error",
-        check: "manifest-parse",
-        message: `Failed to parse manifest: ${err.message}`,
-      });
-      manifest = { skills: {} };
-    }
-
-    const manifestSkills = manifest.skills ?? {};
-    manifestSkillCount = Object.keys(manifestSkills).length;
-
-    // Check for skills present in live but missing from manifest (and vice versa)
-    const liveNames = new Set(Object.keys(liveSkills));
-    const manifestNames = new Set(Object.keys(manifestSkills));
-
-    const missingFromManifest = [...liveNames].filter(
-      (s) => !manifestNames.has(s)
-    );
-    const extraInManifest = [...manifestNames].filter(
-      (s) => !liveNames.has(s)
-    );
-
-    if (missingFromManifest.length > 0) {
-      issues.push({
-        severity: "error",
-        check: "manifest-parity",
-        message: `Skills in live scan but missing from manifest: ${missingFromManifest.join(", ")}`,
-        hint: "Run `bun run build:manifest` to regenerate",
-      });
-    }
-
-    if (extraInManifest.length > 0) {
-      issues.push({
-        severity: "error",
-        check: "manifest-parity",
-        message: `Skills in manifest but missing from live scan: ${extraInManifest.join(", ")}`,
-        hint: "A skill directory may have been deleted without rebuilding the manifest",
-      });
-    }
-
-    // Check for content drift (priority or pattern differences)
-    if (missingFromManifest.length === 0 && extraInManifest.length === 0) {
-      for (const name of liveNames) {
-        const live = liveSkills[name];
-        const mf = manifestSkills[name];
-
-        if (live.priority !== mf.priority) {
-          issues.push({
-            severity: "error",
-            check: "manifest-parity",
-            message: `Skill "${name}" priority differs: live=${live.priority}, manifest=${mf.priority}`,
-            hint: "Run `bun run build:manifest` to regenerate",
-          });
-        }
-
-        const livePaths = (live.pathPatterns ?? []).sort().join(",");
-        const mfPaths = (mf.pathPatterns ?? []).sort().join(",");
-        if (livePaths !== mfPaths) {
-          issues.push({
-            severity: "error",
-            check: "manifest-parity",
-            message: `Skill "${name}" pathPatterns differ between live scan and manifest`,
-            hint: "Run `bun run build:manifest` to regenerate",
-          });
-        }
-
-        const liveBash = (live.bashPatterns ?? []).sort().join(",");
-        const mfBash = (mf.bashPatterns ?? []).sort().join(",");
-        if (liveBash !== mfBash) {
-          issues.push({
-            severity: "error",
-            check: "manifest-parity",
-            message: `Skill "${name}" bashPatterns differ between live scan and manifest`,
-            hint: "Run `bun run build:manifest` to regenerate",
-          });
-        }
-      }
-    }
-  }
-
   // --- Hook timeout risk ---
   let totalPatterns = 0;
   for (const skill of Object.values(liveSkills)) {
@@ -191,7 +118,7 @@ export function doctor(projectRoot: string): DoctorResult {
       (skill.pathPatterns?.length ?? 0) + (skill.bashPatterns?.length ?? 0);
   }
 
-  if (liveSkillCount > SKILL_COUNT_WARN_THRESHOLD) {
+  if (hasAutomaticSkillInjectionHooks && liveSkillCount > SKILL_COUNT_WARN_THRESHOLD) {
     issues.push({
       severity: "warning",
       check: "hook-timeout",
@@ -200,12 +127,12 @@ export function doctor(projectRoot: string): DoctorResult {
     });
   }
 
-  if (totalPatterns > PATTERN_COUNT_WARN_THRESHOLD) {
+  if (hasAutomaticSkillInjectionHooks && totalPatterns > PATTERN_COUNT_WARN_THRESHOLD) {
     issues.push({
       severity: "warning",
       check: "hook-timeout",
       message: `${totalPatterns} total patterns — regex compilation overhead may threaten hook timeout`,
-      hint: "Use the manifest (build:manifest) to avoid live-scan overhead at runtime",
+      hint: "Consider consolidating redundant patterns or raising pattern specificity",
     });
   }
 
@@ -328,99 +255,18 @@ export function doctor(projectRoot: string): DoctorResult {
     }
   }
 
-  // --- Subagent hook registration ---
-  const hooksJsonPath = join(projectRoot, "hooks", "hooks.json");
-  if (existsSync(hooksJsonPath)) {
-    let hooksConfig: { hooks?: Record<string, any[]> };
-    try {
-      hooksConfig = JSON.parse(readFileSync(hooksJsonPath, "utf-8"));
-    } catch (err: any) {
-      hooksConfig = {};
-      issues.push({
-        severity: "error",
-        check: "subagent-hooks",
-        message: `Failed to parse hooks.json: ${err.message}`,
-      });
-    }
-
-    const registeredHooks = hooksConfig.hooks ?? {};
-
-    for (const event of REQUIRED_SUBAGENT_EVENTS) {
-      const entries = registeredHooks[event];
-      if (!entries || !Array.isArray(entries) || entries.length === 0) {
-        issues.push({
-          severity: "error",
-          check: "subagent-hooks",
-          message: `${event} hook is not registered in hooks.json`,
-          hint: `Add a ${event} entry to hooks/hooks.json to enable subagent skill injection`,
-        });
-        continue;
-      }
-
-      // Validate timeout for each hook command in each entry
-      for (const entry of entries) {
-        const hooks = entry.hooks ?? [];
-        for (const hook of hooks) {
-          if (hook.timeout !== undefined && hook.timeout > SUBAGENT_HOOK_TIMEOUT_MAX) {
-            issues.push({
-              severity: "warning",
-              check: "subagent-hooks",
-              message: `${event} hook timeout is ${hook.timeout}s (max recommended: ${SUBAGENT_HOOK_TIMEOUT_MAX}s)`,
-              hint: "High timeouts can slow down subagent launches",
-            });
-          }
-        }
-      }
-
-      // Validate matcher coverage for expected agent types
-      const matchers = entries
-        .map((e: any) => e.matcher)
-        .filter((m: any) => typeof m === "string" && m.length > 0);
-
-      if (matchers.length === 0) {
-        issues.push({
-          severity: "warning",
-          check: "subagent-hooks",
-          message: `${event} has no matcher — will not match any agent types`,
-          hint: "Set matcher to '.+' to match all agent types, or list specific types",
-        });
-      } else {
-        // Check if each expected agent type is covered by at least one matcher
-        const uncovered: string[] = [];
-        for (const agentType of EXPECTED_AGENT_TYPES) {
-          const covered = matchers.some((m: string) => {
-            try {
-              return new RegExp(m).test(agentType);
-            } catch {
-              return false;
-            }
-          });
-          if (!covered) uncovered.push(agentType);
-        }
-
-        if (uncovered.length > 0) {
-          issues.push({
-            severity: "warning",
-            check: "subagent-hooks",
-            message: `${event} matchers don't cover agent types: ${uncovered.join(", ")}`,
-            hint: "Use '.+' to match all types, or add specific matchers for these agent types",
-          });
-        }
-      }
-    }
-  } else {
+  if (!existsSync(hooksJsonPath)) {
     issues.push({
       severity: "error",
-      check: "subagent-hooks",
-      message: "hooks/hooks.json not found — subagent hooks cannot be validated",
-      hint: "Ensure hooks/hooks.json exists with SubagentStart and SubagentStop entries",
+      check: "hooks",
+      message: "hooks/hooks.json not found",
+      hint: "Ensure hooks/hooks.json exists",
     });
   }
 
   return {
     issues,
     summary: {
-      manifestSkillCount,
       liveSkillCount,
       totalPatterns,
       dedupStrategy,
@@ -437,9 +283,6 @@ export function formatDoctorResult(result: DoctorResult): string {
   lines.push("");
 
   lines.push(`Skills (live scan): ${summary.liveSkillCount}`);
-  if (summary.manifestSkillCount !== null) {
-    lines.push(`Skills (manifest):  ${summary.manifestSkillCount}`);
-  }
   lines.push(`Total patterns:     ${summary.totalPatterns}`);
   lines.push(`Dedup strategy:     ${summary.dedupStrategy}`);
   lines.push("");

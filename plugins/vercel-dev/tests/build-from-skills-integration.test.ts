@@ -7,7 +7,7 @@ import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync, rmSync
 import { join, resolve, basename, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { resolveIncludes, compileTemplate, clearSkillCache } from "../scripts/build-from-skills.ts";
-import type { BuildManifest, CompileResult } from "../scripts/build-from-skills.ts";
+import type { CompileResult } from "../scripts/build-from-skills.ts";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const SKILLS_DIR = join(ROOT, "skills");
@@ -109,9 +109,6 @@ describe("resolve real templates", () => {
 
     test(`${label} resolves without errors`, () => {
       const content = readFileSync(tmpl, "utf-8");
-      const markers = extractMarkers(content);
-      expect(markers.length).toBeGreaterThan(0);
-
       // Strict mode throws on any unresolved include
       const resolved = resolveIncludes(content, { skillsDir: SKILLS_DIR, strict: true });
 
@@ -216,76 +213,6 @@ describe("golden compile-and-diff", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Dependency manifest: structure, freshness, and snapshot
-// ---------------------------------------------------------------------------
-
-const MANIFEST_PATH = join(ROOT, "generated", "build-from-skills.manifest.json");
-
-describe("dependency manifest", () => {
-  test("manifest file exists", () => {
-    expect(existsSync(MANIFEST_PATH)).toBe(true);
-  });
-
-  test("manifest has valid structure", () => {
-    const manifest: BuildManifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf-8"));
-    expect(manifest.version).toBe(1);
-    expect(typeof manifest.generatedAt).toBe("string");
-    expect(Array.isArray(manifest.templates)).toBe(true);
-    expect(manifest.templates.length).toBe(templates.length);
-
-    for (const entry of manifest.templates) {
-      expect(typeof entry.template).toBe("string");
-      expect(entry.template).toEndWith(".md.tmpl");
-      expect(typeof entry.output).toBe("string");
-      expect(entry.output).toEndWith(".md");
-      expect(Array.isArray(entry.dependencies)).toBe(true);
-      expect(entry.dependencies.length).toBeGreaterThan(0);
-      expect(Array.isArray(entry.includes)).toBe(true);
-      expect(entry.includes.length).toBeGreaterThan(0);
-
-      for (const inc of entry.includes) {
-        expect(typeof inc.marker).toBe("string");
-        expect(inc.marker).toStartWith("{{include:skill:");
-        expect(typeof inc.skillName).toBe("string");
-        expect(typeof inc.target).toBe("string");
-        expect(["section", "frontmatter"]).toContain(inc.type);
-        expect(typeof inc.lineNumber).toBe("number");
-        expect(inc.lineNumber).toBeGreaterThan(0);
-      }
-    }
-  });
-
-  test("manifest dependencies match live template resolution", () => {
-    const manifest: BuildManifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf-8"));
-
-    for (const tmpl of templates) {
-      const content = readFileSync(tmpl, "utf-8");
-      const result = resolveIncludes(content, { skillsDir: SKILLS_DIR, strict: false, structured: true });
-      const tmplLabel = `${basename(dirname(tmpl))}/${basename(tmpl)}`;
-
-      const manifestEntry = manifest.templates.find((e) => e.template === tmplLabel);
-      expect(manifestEntry).toBeDefined();
-      expect(manifestEntry!.dependencies.sort()).toEqual(result.dependencies.sort());
-      expect(manifestEntry!.includes.length).toBe(result.resolved.length);
-    }
-  });
-
-  test("manifest dependency snapshot", () => {
-    const manifest: BuildManifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf-8"));
-
-    // Snapshot the dependency graph (template → skills) to catch unexpected changes.
-    // Strip volatile fields (generatedAt) before snapshotting.
-    const depGraph = manifest.templates.map((e) => ({
-      template: e.template,
-      dependencies: e.dependencies.sort(),
-      includeCount: e.includes.length,
-    }));
-
-    expect(depGraph).toMatchSnapshot();
-  });
-});
-
-// ---------------------------------------------------------------------------
 // CLI runner helper
 // ---------------------------------------------------------------------------
 
@@ -324,6 +251,7 @@ describe("CLI --json output shape", () => {
     expect(typeof parsed.stale).toBe("number");
     expect(typeof parsed.errors).toBe("number");
     expect(Array.isArray(parsed.templates)).toBe(true);
+    expect(existsSync(join(ROOT, "generated"))).toBe(false);
   });
 
   test("--json template entries have required fields", async () => {
@@ -357,7 +285,7 @@ describe("CLI --json output shape", () => {
       dependencyCount: e.result.dependencies.length,
       resolvedCount: e.result.resolved.length,
       diagnosticCount: e.result.diagnostics.length,
-    }));
+    })).sort((a: any, b: any) => a.template.localeCompare(b.template));
 
     expect(shape).toMatchSnapshot();
   });
@@ -421,13 +349,12 @@ describe("CLI --skill reverse-dependency query", () => {
   });
 
   test("--skill shows all templates that depend on the queried skill", async () => {
-    // Read manifest to find a skill used by multiple templates
-    const manifest: BuildManifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf-8"));
     const skillUsage = new Map<string, string[]>();
-    for (const entry of manifest.templates) {
-      for (const dep of entry.dependencies) {
-        if (!skillUsage.has(dep)) skillUsage.set(dep, []);
-        skillUsage.get(dep)!.push(entry.template);
+    for (const tmpl of templates) {
+      for (const marker of extractMarkers(readFileSync(tmpl, "utf-8"))) {
+        const skill = marker.split(":")[2];
+        if (!skillUsage.has(skill)) skillUsage.set(skill, []);
+        if (!skillUsage.get(skill)!.includes(tmpl)) skillUsage.get(skill)!.push(tmpl);
       }
     }
 

@@ -2,10 +2,10 @@
   "$schema": "Pattern fixture dry-run: maps file paths and bash commands to expected skill matches",
   "fixtures": [
     {
-      "description": "vercel.json triggers multiple skills (routing, deploy, cli, functions)",
+      "description": "vercel.json triggers multiple skills (routing, deploy, cli, functions, services)",
       "type": "path",
       "input": "vercel.json",
-      "expectedSkills": ["routing-middleware", "deployments-cicd", "vercel-cli", "vercel-functions"]
+      "expectedSkills": ["routing-middleware", "deployments-cicd", "vercel-cli", "vercel-functions", "vercel-services"]
     },
     {
       "description": "next.config.ts triggers nextjs, turbopack, next-cache-components, and next-upgrade",
@@ -44,10 +44,10 @@
       "expectedSkills": ["vercel-storage", "bootstrap"]
     },
     {
-      "description": ".github/workflows/deploy.yml triggers deployments-cicd, vercel-agent, and workflow",
+      "description": ".github/workflows/deploy.yml triggers deployments-cicd and vercel-agent, not workflow",
       "type": "path",
       "input": ".github/workflows/deploy.yml",
-      "expectedSkills": ["deployments-cicd", "vercel-agent", "workflow"]
+      "expectedSkills": ["deployments-cicd", "vercel-agent"]
     },
     {
       "description": "vercel deploy command triggers deployments-cicd and vercel-cli",
@@ -72,6 +72,18 @@
       "type": "bash",
       "input": "vercel env pull .env.local",
       "expectedSkills": ["env-vars", "ai-gateway", "vercel-cli"]
+    },
+    {
+      "description": "vercel env update triggers env-vars and vercel-cli",
+      "type": "bash",
+      "input": "vercel env update MY_SECRET production",
+      "expectedSkills": ["env-vars", "vercel-cli"]
+    },
+    {
+      "description": "vercel env run triggers env-vars and vercel-cli",
+      "type": "bash",
+      "input": "vercel env run -e preview -- npm test",
+      "expectedSkills": ["env-vars", "vercel-cli"]
     },
     {
       "description": "src/components/Button.tsx triggers react-best-practices",
@@ -150,6 +162,24 @@
       "type": "bash",
       "input": "pnpm add prisma langchain",
       "expectedSkills": []
+    },
+    {
+      "description": "vercel ai-gateway budgets triggers ai-gateway and vercel-cli",
+      "type": "bash",
+      "input": "vercel ai-gateway budgets set team --limit 500 --refresh-period monthly",
+      "expectedSkills": ["ai-gateway", "vercel-cli"]
+    },
+    {
+      "description": "vercel ai-gateway coding-agents setup triggers ai-gateway and vercel-cli",
+      "type": "bash",
+      "input": "vercel ai-gateway coding-agents setup",
+      "expectedSkills": ["ai-gateway", "vercel-cli"]
+    },
+    {
+      "description": "pnpm add @ai-sdk/gateway triggers ai-gateway and ai-sdk",
+      "type": "bash",
+      "input": "pnpm add @ai-sdk/gateway",
+      "expectedSkills": ["ai-gateway", "ai-sdk"]
     }
   ]
 }

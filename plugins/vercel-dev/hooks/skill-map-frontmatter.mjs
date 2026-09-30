@@ -344,7 +344,7 @@ function scanSkillsDir(rootDir) {
   const diagnostics = [];
   let entries;
   try {
-    entries = readdirSync(rootDir);
+    entries = readdirSync(rootDir).sort();
   } catch {
     return { skills, diagnostics };
   }
@@ -861,7 +861,7 @@ function validateSkillMap(raw) {
             skill,
             field: "validate.upgradeToSkill",
             valueType: "string",
-            hint: `Add a chainTo entry targeting "${rule.upgradeToSkill}" or let build-manifest synthesize one`
+            hint: `Add a chainTo entry targeting "${rule.upgradeToSkill}"`
           }
         );
       }

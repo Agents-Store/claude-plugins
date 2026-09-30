@@ -1,18 +1,18 @@
 {
   "name": "vercel-plugin",
-  "version": "0.24.0",
+  "version": "0.51.0",
   "private": true,
+  "license": "Apache-2.0",
   "bin": {
     "vercel-plugin": "src/cli/index.ts"
   },
   "scripts": {
     "build:hooks": "tsup --config hooks/tsup.config.ts",
-    "build:manifest": "bun run scripts/build-manifest.ts",
     "build:from-skills": "bun run scripts/build-from-skills.ts",
     "build:skills": "bun run scripts/build-skills.ts",
     "build:skills:check": "bun run scripts/build-skills.ts --check",
     "build:from-skills:check": "bun run scripts/build-from-skills.ts --check",
-    "build": "bun run build:skills && bun run build:hooks && bun run build:manifest && bun run build:from-skills",
+    "build": "bun run build:skills && bun run build:hooks && bun run build:from-skills",
     "validate": "bun run scripts/validate.ts",
     "doctor": "bun run src/cli/index.ts doctor",
     "typecheck": "tsc -p hooks/tsconfig.json --noEmit",
@@ -28,6 +28,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "detect-agent": "1.2.0",
     "minisearch": "^7.2.0"
   }
 }
