@@ -41,7 +41,8 @@ This plugin provides knowledge only — no MCP servers are bundled. Configure n8
 
 | Variable | Used By | Purpose |
 |----------|---------|---------|
-| `N8N_API_URL` | External MCP | n8n instance URL |
+| `N8N_API_URL` | External MCP | n8n instance URL — root or ending in `/api/v1` |
+| `N8N_NATIVE_MCP_URL` | Native MCP | Full MCP endpoint URL (`…/mcp-server/http`) |
 | `N8N_API_KEY` | External MCP | API authentication key |
 | `N8N_MCP_TOKEN` | Native MCP | MCP server token |
 
@@ -67,7 +68,7 @@ This plugin provides knowledge only — no MCP servers are bundled. Configure n8
 {
   "n8n-native-mcp": {
     "type": "http",
-    "url": "${N8N_API_URL}/mcp-server/http",
+    "url": "${N8N_NATIVE_MCP_URL}",
     "headers": {
       "Authorization": "Bearer ${N8N_MCP_TOKEN}"
     }
