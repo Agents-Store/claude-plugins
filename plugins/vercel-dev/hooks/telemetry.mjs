@@ -170,7 +170,7 @@ function getTelemetryOverride(env = process.env) {
   return null;
 }
 function isDauTelemetryEnabled(env = process.env) {
-  return getTelemetryOverride(env) !== "off";
+  return env.VERCEL_PLUGIN_TELEMETRY?.trim().toLowerCase() === "on";
 }
 function refreshActiveSessionMarker(now = /* @__PURE__ */ new Date()) {
   if (!isDauTelemetryEnabled()) {

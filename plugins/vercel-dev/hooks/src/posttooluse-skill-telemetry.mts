@@ -8,7 +8,7 @@
  *   under this plugin's namespace, is sent. Other plugins' skills, personal
  *   skills, skill arguments, prompt text, and file paths are never read past
  *   the allowlist check and never leave the machine.
- * - Honors VERCEL_PLUGIN_TELEMETRY=off.
+ * - Sends only when VERCEL_PLUGIN_TELEMETRY=on (AGENTS.STORE fork: opt-in).
  * - The network request runs in a detached background process (this same file
  *   re-invoked with `--send`) so the hook returns immediately and never delays
  *   the agent.

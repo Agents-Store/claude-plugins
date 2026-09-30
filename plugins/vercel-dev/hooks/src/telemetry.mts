@@ -264,11 +264,12 @@ export function getTelemetryOverride(env: NodeJS.ProcessEnv = process.env): "off
 }
 
 /**
- * Plugin telemetry is enabled by default, but users can disable all telemetry
- * with VERCEL_PLUGIN_TELEMETRY=off.
+ * AGENTS.STORE fork: telemetry is opt-in. Nothing is sent unless the user sets
+ * VERCEL_PLUGIN_TELEMETRY=on; unset or `off` keeps every telemetry path disabled.
+ * (Upstream vercel-plugin enables it by default and opts out with `off`.)
  */
 export function isDauTelemetryEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return getTelemetryOverride(env) !== "off";
+  return env.VERCEL_PLUGIN_TELEMETRY?.trim().toLowerCase() === "on";
 }
 
 export function refreshActiveSessionMarker(now: Date = new Date()): void {
@@ -295,7 +296,7 @@ export function refreshActiveSessionMarker(now: Date = new Date()): void {
 }
 
 // ---------------------------------------------------------------------------
-// DAU telemetry (default-on, opt-out via VERCEL_PLUGIN_TELEMETRY=off)
+// DAU telemetry (opt-in via VERCEL_PLUGIN_TELEMETRY=on)
 // ---------------------------------------------------------------------------
 
 export async function trackDauActiveToday(
@@ -365,7 +366,7 @@ export async function trackDauActiveToday(
 }
 
 // ---------------------------------------------------------------------------
-// Skill telemetry (default-on, opt-out via VERCEL_PLUGIN_TELEMETRY=off)
+// Skill telemetry (opt-in via VERCEL_PLUGIN_TELEMETRY=on)
 // ---------------------------------------------------------------------------
 
 /**
