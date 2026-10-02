@@ -1,6 +1,6 @@
 name: Scrub check
 
-# Publication gate. Four passes, all blocking.
+# Publication gate. Five passes, all blocking.
 #
 #   1. scrub_check.py  — a public plugin must not carry deployment-specific
 #      data: host and instance names, private endpoints, routable IPs, layout
@@ -18,10 +18,14 @@ name: Scrub check
 #      logic against dry fixtures, no server and no Docker daemon. The
 #      fixtures are scanned by pass 1 like any other file, because a
 #      captured fixture is the quietest way to publish a secret.
+#   5. validate_pass.py — `claude plugin validate --strict` on every plugin:
+#      the official manifest validator, so a manifest Claude Code itself would
+#      refuse never reaches the marketplace.
 #
 # Passes 1 and 2 read the WORKING TREE only. A value that already reached git
 # history is not caught here and cannot be fixed by editing a file — revoke it
-# at the source. Locally, ./scripts/scrub-check.sh runs both of them at once.
+# at the source. Locally, ./scripts/scrub-check.sh runs passes 1, 2 and 5 at
+# once.
 
 on:
   pull_request:
@@ -82,6 +86,14 @@ jobs:
                echo "::error::plugin-lint found a structural defect. A mutating command must print all eight dry-run blocks (TARGET PRECHECK CHANGE BACKUP IMPACT VALIDATE ROLLBACK APPLY) and its ROLLBACK must be a runnable command line, not a description of one. A skill must carry one name across SKILL.md frontmatter, its directory and evals.json. plugin.json and .claude-plugin/marketplace.json must declare the same version. These are fixed, not baselined."
                exit 1 ;;
           esac
+
+      # Fifth pass: the official validator. Runs even when an earlier pass
+      # failed, so one run reports every kind of defect at once.
+      - name: Official validator
+        if: always()
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          python3 scripts/validate_pass.py
 
       # scrub-allow.txt is the escape hatch, so it gets its own review.
       # Removing a line is ordinary work. Adding one must be the only change in
