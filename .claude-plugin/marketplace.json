@@ -15,7 +15,11 @@
     "document-generator": "document-generator-ops",
     "project-template-creator": "project-template-dev",
     "sendpulse": "sendpulse-ops",
-    "teleshop": "teleshop-ops"
+    "teleshop": "teleshop-ops",
+    "firecrawl": "web-search-dev",
+    "n8n": "n8n-dev",
+    "nocodb": "nocodb-ops",
+    "nocobase": "nocobase-dev"
   },
   "plugins": [
     {
@@ -67,91 +71,6 @@
         "bot-shop"
       ],
       "category": "ecommerce"
-    },
-    {
-      "name": "nocodb",
-      "source": "./plugins/nocodb",
-      "description": "DEPRECATED — superseded by nocodb-dev (schema, fields, views, Meta API) and nocodb-ops (records, search, views, reports), which teach the current NocoDB MCP tool names; this plugin teaches tool names the server no longer exposes. NocoDB database development plugin. Manage tables, records, columns, views, relations, formulas, rollups, lookups, filtering, and sorting via 17+ MCP tools.",
-      "version": "1.1.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "nocodb",
-        "database",
-        "tables",
-        "records",
-        "columns",
-        "views",
-        "relations",
-        "formulas",
-        "no-code",
-        "spreadsheet",
-        "airtable-alternative"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "n8n",
-      "source": "./plugins/n8n",
-      "description": "DEPRECATED — superseded by n8n-dev (building, validating and debugging workflows against both current n8n MCP servers) and n8n-provision (template discovery and batch import). Use those two instead. n8n workflow automation plugin. Manage workflows, execute automations, configure nodes, handle credentials, and monitor executions via 17+ MCP tools.",
-      "version": "1.1.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "n8n",
-        "workflow",
-        "automation",
-        "nodes",
-        "triggers",
-        "executions",
-        "credentials",
-        "integrations",
-        "webhooks",
-        "scheduling"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "firecrawl",
-      "source": "./plugins/firecrawl",
-      "description": "DEPRECATED — superseded by web-search-dev, which covers the current Firecrawl MCP tools and REST API v2 alongside Exa, Perplexity, Jina and Context7; this plugin teaches tool names the official Firecrawl MCP server does not expose. Firecrawl web scraping and search plugin. Scrape URLs, crawl sites, search the web, map site structures, and extract structured data via 6 MCP tools.",
-      "version": "1.1.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "firecrawl",
-        "web-scraping",
-        "crawling",
-        "search",
-        "data-extraction",
-        "sitemap",
-        "markdown",
-        "content"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "nocobase",
-      "source": "./plugins/nocobase",
-      "description": "DEPRECATED — superseded by nocobase-dev, which bundles the official nocobase/skills library and works through the nb CLI and REST API. Its MCP server package (@nocobase/mcp-server) was withdrawn from npm and is no longer wired; the MCP commands and agents work only if you register your own server named `nocobase`. NocoBase platform development knowledge plugin. Expert guidance on collections, fields, relations, workflows, UI blocks, and plugin development for NocoBase applications.",
-      "version": "1.2.1",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "nocobase",
-        "low-code",
-        "collections",
-        "workflows",
-        "ui-blocks",
-        "plugin-development",
-        "no-code",
-        "application-builder"
-      ],
-      "category": "development"
     },
     {
       "name": "plane-ops",
