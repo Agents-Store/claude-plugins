@@ -20,7 +20,8 @@
     "n8n": "n8n-dev",
     "nocodb": "nocodb-ops",
     "nocobase": "nocobase-dev",
-    "openclaw-configurator": "openclaw-ops"
+    "openclaw-configurator": "openclaw-ops",
+    "media-hosting-ops": null
   },
   "plugins": [
     {
@@ -338,23 +339,6 @@
         "agents-store"
       ],
       "category": "development"
-    },
-    {
-      "name": "media-hosting-ops",
-      "source": "./plugins/media-hosting-ops",
-      "description": "Media hosting operations plugin. Upload images by public URL to MinIO-based media hosting via the uploadImageToMinio MCP tool.",
-      "version": "1.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "media-hosting",
-        "minio",
-        "image-upload",
-        "ops",
-        "agents-store"
-      ],
-      "category": "operations"
     },
     {
       "name": "image-search-dev",
