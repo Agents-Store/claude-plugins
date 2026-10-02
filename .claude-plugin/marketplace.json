@@ -21,7 +21,8 @@
     "nocodb": "nocodb-ops",
     "nocobase": "nocobase-dev",
     "openclaw-configurator": "openclaw-ops",
-    "media-hosting-ops": null
+    "media-hosting-ops": null,
+    "image-search-dev": "web-search-dev"
   },
   "plugins": [
     {
@@ -320,8 +321,8 @@
     {
       "name": "web-search-dev",
       "source": "./plugins/web-search-dev",
-      "description": "Web search and scraping developer toolkit. MCP tool patterns, REST API reference (Firecrawl v2), SDK/CLI usage for Firecrawl, Exa, Perplexity, Jina, Pexels, Unsplash, and Context7. Practical skills for web scraping, documentation search, and media discovery in dev workflows.",
-      "version": "1.1.1",
+      "description": "Developer reference for web search, scraping and documentation lookup — Firecrawl, Exa, Jina, Perplexity, Context7 MCP tools and REST/SDK/CLI — plus Pexels and Unsplash REST media search.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -335,26 +336,6 @@
         "pexels",
         "unsplash",
         "context7",
-        "dev",
-        "agents-store"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "image-search-dev",
-      "source": "./plugins/image-search-dev",
-      "description": "Stock image and video search developer toolkit. MCP tool patterns for Pexels (9 tools) and Unsplash (4 tools) from mcpware-dev-tools. Photo search, video search, collections, curated content, and MinIO upload integration.",
-      "version": "1.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "image-search",
-        "pexels",
-        "unsplash",
-        "stock-photos",
-        "stock-videos",
-        "media",
         "dev",
         "agents-store"
       ],
