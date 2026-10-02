@@ -76,7 +76,7 @@ Delete this file (BOOTSTRAP.md) — setup is complete.
 4. Maximum 20,000 characters (bootstrapMaxChars limit)
 5. BOOTSTRAP.md is auto-injected into context while present — it counts toward char limits
 6. Automatic creation of the bootstrap files can be skipped: start with the `--dev` flag, or set
-   `agents.defaults.skipBootstrap: true` (per agent: `agents.entries.<id>.skipBootstrap`) in openclaw.json.
+   `agents.defaults.skipBootstrap: true` in openclaw.json (a defaults-only key; there is no per-agent form).
    That key stops the *creation* of `AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md` and `BOOTSTRAP.md`;
    it does not stop injection of files that already exist
 
