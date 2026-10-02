@@ -167,3 +167,10 @@ container it was still handed to the least private channel available.
 **Fix:** Replaced with neutral ids (`example-model-a`, `example-model-b`); the tests only check route kinds and the `provider/model` label shape, not which model it is. 205 tests and `catalog-check.py` pass.
 **Root cause:** The fixtures were written in a commit that never ran the strict gate.
 **Severity:** Minor
+
+## 2026-10-02 — persona skills moved in from openclaw-configurator
+
+**Problem:** the eleven workspace-authoring skills of the retired `openclaw-configurator` described a layout that no longer exists: array-form agent list, a root-level skip-bootstrap key, a `memoryFlush` boolean with a reserve key the schema does not know, session and cron data as files, `HEARTBEAT.md` read at runtime, `TOOLS.md` as an injected file, a 150k total bootstrap budget, and a post-edit step that changed ownership recursively and ran the doctor's automatic-fix mode.
+**Fix:** moved the skills here and rewrote the stale parts against the current docs: `agents.entries.<id>`, `agents.defaults.skipBootstrap`, `memory.search.*`, `memoryFlush` as an object, state in per-agent and shared SQLite read through `openclaw sessions` / `openclaw automations`, heartbeat checklist in the monitor scratch, local tool notes in AGENTS.md, a 60k default total budget, and a read-only `doctor --lint --severity-min info` validation step. Hosts, model ids and deployment paths became placeholders.
+**Root cause:** the skills were written against an earlier release line and kept alive by a deprecation notice instead of a review.
+**Severity:** Major

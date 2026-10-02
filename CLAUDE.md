@@ -387,9 +387,11 @@ path and port is discovered at run time from the live Docker state, and anything
 derived lives in an operator-owned config file outside this repo (`--strict` scrub scope, see
 `scripts/scrub-check.sh`).
 
-`openclaw-configurator` is **deprecated** and kept only for its workspace-authoring skills. Its
-`OPENCLAW_INSTANCE_DIR` / `OPENCLAW_PROJECT_DIR` env vars were removed from `.env.example`:
-they encoded one deployment's layout, which is exactly what a public plugin must not carry.
+`openclaw-configurator` is **retired**: its workspace-authoring skills (AGENTS.md, SOUL.md, USER.md,
+IDENTITY.md, standing orders, bootstrap, memory, session analysis) moved into `openclaw-ops`, and the
+marketplace `renames` map points installed copies there. Its `OPENCLAW_INSTANCE_DIR` /
+`OPENCLAW_PROJECT_DIR` env vars were removed from `.env.example`: they encoded one deployment's
+layout, which is exactly what a public plugin must not carry.
 
 ### Adding a new env var
 

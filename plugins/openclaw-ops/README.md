@@ -15,8 +15,8 @@ Everything is file-based knowledge plus stdlib Python scripts. One optional vari
 `OPENCLAW_OPS_CONFIG`, the first rung of the config ladder — as an escape hatch for pointing a run at a
 specific fleet config; unset, the ladder resolves the file on its own.
 
-Replaces `openclaw-configurator` for fleet operations; that plugin remains, deprecated, for
-single-instance workspace and persona content.
+Replaces `openclaw-configurator`, which is retired: fleet operations are the commands, agents and
+scripts below, and its workspace persona skills now live here (see **Workspace persona skills**).
 
 ## Execution model
 
@@ -176,6 +176,27 @@ commands this fleet could adopt, with a recommendation and a risk class. **Nothi
 | `instance-clone` | standing up a new instance from the reference and proving it isolated |
 | `docs-research` | before any claim that could have changed — flags, keys, versions, model names; and when two sources disagree |
 | `examples` | four end-to-end runs on a fictional fleet, threading commands, skills and scripts into one sequence |
+| `workspace-overview` | how an instance's state directory and workspace are laid out, which files are injected, character limits, what to scan and what never to scan |
+| `agents-md` | operating rules and procedures in AGENTS.md; what belongs there versus SOUL.md; the `## Tools` section |
+| `soul-md` | persona, tone, values and boundaries in SOUL.md, with industry patterns |
+| `user-md` | user profiles, preferences, multi-user setups, mapping channel ids to people |
+| `identity-md` | the agent's name, creature, vibe, emoji and avatar, including the per-agent config override |
+| `tools-md` | local tool and environment notes (now the `## Tools` section of AGENTS.md; the TOOLS.md file is retired) |
+| `heartbeat-md` | heartbeats: cadence and context weight in config, the checklist in the monitor scratch; the HEARTBEAT.md file is retired |
+| `standing-orders` | autonomous programs with scope, triggers, approval gates and escalation, paired with automation jobs |
+| `bootstrap-boot` | the first-run ritual (BOOTSTRAP.md) and the gateway-start checklist (BOOT.md) |
+| `memory-system` | MEMORY.md curation, daily logs, the pre-compaction memory flush, vector-search settings |
+| `session-analysis` | analysing session transcripts from a trajectory export to improve workspace files |
+
+### Workspace persona skills
+
+Workspace persona files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, standing orders, bootstrap, memory)
+were moved here from `openclaw-configurator` in 2026-10, together with the retirement of that plugin;
+the marketplace `renames` map moves installed copies to `openclaw-ops`. They are content-authoring
+guides, not operating procedures: a change they lead to is an ordinary R2 edit through the same plan,
+`--yes` and rollback discipline as any other mutation here. The configurator's post-edit hook
+(recursive ownership change plus the doctor's automatic-fix mode after every write) was **not** carried
+over — both are R4 operations in this plugin and never run as a routine step.
 
 ## Commands
 
@@ -357,5 +378,4 @@ What that does **not** cover, and cannot:
 
 Provisioning a host or a fleet from scratch · migrating a legacy-layout instance (refused with its
 reason — that is its own project) · workloads other than OpenClaw, which appear in the inventory as
-neighbours and are never touched · workspace and persona content, which belongs to the deprecated
-`openclaw-configurator`.
+neighbours and are never touched.
