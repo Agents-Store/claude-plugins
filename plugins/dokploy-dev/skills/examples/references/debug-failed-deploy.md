@@ -33,9 +33,9 @@ application-killBuild, application-redeploy, rollback-rollback
 ## Step 0: Confirm the platform is healthy
 
 ```
-mcp__dokploy__settings-health
-mcp__dokploy__settings-checkInfrastructureHealth
-mcp__dokploy__settings-getDockerDiskUsage
+mcp__plugin_dokploy-dev_dokploy__settings-health
+mcp__plugin_dokploy-dev_dokploy__settings-checkInfrastructureHealth
+mcp__plugin_dokploy-dev_dokploy__settings-getDockerDiskUsage
 ```
 
 Expected: all three return ok and disk usage < 90%. If `getDockerDiskUsage` shows Images > 50GB or disk > 90% full, jump to the cleanup section before diagnosing the deploy — disk pressure causes silent build failures.
@@ -47,7 +47,7 @@ Expected: all three return ok and disk usage < 90%. If `getDockerDiskUsage` show
 Resolve the app:
 
 ```
-mcp__dokploy__project-all
+mcp__plugin_dokploy-dev_dokploy__project-all
    → find the "production" project
    → inside, find the application named "marketing-site"
    → save applicationId (e.g. app_aaa111)
@@ -56,7 +56,7 @@ mcp__dokploy__project-all
 List its deployments, most recent first:
 
 ```
-mcp__dokploy__deployment-all
+mcp__plugin_dokploy-dev_dokploy__deployment-all
    → { applicationId: "app_aaa111" }
 ```
 
@@ -74,12 +74,12 @@ Find the most recent entry with `status: "error"`. Save:
 The `status: error` here was a quick finish (~seconds), and the live site returns 502 — that points to a **runtime** crash (the build succeeded, the container won't stay up). Read the app's runtime log directly over MCP (v0.29.0+ — no SSH/Beszel):
 
 ```
-mcp__dokploy__application-readLogs
+mcp__plugin_dokploy-dev_dokploy__application-readLogs
    → { applicationId: "app_aaa111", tail: 300, since: "1h", search: "error" }
    → .data is a newline-joined, timestamp-prefixed string
 ```
 
-(If this had been a *build* failure instead, you'd read that deployment's build log with `mcp__dokploy__deployment-readLogs { deploymentId: "deploy_bbb222", tail: 500 }`.)
+(If this had been a *build* failure instead, you'd read that deployment's build log with `mcp__plugin_dokploy-dev_dokploy__deployment-readLogs { deploymentId: "deploy_bbb222", tail: 500 }`.)
 
 Scan the log for these patterns first:
 
@@ -110,7 +110,7 @@ In our scenario, the log ends with:
 ## Step 3: Inspect the container
 
 ```
-mcp__dokploy__docker-getContainersByAppLabel
+mcp__plugin_dokploy-dev_dokploy__docker-getContainersByAppLabel
    → { appName: "marketing-site", type: "standalone" }   # type is required
 ```
 
@@ -119,7 +119,7 @@ You'll see a container with `state: "restarting"` — classic crash loop. Each e
 Get its full config:
 
 ```
-mcp__dokploy__docker-getConfig
+mcp__plugin_dokploy-dev_dokploy__docker-getConfig
    → { containerId: "<id>" }
 ```
 
@@ -146,8 +146,8 @@ Only relevant if the runtime *is* up but HTTP is broken. In our scenario the con
 If an AI provider is configured:
 
 ```
-mcp__dokploy__ai-getEnabledProviders     # confirm non-empty → take an aiId
-mcp__dokploy__ai-analyzeLogs
+mcp__plugin_dokploy-dev_dokploy__ai-getEnabledProviders     # confirm non-empty → take an aiId
+mcp__plugin_dokploy-dev_dokploy__ai-analyzeLogs
    → { aiId: "<enabled provider id>", logs: "<the runtime-log text from Step 2>", context: "runtime" }
 ```
 
@@ -164,7 +164,7 @@ This matches our manual analysis from Step 3.
 Fix the env var:
 
 ```
-mcp__dokploy__application-saveEnvironment
+mcp__plugin_dokploy-dev_dokploy__application-saveEnvironment
    → {
        applicationId: "app_aaa111",
        env: "DATABASE_URL=postgres://postgres:secret@postgres:5432/main\nNODE_ENV=production\nPORT=3000",
@@ -177,14 +177,14 @@ mcp__dokploy__application-saveEnvironment
 Trigger a redeploy:
 
 ```
-mcp__dokploy__application-redeploy
+mcp__plugin_dokploy-dev_dokploy__application-redeploy
    → { applicationId: "app_aaa111" }
 ```
 
 Poll until done:
 
 ```
-mcp__dokploy__deployment-all
+mcp__plugin_dokploy-dev_dokploy__deployment-all
    → { applicationId: "app_aaa111" }
    → wait until newest entry has status: "done"
 ```
@@ -192,7 +192,7 @@ mcp__dokploy__deployment-all
 Confirm the container is healthy:
 
 ```
-mcp__dokploy__docker-getContainersByAppLabel
+mcp__plugin_dokploy-dev_dokploy__docker-getContainersByAppLabel
    → { appName: "marketing-site" }
    → State should be "running", Health "healthy"
 ```

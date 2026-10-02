@@ -84,7 +84,7 @@ Test each service connection in order.
 ### 2a. NocoDB (Data layer)
 
 ```
-Tool: mcp__nocodb__getTablesList
+Tool: mcp__plugin_stack-composable-stack-v1_nocodb__getTablesList
 ```
 
 Expected: returns a list of tables from the connected NocoDB base.
@@ -92,7 +92,7 @@ Expected: returns a list of tables from the connected NocoDB base.
 ### 2b. n8n External MCP (Logic layer)
 
 ```
-Tool: mcp__n8n-mcp-external__searchNodes
+Tool: mcp__plugin_stack-composable-stack-v1_n8n-mcp-external__searchNodes
 Input: { "query": "webhook" }
 ```
 
@@ -101,7 +101,7 @@ Expected: returns matching n8n node types.
 ### 2c. n8n Native MCP (Logic layer)
 
 ```
-Tool: mcp__n8n-native-mcp__listWorkflows
+Tool: mcp__plugin_stack-composable-stack-v1_n8n-native-mcp__listWorkflows
 ```
 
 Expected: returns workflows from the n8n instance.
@@ -109,7 +109,7 @@ Expected: returns workflows from the n8n instance.
 ### 2d. Trigger.dev (Logic layer)
 
 ```
-Tool: mcp__trigger-dev__list_runs
+Tool: mcp__plugin_stack-composable-stack-v1_trigger-dev__list_runs
 ```
 
 Expected: returns recent task runs.
@@ -117,7 +117,7 @@ Expected: returns recent task runs.
 ### 2e. PostgreSQL MCP (Data layer — direct)
 
 ```
-Tool: mcp__postgresql-mcp__database_overview
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__database_overview
 ```
 
 Expected: returns PostgreSQL server version, uptime, connection counts, and replica status.
@@ -139,7 +139,7 @@ Expected: HTTP 200 with OpenAPI spec of available endpoints.
 The `nocobase-dev` MCP server in this plugin targets `${NOCOBASE_DEV_URL}/api/mcp`. Verify with any `nc-mcp` tool:
 
 ```
-Tool: mcp__nocobase-dev__collections_list
+Tool: mcp__plugin_stack-composable-stack-v1_nocobase-dev__collections_list
 ```
 
 Expected: returns the collections defined on the dev NocoBase instance.

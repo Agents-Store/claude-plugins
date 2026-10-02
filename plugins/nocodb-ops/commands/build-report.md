@@ -1,6 +1,6 @@
 ---
 description: Build an aggregation report from NocoDB table data
-allowed-tools: ["mcp__nocodb__aggregate", "mcp__nocodb__queryRecords", "mcp__nocodb__getTablesList", "mcp__nocodb__getTableSchema", "mcp__nocodb__countRecords"]
+allowed-tools: ["mcp__plugin_nocodb-ops_nocodb__aggregate", "mcp__plugin_nocodb-ops_nocodb__queryRecords", "mcp__plugin_nocodb-ops_nocodb__getTablesList", "mcp__plugin_nocodb-ops_nocodb__getTableSchema", "mcp__plugin_nocodb-ops_nocodb__countRecords"]
 argument-hint: <table-name> [aggregation-type] [field]
 ---
 

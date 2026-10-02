@@ -5,7 +5,7 @@ description: This skill should be used when the user asks about "DataForSEO MCP 
 
 # DataForSEO MCP Tools Reference
 
-All tools use the `mcp__dataforseo__` prefix. 76 tools across 8 API modules.
+All tools use the `mcp__plugin_dataforseo-dev_dataforseo__` prefix. 76 tools across 8 API modules.
 
 ## Task Routing Table
 
@@ -13,24 +13,24 @@ Use this to pick the right tool for a given task.
 
 | Task | Best Tools | Category |
 |------|-----------|----------|
-| Research keywords for a topic | `mcp__dataforseo__dataforseo_labs_google_keyword_ideas`, `mcp__dataforseo__dataforseo_labs_google_keyword_suggestions` | Labs |
-| Check keyword difficulty + volume | `mcp__dataforseo__dataforseo_labs_google_keyword_overview`, `mcp__dataforseo__dataforseo_labs_bulk_keyword_difficulty` | Labs |
-| Find keywords a competitor ranks for | `mcp__dataforseo__dataforseo_labs_google_keywords_for_site`, `mcp__dataforseo__dataforseo_labs_google_ranked_keywords` | Labs |
-| Compare domains side-by-side | `mcp__dataforseo__dataforseo_labs_google_competitors_domain`, `mcp__dataforseo__dataforseo_labs_google_domain_intersection` | Labs |
-| Analyze SERP for a keyword | `mcp__dataforseo__serp_organic_live_advanced` | SERP |
-| Get backlink profile | `mcp__dataforseo__backlinks_summary`, `mcp__dataforseo__backlinks_backlinks`, `mcp__dataforseo__backlinks_referring_domains` | Backlinks |
-| Find competitor backlinks | `mcp__dataforseo__backlinks_competitors`, `mcp__dataforseo__backlinks_domain_intersection` | Backlinks |
-| Check for spam/toxic links | `mcp__dataforseo__backlinks_bulk_spam_score`, `mcp__dataforseo__backlinks_anchors` | Backlinks |
-| Run on-page audit | `mcp__dataforseo__on_page_lighthouse`, `mcp__dataforseo__on_page_instant_pages`, `mcp__dataforseo__on_page_content_parsing` | OnPage |
-| Analyze content landscape | `mcp__dataforseo__content_analysis_search`, `mcp__dataforseo__content_analysis_summary`, `mcp__dataforseo__content_analysis_phrase_trends` | Content |
-| Track Google Trends | `mcp__dataforseo__kw_data_google_trends_explore`, `mcp__dataforseo__kw_data_dfs_trends_explore` | Keywords Data |
-| Check domain tech stack | `mcp__dataforseo__domain_analytics_technologies_domain_technologies` | Domain Analytics |
-| WHOIS lookup | `mcp__dataforseo__domain_analytics_whois_overview` | Domain Analytics |
-| Check LLM mentions of brand | `mcp__dataforseo__ai_opt_llm_ment_search`, `mcp__dataforseo__ai_opt_llm_ment_agg_metrics` | AI Optimization |
-| Understand search intent | `mcp__dataforseo__dataforseo_labs_search_intent` | Labs |
-| Get historical rankings | `mcp__dataforseo__dataforseo_labs_google_historical_rank_overview`, `mcp__dataforseo__dataforseo_labs_google_historical_serp` | Labs |
-| Estimate traffic for keywords | `mcp__dataforseo__dataforseo_labs_bulk_traffic_estimation` | Labs |
-| Get search volume from Google Ads | `mcp__dataforseo__kw_data_google_ads_search_volume` | Keywords Data |
+| Research keywords for a topic | `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keyword_ideas`, `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keyword_suggestions` | Labs |
+| Check keyword difficulty + volume | `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keyword_overview`, `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_bulk_keyword_difficulty` | Labs |
+| Find keywords a competitor ranks for | `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keywords_for_site`, `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_ranked_keywords` | Labs |
+| Compare domains side-by-side | `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_competitors_domain`, `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_domain_intersection` | Labs |
+| Analyze SERP for a keyword | `mcp__plugin_dataforseo-dev_dataforseo__serp_organic_live_advanced` | SERP |
+| Get backlink profile | `mcp__plugin_dataforseo-dev_dataforseo__backlinks_summary`, `mcp__plugin_dataforseo-dev_dataforseo__backlinks_backlinks`, `mcp__plugin_dataforseo-dev_dataforseo__backlinks_referring_domains` | Backlinks |
+| Find competitor backlinks | `mcp__plugin_dataforseo-dev_dataforseo__backlinks_competitors`, `mcp__plugin_dataforseo-dev_dataforseo__backlinks_domain_intersection` | Backlinks |
+| Check for spam/toxic links | `mcp__plugin_dataforseo-dev_dataforseo__backlinks_bulk_spam_score`, `mcp__plugin_dataforseo-dev_dataforseo__backlinks_anchors` | Backlinks |
+| Run on-page audit | `mcp__plugin_dataforseo-dev_dataforseo__on_page_lighthouse`, `mcp__plugin_dataforseo-dev_dataforseo__on_page_instant_pages`, `mcp__plugin_dataforseo-dev_dataforseo__on_page_content_parsing` | OnPage |
+| Analyze content landscape | `mcp__plugin_dataforseo-dev_dataforseo__content_analysis_search`, `mcp__plugin_dataforseo-dev_dataforseo__content_analysis_summary`, `mcp__plugin_dataforseo-dev_dataforseo__content_analysis_phrase_trends` | Content |
+| Track Google Trends | `mcp__plugin_dataforseo-dev_dataforseo__kw_data_google_trends_explore`, `mcp__plugin_dataforseo-dev_dataforseo__kw_data_dfs_trends_explore` | Keywords Data |
+| Check domain tech stack | `mcp__plugin_dataforseo-dev_dataforseo__domain_analytics_technologies_domain_technologies` | Domain Analytics |
+| WHOIS lookup | `mcp__plugin_dataforseo-dev_dataforseo__domain_analytics_whois_overview` | Domain Analytics |
+| Check LLM mentions of brand | `mcp__plugin_dataforseo-dev_dataforseo__ai_opt_llm_ment_search`, `mcp__plugin_dataforseo-dev_dataforseo__ai_opt_llm_ment_agg_metrics` | AI Optimization |
+| Understand search intent | `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_search_intent` | Labs |
+| Get historical rankings | `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_historical_rank_overview`, `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_historical_serp` | Labs |
+| Estimate traffic for keywords | `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_bulk_traffic_estimation` | Labs |
+| Get search volume from Google Ads | `mcp__plugin_dataforseo-dev_dataforseo__kw_data_google_ads_search_volume` | Keywords Data |
 
 ## Category Overview
 
@@ -49,8 +49,8 @@ Use this to pick the right tool for a given task.
 
 Most tools require `location_name` (e.g., `"United States"`) and `language_code` (e.g., `"en"`).
 
-- Use `mcp__dataforseo__serp_locations` to look up valid SERP location names by country ISO code.
-- Use `mcp__dataforseo__kw_data_google_ads_locations` to look up valid Google Ads location names.
+- Use `mcp__plugin_dataforseo-dev_dataforseo__serp_locations` to look up valid SERP location names by country ISO code.
+- Use `mcp__plugin_dataforseo-dev_dataforseo__kw_data_google_ads_locations` to look up valid Google Ads location names.
 - If omitted, many tools default to United States / English, but always specify explicitly for accuracy.
 
 ## Common Parameters

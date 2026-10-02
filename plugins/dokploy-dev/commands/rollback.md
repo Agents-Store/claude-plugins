@@ -43,7 +43,7 @@ Parse from "$ARGUMENTS".
 5. **Execute:**
 
    ```
-   mcp__dokploy__rollback-rollback
+   mcp__plugin_dokploy-dev_dokploy__rollback-rollback
      → { rollbackId: "<chosen rollbackId>" }
    ```
 

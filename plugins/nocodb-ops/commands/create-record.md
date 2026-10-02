@@ -1,6 +1,6 @@
 ---
 description: Create a new record in a NocoDB table
-allowed-tools: ["mcp__nocodb__createRecords", "mcp__nocodb__getTablesList", "mcp__nocodb__getTableSchema"]
+allowed-tools: ["mcp__plugin_nocodb-ops_nocodb__createRecords", "mcp__plugin_nocodb-ops_nocodb__getTablesList", "mcp__plugin_nocodb-ops_nocodb__getTableSchema"]
 argument-hint: <table-name> <field=value pairs>
 ---
 

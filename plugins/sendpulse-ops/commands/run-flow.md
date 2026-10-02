@@ -1,6 +1,6 @@
 ---
 description: Run a chatbot automation flow for a contact
-allowed-tools: mcp__sendpulse__chatbots_flows_list, mcp__sendpulse__chatbots_flows_run, mcp__sendpulse__chatbots_bots_list
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__chatbots_flows_list, mcp__plugin_sendpulse-ops_sendpulse__chatbots_flows_run, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_list
 argument-hint: <flow-id> <contact-id>
 ---
 

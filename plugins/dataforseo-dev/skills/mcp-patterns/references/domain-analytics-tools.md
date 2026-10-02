@@ -1,6 +1,6 @@
 # Domain Analytics Tools
 
-4 tools for technology detection and WHOIS data. All prefixed with `mcp__dataforseo__`.
+4 tools for technology detection and WHOIS data. All prefixed with `mcp__plugin_dataforseo-dev_dataforseo__`.
 
 ## Tool Reference
 
@@ -47,7 +47,7 @@
 ### Check a competitor's tech stack
 
 ```
-Tool: mcp__dataforseo__domain_analytics_technologies_domain_technologies
+Tool: mcp__plugin_dataforseo-dev_dataforseo__domain_analytics_technologies_domain_technologies
 Params:
   target: "competitor.com"
 ```
@@ -57,7 +57,7 @@ Returns detected technologies grouped by category (e.g., CMS: WordPress, Analyti
 ### Find domains expiring soon
 
 ```
-Tool: mcp__dataforseo__domain_analytics_whois_overview
+Tool: mcp__plugin_dataforseo-dev_dataforseo__domain_analytics_whois_overview
 Params:
   filters: [["expiration_datetime", "<", "2026-06-01"], "and", ["registrant_country", "=", "US"]]
   limit: 50

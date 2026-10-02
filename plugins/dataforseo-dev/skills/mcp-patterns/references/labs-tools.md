@@ -1,6 +1,6 @@
 # DataForSEO Labs Tools
 
-20 tools for keyword research, domain analysis, and competitive intelligence. All prefixed with `mcp__dataforseo__dataforseo_labs_`.
+20 tools for keyword research, domain analysis, and competitive intelligence. All prefixed with `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_`.
 
 ## Tool Reference
 
@@ -49,7 +49,7 @@
 ### Research keywords for a topic
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_keyword_ideas
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keyword_ideas
 Params:
   keywords: ["project management", "task tracking"]
   location_name: "United States"
@@ -62,7 +62,7 @@ Params:
 ### Compare two domains
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_domain_intersection
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_domain_intersection
 Params:
   targets: {"1": "ahrefs.com", "2": "semrush.com"}
   location_name: "United States"

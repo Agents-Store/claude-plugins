@@ -97,7 +97,7 @@ This skill contains reusable examples and patterns for Sendpulse MCP operations.
 ## Conventions
 
 - All examples are copy-paste ready for MCP tool calls
-- Tool names omit the `mcp__sendpulse__` prefix for brevity
+- Tool names omit the `mcp__plugin_sendpulse-ops_sendpulse__` prefix for brevity
 - Channel suffix must match the contact's actual channel
 - Check balance/credits before sending campaigns
 - Always verify senders before using in campaigns

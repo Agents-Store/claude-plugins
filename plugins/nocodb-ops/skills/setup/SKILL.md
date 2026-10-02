@@ -35,28 +35,28 @@ Run these checks in order. Stop at the first failure and check the troubleshooti
 
 ### Step 1 -- Test connection
 
-Call `mcp__nocodb__getTablesList` with no parameters.
+Call `mcp__plugin_nocodb-ops_nocodb__getTablesList` with no parameters.
 
 - **Pass:** Returns a list of table names and IDs.
 - **Fail:** Connection error or authentication error. See troubleshooting.
 
 ### Step 2 -- Verify read access
 
-Pick any table ID from Step 1. Call `mcp__nocodb__queryRecords` with that `tableId` and `pageSize: 1`.
+Pick any table ID from Step 1. Call `mcp__plugin_nocodb-ops_nocodb__queryRecords` with that `tableId` and `pageSize: 1`.
 
 - **Pass:** Returns one record (or an empty list if the table has no data).
 - **Fail:** Permission error or invalid table ID.
 
 ### Step 3 -- Verify count access
 
-Call `mcp__nocodb__countRecords` with the same `tableId`.
+Call `mcp__plugin_nocodb-ops_nocodb__countRecords` with the same `tableId`.
 
 - **Pass:** Returns a number (even zero is fine).
 - **Fail:** Aggregation permissions may be restricted.
 
 ### Step 4 -- Verify base info
 
-Call `mcp__nocodb__getBaseInfo` with no parameters.
+Call `mcp__plugin_nocodb-ops_nocodb__getBaseInfo` with no parameters.
 
 - **Pass:** Returns base name, ID, and metadata.
 - **Fail:** Token may lack base-level access.

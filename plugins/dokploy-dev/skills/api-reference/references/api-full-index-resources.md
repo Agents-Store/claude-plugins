@@ -1,6 +1,6 @@
 # Dokploy API — Complete Operation Index: Resources
 
-Auto-generated from the Dokploy v0.29.14 OpenAPI schema — the **exhaustive** list of resource/deployment operations. Every row maps 1:1 to an MCP tool `mcp__dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params. For curated usage patterns and gotchas see the `mcp-patterns` skill and the themed `api-*` references; this file is the complete coverage index.
+Auto-generated from the Dokploy v0.29.14 OpenAPI schema — the **exhaustive** list of resource/deployment operations. Every row maps 1:1 to an MCP tool `mcp__plugin_dokploy-dev_dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params. For curated usage patterns and gotchas see the `mcp-patterns` skill and the themed `api-*` references; this file is the complete coverage index.
 
 ## Contents
 - [project](#project) — Projects (top-level grouping) (9)

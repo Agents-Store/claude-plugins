@@ -12,10 +12,10 @@ Run a comprehensive competitive analysis using DataForSEO MCP tools.
 
 1. Load the competitor-analysis skill: invoke `/dataforseo-dev:competitor-analysis` mentally (use its workflow patterns)
 2. Execute this workflow for the provided domain:
-   - `mcp__dataforseo__dataforseo_labs_google_competitors_domain` with `exclude_top_domains: true` — discover competitors
-   - `mcp__dataforseo__dataforseo_labs_google_domain_rank_overview` — get metrics for the target and top 3 competitors
-   - `mcp__dataforseo__dataforseo_labs_google_domain_intersection` — find keyword gaps between target and top competitor
-   - `mcp__dataforseo__backlinks_bulk_ranks` — compare backlink authority
+   - `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_competitors_domain` with `exclude_top_domains: true` — discover competitors
+   - `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_domain_rank_overview` — get metrics for the target and top 3 competitors
+   - `mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_domain_intersection` — find keyword gaps between target and top competitor
+   - `mcp__plugin_dataforseo-dev_dataforseo__backlinks_bulk_ranks` — compare backlink authority
 3. Present results as a competitive landscape report:
    - **Domain Metrics Comparison**: Table comparing organic keywords, traffic, rank
    - **Top Competitors**: Ranked by relevance

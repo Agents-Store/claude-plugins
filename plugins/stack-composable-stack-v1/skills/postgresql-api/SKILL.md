@@ -12,7 +12,7 @@ Two ways to interact with PostgreSQL directly in the Composable Stack:
 ## PostgreSQL MCP Tools
 
 MCP server ID: `postgresql-mcp` (Supabase Toolbox v0.31.0)
-Tool prefix: `mcp__postgresql-mcp__`
+Tool prefix: `mcp__plugin_stack-composable-stack-v1_postgresql-mcp__`
 
 ### Query & SQL
 
@@ -21,12 +21,12 @@ Tool prefix: `mcp__postgresql-mcp__`
 Run any single SQL statement — SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP.
 
 ```
-Tool: mcp__postgresql-mcp__execute_sql
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__execute_sql
 Input: { "sql": "SELECT * FROM orders WHERE status = 'pending' LIMIT 10" }
 ```
 
 ```
-Tool: mcp__postgresql-mcp__execute_sql
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__execute_sql
 Input: { "sql": "CREATE TABLE orders (id SERIAL PRIMARY KEY, title TEXT NOT NULL, status TEXT DEFAULT 'pending', created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now())" }
 ```
 
@@ -35,7 +35,7 @@ Input: { "sql": "CREATE TABLE orders (id SERIAL PRIMARY KEY, title TEXT NOT NULL
 Generate EXPLAIN plan in JSON without executing the query. Safe for production use.
 
 ```
-Tool: mcp__postgresql-mcp__get_query_plan
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__get_query_plan
 Input: { "query": "SELECT o.*, c.name FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.status = 'pending'" }
 ```
 
@@ -46,41 +46,41 @@ Input: { "query": "SELECT o.*, c.name FROM orders o JOIN customers c ON o.custom
 Detailed schema info: columns, constraints, indexes, triggers, owner, comments.
 
 ```
-Tool: mcp__postgresql-mcp__list_tables
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_tables
 ```
 
 Filter specific tables:
 
 ```
-Tool: mcp__postgresql-mcp__list_tables
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_tables
 Input: { "table_names": "orders,customers", "output_format": "detailed" }
 ```
 
 Names only:
 
 ```
-Tool: mcp__postgresql-mcp__list_tables
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_tables
 Input: { "output_format": "simple" }
 ```
 
 #### List Views
 
 ```
-Tool: mcp__postgresql-mcp__list_views
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_views
 Input: { "view_name": "active_orders" }
 ```
 
 #### List Indexes
 
 ```
-Tool: mcp__postgresql-mcp__list_indexes
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_indexes
 Input: { "table_name": "orders" }
 ```
 
 Find unused indexes:
 
 ```
-Tool: mcp__postgresql-mcp__list_indexes
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_indexes
 Input: { "only_unused": true }
 ```
 
@@ -89,7 +89,7 @@ Input: { "only_unused": true }
 Returns schema name, owner, grants, function/table/view counts.
 
 ```
-Tool: mcp__postgresql-mcp__list_schemas
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_schemas
 ```
 
 #### Other Schema Tools
@@ -109,7 +109,7 @@ Tool: mcp__postgresql-mcp__list_schemas
 Server version, uptime, connection counts, replica status.
 
 ```
-Tool: mcp__postgresql-mcp__database_overview
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__database_overview
 ```
 
 #### Table Statistics
@@ -117,7 +117,7 @@ Tool: mcp__postgresql-mcp__database_overview
 Row counts, sizes, scan ratios, dead tuples, vacuum times.
 
 ```
-Tool: mcp__postgresql-mcp__list_table_stats
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_table_stats
 Input: { "table_name": "orders" }
 ```
 
@@ -126,7 +126,7 @@ Input: { "table_name": "orders" }
 Requires `pg_stat_statements` extension. Execution counts, timing, buffer stats.
 
 ```
-Tool: mcp__postgresql-mcp__list_query_stats
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_query_stats
 Input: { "limit": 20 }
 ```
 
@@ -135,7 +135,7 @@ Input: { "limit": 20 }
 Currently running queries ordered by duration.
 
 ```
-Tool: mcp__postgresql-mcp__list_active_queries
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_active_queries
 Input: { "min_duration": "1 second" }
 ```
 
@@ -323,7 +323,7 @@ const orders = await response.json();
 
 | Need | Use | Why |
 |------|-----|-----|
-| Simple record CRUD | NocoDB MCP (`mcp__nocodb__*`) | Higher-level API, pagination, views |
+| Simple record CRUD | NocoDB MCP (`mcp__plugin_stack-composable-stack-v1_nocodb__*`) | Higher-level API, pagination, views |
 | Complex SQL (JOINs, CTEs, window functions) | PostgreSQL MCP `execute_sql` | Full SQL power |
 | Schema inspection and design | PostgreSQL MCP `list_tables` | Detailed constraints, indexes, triggers |
 | Query performance analysis | PostgreSQL MCP `get_query_plan` + `list_query_stats` | EXPLAIN plans, execution stats |
@@ -340,4 +340,4 @@ const orders = await response.json();
 - Always use `${POSTGRESQL_API_URL}` and `${POSTGRESQL_API_TOKEN}` env vars — never hardcode URLs or tokens
 - Use `Prefer: return=representation` on POST/PATCH to get the created/updated record back
 - Use PostgREST filtering operators for simple lookups; use `execute_sql` for complex WHERE clauses
-- Run `mcp__postgresql-mcp__list_table_stats` periodically to check for table bloat and missing indexes
+- Run `mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_table_stats` periodically to check for table bloat and missing indexes

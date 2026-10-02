@@ -13,7 +13,7 @@ Add a field to an existing table. Choose any of the 30 supported types — see t
 1. Resolve the target table ID — `nc table:list <baseId>` if name was passed, or prompt.
 2. Snapshot existing columns:
    ```
-   mcp__nocodb__getTableSchema  tableId: <tableId>
+   mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <tableId>
    ```
 3. Confirm the new field title isn't already taken.
 4. Determine the field type. Common pairings:
@@ -27,7 +27,7 @@ Add a field to an existing table. Choose any of the 30 supported types — see t
    - "auto-incrementing id" → `Number` with `cdf` default and unique constraint
 5. Build the payload (per `field-types.md`).
 6. Run `nc field:create <baseId> <tableId> '<JSON>'`.
-7. Verify with `mcp__nocodb__getTableSchema` and `mcp__nocodb__queryRecords` (small page, sanity-check render).
+7. Verify with `mcp__plugin_nocodb-dev_nocodb__getTableSchema` and `mcp__plugin_nocodb-dev_nocodb__queryRecords` (small page, sanity-check render).
 
 ## Reference
 

@@ -150,10 +150,10 @@ nc view:create:kanban $BASE_ID $ORDERS_TID '{
 ## Step 8 — Verify end-to-end
 
 ```
-mcp__nocodb__getTablesList                        # both tables visible
-mcp__nocodb__getTableSchema  tableId: $ORDERS_TID
+mcp__plugin_nocodb-dev_nocodb__getTablesList                        # both tables visible
+mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: $ORDERS_TID
 # expected: OrderNo, Customer (Links), Customer Name (Lookup), Amount, Status, CreatedAt
-mcp__nocodb__getTableSchema  tableId: $CUSTOMERS_TID
+mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: $CUSTOMERS_TID
 # expected: Name, Email, Status, Orders (auto inverse), Lifetime Value (Rollup)
 ```
 

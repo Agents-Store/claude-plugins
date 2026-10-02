@@ -17,7 +17,7 @@ Diagnostics for the dev surface — schema modifications, relations, formulas, v
 
 ## Quick Diagnostics
 
-1. **Snapshot the schema.** `mcp__nocodb__getTableSchema` — confirm the field / view / hook is actually present.
+1. **Snapshot the schema.** `mcp__plugin_nocodb-dev_nocodb__getTableSchema` — confirm the field / view / hook is actually present.
 2. **Check token scope.** A 403 from a Meta endpoint usually means the token lacks edit rights on the base, not a bug.
 3. **Verify NocoDB version.** Some endpoints (`Links` field, Map view, HookV3) are v0.200+. Run `curl -sS "$NOCODB_URL/api/v1/health"` and check `version`.
 
@@ -114,6 +114,6 @@ When reporting a schema bug:
 2. Plan tier (Free / Self-hosted Enterprise / Cloud Enterprise)
 3. The exact CLI or API call (with token redacted)
 4. The full HTTP response body (status + JSON error)
-5. Output of `mcp__nocodb__getTableSchema` for the affected table
+5. Output of `mcp__plugin_nocodb-dev_nocodb__getTableSchema` for the affected table
 6. Whether the same operation works in the NocoDB web UI
 7. Whether the issue is consistent or intermittent

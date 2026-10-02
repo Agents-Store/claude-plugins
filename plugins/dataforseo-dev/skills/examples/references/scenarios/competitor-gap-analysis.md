@@ -5,7 +5,7 @@ Analyze the competitive landscape for a B2B SaaS domain and find keyword/backlin
 ## Step 1: Identify Competitors
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_competitors_domain
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_competitors_domain
 Input: {
   "target": "example.com",
   "location_name": "United States",
@@ -20,7 +20,7 @@ Review returned domains. Pick the top 3-5 most relevant competitors (ignore gene
 ## Step 2: Compare Domain Metrics
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_domain_rank_overview
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_domain_rank_overview
 Input: {
   "target": "example.com",
   "location_name": "United States",
@@ -36,7 +36,7 @@ Repeat for each competitor. Compare:
 ## Step 3: Find Keyword Gaps
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_domain_intersection
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_domain_intersection
 Input: {
   "targets": {
     "1": "competitor1.com",
@@ -57,7 +57,7 @@ Filter for keywords where the competitor ranks but you don't (intersection_resul
 Pick the top 5 gap keywords and check SERP difficulty:
 
 ```
-Tool: mcp__dataforseo__serp_organic_live_advanced
+Tool: mcp__plugin_dataforseo-dev_dataforseo__serp_organic_live_advanced
 Input: {
   "keyword": "best project management tool for agencies",
   "location_name": "United States",
@@ -71,7 +71,7 @@ Assess: Are top results dominated by high-authority sites? Is there room for a n
 ## Step 5: Backlink Gap Analysis
 
 ```
-Tool: mcp__dataforseo__backlinks_competitors
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_competitors
 Input: {
   "target": "example.com",
   "limit": 20
@@ -81,7 +81,7 @@ Input: {
 Then compare referring domains:
 
 ```
-Tool: mcp__dataforseo__backlinks_bulk_ranks
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_bulk_ranks
 Input: {
   "targets": ["example.com", "competitor1.com", "competitor2.com", "competitor3.com"]
 }
@@ -90,7 +90,7 @@ Input: {
 ## Step 6: Content Gap via Page Intersection
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_relevant_pages
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_relevant_pages
 Input: {
   "target": "competitor1.com",
   "location_name": "United States",

@@ -5,7 +5,7 @@ Find high-quality link building opportunities by analyzing competitor backlink p
 ## Step 1: Audit Your Current Backlink Profile
 
 ```
-Tool: mcp__dataforseo__backlinks_summary
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_summary
 Input: {
   "target": "example.com",
   "include_subdomains": true,
@@ -18,7 +18,7 @@ Record baseline: total backlinks, referring_domains, rank, broken_backlinks.
 ## Step 2: Identify Competitor Backlink Profiles
 
 ```
-Tool: mcp__dataforseo__backlinks_bulk_ranks
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_bulk_ranks
 Input: {
   "targets": ["example.com", "competitor1.com", "competitor2.com", "competitor3.com"]
 }
@@ -31,7 +31,7 @@ Compare rank scores. The gap between your rank and competitors' indicates link b
 Get competitor's referring domains:
 
 ```
-Tool: mcp__dataforseo__backlinks_referring_domains
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_referring_domains
 Input: {
   "target": "competitor1.com",
   "limit": 100,
@@ -47,7 +47,7 @@ These are domains linking to your competitor but potentially not to you — outr
 Before pursuing outreach, verify domain quality:
 
 ```
-Tool: mcp__dataforseo__backlinks_bulk_spam_score
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_bulk_spam_score
 Input: {
   "targets": ["potential-link-source1.com", "potential-link-source2.com", "...up to 1000"]
 }
@@ -60,7 +60,7 @@ Filter out domains with spam_score > 30.
 Check your current anchor text profile for health:
 
 ```
-Tool: mcp__dataforseo__backlinks_anchors
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_anchors
 Input: {
   "target": "example.com",
   "limit": 50,
@@ -73,7 +73,7 @@ A healthy profile has diverse anchors: brand name (40-60%), naked URLs (20-30%),
 ## Step 6: Track Link Velocity
 
 ```
-Tool: mcp__dataforseo__backlinks_timeseries_summary
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_timeseries_summary
 Input: {
   "target": "example.com",
   "date_from": "2024-01-01",
@@ -86,7 +86,7 @@ Check new/lost backlink trends. Sudden drops indicate lost links that may need r
 ## Step 7: Find Recently Lost Links
 
 ```
-Tool: mcp__dataforseo__backlinks_bulk_new_lost_backlinks
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_bulk_new_lost_backlinks
 Input: {
   "targets": ["example.com"],
   "date_from": "2024-10-01"

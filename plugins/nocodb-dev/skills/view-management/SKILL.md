@@ -29,7 +29,7 @@ NocoDB tables can have multiple views — different lenses on the same data. Vie
 ## Discover First
 
 ```
-mcp__nocodb__getTableSchema  tableId: <tableId>
+mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <tableId>
 ```
 
 The `views` array in the response lists every existing view with its name, type, ID, and config.

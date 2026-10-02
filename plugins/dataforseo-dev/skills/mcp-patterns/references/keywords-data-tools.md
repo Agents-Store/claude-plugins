@@ -1,6 +1,6 @@
 # Keywords Data Tools
 
-7 tools for search volume data, Google Trends, and DFS Trends analytics. All prefixed with `mcp__dataforseo__`.
+7 tools for search volume data, Google Trends, and DFS Trends analytics. All prefixed with `mcp__plugin_dataforseo-dev_dataforseo__`.
 
 ## Tool Reference
 
@@ -50,7 +50,7 @@ Call `kw_data_google_ads_locations` with a country ISO code to get the list of v
 ### Get search volume for a keyword list
 
 ```
-Tool: mcp__dataforseo__kw_data_google_ads_search_volume
+Tool: mcp__plugin_dataforseo-dev_dataforseo__kw_data_google_ads_search_volume
 Params:
   keywords: ["project management software", "task management app", "team collaboration tool"]
   location_name: "United States"
@@ -62,7 +62,7 @@ Returns monthly search volume, CPC, competition level, and monthly trends.
 ### Compare keyword trends over time
 
 ```
-Tool: mcp__dataforseo__kw_data_dfs_trends_explore
+Tool: mcp__plugin_dataforseo-dev_dataforseo__kw_data_dfs_trends_explore
 Params:
   keywords: ["chatgpt", "claude ai", "gemini ai"]
   location_name: "United States"

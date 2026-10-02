@@ -55,7 +55,7 @@ Trigger an n8n workflow when NocoDB records change.
 n8n workflow reads NocoDB records using the NocoDB MCP tools.
 
 ```
-Tool: mcp__nocodb__queryRecords
+Tool: mcp__plugin_stack-composable-stack-v1_nocodb__queryRecords
 Input: {
   "tableId": "tbl_xxx",
   "where": "(Status,eq,active)",
@@ -73,7 +73,7 @@ Use this pattern when:
 n8n workflow creates or updates NocoDB records after processing.
 
 ```
-Tool: mcp__nocodb__createRecords
+Tool: mcp__plugin_stack-composable-stack-v1_nocodb__createRecords
 Input: {
   "tableId": "tbl_xxx",
   "records": [

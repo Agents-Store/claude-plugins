@@ -10,7 +10,7 @@ Configure a HookV3 webhook on a table — fire on insert / update / delete (or b
 
 ## Steps
 
-1. Resolve the target table ID via `mcp__nocodb__getTablesList` or `nc table:list`.
+1. Resolve the target table ID via `mcp__plugin_nocodb-dev_nocodb__getTablesList` or `nc table:list`.
 2. Gather the user's intent:
    - **Event**: `record` (default — fires on the chosen `operation`(s) after commit) or `manual` (fires only when explicitly invoked from a Button or Script)
    - **Operations**: array of `insert` / `update` / `delete` (one hook can listen to multiple)

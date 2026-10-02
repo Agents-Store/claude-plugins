@@ -1,6 +1,6 @@
 ---
 description: List CRM contacts
-allowed-tools: mcp__sendpulse__crm_contacts_list
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__crm_contacts_list
 argument-hint: [--limit <number>]
 ---
 

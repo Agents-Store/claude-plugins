@@ -1,6 +1,6 @@
 # OnPage Tools
 
-3 tools for page-level auditing, performance analysis, and content extraction. All prefixed with `mcp__dataforseo__`.
+3 tools for page-level auditing, performance analysis, and content extraction. All prefixed with `mcp__plugin_dataforseo-dev_dataforseo__`.
 
 ## Tool Reference
 
@@ -43,13 +43,13 @@ Returns the extracted text content, structured data (JSON-LD, microdata), Open G
 ### Run a full page audit
 
 ```
-Step 1 -- Tool: mcp__dataforseo__on_page_lighthouse
+Step 1 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__on_page_lighthouse
 Params:
   url: "https://example.com"
   enable_javascript: true
   full_data: true
 
-Step 2 -- Tool: mcp__dataforseo__on_page_instant_pages
+Step 2 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__on_page_instant_pages
 Params:
   url: "https://example.com"
   enable_javascript: true
@@ -60,7 +60,7 @@ Combine Lighthouse (performance/accessibility) with instant_pages (on-page SEO e
 ### Extract content for analysis
 
 ```
-Tool: mcp__dataforseo__on_page_content_parsing
+Tool: mcp__plugin_dataforseo-dev_dataforseo__on_page_content_parsing
 Params:
   url: "https://example.com/blog/article"
   enable_javascript: false

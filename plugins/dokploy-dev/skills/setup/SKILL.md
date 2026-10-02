@@ -42,7 +42,7 @@ The official `@dokploy/mcp` server exposes 546 tools across 50 categories. If th
 Call the MCP tool to list all projects:
 
 ```
-mcp__dokploy__project-all
+mcp__plugin_dokploy-dev_dokploy__project-all
 ```
 
 **No parameters required.**

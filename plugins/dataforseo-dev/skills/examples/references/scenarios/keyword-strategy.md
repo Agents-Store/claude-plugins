@@ -7,7 +7,7 @@ Build a comprehensive keyword strategy for launching a new project management Sa
 Start with 3-5 seed keywords and expand:
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_keyword_ideas
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keyword_ideas
 Input: {
   "keywords": ["project management software", "task management tool", "team collaboration app"],
   "location_name": "United States",
@@ -25,7 +25,7 @@ Collect the returned keywords into a master list.
 Use keyword suggestions for each high-value seed:
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_keyword_suggestions
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keyword_suggestions
 Input: {
   "keyword": "project management software",
   "location_name": "United States",
@@ -40,7 +40,7 @@ Input: {
 Get metrics for all collected keywords at once:
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_keyword_overview
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keyword_overview
 Input: {
   "keywords": ["project management software", "free project management tool", "task tracker app", "...up to 700 keywords"],
   "location_name": "United States",
@@ -53,7 +53,7 @@ Extract: search_volume, keyword_difficulty, cpc, competition_level.
 ## Step 4: Classify Search Intent
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_search_intent
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_search_intent
 Input: {
   "keywords": ["best project management software", "what is project management", "monday.com pricing", "buy project management tool"],
   "language_code": "en"
@@ -69,7 +69,7 @@ Group keywords by intent:
 ## Step 5: Assess Difficulty
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_bulk_keyword_difficulty
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_bulk_keyword_difficulty
 Input: {
   "keywords": ["project management software", "free task management", "team collaboration tool"],
   "location_name": "United States",

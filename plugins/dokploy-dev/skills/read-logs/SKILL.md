@@ -37,7 +37,7 @@ All runtime-log tools share three optional filters:
 A standalone application is one container. Read it directly:
 
 ```
-mcp__dokploy__application-readLogs
+mcp__plugin_dokploy-dev_dokploy__application-readLogs
   → { applicationId: "<id>", tail: 200, since: "1h", search?: "error" }
 ```
 
@@ -53,7 +53,7 @@ This is the workflow the user means by "read all the logs of all containers." A 
 **1. Resolve the stack identity.**
 
 ```
-mcp__dokploy__compose-one → { composeId: "<id>" }
+mcp__plugin_dokploy-dev_dokploy__compose-one → { composeId: "<id>" }
    ↳ read .appName        (the Docker name prefix Dokploy assigns)
    ↳ read .composeType    ("docker-compose" | "stack")
 ```
@@ -74,7 +74,7 @@ Each returned container is `{ containerId, name, state, status }` — e.g. `{ co
 
 ```
 for each container c in the enumerated list:
-  mcp__dokploy__compose-readLogs
+  mcp__plugin_dokploy-dev_dokploy__compose-readLogs
     → { composeId: "<id>", containerId: c.containerId, tail: 200, since: "1h", search?: "error" }
 ```
 
@@ -92,12 +92,12 @@ The build log explains why an image failed to build (before any container starts
 
 ```
 1. Find the deployment:
-   mcp__dokploy__deployment-all { applicationId }   # or { composeId } / { serverId }
-   mcp__dokploy__deployment-allCentralized          # if you don't know which resource
+   mcp__plugin_dokploy-dev_dokploy__deployment-all { applicationId }   # or { composeId } / { serverId }
+   mcp__plugin_dokploy-dev_dokploy__deployment-allCentralized          # if you don't know which resource
    ↳ pick the most recent row with status: "error"; save deploymentId
 
 2. Read it:
-   mcp__dokploy__deployment-readLogs { deploymentId: "<id>", tail: 500 }
+   mcp__plugin_dokploy-dev_dokploy__deployment-readLogs { deploymentId: "<id>", tail: 500 }
 ```
 
 `deployment-readLogs` takes only `deploymentId` + `tail` (no `since`/`search` — it's one finite artifact). Use this for build-time failures; use §1/§2 for run-time failures.
@@ -117,12 +117,12 @@ The build log explains why an image failed to build (before any container starts
 Each database type has its own `readLogs` with the same filters:
 
 ```
-mcp__dokploy__postgres-readLogs { postgresId, tail, since, search }
-mcp__dokploy__mysql-readLogs    { mysqlId,    tail, since, search }
-mcp__dokploy__mariadb-readLogs  { mariadbId,  tail, since, search }
-mcp__dokploy__mongo-readLogs    { mongoId,    tail, since, search }
-mcp__dokploy__redis-readLogs    { redisId,    tail, since, search }
-mcp__dokploy__libsql-readLogs   { libsqlId,   tail, since, search }
+mcp__plugin_dokploy-dev_dokploy__postgres-readLogs { postgresId, tail, since, search }
+mcp__plugin_dokploy-dev_dokploy__mysql-readLogs    { mysqlId,    tail, since, search }
+mcp__plugin_dokploy-dev_dokploy__mariadb-readLogs  { mariadbId,  tail, since, search }
+mcp__plugin_dokploy-dev_dokploy__mongo-readLogs    { mongoId,    tail, since, search }
+mcp__plugin_dokploy-dev_dokploy__redis-readLogs    { redisId,    tail, since, search }
+mcp__plugin_dokploy-dev_dokploy__libsql-readLogs   { libsqlId,   tail, since, search }
 ```
 
 Get the id from `{type}-one` / `{type}-search`. Typical hunts: `search: "FATAL"` (Postgres auth/startup), `search: "Out of memory"`, `search: "Access denied"` (MySQL/MariaDB creds).
@@ -134,13 +134,13 @@ Get the id from `{type}-one` / `{type}-search`. Typical hunts: `search: "FATAL"`
 If an AI provider is configured, let it summarize the text you just fetched. **`ai-analyzeLogs` does NOT take a `deploymentId`** — you pass the actual log text:
 
 ```
-1. aiId  = first enabled provider from  mcp__dokploy__ai-getEnabledProviders
+1. aiId  = first enabled provider from  mcp__plugin_dokploy-dev_dokploy__ai-getEnabledProviders
            (if empty → AI not configured; skip, or wire one up via the ai-assist skill)
 2. logs  = the log text returned by readLogs in §1–§4 (truncate very large logs)
 3. context = "build"   for §3 deployment logs
              "runtime" for §1 / §2 / §4 logs
 
-mcp__dokploy__ai-analyzeLogs → { aiId, logs, context }
+mcp__plugin_dokploy-dev_dokploy__ai-analyzeLogs → { aiId, logs, context }
    ↳ returns a natural-language root cause + suggested fix
 ```
 

@@ -51,7 +51,7 @@ return { json: await response.json() };
 Trigger a task directly using the Trigger.dev MCP tools.
 
 ```
-Tool: mcp__trigger-dev__trigger_task
+Tool: mcp__plugin_stack-composable-stack-v1_trigger-dev__trigger_task
 Input: {
   "taskId": "process-nocodb-record",
   "payload": {
@@ -108,14 +108,14 @@ export const aiProcessRecord = task({
 Check task status via MCP:
 
 ```
-Tool: mcp__trigger-dev__get_run_details
+Tool: mcp__plugin_stack-composable-stack-v1_trigger-dev__get_run_details
 Input: { "runId": "run_xxx" }
 ```
 
 List recent runs:
 
 ```
-Tool: mcp__trigger-dev__list_runs
+Tool: mcp__plugin_stack-composable-stack-v1_trigger-dev__list_runs
 Input: { "limit": 10 }
 ```
 

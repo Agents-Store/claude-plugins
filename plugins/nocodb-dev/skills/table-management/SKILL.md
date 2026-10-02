@@ -19,8 +19,8 @@ All operations on tables go through the **REST API** or the **`nc` CLI**. The MC
 Before creating or changing a table, snapshot the base:
 
 ```
-mcp__nocodb__getBaseInfo                        ← confirm working base
-mcp__nocodb__getTablesList                      ← collect existing table titles & IDs
+mcp__plugin_nocodb-dev_nocodb__getBaseInfo                        ← confirm working base
+mcp__plugin_nocodb-dev_nocodb__getTablesList                      ← collect existing table titles & IDs
 ```
 
 Avoid name collisions and unintended duplicates. NocoDB does not enforce title uniqueness within a base — duplicates are accepted but cause downstream confusion.
@@ -67,7 +67,7 @@ Response includes the new `tableId` (prefix `m`).
 ### Verify
 
 ```
-mcp__nocodb__getTableSchema  tableId: <newTableId>
+mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <newTableId>
 ```
 
 The response should list every field you created, with auto-assigned column IDs and the first non-system field as the display field.
@@ -113,7 +113,7 @@ NocoDB's CLI doesn't expose a single duplicate command. To clone:
 1. Read the source schema:
 
 ```
-mcp__nocodb__getTableSchema  tableId: <sourceTableId>
+mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <sourceTableId>
 ```
 
 2. Strip IDs from the response and POST as a new table:
@@ -147,7 +147,7 @@ curl -sS -X DELETE \
 Pre-delete audit:
 
 ```
-mcp__nocodb__countRecords  tableId: <tableId>
+mcp__plugin_nocodb-dev_nocodb__countRecords  tableId: <tableId>
 ```
 
 Then `getTablesList` and `getTableSchema` for every other table in the base, and grep the JSON for `linked_table_id == <tableId>` or `parentId/childId == <tableId>` — those are the relations that will break.

@@ -1,6 +1,6 @@
 ---
 description: List store customers with optional search
-allowed-tools: ["mcp__teleshop__list_customers"]
+allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__list_customers"]
 argument-hint: [--search <query>]
 ---
 

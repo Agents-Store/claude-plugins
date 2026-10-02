@@ -1,6 +1,6 @@
 ---
 description: List email addressbooks with subscriber counts
-allowed-tools: mcp__sendpulse__email_addressbooks_list
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__email_addressbooks_list
 argument-hint: [--limit <number>]
 ---
 

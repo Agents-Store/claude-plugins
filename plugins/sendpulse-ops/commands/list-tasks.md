@@ -1,6 +1,6 @@
 ---
 description: List CRM tasks
-allowed-tools: mcp__sendpulse__crm_tasks_list
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__crm_tasks_list
 argument-hint: [--limit <number>]
 ---
 

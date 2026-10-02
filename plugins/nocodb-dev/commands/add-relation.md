@@ -10,15 +10,15 @@ Connect two NocoDB tables with a Link field. Optionally add a Lookup so the link
 
 ## Steps
 
-1. Resolve both table IDs via `mcp__nocodb__getTablesList` or `nc table:list`.
+1. Resolve both table IDs via `mcp__plugin_nocodb-dev_nocodb__getTablesList` or `nc table:list`.
 2. Decide the cardinality:
    - **bt** (belongs-to) — many-to-one. Each row on the "from" side links to one row on the "to" side. (Order belongs to Customer.)
    - **hm** (has-many) — one-to-many. Each row on the "from" side links to many rows on the "to" side. (Customer has-many Orders.)
    - **mm** (many-to-many) — both sides link to many. (Tags ↔ Articles.)
 3. Snapshot both tables before:
    ```
-   mcp__nocodb__getTableSchema  tableId: <fromTableId>
-   mcp__nocodb__getTableSchema  tableId: <toTableId>
+   mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <fromTableId>
+   mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <toTableId>
    ```
 4. Create the link field on the "from" table:
    ```bash
@@ -31,7 +31,7 @@ Connect two NocoDB tables with a Link field. Optionally add a Lookup so the link
    ```
 5. Verify the inverse link auto-appeared on the "to" table:
    ```
-   mcp__nocodb__getTableSchema  tableId: <toTableId>
+   mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <toTableId>
    ```
 6. (Optional) Ask the user if they want a Lookup that surfaces a column from the linked side. If yes:
    - Find the link's column ID on the "from" side (from step 5's snapshot).

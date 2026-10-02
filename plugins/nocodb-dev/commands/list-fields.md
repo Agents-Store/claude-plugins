@@ -13,7 +13,7 @@ Print every field on a table — title, type, options summary.
 1. Resolve the target table ID — `nc table:list <baseId>` if name was passed.
 2. Run:
    ```
-   mcp__nocodb__getTableSchema  tableId: <tableId>
+   mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <tableId>
    ```
 3. Format the response as a table:
 

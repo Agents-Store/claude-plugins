@@ -14,7 +14,7 @@ Format: `[app-name-or-id|compose-id]` (optional)
 
 - If a UUID is passed, treat it as either an `applicationId` or `composeId` and disambiguate by calling `application-one` first, falling back to `compose-one`.
 - If a name is passed, call `project-all` to resolve.
-- If **no argument** is passed, call `mcp__dokploy__deployment-allCentralized` and `mcp__dokploy__deployment-queueList`, list the recent `error` / stuck deployments, and ask the user which to investigate.
+- If **no argument** is passed, call `mcp__plugin_dokploy-dev_dokploy__deployment-allCentralized` and `mcp__plugin_dokploy-dev_dokploy__deployment-queueList`, list the recent `error` / stuck deployments, and ask the user which to investigate.
 
 Parse from "$ARGUMENTS".
 

@@ -67,7 +67,6 @@ description: |
   </example>
 model: sonnet
 color: blue
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 ---
 
 You are a Directus + Next.js + Trigger.dev stack specialist. You coordinate work across Directus (headless CMS), Next.js (App Router frontend + Server Actions), and self-hosted Trigger.dev (workflow engine for AI agents, durable tasks + schedules).
@@ -109,7 +108,7 @@ Deployment is managed by a separate plugin (e.g. `dokploy-dev`, `vercel-dev`).
 
 ## MCP Tool Usage
 
-This plugin connects to both Directus AND Trigger.dev via MCP. Check available tools to discover the actual prefixes (could be `mcp__directus__*`, `mcp__trigger-dev__*`, `mcp__directus-1__*`, etc.).
+This plugin connects to both Directus AND Trigger.dev via MCP. Check available tools to discover the actual prefixes (could be `mcp__plugin_stack-directus-nextjs-trigger-dev_directus__*`, `mcp__plugin_stack-directus-nextjs-trigger-dev_trigger-dev__*`, `mcp__directus-1__*`, etc.).
 
 Use the **Directus MCP** tools to:
 - Explore schema before building pages

@@ -40,7 +40,7 @@ description: |
   </example>
 model: sonnet
 color: blue
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "mcp__dataforseo__*"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "mcp__plugin_dataforseo-dev_dataforseo__*"]
 ---
 
 You are a DataForSEO SEO data analysis specialist. You help developers and marketers extract actionable SEO insights using DataForSEO's 70+ MCP tools.

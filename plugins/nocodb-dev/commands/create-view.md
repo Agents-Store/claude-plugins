@@ -13,7 +13,7 @@ Create a new view on an existing table. Each view type has different prerequisit
 1. Resolve the target table ID.
 2. Snapshot existing views and the field list:
    ```
-   mcp__nocodb__getTableSchema  tableId: <tableId>
+   mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <tableId>
    ```
 3. Confirm the view title isn't already used on this table.
 4. Pick the view type and validate prerequisites:
@@ -23,7 +23,7 @@ Create a new view on an existing table. Each view type has different prerequisit
    - **Calendar** — needs a Date or DateTime field; capture for `calendar_range[].fk_from_column_id`
    - **Map** — needs a Geometry field; capture for `fk_geo_data_col_id`
 5. Run `nc view:create:<type> <baseId> <tableId> '<JSON>'` per **cli-reference**.
-6. Verify with `mcp__nocodb__getTableSchema` — the new view appears in `views`.
+6. Verify with `mcp__plugin_nocodb-dev_nocodb__getTableSchema` — the new view appears in `views`.
 
 ## Reference
 

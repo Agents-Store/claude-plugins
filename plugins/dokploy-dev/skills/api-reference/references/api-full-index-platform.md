@@ -1,6 +1,6 @@
 # Dokploy API — Complete Operation Index: Platform & Admin
 
-Auto-generated from the Dokploy v0.29.14 OpenAPI schema — the **exhaustive** list of server, settings, git-provider, and tenancy/admin operations. Every row maps 1:1 to an MCP tool `mcp__dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params. Many of these are ops/admin surfaces outside the day-to-day dev flow — included for completeness.
+Auto-generated from the Dokploy v0.29.14 OpenAPI schema — the **exhaustive** list of server, settings, git-provider, and tenancy/admin operations. Every row maps 1:1 to an MCP tool `mcp__plugin_dokploy-dev_dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params. Many of these are ops/admin surfaces outside the day-to-day dev flow — included for completeness.
 
 ## Contents
 - [settings](#settings) — Server settings / health / cleanup (54)

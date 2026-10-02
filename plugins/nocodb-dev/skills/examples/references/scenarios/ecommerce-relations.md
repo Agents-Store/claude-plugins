@@ -114,7 +114,7 @@ nc field:create $BASE_ID $ORDERS_TID '{
 ## Step 7 — Sanity check
 
 ```
-mcp__nocodb__getTableSchema  tableId: $ORDERS_TID
+mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: $ORDERS_TID
 ```
 
 Expected fields on Orders: `OrderNo`, `Status`, `CreatedAt`, `Customer`, `Products`, `Subtotal`, `Customer Name`.

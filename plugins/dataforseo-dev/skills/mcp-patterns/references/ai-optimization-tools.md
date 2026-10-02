@@ -1,6 +1,6 @@
 # AI Optimization Tools
 
-13 tools for tracking LLM mentions, ChatGPT scraping, and AI-related keyword data. All prefixed with `mcp__dataforseo__`.
+13 tools for tracking LLM mentions, ChatGPT scraping, and AI-related keyword data. All prefixed with `mcp__plugin_dataforseo-dev_dataforseo__`.
 
 ## Tool Reference
 
@@ -80,7 +80,7 @@ You can mix domain and keyword targets in the same call.
 ### Check if LLMs mention your brand
 
 ```
-Tool: mcp__dataforseo__ai_opt_llm_ment_search
+Tool: mcp__plugin_dataforseo-dev_dataforseo__ai_opt_llm_ment_search
 Params:
   target: [{"domain": "mysite.com"}, {"keyword": "my brand name"}]
   platform: "chat_gpt"
@@ -94,14 +94,14 @@ Returns prompts where ChatGPT mentions the target domain or keyword, with contex
 ### Compare brand visibility across LLMs
 
 ```
-Step 1 -- Tool: mcp__dataforseo__ai_opt_llm_ment_agg_metrics
+Step 1 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__ai_opt_llm_ment_agg_metrics
 Params:
   target: [{"domain": "mysite.com"}]
   platform: "chat_gpt"
   location_name: "United States"
   language_code: "en"
 
-Step 2 -- Tool: mcp__dataforseo__ai_opt_llm_ment_agg_metrics
+Step 2 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__ai_opt_llm_ment_agg_metrics
 Params:
   target: [{"domain": "mysite.com"}]
   platform: "google"

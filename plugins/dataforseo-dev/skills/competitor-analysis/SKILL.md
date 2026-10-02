@@ -5,7 +5,7 @@ description: This skill should be used when the user asks about "competitor anal
 
 # Competitor Analysis Workflows
 
-Chained workflows for analyzing, comparing, and benchmarking competitor domains using DataForSEO MCP tools. All tool references use the `mcp__dataforseo__` prefix.
+Chained workflows for analyzing, comparing, and benchmarking competitor domains using DataForSEO MCP tools. All tool references use the `mcp__plugin_dataforseo-dev_dataforseo__` prefix.
 
 ## Workflow 1: Domain Overview
 

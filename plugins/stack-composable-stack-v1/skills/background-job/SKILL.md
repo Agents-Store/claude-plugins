@@ -120,7 +120,7 @@ export const processNewUser = task({
 ### Start a Trigger.dev Task
 
 ```
-Tool: mcp__trigger-dev__trigger_task
+Tool: mcp__plugin_stack-composable-stack-v1_trigger-dev__trigger_task
 Input: {
   "taskId": "process-order",
   "payload": { "orderId": 123 }
@@ -130,7 +130,7 @@ Input: {
 ### Monitor a Run
 
 ```
-Tool: mcp__trigger-dev__get_run_details
+Tool: mcp__plugin_stack-composable-stack-v1_trigger-dev__get_run_details
 Input: { "runId": "run_xxx" }
 ```
 

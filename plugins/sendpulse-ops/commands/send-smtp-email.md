@@ -1,6 +1,6 @@
 ---
 description: Send a transactional email via SMTP
-allowed-tools: mcp__sendpulse__smtp_emails_send, mcp__sendpulse__smtp_senders_list, mcp__sendpulse__smtp_unsubscribes_is_unsubscribed
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__smtp_emails_send, mcp__plugin_sendpulse-ops_sendpulse__smtp_senders_list, mcp__plugin_sendpulse-ops_sendpulse__smtp_unsubscribes_is_unsubscribed
 argument-hint: <to-email> <subject> <body>
 ---
 

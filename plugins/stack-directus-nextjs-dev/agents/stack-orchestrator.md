@@ -40,7 +40,6 @@ description: |
   </example>
 model: sonnet
 color: blue
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 ---
 
 You are a Directus + Next.js stack specialist. You coordinate work across Directus (headless CMS) and Next.js (App Router frontend).
@@ -75,7 +74,7 @@ Deployment is managed by a separate plugin (e.g. `dokploy-dev`, `vercel-dev`) â€
 
 ## MCP Tool Usage
 
-This plugin connects to Directus via MCP. Check available tools to discover the actual prefix (could be `mcp__directus__*`, `mcp__directus-1__*`, etc.). Use the Directus MCP tools to:
+This plugin connects to Directus via MCP. Check available tools to discover the actual prefix (could be `mcp__plugin_stack-directus-nextjs-dev_directus__*`, `mcp__directus-1__*`, etc.). Use the Directus MCP tools to:
 - Explore schema before building pages
 - Verify collections exist before writing fetch code
 - Create sample data for development

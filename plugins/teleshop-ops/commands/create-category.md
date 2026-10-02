@@ -1,6 +1,6 @@
 ---
 description: Create a new product category
-allowed-tools: ["mcp__teleshop__create_category", "mcp__teleshop__list_categories"]
+allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__create_category", "mcp__plugin_teleshop-ops_teleshop__list_categories"]
 argument-hint: <title> [--parent <id>] [--orderBy cheap|expensive|novelty|popular]
 ---
 

@@ -5,7 +5,7 @@ description: This skill should be used when the user asks about "keyword researc
 
 # Keyword Research Workflows
 
-Chained workflows for discovering, evaluating, and prioritizing keywords using DataForSEO MCP tools. All tool references use the `mcp__dataforseo__` prefix.
+Chained workflows for discovering, evaluating, and prioritizing keywords using DataForSEO MCP tools. All tool references use the `mcp__plugin_dataforseo-dev_dataforseo__` prefix.
 
 ## Workflow 1: Topic-Based Keyword Research
 

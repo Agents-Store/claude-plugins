@@ -5,7 +5,7 @@ description: This skill should be used when the user asks about "backlink audit"
 
 # Backlink Audit Workflows
 
-Chained workflows for auditing, analyzing, and prospecting backlinks using DataForSEO MCP tools. All tool references use the `mcp__dataforseo__` prefix.
+Chained workflows for auditing, analyzing, and prospecting backlinks using DataForSEO MCP tools. All tool references use the `mcp__plugin_dataforseo-dev_dataforseo__` prefix.
 
 ## Workflow 1: Full Profile Audit
 

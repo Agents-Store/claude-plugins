@@ -11,7 +11,7 @@ description: |
 
 # NocoDB MCP — Discovery for Dev Work
 
-All tools use the `mcp__nocodb__` prefix. **The shared NocoDB MCP server has no schema-write tools.** Use it strictly for discovering state before and verifying state after changes made through the REST API or CLI.
+All tools use the `mcp__plugin_nocodb-dev_nocodb__` prefix. **The shared NocoDB MCP server has no schema-write tools.** Use it strictly for discovering state before and verifying state after changes made through the REST API or CLI.
 
 ## What the MCP Can Do (for dev workflows)
 
@@ -53,17 +53,17 @@ Every schema change should follow this loop:
 ## Pattern — Discover Before Adding a Field
 
 ```
-Step 1: mcp__nocodb__getTablesList
+Step 1: mcp__plugin_nocodb-dev_nocodb__getTablesList
         → find the table you want to extend, note its ID
 
-Step 2: mcp__nocodb__getTableSchema  tableId: m_abc123
+Step 2: mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: m_abc123
         → confirm a field with the new title doesn't already exist
         → confirm field type compatibility (e.g. don't add a Lookup until the link exists)
 
 Step 3: nc field:create <baseId> <tableId> '{"title":"Phone","type":"PhoneNumber"}'
         ← actual write happens here, not in MCP
 
-Step 4: mcp__nocodb__getTableSchema  tableId: m_abc123
+Step 4: mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: m_abc123
         → the new field appears in the columns array
 ```
 
@@ -74,7 +74,7 @@ A Formula field is computed server-side; only one way to know it works is to rea
 ```
 Step 1: nc field:create <baseId> <tableId> '{"title":"Days Open","type":"Formula","formula":"DATETIME_DIFF(NOW(), {CreatedAt}, \"days\")"}'
 
-Step 2: mcp__nocodb__queryRecords
+Step 2: mcp__plugin_nocodb-dev_nocodb__queryRecords
           tableId: m_abc123
           fields: ["Title", "CreatedAt", "Days Open"]
           pageSize: 5
@@ -86,11 +86,11 @@ Step 2: mcp__nocodb__queryRecords
 Before changing a SingleSelect → MultiSelect, or before deleting a column, audit the data.
 
 ```
-Step 1: mcp__nocodb__countRecords
+Step 1: mcp__plugin_nocodb-dev_nocodb__countRecords
           tableId: m_abc123
         → total record count
 
-Step 2: mcp__nocodb__countRecords
+Step 2: mcp__plugin_nocodb-dev_nocodb__countRecords
           tableId: m_abc123
           where: "(Status,blank,)"
         → records that have an empty value in the target column
@@ -112,4 +112,4 @@ Step 2: mcp__nocodb__countRecords
 | "Table not found" | Wrong `tableId` | Re-run `getTablesList` |
 | "Field not found" | Schema cache stale or wrong field name | Re-run `getTableSchema`; field names are case-sensitive |
 | 401 / 403 from MCP | `xc-mcp-token` invalid or no access | See **setup** → MCP rows |
-| Tool not found `mcp__nocodb__createTable` (etc.) | You reached for a write tool that doesn't exist | Switch to **api-reference** or **cli-reference** |
+| Tool not found `mcp__plugin_nocodb-dev_nocodb__createTable` (etc.) | You reached for a write tool that doesn't exist | Switch to **api-reference** or **cli-reference** |

@@ -21,11 +21,11 @@ For per-type payload examples, see **`api-reference/references/field-types.md`**
 ## Workflow
 
 ```
-1. mcp__nocodb__getTableSchema  ← snapshot existing columns
+1. mcp__plugin_nocodb-dev_nocodb__getTableSchema  ← snapshot existing columns
 2. Plan the new field (title, type, options)
 3. nc field:create   OR   POST /api/v3/meta/bases/{baseId}/tables/{tableId}/fields
-4. mcp__nocodb__getTableSchema  ← confirm field appeared
-5. (optional) mcp__nocodb__queryRecords ← spot-check record render
+4. mcp__plugin_nocodb-dev_nocodb__getTableSchema  ← confirm field appeared
+5. (optional) mcp__plugin_nocodb-dev_nocodb__queryRecords ← spot-check record render
 ```
 
 ## Field Types Cheat Sheet
@@ -234,7 +234,7 @@ curl -sS -X DELETE \
 Pre-delete audit (find dependents):
 
 ```
-mcp__nocodb__getTableSchema  tableId: <tableId>
+mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <tableId>
 # Look at every other field's options for fk_lookup_column_id / fk_rollup_column_id == <columnId>
 # And every Formula's `formula` string for {<columnTitle>}
 ```
@@ -264,7 +264,7 @@ The classic CRM pattern: each Order has one Customer; surface customer name on t
 Formula errors appear at create time but also at runtime per-row. After creating a Formula, query 2–3 records to spot-check:
 
 ```
-mcp__nocodb__queryRecords
+mcp__plugin_nocodb-dev_nocodb__queryRecords
   tableId: <tableId>
   fields: ["Title", "<formulaFieldName>"]
   pageSize: 3

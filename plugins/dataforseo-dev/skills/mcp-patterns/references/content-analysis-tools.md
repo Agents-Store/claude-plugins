@@ -1,6 +1,6 @@
 # Content Analysis Tools
 
-3 tools for analyzing web content at scale -- search, summarize, and track phrase trends. All prefixed with `mcp__dataforseo__`.
+3 tools for analyzing web content at scale -- search, summarize, and track phrase trends. All prefixed with `mcp__plugin_dataforseo-dev_dataforseo__`.
 
 ## Tool Reference
 
@@ -42,13 +42,13 @@
 ### Analyze content landscape for a topic
 
 ```
-Step 1 -- Tool: mcp__dataforseo__content_analysis_summary
+Step 1 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__content_analysis_summary
 Params:
   keyword: "remote work productivity"
   page_type: "blogs"
   keyword_fields: "title,snippet"
 
-Step 2 -- Tool: mcp__dataforseo__content_analysis_search
+Step 2 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__content_analysis_search
 Params:
   keyword: "remote work productivity"
   page_type: "blogs"
@@ -61,7 +61,7 @@ Summary gives you aggregate stats (total mentions, sentiment distribution, top d
 ### Track brand mentions over time
 
 ```
-Tool: mcp__dataforseo__content_analysis_phrase_trends
+Tool: mcp__plugin_dataforseo-dev_dataforseo__content_analysis_phrase_trends
 Params:
   keyword: "your-brand-name"
   date_from: "2025-01-01"

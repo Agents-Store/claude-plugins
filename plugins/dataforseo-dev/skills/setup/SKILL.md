@@ -20,7 +20,7 @@ Verify that the DataForSEO MCP connection is working correctly.
 Run a lightweight read operation to verify connectivity:
 
 ```
-Tool: mcp__dataforseo__serp_locations
+Tool: mcp__plugin_dataforseo-dev_dataforseo__serp_locations
 Input: { "country_iso_code": "US" }
 ```
 
@@ -31,7 +31,7 @@ Input: { "country_iso_code": "US" }
 Run a keyword data request to verify credentials work:
 
 ```
-Tool: mcp__dataforseo__dataforseo_labs_google_keyword_overview
+Tool: mcp__plugin_dataforseo-dev_dataforseo__dataforseo_labs_google_keyword_overview
 Input: { "keywords": ["test"], "location_name": "United States", "language_code": "en" }
 ```
 

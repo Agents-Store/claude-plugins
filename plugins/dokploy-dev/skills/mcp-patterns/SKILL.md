@@ -5,7 +5,7 @@ description: "This skill should be used when deploying applications, managing pr
 
 # Dokploy MCP Tool Patterns
 
-The official `@dokploy/mcp` server exposes **546 tools across 50 categories (v0.29.14)**. Each tool is prefixed with `mcp__dokploy__`. This skill covers every category developers and operators use day-to-day: projects, applications, domains, compose, six database types, deployment history, the cross-cutting recovery chain, the AI router (new in v0.29), Docker introspection, settings/cleanup/health, schedules, patches, volume backups, and preview deployments. Categories not fully tabled here are listed at the end with a pointer to the matching reference file.
+The official `@dokploy/mcp` server exposes **546 tools across 50 categories (v0.29.14)**. Each tool is prefixed with `mcp__plugin_dokploy-dev_dokploy__`. This skill covers every category developers and operators use day-to-day: projects, applications, domains, compose, six database types, deployment history, the cross-cutting recovery chain, the AI router (new in v0.29), Docker introspection, settings/cleanup/health, schedules, patches, volume backups, and preview deployments. Categories not fully tabled here are listed at the end with a pointer to the matching reference file.
 
 To reduce the exposed tool surface, set `DOKPLOY_ENABLED_TAGS` in `.mcp.json` `env` to a comma-separated list of categories (e.g. `project,application,domain,compose,postgres,settings,deployment,docker,ai,rollback,schedule`).
 
@@ -17,15 +17,15 @@ Projects are the top-level container. Every application, database, and compose s
 
 | Tool | Description | Parameters |
 |---|---|---|
-| `mcp__dokploy__project-all` | List all projects | None |
-| `mcp__dokploy__project-allForPermissions` | List projects the current token can access | None |
-| `mcp__dokploy__project-one` | Get a single project by ID | `projectId` (string, required) |
-| `mcp__dokploy__project-create` | Create a new project | `name` (string, required), `description` (string, optional) |
-| `mcp__dokploy__project-update` | Update project metadata | `projectId` (string, required), `name` (string), `description` (string) |
-| `mcp__dokploy__project-duplicate` | Duplicate an environment's resources | `sourceEnvironmentId` (required), `name` (required), `description`, `includeServices`, `selectedServices`, `duplicateInSameProject` |
-| `mcp__dokploy__project-remove` | Delete a project and all its resources | `projectId` (string, required) |
-| `mcp__dokploy__project-search` | Search projects by name | `query` (string) |
-| `mcp__dokploy__project-homeStats` | Aggregate dashboard/home stats across projects | None |
+| `mcp__plugin_dokploy-dev_dokploy__project-all` | List all projects | None |
+| `mcp__plugin_dokploy-dev_dokploy__project-allForPermissions` | List projects the current token can access | None |
+| `mcp__plugin_dokploy-dev_dokploy__project-one` | Get a single project by ID | `projectId` (string, required) |
+| `mcp__plugin_dokploy-dev_dokploy__project-create` | Create a new project | `name` (string, required), `description` (string, optional) |
+| `mcp__plugin_dokploy-dev_dokploy__project-update` | Update project metadata | `projectId` (string, required), `name` (string), `description` (string) |
+| `mcp__plugin_dokploy-dev_dokploy__project-duplicate` | Duplicate an environment's resources | `sourceEnvironmentId` (required), `name` (required), `description`, `includeServices`, `selectedServices`, `duplicateInSameProject` |
+| `mcp__plugin_dokploy-dev_dokploy__project-remove` | Delete a project and all its resources | `projectId` (string, required) |
+| `mcp__plugin_dokploy-dev_dokploy__project-search` | Search projects by name | `query` (string) |
+| `mcp__plugin_dokploy-dev_dokploy__project-homeStats` | Aggregate dashboard/home stats across projects | None |
 
 ### Usage notes
 
@@ -43,21 +43,21 @@ Applications are the primary deployment unit. They support multiple source types
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__application-one` | Get application details | `applicationId` |
-| `mcp__dokploy__application-create` | Create a new application | `environmentId` (required), `name` (required), `appName` (unique slug) |
-| `mcp__dokploy__application-update` | Update application settings | `applicationId`, plus any updatable fields |
-| `mcp__dokploy__application-delete` | Delete an application | `applicationId` |
-| `mcp__dokploy__application-search` | Search applications by name | `query` |
+| `mcp__plugin_dokploy-dev_dokploy__application-one` | Get application details | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-create` | Create a new application | `environmentId` (required), `name` (required), `appName` (unique slug) |
+| `mcp__plugin_dokploy-dev_dokploy__application-update` | Update application settings | `applicationId`, plus any updatable fields |
+| `mcp__plugin_dokploy-dev_dokploy__application-delete` | Delete an application | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-search` | Search applications by name | `query` |
 
 ### Lifecycle (5 tools)
 
 | Tool | Description | Parameters |
 |---|---|---|
-| `mcp__dokploy__application-deploy` | Trigger a new deployment | `applicationId` |
-| `mcp__dokploy__application-redeploy` | Redeploy with latest config | `applicationId` |
-| `mcp__dokploy__application-start` | Start a stopped application | `applicationId` |
-| `mcp__dokploy__application-stop` | Stop a running application | `applicationId` |
-| `mcp__dokploy__application-reload` | Reload application (zero-downtime) | `applicationId`, `appName` (both required) |
+| `mcp__plugin_dokploy-dev_dokploy__application-deploy` | Trigger a new deployment | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-redeploy` | Redeploy with latest config | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-start` | Start a stopped application | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-stop` | Stop a running application | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-reload` | Reload application (zero-downtime) | `applicationId`, `appName` (both required) |
 
 **Key distinction:** `deploy` builds from source and deploys. `redeploy` re-runs the last deployment with current config. `reload` restarts the running container without rebuilding.
 
@@ -67,12 +67,12 @@ Connect an application to a Git source. Only one provider can be active at a tim
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__application-saveGithubProvider` | Connect to GitHub | `applicationId`, `repository` (repo name only — NOT full URL), `branch`, `owner`, `githubId`, `enableSubmodules` |
-| `mcp__dokploy__application-saveGitlabProvider` | Connect to GitLab | `applicationId`, `repository`, `branch`, `gitlabProjectId` |
-| `mcp__dokploy__application-saveBitbucketProvider` | Connect to Bitbucket | `applicationId`, `repository`, `branch`, `owner` |
-| `mcp__dokploy__application-saveGiteaProvider` | Connect to Gitea | `applicationId`, `repository`, `branch`, `owner` |
-| `mcp__dokploy__application-saveGitProvider` | Connect to any Git URL | `applicationId`, `customGitUrl`, `customGitBranch`, `customGitBuildPath`, `enableSubmodules`, `watchPaths` |
-| `mcp__dokploy__application-disconnectGitProvider` | Remove Git connection | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-saveGithubProvider` | Connect to GitHub | `applicationId`, `repository` (repo name only — NOT full URL), `branch`, `owner`, `githubId`, `enableSubmodules` |
+| `mcp__plugin_dokploy-dev_dokploy__application-saveGitlabProvider` | Connect to GitLab | `applicationId`, `repository`, `branch`, `gitlabProjectId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-saveBitbucketProvider` | Connect to Bitbucket | `applicationId`, `repository`, `branch`, `owner` |
+| `mcp__plugin_dokploy-dev_dokploy__application-saveGiteaProvider` | Connect to Gitea | `applicationId`, `repository`, `branch`, `owner` |
+| `mcp__plugin_dokploy-dev_dokploy__application-saveGitProvider` | Connect to any Git URL | `applicationId`, `customGitUrl`, `customGitBranch`, `customGitBuildPath`, `enableSubmodules`, `watchPaths` |
+| `mcp__plugin_dokploy-dev_dokploy__application-disconnectGitProvider` | Remove Git connection | `applicationId` |
 
 **GitHub provider critical note:** The `repository` parameter for `saveGithubProvider` must be the **repository name only** (e.g. `"my-repo"`), NOT the full URL. Dokploy constructs the clone URL as `github.com/{owner}/{repository}` — passing a full URL like `https://github.com/org/repo` causes a broken double-URL (`github.com/org/https://github.com/org/repo`). You also need the `githubId` — get it from `gitProvider-getAll` (then filter by type `github`). Required fields: `applicationId`, `repository`, `branch`, `owner`, `githubId`, `enableSubmodules`, `triggerType` (default `"push"`), `watchPaths` (array, use `[]` if none), `buildPath` (default `"/"`).
 
@@ -82,31 +82,31 @@ Connect an application to a Git source. Only one provider can be active at a tim
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__application-saveBuildType` | Set build method | `applicationId`, `buildType` (`nixpacks`, `dockerfile`, `docker`, `buildpacks`) |
-| `mcp__dokploy__application-saveEnvironment` | Set environment variables | `applicationId`, `env` (newline-separated KEY=VALUE string) |
-| `mcp__dokploy__application-saveDockerProvider` | Set Docker image source | `applicationId`, `dockerImage`, `dockerTag` |
+| `mcp__plugin_dokploy-dev_dokploy__application-saveBuildType` | Set build method | `applicationId`, `buildType` (`nixpacks`, `dockerfile`, `docker`, `buildpacks`) |
+| `mcp__plugin_dokploy-dev_dokploy__application-saveEnvironment` | Set environment variables | `applicationId`, `env` (newline-separated KEY=VALUE string) |
+| `mcp__plugin_dokploy-dev_dokploy__application-saveDockerProvider` | Set Docker image source | `applicationId`, `dockerImage`, `dockerTag` |
 
 ### Monitoring, Logs & Config (4 tools)
 
 | Tool | Description | Parameters |
 |---|---|---|
-| `mcp__dokploy__application-readAppMonitoring` | Read monitoring metrics (CPU, memory, network) | `applicationId` |
-| `mcp__dokploy__application-readLogs` | Read the app container's runtime stdout/stderr (v0.29.0+) | `applicationId` (required), `tail` (1–10000, default 100), `since` (`all` or `<n>{s\|m\|h\|d}`), `search` (substring) |
-| `mcp__dokploy__application-readTraefikConfig` | Read current Traefik routing config | `applicationId` |
-| `mcp__dokploy__application-updateTraefikConfig` | Update Traefik routing rules | `applicationId`, `traefikConfig` (YAML string) |
+| `mcp__plugin_dokploy-dev_dokploy__application-readAppMonitoring` | Read monitoring metrics (CPU, memory, network) | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-readLogs` | Read the app container's runtime stdout/stderr (v0.29.0+) | `applicationId` (required), `tail` (1–10000, default 100), `since` (`all` or `<n>{s\|m\|h\|d}`), `search` (substring) |
+| `mcp__plugin_dokploy-dev_dokploy__application-readTraefikConfig` | Read current Traefik routing config | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-updateTraefikConfig` | Update Traefik routing rules | `applicationId`, `traefikConfig` (YAML string) |
 
 ### Deployment & Queue Management (8 tools)
 
 | Tool | Description | Parameters |
 |---|---|---|
-| `mcp__dokploy__application-move` | Move application to another environment | `applicationId`, `targetEnvironmentId` |
-| `mcp__dokploy__application-markRunning` | Force-mark application as running | `applicationId` |
-| `mcp__dokploy__application-cancelDeployment` | Cancel an in-progress deployment | `applicationId` |
-| `mcp__dokploy__application-killBuild` | Kill the currently-running build process | `applicationId` |
-| `mcp__dokploy__application-refreshToken` | Regenerate application webhook token | `applicationId` |
-| `mcp__dokploy__application-cleanQueues` | Clear stuck deployment queues | `applicationId` |
-| `mcp__dokploy__application-clearDeployments` | Purge historical deployment records | `applicationId` |
-| `mcp__dokploy__application-dropDeployment` | Drop a specific deployment | `deploymentId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-move` | Move application to another environment | `applicationId`, `targetEnvironmentId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-markRunning` | Force-mark application as running | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-cancelDeployment` | Cancel an in-progress deployment | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-killBuild` | Kill the currently-running build process | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-refreshToken` | Regenerate application webhook token | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-cleanQueues` | Clear stuck deployment queues | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-clearDeployments` | Purge historical deployment records | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__application-dropDeployment` | Drop a specific deployment | `deploymentId` |
 
 ### Application usage notes
 
@@ -126,15 +126,15 @@ Domains map hostnames to applications or compose services. Dokploy uses Traefik 
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__domain-byApplicationId` | List domains for an application | `applicationId` |
-| `mcp__dokploy__domain-byComposeId` | List domains for a compose stack | `composeId` |
-| `mcp__dokploy__domain-one` | Get a single domain by ID | `domainId` |
-| `mcp__dokploy__domain-create` | Create a domain mapping | See below |
-| `mcp__dokploy__domain-update` | Update domain settings | `domainId`, plus updatable fields |
-| `mcp__dokploy__domain-delete` | Delete a domain | `domainId` |
-| `mcp__dokploy__domain-validateDomain` | Check DNS resolution for a domain | `domain` (required — the hostname string, NOT domainId), `serverIp` (optional) |
-| `mcp__dokploy__domain-generateDomain` | Auto-generate a subdomain | `appName` (required), `serverId` |
-| `mcp__dokploy__domain-canGenerateTraefikMeDomains` | Check if .traefik.me domains are available | None |
+| `mcp__plugin_dokploy-dev_dokploy__domain-byApplicationId` | List domains for an application | `applicationId` |
+| `mcp__plugin_dokploy-dev_dokploy__domain-byComposeId` | List domains for a compose stack | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__domain-one` | Get a single domain by ID | `domainId` |
+| `mcp__plugin_dokploy-dev_dokploy__domain-create` | Create a domain mapping | See below |
+| `mcp__plugin_dokploy-dev_dokploy__domain-update` | Update domain settings | `domainId`, plus updatable fields |
+| `mcp__plugin_dokploy-dev_dokploy__domain-delete` | Delete a domain | `domainId` |
+| `mcp__plugin_dokploy-dev_dokploy__domain-validateDomain` | Check DNS resolution for a domain | `domain` (required — the hostname string, NOT domainId), `serverIp` (optional) |
+| `mcp__plugin_dokploy-dev_dokploy__domain-generateDomain` | Auto-generate a subdomain | `appName` (required), `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__domain-canGenerateTraefikMeDomains` | Check if .traefik.me domains are available | None |
 
 ### `domain-create` parameters
 
@@ -167,16 +167,16 @@ Docker Compose stacks deploy multi-container applications defined by a `docker-c
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__compose-one` | Get compose stack details | `composeId` |
-| `mcp__dokploy__compose-create` | Create a compose stack | `environmentId` (required), `name` (required), `appName` |
-| `mcp__dokploy__compose-update` | Update compose settings + source (see note below) | `composeId`, updatable fields |
-| `mcp__dokploy__compose-delete` | Delete a compose stack | `composeId` |
-| `mcp__dokploy__compose-deploy` | Deploy the compose stack | `composeId` |
-| `mcp__dokploy__compose-redeploy` | Redeploy with current config | `composeId` |
-| `mcp__dokploy__compose-start` | Start compose services | `composeId` |
-| `mcp__dokploy__compose-stop` | Stop all compose services | `composeId` |
-| `mcp__dokploy__compose-move` | Move compose stack to another environment | `composeId`, `targetEnvironmentId` |
-| `mcp__dokploy__compose-search` | Search compose stacks by name | `query` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-one` | Get compose stack details | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-create` | Create a compose stack | `environmentId` (required), `name` (required), `appName` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-update` | Update compose settings + source (see note below) | `composeId`, updatable fields |
+| `mcp__plugin_dokploy-dev_dokploy__compose-delete` | Delete a compose stack | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-deploy` | Deploy the compose stack | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-redeploy` | Redeploy with current config | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-start` | Start compose services | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-stop` | Stop all compose services | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-move` | Move compose stack to another environment | `composeId`, `targetEnvironmentId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-search` | Search compose stacks by name | `query` |
 
 ### Source / Git Configuration
 
@@ -184,42 +184,42 @@ Unlike applications, compose git source is set **via `compose-update`**, not a s
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__compose-disconnectGitProvider` | Remove Git connection | `composeId` |
-| `mcp__dokploy__compose-fetchSourceType` | Detect source type from repo | `composeId` |
-| `mcp__dokploy__compose-import` | Import compose stack from external source | per-source fields |
+| `mcp__plugin_dokploy-dev_dokploy__compose-disconnectGitProvider` | Remove Git connection | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-fetchSourceType` | Detect source type from repo | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-import` | Import compose stack from external source | per-source fields |
 
 ### Templates
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__compose-templates` | List available compose templates | None |
-| `mcp__dokploy__compose-deployTemplate` | Deploy a compose template | `id` (template id), `environmentId`, `serverId` |
-| `mcp__dokploy__compose-processTemplate` | Render a template with variables | `templateId`, variables |
-| `mcp__dokploy__compose-previewTemplate` | Preview a rendered template before deploying | `base64` (required), `appName` (required), `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-templates` | List available compose templates | None |
+| `mcp__plugin_dokploy-dev_dokploy__compose-deployTemplate` | Deploy a compose template | `id` (template id), `environmentId`, `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-processTemplate` | Render a template with variables | `templateId`, variables |
+| `mcp__plugin_dokploy-dev_dokploy__compose-previewTemplate` | Preview a rendered template before deploying | `base64` (required), `appName` (required), `serverId` |
 
 ### Build, Config & Logs
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__compose-getDefaultCommand` | Get default docker compose command | `composeId` |
-| `mcp__dokploy__compose-getConvertedCompose` | Validate and render the compose file | `composeId` |
-| `mcp__dokploy__compose-loadServices` | List services defined in the stack | `composeId` |
-| `mcp__dokploy__compose-loadMountsByService` | Inspect mounts per service | `composeId`, `serviceName` |
-| `mcp__dokploy__compose-getTags` | List image tags used | `composeId` |
-| `mcp__dokploy__compose-randomizeCompose` | Generate random ports for services | `composeId` |
-| `mcp__dokploy__compose-saveEnvironment` | Set environment variables | `composeId`, `env` |
-| `mcp__dokploy__compose-readLogs` | Read ONE container's runtime logs. `containerId` is **required** — a stack has many containers, so enumerate first (see note) and call once per container | `composeId` (required), `containerId` (required), `tail`, `since`, `search` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-getDefaultCommand` | Get default docker compose command | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-getConvertedCompose` | Validate and render the compose file | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-loadServices` | List services defined in the stack | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-loadMountsByService` | Inspect mounts per service | `composeId`, `serviceName` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-getTags` | List image tags used | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-randomizeCompose` | Generate random ports for services | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-saveEnvironment` | Set environment variables | `composeId`, `env` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-readLogs` | Read ONE container's runtime logs. `containerId` is **required** — a stack has many containers, so enumerate first (see note) and call once per container | `composeId` (required), `containerId` (required), `tail`, `since`, `search` |
 
 ### Deployment Management
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__compose-cancelDeployment` | Cancel in-progress deployment | `composeId` |
-| `mcp__dokploy__compose-killBuild` | Kill the running build | `composeId` |
-| `mcp__dokploy__compose-cleanQueues` | Clear stuck deployment queue | `composeId` |
-| `mcp__dokploy__compose-clearDeployments` | Purge deployment history | `composeId` |
-| `mcp__dokploy__compose-refreshToken` | Regenerate webhook token | `composeId` |
-| `mcp__dokploy__compose-isolatedDeployment` | Toggle isolated deployment mode | `composeId`, boolean |
+| `mcp__plugin_dokploy-dev_dokploy__compose-cancelDeployment` | Cancel in-progress deployment | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-killBuild` | Kill the running build | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-cleanQueues` | Clear stuck deployment queue | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-clearDeployments` | Purge deployment history | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-refreshToken` | Regenerate webhook token | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-isolatedDeployment` | Toggle isolated deployment mode | `composeId`, boolean |
 
 ### Compose usage notes
 
@@ -242,22 +242,22 @@ Replace `{type}` with `postgres`, `mysql`, `mariadb`, `mongo`, `redis`, or `libs
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__{type}-create` | Provision a new database | `environmentId` (required), `name` (required), plus per-type required fields (see notes) |
-| `mcp__dokploy__{type}-one` | Get database details | `{type}Id` |
-| `mcp__dokploy__{type}-update` | Update database config | `{type}Id`, updatable fields |
-| `mcp__dokploy__{type}-remove` | Delete a database | `{type}Id` |
-| `mcp__dokploy__{type}-move` | Move to another environment | `{type}Id`, `targetEnvironmentId` |
-| `mcp__dokploy__{type}-search` | Search databases by name (**not libsql**) | `query` |
-| `mcp__dokploy__{type}-deploy` | Deploy/start the database container | `{type}Id` |
-| `mcp__dokploy__{type}-start` | Start a stopped database | `{type}Id` |
-| `mcp__dokploy__{type}-stop` | Stop a running database | `{type}Id` |
-| `mcp__dokploy__{type}-reload` | Reload database container | `{type}Id` |
-| `mcp__dokploy__{type}-rebuild` | Rebuild database container from scratch | `{type}Id` |
-| `mcp__dokploy__{type}-changeStatus` | Force status change | `{type}Id`, `applicationStatus` |
-| `mcp__dokploy__{type}-changePassword` | Rotate the database password (**not libsql**) | `{type}Id`, `newPassword` |
-| `mcp__dokploy__{type}-saveExternalPort` | Expose database on a host port (libsql: `libsql-saveExternalPorts`, plural) | `{type}Id`, `externalPort` (libsql also `externalGRPCPort`, `externalAdminPort`) |
-| `mcp__dokploy__{type}-saveEnvironment` | Set database environment variables | `{type}Id`, `env` |
-| `mcp__dokploy__{type}-readLogs` | Read the DB container's runtime logs | `{type}Id` (required), `tail`, `since`, `search` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-create` | Provision a new database | `environmentId` (required), `name` (required), plus per-type required fields (see notes) |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-one` | Get database details | `{type}Id` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-update` | Update database config | `{type}Id`, updatable fields |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-remove` | Delete a database | `{type}Id` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-move` | Move to another environment | `{type}Id`, `targetEnvironmentId` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-search` | Search databases by name (**not libsql**) | `query` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-deploy` | Deploy/start the database container | `{type}Id` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-start` | Start a stopped database | `{type}Id` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-stop` | Stop a running database | `{type}Id` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-reload` | Reload database container | `{type}Id` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-rebuild` | Rebuild database container from scratch | `{type}Id` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-changeStatus` | Force status change | `{type}Id`, `applicationStatus` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-changePassword` | Rotate the database password (**not libsql**) | `{type}Id`, `newPassword` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-saveExternalPort` | Expose database on a host port (libsql: `libsql-saveExternalPorts`, plural) | `{type}Id`, `externalPort` (libsql also `externalGRPCPort`, `externalAdminPort`) |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-saveEnvironment` | Set database environment variables | `{type}Id`, `env` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-readLogs` | Read the DB container's runtime logs | `{type}Id` (required), `tail`, `since`, `search` |
 
 ### Supported types
 
@@ -283,15 +283,15 @@ Replace `{type}` with `postgres`, `mysql`, `mariadb`, `mongo`, `redis`, or `libs
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__deployment-all` | List deployments for an application | `applicationId` (required) |
-| `mcp__dokploy__deployment-allByCompose` | List deployments for a compose stack | `composeId` |
-| `mcp__dokploy__deployment-allByServer` | List deployments for a server | `serverId` |
-| `mcp__dokploy__deployment-allByType` | Filter by resource id + type | `id` (required), `type` (required) |
-| `mcp__dokploy__deployment-allCentralized` | List deployments across all resources | None |
-| `mcp__dokploy__deployment-queueList` | Inspect the deployment queue | None |
-| `mcp__dokploy__deployment-killProcess` | Kill a running deployment process | `deploymentId` |
-| `mcp__dokploy__deployment-removeDeployment` | Remove a deployment record | `deploymentId` |
-| `mcp__dokploy__deployment-readLogs` | Read a deployment's **build log** (central to debugging failed builds) | `deploymentId` (required), `tail` |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-all` | List deployments for an application | `applicationId` (required) |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-allByCompose` | List deployments for a compose stack | `composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-allByServer` | List deployments for a server | `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-allByType` | Filter by resource id + type | `id` (required), `type` (required) |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-allCentralized` | List deployments across all resources | None |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-queueList` | Inspect the deployment queue | None |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-killProcess` | Kill a running deployment process | `deploymentId` |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-removeDeployment` | Remove a deployment record | `deploymentId` |
+| `mcp__plugin_dokploy-dev_dokploy__deployment-readLogs` | Read a deployment's **build log** (central to debugging failed builds) | `deploymentId` (required), `tail` |
 
 `deployment-all` takes ONLY `applicationId`. For a compose stack use `deployment-allByCompose { composeId }`; for a server use `deployment-allByServer { serverId }`; `deployment-allByType` takes `id` + `type`.
 
@@ -323,19 +323,19 @@ Provider-agnostic LLM integration for log analysis and recommendations. The AI r
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__ai-getEnabledProviders` | List enabled providers; empty means AI is not available | None |
-| `mcp__dokploy__ai-getAll` | List all configured providers (enabled and disabled) | None |
-| `mcp__dokploy__ai-one` / `mcp__dokploy__ai-get` | Read one provider's config | `aiId` |
-| `mcp__dokploy__ai-getModels` | List models a candidate endpoint advertises | `apiUrl`, `apiKey` (NOT aiId) |
-| `mcp__dokploy__ai-create` | Add a provider | `name`, `apiKey`, `apiUrl`, `model`, `isEnabled` |
-| `mcp__dokploy__ai-update` | Update a provider's config | `aiId`, updatable fields |
-| `mcp__dokploy__ai-delete` | Remove a provider | `aiId` |
-| `mcp__dokploy__ai-testConnection` | Validate credentials and reachability | `apiUrl`, `apiKey`, `model` (tests a candidate payload BEFORE saving — does NOT take aiId) |
-| `mcp__dokploy__ai-getCustomProviders` | List org-defined custom provider presets (v0.29.13+) | None |
-| `mcp__dokploy__ai-saveCustomProviders` | Save org custom provider presets | `providers` (array, required) |
-| `mcp__dokploy__ai-deploy` | Deploy the AI orchestrator side-service (admin-only) | none / admin params |
-| `mcp__dokploy__ai-analyzeLogs` | **Headline:** AI-summarise log text you fetched | `aiId` (enabled provider), `logs` (the log text from a `*-readLogs` call), `context` (`"build"` for `deployment-readLogs`, `"runtime"` for app/compose/db logs) — NOT `deploymentId` |
-| `mcp__dokploy__ai-suggest` | Ask the LLM for next-step recommendations | `aiId` (required), `input` (required — the question/state text), `serverId` (optional) |
+| `mcp__plugin_dokploy-dev_dokploy__ai-getEnabledProviders` | List enabled providers; empty means AI is not available | None |
+| `mcp__plugin_dokploy-dev_dokploy__ai-getAll` | List all configured providers (enabled and disabled) | None |
+| `mcp__plugin_dokploy-dev_dokploy__ai-one` / `mcp__plugin_dokploy-dev_dokploy__ai-get` | Read one provider's config | `aiId` |
+| `mcp__plugin_dokploy-dev_dokploy__ai-getModels` | List models a candidate endpoint advertises | `apiUrl`, `apiKey` (NOT aiId) |
+| `mcp__plugin_dokploy-dev_dokploy__ai-create` | Add a provider | `name`, `apiKey`, `apiUrl`, `model`, `isEnabled` |
+| `mcp__plugin_dokploy-dev_dokploy__ai-update` | Update a provider's config | `aiId`, updatable fields |
+| `mcp__plugin_dokploy-dev_dokploy__ai-delete` | Remove a provider | `aiId` |
+| `mcp__plugin_dokploy-dev_dokploy__ai-testConnection` | Validate credentials and reachability | `apiUrl`, `apiKey`, `model` (tests a candidate payload BEFORE saving — does NOT take aiId) |
+| `mcp__plugin_dokploy-dev_dokploy__ai-getCustomProviders` | List org-defined custom provider presets (v0.29.13+) | None |
+| `mcp__plugin_dokploy-dev_dokploy__ai-saveCustomProviders` | Save org custom provider presets | `providers` (array, required) |
+| `mcp__plugin_dokploy-dev_dokploy__ai-deploy` | Deploy the AI orchestrator side-service (admin-only) | none / admin params |
+| `mcp__plugin_dokploy-dev_dokploy__ai-analyzeLogs` | **Headline:** AI-summarise log text you fetched | `aiId` (enabled provider), `logs` (the log text from a `*-readLogs` call), `context` (`"build"` for `deployment-readLogs`, `"runtime"` for app/compose/db logs) — NOT `deploymentId` |
+| `mcp__plugin_dokploy-dev_dokploy__ai-suggest` | Ask the LLM for next-step recommendations | `aiId` (required), `input` (required — the question/state text), `serverId` (optional) |
 
 `apiUrl` is OpenAI-compatible. Common providers: OpenAI (`https://api.openai.com/v1`), OpenRouter (`https://openrouter.ai/api/v1`), Groq (`https://api.groq.com/openai/v1`), Gemini (`https://generativelanguage.googleapis.com/v1beta/openai`), Ollama (`http://host:11434/v1`). See the `ai-assist` skill for the full setup workflow.
 
@@ -347,18 +347,18 @@ Raw Docker container operations on the Dokploy host. Essential for runtime debug
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__docker-getContainers` | List all containers on the host (each `{ containerId, name, state, status }`) | optional `serverId` |
-| `mcp__dokploy__docker-getContainersByAppLabel` | List containers tagged with a specific Dokploy app label | `appName`, `type` (**required**: `"standalone"` \| `"swarm"`), optional `serverId` |
-| `mcp__dokploy__docker-getContainersByAppNameMatch` | Match containers by app name — use for compose stacks | `appName`, `appType` (`"stack"` \| `"docker-compose"`), optional `serverId` |
-| `mcp__dokploy__docker-getServiceContainersByAppName` | Swarm service containers across nodes | `appName`, optional `serverId` |
-| `mcp__dokploy__docker-getStackContainersByAppName` | Compose/Swarm stack service containers | `appName`, optional `serverId` |
-| `mcp__dokploy__docker-getConfig` | Inspect a container's full config (env, command, mounts, network, restart policy) | `containerId` |
-| `mcp__dokploy__docker-startContainer` | Start a stopped container | `containerId` |
-| `mcp__dokploy__docker-stopContainer` | Gracefully stop a running container | `containerId` |
-| `mcp__dokploy__docker-restartContainer` | Restart in place (no rebuild) — first try for transient failures | `containerId` |
-| `mcp__dokploy__docker-killContainer` | Force-kill (SIGKILL) a wedged container | `containerId` |
-| `mcp__dokploy__docker-removeContainer` | Hard-delete; Dokploy recreates on next `deploy` | `containerId` |
-| `mcp__dokploy__docker-uploadFileToContainer` | Push a one-off file into a container without rebuilding — does NOT survive redeploy | `containerId`, `path`, `content` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-getContainers` | List all containers on the host (each `{ containerId, name, state, status }`) | optional `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-getContainersByAppLabel` | List containers tagged with a specific Dokploy app label | `appName`, `type` (**required**: `"standalone"` \| `"swarm"`), optional `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-getContainersByAppNameMatch` | Match containers by app name — use for compose stacks | `appName`, `appType` (`"stack"` \| `"docker-compose"`), optional `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-getServiceContainersByAppName` | Swarm service containers across nodes | `appName`, optional `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-getStackContainersByAppName` | Compose/Swarm stack service containers | `appName`, optional `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-getConfig` | Inspect a container's full config (env, command, mounts, network, restart policy) | `containerId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-startContainer` | Start a stopped container | `containerId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-stopContainer` | Gracefully stop a running container | `containerId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-restartContainer` | Restart in place (no rebuild) — first try for transient failures | `containerId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-killContainer` | Force-kill (SIGKILL) a wedged container | `containerId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-removeContainer` | Hard-delete; Dokploy recreates on next `deploy` | `containerId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-uploadFileToContainer` | Push a one-off file into a container without rebuilding — does NOT survive redeploy | `containerId`, `path`, `content` |
 
 Choosing the discovery tool: for a **standalone application** use `getContainersByAppLabel { appName, type: "standalone" }` (most reliable — Dokploy stamps a known label). For a **compose stack** use `getContainersByAppNameMatch { appName, appType: "docker-compose" }` (or `getStackContainersByAppName` for swarm) — these return every service container. All return `{ containerId, name, state, status }`; feed each `containerId` into `compose-readLogs` to read that container's logs.
 
@@ -370,37 +370,37 @@ The `settings-*` namespace is the catch-all for server-wide operations. Highest-
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__settings-health` | Liveness probe (no auth required) | None |
-| `mcp__dokploy__settings-checkInfrastructureHealth` | Combined check: Docker daemon, Traefik, network, disk | None |
-| `mcp__dokploy__settings-getDockerDiskUsage` | Per-category disk usage (images, containers, volumes, build cache) | None |
-| `mcp__dokploy__settings-checkGPUStatus` | GPU availability and current usage | None |
-| `mcp__dokploy__settings-getDokployVersion` | Server version string | None |
-| `mcp__dokploy__settings-getReleaseTag` | Image tag currently running | None |
-| `mcp__dokploy__settings-getUpdateData` | Available update info | None |
-| `mcp__dokploy__settings-getIp` | Server outbound IP | None |
-| `mcp__dokploy__settings-getDokployCloudIps` | Static IP ranges for Dokploy Cloud egress | None |
-| `mcp__dokploy__settings-getTraefikPorts` | Currently-bound Traefik ports | None |
-| `mcp__dokploy__settings-haveTraefikDashboardPortEnabled` | Is the 8080 dashboard exposed? | None |
-| `mcp__dokploy__settings-getLogCleanupStatus` | Log rotation schedule + last run | None |
-| `mcp__dokploy__settings-updateLogCleanup` | Tune log rotation | retention fields |
-| `mcp__dokploy__settings-updateBuildsConcurrency` | Set concurrent builds for the Dokploy host queue (per-server queues since v0.29.9; the OSS max-2 clamp existed only in v0.29.9–v0.29.10 — since v0.29.11 concurrency is a full OSS feature, 1–100 per server, default 1) | `buildsConcurrency` |
-| `mcp__dokploy__settings-updateEnforceSSO` | Toggle enforce-SSO restriction | `enforceSSO` |
-| `mcp__dokploy__settings-updateRemoteServersOnly` | Toggle remote-servers-only mode | `remoteServersOnly` |
-| `mcp__dokploy__settings-cleanDockerBuilder` | Clear BuildKit cache | None |
-| `mcp__dokploy__settings-cleanDockerPrune` | `docker system prune` equivalent | None |
-| `mcp__dokploy__settings-cleanStoppedContainers` | Remove exited containers | None |
-| `mcp__dokploy__settings-cleanUnusedImages` | Remove dangling/untagged images | None |
-| `mcp__dokploy__settings-cleanUnusedVolumes` | **Destroys orphan volumes** — risky | None |
-| `mcp__dokploy__settings-cleanMonitoring` | Reset monitoring data | None |
-| `mcp__dokploy__settings-cleanRedis` | Flush Dokploy's internal Redis cache | None |
-| `mcp__dokploy__settings-cleanAll` | Aggressive: combines builder + prune + monitoring + redis | None |
-| `mcp__dokploy__settings-cleanAllDeploymentQueue` | Force-clear every stuck deploy across all resources | None |
-| `mcp__dokploy__settings-readTraefikConfig` | Top-level Traefik static config | None |
-| `mcp__dokploy__settings-readMiddlewareTraefikConfig` | Middlewares config | None |
-| `mcp__dokploy__settings-readWebServerTraefikConfig` | Per-webserver dynamic config | None |
-| `mcp__dokploy__settings-reloadTraefik` | Reload Traefik to apply config changes | None |
-| `mcp__dokploy__settings-reloadServer` / `reloadRedis` | Bounce the Dokploy server / Redis | None |
-| `mcp__dokploy__settings-toggleDashboard` | Show/hide the Traefik dashboard | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-health` | Liveness probe (no auth required) | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-checkInfrastructureHealth` | Combined check: Docker daemon, Traefik, network, disk | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-getDockerDiskUsage` | Per-category disk usage (images, containers, volumes, build cache) | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-checkGPUStatus` | GPU availability and current usage | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-getDokployVersion` | Server version string | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-getReleaseTag` | Image tag currently running | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-getUpdateData` | Available update info | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-getIp` | Server outbound IP | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-getDokployCloudIps` | Static IP ranges for Dokploy Cloud egress | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-getTraefikPorts` | Currently-bound Traefik ports | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-haveTraefikDashboardPortEnabled` | Is the 8080 dashboard exposed? | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-getLogCleanupStatus` | Log rotation schedule + last run | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-updateLogCleanup` | Tune log rotation | retention fields |
+| `mcp__plugin_dokploy-dev_dokploy__settings-updateBuildsConcurrency` | Set concurrent builds for the Dokploy host queue (per-server queues since v0.29.9; the OSS max-2 clamp existed only in v0.29.9–v0.29.10 — since v0.29.11 concurrency is a full OSS feature, 1–100 per server, default 1) | `buildsConcurrency` |
+| `mcp__plugin_dokploy-dev_dokploy__settings-updateEnforceSSO` | Toggle enforce-SSO restriction | `enforceSSO` |
+| `mcp__plugin_dokploy-dev_dokploy__settings-updateRemoteServersOnly` | Toggle remote-servers-only mode | `remoteServersOnly` |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanDockerBuilder` | Clear BuildKit cache | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanDockerPrune` | `docker system prune` equivalent | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanStoppedContainers` | Remove exited containers | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanUnusedImages` | Remove dangling/untagged images | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanUnusedVolumes` | **Destroys orphan volumes** — risky | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanMonitoring` | Reset monitoring data | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanRedis` | Flush Dokploy's internal Redis cache | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanAll` | Aggressive: combines builder + prune + monitoring + redis | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanAllDeploymentQueue` | Force-clear every stuck deploy across all resources | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-readTraefikConfig` | Top-level Traefik static config | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-readMiddlewareTraefikConfig` | Middlewares config | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-readWebServerTraefikConfig` | Per-webserver dynamic config | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-reloadTraefik` | Reload Traefik to apply config changes | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-reloadServer` / `reloadRedis` | Bounce the Dokploy server / Redis | None |
+| `mcp__plugin_dokploy-dev_dokploy__settings-toggleDashboard` | Show/hide the Traefik dashboard | None |
 
 For the cleanup chain run in order, use the `/dokploy-dev:cleanup` command — it confirms each destructive step and reports reclaimed space.
 
@@ -412,12 +412,12 @@ Cron-like scheduled tasks scoped to a resource. Each schedule fires a command in
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__schedule-list` | List schedules for a resource | `id` (required — the target resource id), `scheduleType` (required: `application`\|`compose`\|`server`\|`dokploy-server`) |
-| `mcp__dokploy__schedule-one` | Get one schedule | `scheduleId` |
-| `mcp__dokploy__schedule-create` | Create a scheduled task | `name`, `cronExpression`, target binding (`applicationId` / `composeId` / `serverId` / `dokployServer`), `command`, `serviceName` (for compose), `enabled`, optional `timezone`. Host schedules are organization-scoped since v0.29.8 (`organizationId`, formerly `userId`) |
-| `mcp__dokploy__schedule-update` | Edit a schedule | `scheduleId`, updatable fields |
-| `mcp__dokploy__schedule-delete` | Remove a schedule | `scheduleId` |
-| `mcp__dokploy__schedule-runManually` | Trigger the schedule immediately, ignoring cron | `scheduleId` |
+| `mcp__plugin_dokploy-dev_dokploy__schedule-list` | List schedules for a resource | `id` (required — the target resource id), `scheduleType` (required: `application`\|`compose`\|`server`\|`dokploy-server`) |
+| `mcp__plugin_dokploy-dev_dokploy__schedule-one` | Get one schedule | `scheduleId` |
+| `mcp__plugin_dokploy-dev_dokploy__schedule-create` | Create a scheduled task | `name`, `cronExpression`, target binding (`applicationId` / `composeId` / `serverId` / `dokployServer`), `command`, `serviceName` (for compose), `enabled`, optional `timezone`. Host schedules are organization-scoped since v0.29.8 (`organizationId`, formerly `userId`) |
+| `mcp__plugin_dokploy-dev_dokploy__schedule-update` | Edit a schedule | `scheduleId`, updatable fields |
+| `mcp__plugin_dokploy-dev_dokploy__schedule-delete` | Remove a schedule | `scheduleId` |
+| `mcp__plugin_dokploy-dev_dokploy__schedule-runManually` | Trigger the schedule immediately, ignoring cron | `scheduleId` |
 
 Schedule targets:
 
@@ -436,18 +436,18 @@ File-level overlays applied at deploy time. Useful when you can't / don't want t
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__patch-byEntityId` | List patches for an entity | `id` (required — applicationId/composeId), `type` (required: `application`/`compose`) |
-| `mcp__dokploy__patch-one` | Get one patch record | `patchId` |
-| `mcp__dokploy__patch-create` | Create a patch | `filePath` (required), `content` (required), `type`, `enabled`, `applicationId`/`composeId` |
-| `mcp__dokploy__patch-update` | Update patch metadata | `patchId`, updatable fields |
-| `mcp__dokploy__patch-delete` | Remove a patch | `patchId` |
-| `mcp__dokploy__patch-toggleEnabled` | Enable/disable without deleting | `patchId`, `enabled` |
-| `mcp__dokploy__patch-ensureRepo` | Ensure the patch's git repo workspace is materialised | `id`, `type` |
-| `mcp__dokploy__patch-cleanPatchRepos` | Garbage-collect orphan patch repos | optional `serverId` |
-| `mcp__dokploy__patch-readRepoDirectories` | List directories inside the patch workspace | `id`, `type`, `repoPath` |
-| `mcp__dokploy__patch-readRepoFile` | Read a file from the patch workspace | `id`, `type`, `filePath` |
-| `mcp__dokploy__patch-saveFileAsPatch` | Save a modified file as a patch overlay | `id`, `type`, `filePath`, `content`, `patchType` |
-| `mcp__dokploy__patch-markFileForDeletion` | Mark a file for deletion during patch apply | `id`, `type`, `filePath` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-byEntityId` | List patches for an entity | `id` (required — applicationId/composeId), `type` (required: `application`/`compose`) |
+| `mcp__plugin_dokploy-dev_dokploy__patch-one` | Get one patch record | `patchId` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-create` | Create a patch | `filePath` (required), `content` (required), `type`, `enabled`, `applicationId`/`composeId` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-update` | Update patch metadata | `patchId`, updatable fields |
+| `mcp__plugin_dokploy-dev_dokploy__patch-delete` | Remove a patch | `patchId` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-toggleEnabled` | Enable/disable without deleting | `patchId`, `enabled` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-ensureRepo` | Ensure the patch's git repo workspace is materialised | `id`, `type` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-cleanPatchRepos` | Garbage-collect orphan patch repos | optional `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-readRepoDirectories` | List directories inside the patch workspace | `id`, `type`, `repoPath` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-readRepoFile` | Read a file from the patch workspace | `id`, `type`, `filePath` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-saveFileAsPatch` | Save a modified file as a patch overlay | `id`, `type`, `filePath`, `content`, `patchType` |
+| `mcp__plugin_dokploy-dev_dokploy__patch-markFileForDeletion` | Mark a file for deletion during patch apply | `id`, `type`, `filePath` |
 
 Patches apply during the deploy step, after the source is cloned but before the build. Use for per-environment config overrides without forking the upstream repo.
 
@@ -459,12 +459,12 @@ Distinct from the resource-aware `backup` namespace — `volumeBackups` snapshot
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__volumeBackups-list` | List volume backup configs for a resource | `id` (required), `volumeBackupType` (required) |
-| `mcp__dokploy__volumeBackups-one` | Get one backup config | `volumeBackupId` |
-| `mcp__dokploy__volumeBackups-create` | Configure a recurring volume backup | resource binding, `volumeName`, `destinationId`, `cronExpression`, `enabled` |
-| `mcp__dokploy__volumeBackups-update` | Update config | `volumeBackupId`, updatable fields |
-| `mcp__dokploy__volumeBackups-delete` | Remove a backup config | `volumeBackupId` |
-| `mcp__dokploy__volumeBackups-runManually` | Trigger a one-off backup outside the schedule | `volumeBackupId` |
+| `mcp__plugin_dokploy-dev_dokploy__volumeBackups-list` | List volume backup configs for a resource | `id` (required), `volumeBackupType` (required) |
+| `mcp__plugin_dokploy-dev_dokploy__volumeBackups-one` | Get one backup config | `volumeBackupId` |
+| `mcp__plugin_dokploy-dev_dokploy__volumeBackups-create` | Configure a recurring volume backup | resource binding, `volumeName`, `destinationId`, `cronExpression`, `enabled` |
+| `mcp__plugin_dokploy-dev_dokploy__volumeBackups-update` | Update config | `volumeBackupId`, updatable fields |
+| `mcp__plugin_dokploy-dev_dokploy__volumeBackups-delete` | Remove a backup config | `volumeBackupId` |
+| `mcp__plugin_dokploy-dev_dokploy__volumeBackups-runManually` | Trigger a one-off backup outside the schedule | `volumeBackupId` |
 
 Pair with the `destination-*` namespace to point at S3, R2, or another remote. Use for non-database persistent state (uploads, ML model files, caches).
 
@@ -476,10 +476,10 @@ Ephemeral per-PR / per-branch deploys spun up alongside the main application.
 
 | Tool | Description | Key Parameters |
 |---|---|---|
-| `mcp__dokploy__previewDeployment-all` | List preview deployments | `applicationId` (required) |
-| `mcp__dokploy__previewDeployment-one` | Get one preview deployment | `previewDeploymentId` |
-| `mcp__dokploy__previewDeployment-redeploy` | Force a fresh build of a preview | `previewDeploymentId` |
-| `mcp__dokploy__previewDeployment-delete` | Tear down a preview environment | `previewDeploymentId` |
+| `mcp__plugin_dokploy-dev_dokploy__previewDeployment-all` | List preview deployments | `applicationId` (required) |
+| `mcp__plugin_dokploy-dev_dokploy__previewDeployment-one` | Get one preview deployment | `previewDeploymentId` |
+| `mcp__plugin_dokploy-dev_dokploy__previewDeployment-redeploy` | Force a fresh build of a preview | `previewDeploymentId` |
+| `mcp__plugin_dokploy-dev_dokploy__previewDeployment-delete` | Tear down a preview environment | `previewDeploymentId` |
 
 Preview deployments are typically triggered by webhook (PR opened/synced). The MCP surface above is for inspection and manual lifecycle control.
 
@@ -492,32 +492,32 @@ Preview deployments are typically triggered by webhook (PR opened/synced). The M
 Execute these tools in sequence:
 
 ```
-1. mcp__dokploy__project-create
+1. mcp__plugin_dokploy-dev_dokploy__project-create
    → { name: "my-project", description: "Production app" }
    → Returns: { projectId: "abc123" }
 
-1b. mcp__dokploy__project-one
+1b. mcp__plugin_dokploy-dev_dokploy__project-one
    → { projectId: "abc123" }
    → Returns environments[] — take environments[0].environmentId (default environment "production")
 
-2. mcp__dokploy__application-create
+2. mcp__plugin_dokploy-dev_dokploy__application-create
    → { environmentId: "env123", name: "My App", appName: "my-app" }
    → Returns: { applicationId: "def456" }
 
-3. mcp__dokploy__application-saveGithubProvider
+3. mcp__plugin_dokploy-dev_dokploy__application-saveGithubProvider
    → { applicationId: "def456", repository: "my-repo", branch: "main", owner: "my-org" }
 
-4. mcp__dokploy__application-saveBuildType
+4. mcp__plugin_dokploy-dev_dokploy__application-saveBuildType
    → { applicationId: "def456", buildType: "dockerfile", dockerfile: "Dockerfile", dockerContextPath: ".", dockerBuildStage: "", herokuVersion: "", railpackVersion: "" }
    (Use "nixpacks" if no Dockerfile exists. Ask user which to use.)
 
-5. mcp__dokploy__application-saveEnvironment
+5. mcp__plugin_dokploy-dev_dokploy__application-saveEnvironment
    → { applicationId: "def456", env: "DATABASE_URL=postgres://...\nNODE_ENV=production\nPORT=3000", buildArgs: "", buildSecrets: "", createEnvFile: false }
 
-6. mcp__dokploy__domain-create
+6. mcp__plugin_dokploy-dev_dokploy__domain-create
    → { applicationId: "def456", host: "app.example.com", https: true, certificateType: "letsencrypt", port: 3000 }
 
-7. mcp__dokploy__application-deploy
+7. mcp__plugin_dokploy-dev_dokploy__application-deploy
    → { applicationId: "def456" }
 ```
 
@@ -526,20 +526,20 @@ After step 7, check the application status with `application-one` and deployment
 ### 2. Provision a PostgreSQL database with external access
 
 ```
-1. mcp__dokploy__project-create
+1. mcp__plugin_dokploy-dev_dokploy__project-create
    → { name: "databases" }
    → Returns: { projectId: "proj789" }
    (Or use project-all to find an existing project)
    Then resolve the environment: project-one { projectId } → environments[0].environmentId
 
-2. mcp__dokploy__postgres-create
+2. mcp__plugin_dokploy-dev_dokploy__postgres-create
    → { environmentId: "env789", name: "Main DB", appName: "main-db", databaseName: "main", databaseUser: "postgres", databasePassword: "secure-password-here" }
    → Returns: { postgresId: "pg123" }
 
-3. mcp__dokploy__postgres-deploy
+3. mcp__plugin_dokploy-dev_dokploy__postgres-deploy
    → { postgresId: "pg123" }
 
-4. mcp__dokploy__postgres-saveExternalPort
+4. mcp__plugin_dokploy-dev_dokploy__postgres-saveExternalPort
    → { postgresId: "pg123", externalPort: 5432 }
 ```
 
@@ -548,11 +548,11 @@ The database is now accessible at `server-ip:5432`. Use the connection string: `
 ### 3. Add a domain with HTTPS to an existing application
 
 ```
-1. mcp__dokploy__domain-create
+1. mcp__plugin_dokploy-dev_dokploy__domain-create
    → { applicationId: "def456", host: "api.example.com", https: true, certificateType: "letsencrypt", port: 8080 }
    → Returns: { domainId: "dom789" }
 
-2. mcp__dokploy__domain-validateDomain
+2. mcp__plugin_dokploy-dev_dokploy__domain-validateDomain
    → { domain: "api.example.com" }        # the hostname string (optionally serverIp) — NOT the domainId
 ```
 
@@ -561,43 +561,43 @@ If validation fails, the DNS A record for `api.example.com` is not pointing to t
 ### 4. Deploy a Docker Compose stack
 
 ```
-1. mcp__dokploy__project-create
+1. mcp__plugin_dokploy-dev_dokploy__project-create
    → { name: "compose-stack" }
    → Returns: { projectId: "proj456" }
    Then resolve the environment: project-one { projectId } → environments[0].environmentId
 
-2. mcp__dokploy__compose-create
+2. mcp__plugin_dokploy-dev_dokploy__compose-create
    → { environmentId: "env456", name: "My Stack", appName: "my-stack" }
    → Returns: { composeId: "comp789" }
 
-3. mcp__dokploy__compose-update
+3. mcp__plugin_dokploy-dev_dokploy__compose-update
    → { composeId: "comp789", composeFile: "version: '3.8'\nservices:\n  web:\n    image: nginx:latest\n    ports:\n      - '80:80'" }
 
    (If sourcing compose from a git repo instead, pass sourceType/repository/branch/owner/composePath here too.)
 
-4. mcp__dokploy__compose-saveEnvironment
+4. mcp__plugin_dokploy-dev_dokploy__compose-saveEnvironment
    → { composeId: "comp789", env: "NGINX_HOST=example.com" }
 
-5. mcp__dokploy__compose-getConvertedCompose
+5. mcp__plugin_dokploy-dev_dokploy__compose-getConvertedCompose
    → { composeId: "comp789" }   // validate the file before deploy
 
-6. mcp__dokploy__compose-deploy
+6. mcp__plugin_dokploy-dev_dokploy__compose-deploy
    → { composeId: "comp789" }
 ```
 
 ### 5. Read the logs of every container in a compose stack
 
 ```
-1. mcp__dokploy__compose-one
+1. mcp__plugin_dokploy-dev_dokploy__compose-one
    → { composeId: "comp789" }
    → read appName (e.g. "my-stack-ab12cd") and composeType (e.g. "docker-compose")
 
-2. mcp__dokploy__docker-getContainersByAppNameMatch          // swarm → docker-getStackContainersByAppName
+2. mcp__plugin_dokploy-dev_dokploy__docker-getContainersByAppNameMatch          // swarm → docker-getStackContainersByAppName
    → { appName: "my-stack-ab12cd", appType: "docker-compose" }
    → [ { containerId, name, state, status }, ... ]   // every service container
 
 3. for each container:
-   mcp__dokploy__compose-readLogs
+   mcp__plugin_dokploy-dev_dokploy__compose-readLogs
      → { composeId: "comp789", containerId: "<containerId>", tail: 200, since: "1h", search: "error" }
      → .data is a newline-joined, timestamp-prefixed log string
 
@@ -698,7 +698,7 @@ Use `DOKPLOY_ENABLED_TAGS` in `.mcp.json` to restrict exposure to a subset of ca
 
 ## Other categories (reference only)
 
-The remaining categories use the same `mcp__dokploy__<category>-<op>` pattern. **Every one of these — and every operation in every category above — is enumerated with its exact params in the complete index:** [`api-reference/references/api-full-index-resources.md`](../api-reference/references/api-full-index-resources.md) and [`api-full-index-platform.md`](../api-reference/references/api-full-index-platform.md) (all 546 operations, v0.29.14 schema). The themed files below add curated usage notes for some of them.
+The remaining categories use the same `mcp__plugin_dokploy-dev_dokploy__<category>-<op>` pattern. **Every one of these — and every operation in every category above — is enumerated with its exact params in the complete index:** [`api-reference/references/api-full-index-resources.md`](../api-reference/references/api-full-index-resources.md) and [`api-full-index-platform.md`](../api-reference/references/api-full-index-platform.md) (all 546 operations, v0.29.14 schema). The themed files below add curated usage notes for some of them.
 
 | Category | Prefix | Purpose | Reference |
 |---|---|---|---|

@@ -31,7 +31,7 @@ description: |
   </example>
 model: sonnet
 color: yellow
-tools: mcp__nocodb__*
+tools: mcp__plugin_nocodb-ops_nocodb__*
 ---
 
 You are a NocoDB operations assistant. You help business users work with their data efficiently and effectively.

@@ -18,7 +18,7 @@ Practical examples and scenario walkthroughs for common NocoDB operations.
 ### List all tables in a base
 
 ```
-Tool: mcp__nocodb__getTablesList
+Tool: mcp__plugin_nocodb-ops_nocodb__getTablesList
 Parameters: (none)
 ```
 
@@ -27,7 +27,7 @@ Returns every table name and ID in the connected base.
 ### Query records with a filter
 
 ```
-Tool: mcp__nocodb__queryRecords
+Tool: mcp__plugin_nocodb-ops_nocodb__queryRecords
 Parameters:
   tableId: "m_contacts"
   where: "(Status,eq,Active)~and(Created,isWithin,pastMonth)"
@@ -39,7 +39,7 @@ Returns active contacts created in the last 30 days, up to 50 per page.
 ### Create a new record
 
 ```
-Tool: mcp__nocodb__createRecords
+Tool: mcp__plugin_nocodb-ops_nocodb__createRecords
 Parameters:
   tableId: "m_deals"
   records: [{"Title": "Enterprise License", "Value": 25000, "Stage": "Proposal"}]
@@ -50,7 +50,7 @@ Inserts one deal record with the specified field values.
 ### Count records matching a condition
 
 ```
-Tool: mcp__nocodb__countRecords
+Tool: mcp__plugin_nocodb-ops_nocodb__countRecords
 Parameters:
   tableId: "m_tasks"
   where: "(Status,neq,Done)"
@@ -61,7 +61,7 @@ Returns the number of incomplete tasks.
 ### Run an aggregation
 
 ```
-Tool: mcp__nocodb__aggregate
+Tool: mcp__plugin_nocodb-ops_nocodb__aggregate
 Parameters:
   tableId: "m_deals"
   aggregation: [{"field": "Value", "type": "sum"}]
@@ -73,7 +73,7 @@ Returns the total value of all closed-won deals.
 ### Get a table schema
 
 ```
-Tool: mcp__nocodb__getTableSchema
+Tool: mcp__plugin_nocodb-ops_nocodb__getTableSchema
 Parameters:
   tableId: "m_contacts"
 ```

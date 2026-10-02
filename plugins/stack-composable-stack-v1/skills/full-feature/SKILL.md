@@ -20,21 +20,21 @@ Follow these steps in order for every new feature.
 5. Alternatively, create tables directly using PostgreSQL MCP:
 
 ```
-Tool: mcp__postgresql-mcp__execute_sql
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__execute_sql
 Input: { "sql": "CREATE TABLE orders (id SERIAL PRIMARY KEY, title TEXT NOT NULL, status TEXT DEFAULT 'pending', created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now())" }
 ```
 
 6. Verify schema with PostgreSQL MCP:
 
 ```
-Tool: mcp__postgresql-mcp__list_tables
+Tool: mcp__plugin_stack-composable-stack-v1_postgresql-mcp__list_tables
 Input: { "table_names": "orders" }
 ```
 
 Verify the tables also appear in NocoDB:
 
 ```
-Tool: mcp__nocodb__getTablesList
+Tool: mcp__plugin_stack-composable-stack-v1_nocodb__getTablesList
 ```
 
 ### Step 2: Set Up NocoDB Views (Data Layer)

@@ -1,6 +1,6 @@
 # SERP Tools
 
-7 tools for live search engine results and location lookups. All prefixed with `mcp__dataforseo__`.
+7 tools for live search engine results and location lookups. All prefixed with `mcp__plugin_dataforseo-dev_dataforseo__`.
 
 ## Tool Reference
 
@@ -39,7 +39,7 @@ Call `serp_locations` or `serp_youtube_locations` first if you are unsure about 
 ### Analyze Google SERP for a keyword
 
 ```
-Tool: mcp__dataforseo__serp_organic_live_advanced
+Tool: mcp__plugin_dataforseo-dev_dataforseo__serp_organic_live_advanced
 Params:
   keyword: "best project management tools"
   language_code: "en"
@@ -53,13 +53,13 @@ Returns organic results with URLs, titles, descriptions, positions, and SERP fea
 ### Get YouTube video metadata and comments
 
 ```
-Step 1 -- Tool: mcp__dataforseo__serp_youtube_video_info_live_advanced
+Step 1 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__serp_youtube_video_info_live_advanced
 Params:
   video_id: "dQw4w9WgXcQ"
   location_name: "United States"
   language_code: "en"
 
-Step 2 -- Tool: mcp__dataforseo__serp_youtube_video_comments_live_advanced
+Step 2 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__serp_youtube_video_comments_live_advanced
 Params:
   video_id: "dQw4w9WgXcQ"
   location_name: "United States"

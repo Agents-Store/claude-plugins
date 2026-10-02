@@ -36,14 +36,14 @@ Run in order. Stop at the first failure and consult the troubleshooting table.
 
 ### Step 1 — MCP discovery
 
-Call `mcp__nocodb__getTablesList` with no parameters.
+Call `mcp__plugin_nocodb-dev_nocodb__getTablesList` with no parameters.
 
 - **Pass:** returns a list of table names and IDs.
 - **Fail:** see Troubleshooting → MCP rows.
 
 ### Step 2 — MCP schema read
 
-Pick any table ID from Step 1. Call `mcp__nocodb__getTableSchema` with `tableId`.
+Pick any table ID from Step 1. Call `mcp__plugin_nocodb-dev_nocodb__getTableSchema` with `tableId`.
 
 - **Pass:** returns columns + views.
 - **Fail:** the token may lack base-level access.
@@ -86,7 +86,7 @@ curl -sS -H "xc-token: $NOCODB_API_TOKEN" "$NOCODB_URL/api/v3/data/<baseId>/<tab
 | 401 Unauthorized | CLI/API | `NOCODB_API_TOKEN` invalid/expired | Regenerate in NocoDB → Account Settings → API Tokens |
 | 403 Forbidden | Either | Token lacks permission for the base | Share the base with the token's user, or use a higher-privilege token |
 | `nc: command not found` | CLI | CLI not installed | `npx skills add nocodb/agent-skills` |
-| "Tool not found" `mcp__nocodb__*` | MCP | Server name mismatch | Confirm `.mcp.json` names the server `nocodb` (not `nocodb-1`) |
+| "Tool not found" `mcp__plugin_nocodb-dev_nocodb__*` | MCP | Server name mismatch | Confirm `.mcp.json` names the server `nocodb` (not `nocodb-1`) |
 | Connection refused | Either | Server down or wrong host | `curl -sSI $NOCODB_URL` to confirm reachability |
 | Empty `nc base:list` | CLI | Token has no shared bases | Have an admin share at least one base with the token's user |
 

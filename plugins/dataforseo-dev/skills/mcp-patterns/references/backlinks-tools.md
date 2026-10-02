@@ -1,6 +1,6 @@
 # Backlinks Tools
 
-19 tools for link profile analysis, competitor backlink research, and spam detection. All prefixed with `mcp__dataforseo__backlinks_`.
+19 tools for link profile analysis, competitor backlink research, and spam detection. All prefixed with `mcp__plugin_dataforseo-dev_dataforseo__backlinks_`.
 
 ## Tool Reference
 
@@ -62,12 +62,12 @@
 ### Full backlink audit for a domain
 
 ```
-Step 1 -- Tool: mcp__dataforseo__backlinks_summary
+Step 1 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_summary
 Params:
   target: "example.com"
   include_subdomains: true
 
-Step 2 -- Tool: mcp__dataforseo__backlinks_referring_domains
+Step 2 -- Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_referring_domains
 Params:
   target: "example.com"
   limit: 100
@@ -77,7 +77,7 @@ Params:
 ### Find shared link sources between competitors
 
 ```
-Tool: mcp__dataforseo__backlinks_domain_intersection
+Tool: mcp__plugin_dataforseo-dev_dataforseo__backlinks_domain_intersection
 Params:
   targets: ["mysite.com", "competitor1.com", "competitor2.com"]
   limit: 50
