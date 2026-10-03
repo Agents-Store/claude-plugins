@@ -107,7 +107,7 @@ Always feed the path you derived back to the user as `${NB_URL}/api{path}` — t
 ## Distilled summaries
 
 - `references/tags-overview.md` — every tag, one line each, with the matching skill in this plugin.
-- `references/common-endpoints.md` — copy-paste curl recipes for the 12 highest-traffic operations.
+- `references/common-endpoints.md` — copy-paste curl recipes for the highest-traffic operations, plus a section on calling the API from n8n or another service.
 
 ## Notes and gotchas
 
