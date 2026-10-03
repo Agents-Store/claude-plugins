@@ -29,7 +29,7 @@ How to choose:
 
 ## Rules That Hold on Every Path
 
-1. **Check the session before using the service token.** A Server Action or Route Handler that calls Directus with the service token for a visitor who is not signed in is an open door. Start each with `requireUser()` (`nextjs-dev` → `auth-patterns`).
+1. **Check the session before using the service token.** A Server Action or Route Handler that calls Directus with the service token for a visitor who is not signed in is an open door. Start each with `requireUser()`: the NextAuth recipe in `nextjs-dev` → `auth-patterns` defines it in `lib/session.ts`; on Better Auth write the same in `lib/session.ts` on top of `getSession()` (the DAL's `requireAuth()` in `auth-patterns` is that helper under another name). The templates of this stack import it from `@/lib/session`.
 2. **Tokens stay on the server.** The refresh token never reaches browser JavaScript. On the NextAuth path the access token does reach the browser through `useSession()` by default (it is short-lived and the user's own); decide on purpose whether that is acceptable.
 3. **Never cache a user-scoped read** (`'use cache'`, tagged `fetch`). See "Cache" in `directus-to-nextjs`.
 4. **`proxy.ts` only redirects.** It checks that a session cookie exists, nothing more. The page, the Server Action and the Route Handler check again. (In Next.js 16 `proxy.ts` replaces the old middleware file.)
