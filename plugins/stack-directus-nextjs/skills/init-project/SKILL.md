@@ -26,7 +26,7 @@ cp templates/.env.example .env.local
 |----------|---------------|
 | `NEXT_PUBLIC_DIRECTUS_URL` | Directus address (`http://localhost:8055` for the local Docker stack) |
 | `DIRECTUS_ADMIN_TOKEN` | Create a dedicated user in Directus with a policy that grants only what the server code reads and writes, then generate a static token on the user's page. The name is historical: an administrator token is for local development only |
-| `DIRECTUS_URL`, `DIRECTUS_TOKEN` | Already in `.env.example` as `${...}` references to the two rows above. The recipes of `directus-dev` and `nextjs-dev` read these names, so do not delete them |
+| `DIRECTUS_URL`, `DIRECTUS_TOKEN`, `NEXT_PUBLIC_CMS_URL` | Already in `.env.example` as `${...}` references to the two rows above. The recipes of `directus-dev` and `nextjs-dev` read these names (client, NextAuth, the images block of `next.config.ts`), so do not delete them |
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | NextAuth path only: `http://localhost:3000`, and `openssl rand -base64 32` |
 | `REVALIDATION_SECRET` | `openssl rand -base64 32`; the Directus Flow sends it in a header (see `deployment`) |
 

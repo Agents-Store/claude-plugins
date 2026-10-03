@@ -63,11 +63,12 @@ On the Better Auth path there is no user token: call the service-token client fr
 | Better Auth | `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `DATABASE_URL` |
 | Directus session cookie | `CORS_ORIGIN` and the `SESSION_COOKIE_*` settings on the Directus side |
 
-The recipes in `nextjs-dev` and `directus-dev` read `DIRECTUS_URL` and `DIRECTUS_TOKEN`; this stack names the same two values `NEXT_PUBLIC_DIRECTUS_URL` and `DIRECTUS_ADMIN_TOKEN`:
+The recipes in `nextjs-dev` and `directus-dev` read `DIRECTUS_URL`, `DIRECTUS_TOKEN` and `NEXT_PUBLIC_CMS_URL`; this stack names the same values `NEXT_PUBLIC_DIRECTUS_URL` and `DIRECTUS_ADMIN_TOKEN`:
 
 | Recipe variable | This stack | How |
 |-----------------|------------|-----|
 | `DIRECTUS_URL` | `NEXT_PUBLIC_DIRECTUS_URL` | `DIRECTUS_URL=${NEXT_PUBLIC_DIRECTUS_URL}` in `.env.local` (Next.js expands `${VAR}` in `.env` files; `templates/.env.example` has the line) |
 | `DIRECTUS_TOKEN` | `DIRECTUS_ADMIN_TOKEN` | `DIRECTUS_TOKEN=${DIRECTUS_ADMIN_TOKEN}` |
+| `NEXT_PUBLIC_CMS_URL` (images block of `next.config.ts`, `nextjs-dev`) | `NEXT_PUBLIC_DIRECTUS_URL` | `NEXT_PUBLIC_CMS_URL=${NEXT_PUBLIC_DIRECTUS_URL}` |
 
-Without the two lines the NextAuth login calls `undefined/auth/login` and fails with no useful message. Set them in the hosting environment too, where `.env.local` does not exist (a platform may not expand `${...}` the way `.env.local` does: give both names their values).
+Without these lines the NextAuth login calls `undefined/auth/login` and fails with no useful message. Set all three in the hosting environment too, where `.env.local` does not exist (a platform may not expand `${...}` the way `.env.local` does: give each name its value).

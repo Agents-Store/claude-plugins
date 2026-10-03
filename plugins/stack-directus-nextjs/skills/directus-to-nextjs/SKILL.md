@@ -156,10 +156,14 @@ export function directusAssetViaProxy(fileId: string | null, params: AssetParams
 // app/api/assets/[id]/route.ts
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TRANSFORMS = ['width', 'height', 'fit', 'quality', 'format'] as const;
+const RASTER = /^image\/(png|jpe?g|webp|avif|gif)$/; // an exact list: no SVG, no HTML, no parameters
+const NOSNIFF = { 'X-Content-Type-Options': 'nosniff' };
+
+const notFound = () => new Response('Not found', { status: 404, headers: NOSNIFF });
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!UUID.test(id)) return new Response('Not found', { status: 404 });
+  if (!UUID.test(id)) return notFound();
 
   const base = process.env.NEXT_PUBLIC_DIRECTUS_URL!;
   const headers = { Authorization: `Bearer ${process.env.DIRECTUS_ADMIN_TOKEN}` };
@@ -167,7 +171,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // Serve one folder only. Without this the route is a public mirror of every file the token can read.
   const meta = await fetch(`${base}/files/${id}?fields=folder`, { headers });
   const folder = meta.ok ? ((await meta.json()) as { data: { folder: string | null } }).data.folder : null;
-  if (!folder || folder !== process.env.PUBLIC_ASSET_FOLDER_ID) return new Response('Not found', { status: 404 });
+  if (!folder || folder !== process.env.PUBLIC_ASSET_FOLDER_ID) return notFound();
 
   const upstreamUrl = new URL(`/assets/${id}`, base);
   const requested = new URL(request.url).searchParams;
@@ -177,16 +181,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 
   const upstream = await fetch(upstreamUrl, { headers });
-  if (!upstream.ok || !upstream.body) return new Response('Not found', { status: 404 });
+  if (!upstream.ok || !upstream.body) return notFound();
 
-  // Serve raster images only. An HTML or SVG file from the library would run script on your own origin
-  const type = upstream.headers.get('Content-Type') ?? '';
-  if (!type.startsWith('image/') || type.startsWith('image/svg')) return new Response('Not found', { status: 404 });
+  // Raster images only: an HTML or SVG file from the library would run script on your own origin
+  const type = (upstream.headers.get('Content-Type') ?? '').trim().toLowerCase();
+  if (!RASTER.test(type)) return notFound();
 
   return new Response(upstream.body, {
     headers: {
+      ...NOSNIFF,
       'Content-Type': type,
-      'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
     },
   });

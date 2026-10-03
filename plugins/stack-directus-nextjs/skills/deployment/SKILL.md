@@ -63,7 +63,7 @@ Directus:
 Next.js:
 
 - [ ] `next@^16.3.8`, Node 22 or later, `proxy.ts` (the middleware file is deprecated in Next.js 16)
-- [ ] All variables set in the hosting platform: `NEXT_PUBLIC_DIRECTUS_URL`, `DIRECTUS_ADMIN_TOKEN`, their recipe aliases `DIRECTUS_URL` and `DIRECTUS_TOKEN` (a platform may not expand `${...}` the way `.env.local` does, so give each name its value), the auth secrets, `REVALIDATION_SECRET`
+- [ ] All variables set in the hosting platform: `NEXT_PUBLIC_DIRECTUS_URL`, `DIRECTUS_ADMIN_TOKEN`, their recipe aliases `DIRECTUS_URL`, `DIRECTUS_TOKEN` and `NEXT_PUBLIC_CMS_URL` (a platform may not expand `${...}` the way `.env.local` does, so give each name its value), the auth secrets, `REVALIDATION_SECRET`
 - [ ] `images.remotePatterns` names the production Directus host with `pathname: '/assets/**'` (or `localPatterns` for the proxy route), and `dangerouslyAllowLocalIP` is off in production
 - [ ] No token in any URL a browser sees (images, links, query strings)
 - [ ] `/api/revalidate` rejects a wrong secret (`401`) and an unknown collection (`400`)
