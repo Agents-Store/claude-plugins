@@ -38,7 +38,7 @@ Developer plugin for **PayloadCMS v3**. Packages Payload knowledge — collectio
 
 ### 1 Command
 
-**`/payloadcms-dev:scaffold [project-name]`** — Bootstraps a new Payload v3 project. Walks the user through DB adapter, template, and package manager, runs `create-payload-app`, then explains the generated `.env` and admin-first-user flow.
+**`/payloadcms-dev:scaffold [project-name]`** — Bootstraps a new Payload v3 project. Walks the user through DB adapter, template, package manager and coding-agent skill (`--no-agent` by default, so the run never waits on a prompt), runs `create-payload-app`, then explains the generated `.env` and admin-first-user flow.
 
 ## Installation
 
@@ -58,7 +58,7 @@ Or add the marketplace and install:
 
 Once a Payload project is created with this plugin's `/scaffold` command, you'll need:
 
-- **Node.js `^18.20.2 || >=20.9.0`** (payload engines field; 20 LTS+ recommended).
+- **Node.js `^18.20.2 || >=20.9.0`** (payload engines field). Node 18 and 20 are end-of-life — use a 22 or 24 LTS.
 - **pnpm 9+**, npm 10+, yarn 4+, or bun 1+.
 - A database: PostgreSQL, MongoDB (replica set for transactions), or SQLite/libSQL.
 - Optional: object storage (S3 / R2 / Vercel Blob / Azure / UploadThing) for production uploads.
@@ -87,7 +87,9 @@ Each prompt triggers the relevant topic skill automatically based on quoted phra
 - **No `.mcp.json`** — PayloadCMS is self-hosted per-project. No public SaaS MCP exists, and stuffing a self-hosted URL into a shared plugin wouldn't work for other users. Each developer wires their own Payload instance via `pnpm dev`.
 - **No `userConfig`** — Payload secrets like `PAYLOAD_SECRET`, `DATABASE_URI`, `S3_*`, `RESEND_API_KEY` belong in the project's `.env`, not in plugin-level config. They vary per project and per environment.
 - **Knowledge-only plugin** — file-based skills, an agent, and one scaffolding command. No external services, no auto-running code.
-- **Targets Payload v3** (verified against 3.87.x, Aug 2026). Payload 4.0 (admin redesign, hierarchies in core, framework adapters/TanStack) is in canary — revisit the folders/data-management and admin-customization skills when 4.0 goes stable.
+- **Targets Payload v3** (verified against 3.90.x, Oct 2026 — 3.90 is a security release; see `authentication` → "Upgrade to 3.90"). Payload 4.0 (admin redesign, hierarchies in core, framework adapters/TanStack) is in canary — **canary, not for production**; revisit the folders/data-management and admin-customization skills when 4.0 goes stable.
+- **Next.js compatibility** — `@payloadcms/next` 3.90.x requires `next >=16.3.3 <17`, or a patched 15.x line (`>=15.2.9 <15.3`, `>=15.3.9 <15.4`, `>=15.4.11 <15.5`); 15.5.x is not supported. Re-check with `npm view @payloadcms/next@latest peerDependencies.next`.
+- **Breaking defaults covered since 3.89** — closed `payload-jobs` collection (3.89), and in 3.90: Stripe plugin `rest` object, API keys shown once (`useAPIKey: { reveal: true }`), upload hardening, Form Builder submission access, lexical 0.50 (import from `@payloadcms/richtext-lexical/lexical`).
 
 ## Source Material & Credits
 

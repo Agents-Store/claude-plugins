@@ -6,7 +6,7 @@ allowed-tools: [Bash, Read, Write, Edit, AskUserQuestion, Skill]
 
 # /payloadcms-dev:scaffold
 
-Bootstrap a new PayloadCMS v3 project from zero. Wraps `npx create-payload-app@latest` with the recommended Next.js App Router defaults and walks the user through every decision before running the scaffolder.
+Bootstrap a new PayloadCMS v3 project from zero. Wraps the official `create-payload-app` scaffolder with the recommended Next.js App Router defaults and walks the user through every decision before running it — passing every choice as a flag so the run never stops on an interactive prompt.
 
 ## Step 1 — Collect Inputs
 
@@ -17,32 +17,37 @@ Use `AskUserQuestion` to gather (skip any the user already supplied as `$ARGUMEN
    - **PostgreSQL** (recommended for prod) — needs a `DATABASE_URI` connection string.
    - **MongoDB** — needs an `mongodb://` URI, ideally a replica set for transactions.
    - **SQLite** (libSQL) — `file:./payload.db` for local, `libsql://…` + auth token for Turso.
-3. **Template** — `blank` (recommended for custom builds) / `website` (marketing site demo) / `ecommerce` (Stripe demo). (The payload repo also has `plugin`, `with-cloudflare-d1`, `with-vercel-*`, and the experimental `blank-tanstack` templates, cloned manually rather than via the prompts.)
+3. **Template** — `blank` (recommended for custom builds) / `website` (marketing site demo) / `ecommerce` (Stripe demo). (The CLI's own template list is `blank`, `website`, `ecommerce`, `with-cloudflare-d1` and `plugin`. The 3.x branch of the payload repo also holds `with-postgres`, `with-vercel-mongodb`, `with-vercel-postgres` and `with-vercel-website`, cloned manually rather than via the prompts; `blank-tanstack` exists only on the `main` branch — the Payload 4 canary — so skip it for production work.)
 4. **Package manager** — pnpm (default) / npm / yarn / bun.
+5. **Coding-agent skill** — the scaffolder can install the official Payload skill plus a `CLAUDE.md` / `AGENTS.md` for one coding agent (`-a claude|codex|cursor`). This plugin already ships Payload skills, and `-a claude` would add a second, overlapping set under `.claude/skills/payload`, so recommend **None (`--no-agent`)** unless the user explicitly wants the official skill too.
 
 ## Step 2 — Verify Prerequisites
 
 Run a Bash check before scaffolding:
 
 ```bash
-node --version          # Recommended >= 20.9.0 (payload engines allow ^18.20.2 || >=20.9.0)
+node --version          # Recommend Node 22 or 24 LTS (payload engines allow ^18.20.2 || >=20.9.0; Node 18 and 20 are end-of-life)
 which pnpm || which npm || which yarn || which bun
 ```
 
-If Node is below the supported range (`^18.20.2 || >=20.9.0`), tell the user to install LTS Node via `nvm install --lts && nvm use --lts` and stop here. Node 20 LTS+ is the recommended baseline.
+If Node is below the supported range (`^18.20.2 || >=20.9.0`), tell the user to install LTS Node via `nvm install --lts && nvm use --lts` and stop here. If it is Node 18 or 20 (both end-of-life — still accepted by the engines field), recommend upgrading to a 22/24 LTS before going to production.
 
 ## Step 3 — Run the Scaffolder
 
-Construct and run the `create-payload-app` command from the chosen inputs:
+Construct and run the `create-payload-app` command from the chosen inputs. Every prompt the scaffolder can ask has a flag, and a missing flag makes a non-interactive run (CI, an agent shell) hang on the prompt — so always pass all of them:
 
 ```bash
-pnpm create payload-app@latest <project-name> \
-  --template <blank|website|ecommerce> \
-  --db <postgres|mongodb|sqlite> \
-  --use-pnpm
+npx create-payload-app@latest --no-agent --use-pnpm \
+  -n <project-name> \
+  -t <blank|website|ecommerce> \
+  -d <postgres|mongodb|sqlite> \
+  --db-accept-recommended
 ```
 
-Substitute `--use-npm` / `--use-yarn` / `--use-bun` as appropriate. Run in the user's current working directory.
+- **`--no-agent`** (default, see Step 1) skips the "Select a coding agent to install the Payload skill for" prompt. To install the official Payload skill for one agent instead, replace it with `--agent claude` (or `-a claude`; `codex` and `cursor` are the other values) — `npx create-payload-app@latest --agent claude --use-pnpm …` writes `.claude/skills/payload/` and a `CLAUDE.md`.
+- **`--db-accept-recommended`** accepts the local default connection string for the chosen database (skips the "Enter … connection string" prompt); pass `--db-connection-string '<uri>'` instead when the user already has one. Step 4 has the user confirm `DATABASE_URI` either way.
+- `-n` / `-t` / `-d` are short for `--name` / `--template` / `--db`. Add `--no-deps` to skip installing dependencies and `--no-git` to skip `git init`.
+- Substitute `--use-npm` / `--use-yarn` / `--use-bun` for `--use-pnpm` as appropriate. Run in the user's current working directory.
 
 ## Step 4 — Post-Install Walkthrough
 
@@ -81,8 +86,9 @@ Don't auto-invoke other skills. Tell the user to invoke the relevant ones based 
 
 ## Failure Modes
 
+- **Scaffolder sits at "Select a coding agent…" or another prompt** → a flag is missing; rerun with `--no-agent` (or `-a <agent>`), `-t`, `-d` and `--db-accept-recommended` so nothing is asked.
 - **`create-payload-app` errors with EACCES** → suggest `sudo chown -R $(whoami) ~/.npm` and rerun.
-- **`Node version too low`** → install Node 20 LTS+ via nvm (engines allow `^18.20.2 || >=20.9.0`).
+- **`Node version too low`** → install a 22/24 LTS via nvm (engines allow `^18.20.2 || >=20.9.0`; Node 18 and 20 are end-of-life).
 - **`Cannot find module 'sharp'`** after install → run `pnpm add sharp` inside the project, then retry `pnpm dev`.
 - **Database connection refused** → confirm the DB is reachable from the dev machine and the URI matches.
 
