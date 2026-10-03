@@ -39,14 +39,17 @@ Run from DIFY_ROOT (git repo root) before any update:
 
 ```bash
 git rev-parse --git-dir >/dev/null 2>&1 || echo "ERROR: Not a git repo"
-echo "Branch: $(git branch --show-current)"      # empty output = detached HEAD
-PRE_UPDATE_COMMIT=$(git rev-parse HEAD)
-echo "Pre-update commit: $PRE_UPDATE_COMMIT"
+START_BRANCH=$(git branch --show-current)         # empty output = detached HEAD
+START_COMMIT=$(git rev-parse HEAD)
+DEV_TIP=$(git rev-parse -q --verify refs/heads/dev || echo "$START_COMMIT")   # dev's tip before the merge
+echo "Branch: ${START_BRANCH:-detached HEAD}   Commit: $START_COMMIT   dev tip: $DEV_TIP"
 git status --short                                # anything listed = dirty tree
 docker compose version --short                    # must be >= 2.24.0
 ```
 
 **Docker Compose >= 2.24.0** is required (`env_file … required: false`).
+
+Record `DEV_TIP` and `START_BRANCH`, not just `HEAD`: the merge happens on `dev`, so a rollback has to put **`dev`** back where it was and then return to the branch the update started on. Resetting `dev` to a `HEAD` captured on `main` would discard the user's customization commits.
 
 **If the working tree is dirty**, ask: (1) commit them, (2) stash them (`git stash` right before the merge, `git stash pop` after verification), (3) abort.
 
@@ -58,7 +61,7 @@ docker ps --filter "label=com.docker.compose.service=api" \
   --format '{{.Label "com.docker.compose.project"}}'
 ```
 
-`docker compose ls` lists every project. Without a running stack the project is the directory name (`docker` for `dify/docker`). Export `COMPOSE_PROJECT_NAME` so all later `docker compose` calls reach it.
+`docker compose ls` lists every project. Without a running stack the project is the directory name (`docker` for `dify/docker`). Export `COMPOSE_PROJECT_NAME` **in the same block** as every `docker compose` call: the Bash tool keeps no shell variables between calls, and without the export `docker compose down` addresses the default project and stops nothing while the real stack keeps running. Always check, after `down` and before archiving, that no container of the stack is left.
 
 ## Choosing the Target
 
@@ -121,6 +124,7 @@ Backup comes **after the plan and before the merge**, with the stack down, so po
 ```bash
 cd "$DOCKER_DIR"
 umask 077                                       # the archive holds the database and the storage key
+export COMPOSE_PROJECT_NAME=<project>           # the project detected above; skip when none is running
 BACKUP_DIR="<backup-dir>/$(date +%Y%m%d-%H%M%S)"   # outside the git repository
 mkdir -p "$BACKUP_DIR"
 cp -p docker-compose.yaml "$BACKUP_DIR/docker-compose.yaml"
@@ -128,6 +132,7 @@ cp -p docker-compose.yaml "$BACKUP_DIR/docker-compose.yaml"
 docker compose stop -t 120 nginx api worker worker_beat   # add api_websocket when the compose file has it
 docker compose stop -t -1 weaviate              # only when VECTOR_STORE=weaviate
 docker compose down -t 120                      # never add -v
+[ -z "$(docker ps -q --filter "label=com.docker.compose.project.working_dir=$DOCKER_DIR")" ] || { echo "ABORT: stack still running"; exit 1; }
 sudo tar -czpf "$BACKUP_DIR/volumes.tgz" -C volumes . && sudo tar -tzf "$BACKUP_DIR/volumes.tgz" >/dev/null && echo "Backup OK"
 ```
 
@@ -135,6 +140,7 @@ sudo tar -czpf "$BACKUP_DIR/volumes.tgz" -C volumes . && sudo tar -tzf "$BACKUP_
 - No `-v` on `tar`: a listing of thousands of paths is noise, and nothing in the output may carry a secret. Never `cat .env`.
 - The real data lives in `volumes/db/data` (postgres), `volumes/redis/data`, `volumes/app/storage`, `volumes/plugin_daemon`, `volumes/weaviate`, `volumes/sandbox`, `volumes/certbot`. Since 1.14.1 an empty `SECRET_KEY` means the API generates a key and keeps it in `volumes/app/storage`: that directory must be in the backup, and the key must not change after start.
 - Optional logical dump, taken **before** `down`: `docker compose exec -T db_postgres pg_dumpall -U "$DB_USERNAME" > "$BACKUP_DIR/postgres.sql"`. `pg_dump` of the `dify` database alone misses the plugin database `dify_plugin`. With `DB_TYPE=mysql` use `mysqldump --all-databases` in `db_mysql` instead.
+- Save the non-secret state the later steps and the rollback need (`DIFY_ROOT`, `DOCKER_DIR`, `START_BRANCH`, `START_COMMIT`, `DEV_TIP`, `COMPOSE_PROJECT_NAME`) in `$BACKUP_DIR/state.env`; `/dify-ops:update` does this.
 - Keep the backup until the new version is verified healthy. It holds secrets: never commit it, never leave it inside `dify/`.
 
 ## Merge
@@ -226,10 +232,10 @@ All services `Up` or `healthy`; `init_permissions` is a one-shot task and shows 
 Dify has no downgrade path: migrations are forward-only. Rolling back means restoring the volumes taken in the backup step together with the old code:
 
 ```bash
-cd <DOCKER_DIR> && docker compose down && git -C <DIFY_ROOT> reset --hard <pre-update-sha> && cp -p <backup-dir>/.env .env && sudo mv volumes volumes.failed && mkdir volumes && sudo tar -xzpf <backup-dir>/volumes.tgz -C volumes && docker compose up -d
+export COMPOSE_PROJECT_NAME=<project> && cd <DOCKER_DIR> && docker compose down && git -C <DIFY_ROOT> checkout -f dev && git -C <DIFY_ROOT> reset --hard <dev-tip> && git -C <DIFY_ROOT> checkout <start-branch-or-commit> && cp -p <backup-dir>/.env .env && sudo mv volumes "volumes.failed-$(date +%s)" && mkdir volumes && sudo tar -xzpf <backup-dir>/volumes.tgz -C volumes && docker compose up -d
 ```
 
-If the update was stashed, `git stash pop` afterwards. Delete `volumes.failed` only after the restored stack is verified.
+`<dev-tip>` is the commit `dev` pointed at before the merge (`DEV_TIP`), `<start-branch-or-commit>` the branch the update started on (the commit id when it started on a detached HEAD), `<project>` the compose project (the directory name when none was running). If the update was stashed, `git stash pop` afterwards. Delete `volumes.failed-*` only after the restored stack is verified.
 
 For a failed Weaviate rung, the runbook has its own rollback: set the image back, stop with `-t -1`, move the broken `volumes/weaviate` aside, `cp -a` the backup in, start Weaviate, verify. Rolling only the image tag back without the data is not safe.
 

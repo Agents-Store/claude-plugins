@@ -23,7 +23,7 @@ An `.env` copied from an older, monolithic `.env.example` still works: it is rea
 
 ## Never Print Secrets
 
-`.env` holds database and Redis passwords, `SECRET_KEY`, API keys and tokens. Never `cat .env`, never echo a value of a key whose name contains `SECRET`, `PASSWORD`, `PASSWD`, `TOKEN`, `KEY`, `CREDENTIAL`, `DSN` or `AUTH`. Show key **names** and, for harmless keys, the value from `.env.example` (the default). Output you produce lands in the session transcript.
+`.env` holds database and Redis passwords, `SECRET_KEY`, API keys and tokens. Never `cat .env`, never echo a value of a key whose name contains `SECRET`, `PASSWORD`, `PASSWD`, `TOKEN`, `KEY`, `CREDENTIAL`, `DSN`, `AUTH`, `URL`, `URI`, `JSON` or `BASE64`, nor any value that carries credentials, such as `redis://:<password>@host`. Show key **names** and, for harmless keys, the value from `.env.example` (the default). Output you produce lands in the session transcript.
 
 ## Edge Case: .env Does Not Exist
 
@@ -45,28 +45,58 @@ fi
 
 ## Default: the Official dify-env-sync.sh
 
-When `dify-env-sync.sh` exists in DOCKER_DIR (there is also a `dify-env-sync.py`), run it first. It is a one-way sync from `.env.example` to `.env`:
+When `dify-env-sync.sh` exists in DOCKER_DIR (there is also a `dify-env-sync.py`), run it first. What it does, read from the script:
 
 - backs `.env` up to `env-backup/.env.backup_<timestamp>` before changing anything
-- adds new keys with their example values and keeps every value you already set
-- lists keys whose value differs from the example, and keys removed from the example
+- **rebuilds `.env` from the new `.env.example`**, line by line: a key that is still in the example keeps your value (when it differs from the example), a new key gets the example's value
+- **drops every key that is not in the new example**: custom keys, keys that moved into `envs/` (SMTP and storage credentials, `DIFY_AGENT_RUN_RETENTION_SECONDS`) and keys removed upstream. Its closing "consider manually removing these variables" warning is misleading, because they are already gone; the only copy is the backup
+- prints the keys whose value differs from the example, and the keys that are no longer in the example
 
-The manual algorithm below compares **key names** only, so it misses a changed default; the script reports the changed values.
+The manual algorithm below compares **key names** only and only appends, so it misses a changed default; the script reports the changed values but loses keys.
 
-**The script prints the current `.env` value of every differing key, passwords and secrets included.** Run it through a filter that masks the value of any secret-looking key:
+**The script prints the current `.env` value of every differing key, passwords, secrets and credential-bearing URLs (`CELERY_BROKER_URL` ships as `redis://:<password>@redis:6379/1`) included.** Run it through a filter. It shows a value only when the key name does not look secret **and** the value is a number, a boolean or empty; everything else prints as `***`, and so do the analysis lines of a masked key:
 
 ```bash
 cd $DOCKER_DIR
 bash dify-env-sync.sh 2>&1 | awk '
   { gsub(/\033\[[0-9;]*m/, "") }
-  /^\[[0-9]+\] /{ key=$2; print; next }
-  key ~ /SECRET|PASSWORD|PASSWD|TOKEN|KEY|CREDENTIAL|DSN|AUTH/ && /^  [^ ]/ {
-    if ($0 ~ /^  \.env/) { sub(/:.*/, ": ***"); print }
-    next }
+  /^\[[0-9]+\] / { key = $2; hide = 0; print; next }
+  /^  \.env +[(]current[)]/ {
+    val = $0; sub(/^[^:]*: ?/, "", val)
+    hide = (key ~ /SECRET|PASSWORD|PASSWD|TOKEN|KEY|CREDENTIAL|DSN|AUTH|URL|URI|JSON|BASE64/) || (tolower(val) !~ /^(true|false|[0-9]+)?$/)
+    if (hide) sub(/:.*/, ": ***")
+    print; next }
+  /^  \.env\.example/ { if (hide) sub(/:.*/, ": ***"); print; next }
+  /^  [^ ]/ { if (!hide) print; next }
   { print }'
 ```
 
-Never run the script bare inside an agent session. If it fails, fall back to the manual algorithm.
+The filter uses only POSIX awk and was checked with gawk, mawk and busybox awk. Never run the script bare inside an agent session. If it fails, fall back to the manual algorithm.
+
+### Restore the Dropped Keys
+
+After the script, compare the key **names** of the backup with the new `.env`, and say where each dropped key belongs. Never print values:
+
+```bash
+cd $DOCKER_DIR
+DROPPED=$(comm -23 <(grep -oE '^[A-Z_][A-Z0-9_]*' "$BACKUP_DIR/.env" | sort -u) <(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sort -u))
+for K in $DROPPED; do
+  T=$(grep -rl "^$K=" envs --include='*.env.example' 2>/dev/null | sed 's/\.example$//' | sort | paste -sd' ' -)
+  if [ -n "$T" ]; then echo "$K -> $T"; else echo "$K -> .env   (no template declares it: custom, or removed upstream)"; fi
+done
+```
+
+`$BACKUP_DIR/.env` is the copy taken before the sync (the update command's backup; with a stand-alone sync use the file in `env-backup/`). Offer each key to the user:
+
+- a key that templates under `envs/` declare goes into one of the matching `envs/**/*.env` files (when several are listed, ask which; the file is created if missing and may hold just that key)
+- a key that no template declares is either custom (restore into `.env`) or removed upstream (check the release notes; leave it dropped)
+
+Restore by copying the line from the backup, which prints nothing:
+
+```bash
+restore() { mkdir -p "$(dirname "$2")"; grep "^$1=" "$BACKUP_DIR/.env" | tail -1 >> "$2"; }   # restore <KEY> <target-file>
+restore <KEY> <target-file>
+```
 
 ## Sync Algorithm (manual fallback)
 
@@ -167,7 +197,7 @@ A key-by-key comparison does not catch these; check them after every update to 1
 |-----|--------------|-------|
 | `COMPOSE_PROFILES` | Default gained `collaboration` in 1.14.1; the `api_websocket` service starts only with that profile | `grep -m1 '^COMPOSE_PROFILES=' .env` — add `collaboration` if an older `.env` lacks it |
 | `EDITION` | Renamed `DEPLOYMENT_EDITION` in 1.17.0 (template: `envs/core-services/shared.env.example`) | If `.env` sets `EDITION`, rename it |
-| `DIFY_AGENT_RUN_RETENTION_SECONDS` | Default dropped from 3 days to 2 hours in 1.17.1 and the key moved from the root file into `envs/core-services/dify-agent.env.example` | An `.env` copied from 1.16.x still pins the old 3 days (`.env` wins), a fresh one gets 2 hours — pick the value you want explicitly |
+| `DIFY_AGENT_RUN_RETENTION_SECONDS` | Default dropped from 3 days to 2 hours in 1.17.1 and the key moved from the root file into `envs/core-services/dify-agent.env.example` | An `.env` copied from 1.16.x pins 3 days, but the official script drops the key (it left the root example), so the 2-hour default applies — restore the key into `envs/core-services/dify-agent.env` to keep the old value |
 | `DIFY_AGENT_SHELLCTL_AUTH_TOKEN`, `DIFY_AGENT_SHELLCTL_ENTRYPOINT` | Removed in 1.17.0 | Drop from `.env` |
 | `EXPOSE_NGINX_PORT`, `EXPOSE_NGINX_SSL_PORT` | Host ports; `NGINX_PORT` is the container-internal port | Read `EXPOSE_NGINX_PORT` for the URL, never `NGINX_PORT` |
 | `SECRET_KEY` | Empty means generated and stored in `volumes/app/storage` (1.14.1) | Never change after start; keep the storage directory in the backup |
@@ -176,7 +206,7 @@ Read the "Environment Variable Changes" section of every release between the old
 
 ## Checking Removed Variables
 
-Also check for variables in `.env` that are no longer in `.env.example`:
+With the official script the removed keys are already dropped from `.env`: use "Restore the Dropped Keys" above. With the manual algorithm nothing is deleted, so check for variables in `.env` that are no longer in `.env.example`:
 
 ```bash
 REMOVED_KEYS=$(comm -13 /tmp/dify-env-example-keys /tmp/dify-env-keys)

@@ -2,11 +2,11 @@
 
 ## Context
 
-User runs Dify 1.16.1 on the `dev` branch with a custom host port set in `.env`. The vector store is Qdrant (`VECTOR_STORE=qdrant`), so the Weaviate migration gate does not apply. They want the latest stable release.
+User runs Dify 1.16.1. The repository is checked out on `main` (the branch that tracks upstream) while the customizations live on `dev`; a custom host port is set in `.env`. The vector store is Qdrant (`VECTOR_STORE=qdrant`), so the Weaviate migration gate does not apply. They want the latest stable release.
 
 ## Starting State
 
-- Branch: `dev`
+- Branch: `main` at `fed9876`; `dev` at `abc1234` (their customization commits)
 - Working tree: clean
 - Docker project: `docker` (default)
 - Running version: 1.16.1 (image tag in `docker-compose.yaml`)
@@ -31,11 +31,11 @@ Detected: DOCKER_DIR=<DIFY_DIR>/docker, DIFY_ROOT=<DIFY_DIR>
 
 ```
 $ git branch --show-current
-dev
+main
 $ git status --porcelain
 (clean)
-$ git rev-parse HEAD
-abc1234...   (recorded as PRE_UPDATE_COMMIT)
+Branch: main   Commit: fed9876...   dev tip: abc1234...
+                (the rollback resets dev to abc1234 — not to HEAD — and returns to main)
 
 $ docker compose version --short
 2.29.7                      (>= 2.24.0: OK)
@@ -75,7 +75,7 @@ CHANGE    git merge 1.17.1 · env sync · docker compose pull && docker compose 
 BACKUP    <backup-dir>/20261003-101500: docker-compose.yaml, .env, volumes.tgz — stack down first
 IMPACT    downtime from down to up · start-up runs 3 DB migrations, one is irreversible
 VALIDATE  docker compose ps · HTTP check · test retrieval in one knowledge base · model list
-ROLLBACK  cd <DIFY_DIR>/docker && docker compose down && git -C <DIFY_DIR> reset --hard abc1234 && cp -p <backup-dir>/20261003-101500/.env .env && sudo mv volumes volumes.failed && mkdir volumes && sudo tar -xzpf <backup-dir>/20261003-101500/volumes.tgz -C volumes && docker compose up -d
+ROLLBACK  export COMPOSE_PROJECT_NAME=docker && cd <DIFY_DIR>/docker && docker compose down && git -C <DIFY_DIR> checkout -f dev && git -C <DIFY_DIR> reset --hard abc1234 && git -C <DIFY_DIR> checkout main && cp -p <backup-dir>/20261003-101500/.env .env && sudo mv volumes "volumes.failed-$(date +%s)" && mkdir volumes && sudo tar -xzpf <backup-dir>/20261003-101500/volumes.tgz -C volumes && docker compose up -d
 APPLY     waiting for the user's go
 
 Apply this plan? (y/n) y
@@ -84,12 +84,15 @@ Apply this plan? (y/n) y
 ### 6. Backup, Stack Down
 
 ```
+BACKUP_DIR=<backup-dir>/20261003-101500   COMPOSE_PROJECT_NAME=docker
 $ docker compose stop -t 120 nginx api api_websocket worker worker_beat
 $ docker compose down -t 120
+(no container of this stack is left running)
 $ sudo tar -czpf <backup-dir>/20261003-101500/volumes.tgz -C volumes .
 $ sudo tar -tzf <backup-dir>/20261003-101500/volumes.tgz > /dev/null
 Backup OK
 -rw------- 1 root root  412M  volumes.tgz
+-rw------- 1 user user  330B  state.env
 -rw------- 1 user user  3.1K  docker-compose.yaml
 -rw------- 1 user user  9.4K  .env
 ```
@@ -99,6 +102,8 @@ Only names and sizes are listed: the archive and `.env` hold secrets and are nev
 ### 7. Merge
 
 ```
+$ set -a; . <backup-dir>/20261003-101500/state.env; set +a
+$ git checkout dev            (the update started on main; the merge happens on dev)
 $ git merge 1.17.1
 Merge made by the 'ort' strategy.
  docker/.env.example           | 12 ++++-----
@@ -118,16 +123,21 @@ $ bash dify-env-sync.sh      (through the masking filter)
 [1] DIFY_AGENT_API_TOKEN
   .env (current)      : ***
   .env.example (recommended): ***
+[2] CELERY_BROKER_URL
+  .env (current)      : ***
+  .env.example (recommended): ***
 [SUCCESS] Partial synchronization of .env file completed
 [INFO]   Preserved .env values: 211
 [WARNING] The following environment variables have been removed from .env.example:
 [WARNING]   - DIFY_AGENT_RUN_RETENTION_SECONDS
 [WARNING]   - DIFY_AGENT_SHELLCTL_AUTH_TOKEN
 [WARNING]   - DIFY_AGENT_SHELLCTL_ENTRYPOINT
+[WARNING]   - SMTP_PASSWORD
 [WARNING]   ...
+[WARNING] Consider manually removing these variables from .env
 ```
 
-The user changed `DIFY_AGENT_API_TOKEN` from its development default, so the key differs from the example — and the filter masks both values. New keys added to `.env`:
+The user changed `DIFY_AGENT_API_TOKEN` from its development default, and `CELERY_BROKER_URL` carries the Redis password, so both differ from the example — the filter prints `***` for both (and for any string value). The closing "consider manually removing" line is misleading: the script rebuilt `.env` from the new example and **has already dropped** every key that is not in it. New keys added to `.env`:
 
 | Variable                              | Default Value               | Action Required? |
 |---------------------------------------|-----------------------------|------------------|
@@ -139,7 +149,18 @@ The user changed `DIFY_AGENT_API_TOKEN` from its development default, so the key
 | PLUGIN_MAX_FILE_SIZE                  | 52428800                    | No               |
 | SSRF_PROXY_ALLOW_PRIVATE_IPS          | (empty)                     | No               |
 
-Claude then checks the three cases. `COMPOSE_PROFILES` already contains `collaboration`. `EDITION` is not set, so no rename is needed. `DIFY_AGENT_RUN_RETENTION_SECONDS` was removed from the root example (it moved to `envs/core-services/dify-agent.env.example` with a 2-hour default), but `.env` still pins `259200` and `.env` wins — the user keeps 3 days on purpose. The removed `DIFY_AGENT_SHELLCTL_*` keys are dropped from `.env`.
+Claude then compares the key **names** of `<backup-dir>/20261003-101500/.env` with the new `.env`:
+
+```
+DIFY_AGENT_RUN_RETENTION_SECONDS -> envs/core-services/dify-agent.env
+DIFY_AGENT_SHELLCTL_AUTH_TOKEN -> .env   (no template declares it: custom, or removed upstream)
+DIFY_AGENT_SHELLCTL_ENTRYPOINT -> .env   (no template declares it: custom, or removed upstream)
+SMTP_PASSWORD -> envs/core-services/shared.env envs/security.env
+```
+
+Names only, never values. The release notes of 1.17.0 list the two `DIFY_AGENT_SHELLCTL_*` keys as removed, so they stay dropped. The user restores the other two by copying their lines from the backup (nothing is printed): `DIFY_AGENT_RUN_RETENTION_SECONDS` into `envs/core-services/dify-agent.env` to keep 3 days instead of the new 2-hour default, `SMTP_PASSWORD` (a mail setting the user had added to `.env` by hand) into `envs/security.env`. Without that step the update would have silently dropped the mail settings.
+
+Last, Claude checks the other cases: `COMPOSE_PROFILES` already contains `collaboration`, and `EDITION` is not set, so no rename is needed.
 
 ### 9. Pull and Start
 
@@ -187,15 +208,15 @@ HTTP 200 — Dify web reachable at port 8081
 
 ```
 === Dify Update Summary ===
-Previous version: 1.16.1 (abc1234)
+Previous version: 1.16.1 (dev tip abc1234)
 Current version:  1.17.1 (def5678)
-Branch:           dev
+Branch:           dev (update started on main)
 Merged from:      1.17.1
 Backup:           <backup-dir>/20261003-101500 (volumes.tgz 412M)
-New env vars:     7 added to .env (2 to review)
+New env vars:     7 added to .env (2 to review); 2 dropped keys restored from the backup (names only)
 Conflicts:        None
 Docker project:   docker
 Containers:       All up; init_permissions Exited (0)
-Rollback:         cd <DIFY_DIR>/docker && docker compose down && git -C <DIFY_DIR> reset --hard abc1234 && cp -p <backup-dir>/20261003-101500/.env .env && sudo mv volumes volumes.failed && mkdir volumes && sudo tar -xzpf <backup-dir>/20261003-101500/volumes.tgz -C volumes && docker compose up -d
+Rollback:         export COMPOSE_PROJECT_NAME=docker && cd <DIFY_DIR>/docker && docker compose down && git -C <DIFY_DIR> checkout -f dev && git -C <DIFY_DIR> reset --hard abc1234 && git -C <DIFY_DIR> checkout main && cp -p <backup-dir>/20261003-101500/.env .env && sudo mv volumes "volumes.failed-$(date +%s)" && mkdir volumes && sudo tar -xzpf <backup-dir>/20261003-101500/volumes.tgz -C volumes && docker compose up -d
 Warning:          rollback restores the volumes; a database migration is not reversible any other way
 ```

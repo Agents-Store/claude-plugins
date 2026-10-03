@@ -85,16 +85,21 @@ CHANGE    git merge 1.17.1 · env sync · docker compose pull && docker compose 
 BACKUP    <backup-dir>/20261003-142000: docker-compose.yaml, .env, volumes.tgz — stack down first
 IMPACT    downtime from down to up · 3 DB migrations at start-up, one is irreversible
 VALIDATE  docker compose ps · HTTP check · test retrieval · model list
-ROLLBACK  cd <DIFY_DIR>/docker && docker compose down && git -C <DIFY_DIR> reset --hard aaa1111 && cp -p <backup-dir>/20261003-142000/.env .env && sudo mv volumes volumes.failed && mkdir volumes && sudo tar -xzpf <backup-dir>/20261003-142000/volumes.tgz -C volumes && docker compose up -d
+ROLLBACK  export COMPOSE_PROJECT_NAME=dify-prod && cd <DIFY_DIR>/docker && docker compose down && git -C <DIFY_DIR> checkout -f dev && git -C <DIFY_DIR> reset --hard aaa1111 && git -C <DIFY_DIR> checkout dev && cp -p <backup-dir>/20261003-142000/.env .env && sudo mv volumes "volumes.failed-$(date +%s)" && mkdir volumes && sudo tar -xzpf <backup-dir>/20261003-142000/volumes.tgz -C volumes && docker compose up -d
 APPLY     user's go
 ```
 
 ```
+BACKUP_DIR=<backup-dir>/20261003-142000   COMPOSE_PROJECT_NAME=dify-prod
+$ docker compose stop -t 120 nginx api api_websocket worker worker_beat
 $ docker compose stop -t -1 weaviate
 $ docker compose down -t 120
+(no container of this stack is left running)
 $ sudo tar -czpf <backup-dir>/20261003-142000/volumes.tgz -C volumes .
 Backup OK
 ```
+
+The project name was detected from the running `api` container's labels and exported **inside the block**: the folder is called `dify-prod`, so without `COMPOSE_PROJECT_NAME` a bare `docker compose down` would address a project named after the directory, stop nothing, and the archive would be taken from live postgres. The guard after `down` looks for any container of this stack still running and aborts if it finds one. The project name, the git state and the paths are saved in `state.env` next to the archive.
 
 ### 8. Fetch and Merge Tag
 
@@ -150,9 +155,14 @@ $ bash dify-env-sync.sh      (through the masking filter)
   .env (current)      : ***
   .env.example (recommended): ***
 [WARNING] The following environment variables have been removed from .env.example:
+[WARNING]   - DIFY_AGENT_RUN_RETENTION_SECONDS
 [WARNING]   - DIFY_AGENT_SHELLCTL_AUTH_TOKEN
 [WARNING]   - DIFY_AGENT_SHELLCTL_ENTRYPOINT
+[WARNING]   - SMTP_PASSWORD
+[WARNING] Consider manually removing these variables from .env
 ```
+
+The "consider manually removing" line is misleading: the script rebuilt `.env` from the new example and has already dropped these keys. Claude lists the key names that are in `<backup-dir>/20261003-142000/.env` but no longer in `.env`, with the file each belongs to (names only, never values), and the user restores `DIFY_AGENT_RUN_RETENTION_SECONDS` into `envs/core-services/dify-agent.env` and `SMTP_PASSWORD` into `envs/security.env` by copying their lines from the backup. The two `DIFY_AGENT_SHELLCTL_*` keys were removed upstream in 1.17.0 and stay dropped.
 
 New keys added to `.env`:
 
@@ -166,8 +176,9 @@ No port variable is new: `EXPOSE_NGINX_PORT` and `EXPOSE_NGINX_SSL_PORT` already
 ### 11. Pull and Start
 
 ```
-$ docker compose -p dify-prod pull
-$ docker compose -p dify-prod up -d
+$ set -a; . <backup-dir>/20261003-142000/state.env; set +a      (exports COMPOSE_PROJECT_NAME=dify-prod)
+$ docker compose pull
+$ docker compose up -d
 [+] Running 17/17
  ✔ Container dify-prod-db_postgres-1    Healthy
  ✔ Container dify-prod-redis-1          Running
@@ -179,7 +190,7 @@ $ docker compose -p dify-prod up -d
 ### 12. Verification
 
 ```
-$ docker compose -p dify-prod ps
+$ docker compose ps
 All services Up or healthy; dify-prod-init_permissions-1 Exited (0) — expected.
 HTTP 200 — Dify web reachable at http://localhost:8081
 ```
@@ -207,11 +218,11 @@ Current version:  1.17.1 (bbb2222)
 Branch:           dev
 Merged from:      1.17.1
 Backup:           <backup-dir>/20261003-142000
-New env vars:     2 added to .env (1 to review); host ports set in .env
+New env vars:     2 added to .env (1 to review); host ports set in .env; 2 dropped keys restored from the backup
 Conflicts:        1 resolved (docker-compose.yaml — host ports moved to .env)
 Docker project:   dify-prod
 Containers:       All up; init_permissions Exited (0)
 Weaviate:         staged to 1.39.2 by the runbook before the update
 Stash:            Conflict on pop — resolved by dropping the comment
-Rollback:         cd <DIFY_DIR>/docker && docker compose down && git -C <DIFY_DIR> reset --hard aaa1111 && cp -p <backup-dir>/20261003-142000/.env .env && sudo mv volumes volumes.failed && mkdir volumes && sudo tar -xzpf <backup-dir>/20261003-142000/volumes.tgz -C volumes && docker compose up -d
+Rollback:         export COMPOSE_PROJECT_NAME=dify-prod && cd <DIFY_DIR>/docker && docker compose down && git -C <DIFY_DIR> checkout -f dev && git -C <DIFY_DIR> reset --hard aaa1111 && git -C <DIFY_DIR> checkout dev && cp -p <backup-dir>/20261003-142000/.env .env && sudo mv volumes "volumes.failed-$(date +%s)" && mkdir volumes && sudo tar -xzpf <backup-dir>/20261003-142000/volumes.tgz -C volumes && docker compose up -d
 ```

@@ -44,7 +44,7 @@ Technology (Level 1) -- knowledge-only, no MCP server.
 4. Prints the eight-block plan (TARGET, PRECHECK, CHANGE, BACKUP, IMPACT, VALIDATE, ROLLBACK, APPLY) and waits for confirmation
 5. Backs up: copies `docker-compose.yaml` and `.env`, stops the stack, `docker compose down`, archives `volumes/` outside the repo
 6. Merges the tag into `dev` and resolves any merge conflicts interactively
-7. Syncs `.env` with `.env.example` and the `envs/` templates (adds new variables, masks secrets)
+7. Syncs `.env` with `.env.example` and the `envs/` templates (adds new variables, masks secret values, lists the keys the official script dropped by name and restores them on request)
 8. Runs `docker compose pull` and `docker compose up -d`
 9. Verifies containers are healthy and asks for a test retrieval against a knowledge base
 

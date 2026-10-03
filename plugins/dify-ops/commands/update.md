@@ -8,7 +8,7 @@ argument-hint: "[tag-or-version|main] [--yes] [--weaviate-staged]"
 
 Update a self-hosted Dify instance without losing data: read what the target release changes, stop the stack and archive `volumes/`, and only then merge the release tag into the local `dev` branch, sync environment variables, pull images and start. Nothing is changed before the plan in Step 3 is printed and confirmed.
 
-The Bash tool does not keep shell variables between calls. Start each block below with the assignments from the earlier blocks (`DIFY_ROOT`, `DOCKER_DIR`, `PROJECT_NAME`, `CUR`, `TGT`, `TARGET`, `TARGET_REF`, `STAGED`, `PRE_UPDATE_COMMIT`, and `BACKUP_DIR` once Step 4 has made it); the plan prints their values.
+The Bash tool does not keep shell variables between calls. Step 2 prints `DIFY_ROOT`, `DOCKER_DIR`, `CUR`, `TGT`, `TARGET`, `TARGET_REF` and `STAGED`; carry them into the next block as plain assignments. Step 4 writes everything later steps need to `<backup-dir>/state.env` (paths, branch names, commit ids and the compose project — no secrets), and every block from Step 5 on starts with `set -a; . <backup-dir>/state.env; set +a`.
 
 ## Arguments
 
@@ -49,9 +49,10 @@ Five checks. None of them changes the working tree, the containers or the volume
 ```bash
 cd "$DIFY_ROOT"
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "ERROR: Not a git repo"; exit 1; }
-BRANCH=$(git branch --show-current)
-PRE_UPDATE_COMMIT=$(git rev-parse HEAD)
-echo "Branch: ${BRANCH:-detached HEAD}   Commit: $PRE_UPDATE_COMMIT"
+START_BRANCH=$(git branch --show-current)          # empty = detached HEAD
+START_COMMIT=$(git rev-parse HEAD)
+DEV_TIP=$(git rev-parse -q --verify refs/heads/dev || echo "$START_COMMIT")   # dev's tip before the merge; dev is created from HEAD when absent
+echo "Branch: ${START_BRANCH:-detached HEAD}   Commit: $START_COMMIT   dev tip: $DEV_TIP"
 git show-ref --verify --quiet refs/heads/dev && echo "dev branch: present" || echo "dev branch: MISSING"
 DIRTY=$(git status --porcelain)
 [ -n "$DIRTY" ] && { echo "WARNING: Uncommitted changes:"; git status --short; }
@@ -59,6 +60,7 @@ DIRTY=$(git status --porcelain)
 
 - Dirty tree — ask: (1) commit first, (2) stash (`git stash`, run in Step 5 right before the merge; record `STASHED=true`), (3) abort.
 - `dev` missing — the official `git clone --branch <tag>` leaves a detached HEAD and no `dev`. Tell the user Step 5 will run `git switch -c dev` before merging.
+- The rollback resets `dev` to `DEV_TIP`, never to `HEAD`: when the update starts on `main` or on a detached HEAD, `HEAD` is not where `dev` is, and resetting `dev` to it would throw away the user's customization commits. It then returns to `START_BRANCH` (or `START_COMMIT`).
 
 **2. Docker Compose >= 2.24.0** (the compose files use `env_file … required: false`):
 
@@ -77,7 +79,7 @@ PROJECT_NAME=$(docker ps --filter "label=com.docker.compose.service=api" \
 echo "Docker project: ${PROJECT_NAME:-none running — compose default (directory name, usually docker)}"
 ```
 
-If `PROJECT_NAME` is set and differs from the directory name, put `export COMPOSE_PROJECT_NAME="$PROJECT_NAME"` at the top of every later block, so each `docker compose` call below reaches the right project.
+If `PROJECT_NAME` is set, every `docker compose` call must run with `export COMPOSE_PROJECT_NAME="$PROJECT_NAME"`; without it a compose command in a block of its own addresses the default project (the directory name), and `down` stops nothing. Step 4 re-detects the project, exports it and saves it in `state.env`.
 
 **4. Target and versions.** Resolve the tag, then read the Dify version from the compose file of the target and of the current checkout:
 
@@ -157,17 +159,17 @@ CHANGE    git merge <TARGET_REF> · env sync (.env, envs/) · docker compose pul
 BACKUP    <backup-dir>: docker-compose.yaml, .env, volumes.tgz — the whole stack is down while volumes/ is archived
 IMPACT    downtime from down to up · start-up runs DB migrations, which are one-way · <changed env defaults, new services>
 VALIDATE  docker compose ps · HTTP check · test retrieval in one knowledge base · model providers list
-ROLLBACK  restore <backup-dir> and reset to <PRE_UPDATE_COMMIT> (command below)
+ROLLBACK  restore <backup-dir>, put dev back at <DEV_TIP>, return to <START_BRANCH> (command below)
 APPLY     --yes, or the user's explicit go
 ```
 
 Print the exact ROLLBACK command with the real values filled in — one runnable line, because git alone cannot undo a database migration:
 
 ```bash
-cd <DOCKER_DIR> && docker compose down && git -C <DIFY_ROOT> reset --hard <pre-update-sha> && cp -p <backup-dir>/.env .env && sudo mv volumes volumes.failed && mkdir volumes && sudo tar -xzpf <backup-dir>/volumes.tgz -C volumes && docker compose up -d
+export COMPOSE_PROJECT_NAME=<project> && cd <DOCKER_DIR> && docker compose down && git -C <DIFY_ROOT> checkout -f dev && git -C <DIFY_ROOT> reset --hard <dev-tip> && git -C <DIFY_ROOT> checkout <start-branch-or-commit> && cp -p <backup-dir>/.env .env && sudo mv volumes "volumes.failed-$(date +%s)" && mkdir volumes && sudo tar -xzpf <backup-dir>/volumes.tgz -C volumes && docker compose up -d
 ```
 
-(`<backup-dir>` is the directory Step 4 creates; drop `sudo` when running as root; if the update was stashed, run `git stash pop` afterwards.)
+`<project>` is the compose project from Step 2 (the directory name when none was running). `<dev-tip>` is `DEV_TIP`, the commit `dev` pointed at before the merge. `<start-branch-or-commit>` is `START_BRANCH`, or `START_COMMIT` when the update started on a detached HEAD. `<backup-dir>` is the directory Step 4 creates. Drop `sudo` when running as root; if the update was stashed, run `git stash pop` afterwards.
 
 ## Step 4: Backup, stack down
 
@@ -177,9 +179,23 @@ Order matters: stop, archive, and only then change anything. The archive is take
 cd "$DOCKER_DIR"
 umask 077                                                  # the archive holds the database and the storage key
 SUDO=""; [ "$(id -u)" -ne 0 ] && SUDO=sudo
+TARGET="<TARGET>"; TARGET_REF="<TARGET_REF>"               # from Step 2
+# git state for the rollback — nothing has touched git yet
+START_BRANCH=$(git -C "$DIFY_ROOT" branch --show-current)
+START_COMMIT=$(git -C "$DIFY_ROOT" rev-parse HEAD)
+DEV_TIP=$(git -C "$DIFY_ROOT" rev-parse -q --verify refs/heads/dev || echo "$START_COMMIT")
+# compose project: detect it while the stack is still up, then pin it for every docker compose call below
+PROJECT_NAME=$(docker ps --filter "label=com.docker.compose.service=api" \
+  --filter "label=com.docker.compose.project.working_dir=$DOCKER_DIR" \
+  --format '{{.Label "com.docker.compose.project"}}' 2>/dev/null | head -1)
+[ -n "$PROJECT_NAME" ] && export COMPOSE_PROJECT_NAME="$PROJECT_NAME"
 VS=$(grep -E '^VECTOR_STORE=' .env 2>/dev/null | tail -1 | cut -d= -f2); VS=${VS:-weaviate}
 BACKUP_DIR="${DIFY_BACKUP_DIR:-$(dirname "$DIFY_ROOT")/dify-backups}/$(date +%Y%m%d-%H%M%S)"   # outside the git repository
 mkdir -p "$BACKUP_DIR"
+for V in DIFY_ROOT DOCKER_DIR BACKUP_DIR TARGET TARGET_REF START_BRANCH START_COMMIT DEV_TIP COMPOSE_PROJECT_NAME; do
+  [ -n "${!V}" ] && printf '%s=%q\n' "$V" "${!V}"          # paths, branch names, commit ids: no secrets
+done > "$BACKUP_DIR/state.env"
+echo "BACKUP_DIR=$BACKUP_DIR   COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-<default>}"
 NEED=$($SUDO du -sk volumes | cut -f1); FREE=$(df -Pk "$BACKUP_DIR" | awk 'NR==2{print $4}')
 [ "$FREE" -gt "$NEED" ] || { echo "ERROR: not enough free space for the backup (need ${NEED} KB, free ${FREE} KB)"; exit 1; }
 cp -p docker-compose.yaml "$BACKUP_DIR/docker-compose.yaml"
@@ -188,6 +204,10 @@ APP=$(docker compose config --services | grep -E '^(nginx|api|api_websocket|work
 [ -n "$APP" ] && docker compose stop -t 120 $APP
 [ "$VS" = weaviate ] && docker compose stop -t -1 weaviate  # no timeout: a hard kill silently breaks vector search
 docker compose down -t 120                                  # never add -v
+# the archive is only consistent when nothing of this stack is running any more
+LEFT=$(docker ps -q --filter "label=com.docker.compose.project.working_dir=$DOCKER_DIR"
+       [ -n "$COMPOSE_PROJECT_NAME" ] && docker ps -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME")
+[ -z "$LEFT" ] || { echo "ABORT: containers of this stack are still running (wrong compose project?). Nothing archived, nothing merged."; exit 1; }
 $SUDO tar -czpf "$BACKUP_DIR/volumes.tgz" -C volumes . \
   && $SUDO tar -tzf "$BACKUP_DIR/volumes.tgz" >/dev/null \
   && echo "Backup OK" || { echo "BACKUP FAILED — nothing merged. Bring the stack back with: docker compose up -d"; exit 1; }
@@ -199,6 +219,7 @@ Never `cat` or print `.env`, the archive listing or the backup directory content
 ## Step 5: Merge
 
 ```bash
+set -a; . <backup-dir>/state.env; set +a
 cd "$DIFY_ROOT"
 git show-ref --verify --quiet refs/heads/dev || git switch -c dev   # official clones are detached HEAD
 [ "$(git branch --show-current)" = dev ] || git checkout dev
@@ -218,6 +239,7 @@ If the user chose to stash, run `git stash` right before this block.
 ## Step 6: Sync env
 
 ```bash
+set -a; . <backup-dir>/state.env; set +a
 cd "$DOCKER_DIR"
 if [ ! -f .env ]; then
   cp .env.example .env
@@ -225,21 +247,47 @@ if [ ! -f .env ]; then
 elif [ -f dify-env-sync.sh ]; then
   bash dify-env-sync.sh 2>&1 | awk '
     { gsub(/\033\[[0-9;]*m/, "") }
-    /^\[[0-9]+\] /{ key=$2; print; next }
-    key ~ /SECRET|PASSWORD|PASSWD|TOKEN|KEY|CREDENTIAL|DSN|AUTH/ && /^  [^ ]/ {
-      if ($0 ~ /^  \.env/) { sub(/:.*/, ": ***"); print }
-      next }
+    /^\[[0-9]+\] / { key = $2; hide = 0; print; next }
+    /^  \.env +[(]current[)]/ {
+      val = $0; sub(/^[^:]*: ?/, "", val)
+      hide = (key ~ /SECRET|PASSWORD|PASSWD|TOKEN|KEY|CREDENTIAL|DSN|AUTH|URL|URI|JSON|BASE64/) || (tolower(val) !~ /^(true|false|[0-9]+)?$/)
+      if (hide) sub(/:.*/, ": ***")
+      print; next }
+    /^  \.env\.example/ { if (hide) sub(/:.*/, ": ***"); print; next }
+    /^  [^ ]/ { if (!hide) print; next }
     { print }'
 else
   echo "No official script — use the manual algorithm from the env-sync skill"
 fi
 ```
 
-The official `dify-env-sync.sh` backs `.env` up to `env-backup/`, adds the new keys, keeps the user's values and lists differences — and it prints the current value of every differing key, passwords and secrets included. The `awk` filter above masks the value of any key whose name looks secret; never run the script without it. Then check three things:
+What the official `dify-env-sync.sh` really does: it backs `.env` up to `env-backup/`, then **rebuilds `.env` from the new `.env.example`**. A key that is still in the example keeps your value; a new key gets the example's value; **every key that is not in the new example is dropped** — custom keys, keys that moved into `envs/` (SMTP and storage credentials, `DIFY_AGENT_RUN_RETENTION_SECONDS`) and keys removed upstream. Its closing "consider manually removing these variables" warning is misleading: they are already gone (the pre-sync copy is in `<backup-dir>/.env`).
+
+The script also prints the current `.env` value of every differing key. The `awk` filter above shows a value only when it is a number, a boolean or empty and the key name does not look secret; everything else — passwords, tokens, credential-bearing URLs such as `CELERY_BROKER_URL` — prints as `***`. Never run the script without it.
+
+**Restore the dropped keys.** List them by name (never values) and where each belongs:
+
+```bash
+cd "$DOCKER_DIR"
+DROPPED=$(comm -23 <(grep -oE '^[A-Z_][A-Z0-9_]*' "$BACKUP_DIR/.env" | sort -u) <(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sort -u))
+for K in $DROPPED; do
+  T=$(grep -rl "^$K=" envs --include='*.env.example' 2>/dev/null | sed 's/\.example$//' | sort | paste -sd' ' -)
+  if [ -n "$T" ]; then echo "$K -> $T"; else echo "$K -> .env   (no template declares it: custom, or removed upstream)"; fi
+done
+```
+
+Ask the user which keys to restore. A key that templates under `envs/` declare goes into one of the matching `envs/**/*.env` files (when several are listed, ask which; the file is created if missing); anything else goes into `.env`. A key that no template declares and that the release notes list as removed stays dropped. Restore by copying the line from the backup, which prints nothing:
+
+```bash
+restore() { mkdir -p "$(dirname "$2")"; grep "^$1=" "$BACKUP_DIR/.env" | tail -1 >> "$2"; }   # restore <KEY> <target-file>
+restore <KEY> <target-file>
+```
+
+Then check three things:
 
 - `COMPOSE_PROFILES` contains `collaboration`, or the `api_websocket` service never starts
 - `EDITION` was renamed `DEPLOYMENT_EDITION` in 1.17.0
-- `DIFY_AGENT_RUN_RETENTION_SECONDS` default dropped from 3 days to 2 hours in 1.17.1 (an older `.env` still pins the old value, because `.env` wins)
+- `DIFY_AGENT_RUN_RETENTION_SECONDS`: the default dropped from 3 days to 2 hours in 1.17.1 and the key left the root example, so the script drops an old pinned value; restore it into `envs/core-services/dify-agent.env` to keep the old retention, otherwise the 2-hour default applies
 
 Optional settings live in `docker/envs/**/*.env.example`; for each existing `envs/**/*.env`, compare with its paired template and only show new keys. Flag security-sensitive new keys (`*SECRET*`, `*PASSWORD*`, `*KEY*`, `*TOKEN*`) and development defaults (`*-for-dev-only`, `difyai123456`). Ask before appending anything.
 
@@ -248,6 +296,7 @@ Optional settings live in `docker/envs/**/*.env.example`; for each existing `env
 The compose files have no `build:` sections (couchbase aside), so images are pulled, not built:
 
 ```bash
+set -a; . <backup-dir>/state.env; set +a
 cd "$DOCKER_DIR"
 docker compose pull
 docker compose up -d
@@ -260,6 +309,7 @@ Targets between 1.15 and 1.17.0, on an install upgraded from before 1.15, also n
 ## Step 8: Verify
 
 ```bash
+set -a; . <backup-dir>/state.env; set +a
 cd "$DOCKER_DIR"
 sleep 15
 docker compose ps
@@ -273,7 +323,7 @@ Every service is `Up` or `healthy`; `init_permissions` shows `Exited (0)` and th
 
 Print:
 
-- Previous version and commit → target version and commit
+- Previous version and commit (`DEV_TIP`) → target version and commit
 - Branch and merge source
 - Backup directory and archive size
 - New or changed env variables (count and any needing attention)
