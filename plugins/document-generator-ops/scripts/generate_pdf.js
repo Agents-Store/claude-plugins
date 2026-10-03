@@ -5,9 +5,11 @@
  * Generates professional PDF documents using Playwright (HTML->PDF) or PDFKit.
  *
  * All HTML templates are in html_templates.js — the single source of truth
- * for document styling across PDF and DOCX (pandoc) outputs.
+ * for PDF layout. (The pandoc DOCX engine reuses the same HTML for structure
+ * only: pandoc ignores CSS, so its DOCX does not look like the PDF.)
  *
- * Engine priority: Playwright > Puppeteer > PDFKit (fallback)
+ * Engines: Playwright (default; Puppeteer is used only if Playwright is not
+ * installed and Puppeteer happens to be) or PDFKit (`"engine": "pdfkit"`, no browser).
  *
  * Usage: node generate_pdf.js <input.json>
  * Input: JSON file with document data
@@ -57,7 +59,7 @@ async function main() {
 }
 
 // ─── Browser-based PDF generation ────────────────────────────────────────────
-// Tries Playwright first, falls back to Puppeteer if not installed.
+// Playwright first; Puppeteer only as an optional fallback if Playwright is not installed.
 
 async function generateWithBrowser(outputPath, data, type, template) {
   const { getDefaults } = require("./html_templates");
@@ -76,7 +78,7 @@ async function generateWithBrowser(outputPath, data, type, template) {
 
   const margins = normalizeMargins(styling.margins, "pdf");
 
-  // Try Playwright first (better quality, better maintained)
+  // Playwright first
   try {
     await generateWithPlaywright(outputPath, html, margins, styling, companyName, muted, border);
     return;
@@ -90,7 +92,7 @@ async function generateWithBrowser(outputPath, data, type, template) {
         if (puppeteerErr.code === "MODULE_NOT_FOUND") {
           throw new Error(
             "Neither playwright nor puppeteer is installed. " +
-            "Run: cd <plugin_dir> && npm install"
+            `Run: cd "${path.resolve(__dirname, "..")}" && npm ci`
           );
         }
         throw puppeteerErr;
@@ -108,7 +110,9 @@ async function generateWithPlaywright(outputPath, html, margins, styling, compan
 
   const browser = await chromium.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"] });
   const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: "networkidle" });
+  // Fonts are embedded as base64, so no network is needed: wait for load + fonts, not "networkidle" (discouraged).
+  await page.setContent(html, { waitUntil: "load" });
+  await page.evaluate(() => document.fonts.ready);
   await page.pdf({
     path: outputPath,
     format: styling.pageSize || "A4",

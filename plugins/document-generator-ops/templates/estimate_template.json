@@ -1,7 +1,7 @@
 {
   "type": "estimate",
   "format": "pdf",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "structure": {
     "header": { "companyInfo": true, "logo": true },
     "estimateMeta": ["estimateNumber", "date", "validUntil"],

@@ -128,8 +128,8 @@
     {
       "name": "document-generator-ops",
       "source": "./plugins/document-generator-ops",
-      "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, puppeteer, pptxgenjs, pandoc).",
-      "version": "3.0.1",
+      "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, Playwright, pptxgenjs, pandoc).",
+      "version": "3.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },

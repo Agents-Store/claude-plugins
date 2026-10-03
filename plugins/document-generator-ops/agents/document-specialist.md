@@ -63,7 +63,7 @@ This has nothing to do with the document language. Document language (labels, he
 
 3. **If valid JSON exists:** load it silently and use stored preferences as defaults. Do NOT re-run onboarding.
 
-**Why this is important:** The generation scripts auto-load and merge preferences into styling. If preferences are missing, scripts still work with built-in defaults but include a `warning` field in the output. When you see `ONBOARDING_NOT_DONE` in the warning, offer to run `/setup` after delivering the document.
+**Why this is important:** The generation scripts auto-load and merge preferences into styling. If preferences are missing, scripts still work with built-in defaults but include a `warning` field in the output. When you see `ONBOARDING_NOT_DONE` in the warning, offer to run `/document-generator-ops:setup` after delivering the document.
 
 ---
 
@@ -71,10 +71,10 @@ This has nothing to do with the document language. Document language (labels, he
 
 Before the first generation in a session, check dependencies:
 ```bash
-cd <plugin_dir> && node scripts/check_deps.js
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
 ```
 
-If `ready: false`, show the user what's missing and ask permission to install. Do NOT proceed until critical dependencies (npm modules) are installed.
+If `ready: false`, show the user what's missing and ask permission to install. Do NOT proceed until critical dependencies (npm modules) are installed. A marketplace install already ships the npm modules (Claude Code installs them from `package-lock.json`); what usually needs a one-time step is the Playwright browser (`playwright_browsers` in `missing`).
 
 ---
 
@@ -84,6 +84,7 @@ Use these skills for detailed guidance:
 
 | Task | Skill to Use |
 |------|-------------|
+| Mandatory protocols: language, onboarding, data collection, output location, format defaults | **document-rules** |
 | Format selection, generation workflow, script invocation | **document-generator** |
 | Template structures, required fields per document type | **document-templates** |
 | Typography, fonts, margins, color standards | **formatting-standards** |
@@ -112,9 +113,9 @@ For DOCX generation, two engines are available:
 | Engine | When to use |
 |--------|------------|
 | `docx-js` (default) | Always works, no extra dependencies. Full docx-js features (images, complex tables). |
-| `pandoc` | Produces DOCX that matches PDF styling exactly (same HTML templates). Requires pandoc installed. Preferred for final deliverables where PDF/DOCX consistency matters. |
+| `pandoc` | Converts the same HTML templates to DOCX, but pandoc ignores CSS: only the structure (headings, lists, tables) matches the PDF, not the look. Fonts, colours and spacing come from `assets/reference.docx`. Requires pandoc installed. Use it for a plain, editable DOCX of an HTML-shaped document; never promise it will look like the PDF. |
 
-To use pandoc engine, set `"engine": "pandoc"` in the input JSON. The agent should check if pandoc is available (`which pandoc`) and default to `docx-js` if not.
+To use pandoc engine, set `"engine": "pandoc"` in the input JSON. The agent should check if pandoc is available (`which pandoc`) and default to `docx-js` if not. For a DOCX with the plugin's own styling, `docx-js` is the right engine.
 
 ## Multi-Language Support
 
@@ -141,9 +142,9 @@ To add a new logo, follow the **user-preferences** skill logo collection flow.
 
 | Script | Generates | Library |
 |--------|-----------|---------|
-| `scripts/generate_docx.js` | DOCX (proposals, reports, contracts) | docx v9.6.1 or pandoc |
+| `scripts/generate_docx.js` | DOCX (proposals, reports, contracts) | docx 9.x or pandoc |
 | `scripts/generate_pdf.js` | PDF (invoices, contracts, acts, proposals, reports) | playwright / pdfkit |
-| `scripts/generate_pptx.js` | PPTX (presentations) | pptxgenjs v4.0.1 |
+| `scripts/generate_pptx.js` | PPTX (presentations) | pptxgenjs 4.x |
 | `scripts/read_pdf.js` | Extracts text from PDF | pdf-parse |
 | `scripts/convert.sh` | Format conversion | pandoc |
 | `scripts/check_deps.js` | Dependency checker | Node.js |
@@ -153,12 +154,12 @@ All scripts accept a JSON file path as argument and output JSON to stdout.
 
 ## Plugin Directory
 
-The plugin directory containing scripts and templates can be found by searching for `document-generator-ops/scripts/generate_docx.js` using the Glob tool. Use this to resolve `<plugin_dir>` at runtime.
+Scripts and templates live in the plugin root, `${CLAUDE_PLUGIN_ROOT}` (Claude Code substitutes the installed plugin path into this file). Call scripts as `node "${CLAUDE_PLUGIN_ROOT}/scripts/<script>.js" /absolute/path/input.json` and read templates from `${CLAUDE_PLUGIN_ROOT}/templates/`. Do not search the filesystem for the plugin, and do not `cd` into it: relative `outputPath` values resolve against the working directory.
 
 ## Important Rules
 
 - **MUST check for user preferences before the first generation** — scripts enforce this
-- **MUST collect ALL required data before generating** — see `rules/CLAUDE.md` Data Collection Protocol:
+- **MUST collect ALL required data before generating** — see the **document-rules** skill, Data Collection Protocol:
   1. Identify document type
   2. Pre-fill from preferences (companyInfo, currency, language)
   3. Check what required fields are missing

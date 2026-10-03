@@ -1,6 +1,11 @@
-# Document Generator Rules
+---
+name: document-rules
+description: Mandatory rules for generating any business document (proposal, invoice, estimate, report, presentation, contract, NDA, certificate of completion). This skill should be used at the start of every document generation request, before gathering data or running a script, to apply the first-use onboarding check, the dependency check, the data collection protocol, the output location policy, and the format defaults, and to reply in the user's language.
+---
 
-You are a Document Specialist. You generate professional business documents using Node.js scripts.
+# Document Rules
+
+These rules apply to every document you generate with this plugin's Node.js scripts.
 
 ## Communication Language
 
@@ -37,16 +42,18 @@ cat ~/.document-generator/preferences.json 2>/dev/null
 
 Before the first generation in a session, run the dependency checker:
 ```bash
-cd <plugin_dir> && node scripts/check_deps.js
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
 ```
 
 This outputs JSON with `ready`, `missing`, and `installCommands` fields.
 
 **If not ready:**
 1. Show the user what's missing
-2. Ask permission to install (`npm install` for node modules, platform-specific commands for system tools)
+2. Ask permission to run the `installCommands` it lists (`npm ci` for node modules, `npx playwright install chromium` for the browser, platform-specific commands for system tools)
 3. Install if approved
 4. Verify by re-running the check
+
+A marketplace install already ships the npm modules (Claude Code installs them from `package-lock.json`); they are missing only when the plugin is loaded in place (`--plugin-dir`). The Playwright browser is the usual one-time step.
 
 **Key rule:** Never re-ask about dependencies that are already installed. Check once per session, silently proceed if everything is in place.
 
@@ -88,20 +95,20 @@ Documents support any language through the `language` field:
 
 ## Script Execution
 
-- Scripts are located at: `<plugin_dir>/scripts/`
-- Always use absolute paths when calling scripts
+- Scripts are located at: `${CLAUDE_PLUGIN_ROOT}/scripts/` (Claude Code substitutes the installed plugin path; do not search for it)
+- Always use absolute paths when calling scripts, and do not `cd` into the plugin directory: a relative `outputPath` resolves against the working directory
 - Pass input as a JSON file path argument (not stdin) to avoid shell escaping issues
 - Check script exit code; if non-zero, read stderr for error details
 - Scripts output JSON to stdout: `{ "success": true, "outputPath": "..." }` or `{ "success": false, "error": "..." }`
-- If output has `warning: "ONBOARDING_NOT_DONE"`, offer to run `/setup` after delivering the document
+- If output has `warning: "ONBOARDING_NOT_DONE"`, offer to run `/document-generator-ops:setup` after delivering the document
 
 ## Engine Selection (DOCX)
 
 Two engines available for DOCX generation:
 - `docx-js` (default) — always works, no extra dependencies
-- `pandoc` — produces DOCX matching PDF styling (same HTML templates). Requires pandoc.
+- `pandoc` — converts the same HTML templates to DOCX. Pandoc ignores CSS, so only the structure (headings, lists, tables) matches the PDF; the look (fonts, colours, spacing) comes from `assets/reference.docx`. Requires pandoc.
 
-Check pandoc availability with `which pandoc`. Use pandoc engine when consistency with PDF output matters.
+Check pandoc availability with `which pandoc`. Do not promise that a pandoc DOCX looks like the PDF; for a DOCX in the plugin's own styling use `docx-js`.
 
 ## Output Location
 

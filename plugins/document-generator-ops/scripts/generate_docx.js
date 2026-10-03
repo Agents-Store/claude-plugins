@@ -180,7 +180,10 @@ async function main() {
 
 // ─── Pandoc Engine ──────────────────────────────────────────────────────────
 // Generates HTML using the shared html_templates module (same as PDF output),
-// then converts to DOCX via pandoc for unified styling across formats.
+// then converts to DOCX via pandoc. Pandoc's HTML reader ignores CSS (inline
+// style and <style> alike), so only the document *structure* (headings, lists,
+// tables) matches the PDF. The look — fonts, colours, spacing — comes from
+// assets/reference.docx, not from the HTML templates.
 
 async function generateWithPandoc(type, outputPath, data, template) {
   const { execSync } = require("child_process");
@@ -200,7 +203,7 @@ async function generateWithPandoc(type, outputPath, data, template) {
 
   const styling = template?.styling || {};
 
-  // Build HTML using the same shared templates as the PDF generator — all types supported
+  // Build HTML with the same shared templates as the PDF generator (all types supported); only its structure survives pandoc
   const html = buildHtml(data, styling, type, template);
 
   // Write HTML to temp file
@@ -234,6 +237,19 @@ async function generateWithPandoc(type, outputPath, data, template) {
     })
   );
   process.exit(0);
+}
+
+/**
+ * Detect the raster image type from its magic bytes — docx's ImageRun needs the
+ * real type ("png" | "jpg" | "gif" | "bmp"). Returns null for anything else
+ * (SVG needs a raster fallback image, which a stored logo does not have).
+ */
+function detectImageType(buf) {
+  if (buf.length >= 8 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "png";
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "jpg";
+  if (buf.length >= 6 && /^GIF8[79]a$/.test(buf.subarray(0, 6).toString("latin1"))) return "gif";
+  if (buf.length >= 2 && buf[0] === 0x42 && buf[1] === 0x4d) return "bmp";
+  return null;
 }
 
 function buildDocument(data, type, styling, primaryColor, accentColor, textColor, mutedColor, borderColor, bgLight, fontHeading, fontBody, fontSizeBody) {
@@ -282,6 +298,8 @@ function buildDocument(data, type, styling, primaryColor, accentColor, textColor
       try {
         const { ImageRun } = require("docx");
         const logoBuffer = Buffer.from(logoBase64, "base64");
+        const logoType = detectImageType(logoBuffer);
+        if (!logoType) throw new Error("unsupported logo format (use PNG, JPEG, GIF or BMP)");
         children.push(new Paragraph({ spacing: { before: 1200 } }));
         children.push(
           new Paragraph({
@@ -289,7 +307,7 @@ function buildDocument(data, type, styling, primaryColor, accentColor, textColor
               new ImageRun({
                 data: logoBuffer,
                 transformation: { width: 160, height: 56 },
-                type: "png",
+                type: logoType,
               }),
             ],
             spacing: { after: 400 },

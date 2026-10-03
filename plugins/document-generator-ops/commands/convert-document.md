@@ -1,6 +1,6 @@
 ---
 description: Convert between document formats (MD/DOCX/PDF/HTML/PPTX)
-allowed-tools: ["Bash", "Read", "Glob"]
+allowed-tools: ["Bash", "Read"]
 argument-hint: <input-file> --to <format>
 ---
 
@@ -27,10 +27,10 @@ Parse from "$ARGUMENTS".
 ## Process
 
 1. **Validate input file exists:**
-   Use Glob or Read to confirm the file is present.
+   Use Read (or `test -f <input-file>` via Bash) to confirm the file is present.
 
-2. **Resolve plugin directory:**
-   Find the plugin dir by globbing for `**/document-generator-ops/scripts/convert.sh`.
+2. **Plugin directory:**
+   The converter is `${CLAUDE_PLUGIN_ROOT}/scripts/convert.sh` (Claude Code substitutes `${CLAUDE_PLUGIN_ROOT}` with the installed plugin path). Do not search for the plugin.
 
 3. **Check pandoc is installed:**
    ```bash
@@ -43,16 +43,18 @@ Parse from "$ARGUMENTS".
 
 5. **Run conversion:**
    ```bash
-   <plugin_dir>/scripts/convert.sh <input-file> <output-file>
+   "${CLAUDE_PLUGIN_ROOT}/scripts/convert.sh" <input-file> <output-file>
    ```
 
 6. **Parse output:**
    Script returns JSON: `{ "success": true, "outputPath": "...", "size": N }`.
    Show the output file path and size.
+   For `--to pdf` the script needs a pandoc PDF engine (WeasyPrint, Typst or pdflatex); if none is found it says what to install. A DOCX source can also go through the Playwright converter it names in `fallbackCmd`.
+   For `--to docx`, pandoc takes the structure (headings, lists, tables) from the source; the look comes from the plugin's `assets/reference.docx`. Pandoc ignores CSS, so do not promise that an HTML or PDF-styled source keeps its styling in the DOCX.
 
 ## Example Usage
 ```
-/convert-document report.md --to pdf
-/convert-document proposal.docx --to pdf
-/convert-document notes.md --to docx
+/document-generator-ops:convert-document report.md --to pdf
+/document-generator-ops:convert-document proposal.docx --to pdf
+/document-generator-ops:convert-document notes.md --to docx
 ```

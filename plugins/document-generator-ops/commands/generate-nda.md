@@ -1,6 +1,6 @@
 ---
 description: Generate a Non-Disclosure Agreement (NDA) — PDF
-allowed-tools: ["Bash", "Read", "Write", "Glob"]
+allowed-tools: ["Bash", "Read", "Write"]
 argument-hint: [--type <mutual|unilateral>] [--party1 <name>] [--party2 <name>]
 ---
 
@@ -19,10 +19,14 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-1. **Resolve plugin directory:**
-   Find the plugin dir by globbing for `**/document-generator-ops/scripts/generate_pdf.js`.
+1. **Plugin directory:**
+   Scripts and templates live under `${CLAUDE_PLUGIN_ROOT}` (Claude Code substitutes it with the installed plugin path). Use it as is; do not search for the plugin.
 
-2. **Check dependencies.**
+2. **Check dependencies:**
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
+   ```
+   If `ready` is false, show what is missing and ask permission to run the listed `installCommands`.
 
 3. **Gather required data from user:**
    - NDA type: mutual (default) or unilateral
@@ -38,7 +42,7 @@ Parse from "$ARGUMENTS".
 
 4. **Read template:**
    ```bash
-   cat <plugin_dir>/templates/nda_template.json
+   cat "${CLAUDE_PLUGIN_ROOT}/templates/nda_template.json"
    ```
 
 5. **Build JSON input:**
@@ -48,7 +52,7 @@ Parse from "$ARGUMENTS".
 
 6. **Generate PDF:**
    ```bash
-   cd <plugin_dir> && node scripts/generate_pdf.js /absolute/path/.doc_input.json
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/generate_pdf.js" /absolute/path/.doc_input.json
    ```
 
 7. **Deliver result:**
@@ -56,7 +60,7 @@ Parse from "$ARGUMENTS".
 
 ## Example Usage
 ```
-/generate-nda --type mutual --party1 "Acme Corp" --party2 "TechStart Inc"
-/generate-nda --type unilateral
-/generate-nda
+/document-generator-ops:generate-nda --type mutual --party1 "Acme Corp" --party2 "TechStart Inc"
+/document-generator-ops:generate-nda --type unilateral
+/document-generator-ops:generate-nda
 ```

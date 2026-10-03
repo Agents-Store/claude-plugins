@@ -2,7 +2,9 @@
  * Shared HTML Template Module
  *
  * Single source of truth for all HTML-based document rendering.
- * Used by generate_pdf.js (for PDF output) and generate_docx.js (for pandoc-based DOCX).
+ * Used by generate_pdf.js (PDF output, CSS applied by the browser) and by
+ * generate_docx.js's pandoc engine (pandoc ignores CSS: only the HTML structure
+ * reaches the DOCX, its look comes from assets/reference.docx).
  *
  * Design system:
  *   - Source Serif 4 (heading/legal) + Inter (body) + Playfair Display (cover titles)
