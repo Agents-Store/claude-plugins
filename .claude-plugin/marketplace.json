@@ -660,8 +660,8 @@
     {
       "name": "nocobase-dev",
       "source": "./plugins/nocobase-dev",
-      "description": "NocoBase v2 development plugin. CLI primary (nb CLI) + REST API fallback (bundled OpenAPI v2.1.0-beta.29, 272 endpoints). Auto-syncs 11 official upstream skills from nocobase/skills weekly via GitHub Action. 5 custom REST-API skills (overview, auth, cli-recipes, api-reference, examples). Env vars: NB_URL + NB_USER + NB_PASSWORD (sign-in) or NB_URL + NB_TOKEN (API Key).",
-      "version": "2.0.0",
+      "description": "NocoBase v2 development plugin. CLI primary (nb CLI 2.2, stable channel) + REST API fallback (bundled OpenAPI snapshot v2.1.0-beta.29, 272 endpoints). Auto-syncs 20 official upstream skills from nocobase/skills weekly via GitHub Action; UI authoring enters through nocobase-portal-manage. 5 custom skills (overview, auth, cli-recipes, api-reference, examples). Env vars: NB_URL + NB_USER + NB_PASSWORD (sign-in) or NB_URL + NB_TOKEN (API Key).",
+      "version": "2.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },

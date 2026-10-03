@@ -102,10 +102,11 @@ curl -X POST -H "$H" -H "$J" \
 # List
 curl -H "$H" "${NB_URL}/api/workflows:list"
 
-# Manually trigger a workflow (key or id)
+# Manually run a workflow — filterByTk is the integer workflow id; the whole body is the
+# trigger context (here a collection-event trigger: `data` is the record), no extra envelope
 curl -X POST -H "$H" -H "$J" \
-     -d '{"data": {"orderId": 100}}' \
-     "${NB_URL}/api/workflows:trigger?filterByTk=order-fulfilment"
+     -d '{"data": {"id": 100, "status": "paid"}}' \
+     "${NB_URL}/api/workflows:execute?filterByTk=12"
 
 # Recent executions
 curl -H "$H" "${NB_URL}/api/executions:list?pageSize=50&sort=-createdAt"
