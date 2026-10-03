@@ -4,6 +4,11 @@
  * PDF Reader
  * Extracts text content from PDF files using pdf-parse.
  *
+ * Known limit: pdf-parse 1.1.4 bundles an old pdf.js and fails on PDFs written by
+ * this plugin's own `engine: "pdfkit"` ("bad XRef entry"); PDFs from Playwright are
+ * fine. pdf-parse 2.x reads both but has a different API (`new PDFParse({ data })`,
+ * `getText()`, `getInfo()`, `destroy()`); the migration is pending.
+ *
  * Usage: node read_pdf.js <input.json>
  * Input: JSON file with { inputPath: "path/to/file.pdf" }
  * Output: JSON to stdout { success, text, pages, info }

@@ -55,7 +55,7 @@ async function main() {
     if (!outputPath) throw new Error("outputPath is required");
     if (!data) throw new Error("data is required");
 
-    // ── Pandoc engine: generate HTML → DOCX via pandoc for unified styling ──
+    // ── Pandoc engine: generate HTML → DOCX via pandoc (structure only; pandoc drops the CSS) ──
     if (engine === "pandoc") {
       await generateWithPandoc(type, outputPath, data, template);
       return;

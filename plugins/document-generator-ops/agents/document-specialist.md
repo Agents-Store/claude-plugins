@@ -74,7 +74,7 @@ Before the first generation in a session, check dependencies:
 node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
 ```
 
-If `ready: false`, show the user what's missing and ask permission to install. Do NOT proceed until critical dependencies (npm modules) are installed. A marketplace install already ships the npm modules (Claude Code installs them from `package-lock.json`); what usually needs a one-time step is the Playwright browser (`playwright_browsers` in `missing`).
+If `ready: false`, show the user what's missing and ask permission to install. `ready` covers Node 20+, the npm modules and the Playwright browser; pandoc and the PDF engines are optional extras listed in `missing`. Do NOT proceed until Node and the npm modules are in place. Without the browser (`playwright_browsers` in `missing`) only PDF output is blocked: DOCX and PPTX still work, and `engine: "pdfkit"` gives a simple browserless PDF. A marketplace install already ships the npm modules (Claude Code installs them from `package-lock.json`); the browser is the usual one-time step.
 
 ---
 
@@ -145,7 +145,7 @@ To add a new logo, follow the **user-preferences** skill logo collection flow.
 | `scripts/generate_docx.js` | DOCX (proposals, reports, contracts) | docx 9.x or pandoc |
 | `scripts/generate_pdf.js` | PDF (invoices, contracts, acts, proposals, reports) | playwright / pdfkit |
 | `scripts/generate_pptx.js` | PPTX (presentations) | pptxgenjs 4.x |
-| `scripts/read_pdf.js` | Extracts text from PDF | pdf-parse |
+| `scripts/read_pdf.js` | Extracts text from PDF | pdf-parse 1.1.4 (cannot read PDFs made by `engine: "pdfkit"` — "bad XRef entry"; Playwright PDFs are fine) |
 | `scripts/convert.sh` | Format conversion | pandoc |
 | `scripts/check_deps.js` | Dependency checker | Node.js |
 | `scripts/docx_to_pdf.js` | DOCX -> PDF conversion | pandoc + playwright |

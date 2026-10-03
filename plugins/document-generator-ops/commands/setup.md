@@ -20,7 +20,7 @@ Run the onboarding interview to configure document generation preferences.
    ```bash
    node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
    ```
-   If any dependencies are missing, show the user what needs to be installed and ask for permission.
+   If `ready` is false, show the user what is missing and ask permission to run the listed `installCommands`. (`ready` covers Node, the npm modules and the Playwright browser; pandoc and the PDF engines are optional extras listed in `missing`.)
 
 3. **Run the onboarding interview** from the **user-preferences** skill:
    - Ask about preferred document style (show 5+ presets with descriptions)

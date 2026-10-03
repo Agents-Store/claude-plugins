@@ -17,6 +17,9 @@
  *   node check_deps.js --install    # Check and auto-install missing deps
  *
  * Output: JSON { ready, missing[], installed{}, installCommands[] }
+ * `ready` is true when Node >= 20, the npm modules and the Playwright browser are
+ * all in place. pandoc and the pandoc PDF engines are optional extras: they are
+ * listed in `missing` but do not change `ready`.
  */
 
 const { execSync } = require("child_process");
@@ -36,9 +39,10 @@ function checkNodeModule(name) {
 }
 
 /**
- * True when Playwright can start its Chromium. Cheap check first (the binary
- * Playwright expects in its browser cache, honouring PLAYWRIGHT_BROWSERS_PATH),
- * then a real headless launch — which also covers a headless-shell-only install.
+ * True when Playwright can start its headless Chromium — the same call the
+ * generators make. A launch probe, not a file check: headless mode runs on the
+ * separate headless shell, so a full Chromium alone (`--no-shell`) would pass an
+ * executablePath() check and still fail to generate. Honours PLAYWRIGHT_BROWSERS_PATH.
  */
 async function checkPlaywrightChromium() {
   let chromium;
@@ -46,11 +50,6 @@ async function checkPlaywrightChromium() {
     ({ chromium } = require(require.resolve("playwright", { paths: [path.join(pluginDir, "node_modules")] })));
   } catch (_) {
     return false;
-  }
-  try {
-    if (fs.existsSync(chromium.executablePath())) return true;
-  } catch (_) {
-    // fall through to the launch probe
   }
   try {
     const browser = await chromium.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"], timeout: 20000 });
@@ -133,8 +132,10 @@ async function main() {
 
   // --- Playwright browsers ---
   // (not probed on Node < 20: requiring Playwright there prints an error and exits)
+  let browserMissing = false;
   if (!nodeTooOld && checkNodeModule("playwright")) {
     const hasBrowsers = await checkPlaywrightChromium();
+    browserMissing = !hasBrowsers;
 
     if (!hasBrowsers) {
       const cmd = `cd "${pluginDir}" && npx playwright install chromium`;
@@ -142,7 +143,7 @@ async function main() {
         type: "playwright_browsers",
         name: "chromium",
         description:
-          "Playwright Chromium browser not installed (a browserless PDF is possible with engine: pdfkit). " +
+          "Playwright Chromium browser not installed — needed for PDF output (DOCX and PPTX do not need it; a browserless PDF is possible with engine: pdfkit). " +
           "The browser goes to the global Playwright cache and survives plugin updates",
       });
       installCommands.push({ description: "Install Playwright Chromium", command: cmd });
@@ -216,7 +217,9 @@ async function main() {
     ? nodeModules.filter((m) => !checkNodeModule(m))
     : missingModules;
 
-  const ready = nowMissingModules.length === 0 && !nodeTooOld;
+  // The browser counts: a first run after a marketplace install has the npm modules but no browser.
+  const browserStillMissing = browserMissing && !autoInstalled.includes("playwright_chromium");
+  const ready = nowMissingModules.length === 0 && !nodeTooOld && !browserStillMissing;
   const result = {
     ready,
     platform,
@@ -227,6 +230,7 @@ async function main() {
       pandoc: checkSystemTool("pandoc"),
       pdfEngines: availablePdfEngines.map((e) => e.name),
       playwright: checkNodeModule("playwright"),
+      playwrightChromium: !browserStillMissing && checkNodeModule("playwright") && !nodeTooOld,
       puppeteer: checkNodeModule("puppeteer"),
     },
     autoInstalled: autoInstall ? autoInstalled : undefined,

@@ -26,7 +26,7 @@ Parse from "$ARGUMENTS".
    ```bash
    node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
    ```
-   If `ready` is false, show what is missing and ask permission to run the listed `installCommands`.
+   If `ready` is false, show what is missing and ask permission to run the listed `installCommands`. (`ready` covers Node, the npm modules and the Playwright browser; pandoc and the PDF engines are optional extras listed in `missing`.)
 
 3. **Gather required data from user:**
    - Recipient (client name/company)
@@ -49,7 +49,7 @@ Parse from "$ARGUMENTS".
    ```bash
    node "${CLAUDE_PLUGIN_ROOT}/scripts/generate_docx.js" /absolute/path/.doc_input.json
    ```
-   For PDF format, use `scripts/generate_pdf.js` instead.
+   For PDF format, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/generate_pdf.js" /absolute/path/.doc_input.json` instead.
 
 7. **Deliver result:**
    Parse JSON output, show file path and size. Clean up temp input file. Offer to convert to another format.
