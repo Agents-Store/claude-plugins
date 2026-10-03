@@ -13,18 +13,26 @@ Ready-to-use CLI commands for Flask development.
 ## Running the Application
 
 ```bash
-# Development server (with auto-reload)
-flask run --debug
+# Development server (debug mode: reloader + interactive debugger)
+flask --app app run --debug
+
+# Call the factory explicitly (literal arguments are allowed inside the parentheses)
+flask --app 'app:create_app()' run --debug
 
 # Specify host and port
-flask run --host=0.0.0.0 --port=5001
+flask --app app run --host=0.0.0.0 --port=5001
 
-# With environment variables
-FLASK_APP=app.py FLASK_DEBUG=1 flask run
+# Same through environment variables (FLASK_APP, FLASK_DEBUG, FLASK_RUN_PORT)
+FLASK_APP=app FLASK_DEBUG=1 flask run
+
+# Extra dotenv file, loaded in addition to .env and .flaskenv
+flask --env-file .env.local --app app run
 
 # Using python directly
 python app.py
 ```
+
+`--app` and `--debug` are options of the top-level `flask` command, so they also work for other commands: `flask --app app --debug shell`. Debug mode comes only from `--debug` / `FLASK_DEBUG`; the old "environment name" variable was removed in Flask 2.3 and is ignored.
 
 ## Interactive Shell
 
@@ -35,9 +43,10 @@ flask shell
 
 Inside the shell, the app context is automatically available:
 
-```python
->>> from models import db, User, Client
->>> User.query.all()
+```pycon
+>>> from extensions import db
+>>> from models import User, Client
+>>> db.session.scalars(db.select(User)).all()
 >>> db.session.add(User(name='Test', email='test@example.com'))
 >>> db.session.commit()
 ```
@@ -49,13 +58,15 @@ Inside the shell, the app context is automatically available:
 flask routes
 
 # Output:
-# Endpoint              Methods  Rule
-# --------------------  -------  -----------------------
-# auth.login            GET,POST /login
-# auth.register         GET,POST /register
-# clients.clients       GET      /clients
-# static                GET      /static/<path:filename>
+# Endpoint         Methods    Rule
+# ---------------  ---------  -----------------------
+# auth.login       GET, POST  /login
+# auth.register    GET, POST  /register
+# clients.clients  GET        /clients
+# static           GET        /static/<path:filename>
 ```
+
+`flask routes --sort rule` and `--all-methods` change the ordering and include `HEAD`/`OPTIONS`.
 
 ## Database Migrations (Flask-Migrate)
 
@@ -81,17 +92,20 @@ flask db history
 
 ## Custom CLI Commands
 
-Register custom commands using Click decorators:
+Register custom commands on `app.cli` (or `blueprint.cli`) with Click decorators. Since Flask 2.2 an app context is already active inside them, so no extra decorator is needed:
 
 ```python
-import click
-from flask.cli import with_appcontext
+# app.py: imports at the top of the file
+from datetime import datetime, timedelta
 
+import click
+
+# inside create_app() (the factory pattern has no module-level `app`)
 @app.cli.command('seed')
-@with_appcontext
 def seed_db():
     """Seed the database with sample data."""
-    from models import db, User
+    from extensions import db
+    from models import User
     user = User(name='Admin', email='admin@example.com')
     db.session.add(user)
     db.session.commit()
@@ -99,7 +113,6 @@ def seed_db():
 
 @app.cli.command('cleanup')
 @click.argument('days', default=30)
-@with_appcontext
 def cleanup_old_data(days):
     """Remove records older than N days."""
     cutoff = datetime.now() - timedelta(days=days)
@@ -112,24 +125,30 @@ flask seed
 flask cleanup 60
 ```
 
+A plain `click.command` that is not registered on `app.cli` (for example one an extension ships through the `flask.commands` entry point) gets no automatic context; see "Application Context" in the Flask CLI docs for the decorator to use.
+
 ## Environment Variables
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `FLASK_APP` | Application module | `app.py` or `wsgi.py` |
-| `FLASK_DEBUG` | Enable debug mode | `0` |
-| `FLASK_ENV` | Environment name | `production` |
+| `FLASK_APP` | Application module (same as `--app`) | `app.py` or `wsgi.py` |
+| `FLASK_DEBUG` | Enable debug mode (same as `--debug`) | `0` |
 | `FLASK_RUN_HOST` | Server host | `127.0.0.1` |
 | `FLASK_RUN_PORT` | Server port | `5000` |
 
-Use a `.flaskenv` file (with `python-dotenv` installed) to set defaults:
+Flask has no environment-name variable any more (removed in 2.3). To switch between development, production and test configuration use an application-level variable such as `APP_ENV` (see the `app-patterns` skill).
+
+Use a `.flaskenv` file (with `python-dotenv` installed) for public defaults and `.env` for private values; both are loaded by the `flask` command, and `--env-file` adds another file (`-e path` wins over the defaults):
 
 ```bash
 # .flaskenv
-FLASK_APP=app.py
+FLASK_APP=app
+APP_ENV=development
 FLASK_DEBUG=1
 FLASK_RUN_PORT=5001
 ```
+
+Dotenv files are only read by the `flask` command and `app.run()`. In production (gunicorn, waitress) call `flask.cli.load_dotenv()` yourself or set real environment variables.
 
 ## Production Server
 
