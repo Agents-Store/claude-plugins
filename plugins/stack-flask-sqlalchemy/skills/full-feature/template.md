@@ -35,7 +35,7 @@
 - [ ] CRUD operations work
 - [ ] Another user gets 404 for these ids (edit, delete)
 - [ ] The list view issues the same number of statements for few and for many rows
-- [ ] Writes are committed (`db.session.remove()`, then assert)
+- [ ] Writes are committed (assert in a fresh `with app.app_context():` after the request)
 - [ ] Flash messages display correctly
 - [ ] Form validation works
 - [ ] `flask db check` is clean

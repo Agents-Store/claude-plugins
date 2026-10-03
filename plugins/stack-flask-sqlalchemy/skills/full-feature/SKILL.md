@@ -123,7 +123,7 @@ Add a nav link in `base.html`:
    - CRUD round trip through the test client.
    - A second user gets `404` for the first user's id on edit and delete (`owner-scoped-queries.md`, Test the Isolation).
    - The list view issues the same number of statements for 2 rows and for 22 (`layers-and-boundaries`, section 5).
-   - Every write is committed: `db.session.remove()` before the assertion (`layers-and-boundaries`, section 7).
+   - Every write is committed: assert in a fresh `with app.app_context():` after the request (`layers-and-boundaries`, section 7).
 3. Validation: required fields, duplicates, unknown ids.
 4. `flask db check` is clean.
 

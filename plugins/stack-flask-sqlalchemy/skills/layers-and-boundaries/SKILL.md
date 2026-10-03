@@ -110,7 +110,7 @@ def count_queries(app):
 ```python
 # tests/test_query_counts.py
 def test_client_list_does_not_grow_with_the_rows(client, count_queries):
-    client.post('/register', data={'name': 'Ann', 'email': 'ann@example.com', 'password': 's3cret-pass!1'})
+    client.post('/register', data={'name': 'Ann', 'email': 'ann@example.com', 'password': 'correct horse battery'})
 
     def statements_for_list():
         count_queries.clear()
@@ -129,11 +129,9 @@ def test_client_list_does_not_grow_with_the_rows(client, count_queries):
 
 The schema changes through `flask db migrate`, a read of the revision (it must contain the `create_table` or `add_column` you expect), and `flask db upgrade`; CI runs `flask db check`. A table-building call in the factory builds the tables first, so `flask db migrate` answers "No changes in schema detected", creates no revision, and a production database never gets the table. That call belongs in test fixtures only.
 
-## 7. What the test fixture hides
+## 7. What a test fixture must not do
 
-The `app` fixture in `flask-dev` → `app-patterns` (Testing) keeps one app context open for the whole test, so every `client.get()` reuses it: one session, one Flask `g`, one cached `current_user`. Two production bugs pass such a test:
-
-- **A missing `commit()`.** The object stays in the shared session, so the next request sees it. In production the session is closed at the end of the request and the object is gone. End the request the way production does before you assert:
+A fixture that keeps one app context open for the whole test (`yield app` inside the `with app.app_context():` block) makes every request reuse it: one session, one Flask `g`, one cached Flask-Login user. A view that forgets `commit()` then passes (the next request sees the pending row, production rolls it back), and a second client looks signed in as the first user. The `app` fixture of `flask-dev` → `app-patterns` (Testing) yields outside the context, so each request is a real one; a test that reads the database opens its own `with app.app_context():` and sees only what was committed:
 
 ```python
 # tests/test_commit.py
@@ -142,13 +140,11 @@ from models import Client
 
 
 def test_add_client_is_committed(app, client):
-    client.post('/register', data={'name': 'Ann', 'email': 'ann@example.com', 'password': 's3cret-pass!1'})
+    client.post('/register', data={'name': 'Ann', 'email': 'ann@example.com', 'password': 'correct horse battery'})
     client.post('/clients/add', data={'name': 'Bea', 'phone': '1'})
-    db.session.remove()                      # closes the session and rolls back anything uncommitted
-    assert db.session.scalar(db.select(db.func.count()).select_from(Client)) == 1
+    with app.app_context():
+        assert db.session.scalar(db.select(db.func.count()).select_from(Client)) == 1
 ```
-
-- **A user left signed in.** Flask-Login caches the user on `g`, so a second client in the same test can look signed in. Use one client per user and sign each in through the login form.
 
 ## Symptom to boundary
 
