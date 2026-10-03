@@ -66,8 +66,8 @@ vercel firewall persistent-actions list                 # last hour
 vercel firewall persistent-actions list --since 6h      # last 6 hours
 vercel firewall persistent-actions list --limit 50      # more rows (default 10)
 vercel firewall persistent-actions list --json          # JSON: { actions, shown, total }
-vercel firewall persistent-actions inspect 203.0.113.10 --host vercel.com --action challenge
-vercel firewall persistent-actions inspect 203.0.113.10 --json
+vercel firewall persistent-actions inspect 51.158.168.18 --host vercel.com --action challenge
+vercel firewall persistent-actions inspect 51.158.168.18 --json
 ```
 
 Lists persistent WAF actions (challenge/deny against a client IP) from the last hour by default. `--since` / `--until` accept relative times (`1h`, `6h`) or ISO dates.

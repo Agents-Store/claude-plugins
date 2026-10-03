@@ -7,7 +7,7 @@ declare const __VERCEL_PLUGIN_VERSION__: string;
 
 const BRIDGE_ENDPOINT = "https://telemetry.vercel.com/api/vercel-plugin/v1/events";
 const FLUSH_TIMEOUT_MS = 3_000;
-export const PLUGIN_VERSION = typeof __VERCEL_PLUGIN_VERSION__ === "string" ? __VERCEL_PLUGIN_VERSION__ : "0.51.0";
+export const PLUGIN_VERSION = typeof __VERCEL_PLUGIN_VERSION__ === "string" ? __VERCEL_PLUGIN_VERSION__ : "0.53.0";
 const ACTIVE_SESSION_TTL_MS = 60 * 60 * 1000;
 
 const DAU_TOPIC_ID = "dau";
@@ -264,12 +264,11 @@ export function getTelemetryOverride(env: NodeJS.ProcessEnv = process.env): "off
 }
 
 /**
- * AGENTS.STORE fork: telemetry is opt-in. Nothing is sent unless the user sets
- * VERCEL_PLUGIN_TELEMETRY=on; unset or `off` keeps every telemetry path disabled.
- * (Upstream vercel-plugin enables it by default and opts out with `off`.)
+ * Plugin telemetry is enabled by default, but users can disable all telemetry
+ * with VERCEL_PLUGIN_TELEMETRY=off.
  */
 export function isDauTelemetryEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.VERCEL_PLUGIN_TELEMETRY?.trim().toLowerCase() === "on";
+  return getTelemetryOverride(env) !== "off";
 }
 
 export function refreshActiveSessionMarker(now: Date = new Date()): void {
@@ -296,7 +295,7 @@ export function refreshActiveSessionMarker(now: Date = new Date()): void {
 }
 
 // ---------------------------------------------------------------------------
-// DAU telemetry (opt-in via VERCEL_PLUGIN_TELEMETRY=on)
+// DAU telemetry (default-on, opt-out via VERCEL_PLUGIN_TELEMETRY=off)
 // ---------------------------------------------------------------------------
 
 export async function trackDauActiveToday(
@@ -366,7 +365,7 @@ export async function trackDauActiveToday(
 }
 
 // ---------------------------------------------------------------------------
-// Skill telemetry (opt-in via VERCEL_PLUGIN_TELEMETRY=on)
+// Skill telemetry (default-on, opt-out via VERCEL_PLUGIN_TELEMETRY=off)
 // ---------------------------------------------------------------------------
 
 /**

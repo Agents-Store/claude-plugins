@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const PLUGIN_VERSION = JSON.parse(
-  readFileSync(join(ROOT, ".claude-plugin", "plugin.json"), "utf-8"),
+  readFileSync(join(ROOT, ".plugin", "plugin.json"), "utf-8"),
 ).version as string;
 const TELEMETRY_MODULE = join(ROOT, "hooks", "telemetry.mjs");
 const NODE_BIN = Bun.which("node") || "node";
@@ -130,20 +130,8 @@ describe("telemetry controls", () => {
     expect(result.activeSessionMarker).toBeNull();
   });
 
-  test("unset VERCEL_PLUGIN_TELEMETRY sends nothing (AGENTS.STORE fork: opt-in)", async () => {
-    const result = await runTelemetryProbe({});
-    expect(result.dauEnabled).toBe(false);
-    expect(result.calls).toBe(0);
-    expect(existsSync(result.stampPath)).toBe(false);
-    expect(existsSync(result.firstUseStampPath)).toBe(false);
-    expect(existsSync(result.installationIdPath)).toBe(false);
-    expect(result.installationId).toBeNull();
-    expect(existsSync(result.activeSessionMarkerPath)).toBe(false);
-    expect(result.activeSessionMarker).toBeNull();
-  });
-
-  test("opted-in telemetry sends DAU and first-use once", async () => {
-    const result = await runTelemetryProbe({ telemetryEnv: "on", agentHarness: "codex" });
+  test("default telemetry sends DAU and first-use once", async () => {
+    const result = await runTelemetryProbe({ agentHarness: "codex" });
     expect(result.dauEnabled).toBe(true);
     expect(result.calls).toBe(1);
     expect(result.stampPath).toBe(join(tempHome, ".config", "vercel-plugin", "dau-stamp"));
@@ -192,7 +180,7 @@ describe("telemetry controls", () => {
     expect(result.dauHeaders[0]["x-vercel-plugin-installation-id"]).toBeUndefined();
     expect(result.dauHeaders[0]["x-vercel-plugin-agent-harness"]).toBeUndefined();
 
-    const repeated = await runTelemetryProbe({ telemetryEnv: "on", agentHarness: "codex" });
+    const repeated = await runTelemetryProbe({ agentHarness: "codex" });
     expect(repeated.installationId).toBe(result.installationId);
     expect(repeated.calls).toBe(0);
   });
@@ -202,7 +190,7 @@ describe("telemetry controls", () => {
     mkdirSync(join(tempHome, ".config", "vercel-plugin"), { recursive: true });
     writeFileSync(installationIdPath, "not-a-uuid\n");
 
-    const result = await runTelemetryProbe({ telemetryEnv: "on", agentHarness: "codex" });
+    const result = await runTelemetryProbe({ agentHarness: "codex" });
 
     expect(result.installationId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
@@ -222,7 +210,7 @@ describe("telemetry controls", () => {
 
     const results = await Promise.all(
       Array.from({ length: 4 }, () =>
-        runTelemetryProbe({ telemetryEnv: "on", agentHarness: "codex", refreshActiveSessionMarker: false }),
+        runTelemetryProbe({ agentHarness: "codex", refreshActiveSessionMarker: false }),
       ),
     );
     const storedInstallationId = readFileSync(installationIdPath, "utf8").trim();
@@ -250,7 +238,6 @@ describe("telemetry controls", () => {
 
   test("reports each harness once per UTC day without inflating DAU", async () => {
     const result = await runTelemetryProbe({
-      telemetryEnv: "on",
       agentHarnesses: ["claude-code", "claude-code", "cursor", "cursor"],
     });
 

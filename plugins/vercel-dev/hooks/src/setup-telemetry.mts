@@ -1,23 +1,19 @@
 #!/usr/bin/env node
 
-import { isDauTelemetryEnabled } from "./telemetry.mjs";
+import { getTelemetryOverride } from "./telemetry.mjs";
 
 function main(): void {
-  if (!isDauTelemetryEnabled()) {
-    process.stdout.write(
-      [
-        "Telemetry is off. This AGENTS.STORE build of the Vercel plugin sends nothing unless you opt in.",
-        "To opt in, set VERCEL_PLUGIN_TELEMETRY=on: a once-per-day DAU phone-home (dau:active_today) and the name of each vercel-plugin skill loaded via the Skill tool (skill:invoked). Skill arguments and non-plugin skill names are never sent.",
-        "",
-      ].join("\n"),
-    );
+  const telemetryOverride = getTelemetryOverride();
+
+  if (telemetryOverride === "off") {
+    process.stdout.write("Telemetry is fully disabled via VERCEL_PLUGIN_TELEMETRY=off.\n");
     process.exit(0);
   }
 
   process.stdout.write(
     [
-      "Telemetry is on (VERCEL_PLUGIN_TELEMETRY=on): a once-per-day DAU phone-home (dau:active_today) and the name of each vercel-plugin skill loaded via the Skill tool (skill:invoked). Skill arguments and non-plugin skill names are never sent.",
-      "To turn it off, unset VERCEL_PLUGIN_TELEMETRY or set it to off.",
+      "The default telemetry profile sends a once-per-day DAU phone-home (dau:active_today) and the name of each vercel-plugin skill loaded via the Skill tool (skill:invoked). Skill arguments and non-plugin skill names are never sent.",
+      "To disable all telemetry, set VERCEL_PLUGIN_TELEMETRY=off.",
       "",
     ].join("\n"),
   );

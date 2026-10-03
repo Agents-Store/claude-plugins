@@ -5,7 +5,7 @@ import { join, dirname } from "path";
 import { homedir } from "os";
 var BRIDGE_ENDPOINT = "https://telemetry.vercel.com/api/vercel-plugin/v1/events";
 var FLUSH_TIMEOUT_MS = 3e3;
-var PLUGIN_VERSION = true ? "0.51.0" : "0.51.0";
+var PLUGIN_VERSION = true ? "0.53.0" : "0.53.0";
 var ACTIVE_SESSION_TTL_MS = 60 * 60 * 1e3;
 var DAU_TOPIC_ID = "dau";
 var SKILL_TOPIC_ID = "generic";
@@ -170,7 +170,7 @@ function getTelemetryOverride(env = process.env) {
   return null;
 }
 function isDauTelemetryEnabled(env = process.env) {
-  return env.VERCEL_PLUGIN_TELEMETRY?.trim().toLowerCase() === "on";
+  return getTelemetryOverride(env) !== "off";
 }
 function refreshActiveSessionMarker(now = /* @__PURE__ */ new Date()) {
   if (!isDauTelemetryEnabled()) {
