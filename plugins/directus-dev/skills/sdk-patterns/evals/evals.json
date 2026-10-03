@@ -27,6 +27,19 @@
         "Shows for-await-of loop for consuming events",
         "Includes correct imports (createDirectus, realtime, staticToken)"
       ]
+    },
+    {
+      "id": 23,
+      "prompt": "How do I log in with email and password using the Directus SDK in a Node.js script?",
+      "expected_output": "authentication('json') client, login with a payload object, stopRefreshing for one-shot scripts",
+      "files": [],
+      "expectations": [
+        "Calls client.login with a single payload object { email, password }, not two positional arguments",
+        "Uses authentication('json') for Node.js because the default cookie mode needs a cookie jar",
+        "Mentions optional login options (otp, mode, provider) and the LDAP identifier payload",
+        "Reads credentials from environment variables",
+        "Mentions Node 22 or later for SDK 26 and stopRefreshing for one-shot scripts"
+      ]
     }
   ]
 }

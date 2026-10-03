@@ -28,6 +28,18 @@
         "Shows nested object syntax for condition filters",
         "Mentions stringified JSON for request body"
       ]
+    },
+    {
+      "id": 26,
+      "prompt": "I need a Directus flow that sets archived=true on all old posts. My Update Items operation stopped changing anything after upgrading to 12.3",
+      "expected_output": "empty key/query returns null; explicit query with filter and limit -1",
+      "files": [],
+      "expectations": [
+        "Explains that Update Items with an empty or missing key and query now returns null (Directus 12.3.0+)",
+        "Uses an explicit query with a filter and limit -1 for a bulk change",
+        "Warns that key and query together are an error",
+        "Notes that update by query applies read permissions (12.4.0+)"
+      ]
     }
   ]
 }

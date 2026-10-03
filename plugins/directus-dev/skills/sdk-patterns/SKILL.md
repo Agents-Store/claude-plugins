@@ -11,32 +11,118 @@ The official Directus SDK uses a composable architecture. Install:
 npm install @directus/sdk
 ```
 
+Requirements and versioning (verified against `@directus/sdk` 26.0.0, built for Directus 12.4.x):
+
+- Node.js 22 or later (`engines.node >= 22`). The SDK needs global `fetch` and `URL`; `WebSocket` only for `realtime()`.
+- Use the SDK release that belongs to your server release: 26.x for Directus 12.4.x. A typed client from another generation can send calls the server no longer has.
+- Every snippet below reads the server address and token from the environment: `DIRECTUS_URL` and `DIRECTUS_TOKEN` (server-side), never hardcode them.
+
 ## Client Setup
 
-### Basic Client (Static Token)
+### Basic Client (Static Token, server-side)
 
 ```typescript
 import { createDirectus, rest, staticToken } from '@directus/sdk';
 
-const client = createDirectus('https://your-instance.com')
-  .with(staticToken('your-static-token'))
+const client = createDirectus(process.env.DIRECTUS_URL!)
+  .with(staticToken(process.env.DIRECTUS_TOKEN!))
   .with(rest());
 ```
 
-### Client with Login
+A static token belongs to one Directus user and carries that user's permissions. Keep it on the server, in an environment variable (`${DIRECTUS_TOKEN}` in `.env`), and give the user a policy with only the access the code needs.
+
+### Client with Login (Node.js scripts and servers)
 
 ```typescript
 import { createDirectus, rest, authentication } from '@directus/sdk';
 
-const client = createDirectus('https://your-instance.com')
-  .with(authentication())
+// 'json' mode: the refresh token comes back in the response body and the client keeps it,
+// so auto-refresh works outside a browser. The default mode is 'cookie': in Node it returns no refresh token, so the session cannot be refreshed.
+const client = createDirectus(process.env.DIRECTUS_URL!)
+  .with(authentication('json'))
   .with(rest());
 
-// Login
-await client.login('user@example.com', 'password');
+// Login takes ONE payload object, then optional options
+await client.login({
+  email: process.env.DIRECTUS_EMAIL!,
+  password: process.env.DIRECTUS_PASSWORD!,
+});
 
 // Token is managed automatically (refresh handled internally)
+
+// One-shot scripts: the client schedules the next token refresh with a timer,
+// which keeps Node alive. Stop it when the script is done (or build the client
+// with authentication('json', { autoRefresh: false })).
+client.stopRefreshing();
 ```
+
+`login(payload, options)`. The payload is `{ email, password }`, or `{ identifier, password }` for an LDAP provider. Options (all optional):
+
+```typescript
+await client.login(
+  { email, password },
+  {
+    otp: '123456',        // one-time password when the user has 2FA
+    mode: 'json',         // 'json' | 'cookie' | 'session'; overrides the mode given to authentication()
+    provider: 'default',  // pick an auth provider (not for redirect-based SSO)
+  },
+);
+
+await client.login({ identifier: 'username', password }, { provider: 'ldap' });
+```
+
+The positional form `login(email, password)` was replaced in SDK 20. It is a type error in TypeScript and throws at runtime in JavaScript. `refresh` and `logout` take an options object too (`{ mode, refresh_token }`), not positional arguments:
+
+```typescript
+await client.refresh();                  // uses the stored session
+await client.logout();
+// as a standalone REST command: client.request(refresh({ mode: 'json', refresh_token }))
+```
+
+### Client with Login (browser app, session cookie)
+
+```typescript
+import { createDirectus, rest, authentication } from '@directus/sdk';
+
+const client = createDirectus(process.env.NEXT_PUBLIC_DIRECTUS_URL!)
+  .with(authentication('session', { credentials: 'include' }))
+  .with(rest({ credentials: 'include' }));
+
+await client.login({ email, password });
+```
+
+Directus and the app on different domains need `credentials: 'include'` on both composables, plus matching CORS (`CORS_ORIGIN`) and cookie settings on the server. For SSO providers that redirect in the browser (Google, GitHub, Okta), `login()` does not apply: send the user to `/auth/login/<provider>?redirect=<app-url>` and call `client.refresh()` after they return. SSO needs a licensed tier on Directus 12.
+
+### Reading and Setting the Token
+
+```typescript
+const token = await client.getToken();   // current access token or null
+await client.setToken(accessToken);      // use a token you obtained elsewhere
+```
+
+### Reusable Client Module
+
+One module per app keeps the typed schema and the auth choice in a single place. Use a static-token client for server code and a token-less client for public reads that the Public policy allows:
+
+```typescript
+// lib/directus.ts
+import { createDirectus, rest, staticToken } from '@directus/sdk';
+import type { Schema } from './directus-schema'; // your MySchema interface
+
+const url = process.env.DIRECTUS_URL!;
+
+/** Server-only: acts as the token's user. */
+export function serverClient() {
+  return createDirectus<Schema>(url)
+    .with(staticToken(process.env.DIRECTUS_TOKEN!))
+    .with(rest());
+}
+
+/** Anonymous: only what the Public policy grants. */
+export const publicClient = createDirectus<Schema>(url).with(rest());
+```
+
+Build a fresh client inside background jobs and serverless handlers instead of importing a shared singleton, so every invocation reads its own environment.
 
 ## Type-Safe Schema
 
@@ -79,10 +165,14 @@ interface MySchema {
   posts_categories: PostCategory[];
 }
 
-const client = createDirectus<MySchema>('https://your-instance.com')
-  .with(staticToken('token'))
+const client = createDirectus<MySchema>(process.env.DIRECTUS_URL!)
+  .with(staticToken(process.env.DIRECTUS_TOKEN!))
   .with(rest());
 ```
+
+Match the schema to the real collection. The string `status` above is the classic draft/published/archived pattern; collections created in Directus 12 get a boolean `archived` field instead (`archived: boolean`), and existing `status` fields keep working. For publish workflows prefer content versions (below) over a status flag.
+
+System collections are typed by the SDK itself (`DirectusUser`, `DirectusRole`, `DirectusPolicy` and so on). Since SDK 26 several of their fields are nullable (`DirectusRole.parent`, `DirectusVersion.hash`, `DirectusRelation.meta` and `.schema`) and `DirectusPolicy.ip_access` is `string[] | null`: add null checks when you read them.
 
 ## CRUD Operations
 
@@ -274,23 +364,105 @@ import {
 // Read all collections
 const collections = await client.request(readCollections());
 
-// Get schema snapshot for migration
+// Get schema snapshot for migration (admin token required)
 const snapshot = await client.request(schemaSnapshot());
 
-// Apply schema diff
-const diff = await client.request(schemaDiff(snapshotFromStaging));
-if (diff) {
+// Partial snapshot: pass exactly one of includeCollections / excludeCollections
+const partial = await client.request(schemaSnapshot({ includeCollections: ['posts'] }));
+
+// Compare against a snapshot from another environment.
+// SDK 26: the second argument is an options object, not a boolean.
+const diff = await client.request(
+  schemaDiff(snapshotFromStaging, { force: false, mode: 'mirror' }), // 'merge' = additive, no deletions
+);
+
+// Apply the diff
+if (diff && Object.keys(diff.diff).length > 0) {
   await client.request(schemaApply(diff));
 }
 ```
+
+`schemaDiff(snapshot, true)` (positional `force`) was replaced by `schemaDiff(snapshot, { force: true })` in Directus 12.2.0 so that `mode` could be added. Snapshots sent to the server are limited by `IMPORT_MAX_FILE_SIZE` (default `50mb`).
+
+SDK 26 validates some parameters before sending: `readRelationByCollection`, `createField`, `deleteCollection`, `utilsExport`, `utilsImport`, `utilitySort`, `triggerFlow` and `readShareInfo` throw immediately when given an empty collection, key or id. Check values that come from user input or config before you call them.
+
+## Content Versions (Draft and Publish)
+
+For collections with `meta.versioning: true`. In the Studio the published view is read-only since Directus 12 and edits go to a version that is then promoted; API writes to the item itself still work when the policy allows them, so use versions on purpose for review workflows. The reserved keys are `published` (alias `main`) and `draft`.
+
+```typescript
+import {
+  readItem, readItems, createContentVersion, saveToContentVersion,
+  compareContentVersion, promoteContentVersion,
+} from '@directus/sdk';
+
+// Read the draft of an item (use 'published' for the live one; 'main' still works)
+const draft = await client.request(
+  readItem('posts', 'item-uuid', { version: 'draft', fields: ['*', { author: ['*'] }] }),
+);
+
+// Raw relational delta of a version (single-item reads only)
+const raw = await client.request(readItem('posts', 'item-uuid', { version: 'draft', versionRaw: true }));
+
+// Create a custom version, save changes into it, review the difference, publish it
+const version = await client.request(
+  createContentVersion({ key: 'spring-edit', name: 'Spring edit', collection: 'posts', item: 'item-uuid' }),
+);
+await client.request(saveToContentVersion(version.id, { title: 'New title' }));
+const { outdated, mainHash, current } = await client.request(compareContentVersion(version.id));
+if (!outdated) {
+  await client.request(promoteContentVersion(version.id, mainHash));
+}
+```
+
+`outdated: true` means the published item changed after the version was created. Compare again and decide before promoting. Requesting a version key that does not exist answers `403 FORBIDDEN`, it does not fall back to the published item. That includes `draft` while nobody has saved a draft for the item yet, so read the published item first or handle the 403.
+
+## Access Control (Policies)
+
+Permissions belong to policies, which are attached to roles or users. Create the policy, then its permissions, then the role, then the attachment:
+
+```typescript
+import { createPolicy, createPermission, createRole, customEndpoint, readUserPermissions } from '@directus/sdk';
+
+const policy = await client.request(
+  createPolicy({ name: 'Blog Editor', icon: 'edit', app_access: true, admin_access: false }),
+);
+
+await client.request(
+  createPermission({
+    policy: policy.id,
+    collection: 'posts',
+    action: 'read',
+    fields: ['*'],
+    permissions: {},
+    validation: {},
+  }),
+);
+
+const role = await client.request(createRole({ name: 'Blog Editors', icon: 'edit' }));
+
+// Attach the policy to the role: a row in directus_access (REST /access)
+await client.request(
+  customEndpoint({
+    path: '/access',
+    method: 'POST',
+    body: JSON.stringify({ role: role.id, policy: policy.id }),
+  }),
+);
+
+// What can the current token do? One entry per collection with none | partial | full per action
+const mine = await client.request(readUserPermissions());
+```
+
+A role no longer holds `admin_access`, `app_access`, `enforce_tfa` or `ip_access`; those are policy fields.
 
 ## Real-Time (WebSocket)
 
 ```typescript
 import { createDirectus, realtime, staticToken } from '@directus/sdk';
 
-const client = createDirectus('https://your-instance.com')
-  .with(staticToken('token'))
+const client = createDirectus(process.env.DIRECTUS_URL!)
+  .with(staticToken(process.env.DIRECTUS_TOKEN!))
   .with(realtime());
 
 // Connect
@@ -307,6 +479,8 @@ for await (const event of subscription) {
 }
 ```
 
+WebSockets must be enabled on the server (`WEBSOCKETS_ENABLED=true`). Since Directus 12.1.0 the browser origin of a WebSocket connection must be listed in `CORS_ORIGIN`, or the connection is rejected. Instances locked down after a license grace period have WebSockets disabled.
+
 ## Error Handling
 
 ```typescript
@@ -321,7 +495,7 @@ try {
 }
 ```
 
-Common error codes: `FORBIDDEN`, `RECORD_NOT_UNIQUE`, `FAILED_VALIDATION`, `INVALID_PAYLOAD`, `ROUTE_NOT_FOUND`.
+Common error codes: `FORBIDDEN`, `RECORD_NOT_UNIQUE`, `FAILED_VALIDATION`, `INVALID_PAYLOAD`, `ROUTE_NOT_FOUND`, and since Directus 12.4 `COLLECTION_INACTIVE` (403, collection status Inactive).
 
 ## Environment Variables
 
@@ -334,7 +508,19 @@ const client = createDirectus(process.env.DIRECTUS_URL!)
 ```
 
 ```bash
-# .env
-DIRECTUS_URL=https://your-instance.com
-DIRECTUS_TOKEN=your-static-token
+# .env (never commit real values)
+DIRECTUS_URL=https://directus.example.com
+DIRECTUS_TOKEN=<static-token-of-a-dedicated-user>
 ```
+
+For local development against the Docker Compose stack, `DIRECTUS_URL` is the local address of the container (see the `docker-local-dev` skill).
+
+## Migrating Older SDK Code
+
+| Older code | SDK 26 |
+|------------|--------|
+| Positional `login(email, password)` | `client.login({ email, password }, options?)` (SDK 20+); LDAP: `{ identifier, password }` |
+| Positional `mode` and `refresh_token` arguments to `refresh` and `logout` | `refresh({ mode, refresh_token })`, `logout({ mode, refresh_token })` |
+| `schemaDiff(snapshot, true)` | `schemaDiff(snapshot, { force: true })` |
+| `readItem(..., { version: 'main' })` | still works; prefer `'published'` |
+| `authentication()` in a Node script, then refresh fails | `authentication('json')`: the default `'cookie'` mode needs a browser cookie jar |

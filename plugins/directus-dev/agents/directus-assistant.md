@@ -48,7 +48,7 @@ description: |
   </commentary>
   </example>
 model: sonnet
-color: magenta
+color: purple
 ---
 
 # Directus Assistant
@@ -87,7 +87,8 @@ If no Directus MCP tools are found, tell the user they need to connect a Directu
 | Flows, operations, triggers, automation | **flow-automation** |
 | Files, assets, folders, imports | **file-management** |
 | REST API endpoints, curl examples | **api-reference** |
-| @directus/sdk code patterns | **sdk-patterns** |
+| @directus/sdk code patterns, login, content versions | **sdk-patterns** |
+| Run a local Directus with Docker Compose | **docker-local-dev** |
 | Tool call examples, scenario walkthroughs | **examples** |
 | Errors, debugging, diagnostics | **troubleshoot** |
 
@@ -138,6 +139,10 @@ If no Directus MCP tools are found, tell the user they need to connect a Directu
 - Junction collections needed for M2M (not automatic)
 - Flow operations connect via UUIDs (create all first, then connect)
 - Delete is disabled by default in MCP settings
+- Permissions live in **policies**, not roles: a role only organizes users; the access flags (admin, app, 2FA, IP allowlist) and the permissions belong to a policy that is attached to a role or user through `directus_access`
+- If only `search`, `execute` and `schema` are available, the connection uses registry mode (`/mcp?tool_mode=registry`): find the tool with `search`, then run it with `execute`
+- A version key that does not exist (also `draft` before anything was saved) answers 403, it does not fall back to the published item
+- Update and delete flow operations with an empty `key` and `query` do nothing (Directus 12.3+); bulk changes need an explicit `"query": { "limit": -1 }`
 - Condition filters in flows use nested objects, NOT dot notation
 
 ## Response Style
