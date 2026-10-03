@@ -2,11 +2,11 @@
 
 Claude Code plugin that turns Claude into a **grammY** specialist for building Telegram bots in Node.js, Deno, or TypeScript.
 
-grammY is the modern Telegram Bot framework — see https://grammy.dev. This plugin gives Claude authoritative knowledge of grammY's bot core, filter-query DSL, middleware system, all official `@grammyjs/*` plugins, and deployment patterns across every supported hosting platform.
+grammY is the modern Telegram Bot framework — see https://grammy.dev. This plugin gives Claude authoritative knowledge of grammY's bot core, filter-query DSL, middleware system, all official `@grammyjs/*` plugins, and deployment patterns across every supported hosting platform. It targets **grammY 1.46 (Telegram Bot API 10.3)**.
 
 ## What you get
 
-**15 skills** (auto-trigger from natural-language requests):
+**16 skills** (auto-trigger from natural-language requests):
 
 | Skill | Triggers on |
 |---|---|
@@ -32,7 +32,7 @@ grammY is the modern Telegram Bot framework — see https://grammy.dev. This plu
 **2 bundled scripts** (under `scripts/`):
 
 - `init-bot.sh <dir>` — scaffolds a fresh TypeScript grammY project (`package.json`, `tsconfig.json`, `src/bot.ts`, `.env.example`, `.gitignore`).
-- `generate-webhook-adapter.sh <framework> <out-file>` — emits a `webhookCallback` adapter for `express`, `fastify`, `hono`, `cloudflare`, or `vercel`.
+- `generate-webhook-adapter.sh <framework> <out-file>` — emits a `webhookCallback` adapter for `express`, `fastify`, `hono`, `cloudflare`, or `https` (`vercel` is accepted as an alias — grammY has no Vercel adapter; Vercel Node.js functions use the `https` one).
 
 ## Install
 
@@ -46,7 +46,7 @@ No environment variables. No `.mcp.json`. Pure knowledge plugin.
 
 ## Prerequisites
 
-- Node.js 18+ (or Deno 1.40+) for actually running a bot you build.
+- Node.js 22 or 24 LTS (or Deno 2.x, or Bun 1.x) for actually running a bot you build — Node 18 and 20 are end-of-life.
 - A bot token from [@BotFather](https://t.me/BotFather) for your bot.
 
 Claude doesn't need either to give you grammY code — the prerequisites are for your bot, not the plugin.
