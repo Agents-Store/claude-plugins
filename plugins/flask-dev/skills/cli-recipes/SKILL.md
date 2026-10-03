@@ -103,7 +103,8 @@ def seed_db():
     """Seed the database with sample data."""
     from extensions import db
     from models import User
-    user = User(name='Admin', email='admin@example.com')
+    # '!' matches no password: the seeded account cannot sign in until a real hash is set
+    user = User(name='Admin', email='admin@example.com', password_hash='!')
     db.session.add(user)
     db.session.commit()
     click.echo('Database seeded.')

@@ -8,7 +8,7 @@ Flask dev plugin for Agents Store. Application factory patterns, blueprint organ
 |-------|-------------|
 | `setup` | Verify Flask project structure and setup |
 | `project-scaffold` | Scaffold a new Flask project: layout, factory, config, `.env`, `.gitignore` |
-| `app-patterns` | Application factory, blueprints, config, extensions, CSRF, testing |
+| `app-patterns` | Application factory, blueprints, config, extensions, CSRF, CRUD views, testing |
 | `auth-flask-login` | Flask-Login authentication: login, logout, registration, CSRF, protected routes |
 | `api-reference` | Flask core API reference (decorators, request/response, config) |
 | `cli-recipes` | Flask CLI commands (`flask run`, `flask shell`, `flask routes`, custom commands) |

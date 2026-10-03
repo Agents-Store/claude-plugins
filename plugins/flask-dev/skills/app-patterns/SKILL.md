@@ -5,6 +5,7 @@ description: >
   "Flask config management", "Flask extensions", "organize Flask project",
   "Flask app structure", "register Flask blueprint", "Flask context processors",
   "Flask CSRFProtect", "Flask production config", "test a Flask app",
+  "Flask CRUD routes", "Flask list/edit/delete views", "Flask form to database",
   or needs patterns for structuring a Flask application.
 ---
 
@@ -122,6 +123,10 @@ app.register_blueprint(clients_bp)     # /clients
 app.register_blueprint(api_bp)         # /api/v1/*
 ```
 
+### CRUD Views
+
+List, create, edit and delete routes with their templates and forms, a dashboard with aggregates, and a select box fed from a related table, all scoped to the signed-in user, are in [CRUD views](references/crud-views.md). The scoped queries they call (`owned_by()`) are in the `sqlalchemy-dev` plugin, `query-patterns`, `references/owner-scoped-queries.md`. The rules in short: every view is `@login_required` and starts from `owned_by(Model, current_user.id)`; every `POST` form carries `csrf_token`; a successful `POST` commits once and redirects; delete is a `POST`.
+
 ## Configuration Management
 
 ### Environment-Based Config
@@ -201,7 +206,7 @@ class ProductionConfig(Config):
 
 ## Extension Initialization
 
-Create extensions in `extensions.py` (no import of the app), then bind them in `create_app()` with `init_app`:
+Create extensions in `extensions.py` (no import of the app), then bind them in `create_app()` with `init_app`. `Base` is the SQLAlchemy 2.0 declarative base: it makes `db.Model` accept `Mapped[...]` annotations, and its naming convention gives constraints and indexes stable names for Alembic:
 
 ```python
 # extensions.py
@@ -209,11 +214,27 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase
 
-db = SQLAlchemy()
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+
+class Base(DeclarativeBase):
+    metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+
+db = SQLAlchemy(model_class=Base)
 migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
+login_manager.login_message = 'Please sign in first'
 csrf = CSRFProtect()
 ```
 

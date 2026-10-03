@@ -30,7 +30,10 @@ Production patterns for Jinja2 templating in Flask applications.
     {% if current_user.is_authenticated %}
     <nav>
         <a href="{{ url_for('dashboard.dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('auth.logout') }}">Logout</a>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">Logout</button>
+        </form>
     </nav>
     {% endif %}
 
