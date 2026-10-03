@@ -49,6 +49,21 @@ Workspace create payload:
 { "title": "New Workspace", "description": "Optional" }
 ```
 
+Workspace member bodies are **arrays** — one object per user (`WorkspaceUserCreate` / `WorkspaceUserUpdate` / `WorkspaceUserDelete`). A new member is identified by `user_id` **or** `email` (not both); updates and deletes key on `user_id`:
+
+```json
+// POST   /workspaces/{workspaceId}/members
+[ { "email": "user@example.com", "workspace_role": "workspace-level-editor" } ]
+
+// PATCH  /workspaces/{workspaceId}/members
+[ { "user_id": "<userId>", "workspace_role": "workspace-level-viewer" } ]
+
+// DELETE /workspaces/{workspaceId}/members
+[ { "user_id": "<userId>" } ]
+```
+
+`workspace_role`: `workspace-level-owner`, `workspace-level-creator`, `workspace-level-editor`, `workspace-level-viewer`, `workspace-level-commenter`, `workspace-level-no-access`.
+
 ## Bases
 
 | Path | Method | Purpose |
@@ -67,13 +82,20 @@ Base update payload (`BaseUpdate`):
 { "title": "Renamed", "description": "New description" }
 ```
 
-Base member invite (`BaseMemberCreate`):
+Base member bodies are **arrays** too (`BaseMemberCreate` / `BaseMemberUpdate` / `BaseMemberDelete`). An invite carries `user_id` **or** `email` (not both), a `base_role`, and optionally `user_name`; updates and deletes key on `user_id`:
 
 ```json
-{ "email": "user@example.com", "roles": "base-editor" }
+// POST   /bases/{base_id}/members
+[ { "email": "user@example.com", "base_role": "editor" } ]
+
+// PATCH  /bases/{base_id}/members
+[ { "user_id": "<userId>", "base_role": "viewer" } ]
+
+// DELETE /bases/{base_id}/members
+[ { "user_id": "<userId>" } ]
 ```
 
-Roles: `base-creator`, `base-editor`, `base-commenter`, `base-viewer`.
+`base_role`: `owner`, `creator`, `editor`, `viewer`, `commenter`, `no-access`.
 
 ## Tables
 
@@ -361,8 +383,8 @@ Create payload (`ScriptCreateReq`):
 
 Scripts are referenced by:
 
-- The `Button` field type (`action.type: "script"`).
-- The `Script` hook notification (`{"type":"Script","payload":{"script_id":"..."}}`).
+- The `Button` field type (`options: { "type": "script", "script_id": "<scriptId>" }`).
+- The `Script` hook notification (`{"type":"Script","payload":{"scriptId":"..."}}`).
 
 ## Dashboards
 

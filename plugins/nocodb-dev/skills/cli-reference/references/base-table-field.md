@@ -11,8 +11,12 @@ nocodb_api POST   /meta/workspaces '{"title":"New Workspace"}'
 nocodb_api PATCH  /meta/workspaces/$WORKSPACE_ID '{"title":"Renamed"}'
 nocodb_api DELETE /meta/workspaces/$WORKSPACE_ID
 nocodb_api GET    "/meta/workspaces/$WORKSPACE_ID?include[]=members"
-nocodb_api POST   /meta/workspaces/$WORKSPACE_ID/members '{"email":"user@example.com","roles":"workspace-creator"}'
+nocodb_api POST   /meta/workspaces/$WORKSPACE_ID/members '[{"email":"user@example.com","workspace_role":"workspace-level-creator"}]'
+nocodb_api PATCH  /meta/workspaces/$WORKSPACE_ID/members '[{"user_id":"<userId>","workspace_role":"workspace-level-viewer"}]'
+nocodb_api DELETE /meta/workspaces/$WORKSPACE_ID/members '[{"user_id":"<userId>"}]'
 ```
+
+Member bodies are arrays; a new member is identified by `user_id` or `email` (not both), updates and deletes by `user_id`. `workspace_role`: `workspace-level-owner`, `-creator`, `-editor`, `-viewer`, `-commenter`, `-no-access`.
 
 Listing and creating workspaces is open on all plans; reading, updating and deleting a specific workspace needs cloud Business and above or a licensed self-hosted deployment.
 
@@ -30,10 +34,12 @@ Base collaboration (cloud Business and above / licensed self-hosted):
 
 ```bash
 nocodb_api GET    "/meta/bases/$BASE_ID?include[]=members"
-nocodb_api POST   /meta/bases/$BASE_ID/members   '{"email":"user@example.com","roles":"base-editor"}'
-nocodb_api PATCH  /meta/bases/$BASE_ID/members   '{"email":"user@example.com","roles":"base-viewer"}'
-nocodb_api DELETE /meta/bases/$BASE_ID/members   '{"email":"user@example.com"}'
+nocodb_api POST   /meta/bases/$BASE_ID/members   '[{"email":"user@example.com","base_role":"editor"}]'
+nocodb_api PATCH  /meta/bases/$BASE_ID/members   '[{"user_id":"<userId>","base_role":"viewer"}]'
+nocodb_api DELETE /meta/bases/$BASE_ID/members   '[{"user_id":"<userId>"}]'
 ```
+
+Bodies are arrays. `base_role`: `owner`, `creator`, `editor`, `viewer`, `commenter`, `no-access`; invites use `user_id` or `email` (not both), updates and deletes use `user_id`.
 
 ## Tables
 
