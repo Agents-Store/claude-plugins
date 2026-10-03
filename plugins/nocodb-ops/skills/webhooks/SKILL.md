@@ -85,6 +85,8 @@ Receiver rules:
 
 Record events can carry conditions (AND/OR groups of field comparisons, for example *Status = Complete* AND *Priority = High*). A condition fires **on the transition**: the webhook runs only when the record goes from "condition not met" to "condition met" during the event, not on every later edit of a record that already matches. Conditions do not apply to Button webhooks.
 
+**Mind the loop.** An automation that writes its status or result back to the same table fires *After Update* again. Gate the webhook with a condition on the status transition (for example `status` = `pending`, set by whoever requests a run, while the automation only writes `processing`, `completed`, `failed`), watch only the business fields on paid plans, or keep job state in a separate table.
+
 ## Button Trigger
 
 A Button field can start a webhook, which makes a record a remote control for an automation: the user presses the button on the row, NocoDB calls the receiver with that record. Use it for "approve", "send invoice", "start the import" — actions that should happen on purpose, not on every edit.
