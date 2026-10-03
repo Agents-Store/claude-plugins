@@ -54,13 +54,13 @@ When `dify-env-sync.sh` exists in DOCKER_DIR (there is also a `dify-env-sync.py`
 
 The manual algorithm below compares **key names** only and only appends, so it misses a changed default; the script reports the changed values but loses keys.
 
-**The script prints the current `.env` value of every differing key, passwords, secrets and credential-bearing URLs (`CELERY_BROKER_URL` ships as `redis://:<password>@redis:6379/1`) included.** Run it through a filter. It shows a value only when the key name does not look secret **and** the value is a number, a boolean or empty; everything else prints as `***`, and so do the analysis lines of a masked key:
+**The script prints the current `.env` value of every differing key, passwords, secrets and credential-bearing URLs (`CELERY_BROKER_URL` ships as `redis://:<password>@redis:6379/1`) included.** Run it through a filter. It shows a value only when the key name does not look secret **and** the value is a number, a boolean or empty; everything else prints as `***`, and so do the analysis lines of a masked key. Any other line (the continuation of a multi-line value, such as a PEM key whose `\n` the script expands) is dropped:
 
 ```bash
 cd $DOCKER_DIR
 bash dify-env-sync.sh 2>&1 | awk '
   { gsub(/\033\[[0-9;]*m/, "") }
-  /^\[[0-9]+\] / { key = $2; hide = 0; print; next }
+  /^\[[0-9]+\] [A-Za-z_][A-Za-z0-9_]*$/ { key = $2; hide = 0; print; next }
   /^  \.env +[(]current[)]/ {
     val = $0; sub(/^[^:]*: ?/, "", val)
     hide = (key ~ /SECRET|PASSWORD|PASSWD|TOKEN|KEY|CREDENTIAL|DSN|AUTH|URL|URI|JSON|BASE64/) || (tolower(val) !~ /^(true|false|[0-9]+)?$/)
@@ -68,7 +68,9 @@ bash dify-env-sync.sh 2>&1 | awk '
     print; next }
   /^  \.env\.example/ { if (hide) sub(/:.*/, ": ***"); print; next }
   /^  [^ ]/ { if (!hide) print; next }
-  { print }'
+  /^\[(INFO|SUCCESS|WARNING|ERROR)\]/ { print; next }
+  /^$/ { print; next }
+  { next }'                                                  # a continuation line of a multi-line value (a PEM key): never printed
 ```
 
 The filter uses only POSIX awk and was checked with gawk, mawk and busybox awk. Never run the script bare inside an agent session. If it fails, fall back to the manual algorithm.

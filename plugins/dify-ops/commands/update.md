@@ -247,7 +247,7 @@ if [ ! -f .env ]; then
 elif [ -f dify-env-sync.sh ]; then
   bash dify-env-sync.sh 2>&1 | awk '
     { gsub(/\033\[[0-9;]*m/, "") }
-    /^\[[0-9]+\] / { key = $2; hide = 0; print; next }
+    /^\[[0-9]+\] [A-Za-z_][A-Za-z0-9_]*$/ { key = $2; hide = 0; print; next }
     /^  \.env +[(]current[)]/ {
       val = $0; sub(/^[^:]*: ?/, "", val)
       hide = (key ~ /SECRET|PASSWORD|PASSWD|TOKEN|KEY|CREDENTIAL|DSN|AUTH|URL|URI|JSON|BASE64/) || (tolower(val) !~ /^(true|false|[0-9]+)?$/)
@@ -255,7 +255,9 @@ elif [ -f dify-env-sync.sh ]; then
       print; next }
     /^  \.env\.example/ { if (hide) sub(/:.*/, ": ***"); print; next }
     /^  [^ ]/ { if (!hide) print; next }
-    { print }'
+    /^\[(INFO|SUCCESS|WARNING|ERROR)\]/ { print; next }
+    /^$/ { print; next }
+    { next }'                                                  # anything else is a continuation line of a multi-line value (a PEM key): never printed
 else
   echo "No official script — use the manual algorithm from the env-sync skill"
 fi
@@ -263,11 +265,12 @@ fi
 
 What the official `dify-env-sync.sh` really does: it backs `.env` up to `env-backup/`, then **rebuilds `.env` from the new `.env.example`**. A key that is still in the example keeps your value; a new key gets the example's value; **every key that is not in the new example is dropped** — custom keys, keys that moved into `envs/` (SMTP and storage credentials, `DIFY_AGENT_RUN_RETENTION_SECONDS`) and keys removed upstream. Its closing "consider manually removing these variables" warning is misleading: they are already gone (the pre-sync copy is in `<backup-dir>/.env`).
 
-The script also prints the current `.env` value of every differing key. The `awk` filter above shows a value only when it is a number, a boolean or empty and the key name does not look secret; everything else — passwords, tokens, credential-bearing URLs such as `CELERY_BROKER_URL` — prints as `***`. Never run the script without it.
+The script also prints the current `.env` value of every differing key. The `awk` filter above shows a value only when it is a number, a boolean or empty and the key name does not look secret; everything else — passwords, tokens, credential-bearing URLs such as `CELERY_BROKER_URL` — prints as `***`. Any other line is the continuation of a multi-line value (a PEM key whose `\n` the script expands) and is dropped. Never run the script without it.
 
 **Restore the dropped keys.** List them by name (never values) and where each belongs:
 
 ```bash
+set -a; . <backup-dir>/state.env; set +a
 cd "$DOCKER_DIR"
 DROPPED=$(comm -23 <(grep -oE '^[A-Z_][A-Z0-9_]*' "$BACKUP_DIR/.env" | sort -u) <(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sort -u))
 for K in $DROPPED; do
@@ -279,6 +282,8 @@ done
 Ask the user which keys to restore. A key that templates under `envs/` declare goes into one of the matching `envs/**/*.env` files (when several are listed, ask which; the file is created if missing); anything else goes into `.env`. A key that no template declares and that the release notes list as removed stays dropped. Restore by copying the line from the backup, which prints nothing:
 
 ```bash
+set -a; . <backup-dir>/state.env; set +a
+cd "$DOCKER_DIR"
 restore() { mkdir -p "$(dirname "$2")"; grep "^$1=" "$BACKUP_DIR/.env" | tail -1 >> "$2"; }   # restore <KEY> <target-file>
 restore <KEY> <target-file>
 ```
