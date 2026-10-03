@@ -16,13 +16,17 @@ A private companion repo (`claude-plugins-private`) contains the `plugin-creator
 |-------|------|--------|----------|-------|
 | 1 | Technology | `{tool}-{process}` | No | User |
 | 1.5 | Process | `{name}-{process}` | Yes (OAuth) | User |
-| 2 | Stack | `stack-{name}-{process}` | Yes (`${VAR}`) | Project |
+| 2 | Stack | `stack-{name}` | Yes (`${VAR}`) | Project |
 | 3 | Project | CLAUDE.md, .claude/rules/ | — | Project |
 
 Process suffixes:
 - **dev** — for developers (API, SDK, CLI, code patterns)
 - **ops** — for business users (data entry, views, reports, CRUD)
 - **provision** — for admins (schema design, roles, migrations, setup)
+
+A Stack plugin carries no process suffix (variant A, settled 2026-09-06): it describes the
+architecture only and names its parts in `dependencies`; the tool knowledge lives in the
+Technology plugins it depends on.
 
 **Technology plugins MUST NOT have .mcp.json or environment variables.** They contain only file-based knowledge.
 
@@ -135,6 +139,8 @@ Created automatically when skill-creator first tests a skill.
 
 `.claude-plugin/marketplace.json` is the central index. Every new plugin must be added here with `name`, `source`, `description`, `version`, `author`, `keywords`, and `category`.
 
+Its `renames` map moves an installed copy of a retired or renamed plugin to its successor (`null` = removed, no successor). Retired 2026-10: `firecrawl` and `image-search-dev` → `web-search-dev`, `n8n` → `n8n-dev`, `nocodb` → `nocodb-ops`, `nocobase` → `nocobase-dev`, `openclaw-configurator` → `openclaw-ops`, `media-hosting-ops` → `null` (moved to the private marketplace). The three stack plugins that carried `-dev` are now `stack-directus-nextjs`, `stack-directus-nextjs-trigger`, `stack-flask-sqlalchemy`.
+
 ## Creating a New Plugin
 
 1. Research the target platform's official docs before writing
@@ -146,21 +152,23 @@ Created automatically when skill-creator first tests a skill.
 7. Register in `.claude-plugin/marketplace.json` (exactly the 7 fields, version in sync with
    `plugin.json`)
 8. Drop a `.scrub-strict` marker in the plugin root — every new plugin ships under the strict ruleset
-9. Run `./scripts/scrub-check.sh plugins/<name>` — both passes must exit 0 before the plugin ships
+9. Run `./scripts/scrub-check.sh plugins/<name>` — all three passes must exit 0 before the plugin ships
+   (the validator pass reports "skipped" and does not fail when the `claude` CLI is not on `PATH`)
 
 Or use `plugin-creator` from the private marketplace: `/plugin-creator:create`
 
 ## Publication Gate
 
-Everything in `plugins/` is published. `scripts/scrub-check.sh` runs **two passes** and blocks the
-merge on either; it runs on every pull request (`.github/workflows/scrub.yml`).
+Everything in `plugins/` is published. `scripts/scrub-check.sh` runs **three passes** and blocks the
+merge on any of them; it runs on every pull request (`.github/workflows/scrub.yml`).
 
 ```bash
 ./scripts/scrub-check.sh                  # whole repo    exit 0 clean · 1 fail · 2 warn
 ./scripts/scrub-check.sh plugins/<name>   # one plugin
 ./scripts/scrub-check.sh --strict <path>  # force the strict ruleset
-./scripts/scrub-check.sh --no-lint <path> # content pass only, skip the structure pass
+./scripts/scrub-check.sh --no-lint <path> # content pass only, skip the structure and validator passes
 ./scripts/plugin_lint.py plugins/<name>   # structure pass on its own
+./scripts/validate_pass.py plugins/<name> # official validator pass on its own
 ```
 
 **Pass 1 — content (`scripts/scrub_check.py`).** Refuses: host and server names, private endpoints
@@ -200,7 +208,7 @@ Four things the rules deliberately do NOT depend on, each of which was once a wa
 silently switches itself off outside strict scope, which is what the table below used to promise and
 not deliver. Role mailboxes (`admin@`, `support@`, …) are still let through outside strict scope.
 
-**Pass 2 — structure (`scripts/plugin_lint.py`).** Three rules, no baseline — these are fixed, not
+**Pass 2 — structure (`scripts/plugin_lint.py`).** Four rules, no baseline — these are fixed, not
 excused. The first two `mutation-plan` triggers are self-declarations, so deleting `--yes` from an
 `argument-hint` used to take a mutating command out of the contract entirely; the third trigger
 reads the command's own code blocks for writes (apply flags, `curl -X POST`, container and service
@@ -212,16 +220,21 @@ apply flag — or two different kinds of write — is enough. Prose does not cou
 | `mutation-plan` | a command taking `--yes`, or already speaking the dry-run vocabulary, **or whose body actually writes**, prints all eight blocks — `TARGET PRECHECK CHANGE BACKUP IMPACT VALIDATE ROLLBACK APPLY` — and its ROLLBACK is a **runnable command line**, not a sentence describing one | fail everywhere when the command declared the contract (`--yes` / the block names); warn · **fail** in strict scope when only its body gave it away |
 | `skill-name` | one name across SKILL.md frontmatter, the skill directory, and `skill_name` in `evals/evals.json` | warn · **fail** in strict scope |
 | `version-parity` | `plugins/<p>/.claude-plugin/plugin.json` version equals that plugin's entry in `.claude-plugin/marketplace.json` | warn · **fail** in strict scope |
+| `mcp-prefix` | a tool of an MCP server that the plugin's own `.mcp.json` declares is named `mcp__plugin_<plugin>_<server>__<tool>`; the bare `mcp__<server>__` form resolves only for a server the user configured by hand, so it works in the author's workspace and nowhere else (a server the user connects themselves keeps the bare form; `LEARNINGS.md` and `CHANGELOG.md` keep history as written) | **fail** everywhere |
+
+**Pass 3 — official validator (`scripts/validate_pass.py`).** Runs `claude plugin validate <plugin> --strict`
+over every covered plugin, so a manifest Claude Code itself would refuse never reaches the
+marketplace. Without the `claude` CLI on `PATH` it reports "skipped" and exits 0; CI installs the
+CLI for it. No baseline either.
 
 **Strict scope.** A plugin that drops a `.scrub-strict` marker file in its root also gets: no host
 that is not a vendor, upstream or example host; no absolute path that upstream does not document or
 that lacks a placeholder; no hardcoded model id outside an `<!-- example-only -->` block; no bound
 host port; no mailbox — and the two hygiene lint rules become hard failures. **Every new plugin
 carries the marker**, and it is granted to an existing plugin as soon as that plugin passes
-`--strict` cleanly on **both** passes. Marked today: `openclaw-ops`,
+`--strict` cleanly on **every** pass. Marked today: `codemap-dev`, `openclaw-ops`,
 `postgresql-external-dev`, `stack-composable-stack-v1`. The rest are **debt, not policy** — run
-`./scripts/scrub-check.sh --strict plugins/<name>` to see what one owes before its marker can land
-(`codemap-dev` is one `skill-name` fix away; the large plugins are further).
+`./scripts/scrub-check.sh --strict plugins/<name>` to see what one owes before its marker can land.
 
 **Fixing a finding**, in order of preference: a placeholder (`<instance>`, `<data-root>`,
 `<compose-root>`, `example.com`, `203.0.113.10`) · runtime discovery · the operator's own config
@@ -234,7 +247,7 @@ the next real endpoint on the same surface still fails; `#<glob>` matches the ex
 baseline may be **shrunk** in any pull request; a line may only be **added** — or narrowed, which
 also counts as an added line — by a pull request that changes nothing else, and CI enforces it.
 
-**What the gate does not cover: git history.** Both passes read the **working tree only**. A host,
+**What the gate does not cover: git history.** All three passes read the **working tree only**. A host,
 address, identifier or credential that already reached a commit is invisible to them, and deleting
 the line in a later commit does not remove it — the old blob stays fetchable by anyone who clones.
 Such a leak is answered by **revoking the value at its source** (rotate the token, retire the
@@ -370,10 +383,13 @@ sourced into the environment rather than passed as flags, so the secret stays ou
 - the banner prints which mode is in use, so a silent fallback is always visible
 
 When no identity file is readable the scripts fall back to the interactive user
-session. That path needs the active-instance dance: the Infisical CLI keeps one
-**active** instance and `infisical secrets` always reads it — `--domain` does not
-switch it. The scripts detect this and run `infisical login --domain=…` when the active
-instance is not ours. Override the instance for one run with `INFISICAL_DOMAIN=https://…`.
+session. After a user login the Infisical CLI sends authenticated reads to the instance of
+the logged-in **profile**, and a `--domain` / `INFISICAL_DOMAIN` that names a different
+instance makes the call fail instead of switching it (CLI ≥ 0.43.134; `infisical login
+--domain=…` itself is honoured). So the scripts compare the logged-in instance with ours and
+run `infisical login --domain=…` when it is not ours; a second instance can live beside it as
+a named profile (`infisical login --save-as <name> --domain=<url>`, then `--profile <name>` —
+see `infisical-dev`). Override the instance for one run with `INFISICAL_DOMAIN=https://…`.
 
 > When scripting `infisical login … --plain --silent`, capture **stdout only**. The CLI
 > writes its update-check banner to stderr, so a `2>&1` concatenates that banner onto the

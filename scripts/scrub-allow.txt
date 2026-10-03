@@ -43,7 +43,6 @@ plugins/n8n-dev/skills/n8n-code-javascript/BUILTIN_FUNCTIONS.md:private-host#url
 # Editing an assertion string to satisfy the gate risks breaking a suite we do
 # not run here; the values are the upstream author's own test data.
 plugins/vercel-dev/tests/benchmark-analyze.test.ts:home-path:upstream test fixture, path is the plugin author's own machine in an assertion
-plugins/vercel-dev/tests/pretooluse-skill-inject.test.ts:private-host:upstream test fixture, short URL used to exercise link handling
 plugins/vercel-dev/tests/redaction.test.ts:private-host:upstream test fixture, short URL used to exercise the redaction code path
 plugins/vercel-dev/tests/skill-telemetry.test.ts:uuid#sha256-9fa3d1a344c5:upstream test fixture, a session UUID the telemetry code validates as v4, so it cannot be a placeholder
 

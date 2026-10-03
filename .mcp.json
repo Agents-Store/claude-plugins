@@ -77,7 +77,7 @@
     },
     "dataforseo": {
       "command": "npx",
-      "args": ["-y", "dataforseo-mcp-server@latest"],
+      "args": ["-y", "dataforseo-mcp-server@3"],
       "env": {
         "DATAFORSEO_USERNAME": "${DATAFORSEO_USERNAME}",
         "DATAFORSEO_PASSWORD": "${DATAFORSEO_PASSWORD}"
