@@ -36,8 +36,8 @@ Then generate search queries:
 
 ### Step 3: SEARCH
 ```
-~~search("Anthropic company overview products team")
-→ Exa with company category filter
+~~search("category:company Anthropic overview products team")
+→ Exa semantic search with the inline company category
 
 ~~search("Anthropic company history funding products team 2026")
 → Perplexity AI answer with key facts

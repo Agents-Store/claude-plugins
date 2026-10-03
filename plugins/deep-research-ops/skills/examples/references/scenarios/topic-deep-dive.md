@@ -15,7 +15,7 @@ Depth: deep
 
 ### Step 2: PLAN
 ```
-expand_query({ query: "vector search how it works" })
+Related terms (planned by you, no tool): "embeddings", "ANN", "similarity search"
 
 Queries:
 1. "vector search explained how it works"
@@ -46,8 +46,8 @@ Queries:
 ### Step 4: READ
 ```
 Rank by relevance("vector search explanation", all_urls)
-~~batch_scrape(top_8_urls)
-Extract PDF from best arXiv paper
+~~batch_scrape(top_8_urls, question: "how vector search works", topk: 3)
+Passages from the best paper (paper-index read-paper step) or PDF extraction
 ```
 
 ### Step 5: EXTRACT
@@ -85,4 +85,4 @@ Output: Deep Research Report with:
 - Methodology
 
 ### Expected Capabilities Used
-`~~batch_search`, `~~academic_search`, `~~code_search`, `~~search`, `~~batch_scrape`, query expansion, PDF extraction, relevance ranking, deduplication
+`~~batch_search`, `~~academic_search`, `~~code_search`, `~~search`, `~~batch_scrape`, PDF extraction, relevance ranking, deduplication

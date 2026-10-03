@@ -101,8 +101,8 @@
     {
       "name": "deep-research-ops",
       "source": "./plugins/deep-research-ops",
-      "description": "Deep Research plugin. Conduct comprehensive web research using 38 tools across 4 providers (Firecrawl, Jina, Exa, Perplexity) with intelligent fallback chains, parallel search, content extraction, and structured report generation.",
-      "version": "3.0.0",
+      "description": "Multi-step research workflow over any search MCP servers; installs web-search-dev for the tools.",
+      "version": "3.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },

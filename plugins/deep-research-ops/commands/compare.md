@@ -27,13 +27,14 @@ Comparative analysis of multiple items using the Comparison Table template. See 
 
 3. **Read and extract** from pricing/feature pages:
    ```
+   For each item_pricing_url (one call per URL):
    ~~extract(
-     urls: [item_pricing_urls],
+     url: item_pricing_url,
      prompt: "Extract pricing plans and key features",
      schema: { plans with name, price, features }
    )
 
-   ~~batch_scrape(comparison_article_urls)
+   ~~batch_scrape(comparison_article_urls, question: "how do the items compare", topk: 3)
    ```
 
 4. **Synthesize** into Comparison Table:
