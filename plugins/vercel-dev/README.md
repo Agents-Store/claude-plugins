@@ -121,7 +121,7 @@ After installing, session context is injected automatically only for empty direc
 
 ## Telemetry
 
-Telemetry is on by default and can be disabled with `VERCEL_PLUGIN_TELEMETRY=off`.
+**AGENTS.STORE build: telemetry is off unless you opt in with `VERCEL_PLUGIN_TELEMETRY=on`.** Upstream vercel-plugin enables it by default; this fork does not. The rest of this section describes what is sent once you opt in.
 
 What is collected:
 
@@ -160,7 +160,7 @@ The plugin reports which of *its own* skills get used so we can see which guidan
 - **Harness category only.** The session-start hook records the detected harness category (`claude-code`, `cursor`, `codex`, `github-copilot`, `kimi`, `grok`, `other`, or `unknown` — the same values as `plugin:agent_harness`) in a session temp file (`<tmpdir>/vercel-plugin-<session>-agent-harness.txt`), and skill events carry it so usage can be broken down per harness. No harness version or raw agent name is sent.
 - **Coverage by harness.** The `Skill` tool is Claude Code's contract, and Cursor's Claude-compatible hook bridge is accepted too (`conversation_id` payloads). Cursor's own hook API does not expose a skill-load event or a `Skill` tool name, so skills loaded natively by Cursor are not currently observable and are simply not counted.
 - **It never slows the agent down.** The hook validates the name and exits immediately (a few milliseconds); the network request runs in a detached background process with a 3-second timeout. If the bridge is unreachable the event is simply lost — there is no retry queue and nothing is persisted.
-- **Same off switch.** `VERCEL_PLUGIN_TELEMETRY=off` disables it along with everything else.
+- **Same switch.** Skill events are sent only with `VERCEL_PLUGIN_TELEMETRY=on`, like everything else.
 
 Each skill event request also carries `plugin:version`, `plugin:install_id`, and (when known) `plugin:agent_harness` so usage can be grouped by version, installation, and harness, exactly as the daily ping does.
 
@@ -179,7 +179,8 @@ How it is tracked:
 
 Behavior:
 
-- Unset `VERCEL_PLUGIN_TELEMETRY`: telemetry is enabled.
+- Unset `VERCEL_PLUGIN_TELEMETRY`: telemetry is disabled (AGENTS.STORE default).
+- `VERCEL_PLUGIN_TELEMETRY=on`: enables the telemetry described above.
 - `VERCEL_PLUGIN_TELEMETRY=off`: disables all telemetry, including `dau:active_today`, `plugin:first_use`, `skill:invoked`, and `skill:injected`, and does not create an installation ID if one does not already exist.
 
 Where to set `VERCEL_PLUGIN_TELEMETRY`:
@@ -190,11 +191,11 @@ Where to set `VERCEL_PLUGIN_TELEMETRY`:
 Examples:
 
 ```bash
-export VERCEL_PLUGIN_TELEMETRY=off
+export VERCEL_PLUGIN_TELEMETRY=on
 ```
 
 ```powershell
-setx VERCEL_PLUGIN_TELEMETRY off
+setx VERCEL_PLUGIN_TELEMETRY on
 ```
 
 ## Upstream Skill Sync

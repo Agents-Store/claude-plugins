@@ -785,7 +785,7 @@ async function main(): Promise<void> {
     process.stdout.write(`${additionalContext}\n\n`);
   }
 
-  // DAU phone-home — enabled by default unless VERCEL_PLUGIN_TELEMETRY=off
+  // DAU phone-home — only when the user opted in with VERCEL_PLUGIN_TELEMETRY=on
   await trackDauActiveToday(new Date(), { agentHarness }).catch(() => {});
 
   if (cursorOutput) {

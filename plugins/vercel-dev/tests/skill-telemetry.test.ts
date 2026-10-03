@@ -49,7 +49,8 @@ function buildEnv(env: Record<string, string | undefined>): Record<string, strin
   const mergedEnv: Record<string, string> = { ...(process.env as Record<string, string>), HOME: tempHome };
   // The test preload sets this to "off" for the whole suite; these tests opt
   // back in deliberately and mock fetch wherever a send could happen.
-  delete mergedEnv.VERCEL_PLUGIN_TELEMETRY;
+  // AGENTS.STORE fork: telemetry is opt-in, so opting in means "on", not unset.
+  mergedEnv.VERCEL_PLUGIN_TELEMETRY = "on";
   for (const [key, value] of Object.entries(env)) {
     if (value === undefined) delete mergedEnv[key];
     else mergedEnv[key] = value;
