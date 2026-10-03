@@ -1,9 +1,9 @@
 {
   "name": "postgresql-external-dev",
-  "version": "1.1.0",
-  "description": "PostgreSQL schema design for external database connections. Compatible SQL patterns for NocoDB and NocoBase — table creation, column types, relations, indexes, and anti-patterns.",
+  "version": "1.2.0",
+  "description": "PostgreSQL knowledge for low-code stacks. Schema design for external database connections (compatible SQL patterns for NocoDB and NocoBase — table creation, column types, relations, indexes, anti-patterns), plus the 29-tool PostgreSQL MCP reference and the PostgREST REST API.",
   "author": {
     "name": "AGENTS.STORE"
   },
-  "keywords": ["postgresql", "postgres", "database", "schema", "sql", "nocodb", "nocobase", "external-database", "low-code", "dev", "agents-store"]
+  "keywords": ["postgresql", "postgres", "database", "schema", "sql", "postgrest", "mcp", "nocodb", "nocobase", "external-database", "low-code", "dev", "agents-store"]
 }

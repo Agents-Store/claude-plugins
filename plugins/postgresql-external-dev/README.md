@@ -1,6 +1,6 @@
 # postgresql-external-dev
 
-PostgreSQL schema design for external database connections. Compatible SQL patterns for creating and modifying databases that work as external data sources for NocoDB and NocoBase.
+PostgreSQL knowledge for low-code stacks: schema design for external database connections (compatible SQL patterns for creating and modifying databases that work as external data sources for NocoDB and NocoBase), the PostgreSQL MCP tool reference, and the PostgREST REST API.
 
 ## Compatible Platforms
 
@@ -23,6 +23,8 @@ The skills generate conservative defaults that behave the same on both platforms
 | `relations` | One-to-Many, One-to-One, Many-to-Many, Self-referential with FK constraints and indexes |
 | `examples` | Complete e-commerce schema walkthrough with all relation types |
 | `troubleshoot` | Type caveats by platform, anti-patterns, verification checklist |
+| `postgres-mcp-tools` | Reference for the 29-tool PostgreSQL MCP server (MCP Toolbox for Databases): run SQL, inspect schemas, monitor performance and replication |
+| `postgrest-api` | PostgREST over HTTP: CRUD, upsert with `on_conflict`, `Prefer` options, the `max-affected` safety net, use from n8n and Trigger.dev |
 
 ## Agent
 

@@ -17,7 +17,7 @@ How to create PostgreSQL tables that work correctly when connected as an externa
 | Aspect | NocoDB | NocoBase |
 |--------|--------|----------|
 | Role | Connects the database; can manage schema only if **Allow Schema Edit** is on (off by default for external sources) | Connects as **external data source**, reads schema only |
-| License | External PostgreSQL source needs no extra plugin | **Commercial license required** — plugin `@nocobase/plugin-data-source-external-postgres`, Standard edition or above, not in Community |
+| License | No separate plugin for the external PostgreSQL source; check your NocoDB edition/plan | **Commercial license required** — plugin `@nocobase/plugin-data-source-external-postgres`, Standard edition or above, not in Community |
 | Sync | Yes — creates/modifies tables and columns when schema edit is on; otherwise **Meta Sync** reads your SQL changes | **No** — does not modify external DB structure; **refresh** the data source after SQL changes |
 | FK constraints | Creates physical FK for external DB | Reads existing FK, no conflicts |
 | Junction tables | Composite PK (no separate `id`) | Reads as-is; set a Record unique key to edit them |

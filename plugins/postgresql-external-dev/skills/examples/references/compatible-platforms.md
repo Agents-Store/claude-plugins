@@ -31,7 +31,7 @@ This plugin produces PostgreSQL schemas that work with the following platforms w
 |---------|--------|----------|
 | Creates tables | Only with Allow Schema Edit (off by default) | No (read-only) |
 | Modifies schema | Only with Allow Schema Edit | No |
-| Needs a paid license for external PostgreSQL | Not for the external source itself | **Yes** — commercial plugin, Standard edition or above |
+| Needs a paid license for external PostgreSQL | No separate plugin for the external source; check your NocoDB edition/plan | **Yes** — commercial plugin, Standard edition or above |
 | Re-read schema after DDL | Meta Sync | Refresh the data source |
 | Reads FK constraints | Yes | Yes |
 | Reads composite PK | Yes | Yes (set Record unique key to edit) |

@@ -125,7 +125,7 @@ DROP TABLE IF EXISTS "public"."table_name";
 
 ## Drop FK Constraint
 
-When removing a relation, drop the constraint first, then the FK column:
+Destructive (see Before You Drop Anything). When removing a relation, drop the constraint first, then the FK column:
 
 ```sql
 -- 1. Drop FK constraint
@@ -137,7 +137,7 @@ ALTER TABLE "public"."child_table" DROP COLUMN "parent_id";
 
 ## Drop Junction Table (Many-to-Many)
 
-For M2M relations, drop FK constraints before the table:
+Destructive (see Before You Drop Anything). For M2M relations, drop FK constraints before the table:
 
 ```sql
 -- 1. Drop FK constraints
