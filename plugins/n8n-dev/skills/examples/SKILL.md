@@ -46,6 +46,16 @@ Step-by-step scenario walkthroughs showing complete workflow development from pl
 - Handle chat input/output via webhook
 - AI connection types (ai_languageModel, ai_tool, ai_memory)
 
+### 4. [Record-Driven Background Workflows](references/background-processing-patterns.md)
+
+**Pattern**: Scheduled sync, webhook-triggered processing, error recovery (sketches)
+**Complexity**: Medium
+**What you learn**:
+- Process records from another system and write a status back
+- Branch a webhook by event type and keep processing idempotent
+- Wire an error workflow with a bounded retry
+- Keep tokens in credentials now that n8n 2.x blocks `$env`
+
 ---
 
 ## Workflow Development Process
