@@ -69,3 +69,8 @@ plugins/vercel-dev/README.md:private-host#sha256-07fa4e17aacc:upstream README li
 plugins/vercel-dev/skills/microfrontends/references/managing-microfrontends.md:private-host#sha256-ed81f666b1c4:links to the public Terraform Registry docs of Vercel's Terraform provider
 plugins/vercel-dev/skills/react-best-practices/upstream/README.md:private-host#sha256-7f7ed12dfe7a:upstream README crediting the author's public X profile
 .github/workflows/sync-cross-cli.yml:instance-name#sha256-497be8f50190c623:the OpenClaw mirror's real repository name; CI pushes to it, so it cannot be a placeholder
+
+# --- upstream nocobase/skills content re-synced verbatim (sync-nocobase-skills.sh) ---
+# The weekly sync overwrites nocobase-* directories, so a local placeholder edit would be undone on the next run.
+plugins/nocobase-dev/skills/nocobase-publish-manage/references/test-playbook.md:home-path#sha256-afcbe8fa5959:upstream nocobase/skills test playbook, the home directory in a sample download path is the upstream author's own; vendored verbatim and re-synced weekly, so a local edit would be overwritten
+plugins/nocobase-dev/skills/nocobase-publish-manage/references/v1-runtime-contract.md:home-path#sha256-afcbe8fa5959:upstream nocobase/skills runtime contract, same sample download path as the test playbook; vendored verbatim and re-synced weekly, so a local edit would be overwritten
