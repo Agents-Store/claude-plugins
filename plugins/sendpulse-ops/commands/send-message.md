@@ -30,7 +30,7 @@ Parse from "$ARGUMENTS".
    - WhatsApp → `chatbots_contacts_messages_wa_send`
    - Instagram → `chatbots_contacts_messages_i_send`
    - Viber → `chatbots_contacts_messages_v_send`
-   - TikTok → `chatbots_contacts_messages_tt_send`
+   - TikTok → `chatbots_contacts_messages_tt_send` (call shape unconfirmed: the vendor's examples name the subscriber, not an ID; read the tool schema before the first send)
    - Live Chat → `chatbots_contacts_messages_lc_send`
 
    ```

@@ -113,16 +113,17 @@ When sending chatbot messages or campaigns, use the correct channel suffix:
 ```
 
 ### Enroll a Student in a Course
+Inputs in brackets are prose shorthand, not real argument names - read the server schema before the first call.
 ```
-1. edu_courses_list() -> Find the course ID
-2. edu_students_create(course_id, name, email) -> Add the student and enroll them
-3. edu_courses_students_list(course_id) -> Confirm enrollment
+1. edu_courses_list -> Find the course ID
+2. edu_students_create (course ID, name, email) -> Add the student and enroll them
+3. edu_courses_students_list (course ID) -> Confirm enrollment
 ```
 
 ### Review a Student's Progress
 ```
-1. edu_auditory_list(name or email) -> Find the student ID
-2. edu_students_statistics_show(student_id) -> Progress per course, lesson, test, assignment
+1. edu_auditory_list (filter by name or email) -> Find the student ID
+2. edu_students_statistics_show (student ID) -> Progress per course, lesson, test, assignment
 ```
 
 ## Working Guidelines

@@ -43,10 +43,11 @@ This skill contains reusable examples and patterns for Sendpulse MCP operations.
 ```
 
 ### Enroll a Student and Check Progress (Courses)
+Inputs in brackets are prose shorthand, not real argument names - read the server schema before the first call.
 ```
-1. edu_courses_list() -> Find the course ID
-2. edu_students_create(course_id, name, email) -> Add the student and enroll them
-3. edu_students_statistics_show(student_id) -> Progress across courses, lessons, tests, assignments
+1. edu_courses_list -> Find the course ID
+2. edu_students_create (course ID, name, email) -> Add the student and enroll them
+3. edu_students_statistics_show (student ID) -> Progress across courses, lessons, tests, assignments
 ```
 
 ### Create CRM Pipeline with Deals

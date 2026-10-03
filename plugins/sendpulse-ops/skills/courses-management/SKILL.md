@@ -114,29 +114,31 @@ These are different scopes. Removing a student from a course is narrower than de
 
 ## Common Workflows
 
+The inputs in brackets are described in prose, not real argument names. Read the server schema before the first call.
+
 ### Enroll a New Student
 ```
-1. edu_courses_list() -> Find the course ID
-2. edu_students_create(course_id, name, email) -> Add and enroll
-3. edu_courses_students_list(course_id) -> Confirm the student appears
+1. edu_courses_list -> Find the course ID
+2. edu_students_create (course ID, name, email) -> Add and enroll
+3. edu_courses_students_list (course ID) -> Confirm the student appears
 ```
 
 ### Mark a Student as Paying
 ```
-1. edu_courses_students_list(course_id) -> Find the student ID
-2. edu_courses_students_mark_paid(course_id, student_id) -> Mark as paying
+1. edu_courses_students_list (course ID) -> Find the student ID
+2. edu_courses_students_mark_paid (course ID, student ID) -> Mark as paying
 ```
 
 ### Review a Student's Progress
 ```
-1. edu_auditory_list(name or email) -> Find the student ID
-2. edu_students_statistics_show(student_id) -> Progress per course, lesson, test, assignment
+1. edu_auditory_list (filter by name or email) -> Find the student ID
+2. edu_students_statistics_show (student ID) -> Progress per course, lesson, test, assignment
 ```
 
 ### Check What a Course Sells
 ```
-1. edu_courses_list() -> Find the course ID
-2. edu_courses_tariffs_list(course_id) -> Pricing plans and paid counts
+1. edu_courses_list -> Find the course ID
+2. edu_courses_tariffs_list (course ID) -> Pricing plans and paid counts
 ```
 
 ## Best Practices

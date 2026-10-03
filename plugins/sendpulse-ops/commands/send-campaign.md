@@ -30,7 +30,7 @@ Parse from "$ARGUMENTS".
    - whatsapp → `chatbots_bots_campaigns_wa_send`
    - instagram → `chatbots_bots_campaigns_i_send`
    - viber → `chatbots_bots_campaigns_v_send`
-   - tiktok → `chatbots_bots_campaigns_tt_send`
+   - tiktok → `chatbots_bots_campaigns_tt_send` (call shape unconfirmed: the vendor's examples name the bot, not an ID; read the tool schema before the first send)
 
 3. **Send campaign:**
    ```

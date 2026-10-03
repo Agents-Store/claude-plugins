@@ -116,7 +116,7 @@ Input: {"bot_id": "<bot-id>", "messages": [...]}
 **TikTok:**
 ```
 Tool: chatbots_bots_campaigns_tt_send
-Input: bot (by ID) and the campaign message text
+Input: the bot and the campaign message text
 
 Runs a campaign in a TikTok chatbot. The vendor's tool list publishes no
 parameter schema for it; the `bot_id` + `messages` shape of the other channels
