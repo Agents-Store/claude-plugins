@@ -9,16 +9,17 @@ Plane pages are rich HTML documents attached to a project or the workspace. Use 
 
 ## Tool Name Resolution
 
-Resolve real tool names via the `connector-bootstrap` skill.
+Resolve real tool names via the `connector-bootstrap` skill. On Plane MCP 0.3.0 and later all page operations are one `page` tool with an `action` parameter; the legacy names below translate to `page(action="create" | "retrieve", ...)`, where an omitted `project_id` means a workspace page.
 
 ## Available Actions
 
-| Action | Purpose |
-|--------|---------|
-| `create_workspace_page` | Create a page at the workspace level |
-| `retrieve_workspace_page` | Get a workspace page |
-| `create_project_page` | Create a page inside a project |
-| `retrieve_project_page` | Get a project page |
+| Legacy action | Resource call | Purpose |
+|---------------|---------------|---------|
+| `create_workspace_page` | `page(action="create", name, description_html)` | Create a page at the workspace level |
+| `retrieve_workspace_page` | `page(action="retrieve", page_id)` | Get a workspace page |
+| `create_project_page` | `page(action="create", project_id, name, description_html)` | Create a page inside a project |
+| `retrieve_project_page` | `page(action="retrieve", project_id, page_id)` | Get a project page |
+| — | `page(action="update" \| "archive" \| "delete" \| "list" \| "set_collection" \| "attach_to_workitem")` | Edit and manage existing pages (see "Updating, Archiving and Deleting Pages") |
 
 ## HTML Formatting Rules
 
@@ -127,16 +128,25 @@ Before publishing any generated HTML:
 5. Nested lists use at most 3 levels (deeper works but is hard to read)
 6. `<ol start="N">` is preserved if you need numbered lists starting mid-sequence
 
-## Cleanup Limitation — Write-Once Pages
+## Updating, Archiving and Deleting Pages
 
-Many Plane MCP connectors expose **only `create_*_page` and `retrieve_*_page`** — no `update_*_page`, no `delete_*_page`, no `archive_*_page`. Pages published through this plugin are effectively **write-once via the API**: to edit or delete, users must open the page in the Plane web UI and do it manually.
+On the official Plane MCP server (0.3.0 and later) the `page` tool covers the whole page lifecycle, at workspace scope (omit `project_id`) or project scope (pass it):
 
-Consequences:
-- Do not use `/publish-report` in a loop that overwrites the same target — each run creates a new page.
-- Roadmap pages that the team edits weekly are best **created once** and then updated manually in the Plane UI, not regenerated every week.
-- When testing publishing flows, use a throwaway project (like a "Sandbox") because the test pages will remain until manually cleaned up.
+| Need | Call |
+|------|------|
+| Edit a published report | `page(action="retrieve", page_id)` first, then `page(action="update", page_id, description_html, name?)` |
+| Hide a page | `page(action="archive", page_id)`; `archive=false` restores it |
+| Remove a page | `page(action="archive", ...)` first, then `page(action="delete", page_id)` — delete is refused for a page that is not archived, and it needs the user's confirmation |
+| File a workspace page | `page(action="set_collection", page_id, collection_id)` |
+| Tie a page to a work item | `page(action="attach_to_workitem", project_id, workitem_id, page_id)` |
 
-If your specific connector does expose update or delete, you can use it — but do not assume it is available.
+Rules to follow:
+- `update` **replaces the whole body**: `description_html` overwrites everything, so retrieve the page first and send the full edited HTML, not a fragment. A locked or archived page is refused.
+- A page's parent is fixed at creation (`parent_id` on `create`); nothing can reparent it later, so decide the hierarchy before publishing.
+- Prefer `update` over creating a duplicate: regenerate-and-update keeps one page per report. Roadmap pages that the team refreshes weekly are a good fit.
+- When testing publishing flows, still use a throwaway project: archived pages remain until deleted.
+
+**Legacy connectors.** Many older Plane MCP connectors expose **only `create_*_page` and `retrieve_*_page`** — no update, delete or archive. Pages published through them are effectively write-once: to edit or delete, users must open the page in the Plane web UI. There, do not use `/publish-report` in a loop that overwrites the same target — each run creates a new page. If a legacy connector does expose update or delete, you can use it, but do not assume it is available: check the tool list first.
 
 ## HTML Templates
 

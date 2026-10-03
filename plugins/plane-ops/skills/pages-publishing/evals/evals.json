@@ -96,6 +96,30 @@
         "Does NOT use any custom data-* attribute",
         "Cites Gotcha 2 (task lists stripped) from List Rendering Gotchas"
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "The Sprint 14 report page we published yesterday has a wrong velocity number (it says 34, should be 31). Fix it.",
+      "expected_output": "Agent updates the existing page in place instead of creating a duplicate or telling the user to edit it in the web UI: retrieves the page, corrects the number in the full HTML body, and calls page(action=update) with the whole description_html.",
+      "files": [],
+      "expectations": [
+        "Does not claim that pages are write-once or that the user must edit the page in the Plane web UI (page supports update on Plane MCP 0.3+)",
+        "Retrieves the page first with page(action=retrieve)",
+        "Calls page(action=update) with the complete edited description_html, not a fragment, because update replaces the whole body",
+        "Does not create a second page for the same report"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Delete the test page 'Sandbox sprint report' from the Sandbox project.",
+      "expected_output": "Agent knows delete needs an archived page and the user's confirmation: shows the page, asks for explicit confirmation, archives it, then deletes it.",
+      "files": [],
+      "expectations": [
+        "Identifies the page and shows it to the user before deleting",
+        "Asks for explicit confirmation before the delete (destructive action)",
+        "Calls page(action=archive) before page(action=delete), because delete is refused for a page that is not archived",
+        "Does not say that pages cannot be deleted through the API"
+      ]
     }
   ]
 }

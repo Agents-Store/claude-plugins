@@ -111,8 +111,8 @@ capacity = effective_days × 0.85       (15% buffer)
 
 ### Caveats
 
-- `archive_cycle` typically rejects active cycles (HTTP 400). Archive is only allowed after the cycle is completed or its `end_date` is in the past. To remove an active cycle, use `delete_cycle` directly.
-- `add_work_items_to_cycle` uses `issue_ids` (plural, array). Some MCP bridges have issues serializing list parameters — see the Known Limitations section in the `work-items` skill for workarounds.
+- Legacy connectors: `archive_cycle` typically rejects active cycles (HTTP 400); archive is only allowed after the cycle is completed or its `end_date` is in the past. On Plane MCP 0.3+ `cycle(action=archive)` ends a still-running cycle first instead of failing, so complete the sprint and move unfinished items before archiving (see `/close-sprint`). To remove an active cycle, use `delete_cycle` / `cycle(action=delete)` directly, after confirmation.
+- `add_work_items_to_cycle` (legacy; on Plane MCP 0.3+ it is `cycle(action=manage_workitems, add_ids=[...])`) uses `issue_ids` (plural, array). Some MCP bridges have issues serializing list parameters — see the Known Limitations section in the `work-items` skill for workarounds.
 
 ### Step 5: Create the Sprint
 

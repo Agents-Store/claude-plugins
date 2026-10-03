@@ -9,22 +9,25 @@ This skill covers the full life of a work item in Plane: creation, inspection, u
 
 ## Tool Name Resolution
 
-Tools below are referenced by their **action name** only. Resolve real tool names through the `connector-bootstrap` skill. Match by action suffix — never assume a prefix.
+Tools below are referenced by their **legacy action name** (`create_work_item`, ...). Resolve real tool names through the `connector-bootstrap` skill. On Plane MCP 0.3.0 and later the same operation is a resource tool with an `action` parameter — `create_work_item` is `workitem(action="create", ...)`, `create_work_item_relation` is `workitem_relation(action="create", ...)` — and `connector-bootstrap` has the full translation table. Never assume a server prefix.
 
-## Field Name Caveat — Check the Schema First
+## Field Names — Official Server vs Legacy Connectors
 
-Different Plane MCP implementations use different field names for the same concept. Before the first mutation on a new instance, inspect the actual tool schema (the MCP tool's JSON Schema) to confirm which names are accepted. Common variants observed:
+On the official Plane MCP server (0.3.0 and later) the `workitem` tool has **fixed** parameter names and validates every call against the declared set (an unknown parameter is an error, not a silent drop):
 
-| Concept | Possible field names |
-|---------|---------------------|
-| State UUID | `state` **or** `state_id` |
-| Label UUIDs | `labels` **or** `label_ids` |
+| Concept | Parameter |
+|---------|-----------|
+| Work item id | `workitem_id` (not `work_item_id`) |
+| State UUID | `state` |
+| Label UUIDs | `labels` |
 | Assignees | `assignees` |
-| Points | `point` **or** `estimate_point` |
-| Parent | `parent` **or** `parent_id` |
-| Work item type | `type` **or** `type_id` |
+| Points | `point` or `estimate_point` |
+| Parent | `parent` |
+| Work item type | `type_id` |
+| Priority | `priority` |
+| Description | `description_html` |
 
-The code samples below use the most common names. If your connector's schema differs, use the schema's names — the skill's logic still applies.
+The legacy-form code samples below keep the legacy id name `work_item_id`; on the resource surface write `workitem_id` and use the field names above. Legacy per-operation connectors and older bridges may use other variants (`state_id`, `label_ids`, `parent_id`, `type`, `work_item_id`); on those, inspect the actual tool schema (the MCP tool's JSON Schema) before the first mutation on a new instance and use the schema's names — the skill's logic still applies. The hidden legacy aliases of the official server keep their original parameter names (`work_item_id`), but prefer the resource tools.
 
 ## Available Actions
 
@@ -91,7 +94,7 @@ The code samples below use the most common names. If your connector's schema dif
 
 ## Updating a Work Item
 
-Always resolve IDs first. Typical updates:
+Always resolve IDs first. Typical updates (legacy form shown; on the resource surface use `workitem(action="update", project_id, workitem_id, ...)` with the same fields):
 
 ```
 update_work_item({ project_id, work_item_id, state })        // move state (or state_id)
@@ -106,29 +109,32 @@ Batch updates: loop over items; do not call in parallel if the tool is not idemp
 ## Relations (Blockers, Duplicates, Relates-to)
 
 ```
-create_work_item_relation({
+workitem_relation(action="create",              // legacy: create_work_item_relation
   project_id,
-  work_item_id,
-  issues: ["<other_uuid>"],                    // list of related work item UUIDs
-  relation_type: "blocked_by" | "blocking" | "duplicate" | "relates_to"
-})
+  workitem_id,
+  workitem_ids: ["<other_uuid>"],               // list of related work item UUIDs
+  relation_type: "blocking" | "blocked_by" | "start_before" | "start_after" | "finish_before" | "finish_after"
+)
 ```
 
-**Field name notes:** the parameter for the related items is usually `issues` (array, plural) — not `related_issue` (singular). Some MCP bridges may expose it as an array of objects `[{ id }]` instead of an array of UUID strings. If you get a validation error, check the schema and the serialization format that the bridge expects (some bridges require the array to be a JSON-encoded string rather than a native list).
+**Field name notes (official server):** the related items go in `workitem_ids` (array of UUID strings), and the relation is one of six built-in dependency types. Other relationships — duplicate, relates-to and any workspace-defined custom relation — are *definitions*: call `workitem_relation(action="list_definitions")`, match the user's wording to an entry, and pass `relation_definition_id` plus `relation_definition_label` (the matched outward or inward label, which sets the direction) instead of `relation_type`. To remove a relation use `workitem_relation(action="delete", project_id, workitem_id, related_workitem_id, is_dependency)`; `is_dependency` must match the kind that was created.
+
+**Legacy connectors:** the parameter for the related items is usually `issues` (array, plural) with `work_item_id` as the id — not `related_issue` (singular). Some MCP bridges expose it as an array of objects `[{ id }]` instead of an array of UUID strings. If you get a validation error, check the schema and the serialization format that the bridge expects (some bridges require the array to be a JSON-encoded string rather than a native list).
 
 Before adding an item to a sprint, always check that it has no unresolved `blocked_by` relations — see `agile-fundamentals` Definition of Ready.
 
 ## Comments and Links
 
 - **Comments** use `comment_html` (not `description_html`) on most Plane deployments. The body accepts the same HTML subset as work item descriptions. Check your instance's schema for the exact field name.
-- **Links** are external URLs. On many deployments `create_work_item_link` accepts **`url` only** — the `title` parameter is NOT supported at the API layer. The link's display title is auto-extracted from the target page's OpenGraph/`<title>` tag and stored in a server-populated `metadata` field. If you need a custom title, update the link after creation (some instances allow editing `metadata`, others don't).
+- **Links** are external URLs (`http://` or `https://`). On the official server (0.3.0 and later) `workitem_link(action="create")` and `update` accept both **`url` and `title`**; the title is the text Plane shows in place of the URL (without one, the URL itself is shown). Some legacy connectors accept `url` only: the title is then auto-extracted from the target page's OpenGraph/`<title>` tag and stored in a server-populated `metadata` field, and a custom title is not possible.
 
 ```
-create_work_item_link({
+workitem_link(action="create",                 // legacy: create_work_item_link
   project_id,
-  work_item_id,
-  url: "https://github.com/org/repo/pull/420"  // title usually NOT a valid param
-})
+  workitem_id,
+  url: "https://github.com/org/repo/pull/420",
+  title: "PR #420: fix login redirect"          // optional; omit on legacy connectors that reject it
+)
 ```
 
 ## Work Logs (Time Tracking)
@@ -225,6 +231,6 @@ Symptom: the tool rejects the call with `Input should be a valid list` or `Input
 4. Some bridges accept an array of objects (`[{id: "uuid"}]`) instead of an array of strings.
 
 **Other observed limitations:**
-- `archive_cycle` / `archive_module` return HTTP 400 for active cycles/modules. Archive requires the entity to be in a non-active state first (typically "completed" or past `end_date`). To remove an active cycle/module, use `delete_cycle` / `delete_module` directly.
+- Legacy connectors: `archive_cycle` / `archive_module` may return HTTP 400 for active cycles/modules; archive then requires a non-active state first (typically "completed" or past `end_date`). On Plane MCP 0.3.0 and later `cycle(action="archive")` ends a still-running cycle first, so it succeeds, but it cuts the sprint short — run `complete` and `transfer_workitems` first (see `/close-sprint`). For modules, check the behavior on your instance. To remove a cycle or module entirely use the `delete` action, after confirmation.
 - `update_module` often returns a stub response with null fields even when the update succeeded. Refetch via `retrieve_module` to get the post-update state.
-- `update_work_item_link` supports changing `url` but not arbitrary metadata.
+- `update_work_item_link` on legacy connectors supports changing `url` but not arbitrary metadata; on the official server `workitem_link(action="update")` takes `url` and/or `title`.
