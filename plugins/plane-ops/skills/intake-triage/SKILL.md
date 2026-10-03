@@ -43,11 +43,13 @@ intake(action=create,
 |----------|---------|-----------------|
 | `-2` | Pending (untriaged) | - |
 | `-1` | Declined | - |
-| `0` | Snoozed | `snoozed_till` (required) |
+| `0` | Snoozed | `snoozed_till` (required; the tool description gives no format, use an ISO 8601 timestamp) |
 | `1` | Accepted | - |
-| `2` | Duplicate | `duplicate_to` (required): the id of the work item it duplicates |
+| `2` | Duplicate | `duplicate_to` (required; the tool description names no format, use the id of the original work item) |
 
 `intake(action=update)` without a status only edits `source` / `source_email`.
+
+> **Confirm on your instance:** the tool description defines the status codes and the two required parameters, but not their formats or what each decision does to the item. The behaviour described below (an accepted item leaves the queue as a regular backlog work item; a snoozed item comes back on its date) is Plane's triage behaviour as commonly documented, not something the tool states. Check the first accept and the first snooze on your instance.
 
 ## Triage Workflow
 
@@ -70,12 +72,12 @@ For each intake item, make one of four decisions:
 |----------|------|-----------|
 | **Accept** | `intake(action=update, status=1)`, then groom the item with `workitem(action=update)` | Valid work aligned with product goals |
 | **Accept + escalate** | `status=1`, then `workitem(action=update, priority="urgent"\|"high", assignees=[<lead>])` | Critical bug or time-sensitive request |
-| **Defer** | `intake(action=update, status=0, snoozed_till=<date>)` with a rationale comment | Valid but not now; it returns to the queue on that date |
+| **Defer** | `intake(action=update, status=0, snoozed_till=<date>)` with a rationale comment | Valid but not now; it returns to the queue on that date (confirm on your instance) |
 | **Reject** | `intake(action=update, status=-1)` with a comment explaining why; duplicates use `status=2, duplicate_to=<id>` | Out of scope, invalid or duplicate; declining keeps the trace, `delete` does not |
 
 ### Step 3 — Finish the Accepted Item
 
-Accepting turns the intake record into a regular work item in the project, so there is no second "create" step. Complete it with the fields the intake form did not carry (see the `work-items` skill):
+Accepting should turn the intake record into a regular work item in the project (per Plane's triage model, not stated by the tool description - confirm on your instance), so there is no second "create" step. Complete it with the fields the intake form did not carry (see the `work-items` skill):
 
 ```
 workitem(action=update,

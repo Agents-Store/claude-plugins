@@ -227,7 +227,7 @@ Split:
      workitem_ids=[<child0_id>])
 
 7. Verify the split:
-   workitem(action=list, project_id=<id>, pql='childOf("MP-42")', fields="id,name,point")
+   workitem(action=list, project_id=<id>, pql='childOf("MP-42")', fields="id,name,point,estimate_point")
    → the children of the parent; their points should roughly sum to the original
 ```
 

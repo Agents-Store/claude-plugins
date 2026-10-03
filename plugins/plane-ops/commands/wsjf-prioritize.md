@@ -24,7 +24,7 @@ Parse from "$ARGUMENTS".
 
 2. **Get estimated backlog items:**
    ```
-   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', fields="id,name,point,priority", per_page=100)
+   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', fields="id,name,point,estimate_point,priority", per_page=100)
    ```
    Follow `next_cursor`; keep items WITH story points set (PQL has no estimate field, so `point` is checked on the listed items).
    (Items without estimates cannot be scored — suggest /estimate first.)

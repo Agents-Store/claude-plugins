@@ -31,7 +31,7 @@ Plane MCP exposes one tool per resource and the operation goes into the `action`
 
 `workitem(action=count)` answers "how many" in one call instead of listing every item: it takes the same `pql` filter as `list`, an optional `project_id` (omit it to count the whole workspace), and `group_by` / `sub_group_by`. The result carries `total_count` and `grouped_counts` (key to `{count}`; the key `"None"` means "no value"). Valid `group_by` keys: `state_id`, `state__group`, `priority`, `project_id`, `type_id`, `labels__id`, `assignees__id`, `issue_module__module_id`, `release_work_items__release_id`, `cycle_id`, `milestone_id`, `created_by`, `target_date`, `start_date`.
 
-- It counts **items, not points**. Story points are summed from listed items (`point` field); use `count` for throughput, WIP, distribution and workload.
+- It counts **items, not points**. Story points are summed from listed items (`point` and `estimate_point` are fetched together); use `count` for throughput, WIP, distribution and workload. Estimate-system fallback: if `point` is empty on the items and the project has an estimate system (`project_estimate(action=retrieve, project_id)`), sum the `value` of each item's `estimate_point` instead (ids and values from `project_estimate(action=list_points, project_id, estimate_id)`). Every points formula below (velocity, burndown, effort ratios) reads the same way.
 - `state__group` is a grouping key only. To filter by state group in PQL write `stateGroup = "started"` or `stateGroup IN openStates()`.
 - PQL allows at most 5 conditions; call `get_pql_reference` before composing anything beyond the examples in this skill. With `project_id`, `count` adds the condition `project = "<id>"` to your `pql`, so that one counts against the 5.
 
@@ -49,9 +49,9 @@ Plane MCP exposes one tool per resource and the operation goes into the `action`
 
 2. For each cycle, calculate completed points:
    cycle(action=list_workitems, project_id=<id>, cycle_id=<cycle_id>,
-         pql='stateGroup = "completed"', fields="id,point")
+         pql='stateGroup = "completed"', fields="id,point,estimate_point")
    → Sum their `point` values (follow next_cursor)
-   cycle(action=list_workitems, project_id=<id>, cycle_id=<cycle_id>, fields="id,point")
+   cycle(action=list_workitems, project_id=<id>, cycle_id=<cycle_id>, fields="id,point,estimate_point")
    → Sum total planned points (all items)
 
    Cheap cross-check of item counts for ALL completed sprints in one call:
@@ -118,7 +118,7 @@ Declining: last 3 < previous 3
 
 3. Get the sprint's points (counts have no points):
    cycle(action=list_workitems, project_id=<id>, cycle_id=<cycle_id>,
-         fields="id,name,point,state")
+         fields="id,name,point,estimate_point,state")
    → Sum `point` per state group (map `state` ids with state(action=list));
      or pass pql='stateGroup = "completed"' to sum only the finished items
 

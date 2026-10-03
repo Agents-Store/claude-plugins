@@ -32,10 +32,10 @@ Parse from "$ARGUMENTS".
 3. **Calculate velocity per sprint:**
    For each cycle:
    ```
-   cycle(action=list_workitems, project_id, cycle_id, pql='stateGroup = "completed"', fields="id,point")
-   cycle(action=list_workitems, project_id, cycle_id, fields="id,point")
+   cycle(action=list_workitems, project_id, cycle_id, pql='stateGroup = "completed"', fields="id,point,estimate_point")
+   cycle(action=list_workitems, project_id, cycle_id, fields="id,point,estimate_point")
    ```
-   Sum `point` of the completed items (first call) and of all items (second call, total planned). Items finished per sprint for all completed cycles in one call: `workitem(action=count, project_id, pql='cycle IN completedCycles() AND stateGroup = "completed"', group_by=cycle_id)`.
+   Sum `point` of the completed items (first call) and of all items (second call, total planned); if `point` is empty and the project has an estimate system (`project_estimate(action=retrieve, project_id)`), sum the `value` of each item's `estimate_point` instead (`project_estimate(action=list_points, project_id, estimate_id)` maps ids to values). Items finished per sprint for all completed cycles in one call: `workitem(action=count, project_id, pql='cycle IN completedCycles() AND stateGroup = "completed"', group_by=cycle_id)`.
 
 4. **Calculate aggregates:**
    - Average velocity

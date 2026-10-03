@@ -15,14 +15,14 @@ Step 2: Calculate velocity
   cycle(action=list, project_id, status=completed) → last 5 sprints
   For each cycle:
     cycle(action=list_workitems, project_id, cycle_id,
-          pql='stateGroup = "completed"', fields="id,point")
+          pql='stateGroup = "completed"', fields="id,point,estimate_point")
     → sum `point` of the results
   avg_velocity = total_completed / num_sprints
 
 Step 3: Get backlog candidates
   workitem(action=list, project_id,
            pql='stateGroup IN ("backlog","unstarted")',
-           fields="id,name,point,priority,assignees")
+           fields="id,name,point,estimate_point,priority,assignees")
   → keep items where point is set (PQL has no estimate field)
   → sort by priority
 

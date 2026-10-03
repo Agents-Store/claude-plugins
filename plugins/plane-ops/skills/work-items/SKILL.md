@@ -131,7 +131,7 @@ workitem_relation(action=create,
 
 The related items go in `workitem_ids` (array of UUID strings), and the relation is one of six built-in dependency types. Other relationships — duplicate, relates-to and any workspace-defined custom relation — are *definitions*: call `workitem_relation(action=list_definitions)`, match the user's wording to an entry, and pass `relation_definition_id` plus `relation_definition_label` (the matched outward or inward label, which sets the direction) instead of `relation_type`. To remove a relation use `workitem_relation(action=delete, project_id, workitem_id, related_workitem_id, is_dependency)`; `is_dependency` must match the kind that was created (default false).
 
-Before adding an item to a sprint, always check that it has no unresolved `blocked_by` relations — see `agile-fundamentals` Definition of Ready. PQL can also answer it in one query: `blocks("PROJ-12")` lists the items that block PROJ-12.
+Before adding an item to a sprint, always check that it has no unresolved `blocked_by` relations — see `agile-fundamentals` Definition of Ready. PQL can also answer it in one query: `blocks("PROJ-12")` lists the items that block PROJ-12 (direction per the `get_pql_reference` wording — confirm on your instance; `workitem_relation(action=list)` is the authoritative answer).
 
 ## Comments and Links
 
@@ -207,7 +207,7 @@ workitem(action=list, pql='id = "PROJ-42"')                          # no projec
 workitem(action=count, project_id=<id>, pql='stateGroup = "started"', group_by=assignees__id)
 ```
 
-`state__group` is a `group_by` key for `count`, not a PQL field: filter with `stateGroup`. `count` with a `project_id` adds the condition `project = "<id>"` to your `pql`, so that one counts against the 5-condition limit. Pagination: results come back as an envelope with `next_cursor`; pass it as `cursor` for the next page (`per_page` sets the page size). Use `order_by`, `expand` and the sparse fieldset `fields` (for example `fields="id,name,point,state"`; use `project`, not `project_id`) to shrink the payload.
+`state__group` is a `group_by` key for `count`, not a PQL field: filter with `stateGroup`. `count` with a `project_id` adds the condition `project = "<id>"` to your `pql`, so that one counts against the 5-condition limit. Pagination: results come back as an envelope with `next_cursor`; pass it as `cursor` for the next page (`per_page` sets the page size). Use `order_by`, `expand` and the sparse fieldset `fields` (for example `fields="id,name,point,estimate_point,state"`; use `project`, not `project_id`) to shrink the payload.
 
 ## Custom Types and Properties
 

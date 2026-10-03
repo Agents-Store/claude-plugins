@@ -176,7 +176,7 @@ EFF │   Fill-ins        │   Money Pit       │  EFFORT
 2. List once for the metrics PQL cannot filter:
    workitem(action=list, project_id=<id>,
             pql='stateGroup IN ("backlog","unstarted")',
-            fields="id,name,point,priority,description_stripped", per_page=100)
+            fields="id,name,point,estimate_point,priority,description_stripped", per_page=100)
    → follow next_cursor, then calculate:
    unestimated         = count where point is null
    no_description      = count where description_stripped is empty/minimal

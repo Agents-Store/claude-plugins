@@ -22,7 +22,7 @@ Parse from `"$ARGUMENTS"`. Without `--cycle` or `--item`, scan the whole active 
    - `--cycle <name>` → items in that cycle
    - `--item <id>` → just that item and its transitive relations
    - default → in-progress + unstarted items in the project: `workitem(action=list, project_id, pql='stateGroup IN ("unstarted","started")')`
-4. **For each item, fetch relations** — `workitem_relation(action=list, project_id, workitem_id)`. Shortcut for one item: PQL `blocks("PROJ-148")` returns the items that block PROJ-148, `blockedBy("PROJ-148")` the items blocked by it.
+4. **For each item, fetch relations** — `workitem_relation(action=list, project_id, workitem_id)`. Shortcut for one item: PQL `blocks("PROJ-148")` returns the items that block PROJ-148, `blockedBy("PROJ-148")` the items blocked by it (direction per the `get_pql_reference` wording — confirm on your instance; `workitem_relation(action=list)` is the authoritative answer).
 5. **Build the graph** — direction matters: `blocked_by` (incoming), `blocking` (outgoing), plus any duplicate / relates-to / custom relation (`workitem_relation(action=list_definitions)` names them).
 6. **Highlight risk**:
    - Items blocked by something not yet started

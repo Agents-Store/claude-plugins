@@ -69,7 +69,7 @@ Items can come from any state — backlog, in-progress, or done. Adding a done i
 ```
 1. workitem(action=count, project_id=<id>, pql='module = "<module_id>"', group_by=state__group)
    → item totals per state group in one call
-   module(action=list_workitems, project_id=<id>, module_id=<module_id>, fields="id,name,point,state")
+   module(action=list_workitems, project_id=<id>, module_id=<module_id>, fields="id,name,point,estimate_point,state")
    → the items with points (follow next_cursor); pass pql='stateGroup = "completed"' for only the finished ones
 2. Group items by state group: backlog | unstarted | started | completed | cancelled
 3. Calculate:

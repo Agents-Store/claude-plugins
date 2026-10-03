@@ -63,7 +63,7 @@ Add child work items by setting the epic as the parent: `workitem(action=create,
 
 Epics need the project's `epics` and `workitem_types` features: check with `project(action=get_features, project_id)` and, with the user's consent, enable with `project(action=update_features, project_id, epics=true, workitem_types=true)`. If a call is refused because the plan does not include work item types, say so; the epic then has to be an ordinary work item with a parent-child tree.
 
-`isEpic()` is also a PQL predicate, but it matches only types that Plane flags as epics; the `type = "<epic-type-id>"` filter is the reliable one.
+`isEpic()` is also a PQL predicate ("issue type is epic" per `get_pql_reference`). Whether a type created or found by `workitem_type(action=resolve, name="Epic")` counts as an epic for it depends on how Plane flags epic types - confirm on your instance; the `type = "<epic-type-id>"` filter does not depend on that.
 
 ## Creating an Initiative
 
@@ -118,7 +118,7 @@ Milestones answer the question "what must ship by this date?". A milestone has a
 1. workitem(action=count, project_id=<id>,
             pql='childOf("<epic identifier>")', group_by=state__group)
    → child counts per state group in one call
-2. workitem(action=list, project_id=<id>, pql='childOf("<epic identifier>")', fields="id,name,point,state")
+2. workitem(action=list, project_id=<id>, pql='childOf("<epic identifier>")', fields="id,name,point,estimate_point,state")
    → sum points by state group (counts have no points)
 3. completion_rate = completed_points / total_points
 4. Forecast: project remaining points at current velocity → target_date slippage

@@ -27,7 +27,7 @@ Parse from "$ARGUMENTS".
    workitem(action=count, project_id, pql='stateGroup IN ("backlog","unstarted")')
    workitem(action=count, project_id, pql='stateGroup IN ("backlog","unstarted") AND hasNoAssignee()')
    workitem(action=count, project_id, pql='stateGroup IN ("backlog","unstarted") AND priority = "none"')
-   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', per_page=100, fields="id,name,point,description_stripped")
+   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', per_page=100, fields="id,name,point,estimate_point,description_stripped")
    ```
    The counts (read `total_count`) answer the PQL-filterable metrics without paging; the list (follow `next_cursor`) is needed only for the estimate and description checks, which PQL cannot filter. Stale candidates: add `AND updatedAt < daysAgo(42)` to the first query.
 

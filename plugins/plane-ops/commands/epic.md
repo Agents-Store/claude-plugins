@@ -24,10 +24,10 @@ Parse from `"$ARGUMENTS"`.
 2. **Resolve project** → `project_id`, then the epic type: `workitem_type(action=resolve, project_id, name="Epic")` → `type_id`.
 3. **Route**:
    - `list` → `workitem(action=list, project_id, pql='type = "<epic-type-id>"')` (follow `next_cursor`). Render: name | lead | child count | state buckets | target | progress %. Child counts per epic: `workitem(action=count, project_id, pql='childOf("<epic identifier>")', group_by=state__group)`.
-   - `get` → `workitem(action=retrieve, project_id, workitem_id)` + child items `workitem(action=list, project_id, pql='childOf("<epic identifier>")', fields="id,name,point,state")` grouped by state. Show progress as `(completed_points / total_points)` and as `(completed_count / total_count)`.
+   - `get` → `workitem(action=retrieve, project_id, workitem_id)` + child items `workitem(action=list, project_id, pql='childOf("<epic identifier>")', fields="id,name,point,estimate_point,state")` grouped by state. Show progress as `(completed_points / total_points)` and as `(completed_count / total_count)`.
    - `status` → same as get but compact and emphasizes RAG (Red/Amber/Green) based on points completed vs time elapsed (see `epics-initiatives-milestones` skill).
    - `update` → `workitem(action=update, project_id, workitem_id, name?, description_html?, assignees?, target_date?)` (`--lead` is the assignee). Linking to an initiative: `--initiative` → `initiative(action=list)` → initiative_id → `initiative(action=manage_workitems, initiative_id, add_ids=[<epic workitem id>])`, read back with `initiative(action=list_workitems, initiative_id)`.
-   - `delete` → confirm, then `workitem(action=delete, project_id, workitem_id)` (permanent; the children are separate work items and are not deleted).
+   - `delete` → confirm, then `workitem(action=delete, project_id, workitem_id)` (permanent; the children are separate work items and should be kept — Plane's behaviour, not stated by the tool description: confirm on your instance, and check the children's `parent` afterwards).
 4. **Confirm** — re-render after mutation.
 
 ## Examples

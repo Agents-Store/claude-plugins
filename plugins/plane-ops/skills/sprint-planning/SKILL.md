@@ -56,11 +56,12 @@ Plane MCP exposes one tool per resource (`project`, `member`, `cycle`, `workitem
 
 2. For each completed cycle:
    cycle(action=list_workitems, project_id=<project_id>, cycle_id=<cycle_id>,
-         pql='stateGroup = "completed"', fields="id,name,point")
+         pql='stateGroup = "completed"', fields="id,name,point,estimate_point")
    → Sum `point` of the results → completed_points
    cycle(action=list_workitems, project_id=<project_id>, cycle_id=<cycle_id>,
-         fields="id,point")
+         fields="id,point,estimate_point")
    → Sum `point` → total_planned_points (follow next_cursor on both)
+   → Estimate-system fallback: if `point` is empty on the items and the project has an estimate system (`project_estimate(action=retrieve, project_id)`), sum the `value` of each item's `estimate_point` instead (ids and values from `project_estimate(action=list_points, project_id, estimate_id)`).
    Record: cycle_name, completed_points, total_planned_points
 
 3. Calculate:
@@ -95,7 +96,7 @@ capacity = effective_days × 0.85       (15% buffer)
 ```
 1. workitem(action=list, project_id=<project_id>,
             pql='stateGroup IN ("backlog","unstarted")',
-            fields="id,name,point,priority,assignees,sequence_id", per_page=100)
+            fields="id,name,point,estimate_point,priority,assignees,sequence_id", per_page=100)
    → Backlog candidates (follow next_cursor). PQL has no estimate field, so
      keep only items where `point` is not null on the client side.
    → Quick sizing before listing: workitem(action=count, project_id=<project_id>,

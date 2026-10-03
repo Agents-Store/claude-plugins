@@ -136,7 +136,7 @@ Check for these signals:
 1. Explicit blockers:
    workitem_relation(action=list, project_id=<id>, workitem_id=<item_id>)
    → Items with "blocked_by" relations
-   (PQL shortcut for one item: blocks("MP-45") lists the items that block MP-45)
+   (PQL shortcut for one item: blocks("MP-45") lists the items that block MP-45 — direction per the PQL reference wording, confirm on your instance)
 
 2. Stalled items:
    Items in "started" state for > 2 business days

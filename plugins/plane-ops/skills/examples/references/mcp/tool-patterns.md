@@ -302,7 +302,7 @@ Input: { "action": "update_changelog", "release_id": "uuid-of-release", "descrip
 ```
 Tool: intake
 Input: { "action": "update", "project_id": "uuid-of-project", "workitem_id": "uuid-of-intake-item", "status": 1 }
-Note: workitem_id is the "issue" field of the intake record. Status: -2 pending, -1 declined, 0 snoozed (needs snoozed_till), 1 accepted, 2 duplicate (needs duplicate_to)
+Note: workitem_id is the "issue" field of the intake record. Status: -2 pending, -1 declined, 0 snoozed (needs snoozed_till), 1 accepted, 2 duplicate (needs duplicate_to). The tool description gives no format for snoozed_till / duplicate_to: confirm on your instance
 ```
 
 ## Work Logs

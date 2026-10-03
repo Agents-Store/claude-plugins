@@ -37,9 +37,9 @@ Parse from "$ARGUMENTS".
    ```
    cycle(action=list, project_id, status=completed)
    ```
-   For the last 3-5 completed cycles, sum the completed points:
+   For the last 3-5 completed cycles, sum the completed points (`point`; if `point` is empty and the project has an estimate system (`project_estimate(action=retrieve, project_id)`), sum the `value` of each item's `estimate_point` instead (`project_estimate(action=list_points, project_id, estimate_id)` maps ids to values)):
    ```
-   cycle(action=list_workitems, project_id, cycle_id, pql='stateGroup = "completed"', fields="id,point")
+   cycle(action=list_workitems, project_id, cycle_id, pql='stateGroup = "completed"', fields="id,point,estimate_point")
    ```
    Calculate average velocity.
 
@@ -51,7 +51,7 @@ Parse from "$ARGUMENTS".
 
 5. **Select backlog items:**
    ```
-   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', fields="id,name,point,priority,assignees")
+   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', fields="id,name,point,estimate_point,priority,assignees")
    ```
    Keep items where `point` is set (PQL has no estimate field). Select items by priority until capacity reached.
 
