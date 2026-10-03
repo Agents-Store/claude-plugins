@@ -19,8 +19,8 @@ Parse from "$ARGUMENTS":
 
 1. Run `getTablesList` to resolve the table name to an ID.
 2. Run `getTableSchema` to discover numeric and countable fields.
-3. Run `aggregate` with appropriate aggregation type and field.
-4. If no field specified, run count aggregation on the whole table.
+3. Run `aggregate` with `aggregations: [{ "field": "<field>", "type": "<type>" }]` and `filterGroups: [{ "alias": "All" }]` -- both parameters are required; add one filter group per segment (`{ "alias": "North", "filter": { ... } }`) for a breakdown.
+4. If no field specified, run a count aggregation on the whole table, or `groupByRecords` for a count per distinct value.
 5. Present results in a clear summary format.
 6. Suggest additional aggregations or filters for deeper analysis.
 

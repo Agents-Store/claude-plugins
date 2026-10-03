@@ -35,9 +35,9 @@ Tool: mcp__plugin_nocodb-ops_nocodb__queryRecords
 Parameters:
   tableId: "m_contacts"
   where: "(Status,eq,Lead)~and(Created,isWithin,pastMonth)"
-  fields: "Name,Email,Company,Phone,Created"
+  fields: ["Name", "Email", "Company", "Phone", "Created"]
   pageSize: 100
-  sort: "-Created"
+  sort: [{ "field": "Created", "direction": "desc" }]
 ```
 
 ## Step 3 -- Create a new deal
@@ -50,11 +50,13 @@ Parameters:
   tableId: "m_deals"
   records: [
     {
-      "Title": "Acme Corp - Enterprise Plan",
-      "Value": 45000,
-      "Stage": "Qualification",
-      "Owner": "Sarah",
-      "Expected Close": "2025-06-30"
+      "fields": {
+        "Title": "Acme Corp - Enterprise Plan",
+        "Value": 45000,
+        "Stage": "Qualification",
+        "Owner": "Sarah",
+        "Expected Close": "2025-06-30"
+      }
     }
   ]
 ```
@@ -69,9 +71,11 @@ Parameters:
   tableId: "m_deals"
   records: [
     {
-      "Id": 42,
-      "Stage": "Proposal",
-      "Notes": "Demo completed. Sending proposal by Friday."
+      "id": 42,
+      "fields": {
+        "Stage": "Proposal",
+        "Notes": "Demo completed. Sending proposal by Friday."
+      }
     }
   ]
 ```
@@ -86,11 +90,13 @@ Parameters:
   tableId: "m_activities"
   records: [
     {
-      "Type": "Call",
-      "Subject": "Follow-up on proposal",
-      "DealId": 42,
-      "Date": "2025-04-06",
-      "Notes": "Client requested pricing breakdown by department."
+      "fields": {
+        "Type": "Call",
+        "Subject": "Follow-up on proposal",
+        "DealId": 42,
+        "Date": "2025-04-06",
+        "Notes": "Client requested pricing breakdown by department."
+      }
     }
   ]
 ```
@@ -103,22 +109,22 @@ Calculate total value of deals in active stages.
 Tool: mcp__plugin_nocodb-ops_nocodb__aggregate
 Parameters:
   tableId: "m_deals"
-  aggregation: [{"field": "Value", "type": "sum"}]
-  where: "(Stage,neq,Closed Won)~and(Stage,neq,Closed Lost)"
+  aggregations: [{ "field": "Value", "type": "sum" }]
+  filterGroups: [{ "alias": "Open pipeline", "where": "(Stage,neq,Closed Won)~and(Stage,neq,Closed Lost)" }]
 ```
 
 ## Step 7 -- Count deals by stage
 
-Check how many deals are at each pipeline stage.
+Check how many deals are at each pipeline stage -- one call, one count per distinct value:
 
 ```
-Tool: mcp__plugin_nocodb-ops_nocodb__countRecords
+Tool: mcp__plugin_nocodb-ops_nocodb__groupByRecords
 Parameters:
   tableId: "m_deals"
-  where: "(Stage,eq,Qualification)"
+  fieldId: "<Stage field id from getTableSchema>"
 ```
 
-Repeat for each stage: Qualification, Proposal, Negotiation, Closed Won, Closed Lost.
+The answer lists each stage (Qualification, Proposal, Negotiation, Closed Won, Closed Lost) with its count. For a single stage, `countRecords` with `filter: { "field": "Stage", "operator": "eq", "value": "Qualification" }` works too.
 
 ## Step 8 -- Find stale deals
 
@@ -128,12 +134,12 @@ Identify deals that have not been updated in 30 days.
 Tool: mcp__plugin_nocodb-ops_nocodb__queryRecords
 Parameters:
   tableId: "m_deals"
-  where: "(Stage,neq,Closed Won)~and(Stage,neq,Closed Lost)~and(Updated,isWithin,pastNumberOfDays,30)"
-  fields: "Title,Stage,Owner,Value,Updated"
-  sort: "Updated"
+  where: "(Stage,neq,Closed Won)~and(Stage,neq,Closed Lost)~and(Updated,lt,daysAgo,30)"
+  fields: ["Title", "Stage", "Owner", "Value", "Updated"]
+  sort: [{ "field": "Updated", "direction": "asc" }]
 ```
 
-Note: To find stale deals (NOT updated recently), query all open deals sorted by `Updated` ascending -- the oldest-updated appear first.
+Note: `(Updated,lt,daysAgo,30)` keeps only deals last updated **before** 30 days ago; sorting `Updated` ascending puts the longest-untouched deals first. (`isWithin,pastNumberOfDays,30` would select the opposite -- deals touched in the last 30 days.)
 
 ## Summary
 

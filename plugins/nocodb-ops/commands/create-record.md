@@ -19,7 +19,7 @@ Parse from "$ARGUMENTS":
 1. Run `getTablesList` to resolve the table name to an ID.
 2. Run `getTableSchema` to discover required fields and types.
 3. Map the provided field values to the table schema.
-4. Run `createRecords` with the mapped data.
+4. Run `createRecords` with `records: [{ "fields": { ... } }]` -- each record wraps its values in `fields`; at most 100 records per call.
 5. Confirm creation and display the new record.
 
 ## Example Usage

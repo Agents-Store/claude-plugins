@@ -31,8 +31,8 @@ List all products with their stock levels, sorted by quantity ascending (lowest 
 Tool: mcp__plugin_nocodb-ops_nocodb__queryRecords
 Parameters:
   tableId: "m_products"
-  fields: "Name,SKU,Category,Quantity,ReorderLevel,Price"
-  sort: "Quantity"
+  fields: ["Name", "SKU", "Category", "Quantity", "ReorderLevel", "Price"]
+  sort: [{ "field": "Quantity", "direction": "asc" }]
   pageSize: 100
 ```
 
@@ -54,34 +54,40 @@ Tool: mcp__plugin_nocodb-ops_nocodb__queryRecords
 Parameters:
   tableId: "m_products"
   where: "(Quantity,lte,10)"
-  fields: "Name,SKU,Quantity,ReorderLevel,Category"
-  sort: "Quantity"
+  fields: ["Name", "SKU", "Quantity", "ReorderLevel", "Category"]
+  sort: [{ "field": "Quantity", "direction": "asc" }]
 ```
 
 ## Step 4 -- Aggregate stock value by category
 
-Calculate total inventory value grouped by product category.
+Calculate total inventory value per product category -- one `aggregate` call with one filter group per category:
 
 ```
 Tool: mcp__plugin_nocodb-ops_nocodb__aggregate
 Parameters:
   tableId: "m_products"
-  aggregation: [{"field": "Price", "type": "sum"}]
-  where: "(Category,eq,Electronics)"
+  aggregations: [{ "field": "Price", "type": "sum" }]
+  filterGroups: [
+    { "alias": "Electronics", "filter": { "field": "Category", "operator": "eq", "value": "Electronics" } },
+    { "alias": "Clothing",    "filter": { "field": "Category", "operator": "eq", "value": "Clothing" } },
+    { "alias": "Food",        "filter": { "field": "Category", "operator": "eq", "value": "Food" } }
+  ]
 ```
 
-Repeat for each category: Electronics, Clothing, Food, Office Supplies, etc.
+Add one group per remaining category (Office Supplies, ...). The result is one block per alias.
 
 ## Step 5 -- Count products per category
 
-Get the number of distinct products in each category.
+Get the number of products in each category with one call:
 
 ```
-Tool: mcp__plugin_nocodb-ops_nocodb__countRecords
+Tool: mcp__plugin_nocodb-ops_nocodb__groupByRecords
 Parameters:
   tableId: "m_products"
-  where: "(Category,eq,Electronics)"
+  fieldId: "<Category field id from getTableSchema>"
 ```
+
+Each distinct category comes back with its count.
 
 ## Step 6 -- Review recent stock movements
 
@@ -91,8 +97,8 @@ Pull the last 50 stock transactions to check for anomalies.
 Tool: mcp__plugin_nocodb-ops_nocodb__queryRecords
 Parameters:
   tableId: "m_stock_movements"
-  fields: "Product,Type,Quantity,Date,Reference,Notes"
-  sort: "-Date"
+  fields: ["Product", "Type", "Quantity", "Date", "Reference", "Notes"]
+  sort: [{ "field": "Date", "direction": "desc" }]
   pageSize: 50
 ```
 
@@ -104,12 +110,12 @@ Identify dead stock -- products that have not had any movement in 90 days.
 Tool: mcp__plugin_nocodb-ops_nocodb__queryRecords
 Parameters:
   tableId: "m_products"
-  where: "(LastMovement,isWithin,pastNumberOfDays,90)"
-  fields: "Name,SKU,Category,Quantity,LastMovement"
-  sort: "LastMovement"
+  where: "(LastMovement,lt,daysAgo,90)"
+  fields: ["Name", "SKU", "Category", "Quantity", "LastMovement"]
+  sort: [{ "field": "LastMovement", "direction": "asc" }]
 ```
 
-Note: Sort ascending by `LastMovement` to surface the most stagnant items first. Products without this field or with no recent movement need manual review.
+Note: `(LastMovement,lt,daysAgo,90)` keeps products whose last movement is **before** 90 days ago; ascending order surfaces the most stagnant items first. Products with an empty `LastMovement` are not matched -- query them separately with `(LastMovement,blank)` and review them manually.
 
 ## Step 8 -- Build a summary report
 
