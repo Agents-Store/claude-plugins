@@ -261,7 +261,9 @@ export function safeCallbackUrl(value: string | null, fallback = '/dashboard'): 
     const url = new URL(value, window.location.origin);
     if (url.origin !== window.location.origin) return fallback; // other host, other scheme (javascript:)
     const path = url.pathname + url.search + url.hash;
-    return path.startsWith('//') ? fallback : path; // "/..//evil.example" normalizes to "//evil.example"
+    // Only a rooted path may leave here. "/..//evil.example" normalizes to "//evil.example", and a same-origin
+    // "blob:<origin>/<id>" keeps the origin but has a pathname that is a whole absolute URL.
+    return path.startsWith('/') && !path.startsWith('//') ? path : fallback;
   } catch {
     return fallback;
   }
