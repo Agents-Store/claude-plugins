@@ -68,9 +68,9 @@ When deciding where an improvement belongs, apply these rules in order:
 **Plugin examples:**
 - "Directus SDK needs `cache: 'no-store'`" → plugin (`directus-dev`)
 - "Next.js App Router caching gotcha" → plugin (`nextjs-dev`)
-- "n8n Code node JavaScript patterns" → plugin (`n8n-ops`)
+- "n8n Code node JavaScript patterns" → plugin (`n8n-dev`)
 - "NocoDB bulk operations timeout" → plugin (`nocodb-dev`)
-- "Vercel deployment env var propagation" → plugin (`vercel`)
+- "Vercel deployment env var propagation" → plugin (`vercel-dev`)
 
 **How to verify:** Check if the plugin exists:
 ```bash
@@ -84,11 +84,11 @@ ls "$PLUGINS_PUBLIC_SOURCE_DIR/$PLUGIN_NAME" 2>/dev/null || ls "$PLUGINS_PRIVATE
 
 **Level 0 examples:**
 - Process skills: brainstorming, planning, TDD, debugging, verification
-- Core commands: commit, pr, plan, review, retro, sync, fix-issue
+- Core workflow skills: commit, pr, plan-feature, code-review-project, retro, sync, fix-issue
 - Safety rules: never force-push, never commit .env, always run tests
 - Generic conventions: naming rules, file organization, code review practices
 - Documentation templates: architecture.md structure, API conventions format
-- Editor config, gitignore patterns, sync scripts
+- Editor config, gitignore patterns, sync scripts (the `.cursor/` mirror)
 
 ### Route to Level 1 if ANY of these are true:
 - The improvement references a specific technology (Directus, Next.js, NocoDB, etc.)

@@ -16,16 +16,18 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools referenced below (`project`, `cycle`, `workitem`, `label`, `page`); their names are `mcp__<server>__<resource>`, never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill. Calls are written `resource(action=..., ...)`.
 
 1. **Get sprint data:**
    ```
-   list_cycles({ project_id })
+   cycle(action=list, project_id, status=current)       // or status=completed for the sprint that just ended
    ```
    Find active or most recently completed cycle.
    ```
-   list_cycle_work_items({ project_id, cycle_id })
+   cycle(action=list_workitems, project_id, cycle_id)
+   workitem(action=count, project_id, pql='cycle = "<cycle_id>"', group_by=state__group)
    ```
+   Review the previous retro's actions first: `workitem(action=list, project_id, pql='label = "<retro-action-label-id>"')`.
 
 2. **Generate sprint metrics:**
    - Completion rate (points and items)
@@ -57,20 +59,18 @@ Parse from "$ARGUMENTS".
 
 5. **Create action items (max 2-3):**
    ```
-   create_work_item({
-     project_id, name: "[RETRO] <action>",
-     priority: "high", labels: ["retro-action-label-id"],
-     assignees: ["<owner>"], target_date: "<next sprint end>"
-   })
+   workitem(action=create,
+     project_id, name="[RETRO] <action>",
+     priority="high", labels=["<retro-action-label-id>"],
+     assignees=["<owner>"], target_date="<next sprint end>")
    ```
 
 6. **Save retro notes:**
    ```
-   create_project_page({
+   page(action=create,
      project_id,
-     name: "Retro — <sprint name> (<date>)",
-     description_html: "<formatted retro notes>"
-   })
+     name="Retro — <sprint name> (<date>)",
+     description_html="<formatted retro notes>")
    ```
 
 ## Example Usage

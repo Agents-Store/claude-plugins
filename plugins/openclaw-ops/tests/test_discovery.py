@@ -176,10 +176,28 @@ class LayoutProfileTest(unittest.TestCase):
         self.assertEqual(discovery.layout_profile(record), "legacy")
         self.assertFalse(record["fingerprint"]["markers"]["state_mount"])
 
-    def test_a_missing_marker_downgrades_a_template_to_legacy(self):
+    def test_a_missing_required_marker_downgrades_a_template_to_legacy(self):
+        record = template_record()
+        record["compose"] = {"config_files": []}
+        self.assertEqual(discovery.layout_profile(record), "legacy")
+        record = template_record()
+        record["paths"].pop("state_dir")
+        self.assertEqual(discovery.layout_profile(record), "legacy")
+
+    def test_the_legacy_auth_key_mount_is_not_required_for_a_template(self):
+        # upstream calls this mount the legacy auth-profile encryption key / OAuth
+        # migration-key mount: current credentials live in SQLite under the state mount,
+        # so an instance without it must not be refused as "legacy" and locked read-only
         record = template_record()
         record["paths"].pop("auth_secrets")
-        self.assertEqual(discovery.layout_profile(record), "legacy")
+        self.assertEqual(discovery.layout_profile(record), "template")
+        self.assertTrue(all(record["fingerprint"]["markers"].values()))
+        self.assertFalse(record["fingerprint"]["optional"]["legacy_auth_key_mount"])
+
+    def test_the_legacy_auth_key_mount_is_still_recorded_when_it_is_present(self):
+        record = template_record()
+        self.assertEqual(discovery.layout_profile(record), "template")
+        self.assertTrue(record["fingerprint"]["optional"]["legacy_auth_key_mount"])
 
     def test_an_unrecognisable_neighbour_is_alien_not_invisible(self):
         record = {

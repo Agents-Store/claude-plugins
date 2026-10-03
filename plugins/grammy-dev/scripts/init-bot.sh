@@ -23,14 +23,16 @@ cat > package.json <<'JSON'
   "name": "grammy-bot",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "dev":   "tsx watch src/bot.ts",
-    "start": "node --import tsx src/bot.ts",
+    "dev":   "tsx watch --env-file=.env src/bot.ts",
+    "start": "node --env-file=.env --import tsx src/bot.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "grammy": "^1.42.0",
-    "dotenv": "^16.4.5"
+    "grammy": "^1.46.0"
   },
   "devDependencies": {
     "tsx": "^4.19.0",
@@ -70,7 +72,6 @@ dist
 GIT
 
 cat > src/bot.ts <<'TS'
-import "dotenv/config";
 import { Bot, GrammyError, HttpError } from "grammy";
 
 const bot = new Bot(process.env.BOT_TOKEN!);
@@ -105,6 +106,8 @@ cp .env.example .env   # paste your BOT_TOKEN
 npm install
 npm run dev
 ```
+
+Needs Node.js 22 or newer (Node loads `.env` itself via `--env-file`, no dotenv).
 
 Send `/start` to your bot in Telegram.
 MD

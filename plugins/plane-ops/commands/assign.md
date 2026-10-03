@@ -21,17 +21,17 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `update_work_item`, `get_workspace_members`, `get_project_members`, `get_me`.
-2. **Resolve project** → `project_id`. **Resolve work item** → `work_item_id` (and current `assignee_ids`).
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `workitem` and `member` (`mcp__<server>__workitem`, `mcp__<server>__member`).
+2. **Resolve project** → `project_id`. **Resolve work item** → `workitem_id` (`workitem(action=retrieve_by_identifier, workitem_identifier="PROJ-42")`; the result carries the current `assignees`).
 3. **Resolve users**:
-   - `me` → `get_me` → user_id
-   - else → `get_project_members({ project_id })` and match by `display_name`, `email`, or `username` (case-insensitive). If no project member matches, fall back to `get_workspace_members`. If still ambiguous, ask the user to choose.
-4. **Compute new `assignee_ids`**:
-   - default → union(current, new)
-   - `--replace` → just the new set
-   - `--unassign <user>` → current minus that user
-   - `--clear` → empty array
-5. **Update** — `update_work_item({ project_id, work_item_id, assignee_ids })`. Note: some Plane builds use `assignees` instead — check schema.
+   - `me` → `member(action=me)` → user_id
+   - else → `member(action=list_project, project_id)` and match by `display_name`, `email`, or `username` (case-insensitive). If no project member matches, fall back to `member(action=list_workspace, display_name=...)` (name and email filters match case-insensitively). If still ambiguous, ask the user to choose.
+4. **Choose the call**:
+   - default (append) → `workitem(action=manage_assignee, project_id, workitem_id, add_user_id=<id or several>)`: the list is merged, nothing is replaced
+   - `--unassign <user>` → `workitem(action=manage_assignee, project_id, workitem_id, remove_user_id=<id>)`
+   - `--replace` → `workitem(action=update, project_id, workitem_id, assignees=[<new ids>])`
+   - `--clear` → `workitem(action=update, project_id, workitem_id, assignees=[])`
+5. **Update** — run the call from step 4. The assignees parameter is `assignees` on `update` and `add_user_id` / `remove_user_id` on `manage_assignee` (the tool validates against the declared set)
 6. **Confirm** — print final assignee list and item identifier.
 
 ## Examples

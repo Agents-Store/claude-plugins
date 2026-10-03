@@ -9,22 +9,23 @@ Crawl a website to extract all pages or map its structure. See CONNECTORS.md for
 
 ## Process
 
-1. **If --map-only:** get site structure only:
+1. **If --map-only:** get site structure only (Firecrawl map, no page content):
    ```
-   ~~crawl(url, map_only: true)
+   firecrawl_map(url, limit: <--limit or 100>)
    → Returns list of all URLs
    ```
 
-2. **Otherwise:** full crawl with monitoring (~~crawl):
+2. **Otherwise:** full crawl (~~crawl):
    ```
    ~~crawl(url, limit: <--limit or 20>, depth: <--depth or 3>)
-   → Poll status until completed
+   → Waits for the crawl to finish and returns the pages
+   → Crawl cut off? pick it up by its id with the crawl-status tool
    ```
 
 3. **On timeout/error:** fallback to map + selective read:
    ```
-   ~~crawl(url, map_only: true) → get URLs
-   ~~batch_scrape(key_page_urls) → read selected pages
+   firecrawl_map(url) → get URLs
+   ~~batch_scrape(key_page_urls) → read selected pages (≤5 per call)
    ```
 
 4. **Display** crawl results summary with page count and key content.

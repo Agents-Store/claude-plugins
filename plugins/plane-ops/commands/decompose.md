@@ -11,18 +11,15 @@ Break down a work item into smaller, sprint-ready stories or tasks using INVEST 
 Format: `<work-item-identifier>`
 - work-item-identifier: Item identifier like "MP-42" (required)
 
-Parse from "$ARGUMENTS". Extract project_identifier and issue_identifier number.
+Parse from "$ARGUMENTS". The identifier (`MP-42`) goes to the server as one string.
 
 ## Process
 
-0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools referenced below (`workitem`, `workitem_relation`); their names are `mcp__<server>__<resource>`, never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill. Calls are written `resource(action=..., ...)`.
 
 1. **Retrieve the item:**
    ```
-   retrieve_work_item_by_identifier({
-     project_identifier: "<prefix>",
-     issue_identifier: <number>
-   })
+   workitem(action=retrieve_by_identifier, workitem_identifier="<PREFIX-N>")
    ```
 
 2. **Analyze against INVEST criteria:**
@@ -49,15 +46,14 @@ Parse from "$ARGUMENTS". Extract project_identifier and issue_identifier number.
 5. **On confirmation — create children:**
    ```
    For each child:
-     create_work_item({
-       project_id, name, parent: <parent_id>,
-       point, priority, description_html
-     })
+     workitem(action=create,
+       project_id, name, parent=<parent_id>,
+       point, priority, description_html)
    ```
 
 6. **Set relations between children if needed:**
    ```
-   create_work_item_relation({ relation_type: "blocked_by", ... })
+   workitem_relation(action=create, project_id, workitem_id=<child>, relation_type="blocked_by", workitem_ids=[<blocking child>])
    ```
 
 ## Example Usage

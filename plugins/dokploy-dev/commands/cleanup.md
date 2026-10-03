@@ -23,33 +23,33 @@ Parse from "$ARGUMENTS".
 1. **Report current state:**
 
    ```
-   mcp__dokploy__settings-getDockerDiskUsage
+   mcp__plugin_dokploy-dev_dokploy__settings-getDockerDiskUsage
    ```
 
-   Show:
-   - Total / used / available disk
-   - Per-category sizes: Images, Containers, Volumes, Build cache
-   - Top 5 largest images / volumes (if returned)
+   It returns one row per category (`type`, `totalCount`, `active`, `size`, `reclaimable`, `sizeBytes`) for Images, Containers, Local Volumes and Build Cache. Show:
+   - Per-category size and reclaimable space (read `reclaimable` — it tells you which step is worth running)
+   - Host disk used / total: on v0.30+ call `mcp__plugin_dokploy-dev_dokploy__docker-getServerHealth` and read `disk.usedBytes` / `disk.totalBytes`
+   - Top 5 largest images / volumes (v0.30+: `dockerImage-getImages`, `dockerVolume-getVolumesSize`)
+   - For a remote server pass `serverId` to the `dockerDiskUsage-*` / `docker-getServerHealth` tools; the `settings-clean*` tools below (except `cleanMonitoring`) accept an optional `serverId` too
 
 2. **Walk through cleanup operations** in this order. Confirm each with the user (unless `--dry-run`):
 
    | Step | Tool | What it does | Risk |
    |------|------|--------------|------|
-   | a | `mcp__dokploy__settings-cleanDockerBuilder` | Clears the Docker BuildKit cache | None — only cache |
-   | b | `mcp__dokploy__settings-cleanStoppedContainers` | Removes containers in `exited` state | None — already stopped |
-   | c | `mcp__dokploy__settings-cleanUnusedImages` | Removes images not currently used by any container | Low — images can be rebuilt |
-   | d | `mcp__dokploy__settings-cleanUnusedVolumes` | Removes volumes not attached to any container | **Medium — destroys data**. Confirm explicitly; orphan volumes can still contain DB files |
-   | e | `mcp__dokploy__settings-cleanDockerPrune` | Equivalent to `docker system prune` | Low — combination of a-c |
-   | f | `mcp__dokploy__settings-cleanMonitoring` | Removes monitoring data | None |
-   | g | `mcp__dokploy__settings-cleanRedis` | Flushes Dokploy's internal Redis cache | None — Dokploy will repopulate |
+   | a | `mcp__plugin_dokploy-dev_dokploy__settings-cleanDockerBuilder` | Clears the Docker BuildKit cache | None — only cache |
+   | b | `mcp__plugin_dokploy-dev_dokploy__settings-cleanStoppedContainers` | Removes containers in `exited` state | None — already stopped |
+   | c | `mcp__plugin_dokploy-dev_dokploy__settings-cleanUnusedImages` | Removes images not currently used by any container | Low — images can be rebuilt |
+   | d | `mcp__plugin_dokploy-dev_dokploy__settings-cleanUnusedVolumes` | Removes volumes not attached to any container | **Medium — destroys data**. Confirm explicitly; orphan volumes can still contain DB files |
+   | e | `mcp__plugin_dokploy-dev_dokploy__settings-cleanDockerPrune` | Equivalent to `docker system prune` | Low — combination of a-c |
+   | f | `mcp__plugin_dokploy-dev_dokploy__settings-cleanMonitoring` | Removes monitoring data | None |
 
-   Skip steps `d` and `g` unless the user explicitly opts in.
+   Skip step `d` unless the user explicitly opts in.
 
 3. **Report final state:**
    - Re-run `settings-getDockerDiskUsage` and show the delta in plain language ("Reclaimed 12.4 GB").
 
 4. **Configure log cleanup automation (optional):**
-   - `mcp__dokploy__settings-getLogCleanupStatus` — show current schedule.
+   - `mcp__plugin_dokploy-dev_dokploy__settings-getLogCleanupStatus` — show current schedule.
    - Offer to enable / tune via `settings-updateLogCleanup` if disk pressure was caused by log accumulation.
 
 ## When to stop

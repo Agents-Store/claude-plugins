@@ -107,7 +107,7 @@ function requirePreferences(input) {
       exists: false,
       warning:
         "ONBOARDING_NOT_DONE: User preferences not found at ~/.document-generator/preferences.json. " +
-        "Using built-in defaults. Run /setup to configure style, company info, and logo.",
+        "Using built-in defaults. Run /document-generator-ops:setup to configure style, company info, and logo.",
     };
   }
   return { exists: true };

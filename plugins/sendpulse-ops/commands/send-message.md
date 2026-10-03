@@ -1,6 +1,6 @@
 ---
 description: Send a direct message to a chatbot contact on any channel
-allowed-tools: mcp__sendpulse__chatbots_contacts_show, mcp__sendpulse__chatbots_contacts_messages_t_send, mcp__sendpulse__chatbots_contacts_messages_m_send, mcp__sendpulse__chatbots_contacts_messages_wa_send, mcp__sendpulse__chatbots_contacts_messages_i_send, mcp__sendpulse__chatbots_contacts_messages_v_send, mcp__sendpulse__chatbots_contacts_messages_lc_send
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__chatbots_contacts_show, mcp__plugin_sendpulse-ops_sendpulse__chatbots_contacts_messages_t_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_contacts_messages_m_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_contacts_messages_wa_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_contacts_messages_i_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_contacts_messages_v_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_contacts_messages_tt_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_contacts_messages_lc_send
 argument-hint: <contact-id> <message>
 ---
 
@@ -30,6 +30,7 @@ Parse from "$ARGUMENTS".
    - WhatsApp → `chatbots_contacts_messages_wa_send`
    - Instagram → `chatbots_contacts_messages_i_send`
    - Viber → `chatbots_contacts_messages_v_send`
+   - TikTok → `chatbots_contacts_messages_tt_send` (call shape unconfirmed: the vendor's examples name the subscriber, not an ID; read the tool schema before the first send)
    - Live Chat → `chatbots_contacts_messages_lc_send`
 
    ```

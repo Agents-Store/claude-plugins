@@ -1,0 +1,35 @@
+# CLAUDE.md
+
+## Project: [PROJECT_NAME]
+
+Stack: Directus + Next.js (App Router)
+
+## Architecture
+
+- **Data Layer**: Directus at [DIRECTUS_URL]
+- **Interface + Logic Layer**: Next.js App Router
+- **Local Dev**: Docker Compose (Directus + PostgreSQL + Redis), see the `directus-dev` plugin
+- **Deployment**: see project deployment plugin (e.g. `dokploy-dev`, `vercel-dev`)
+
+## Key Files
+
+- `lib/directus.ts` — Directus SDK client, server-only
+- `lib/content.ts` — every Directus read of the pages, tagged with its collections
+- `types/directus.ts` — TypeScript schema matching the Directus collections
+- `app/api/revalidate/route.ts` — expires a cache tag when a Directus Flow calls it
+- `app/` — Next.js App Router pages
+
+## Conventions
+
+- The SDK has no `cache` option. Directus reads go through `lib/content.ts`, tagged with the collections they read (previous caching model: `withOptions` with `next.tags`; Cache Components: `'use cache'` with `cacheTag`)
+- `DIRECTUS_ADMIN_TOKEN` is server-side only (`import 'server-only'`) and belongs to a dedicated user, not an administrator
+- File URLs never carry a token: public files, or the asset proxy route
+- Never cache a read made with a signed-in user's token
+- A Server Action is a public endpoint that takes any id: authenticate with `requireUser()` and authorize. Write with the user's own token (`withToken(session.accessToken, ...)`) so Directus applies that user's policies, or check role or ownership in code when only the server token is used
+- After a schema change: update `types/directus.ts`, then run `npx tsc --noEmit`
+- After a mutation: `updateTag(collection)`; content edited in Directus is expired by the Flow through `/api/revalidate`
+- Liveness check for Directus is `/server/ping` (the health endpoint needs a token)
+
+## Environment Variables
+
+See `.env.example` for all required variables.

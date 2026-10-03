@@ -19,13 +19,13 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_states`, `create_state`, `update_state`, `delete_state`, `retrieve_state`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `project`, `state` and `workitem`.
 2. **Resolve project** → `project_id`.
 3. **Route**:
-   - `list` → `list_states({ project_id })`. Render grouped by `group`, sorted by `sequence`. Mark the default state.
-   - `create` → require `--name` and `--group`. Color defaults from a stable palette per group. Call `create_state`.
-   - `update` → resolve state by name → `update_state`. Renaming a state does NOT migrate items — they keep the same `state_id`.
-   - `delete` → confirm. **Block deletion** if any items currently sit in this state — instruct the user to migrate them first via `/bulk-update --state <new>`.
+   - `list` → `state(action=list, project_id)` (follow `next_cursor`). Render grouped by `group`, sorted by `sequence`. Mark the default state. Plane keeps its own triage state per project; it is not listed and cannot be created, and `Triage` is a reserved name.
+   - `create` → require `--name` and `--group`. Color defaults from a stable palette per group. Call `state(action=create, project_id, name, color, group, sequence?, default?)` (`color` is required, a hex code).
+   - `update` → resolve state by name → `state(action=update, state_id, project_id, name?, color?, group?, sequence?, default?)`. Renaming a state does NOT migrate items — they keep the same `state_id`.
+   - `delete` → confirm. **Block deletion** if any items currently sit in this state (`workitem(action=count, project_id, pql='state = "<state uuid>"')` → `total_count`) — instruct the user to migrate them first via `/bulk-update --state <new>`. Then `state(action=delete, state_id, project_id)`.
 4. **Confirm** — re-list states after mutation.
 
 ## State group semantics

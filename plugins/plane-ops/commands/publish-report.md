@@ -19,16 +19,16 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `create_project_page`, `create_workspace_page`, and the data-gathering actions required by the chosen type.
-2. **Resolve project** — `list_projects` → `project_id`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tool `page` and the data-gathering tools required by the chosen type (`cycle`, `workitem`, `module`, `milestone`, `release`).
+2. **Resolve project** — `project(action=list)` → `project_id`.
 3. **Gather data** based on `type`:
-   - `sprint-report` → active or last cycle, items, metrics (see `velocity-metrics`)
-   - `retro` → previous sprint items, previous retro page (if exists), attendees
-   - `release-notes` → items closed in a version range, grouped by label
-   - `roadmap` → active cycles, modules, epics, milestones
+   - `sprint-report` → active or last cycle (`cycle(action=list, project_id, status=current|completed)`), its items (`cycle(action=list_workitems)`, state totals with `workitem(action=count, pql='cycle = "<id>"', group_by=state__group)`), metrics (see `velocity-metrics`)
+   - `retro` → previous sprint items, previous retro page (`page(action=list, project_id)`, if one exists), attendees
+   - `release-notes` → the release from `release(action=list)` (`--version` matches the release name or its `release_tag`), its items from `release(action=list_workitems, release_id)`, grouped by type or label; the stored changelog from `release(action=get_changelog, release_id)`. Without a tracked release, the items closed in the version range: `workitem(action=list, project_id, pql='stateGroup = "completed" AND updatedAt >= "<start date>"')`
+   - `roadmap` → active cycles (`cycle(action=list)`), modules (`module(action=list)`), epics (`workitem(action=list, pql='type = "<epic-type-id>"')`), milestones (`milestone(action=list)`)
    - `milestone-update` → target milestone and its items (see `epics-initiatives-milestones`)
 4. **Render HTML** using the matching template from the `pages-publishing` skill.
-5. **Create the page** — `create_project_page({ project_id, name, description_html })`.
+5. **Create the page** — `page(action=create, project_id, name, description_html)`. For `release-notes`, also store the same body with `release(action=update_changelog, release_id, description_html)` so the notes stay attached to the release. To refresh an existing report (roadmap, a corrected sprint report) use `page(action=retrieve)` then `page(action=update)` with the whole edited body instead of creating a duplicate.
 6. **Share** — return the page URL and suggest where to link it (cycle description, Slack, etc.).
 
 ## Examples

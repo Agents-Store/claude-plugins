@@ -19,19 +19,19 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for work item actions (`create_work_item`, `update_work_item`, `search_work_items`, `retrieve_work_item_by_identifier`) before assuming anything. If multiple Plane instances are connected, ask the user which one.
+1. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools `project`, `workitem`, `workitem_comment`, `workitem_link`, `work_log` and `workitem_relation` before assuming anything; their names are `mcp__<server>__<resource>`. If multiple Plane instances are connected, ask the user which one.
 
-2. **Resolve project** — `list_projects` → pick `project_id` by name or identifier.
+2. **Resolve project** — `project(action=list)` → pick `project_id` by name or identifier.
 
 3. **Route by action** — follow the matching section of the `work-items` skill:
-   - `create` → gather title, description with AC, priority, points, assignees, labels; call `create_work_item` (check schema for `state`/`state_id` and `labels`/`label_ids` field names)
-   - `update` → resolve work item ID, apply field changes via `update_work_item`
-   - `get` → when the user passes a human identifier like `PROJ-42`, split into project slug `PROJ` and integer `42`, then call `retrieve_work_item_by_identifier({ project_identifier, issue_identifier })`. For UUIDs, use `retrieve_work_item({ project_id, work_item_id })`.
-   - `search` → `search_work_items({ query })` — typically workspace-scoped, filter by project client-side if needed
-   - `comment` → `create_work_item_comment`
-   - `link` → `create_work_item_link` (PRs, docs, designs)
-   - `log-time` → `create_work_log` with duration as **integer minutes** (convert "2h 30m" → 150); project must have `is_time_tracking_enabled`
-   - `block` → `create_work_item_relation` with `relation_type: "blocked_by"` and `issues: [uuid]` (array, plural — not `related_issue`)
+   - `create` → gather title, description with AC, priority, points, assignees, labels; call `workitem(action=create, project_id, name, description_html, priority, point, state, assignees, labels, type_id?)` (fixed parameter names: `state`, `labels`, `assignees`, `type_id`, `parent`)
+   - `update` → resolve work item ID, apply field changes via `workitem(action=update, project_id, workitem_id, ...)`; add or drop one assignee or label with `manage_assignee` / `manage_label`
+   - `get` → when the user passes a human identifier like `PROJ-42`, call `workitem(action=retrieve_by_identifier, workitem_identifier="PROJ-42")` (one string). For UUIDs, use `workitem(action=retrieve, project_id, workitem_id)`.
+   - `search` → `workitem(action=search, query)` — workspace-scoped (no `project_id`), filter by project client-side if needed; or a server-side filter `workitem(action=list, project_id, pql='text ~ "login bug"')`
+   - `comment` → `workitem_comment(action=create, project_id, workitem_id, comment_html)`
+   - `link` → `workitem_link(action=create, project_id, workitem_id, url, title?)` (PRs, docs, designs)
+   - `log-time` → `work_log(action=create, project_id, workitem_id, duration, description)` with duration as **integer minutes** (convert "2h 30m" → 150); project must have `is_time_tracking_enabled`
+   - `block` → `workitem_relation(action=create, project_id, workitem_id, relation_type="blocked_by", workitem_ids=[<uuid>])` (array, plural; the related items go in `workitem_ids`)
 
 4. **Validate** — before creating or committing to a sprint, verify the Definition of Ready from the `agile-fundamentals` skill.
 

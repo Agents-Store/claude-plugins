@@ -37,6 +37,6 @@ Parse `[--dry-run]` from "$ARGUMENTS".
    restic stats latest
    ```
 
-5. **Report** the new snapshot (id, time, size). If it exits 3, note that's a partial-read success, not a failure. On a real failure (1/10/11/12), point to the `troubleshoot` skill.
+5. **Report** the new snapshot (id, time, size). If `backup` exits 3, note that's a partial success (unreadable files, or on restic ≥ 0.19 a missing source path — snapshot still created), not a failure; if the script itself ends non-zero after the backup (e.g. `forget` exit 3 = a snapshot could not be removed), that is a real failure. On a real failure (1/10/11/12 or a failed `forget`), point to the `troubleshoot` skill.
 
 Concurrency: if the scheduled run might be active, avoid a second simultaneous run (repo lock). Check `restic list locks` first if unsure.

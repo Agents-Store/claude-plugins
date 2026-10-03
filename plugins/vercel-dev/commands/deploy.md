@@ -25,7 +25,7 @@ Run these checks before any deployment. Stop on failure and print actionable gui
    - Create `vercel.json` with `{"$schema": "https://openapi.vercel.sh/vercel.json", "framework": "nextjs"}`.
    - **Why:** Without this, CLI-only deploys (no Git integration) may use a generic builder. The build appears to succeed, but all routes return 404 because Vercel doesn't generate the correct routing configuration. This is the #1 cause of "build succeeds but site shows 404".
 7. **`output: 'standalone'` in Next.js config?** — Check `next.config.ts` / `next.config.js` for `output: 'standalone'`.
-   - If found: warn that `standalone` output is for Docker/self-hosting and is incompatible with Vercel. Suggest conditionally disabling it:
+   - If found: note that `standalone` output is meant for Docker/self-hosting and is a **possible** cause of a Ready-but-404 deploy on Vercel (not reproduced; a wrong Framework Preset, see step 6, is the documented cause). If the deploy 404s, suggest conditionally disabling it:
      ```typescript
      ...(process.env.VERCEL ? {} : { output: 'standalone' as const }),
      ```
@@ -35,7 +35,12 @@ Run these checks before any deployment. Stop on failure and print actionable gui
    - On Hobby plans, only the team owner can deploy. If emails don't match, warn the user and suggest: `git config user.email "<team-owner-email>"` followed by an empty commit (`git commit --allow-empty -m "chore: update deploy author"`).
 9. **Env vars for preview?** — If deploying a preview and the project has no Git integration (`vercel.json` has no `github` config or project was linked without Git):
    - Preview env vars may not be configured. Check `vercel env ls` for Preview entries.
-   - If missing: pass env vars directly via `-b` (build-time) and `-e` (runtime) flags:
+   - If missing: add them to Preview non-interactively. The Git branch is optional (`--git-branch` only narrows it):
+     ```bash
+     vercel env add KEY preview --value "value" --yes
+     ```
+     `--value` is visible in the process list and shell history; for secrets pipe the value on stdin instead.
+   - Or pass env vars for this deploy only via `-b` (build-time) and `-e` (runtime) flags — still valid, nothing is stored:
      ```bash
      vercel deploy -b KEY="value" -e KEY="value"
      ```
@@ -112,6 +117,10 @@ git rev-parse --short HEAD
 ## Verification
 
 After deployment completes, verify the result:
+
+### Live Status (MCP)
+
+If the Vercel MCP server exposes `open_deployments`, call it with `view: "preview"`, `teamId` (`orgId`) and `projectId` from `.vercel/project.json`, plus `branch` (`git rev-parse --abbrev-ref HEAD`) and `sha` (`git rev-parse HEAD`). Hosts that support MCP Apps show a live view that updates until the build finishes; use its text summary for the steps below. If the build fails, the view's **Send Logs to Chat** button asks the agent to investigate with `get_deployment_build_logs`.
 
 ### 1. Inspect the Deployment
 

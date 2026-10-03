@@ -22,19 +22,23 @@ Load the `troubleshoot` skill for the full symptom → cause → fix tables.
    curl -sI "${CHATWOOT_BASE_URL}" | head -1
    ```
 
-3. **Token valid + identity?** (401 ⇒ bad token or wrong header; remember it's
-   `api_access_token`, not `Authorization: Bearer`)
+3. **Token valid + identity?** (401 ⇒ bad token, wrong header, or a proxy dropping the header;
+   send `api-access-token` with hyphens, not `api_access_token` and not `Authorization: Bearer`
+   unless the instance is v4.19.0+)
    ```bash
    curl -s -o /dev/null -w "profile HTTP %{http_code}\n" \
-     -H "api_access_token: ${CHATWOOT_API_KEY}" "${CHATWOOT_BASE_URL}/api/v1/profile"
-   curl -s -H "api_access_token: ${CHATWOOT_API_KEY}" \
+     -H "api-access-token: ${CHATWOOT_API_KEY}" "${CHATWOOT_BASE_URL}/api/v1/profile"
+   curl -s -H "api-access-token: ${CHATWOOT_API_KEY}" \
      "${CHATWOOT_BASE_URL}/api/v1/profile" | jq '{id, name, role}' 2>/dev/null
+   # For comparison: 200 above but 401 here means a proxy drops underscore headers - use the hyphen form
+   curl -s -o /dev/null -w "underscore header HTTP %{http_code}\n" \
+     -H "api_access_token: ${CHATWOOT_API_KEY}" "${CHATWOOT_BASE_URL}/api/v1/profile"
    ```
 
 4. **Account scope resolves?** (404 ⇒ wrong `account_id` or base URL)
    ```bash
    curl -s -o /dev/null -w "conversations HTTP %{http_code}\n" \
-     -H "api_access_token: ${CHATWOOT_API_KEY}" \
+     -H "api-access-token: ${CHATWOOT_API_KEY}" \
      "${CHATWOOT_BASE_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/conversations"
    ```
 

@@ -10,9 +10,9 @@ Execute the full 7-step research algorithm from the `deep-research` skill. See C
 ## Steps
 
 1. **CLASSIFY** — determine research type from topic (or use --type flag)
-2. **PLAN** — expand query, generate 3-7 search queries from different angles
-3. **SEARCH** — ~~batch_search / ~~search with fallback
-4. **READ** — ~~batch_scrape / ~~scrape top-5 pages with fallback
+2. **PLAN** — generate 3-7 search queries from different angles (a model step, no tool)
+3. **SEARCH** — ~~batch_search / ~~search with fallback; ~~answer for facts; ~~academic_search / ~~code_search by type; one ~~deep_agent pass when `--depth deep`
+4. **READ** — ~~batch_scrape / ~~scrape top-5 pages with fallback; pass the topic as `question` to read only the relevant passages
 5. **EXTRACT** — key facts, data, quotes with source URLs
 6. **SYNTHESIZE** — deduplicate, cross-check, assess confidence
 7. **REPORT** — structured report using appropriate template + Methodology

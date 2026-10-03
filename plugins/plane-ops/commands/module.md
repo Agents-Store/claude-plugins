@@ -21,14 +21,14 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_modules`, `list_archived_modules`, `retrieve_module`, `update_module`, `delete_module`, `archive_module`, `unarchive_module`, `add_work_items_to_module`, `remove_work_item_from_module`, `list_module_work_items`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `project`, `module` and `workitem` (`mcp__<server>__module` takes every module action below).
 2. **Resolve project** → `project_id`. Resolve module by name when given.
 3. **Route**:
-   - `list` → render: name | lead | items | state buckets | target | progress
-   - `get` → details + items list grouped by state
-   - `update` → patch
-   - `add-items` / `remove-items` → resolve item UUIDs, call the corresponding tool. Note: `add` typically takes an array; `remove` is often single-item — may need a loop.
-   - `archive` / `unarchive` / `delete` → confirm before delete; prefer archive
+   - `list` → `module(action=list, project_id)` (follow `next_cursor`; `archived=true` for `list-archived`). Render: name | lead | items | state buckets | target | progress
+   - `get` → `module(action=retrieve, project_id, module_id)` + `module(action=list_workitems, project_id, module_id)` grouped by state; state totals in one call: `workitem(action=count, project_id, pql='module = "<module_id>"', group_by=state__group)`
+   - `update` → `module(action=update, project_id, module_id, name?, description?, lead?, target_date?, status?)`; if the response looks empty, read it back with `module(action=retrieve)`
+   - `add-items` / `remove-items` → resolve item UUIDs, then one call: `module(action=manage_workitems, project_id, module_id, add_ids=[...])` or `remove_ids=[...]` (both take arrays, so no loop; returns nothing, read back with `list_workitems`; a removal asks for confirmation)
+   - `archive` / `unarchive` / `delete` → `module(action=archive|unarchive|delete, project_id, module_id)`; confirm before delete; prefer archive. Some deployments reject archiving an active module — set `status` to completed or cancelled first.
 4. **Confirm** — re-render the module after mutation.
 
 ## Modules vs Cycles

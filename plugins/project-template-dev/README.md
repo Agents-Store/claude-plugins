@@ -36,10 +36,15 @@ While working in any child project:
 | Skill | Description |
 |-------|-------------|
 | `feedback` | Push improvements from child project to parent template |
-| `wrap-up` | End-of-session review of template improvements |
+| `wrap-up` | End-of-session review of template and plugin improvements |
+| `capture` | Quick-capture an improvement idea into the backlog for wrap-up |
+| `improve` | Route an improvement to the right plugin or parent template |
+| `sync` | Pull parent-template changes down into the current project |
 | `create` | Create new template from parent (Level 1, 1.5, or 2) |
 | `validate` | Check template structure per level conventions |
+| `audit-stack` | Scan a codebase, classify its technologies into layers, recommend a template and `stack.json` |
 | `template-reference` | Reference docs for template hierarchy and conventions |
+| `examples` | End-to-end scenario walkthroughs |
 
 ## Commands
 
@@ -47,8 +52,12 @@ While working in any child project:
 |---------|-------------|
 | `/project-template-dev:feedback` | Report and fix a parent template issue |
 | `/project-template-dev:wrap-up` | Session review for template improvements |
+| `/project-template-dev:capture` | Jot down an improvement for the wrap-up |
+| `/project-template-dev:improve` | Auto-route an improvement to a plugin or a template |
+| `/project-template-dev:sync` | Sync the project from its parent template |
 | `/project-template-dev:create` | Create new project template |
 | `/project-template-dev:validate` | Validate template structure |
+| `/project-template-dev:audit-stack` | Audit a project's stack and recommend a template |
 
 ## Agent
 
@@ -94,23 +103,51 @@ For the `create` workflow to find matching Agents Store plugins, also set:
 }
 ```
 
+## Template Conventions
+
+What `create` generates and `validate` checks:
+
+- **One rules file.** `AGENTS.md` holds the rules every coding tool reads; `CLAUDE.md` starts with `@AGENTS.md` and adds Claude-specific lines. Nothing is generated from `CLAUDE.md`; `scripts/sync-context.sh` only mirrors the rules into `.cursor/`.
+- **`.mcp.json` is committed** and holds `${VAR}` references only. The values live in `.env` and `.claude/settings.local.json`, both gitignored.
+- **`.claude/settings.json` is committed** with `enabledPlugins` and `extraKnownMarketplaces`, so the plugins listed in `stack.json` are offered to everyone who clones the template.
+- **Workflows are skills** (`.claude/skills/<name>/SKILL.md`), not `.claude/commands/` files. Base workflows are named `plan-feature` and `code-review-project`, because the built-in `/plan` and `/review` shadow plain `plan` and `review`.
+- **CLAUDE.md stays short.** The template rule is under 100 lines (Anthropic's guidance is under 200). An `@docs/...` import does not save context, because imported files load at launch; link long documents by plain path or move file-specific rules into `.claude/rules/*.md` with `paths:`.
+- **Stack plugins are named `stack-{name}`** (no process suffix), technology plugins `{tool}-{process}`.
+
+## Upgrading from 2.1.x
+
+Templates built on the 2.1 layout keep working: `validate` reports the differences as WARN, except the two new security checks, which FAIL.
+
+| Finding | Severity | Migration |
+|---------|----------|-----------|
+| `.mcp.json.example` committed, `.mcp.json` gitignored | WARN | Move any real value from the local `.mcp.json` into `.env` and `.claude/settings.local.json` first, commit `.mcp.json` with `${VAR}` references, drop it from `.gitignore`, delete the `.example`. Rotate any secret that was ever committed |
+| `AGENTS.md` generated from `CLAUDE.md`, or `CLAUDE.md` without `@AGENTS.md` | WARN | Move the shared sections into `AGENTS.md`, make `CLAUDE.md` `@AGENTS.md` plus the Claude-specific lines, stop generating `AGENTS.md` |
+| No `.claude/settings.json`, or `enabledPlugins` that does not match `stack.json` | WARN | Add `extraKnownMarketplaces` and `enabledPlugins` for the public plugins of `stack.json` (private plugins stay out of the committed file) |
+| Workflows in `.claude/commands/`, including `plan` and `review` | WARN | Move each to `.claude/skills/<name>/SKILL.md`; rename `plan` to `plan-feature` and `review` to `code-review-project` |
+| CLAUDE.md between 100 and 200 lines | WARN | Trim, or move file-specific rules to `.claude/rules/*.md` with `paths:` |
+| Literal token, key or secret in the tracked `.mcp.json` | FAIL (CRITICAL) | Replace with `${VAR}`; rotate the secret — editing the file does not remove it from git history |
+| `env` values or tokens in the committed `.claude/settings.json` | FAIL (CRITICAL) | Move them to the gitignored `.claude/settings.local.json` |
+| CLAUDE.md over 200 lines | FAIL | Trim as above |
+
+Plugin names in `stack.json` follow the marketplace `renames` map; check them against the current marketplace listing.
+
 ## What Can Be Pushed to Parent Templates
 
-- Skills (`.claude/skills/`)
-- Commands (`.claude/commands/`)
+- Skills (`.claude/skills/`), including the workflow skills (`commit`, `pr`, `plan-feature`, ...); the older `.claude/commands/<name>.md` form still works
 - Agents (`.claude/agents/`)
 - Rules (`.claude/rules/`)
 - CLAUDE.md updates
 - `.env.example` variables
 - Documentation (`docs/`)
 - Config files, scripts, dependencies
-- `.mcp.json.example` updates
+- `.mcp.json` entries (`${VAR}` references only)
+- `.claude/settings.json` (`enabledPlugins`, `extraKnownMarketplaces`)
 - Settings templates
 
 ## What Stays in the Client Project
 
 - Resource IDs (table IDs, workflow IDs)
-- Real credentials (`.env`, `.mcp.json`)
+- Real credentials and endpoints (`.env`, `.claude/settings.local.json`) — `.mcp.json` is committed, but only with `${VAR}` references
 - Client-specific business logic
 - Domain-specific skills
 - Custom agents for client workflows
@@ -118,13 +155,20 @@ For the `create` workflow to find matching Agents Store plugins, also set:
 ## Dependencies
 
 This plugin complements the Agents Store ecosystem:
-- Works alongside `plugin-creator` for plugin-level feedback
+- Optional: the private `plugin-creator` plugin (not in the public marketplace) receives plugin-level feedback from `improve` and `wrap-up`; without it they fall back to editing the plugin source, a GitHub issue or `LEARNINGS.md`
 - Works alongside Technology plugins (e.g., `directus-dev`) for tool knowledge
-- Works alongside Stack plugins (e.g., `stack-directus-nextjs-dev`) for integration patterns
+- Works alongside Stack plugins (e.g., `stack-directus-nextjs`) for integration patterns
 - Templates reference plugins via `stack.json` → `plugins` arrays
 
 ## Installation
 
+Add the Agents Store marketplace once, then install the plugin from it:
+
 ```bash
-claude plugin add /path/to/project-template-dev
+claude plugin marketplace add Agents-Store/claude-plugins
+claude plugin install project-template-dev@agents-store-claude-plugins
 ```
+
+Inside a Claude Code session the same install is `/plugin install project-template-dev@agents-store-claude-plugins`. To try a local checkout for one session without installing it, start Claude Code with `claude --plugin-dir /path/to/project-template-dev`.
+
+The plugin name is `project-template-dev` (formerly `project-template-creator`); the marketplace `renames` map moves installed copies to the new name.

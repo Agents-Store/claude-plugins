@@ -20,9 +20,9 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_work_item_activities`, `retrieve_work_item_activity`, `retrieve_work_item_by_identifier`.
-2. **Resolve project** → `project_id`. **Resolve work item** → `work_item_id`.
-3. **Fetch** — `list_work_item_activities({ project_id, work_item_id })`. Apply `--since` filter and `--limit`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `workitem` and `workitem_activity`.
+2. **Resolve project** → `project_id`. **Resolve work item** → `workitem_id` (`workitem(action=retrieve_by_identifier, workitem_identifier="PROJ-42")`).
+3. **Fetch** — `workitem_activity(action=list, project_id, workitem_id, per_page=<limit>)` (follow `next_cursor`); `workitem_activity(action=retrieve, project_id, workitem_id, activity_id)` for one entry. Apply the `--since` filter client-side (the call has no date parameter) and `--limit`.
 4. **Normalize each event** — Plane activities have a `verb` (`created`, `updated`, etc.) and a `field`. Render as one line:
    - `2026-04-08 14:32 alice  state: To Do → In Progress`
    - `2026-04-08 14:35 alice  +label: type/bug`

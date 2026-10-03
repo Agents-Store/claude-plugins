@@ -7,10 +7,14 @@ turned a spelling nobody had mapped into the quietest class in the report. These
 tests pin the translation and pin the refusal.
 """
 
+import json
 import unittest
+from unittest import mock
 
 import _support                                  # noqa: F401  (path bootstrap)
 import healthcheck
+import ocexec
+import ocjson
 
 
 class UpstreamSeverityTest(unittest.TestCase):
@@ -92,3 +96,132 @@ class OrphanedTimerTest(unittest.TestCase):
     def test_a_main_timer_without_a_binding_is_still_orphaned(self):
         self.assertTrue(healthcheck._timer_is_orphaned({"id": "c", "sessionTarget": "main"}))
         self.assertTrue(healthcheck._timer_is_orphaned({"id": "d"}))
+
+
+class _LintOpts(object):
+    """Just the switches check_lint reads."""
+
+    def __init__(self, lint=True, lint_all=False, skip_cli=False, timeout=30):
+        self.lint, self.lint_all, self.skip_cli, self.timeout = lint, lint_all, skip_cli, timeout
+
+
+def _rec():
+    return {"name": "alpha", "findings": [], "commands": {}, "metrics": {}}
+
+
+def _lint_result(rc, body=""):
+    return ocjson.interpret("doctor --lint", rc, body, "", argv=["doctor", "--lint"])
+
+
+class LintInvocationTest(unittest.TestCase):
+    """The exit code is only comparable between versions when the threshold is explicit."""
+
+    def test_the_default_run_pins_the_lowest_threshold(self):
+        argv = healthcheck.lint_argv(_LintOpts())
+        self.assertEqual(argv, ["doctor", "--lint", "--json", "--severity-min", "info"])
+
+    def test_the_audit_run_adds_the_opt_in_checks_in_the_same_call(self):
+        argv = healthcheck.lint_argv(_LintOpts(lint_all=True))
+        self.assertEqual(argv, ["doctor", "--lint", "--all", "--json", "--severity-min", "info"])
+
+    def test_both_forms_stay_inside_the_read_only_class(self):
+        # oc_read asserts R0 before it runs anything; a flag that tipped the class would
+        # silently turn the whole lint check into "refused"
+        for lint_all in (False, True):
+            with self.subTest(lint_all=lint_all):
+                argv = healthcheck.lint_argv(_LintOpts(lint_all=lint_all))
+                self.assertEqual(ocexec.classify_argv(argv)[0], "R0")
+                self.assertEqual(ocexec.derive_command_key(argv), "doctor --lint")
+
+    def test_lint_all_implies_lint(self):
+        args = healthcheck.build_parser().parse_args(["--lint-all"])
+        self.assertTrue(healthcheck.Options(args).lint)
+        self.assertTrue(healthcheck.Options(args).lint_all)
+
+
+class LintFailureTest(unittest.TestCase):
+    """Exit 2 is a command failure. It used to be read as "warnings only" and filed as clean."""
+
+    def run_lint(self, result, opts=None):
+        rec = _rec()
+        with mock.patch.object(healthcheck, "oc_read", return_value=(result, "ok")) as read:
+            healthcheck.check_lint(rec, {}, opts or _LintOpts())
+        self.read = read
+        return rec
+
+    def test_a_failure_with_no_document_is_a_finding_not_a_pass(self):
+        rec = self.run_lint(_lint_result(2, ""))
+        self.assertEqual(rec["metrics"]["lint"], "failed")
+        self.assertEqual(rec["commands"]["doctor_lint"], "failed")
+        ids = [f["id"] for f in rec["findings"]]
+        self.assertEqual(ids, ["fleet.lint.run-failed"])
+        self.assertEqual(rec["findings"][0]["severity"], "high")
+
+    def test_a_failure_document_is_passed_through_and_not_doubled(self):
+        body = json.dumps({"ok": False, "checksRun": 0, "findings": [
+            {"checkId": "core/doctor/lint-inspection", "severity": "error",
+             "message": "inspection failed", "path": "state"}]})
+        rec = self.run_lint(_lint_result(2, body))
+        self.assertEqual(rec["metrics"]["lint"], "failed")
+        self.assertEqual([f["id"] for f in rec["findings"]], ["core/doctor/lint-inspection"])
+        self.assertEqual(rec["findings"][0]["severity"], "high")
+
+    def test_threshold_findings_keep_their_verbatim_id_and_mapped_severity(self):
+        body = json.dumps({"ok": False, "checksRun": 5, "findings": [
+            {"checkId": "core/doctor/gateway-config", "severity": "warning",
+             "message": "gateway.mode is unset", "path": "gateway.mode", "fixHint": "set it"},
+            {"checkId": "memory-core/managed-local-embedding-setup", "severity": "info",
+             "message": "not set up", "path": "memory.search"}]})
+        rec = self.run_lint(_lint_result(1, body))
+        self.assertEqual(rec["metrics"]["lint"], "findings")
+        self.assertEqual([(f["id"], f["severity"]) for f in rec["findings"]],
+                         [("core/doctor/gateway-config", "warn"),
+                          ("memory-core/managed-local-embedding-setup", "info")])
+        self.assertEqual(rec["findings"][0]["evidence"], "gateway.mode")
+
+    def test_a_killed_or_timed_out_run_is_a_failed_run_with_a_finding(self):
+        # oc_read reports status "failed" for a non-zero exit outside the 0/1/2 contract
+        for rc in (124, 137, 143, 70):
+            with self.subTest(rc=rc):
+                rec = _rec()
+                with mock.patch.object(healthcheck, "oc_read",
+                                       return_value=(_lint_result(rc, ""), "failed")):
+                    healthcheck.check_lint(rec, {}, _LintOpts())
+                self.assertEqual(rec["commands"]["doctor_lint"], "failed")
+                self.assertEqual([f["id"] for f in rec["findings"]], ["fleet.lint.run-failed"])
+                self.assertIn("NOT a clean result", rec["findings"][0]["message"])
+
+    def test_a_build_without_the_verb_is_drift_recorded_in_commands_only(self):
+        # the module's rule: a missing verb is "unsupported", never a failure and never a finding
+        rec = _rec()
+        with mock.patch.object(healthcheck, "oc_read",
+                               return_value=(_lint_result(1, ""), "unsupported")):
+            healthcheck.check_lint(rec, {}, _LintOpts())
+        self.assertEqual(rec["commands"]["doctor_lint"], "unsupported")
+        self.assertEqual(rec["findings"], [])
+        self.assertNotIn("lint", rec["metrics"])
+
+    def test_a_refused_read_leaves_only_its_status(self):
+        rec = _rec()
+        with mock.patch.object(healthcheck, "oc_read",
+                               return_value=(None, "refused:gateway is down")):
+            healthcheck.check_lint(rec, {}, _LintOpts())
+        self.assertTrue(rec["commands"]["doctor_lint"].startswith("refused"))
+        self.assertEqual(rec["findings"], [])
+
+    def test_a_clean_run_records_clean_and_no_finding(self):
+        rec = self.run_lint(_lint_result(0, json.dumps({"ok": True, "findings": []})))
+        self.assertEqual(rec["metrics"]["lint"], "clean")
+        self.assertEqual(rec["findings"], [])
+
+    def test_the_lint_check_asks_for_the_documented_argv(self):
+        self.run_lint(_lint_result(0, "{}"), _LintOpts(lint_all=True))
+        self.assertEqual(self.read.call_args[0][1],
+                         ["doctor", "--lint", "--all", "--json", "--severity-min", "info"])
+
+    def test_without_the_switch_nothing_runs(self):
+        rec = _rec()
+        with mock.patch.object(healthcheck, "oc_read") as read:
+            healthcheck.check_lint(rec, {}, _LintOpts(lint=False))
+        read.assert_not_called()
+        self.assertEqual(rec["metrics"], {})

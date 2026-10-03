@@ -15,13 +15,14 @@ Read and extract content from a web page or PDF. See CONNECTORS.md for provider 
 
 2. **Read content** with fallback (~~scrape):
    ```
-   Try each provider: Jina → Firecrawl
+   Try each provider: Jina → Firecrawl → Exa fetch (maxCharacters: 20000)
    On error → next provider automatically
+   Long page and a specific question? pass it as `question` to get only the relevant passages
    ```
 
 3. **Optional extras:**
    - `--format screenshot` → capture page screenshot
-   - `--format json` → structured JSON extraction
+   - `--format json` → structured JSON extraction (~~extract, one URL per call)
    - Check publish date → detect page date
 
 4. **Display** extracted content with source URL and date.

@@ -8,9 +8,14 @@
 #
 # PDF engine fallback chain (best to least):
 #   1. weasyprint  — best CSS support, ideal for styled HTML->PDF
-#   2. wkhtmltopdf — good HTML->PDF, widely available
-#   3. pdflatex    — LaTeX-based, good for academic docs
-#   4. (none)      — suggests using docx_to_pdf.js (puppeteer) as alternative
+#   2. typst       — lightweight, no LaTeX installation needed
+#   3. pdflatex    — LaTeX-based, good for academic docs (needs extra setup for Cyrillic)
+#   4. (none)      — for a DOCX input suggests docx_to_pdf.js (Playwright) as alternative
+# wkhtmltopdf is not used: the pandoc manual marks it deprecated.
+#
+# DOCX output: pandoc takes headings, lists and tables from the source, but the
+# look (fonts, colours, spacing) comes only from assets/reference.docx. Pandoc
+# ignores CSS, so an HTML source's styling does not reach the DOCX.
 #
 # Output: JSON to stdout { success, outputPath } or { success: false, error }
 
@@ -61,26 +66,26 @@ REFERENCE_DOC="$SCRIPT_DIR/../assets/reference.docx"
 
 case "$OUTPUT_EXT" in
   pdf)
-    # PDF engine fallback chain: weasyprint > wkhtmltopdf > pdflatex
+    # PDF engine fallback chain: weasyprint > typst > pdflatex
     if command -v weasyprint &> /dev/null; then
       PANDOC_ARGS="--pdf-engine=weasyprint"
-    elif command -v wkhtmltopdf &> /dev/null; then
-      PANDOC_ARGS="--pdf-engine=wkhtmltopdf"
+    elif command -v typst &> /dev/null; then
+      PANDOC_ARGS="--pdf-engine=typst"
     elif command -v pdflatex &> /dev/null; then
       PANDOC_ARGS=""
     else
       # No pandoc PDF engine — suggest alternatives
       if [[ "$OSTYPE" == "darwin"* ]]; then
-        INSTALL_CMDS="pip3 install weasyprint (recommended) or brew install wkhtmltopdf"
+        INSTALL_CMDS="brew install weasyprint (recommended) or brew install typst"
       elif [[ "$OSTYPE" == "linux"* ]]; then
-        INSTALL_CMDS="pip3 install weasyprint (recommended) or sudo apt install -y wkhtmltopdf"
+        INSTALL_CMDS="sudo apt install -y weasyprint (recommended) or install typst from https://github.com/typst/typst/releases"
       else
-        INSTALL_CMDS="pip3 install weasyprint (recommended)"
+        INSTALL_CMDS="pip install weasyprint (recommended)"
       fi
 
-      # Check if puppeteer-based converter is available as fallback
+      # DOCX input: the Playwright-based converter needs no pandoc PDF engine
       if [ -f "$SCRIPT_DIR/docx_to_pdf.js" ] && [ "$INPUT_EXT" = "docx" ]; then
-        echo "{\"success\": false, \"error\": \"No pandoc PDF engine found. Falling back to puppeteer. Run: node $SCRIPT_DIR/docx_to_pdf.js \\\"$INPUT\\\" \\\"$OUTPUT\\\"\", \"fallback\": \"puppeteer\", \"fallbackCmd\": \"node $SCRIPT_DIR/docx_to_pdf.js \\\"$INPUT\\\" \\\"$OUTPUT\\\"\"}"
+        echo "{\"success\": false, \"error\": \"No pandoc PDF engine found. Use the Playwright converter instead. Run: node $SCRIPT_DIR/docx_to_pdf.js \\\"$INPUT\\\" \\\"$OUTPUT\\\"\", \"fallback\": \"playwright\", \"fallbackCmd\": \"node $SCRIPT_DIR/docx_to_pdf.js \\\"$INPUT\\\" \\\"$OUTPUT\\\"\"}"
         exit 1
       fi
 
@@ -89,7 +94,7 @@ case "$OUTPUT_EXT" in
     fi
     ;;
   docx)
-    # Use reference doc for consistent styling if available
+    # The reference doc is the only source of DOCX styling (pandoc ignores CSS)
     if [ -f "$REFERENCE_DOC" ]; then
       PANDOC_ARGS="--reference-doc=$REFERENCE_DOC"
     fi

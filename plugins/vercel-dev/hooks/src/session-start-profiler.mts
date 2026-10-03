@@ -77,14 +77,9 @@ interface GreenfieldResult {
  */
 const FILE_MARKERS: FileMarker[] = [
   { file: ".eve", skills: ["eve"] },
-  { file: "next.config.js", skills: ["nextjs", "turbopack"] },
-  { file: "next.config.mjs", skills: ["nextjs", "turbopack"] },
-  { file: "next.config.ts", skills: ["nextjs", "turbopack"] },
-  { file: "next.config.mts", skills: ["nextjs", "turbopack"] },
   { file: "vercel.json", skills: ["vercel-cli", "deployments-cicd", "vercel-functions"] },
   { file: "middleware.ts", skills: ["routing-middleware"] },
   { file: "middleware.js", skills: ["routing-middleware"] },
-  { file: "components.json", skills: ["shadcn"] },
   { file: "flags.ts", skills: ["flags-sdk"] },
   { file: ".env.local", skills: ["env-vars"] },
 ];
@@ -94,7 +89,6 @@ const FILE_MARKERS: FileMarker[] = [
  */
 const PACKAGE_MARKERS: Record<string, string[]> = {
   "eve": ["eve"],
-  "next": ["nextjs"],
   "ai": ["ai-sdk"],
   "@ai-sdk/openai": ["ai-sdk"],
   "@ai-sdk/anthropic": ["ai-sdk"],
@@ -109,11 +103,6 @@ const PACKAGE_MARKERS: Record<string, string[]> = {
   "@vercel/sandbox": ["vercel-sandbox"],
   "flags": ["flags-sdk"],
   "@flags-sdk/vercel": ["flags-sdk"],
-  "@repo/auth": ["next-forge"],
-  "@repo/database": ["next-forge"],
-  "@repo/design-system": ["next-forge"],
-  "@repo/payments": ["next-forge"],
-  "@t3-oss/env-nextjs": ["next-forge"],
 };
 
 const SETUP_ENV_TEMPLATE_FILES: string[] = [
@@ -146,7 +135,6 @@ const SETUP_RESOURCE_DEPENDENCIES: Record<string, string> = {
 
 const SETUP_MODE_THRESHOLD = 3;
 const GREENFIELD_DEFAULT_SKILLS: string[] = [
-  "nextjs",
   "ai-sdk",
   "vercel-cli",
   "env-vars",

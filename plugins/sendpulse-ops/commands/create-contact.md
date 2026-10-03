@@ -1,6 +1,6 @@
 ---
 description: Create a new CRM contact
-allowed-tools: mcp__sendpulse__crm_contacts_create, mcp__sendpulse__crm_contacts_list_by_email
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__crm_contacts_create, mcp__plugin_sendpulse-ops_sendpulse__crm_contacts_list_by_email
 argument-hint: <email> [--name <name>] [--phone <phone>]
 ---
 

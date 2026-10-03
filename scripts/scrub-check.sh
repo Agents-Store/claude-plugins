@@ -6,24 +6,29 @@
 #   ./scripts/scrub-check.sh plugins/<name>      one plugin
 #   ./scripts/scrub-check.sh --strict <path>     force the strict ruleset
 #   ./scripts/scrub-check.sh --format json       machine-readable output
-#   ./scripts/scrub-check.sh --no-lint <path>    scrub only, skip the structure lint
+#   ./scripts/scrub-check.sh --no-lint <path>    scrub only, skip the structure lint AND the validator pass
 #
 # Exit: 0 clean · 1 hard fail (blocks the merge) · 2 warnings only.
 #
-# Two passes run behind this one entry point:
+# Three passes run behind this one entry point:
 #   scrub_check.py   deployment data in the tree — rules written as shapes,
 #                    never as literal values from any real deployment, because a
 #                    gate that hardcodes the strings it hunts becomes the leak it
 #                    was meant to stop. Exceptions: scripts/scrub-allow.txt.
-#   plugin_lint.py   structure — the eight-block dry-run plan with an executable
-#                    ROLLBACK on every mutating command, one skill name across
-#                    SKILL.md / directory / evals.json, and plugin.json version
-#                    equal to the marketplace.json entry. No baseline: fixed, not
-#                    excused.
+#   plugin_lint.py   structure, four rules: mutation-plan (the eight-block dry-run
+#                    plan with an executable ROLLBACK on every mutating command),
+#                    skill-name (one name across SKILL.md / directory / evals.json),
+#                    version-parity (plugin.json version equal to the marketplace.json
+#                    entry) and mcp-prefix (a tool of the plugin's own .mcp.json
+#                    server is mcp__plugin_<plugin>_<server>__<tool>, not the bare
+#                    mcp__<server>__ form). No baseline: fixed, not excused.
+#   validate_pass.py the official manifest validator, `claude plugin validate
+#                    --strict`, over every covered plugin. Without the claude CLI
+#                    on PATH it reports "skipped" and does not fail.
 #
-# NOTE: both passes read the WORKING TREE only. A value that already reached git
-# history is not caught here and cannot be fixed by editing a file — it has to be
-# revoked at the source. See CLAUDE.md, "Publication Gate".
+# NOTE: the scrub and lint passes read the WORKING TREE only. A value that
+# already reached git history is not caught here and cannot be fixed by editing
+# a file — it has to be revoked at the source. See CLAUDE.md, "Publication Gate".
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -67,23 +72,27 @@ if [ "$run_lint" -eq 0 ]; then
 fi
 
 if [ "$want_json" -eq 1 ]; then
-  scrub_out="$(mktemp)"; lint_out="$(mktemp)"
-  trap 'rm -f "${scrub_out}" "${lint_out}"' EXIT
+  scrub_out="$(mktemp)"; lint_out="$(mktemp)"; validate_out="$(mktemp)"
+  trap 'rm -f "${scrub_out}" "${lint_out}" "${validate_out}"' EXIT
   set +e
-  python3 "${here}/scrub_check.py" "${args[@]+"${args[@]}"}" >"${scrub_out}"; scrub_status=$?
-  python3 "${here}/plugin_lint.py"  "${args[@]+"${args[@]}"}" >"${lint_out}";  lint_status=$?
+  python3 "${here}/scrub_check.py"    "${args[@]+"${args[@]}"}" >"${scrub_out}";    scrub_status=$?
+  python3 "${here}/plugin_lint.py"    "${args[@]+"${args[@]}"}" >"${lint_out}";     lint_status=$?
+  python3 "${here}/validate_pass.py"  "${args[@]+"${args[@]}"}" >"${validate_out}"; validate_status=$?
   set -e
-  python3 - "${scrub_out}" "${lint_out}" <<'PY'
+  python3 - "${scrub_out}" "${lint_out}" "${validate_out}" <<'PY'
 import json, sys
-scrub = json.load(open(sys.argv[1]))
-lint = json.load(open(sys.argv[2]))
-print(json.dumps({"scrub": scrub, "lint": lint}, indent=2))
+docs = {}
+for key, path in zip(("scrub", "lint", "validate"), sys.argv[1:4]):
+    with open(path, encoding="utf-8") as fh:
+        docs[key] = json.load(fh)
+print(json.dumps(docs, indent=2))
 PY
-  exit "$(worst "${scrub_status}" "${lint_status}")"
+  exit "$(worst "$(worst "${scrub_status}" "${lint_status}")" "${validate_status}")"
 fi
 
 set +e
-python3 "${here}/scrub_check.py" "${args[@]+"${args[@]}"}"; scrub_status=$?
-python3 "${here}/plugin_lint.py"  "${args[@]+"${args[@]}"}"; lint_status=$?
+python3 "${here}/scrub_check.py"   "${args[@]+"${args[@]}"}"; scrub_status=$?
+python3 "${here}/plugin_lint.py"   "${args[@]+"${args[@]}"}"; lint_status=$?
+python3 "${here}/validate_pass.py" "${args[@]+"${args[@]}"}"; validate_status=$?
 set -e
-exit "$(worst "${scrub_status}" "${lint_status}")"
+exit "$(worst "$(worst "${scrub_status}" "${lint_status}")" "${validate_status}")"

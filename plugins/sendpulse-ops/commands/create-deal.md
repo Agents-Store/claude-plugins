@@ -1,6 +1,6 @@
 ---
 description: Create a new CRM deal in a pipeline
-allowed-tools: mcp__sendpulse__crm_deals_create, mcp__sendpulse__crm_pipelines_list, mcp__sendpulse__crm_pipelines_steps_list
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__crm_deals_create, mcp__plugin_sendpulse-ops_sendpulse__crm_pipelines_list, mcp__plugin_sendpulse-ops_sendpulse__crm_pipelines_steps_list
 argument-hint: <deal-name> [--pipeline <id>] [--amount <amount>]
 ---
 

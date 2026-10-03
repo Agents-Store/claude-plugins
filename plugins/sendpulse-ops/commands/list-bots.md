@@ -1,6 +1,6 @@
 ---
 description: List all connected chatbots with their channels and statistics
-allowed-tools: mcp__sendpulse__chatbots_bots_list, mcp__sendpulse__chatbots_bots_statistics_show, mcp__sendpulse__chatbots_account_show
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_list, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_statistics_show, mcp__plugin_sendpulse-ops_sendpulse__chatbots_account_show
 argument-hint: [--stats]
 ---
 

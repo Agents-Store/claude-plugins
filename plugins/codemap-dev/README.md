@@ -14,10 +14,10 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 
 | How you invoke | What happens |
 |---|---|
-| `/codemap:review file.py` (command) | Agent launches **automatically** |
-| `/codemap:explain app.py` (command) | Agent launches **automatically** |
-| `/codemap:diagram architecture` (command) | Agent launches **automatically** |
-| `/codemap:test-frontend localhost:3000` (command) | Agent launches **automatically** |
+| `/codemap-dev:review file.py` (command) | Agent launches **automatically** |
+| `/codemap-dev:explain app.py` (command) | Agent launches **automatically** |
+| `/codemap-dev:diagram architecture` (command) | Agent launches **automatically** |
+| `/codemap-dev:test-frontend localhost:3000` (command) | Agent launches **automatically** |
 | "review file.py" (chat trigger) | Skill triggers → **asks**: agent or inline? |
 | "explain app.py" (chat trigger) | Skill triggers → **asks**: agent or inline? |
 | "test the frontend" (chat trigger) | Skill triggers → **asks**: agent or inline? |
@@ -27,19 +27,19 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 ## Requirements
 
 - **drawio-mcp** — public HTTP MCP server (auto-configured by plugin, no API key needed)
-- **Playwright MCP** — local stdio server, auto-installed via `npx @playwright/mcp@latest` (requires Node.js)
+- **Playwright MCP** — local stdio server, auto-installed via `npx @playwright/mcp@0.0.83` (requires Node.js)
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/codemap:onboard` | Full onboarding report + 3 diagrams (architecture, main flow, ERD) |
-| `/codemap:review <path\|PR#>` | Beginner-friendly code review |
-| `/codemap:explain <path\|symbol>` | Step-by-step code explanation |
-| `/codemap:diagram <type> [scope]` | Generate specific diagram (architecture, flow, db, sequence, deps) |
-| `/codemap:db` | Parse models/migrations and generate ERD + DB documentation |
-| `/codemap:flows` | Discover and visualize main user flows |
-| `/codemap:test-frontend [url]` | Test running app's frontend — navigate pages, check UI, find errors, generate report |
+| `/codemap-dev:onboard` | Full onboarding report + 3 diagrams (architecture, main flow, ERD) |
+| `/codemap-dev:review <path\|PR#>` | Beginner-friendly code review |
+| `/codemap-dev:explain <path\|symbol>` | Step-by-step code explanation |
+| `/codemap-dev:diagram <type> [scope]` | Generate specific diagram (architecture, flow, db, sequence, deps) |
+| `/codemap-dev:db` | Parse models/migrations and generate ERD + DB documentation |
+| `/codemap-dev:flows` | Discover and visualize main user flows |
+| `/codemap-dev:test-frontend [url]` | Test running app's frontend — navigate pages, check UI, find errors, generate report |
 
 ## Skills (auto-triggered in chat)
 

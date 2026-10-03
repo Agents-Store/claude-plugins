@@ -418,7 +418,8 @@ class Options(object):
         self.memory_db_warn_mb = args.memory_db_warn_mb
         self.skip_http = args.skip_http
         self.skip_cli = args.skip_cli
-        self.lint = args.lint
+        self.lint_all = args.lint_all
+        self.lint = args.lint or args.lint_all
 
 
 def check_container(rec, record):
@@ -781,22 +782,67 @@ def check_memory(rec, record, opts):
                 source="cli:memory status --json")
 
 
+# The lowest threshold, spelled out. Without ``--severity-min`` the documented default is
+# not stated, so an exit code taken from a bare ``doctor --lint`` cannot be compared between
+# builds: the same instance may exit 0 on one and 1 on the next. Asking for ``info`` makes
+# the exit code mean "any finding at all" everywhere, and the findings themselves are then
+# ranked by this plugin, not by upstream's cut-off.
+LINT_SEVERITY_FLOOR = "info"
+
+
+def lint_argv(opts):
+    """The documented argv for the lint read. ``--all`` is the audit inventory.
+
+    ``--all`` selects the checks before severity filtering: the default run leaves out
+    deep, historical and opt-in checks (the managed local embedding setup check among
+    them). It is a superset of the default run, so it replaces it rather than following it.
+    """
+    argv = ["doctor", "--lint"]
+    if getattr(opts, "lint_all", False):
+        argv.append("--all")
+    argv += ["--json", "--severity-min", LINT_SEVERITY_FLOOR]
+    return argv
+
+
 def check_lint(rec, record, opts):
-    """``doctor --lint --json`` — the only findings that arrive with a sanctioned fix."""
+    """``doctor --lint --json`` — the only findings that arrive with a sanctioned fix.
+
+    The exit code is a threshold contract: 0 nothing at or above the threshold, 1 at least
+    one finding, 2 the command failed before its checks completed. A 2 is not "warnings
+    only" — it used to be read that way, which filed a broken run as a clean one.
+
+    A run that did not produce a verdict is never silent. Exit 2, a kill or timeout (124, 137,
+    143) and any other exit outside the contract are one thing — a FAILED run — and raise
+    ``fleet.lint.run-failed`` unless the run supplied an error finding of its own, which then
+    carries the detail. Two cases deliberately raise nothing and leave their status in
+    ``commands`` only, because that is this module's rule for them: ``unsupported`` (this
+    build has no such verb — drift, not a defect) and ``refused`` (the gateway is not running,
+    so no CLI read is possible).
+    """
     if not opts.lint or opts.skip_cli:
         return
-    result, status = oc_read(record, ["doctor", "--lint", "--json"], opts.timeout)
+    result, status = oc_read(record, lint_argv(opts), opts.timeout)
     rec["commands"]["doctor_lint"] = status
-    if result is None or status in ("unsupported", "failed"):
+    if result is None or status == "unsupported":
         return
     label, explanation = ocjson.exit_meaning("doctor --lint", result.rc)
     rec["metrics"]["lint"] = label
-    for item in result.findings():
+    items = result.findings()
+    if status == "failed" or label in ("failed", "timeout", "missing"):
+        rec["commands"]["doctor_lint"] = "failed"
+        if not items:
+            finding(rec, "fleet.lint.run-failed", "high",
+                    "doctor --lint exited %d: %s. The run produced no report, so this is "
+                    "NOT a clean result" % (result.rc, explanation),
+                    source="cli:doctor --lint --json",
+                    fix="read stderr and the instance's own diagnostics before trusting any "
+                        "lint verdict; do not retry in a loop")
+    for item in items:
         # Upstream ids pass through VERBATIM — that is the catalog rule, and it is what
         # lets /repair resolve one of the documented pass-through families. A local
         # prefix here would invent an id that no catalog row can ever cover.
         check_id = item.get("checkId") or "fleet.lint.unclassified"
-        severity = upstream_severity(item.get("severity", "warn"),
+        severity = upstream_severity(ocjson.finding_severity(item) or "warn",
                                      "doctor --lint finding %r" % check_id)
         finding(rec, check_id, severity,
                 redact.scrub(str(item.get("message") or explanation))[:300],
@@ -1148,8 +1194,12 @@ def build_parser():
     ap.add_argument("--skip-http", action="store_true", help="skip the endpoint probes")
     ap.add_argument("--skip-cli", action="store_true", help="skip every in-container CLI read")
     ap.add_argument("--lint", action="store_true",
-                    help="also run doctor --lint --json (adds findings that carry a checkId and a "
-                         "fixHint from the runtime itself)")
+                    help="also run doctor --lint --json --severity-min info (adds findings that "
+                         "carry a checkId and a fixHint from the runtime itself). Exit 2 from "
+                         "the command is a failed run, not a warning")
+    ap.add_argument("--lint-all", dest="lint_all", action="store_true",
+                    help="as --lint, plus the opt-in checks upstream leaves out of the default "
+                         "run (doctor --lint --all): the audit posture")
     return ap
 
 

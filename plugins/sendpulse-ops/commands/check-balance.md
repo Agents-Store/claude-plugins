@@ -1,6 +1,6 @@
 ---
 description: Check Sendpulse account balance and email credits
-allowed-tools: mcp__sendpulse__email_balance_show, mcp__sendpulse__email_balance_show_detail
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__email_balance_show, mcp__plugin_sendpulse-ops_sendpulse__email_balance_show_detail
 argument-hint: [--detailed]
 ---
 

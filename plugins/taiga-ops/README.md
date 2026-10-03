@@ -38,6 +38,8 @@ Set these environment variables (shell, or this repo's `.env`):
 | `TAIGA_ADMIN_PASSWORD` | yes | `••••••••` | Password for that account. |
 | `TAIGA_AUTH_TOKEN` | derived | — | Obtained at runtime by the `setup` skill via `POST /api/v1/auth`; reused for the session. |
 
+**Taiga Cloud vs self-hosted.** `https://api.taiga.io` is the hosted Taiga Cloud service. Since 2025-10-15 it has paid plans with project-count and storage limits (existing accounts had until 2026-01-01 to choose a plan), so a create or upload on a Cloud account can be refused for hitting a limit — for example `"No room left for more projects."`; read the response body. A self-hosted instance is not subject to the Cloud plans (its admin can set their own project limits).
+
 In this repo, add the three input vars to `.env.example`, store real values in Infisical, and run `./scripts/setup.sh dev .env .claude/settings.local.json` to pull them locally.
 
 ## Quick start
@@ -62,7 +64,8 @@ curl -s -X POST "${TAIGA_API_URL%/}/api/v1/auth" \
 
 ## Notes
 
-- **No MCP dependency.** This is a pure REST knowledge plugin so it can cover *all* operations. Community MCP servers (`greddy7574/taiga-mcp-server`, `talhaorak/pytaiga-mcp`) exist and cover a subset (~33 tools) — optional convenience, not required.
+- **No MCP dependency.** This is a pure REST knowledge plugin so it can cover *all* operations. There is no official Taiga MCP server; community ones ([`greddy7574/taigaMcpServer`](https://github.com/greddy7574/taigaMcpServer), [`talhaorak/pytaiga-mcp`](https://github.com/talhaorak/pytaiga-mcp), [`madebyclowd/taiga-mcp-server`](https://github.com/madebyclowd/taiga-mcp-server)) cover a subset of the API — optional convenience, not required, and unaudited third-party code: review one before giving it your Taiga credentials.
+- **Tenzu is not Taiga.** Tenzu ([tenzu.net](https://tenzu.net), from BIRU, the project formerly announced as Taiga Next) is a separate product with its own backend; this plugin targets the Taiga REST API v1 and does not cover it.
 - **Optimistic locking.** Taiga rejects edits that omit or use a stale `version`. The skills always `GET` an item before editing it.
 - **Swimlanes** are not part of the documented REST API and are intentionally omitted.
 

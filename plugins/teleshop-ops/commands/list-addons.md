@@ -1,6 +1,6 @@
 ---
 description: List all available store addons and their status
-allowed-tools: ["mcp__teleshop__list_workflows"]
+allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__list_workflows"]
 argument-hint:
 ---
 

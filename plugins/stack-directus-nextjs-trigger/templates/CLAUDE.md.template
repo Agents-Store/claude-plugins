@@ -1,0 +1,45 @@
+# CLAUDE.md
+
+## Project: [PROJECT_NAME]
+
+Stack: Directus + Next.js (App Router) + Trigger.dev (self-hosted)
+
+## Architecture
+
+- **Data Layer**: Directus at [DIRECTUS_URL]
+- **Interface Layer**: Next.js App Router (Server Components, Server Actions, Route Handlers)
+- **Work Layer**: Trigger.dev (self-hosted) at [TRIGGER_API_URL]: durable tasks, retries, schedules, AI calls; runs on the Trigger.dev workers, not on the Next.js host
+- **Local Dev**: Docker Compose for Directus (see the `directus-dev` plugin), `npx trigger.dev dev --env-file .env.trigger.local`, `npm run dev`
+- **Deployment**: see project deployment plugin (e.g. `dokploy-dev`, `vercel-dev`); tasks are deployed separately with the Trigger.dev CLI
+
+## Key Files
+
+- `lib/directus.ts` - Directus SDK client, server-only
+- `lib/content.ts` - every Directus read of the pages, tagged with its collections
+- `types/directus.ts` - TypeScript schema matching the Directus collections (shared with the tasks)
+- `app/api/revalidate/route.ts` - expires a cache tag when a Directus Flow or a task calls it
+- `app/api/directus-webhook/[collection]/route.ts` - starts a task when a Directus Flow calls it
+- `trigger/` - task definitions (tasks, schedules); `trigger/lib/directus.ts` is the task-side client
+- `trigger.config.ts` - Trigger.dev project config
+- `.env.local` (Next.js) and `.env.trigger.local` (tasks, literal values), both out of git
+
+## Conventions
+
+- The SDK has no `cache` option. Directus reads go through `lib/content.ts`, tagged with the collections they read (previous caching model: `withOptions` with `next.tags`; Cache Components: `'use cache'` with `cacheTag`)
+- `DIRECTUS_ADMIN_TOKEN` is server-side only (`import 'server-only'`) and belongs to a dedicated user, not an administrator. Tasks use the token of their own user
+- File URLs never carry a token: public files, or the asset proxy route
+- Never cache a read made with a signed-in user's token
+- A Server Action is a public endpoint that takes any id: authenticate with `requireUser()` and authorize before it uses the server token or starts a task. Write with the user's own token (`withToken(session.accessToken, ...)`) or check role or ownership in code
+- Delegate to a task what is slow or can fail: AI calls, third-party APIs, bulk work, anything on a schedule. A task payload carries ids (and `requestedBy` for audit), never a token and never a copy of the item
+- Import a task into Next.js code as a type only (`import type { myTask } from '@/trigger/my-task'`); call `tasks.trigger()` inside the handler or action, never at module level
+- A task builds its own Directus client (`trigger/lib/directus.ts`); it never imports `lib/directus.ts`, which has `import 'server-only'`
+- Content a task changes is refreshed by the revalidation Flow when it lists the collection; a task that calls `/api/revalidate` itself sends the secret in the `x-revalidate-secret` header and checks the response
+- Task environment variables are set in the Trigger.dev project, per environment. They do not come from the Next.js host
+- `@trigger.dev/sdk`, `@trigger.dev/react-hooks` and the `trigger.dev` CLI are the version of the server
+- After a schema change: update `types/directus.ts`, then run `npx tsc --noEmit` (it covers `trigger/` too)
+- After a mutation: `updateTag(collection)`; content edited in Directus is expired by the Flow through `/api/revalidate`
+- Liveness check for Directus is `/server/ping` (the health endpoint needs a token)
+
+## Environment Variables
+
+See `.env.example` (Next.js) and `.env.trigger.example` (tasks) for all required variables.

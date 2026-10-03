@@ -1,6 +1,6 @@
 ---
 description: Create and send an email campaign
-allowed-tools: mcp__sendpulse__email_campaigns_create, mcp__sendpulse__email_addressbooks_list, mcp__sendpulse__email_templates_list, mcp__sendpulse__email_senders_list, mcp__sendpulse__email_balance_show, mcp__sendpulse__email_addressbooks_cost
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__email_campaigns_create, mcp__plugin_sendpulse-ops_sendpulse__email_addressbooks_list, mcp__plugin_sendpulse-ops_sendpulse__email_templates_list, mcp__plugin_sendpulse-ops_sendpulse__email_senders_list, mcp__plugin_sendpulse-ops_sendpulse__email_balance_show, mcp__plugin_sendpulse-ops_sendpulse__email_addressbooks_cost
 argument-hint: <subject> [--addressbook <id>] [--sender <email>] [--template <id>]
 ---
 

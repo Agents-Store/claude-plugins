@@ -55,6 +55,11 @@ PROFILES = ("template", "legacy", "alien")
 # the mount table says they are.
 MOUNT_ROLES = {
     "/home/node/.openclaw": "state_dir",
+    # Upstream calls this the legacy auth-profile encryption key (the legacy OAuth
+    # migration-key mount). Current credentials live in SQLite under the state mount; the
+    # key only recovers an older sidecar. It is still a credential directory when present
+    # — hence the role name, and clone.py keeps it in CREDENTIAL_ROLES — but it is not a
+    # marker of a template layout (see layout_profile).
     "/home/node/.config/openclaw": "auth_secrets",
     "/home/node/.claude": "claude_dir",
     "/home/node/.claude.json": "claude_json",
@@ -271,16 +276,25 @@ def layout_profile(record):
     nothing. A template instance is the one that carries every marker the
     maintenance procedures assume; anything recognisably OpenClaw but shaped
     differently is legacy; anything unrecognisable is alien.
+
+    The mount at the legacy auth-profile key path is NOT one of the markers. It used
+    to be, and an instance without it was refused as ``legacy`` and locked against
+    every mutation — but upstream now describes that mount as the legacy OAuth
+    migration-key mount, and the current OAuth material sits in the state database
+    under the ordinary state mount. Requiring it rejected healthy instances for a
+    directory they no longer need. Its presence is still recorded, under
+    ``fingerprint.optional``, because a copy of it is a credential artefact.
     """
     paths = record.get("paths") or {}
     container = record.get("container") or {}
     markers = {
         "state_mount": bool(paths.get("state_dir")),
-        "auth_secrets_mount": bool(paths.get("auth_secrets")),
         "compose_file": bool((record.get("compose") or {}).get("config_files")),
         "gateway_container": bool(container.get("id")),
     }
-    record.setdefault("fingerprint", {})["markers"] = markers
+    fingerprint = record.setdefault("fingerprint", {})
+    fingerprint["markers"] = markers
+    fingerprint["optional"] = {"legacy_auth_key_mount": bool(paths.get("auth_secrets"))}
     looks_openclaw = (
         markers["state_mount"]
         or "openclaw" in (container.get("image") or "").lower()

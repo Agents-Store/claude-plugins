@@ -1,7 +1,7 @@
 {
   "type": "invoice",
   "format": "pdf",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "structure": {
     "header": { "companyInfo": true, "logo": true },
     "invoiceMeta": ["invoiceNumber", "date", "dueDate"],

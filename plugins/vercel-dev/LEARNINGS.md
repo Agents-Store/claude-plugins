@@ -41,3 +41,24 @@
 **Fix:** Both sections live in `skills/deployments-cicd/references/cli-deploys.md`, linked by one line at the end of Best Practices (11988 bytes injected). Add fork content to `references/`, never inline.
 **Root cause:** Upstream sizes the skill body to its budget.
 **Severity:** Minor
+
+## 2026-10-03 — re-vendor: 0.51.0 → 0.53.0 (e8a2e71), same recipe
+
+**Problem:** Upstream moved 23 commits, deleted the `nextjs`, `next-cache-components`, `next-upgrade`, `next-forge`, `shadcn` and `turbopack` skills and added 32 `.vercel.approvers` files. Every fork patch had to survive the sync.
+**Fix:** `rsync -a --delete` of a clean upstream checkout at `e8a2e71` (upstream `main` had already moved 5 commits past it; the vendor stays on the 0.53.0 bump) into `plugins/vercel-dev/`, excluding `.git`, `.plugin/`, `.cursor-plugin/`, `.kimi-plugin/`, `CLAUDE.md`, `.claude/projects/`, `.claude-plugin/` (the fork keeps only its own `plugin.json`), `.mcp.json`, `.gitignore`, `LEARNINGS.md`, `skills/*/evals/`, `skills/deployments-cicd/references/cli-deploys.md` and every `.vercel.approvers`; then `rmdir` the emptied skill directories and drop `skills/next-upgrade/evals/` with its skill. Patches re-applied as separate commits: manifest path (`git apply` of the 0.51 diff), telemetry opt-in (sources and tests by `git apply`, compiled hooks rebuilt with `bun run build:hooks`, never merged as text), `/deploy` template (then `bun run build:from-skills`), CLI-deploys link, placeholders. Verify with the six-command chain and `unshare -rn bun test` (no network namespace proves no test reaches the telemetry bridge).
+**Root cause:** Vendored plugin with local patches; the vendor commit is pure upstream, every fork change is its own commit so the next sync can replay them.
+**Severity:** Minor
+
+## 2026-10-03 — deployments-cicd: link as a table row, 3 bytes of headroom
+
+**Problem:** Upstream 0.53.0 added a Live status row and left 22 bytes of the 12000-byte injection budget; the fork's 70-byte link line to `cli-deploys.md` pushed `tests/cli-explain.test.ts` over.
+**Fix:** The link is a row of the references table and the table is condensed in one hunk (link text is the file name, "Post PR preview URLs"); the skill injects 11997 of 12000 bytes. Anything added to `SKILL.md` on the next sync needs the same trade; fork content stays in `references/`.
+**Root cause:** Upstream sizes the skill body to its budget.
+**Severity:** Minor
+
+## 2026-10-03 — commands/: only commands, and stale claims in cli-deploys.md
+
+**Problem:** `claude plugin validate --strict` failed on `commands/_conventions.md` (no frontmatter; every `.md` in `commands/` is a command). `cli-deploys.md` also said `vercel env add <name> preview` needs a Git branch (CLI 62.2.0: optional, with `--value` and `--yes`), that `output: 'standalone'` "causes 404" (no primary source; Vercel's KB blames the Framework Preset or Output Directory), and omitted the Deploy Hooks limits.
+**Fix:** The guide moved to `references/command-conventions.md` (a dotfile rename would be picked up as a command by upstream's `_`-prefix-only filters) and `scripts/validate.ts` hints point there. The env, `standalone` and Deploy Hooks text follows `vercel env add --help` (62.2.0), the Vercel KB and `vercel.com/docs/deploy-hooks`. The `env add` claim was read from `--help`, not run against a project without Git integration.
+**Root cause:** Fork prose written once from observation and never re-checked against the CLI or docs.
+**Severity:** Minor

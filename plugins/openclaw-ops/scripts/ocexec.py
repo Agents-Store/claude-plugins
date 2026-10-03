@@ -20,8 +20,14 @@ hot   ``docker compose -p <project> exec -T <service> run-with-infisical opencla
       call runs without it.
 cold  ``docker run --rm -v <state-dir>:/home/node/.openclaw <image> openclaw <argv>``
       Only when the gateway is not running, and only for the subcommands that
-      are safe on a broken instance: setup, qa, database. Anything else is
-      refused with the reason, because a cold container is not a gateway.
+      are safe on a broken instance: setup, qa, database and doctor. ``doctor``
+      is on the list because it is the documented way back for a gateway that
+      exited unable to migrate its state: the same image, once, against the same
+      mounts, then a normal start. A read posture (``--lint``, ``--post-upgrade``)
+      runs as is; ``doctor --fix`` is an R4, and R4 stays refused at this door
+      like any other — the plan comes first and the cold run is its APPLY line.
+      Anything else is refused with the reason, because a cold container is not
+      a gateway.
 
 Refusals (never negotiable)
 ---------------------------
@@ -76,28 +82,99 @@ import redact                    # noqa: E402
 
 EXIT_REFUSED, EXIT_TARGET, EXIT_DOCKER = 64, 65, 66
 
-# The only subcommands documented as safe on a broken instance.
-SAFE_BROKEN = ("setup", "qa", "database")
+# The only subcommands documented as safe on a broken instance. ``doctor`` is the
+# recovery path itself (see the module docstring); with ``--fix`` it is an R4, which
+# check_policy refuses without a plan before this list is even consulted.
+SAFE_BROKEN = ("setup", "qa", "database", "doctor")
 
-# Reads with no observable effect.
+# Reads with no observable effect. Every entry names a command that exists in the
+# current tree: there is no ``backup list`` and no ``database status`` — the
+# archive reads are ``backup verify`` and ``backup sqlite list|verify``, and the
+# database reads are ``database preflight`` and ``database ownership status``.
+# A READ_ONLY entry for a command that does not exist is a classification that can
+# never fire; keep the list honest so a reader can trust a hit. (``update status``
+# is a read too; it is in UNDER_FAMILY below because its family is an R4.)
 READ_ONLY = {
     ("--version",), ("--help",), ("docs",), ("health",), ("status",),
     ("doctor", "--lint"), ("doctor", "--post-upgrade"),
+    # the advisory posture: read-only, exits 0 once it has a report. Upstream rejects the repair
+    # flags there; the markers below classify them by their own name if one is passed anyway.
+    ("doctor", "--json"),
     ("models", "list"), ("models", "status"), ("models", "auth", "list"),
     ("plugins", "list"), ("skills", "list"), ("cron", "list"),
-    ("memory", "status"), ("gateway", "status"), ("config", "get"),
-    ("security", "audit"), ("backup", "list"), ("database", "status"),
+    ("memory", "status"), ("gateway", "status"), ("gateway", "health"),
+    ("gateway", "probe"), ("config", "get"), ("security", "audit"),
+    ("secrets", "audit"), ("channels", "status"),
+    ("backup", "verify"), ("backup", "sqlite", "list"), ("backup", "sqlite", "verify"),
+    ("database", "preflight"), ("database", "ownership", "status"),
+    # A sanitized support export: it changes no config or state and writes only the runtime's
+    # own export artefact, which is the same rule triage's collection mode follows (see
+    # _classify_triage). A destination the caller chooses (--output) is not a read.
+    ("gateway", "diagnostics", "export"),
 }
 
-# Reads that cost money, hold a lock, or move state.
-R1_MARKERS = (("models", "status", "--probe"), ("memory", "index"), ("run",), ("chat",))
+# Subcommands whose class differs from their family's. They are checked before the
+# family markers: ``update`` is an R4 (a version change), but ``update status`` is a
+# ledger read, and ``update repair`` only finishes a half-done update, so it is an R3
+# whose backup is the one taken before that update. A write-shaped flag on a read
+# returns it to the family class.
+UNDER_FAMILY = {("update", "status"): "R0", ("update", "repair"): "R3"}
+
+# Reads that cost money, hold a lock, or move state. ``memory status --index``
+# reindexes when the store is dirty (and implies ``--deep``, which calls the
+# embedding provider), so it is not the plain read its name suggests.
+#
+# ``--allow-exec`` is the other one: it lets doctor and the secrets audit EXECUTE the
+# exec-backed secret references the config declares — a command run on a read's behalf.
+R1_MARKERS = (("models", "status", "--probe"), ("memory", "index"), ("memory", "status", "--index"),
+              ("--allow-exec",), ("run",), ("chat",))
 
 # Backup-requiring and irreversible operations: they belong to a command that
 # builds a plan, not to the escape hatch.
-R3_MARKERS = (("memory", "index", "--force"), ("sessions", "prune"), ("database", "compact"),
-              ("backup", "restore"))
-R4_MARKERS = (("update",), ("upgrade",), ("secrets", "set"), ("gateway", "token"),
-              ("security", "audit", "--fix"), ("doctor", "--fix"))
+#
+# R3 — partially reversible, a backup must already exist:
+#   memory index --force      a full reindex (provider cost, replaced index)
+#   memory reset / forget     clear the derived index, or delete tracked memory at once
+#   sessions cleanup          prune and cap the session stores
+#   update repair             re-run finalization after a half-finished update (see
+#                             UNDER_FAMILY: the ``update`` family is R4, this one is R3)
+#   backup restore            replace live state from an archive
+#   doctor --state-sqlite compact, --session-sqlite compact|import|recover|restore
+#                             upstream calls these modes destructive and says to stop
+#                             the gateway and take a verified backup first
+R3_MARKERS = (("memory", "index", "--force"), ("memory", "reset"), ("memory", "forget"),
+              ("sessions", "cleanup"), ("backup", "restore"),
+              ("doctor", "--state-sqlite", "compact"),
+              ("doctor", "--session-sqlite", "compact"),
+              ("doctor", "--session-sqlite", "import"),
+              ("doctor", "--session-sqlite", "recover"),
+              ("doctor", "--session-sqlite", "restore"))
+
+# R4 — irreversible or credential-bearing, a plan and a typed confirmation:
+#   update (any form)         a version change; ``update cleanup`` additionally retires
+#                             the migration recovery originals, so there is no way back
+#                             to them afterwards
+#   secrets store set|rm|import, secrets apply   credential writes
+#   doctor --generate-gateway-token              rotates the gateway bearer
+#   doctor --fix, security audit --fix           repair flags that choose what they touch
+#   fleet rm, migrate apply, upgrade             deletion and migration
+#   doctor --yes                                 upstream: accepts defaults and ENTERS REPAIR
+#                                                MAINTENANCE (stops and restarts the managed gateway)
+#   --update                                     the root shorthand for ``openclaw update``
+#   triage (see _classify_triage)                hands the installation to a coding agent
+# ``--repair`` is the documented alias of ``--fix`` and is normalised to it (``_expand``), so
+# every ``--fix`` marker covers it, including ``doctor --lint --repair``.
+R4_MARKERS = (("update",), ("--update",), ("upgrade",), ("doctor", "--yes"),
+              ("secrets", "store", "set"), ("secrets", "store", "rm"),
+              ("secrets", "store", "import"), ("secrets", "apply"),
+              ("doctor", "--generate-gateway-token"),
+              ("security", "audit", "--fix"), ("doctor", "--fix"),
+              ("fleet", "rm"), ("migrate", "apply"))
+
+# R4 commands that are only the command when they are the FIRST command word. A
+# bare ``reset`` wipes an installation, ``memory reset`` clears one index: matching
+# the token anywhere would file the second as the first.
+R4_HEAD_MARKERS = (("reset",), ("uninstall",))
 
 
 # --------------------------------------------------------------------------- #
@@ -116,15 +193,78 @@ def _has(argv, marker):
     return True
 
 
-def classify_argv(argv):
-    """Assign a risk class to an ``openclaw`` command line.
+def _expand(argv):
+    """One spelling per flag: ``--flag=value`` becomes ``--flag``, ``value``, and a documented
+    alias (``--repair``) becomes its canonical flag (``--fix``)."""
+    out = []
+    for token in argv:
+        if token.startswith("--") and "=" in token:
+            flag, value = token.split("=", 1)
+            out.extend([FLAG_ALIASES.get(flag, flag), value])
+        else:
+            out.append(FLAG_ALIASES.get(token, token))
+    return out
 
-    The classification is by effect, not by name: ``models status --probe`` is
-    called status and is an R1 because it requires the gateway down and changes
-    what the fleet is doing while it runs.
+
+# Global options that take a value and may stand before the command word. Their value is
+# not a command: ``--profile work reset`` is ``reset``, not a command called ``work``.
+GLOBAL_VALUE_OPTIONS = ("--profile", "--container", "--log-level")
+
+
+def _lead(argv):
+    """The command words of a call, with any leading global options (and their values) dropped."""
+    words, index = [], 0
+    while index < len(argv):
+        token = argv[index]
+        if token in GLOBAL_VALUE_OPTIONS:
+            index += 2
+            continue
+        if token.startswith("-") and not words:
+            index += 1
+            continue
+        if not token.startswith("-"):
+            words.append(token)
+        index += 1
+    return words
+
+
+def _head(argv, marker):
+    """Is ``marker`` the leading command words of the call?"""
+    return _lead(argv)[:len(marker)] == list(marker)
+
+
+# ``--output`` names a destination the caller chose: a read that carries one is not a read.
+WRITE_FLAGS = ("--fix", "--force", "--write", "--set", "--apply", "--output")
+
+# Documented aliases, rewritten to their canonical spelling before any marker is consulted, so
+# an alias can never slip past a marker written for the original.
+FLAG_ALIASES = {"--repair": "--fix"}
+
+
+def _classify_triage(flags):
+    """The class ``triage`` has on its own, before anything else on the line is considered.
+
+    Bare ``triage`` in a terminal launches the first coding agent it finds on the machine and
+    asks it to repair the installation autonomously, and ``--agent`` / ``--run`` do the same
+    on purpose — all R4. ``--json`` or ``--non-interactive`` collect a sanitized bundle and
+    start nothing; that is a read. It is only the starting point: ``classify_argv`` still
+    applies the write-flag promotion and every marker pass to the same line and keeps the
+    highest class, so ``triage --json --allow-exec`` is an R1 and ``triage --json update`` an R4.
     """
+    if "--run" in flags or "--agent" in flags:
+        return "R4", "triage hands the installation to an agent that repairs on its own"
+    if "--json" in flags or "--non-interactive" in flags:
+        return "R0", "read-only subcommand (sanitized diagnostics, no agent started)"
+    return "R4", "bare triage launches a coding agent that repairs on its own"
+
+
+def _marker_risk(argv):
+    """The class the marker passes give a line — R4, then R3, then R1 — or ``None``."""
     for marker in R4_MARKERS:
         if _has(argv, marker):
+            return "R4", "matches %s" % " ".join(marker)
+    for marker in R4_HEAD_MARKERS:
+        if _head(argv, marker):
             return "R4", "matches %s" % " ".join(marker)
     for marker in R3_MARKERS:
         if _has(argv, marker):
@@ -132,13 +272,41 @@ def classify_argv(argv):
     for marker in R1_MARKERS:
         if _has(argv, marker):
             return "R1", "matches %s" % " ".join(marker)
+    return None
+
+
+def classify_argv(argv):
+    """Assign a risk class to an ``openclaw`` command line.
+
+    The classification is by effect, not by name: ``models status --probe`` is
+    called status and is an R1 because it requires the gateway down and changes
+    what the fleet is doing while it runs; ``update status`` is called update and
+    is a read.
+    """
+    argv = _expand(argv)
     positional = [a for a in argv if not a.startswith("-")]
     flags = [a for a in argv if a.startswith("-")]
+    carries_write = any(f in flags for f in WRITE_FLAGS)
+    if _head(argv, ("triage",)):
+        risk, why = _classify_triage(flags)
+        if risk == "R0" and carries_write:
+            risk, why = "R2", "read subcommand carrying a write flag"
+        hit = _marker_risk(argv)
+        if hit and gate.RISK_ORDER.index(hit[0]) > gate.RISK_ORDER.index(risk):
+            risk, why = hit
+        return risk, why
+    for marker, risk in UNDER_FAMILY.items():
+        if _head(argv, marker) and not (risk == "R0" and carries_write):
+            return risk, ("read-only subcommand" if risk == "R0"
+                          else "matches %s" % " ".join(marker))
+    hit = _marker_risk(argv)
+    if hit:
+        return hit
     for marker in READ_ONLY:
         head = [t for t in marker if not t.startswith("-")]
         tail = [t for t in marker if t.startswith("-")]
         if positional[:len(head)] == head and all(f in flags for f in tail):
-            if any(f in flags for f in ("--fix", "--force", "--write", "--set", "--apply")):
+            if carries_write:
                 return "R2", "read subcommand carrying a write flag"
             return "R0", "read-only subcommand"
     return "R2", "not on the read-only list — treated as a reversible mutation"
@@ -242,7 +410,9 @@ def check_policy(record, argv, risk, mode, yes, plan_id=None, plan=None, dry_run
                 "cold mode is refused while %s is %s: a second container on a live state "
                 "directory violates the gateway's unique state-directory ownership."
                 % (record["name"], record.get("state")))
-        head = next((a for a in argv if not a.startswith("-")), None)
+        # the command word, not the first token that is not a flag: the value of a global
+        # option (``--log-level setup``) is not a command
+        head = next(iter(_lead(_expand(argv))), None)
         if head not in SAFE_BROKEN:
             raise Refusal(
                 "%s is down, so only the cold path is available, and only %s are safe there. "

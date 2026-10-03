@@ -10,10 +10,10 @@ Print every field on a table — title, type, options summary.
 
 ## Steps
 
-1. Resolve the target table ID — `nc table:list <baseId>` if name was passed.
+1. Resolve the target table ID — `mcp__plugin_nocodb-dev_nocodb__getTablesList` if a name was passed.
 2. Run:
    ```
-   mcp__nocodb__getTableSchema  tableId: <tableId>
+   mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <tableId>
    ```
 3. Format the response as a table:
 
@@ -21,20 +21,21 @@ Print every field on a table — title, type, options summary.
 |-------|------|---------|
 | ... | ... | ... |
 
-   For SingleSelect / MultiSelect, show the option titles.
-   For Lookup / Rollup, show the linked column.
+   For SingleSelect / MultiSelect, show the choice titles.
+   For Lookup / Rollup, show the related field (`options.related_field_id` and the looked-up / rolled-up field).
    For Formula, show the expression.
 4. Also list views (name + type) at the bottom.
 
-## Alternative — pure CLI
+## Alternative — raw JSON
 
 ```bash
-nc field:list <baseId> <tableId>
+curl -sS -H "xc-token: ${NOCODB_TOKEN}" \
+  "${NOCODB_URL}/api/v3/meta/bases/${BASE_ID}/tables/<tableId>" | jq '.fields'
 ```
 
-Returns raw JSON — useful when the user wants column IDs for scripting.
+Returns raw JSON — useful when the user wants field IDs for scripting. `mcp__plugin_nocodb-dev_nocodb__listFields` returns the same list over MCP.
 
 ## Reference
 
-- `Skill nocodb-dev:cli-reference` — `nc field:list` syntax
-- `Skill nocodb-dev:mcp-patterns` — `getTableSchema` parameters
+- `Skill nocodb-dev:cli-reference` — `curl` recipes for fields
+- `Skill nocodb-dev:mcp-patterns` — `getTableSchema`, `getBaseSchema` and `listFields`

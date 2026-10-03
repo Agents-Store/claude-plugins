@@ -44,13 +44,26 @@ Accumulated fixes and discoveries from plugin usage.
 
 **Feature:** Added frontend testing capability via Playwright MCP — navigate a running app, explore UI, test forms and interactions, collect console/network errors, and generate a structured health report
 **Implementation:**
-- Added `playwright` stdio MCP server to `.mcp.json` (`npx @playwright/mcp@latest --headless`)
+- Added `playwright` stdio MCP server to `.mcp.json` (`npx @playwright/mcp --headless`; pinned to `0.0.83` in 1.4.0)
 - Created `skills/frontend-test/SKILL.md` — 5-phase testing methodology (URL detection → Discovery → Interaction → Error Analysis → Report generation)
 - Created `agents/frontend-tester.md` — Sonnet model, green color, dedicated browser automation agent with full Playwright MCP tool list
-- Created `commands/test-frontend.md` — `/codemap:test-frontend [url]` entry point that delegates to the frontend-tester agent
+- Created `commands/test-frontend.md` — `/codemap-dev:test-frontend [url]` entry point that delegates to the frontend-tester agent
 - Report output at `docs/codemap/FRONTEND.md` with sections: Summary metrics, Pages Discovered, Console Errors, Network Failures, Forms, UI Issues, Recommendations
 - Skill includes Step 0 Execution Mode (agent vs inline choice) matching existing skill pattern
 - Skill includes Error Handling for: app not reachable, authentication required, Playwright MCP not connected, SPA dynamic content
 - Updated plugin.json v1.2.0 → v1.3.0, added `playwright` and `frontend-testing` keywords
 - Updated README.md with new command, skill, agent, and requirements
 **Rationale:** Plugin provided code-level understanding (review, explain, diagram) but lacked runtime/UI perspective. Frontend testing via Playwright MCP completes the picture — users can now get a comprehensive report covering both code quality and actual UI behavior of their application.
+
+## 2026-10-03 — search_shapes, namespaced commands, pinned Playwright MCP
+
+**Feature:** Aligned the plugin with current drawio-mcp and Playwright MCP, and with how Claude Code names plugin commands and MCP tools (1.3.0 → 1.4.0)
+**Implementation:**
+- `search_shape` → `search_shapes` in the codemap-diagram skill (the drawio-mcp tool is plural); noted it is only for cloud/vendor icons
+- Commands are namespaced by the plugin name: the short `codemap` prefix → `/codemap-dev:<cmd>` in README, examples skill and these notes (the short prefix never existed)
+- `.mcp.json`: `@playwright/mcp@latest` → `@playwright/mcp@0.0.83` (0.0.x line changes its tool surface between releases; `@latest` ran unreviewed npm code at every session start). Re-check with `npm view @playwright/mcp version` before bumping
+- The `drawio` server is the hosted HTTP endpoint (no npm package to pin); `@drawio/mcp` (stdio, `open_drawio_xml`) is a different server and is not used
+- `create_diagram` no longer promised to return an interactive URL: it renders inline only in clients with MCP Apps support, otherwise returns the XML as text — the saved `.drawio` file is the deliverable (live behaviour in Claude Code not verified)
+- Documented the real tool names for plugin-declared servers: `mcp__plugin_codemap-dev_<server>__<tool>`; frontmatter `tools:` still not pinned (agents inherit)
+- Dropped the redundant `mcpServers` key from `plugin.json` (`.mcp.json` at the plugin root loads automatically)
+**Rationale:** The wrong tool name returns "tool not found"; the unprefixed command names do not exist; an unpinned npx package is an unreviewed code path; promising a URL that Claude Code may not return misleads the user.

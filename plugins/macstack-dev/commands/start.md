@@ -46,7 +46,7 @@ Then, in order and without skipping:
    documents once and rendering the generated ones. Read `documents/references/format-rules.md`
    before writing any document.
 3. **`infisical-env`** — wire the environment if the spec declares accesses.
-4. **`best-practices`** — install the project rules and commands.
+4. **`best-practices`** — install the project rules and slash-command skills.
 5. **`scaffold-project`** — only in scaffold mode, and only in the mandatory source
    order: prototype → stack plugins → dev plugins → generation. That order is the
    product; every violation in testing produced files that contradicted the

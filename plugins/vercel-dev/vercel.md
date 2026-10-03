@@ -95,7 +95,7 @@ VERCEL PLATFORM                            📖 docs: https://vercel.com/docs
 │   → Deployment Engine (one-click deploy)
 │   ↔ Vercel Marketplace (pre-configured integrations)
 │   ↔ Next.js, AI SDK, v0 (framework starters)
-│   ⊃ next-forge (production SaaS monorepo starter)    ⤳ skill: next-forge
+│   ⊃ next-forge (production SaaS monorepo starter)
 │       → Turborepo, Clerk, Prisma/Neon, Stripe, Resend, shadcn/ui, Sentry, PostHog
 │       → 7 apps (app, web, api, email, docs, studio, storybook)
 │       → 20 @repo/* workspace packages
@@ -125,14 +125,20 @@ VERCEL PLATFORM                            📖 docs: https://vercel.com/docs
 ## 2. Frameworks
 
 ```
-NEXT.JS (v16+)                           ⤳ skill: nextjs  📖 docs: https://nextjs.org/docs
+NEXT.JS (v16+)                           📖 docs: https://nextjs.org/docs
+├── Agent docs: version-matched, bundled in node_modules/next/dist/docs/
+│   ⊃ Read these before writing Next.js code (official guidance)
+│   ⊃ 16.3+: `next dev` writes AGENTS.md / CLAUDE.md pointing at them
+│   ⊃ 16.2: docs bundled, add AGENTS.md yourself; ≤16.1: npx @next/codemod@canary agents-md
+│   ⊃ Workflow skills (Cache Components, Partial Prefetching, dev loop): npx skills add vercel/next.js
+│
 ├── App Router (file-system routing)
 │   ⊃ Server Components (default, zero client JS)
 │   ⊃ Client Components ('use client')
 │   ⊃ Server Actions / Server Functions ('use server')
 │   ⊃ Route Handlers (API endpoints)
 │   ⊃ Middleware → renamed to Proxy in v16
-│   ⊃ Cache Components ('use cache')              ⤳ skill: next-cache-components
+│   ⊃ Cache Components ('use cache')
 │   ⊃ Layouts, Loading, Error boundaries
 │   ⊃ Parallel & Intercepting Routes
 │   ⊃ Dynamic Segments ([id], [...slug], [[...slug]])
@@ -144,7 +150,7 @@ NEXT.JS (v16+)                           ⤳ skill: nextjs  📖 docs: https://n
 │   ⊃ PPR (Partial Prerendering) → evolving to Cache Components
 │   ⊃ Streaming (React Suspense boundaries)
 │
-├── Upgrading                                    ⤳ skill: next-upgrade
+├── Upgrading: `next upgrade` (16.1+) or npx @next/codemod@canary upgrade latest
 │
 ├── Build System
 │   → Turbopack (default bundler in v16)
@@ -153,8 +159,8 @@ NEXT.JS (v16+)                           ⤳ skill: nextjs  📖 docs: https://n
 ├── Key Integrations
 │   ↔ Vercel AI SDK (chat UIs, streaming, tool calling)
 │   ↔ Vercel Analytics / Speed Insights
-│   ↔ Vercel Image Optimization (next/image)      ⤳ skill: nextjs
-│   ↔ Satori / @vercel/og (dynamic OG images)     ⤳ skill: nextjs
+│   ↔ Vercel Image Optimization (next/image)
+│   ↔ Satori / @vercel/og (dynamic OG images)
 │   ↔ Vercel Font Optimization (next/font)
 │   ↔ Vercel Functions (automatic from route handlers / server actions)
 │
@@ -162,7 +168,7 @@ NEXT.JS (v16+)                           ⤳ skill: nextjs  📖 docs: https://n
     → Vercel Platform (optimized, zero-config)
     ↔ Vercel CLI (vercel dev, vercel build)
 
-SHADCN/UI                                ⤳ skill: shadcn  📖 docs: https://ui.shadcn.com
+SHADCN/UI                                📖 docs: https://ui.shadcn.com
 ├── CLI (npx shadcn@latest init/add/build/search)
 │   ⊃ Component source code copied to your project
 │   ⊃ Radix UI primitives + Tailwind CSS
@@ -226,7 +232,7 @@ AI SDK (v7, TypeScript)                    ⤳ skill: ai-sdk  📖 docs: https:/
 │   ⊃ MessageResponse = universal renderer for AI text (chat, workflows, reports, notifications)
 │   ⊃ Never render AI text as raw {text} or <p>{content}</p> — use AI Elements
 │   → AI SDK UI hooks (useChat, useCompletion)
-│   → shadcn/ui (component primitives)                 ⤳ skill: shadcn
+│   → shadcn/ui (component primitives)
 │
 │
 ├── MCP Integration (@ai-sdk/mcp)
@@ -259,7 +265,7 @@ AI SDK (v7, TypeScript)                    ⤳ skill: ai-sdk  📖 docs: https:/
     ↔ AI Gateway (model routing, cost tracking)
     ↔ Generation Persistence (IDs, URLs, cost tracking) ⤳ skill: ai-sdk
     ↔ v0 (AI-generated UI components)
-    ↔ AI Elements (production chat UI components)          ↔ shadcn/ui (component foundation)                 ⤳ skill: shadcn
+    ↔ AI Elements (production chat UI components)          ↔ shadcn/ui (component foundation)
 
 AI GATEWAY                                 ⤳ skill: ai-gateway  📖 docs: https://vercel.com/docs/ai-gateway
 ├── Unified API ("creator/model-name" format)
@@ -283,7 +289,7 @@ AI GATEWAY                                 ⤳ skill: ai-gateway  📖 docs: htt
 │
 ├── Image Generation (gateway-native)
 │   ⊃ Multimodal LLMs: model: 'google/gemini-3.1-flash-image-preview' + generateText → result.files
-│   ⊃ Image-only models: experimental_generateImage (Imagen 4.0, Flux 2, Grok Imagine)
+│   ⊃ Image-only models: generateImage (Imagen 4.0, Flux 2, Grok Imagine)
 │   ⊃ Default model: google/gemini-3.1-flash-image-preview
 │   ⊃ DALL-E, gemini-2.x image models are outdated — use Gemini 3.1 Flash Image Preview
 │
@@ -312,7 +318,7 @@ WORKFLOW SDK                               ⤳ skill: workflow  📖 docs: https
 │   ⊃ Self-hosted (Postgres, Redis, custom)
 │
 ├── AI Integration
-│   ⊃ WorkflowAgent (@ai-sdk/workflow 2.x, requires Workflow 5 on workflow@beta) — replaces DurableAgent from @workflow/ai, deprecated in Workflow 5
+│   ⊃ WorkflowAgent (@ai-sdk/workflow 2.x, requires Workflow 5 on workflow@latest) — replaces DurableAgent from @workflow/ai, deprecated in Workflow 5
 │   → AI SDK Agent class (wrapped with durability)
 │   → AI SDK tool calling (each tool = retryable step)
 │   → AI Gateway (OIDC auth for model strings in workflow steps)
@@ -429,7 +435,7 @@ VERCEL AGENT (public beta, Pro/Enterprise)  ⤳ skill: vercel-agent  📖 docs: 
 ## 4. Build Tools
 
 ```
-TURBOPACK                                  ⤳ skill: turbopack  📖 docs: https://nextjs.org/docs/app/api-reference/turbopack
+TURBOPACK                                  📖 docs: https://nextjs.org/docs/app/api-reference/turbopack
 ├── Purpose: JavaScript/TypeScript bundler
 │   ⊃ Instant HMR (doesn't degrade with app size)
 │   ⊃ Multi-environment builds (Browser, Server, Edge, SSR, RSC)
@@ -534,12 +540,12 @@ VERCEL CONNECT                             ⤳ skill: vercel-connect  📖 docs:
 ├── Integration paths
 │   ⊃ Vercel CLI (vercel connect create/list/token)
 │   ⊃ @vercel/connect SDK (getToken)
-│   ⊃ @vercel/connect/ash (connect() helper, connectSlackCredentials())
+│   ⊃ @vercel/connect/eve (connect() helper, connectSlackCredentials())
 │   ⊃ HTTP API (for non-JS callers)
 │
 └── Integrations
     ↔ Vercel OIDC (token exchange uses OIDC for authentication)
-    ↔ Vercel Agent / Ash (declarative connection wiring)
+    ↔ eve (declarative connection wiring)
     ⇢ replaces hand-managed SLACK_BOT_TOKEN / SLACK_SIGNING_SECRET env vars
 ```
 
@@ -654,11 +660,11 @@ VERCEL MARKETPLACE                          ⤳ skill: marketplace  📖 docs: h
 | Chat UI components (messages, tools, reasoning) | AI Elements (`npx ai-elements`) | Pre-built, handles UIMessage parts |
 | Custom chat rendering (no AI Elements) | Manual `message.parts` iteration | Full control over rendering |
 | Image generation (default) | AI Gateway `model: 'google/gemini-3.1-flash-image-preview'` + `generateText` → `result.files` | Multimodal LLM, best quality, gateway-native |
-| Image generation (image-only models) | `experimental_generateImage` (Imagen 4.0, Flux 2) | Only for dedicated image models, not multimodal LLMs |
+| Image generation (image-only models) | `generateImage` (Imagen 4.0, Flux 2) | Only for dedicated image models, not multimodal LLMs |
 | Structured data extraction | AI SDK `generateText` + `Output.object()` + AI Gateway | Type-safe, schema-validated |
 | Agent loop embedded in an existing application | AI SDK `Agent` class + AI Gateway | Direct loop control and tool calling |
 | New durable agent or agent-powered application | eve | Filesystem-first runtime with sessions, tools, skills, channels, sandboxes, subagents, schedules, evals, and frontend clients |
-| Add durability to an existing agent or application workflow | `WorkflowAgent` from `@ai-sdk/workflow` (Workflow 5, `workflow@beta`) | Crash-safe orchestration without adopting a complete agent framework |
+| Add durability to an existing agent or application workflow | `WorkflowAgent` from `@ai-sdk/workflow` (Workflow 5, `workflow@latest`) | Crash-safe orchestration without adopting a complete agent framework |
 | Browser UI for an eve agent | eve `useEveAgent` + AI Elements-compatible messages | Durable session streaming for React, Vue, or Svelte clients |
 | Provider-specific features (e.g., computer use) | Direct provider SDK (`@ai-sdk/anthropic`) | Only when gateway doesn't expose the feature |
 | Connect to external tools | AI SDK MCP Client | Standard protocol, OAuth |
@@ -726,7 +732,7 @@ Choose based on **where** the interception happens and **what** you need to do.
 
 ⤳ skill: routing-middleware — Platform-level request interception
 ⤳ skill: vercel-functions — Vercel Functions runtimes, streaming, and Fluid Compute
-⤳ skill: nextjs — `proxy.ts` in Next.js 16
+📖 Next.js bundled docs (`node_modules/next/dist/docs/`) — `proxy.ts` in Next.js 16
 
 ### Disambiguation: Caching Layers
 
@@ -741,7 +747,7 @@ Three distinct caching systems serve different purposes. They can be used indepe
 > **Layering pattern**: A typical Next.js app uses all three — Next.js Cache for component/route-level freshness, Runtime Cache for shared cross-request data (e.g., product catalog), and CDN Cache for static assets and ISR pages. Each layer has its own invalidation strategy; tag-based invalidation can cascade across layers when configured.
 
 ⤳ skill: runtime-cache — Per-region key-value caching with tag-based invalidation
-⤳ skill: nextjs — `'use cache'`, `revalidatePath`, `revalidateTag`
+📖 Next.js bundled docs (`node_modules/next/dist/docs/`) — `'use cache'`, `revalidatePath`, `revalidateTag`
 ⤳ skill: cdn-caching — Diagnose cache hit rate, stale content, per-request cache reasons, and ISR read/write cost
 
 ---
@@ -763,7 +769,7 @@ Three distinct caching systems serve different purposes. They can be used indepe
                         → Vercel Functions (streaming) → vercel deploy
 ```
 
-**OIDC Authentication (default):** When you run `vercel env pull`, it provisions a `VERCEL_OIDC_TOKEN` — a short-lived JWT that the AI Gateway uses automatically. No manual API keys needed. The `@ai-sdk/gateway` package reads `VERCEL_OIDC_TOKEN` from the environment via `@vercel/oidc`. On Vercel deployments, OIDC tokens are auto-refreshed. For local dev, re-run `vercel env pull` if the token expires (~24h).
+**OIDC Authentication (default):** When you run `vercel env pull`, it provisions a `VERCEL_OIDC_TOKEN` — a short-lived JWT that the AI Gateway uses automatically. No manual API keys needed. The `@ai-sdk/gateway` package reads `VERCEL_OIDC_TOKEN` from the environment via `@vercel/oidc`. On Vercel deployments, OIDC tokens are auto-refreshed. For local dev, re-run `vercel env pull` if the token expires (12h).
 
 ```
 
@@ -787,7 +793,7 @@ Three distinct caching systems serve different purposes. They can be used indepe
 ```
 1. Choose the architecture boundary:
    - New filesystem-first agent or agent-powered app → eve
-   - Existing app/agent that needs durable orchestration → `WorkflowAgent` from `@ai-sdk/workflow` on Workflow SDK 5 (`workflow@beta`)
+   - Existing app/agent that needs durable orchestration → `WorkflowAgent` from `@ai-sdk/workflow` on Workflow SDK 5 (`workflow@latest`)
 2. eve path: npx eve@latest init <agent-name> → read node_modules/eve/docs/README.md
              → author instructions, tools, skills, connections, channels, and optional frontend client
 3. Workflow path: Next.js Route Handler → WorkflowAgent → AI SDK tools → AI Gateway
@@ -803,7 +809,7 @@ Next.js (App Router) → Neon Postgres (data) → Clerk (auth, via Marketplace)
 
 ```
 
-**Starter kit**: Use `npx next-forge@latest init` to scaffold a production-ready SaaS monorepo with all of the above pre-wired (plus email, observability, security, AI, i18n, and more). ⤳ skill: next-forge
+**Starter kit**: Use `npx next-forge@latest init` to scaffold a production-ready SaaS monorepo with all of the above pre-wired (plus email, observability, security, AI, i18n, and more).
 
 **Clerk integration gotchas**:
 - `vercel integration add clerk` requires terms acceptance in the terminal (AI agents are blocked — user must run it manually)
@@ -843,7 +849,7 @@ Git Push → CI Pipeline → vercel build → vercel deploy --prebuilt
 | Sync Request APIs (Next.js 16) | Async Request APIs | `await cookies()`, `await headers()`, etc. |
 | PPR (Next.js 15 canary) | Cache Components | Follow Vercel migration guide |
 | AI SDK 5 | AI SDK 6 | Run `npx @ai-sdk/codemod v6` |
-| AI SDK 6 | AI SDK 7 | Node.js 22+, ESM only; run the v7 codemods (`npx skills add vercel/ai --skill migrate-ai-sdk-v6-to-v7`), `stepCountIs` → `isStepCount`, `system` → `instructions`, `DurableAgent` → `WorkflowAgent` (`@ai-sdk/workflow` 2.x requires Workflow 5, `workflow@beta`) |
+| AI SDK 6 | AI SDK 7 | Node.js 22+, ESM only; run the v7 codemods (`npx skills add vercel/ai --skill migrate-ai-sdk-v6-to-v7`), `stepCountIs` → `isStepCount`, `system` → `instructions`, `DurableAgent` → `WorkflowAgent` (`@ai-sdk/workflow` 2.x requires Workflow 5, `workflow@latest`) |
 | `generateObject` / `streamObject` | `generateText` / `streamText` + `Output.object()` | Unified structured output API |
 | `parameters` (AI SDK tools) | `inputSchema` | Aligned with MCP spec |
 | `result` (AI SDK tools) | `output` | Aligned with MCP spec |
@@ -897,7 +903,7 @@ Git Push → CI Pipeline → vercel build → vercel deploy --prebuilt
 
 - **Default to AI Gateway** — pass `"provider/model"` strings directly (e.g., `model: 'anthropic/claude-sonnet-4.6'`) — they route through the AI Gateway automatically. The `gateway()` wrapper from `'ai'` is optional and only needed when using `providerOptions.gateway` for routing/failover/tags. Do NOT install or import direct provider SDKs (`@ai-sdk/anthropic`, `@ai-sdk/openai`, etc.) unless you need provider-specific features not exposed through the gateway.
 - **Install `@ai-sdk/react` for React hooks** — `useChat`, `useCompletion`, and `useObject` live in `@ai-sdk/react` (not `ai`). Always `npm install ai @ai-sdk/react` together for React/Next.js projects.
-- **OIDC is the default auth for AI Gateway** — when you run `vercel env pull`, it provisions `VERCEL_OIDC_TOKEN` which the `@ai-sdk/gateway` package reads automatically via `@vercel/oidc`. No `AI_GATEWAY_API_KEY` or provider-specific API keys needed. On Vercel deployments, OIDC tokens are auto-refreshed. For local dev, re-run `vercel env pull` if the token expires (~24h).
+- **OIDC is the default auth for AI Gateway** — when you run `vercel env pull`, it provisions `VERCEL_OIDC_TOKEN` which the `@ai-sdk/gateway` package reads automatically via `@vercel/oidc`. No `AI_GATEWAY_API_KEY` or provider-specific API keys needed. On Vercel deployments, OIDC tokens are auto-refreshed. For local dev, re-run `vercel env pull` if the token expires (12h).
 - **For AI projects, set up a Vercel project first** — run `vercel link` (or create via dashboard) → enable AI Gateway in dashboard → `vercel env pull` to get OIDC credentials locally. Do NOT manually create `.env.local` with provider-specific API keys like `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
 - **AI Elements is MANDATORY for all AI-generated text** — `npx ai-elements@latest` must be installed immediately after scaffolding. Never render AI text as raw `{text}` or `<p>{content}</p>` — it shows ugly `**`, `##`, `---`. Use `<Message>` for chat with `useChat`, and `<MessageResponse>` (from `@/components/ai-elements/message`) for any other AI markdown (workflow events, reports, briefings, notifications, email previews). `<MessageResponse>` wraps Streamdown with code highlighting, math, mermaid, and CJK plugins.
 - **Server-side: use `convertToModelMessages()` (async) + `toUIMessageStreamResponse()`** — not `toDataStreamResponse()`. Client-side: use `DefaultChatTransport` with `useChat`, not the v5 `api` parameter.
@@ -906,8 +912,8 @@ Git Push → CI Pipeline → vercel build → vercel deploy --prebuilt
 - `generateObject` and `streamObject` are removed in v6 — use `generateText` / `streamText` with `Output.object()` instead.
 - **`maxSteps` was removed** — use `stopWhen: isStepCount(N)` (import `isStepCount` from `ai`; named `stepCountIs` in AI SDK 6) for multi-step tool calling in both `streamText` and the `Agent` class.
 - Use the `Agent` class for multi-step reasoning instead of manual tool-calling loops. Agent methods are `agent.generate()` and `agent.stream()` (not `agent.generateText()` / `agent.streamText()`).
-- Use `WorkflowAgent` from `@ai-sdk/workflow` for production agents that must survive crashes; the current 2.x line requires Workflow 5 (`workflow@beta`). Workflow 5 deprecates `DurableAgent` from `@workflow/ai`, which the Workflow 4 docs use; see the WorkflowAgent migration guide.
-- **Image generation is gateway-native** — use `model: 'google/gemini-3.1-flash-image-preview'` with `generateText()` for best results (images in `result.files`). Use `experimental_generateImage` only for image-only models (Imagen 4.0, Flux 2). Do NOT use DALL-E or older Gemini 2.x image models — they are outdated.
+- Use `WorkflowAgent` from `@ai-sdk/workflow` for production agents that must survive crashes; the current 2.x line requires Workflow 5 (`workflow@latest`). Workflow 5 deprecates `DurableAgent` from `@workflow/ai`, which the Workflow 4 docs use; see the WorkflowAgent migration guide.
+- **Image generation is gateway-native** — use `model: 'google/gemini-3.1-flash-image-preview'` with `generateText()` for best results (images in `result.files`). Use `generateImage` only for image-only models (Imagen 4.0, Flux 2). Do NOT use DALL-E or older Gemini 2.x image models — they are outdated.
 - **Outdated models**: `gpt-4o` → use `gpt-5.4`; `gemini-2.0-flash-exp-image-generation` → use `gemini-3.1-flash-image-preview`; DALL-E 2/3 → use Gemini 3.1 Flash Image Preview.
 - Use `@ai-sdk/mcp` (stable, not experimental) for MCP server connections.
 - Use `mcp-to-ai-sdk` CLI to generate static tool definitions from MCP servers for security.
@@ -927,6 +933,7 @@ Git Push → CI Pipeline → vercel build → vercel deploy --prebuilt
 
 ### Next.js and Rendering
 
+- Read the version-matched docs in `node_modules/next/dist/docs/` before writing Next.js code; they override remembered APIs. On Next.js 16.1 or earlier, run `npx @next/codemod@canary agents-md` to fetch them.
 - Default to Next.js App Router and Server Components; add `'use client'` only where interactivity is required.
 - Use `proxy.ts` instead of `middleware.ts` in Next.js 16 and keep proxy logic focused on interception, auth gates, rewrites, and redirects.
 - Prefer Cache Components, `next/image`, and `next/font` over custom rendering/caching/font-loading workarounds.
@@ -964,7 +971,7 @@ Git Push → CI Pipeline → vercel build → vercel deploy --prebuilt
 
 ### Workflow and Durability
 
-- Use Workflow SDK when the task needs retries, resumability, crash recovery, or long-lived orchestration; for durable agents, `WorkflowAgent` needs Workflow 5 (`workflow@beta`).
+- Use Workflow SDK when the task needs retries, resumability, crash recovery, or long-lived orchestration; for durable agents, `WorkflowAgent` needs Workflow 5 (`workflow@latest`).
 - Prefer eve when those requirements are part of a new agent application that also needs a structured home for instructions, tools, skills, connections, channels, sandboxes, subagents, schedules, evals, or frontend clients.
 - Prefer workflow steps over ad-hoc retry loops, timers, and manual state persistence in request handlers.
 - Keep workflow recommendations limited to durable execution problems; do not route ordinary request/response code into workflow patterns by default.

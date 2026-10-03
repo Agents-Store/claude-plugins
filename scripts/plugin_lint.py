@@ -3,7 +3,7 @@
 
 The scrub gate answers "does this tree carry deployment data". This module
 answers the other half of the level-1 acceptance list: "is the plugin built the
-way the conventions say it is". Three checks, each of which has already been a
+way the conventions say it is". Four checks, each of which has already been a
 real defect here:
 
   mutation-plan   a command that mutates, or that takes --yes, must print the
@@ -17,9 +17,16 @@ real defect here:
   version-parity  plugins/<p>/.claude-plugin/plugin.json version must equal the
                   version of that plugin's entry in .claude-plugin/marketplace.json,
                   or the marketplace advertises a build nobody can install.
+  mcp-prefix      a tool of an MCP server that the plugin's own .mcp.json
+                  declares is named mcp__plugin_<plugin>_<server>__<tool>; the
+                  bare mcp__<server>__ form only resolves for a server the user
+                  configured by hand, so it works in the author's workspace and
+                  nowhere else. A server the user connects themselves keeps the
+                  bare form. LEARNINGS.md and CHANGELOG.md keep history as it was.
 
-Severity ladder mirrors the scrub gate: mutation-plan is a hard fail anywhere,
-because an unrollbackable mutation is dangerous in any plugin. The two hygiene
+Severity ladder mirrors the scrub gate: mutation-plan and mcp-prefix are hard
+fails anywhere — an unrollbackable mutation is dangerous in any plugin, and a
+bare name of the plugin's own server does not work for any user. The two hygiene
 checks warn repository-wide and hard-fail inside a plugin that opted into the
 strict scope with a .scrub-strict marker, so a new plugin is held to the full
 standard without a pre-existing defect elsewhere blocking unrelated merges.
@@ -341,6 +348,65 @@ def check_version_parity(plugin_dir, strict, entries, market_error):
 
 
 # ---------------------------------------------------------------------------
+# 4. MCP tool names of the plugin's own servers
+# ---------------------------------------------------------------------------
+# Claude Code names a plugin-declared server's tools
+# mcp__plugin_<plugin>_<server>__<tool>. The bare mcp__<server>__ form only
+# resolves for a server the USER configured — which is exactly what the
+# author's workspace has, so the defect is invisible to the author and total
+# for everyone else. History files keep the old form on purpose.
+
+MCP_SCAN_EXT = (".md", ".json")
+MCP_SKIP_FILES = {"LEARNINGS.md", "CHANGELOG.md", ".mcp.json"}
+
+
+def declared_servers(plugin_dir):
+    path = os.path.join(plugin_dir, ".mcp.json")
+    if not os.path.isfile(path):
+        return []
+    try:
+        data = json.loads(read(path))
+    except ValueError:
+        return []
+    if not isinstance(data, dict):
+        return []
+    servers = data.get("mcpServers", data)
+    return sorted(k for k, v in servers.items() if isinstance(v, dict))
+
+
+def plugin_name(plugin_dir):
+    """Claude Code prefixes with the manifest name, which may differ from the directory."""
+    manifest = os.path.join(plugin_dir, ".claude-plugin", "plugin.json")
+    try:
+        return json.loads(read(manifest)).get("name") or os.path.basename(plugin_dir)
+    except (OSError, ValueError):
+        return os.path.basename(plugin_dir)
+
+
+def check_mcp_prefix(plugin_dir, strict):
+    servers = declared_servers(plugin_dir)
+    if not servers:
+        return []
+    plugin = re.sub(r"[^A-Za-z0-9_-]", "_", plugin_name(plugin_dir))
+    bare = re.compile(r"mcp__(%s)__" % "|".join(re.escape(s) for s in servers))
+    findings = []
+    for root, dirs, files in os.walk(plugin_dir):
+        dirs[:] = sorted(d for d in dirs if d not in ("node_modules", ".git"))
+        for name in sorted(files):
+            if name in MCP_SKIP_FILES or not name.endswith(MCP_SCAN_EXT):
+                continue
+            path = os.path.join(root, name)
+            text = read(path)
+            for m in bare.finditer(text):
+                findings.append(Finding(
+                    rel(path), text.count("\n", 0, m.start()) + 1, "mcp-prefix", FAIL,
+                    m.group(0),
+                    "this plugin declares server %r; its tools are named "
+                    "mcp__plugin_%s_%s__<tool>" % (m.group(1), plugin, m.group(1))))
+    return findings
+
+
+# ---------------------------------------------------------------------------
 
 
 def plugins_for(targets):
@@ -377,6 +443,7 @@ def run(targets, force_strict=False):
         findings += check_mutation_plans(plugin_dir, strict)
         findings += check_skill_names(plugin_dir, strict)
         findings += check_version_parity(plugin_dir, strict, entries, market_error)
+        findings += check_mcp_prefix(plugin_dir, strict)
     return findings
 
 
@@ -413,8 +480,10 @@ def main(argv=None):
         if fails or warns:
             print("Fix the structure: every eight-block name and an executable "
                   "ROLLBACK in a mutating command, one name across SKILL.md / "
-                  "directory / evals.json, and the same version in plugin.json "
-                  "and .claude-plugin/marketplace.json.")
+                  "directory / evals.json, the same version in plugin.json "
+                  "and .claude-plugin/marketplace.json, and "
+                  "mcp__plugin_<plugin>_<server>__ for the plugin's own MCP "
+                  "servers.")
 
     if fails:
         return 1

@@ -1,6 +1,6 @@
 ---
 description: Create a new webhook for event notifications
-allowed-tools: ["mcp__teleshop__get_webhook_events", "mcp__teleshop__create_webhook", "mcp__teleshop__get_webhook_secret", "mcp__teleshop__test_webhook"]
+allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__get_webhook_events", "mcp__plugin_teleshop-ops_teleshop__create_webhook", "mcp__plugin_teleshop-ops_teleshop__get_webhook_secret", "mcp__plugin_teleshop-ops_teleshop__test_webhook"]
 argument-hint: <url> [<event>]
 ---
 

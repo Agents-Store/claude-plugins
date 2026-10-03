@@ -1,6 +1,6 @@
 ---
 description: Generate a professional business proposal (DOCX/PDF)
-allowed-tools: ["Bash", "Read", "Write", "Glob"]
+allowed-tools: ["Bash", "Read", "Write"]
 argument-hint: <title> [--format <docx|pdf>] [--company <name>]
 ---
 
@@ -19,14 +19,14 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-1. **Resolve plugin directory:**
-   Find the plugin dir by globbing for `**/document-generator-ops/scripts/generate_docx.js`.
+1. **Plugin directory:**
+   Scripts and templates live under `${CLAUDE_PLUGIN_ROOT}` (Claude Code substitutes it with the installed plugin path). Use it as is; do not search for the plugin.
 
 2. **Check dependencies:**
    ```bash
-   cd <plugin_dir> && node -e "require('docx')" 2>&1
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
    ```
-   If missing, tell user to run `npm install` in plugin dir.
+   If `ready` is false, show what is missing and ask permission to run the listed `installCommands`. (`ready` covers Node, the npm modules and the Playwright browser; pandoc and the PDF engines are optional extras listed in `missing`.)
 
 3. **Gather required data from user:**
    - Recipient (client name/company)
@@ -39,7 +39,7 @@ Parse from "$ARGUMENTS".
 
 4. **Read template:**
    ```bash
-   cat <plugin_dir>/templates/proposal_template.json
+   cat "${CLAUDE_PLUGIN_ROOT}/templates/proposal_template.json"
    ```
 
 5. **Build JSON input:**
@@ -47,15 +47,15 @@ Parse from "$ARGUMENTS".
 
 6. **Generate document:**
    ```bash
-   cd <plugin_dir> && node scripts/generate_docx.js /absolute/path/.doc_input.json
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/generate_docx.js" /absolute/path/.doc_input.json
    ```
-   For PDF format, use `scripts/generate_pdf.js` instead.
+   For PDF format, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/generate_pdf.js" /absolute/path/.doc_input.json` instead.
 
 7. **Deliver result:**
    Parse JSON output, show file path and size. Clean up temp input file. Offer to convert to another format.
 
 ## Example Usage
 ```
-/generate-proposal "Cloud Migration Strategy" --company "TechCo Solutions"
-/generate-proposal "Q2 Marketing Campaign" --format pdf
+/document-generator-ops:generate-proposal "Cloud Migration Strategy" --company "TechCo Solutions"
+/document-generator-ops:generate-proposal "Q2 Marketing Campaign" --format pdf
 ```

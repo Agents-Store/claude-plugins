@@ -6,11 +6,20 @@
  * Checks all required dependencies (Node modules + system tools)
  * and optionally auto-installs missing ones.
  *
+ * npm packages: for a plugin installed from a marketplace Claude Code installs
+ * them itself from package-lock.json. They are missing only when the plugin is
+ * loaded in place (--plugin-dir, local-directory marketplace) — then `npm ci`
+ * in the plugin directory fixes it. The Playwright browser is never installed
+ * by npm; it lives in the global Playwright cache and survives plugin updates.
+ *
  * Usage:
  *   node check_deps.js              # Check only, report missing
  *   node check_deps.js --install    # Check and auto-install missing deps
  *
  * Output: JSON { ready, missing[], installed{}, installCommands[] }
+ * `ready` is true when Node >= 20, the npm modules and the Playwright browser are
+ * all in place. pandoc and the pandoc PDF engines are optional extras: they are
+ * listed in `missing` but do not change `ready`.
  */
 
 const { execSync } = require("child_process");
@@ -23,6 +32,28 @@ const autoInstall = process.argv.includes("--install");
 function checkNodeModule(name) {
   try {
     require.resolve(name, { paths: [path.join(pluginDir, "node_modules")] });
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * True when Playwright can start its headless Chromium — the same call the
+ * generators make. A launch probe, not a file check: headless mode runs on the
+ * separate headless shell, so a full Chromium alone (`--no-shell`) would pass an
+ * executablePath() check and still fail to generate. Honours PLAYWRIGHT_BROWSERS_PATH.
+ */
+async function checkPlaywrightChromium() {
+  let chromium;
+  try {
+    ({ chromium } = require(require.resolve("playwright", { paths: [path.join(pluginDir, "node_modules")] })));
+  } catch (_) {
+    return false;
+  }
+  try {
+    const browser = await chromium.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"], timeout: 20000 });
+    await browser.close();
     return true;
   } catch (_) {
     return false;
@@ -58,22 +89,37 @@ function runInstall(cmd, description) {
   }
 }
 
-function main() {
+async function main() {
   const platform = getPlatform();
   const missing = [];
   const installCommands = [];
   const autoInstalled = [];
 
+  // --- Node.js version (pdfkit >= 0.19 and Playwright need Node 20+; see "engines" in package.json) ---
+  const nodeMajor = Number(process.versions.node.split(".")[0]);
+  const nodeTooOld = nodeMajor < 20;
+  if (nodeTooOld) {
+    missing.push({
+      type: "node_version",
+      description: `Node.js ${process.versions.node} is too old: pdfkit and Playwright need Node.js 20 or newer`,
+      required: true,
+    });
+  }
+
   // --- Node Modules ---
-  const nodeModules = ["docx", "playwright", "pptxgenjs", "pdfkit", "pdf-parse", "pdf-lib"];
+  const nodeModules = ["docx", "playwright", "pptxgenjs", "pdfkit", "pdf-parse"];
   const missingModules = nodeModules.filter((m) => !checkNodeModule(m));
 
   if (missingModules.length > 0) {
-    const cmd = `cd "${pluginDir}" && npm install`;
+    // Install exactly what package-lock.json pins (what Claude Code does on a marketplace install).
+    const hasLock = fs.existsSync(path.join(pluginDir, "package-lock.json"));
+    const cmd = `cd "${pluginDir}" && ${hasLock ? "npm ci" : "npm install"}`;
     missing.push({
       type: "node_modules",
       names: missingModules,
-      description: `Missing npm packages: ${missingModules.join(", ")}`,
+      description:
+        `Missing npm packages: ${missingModules.join(", ")}. ` +
+        "Claude Code installs them on a marketplace install; they are missing when the plugin is loaded in place (--plugin-dir)",
     });
     installCommands.push({ description: "Install npm dependencies", command: cmd });
 
@@ -85,20 +131,20 @@ function main() {
   }
 
   // --- Playwright browsers ---
-  const hasPlaywright = checkNodeModule("playwright");
-  if (hasPlaywright) {
-    // Check if Chromium browser is installed for Playwright
-    const playwrightBrowserPath = path.join(pluginDir, "node_modules", "playwright-core", ".local-browsers");
-    const hasBrowsers = fs.existsSync(playwrightBrowserPath) ||
-      process.env.PLAYWRIGHT_BROWSERS_PATH ||
-      checkSystemTool("chromium");
+  // (not probed on Node < 20: requiring Playwright there prints an error and exits)
+  let browserMissing = false;
+  if (!nodeTooOld && checkNodeModule("playwright")) {
+    const hasBrowsers = await checkPlaywrightChromium();
+    browserMissing = !hasBrowsers;
 
     if (!hasBrowsers) {
       const cmd = `cd "${pluginDir}" && npx playwright install chromium`;
       missing.push({
         type: "playwright_browsers",
         name: "chromium",
-        description: "Playwright Chromium browser not installed",
+        description:
+          "Playwright Chromium browser not installed — needed for PDF output (DOCX and PPTX do not need it; a browserless PDF is possible with engine: pdfkit). " +
+          "The browser goes to the global Playwright cache and survives plugin updates",
       });
       installCommands.push({ description: "Install Playwright Chromium", command: cmd });
 
@@ -132,28 +178,30 @@ function main() {
     }
   }
 
-  // --- PDF Engines for pandoc ---
+  // --- PDF Engines for pandoc (convert.sh) ---
+  // wkhtmltopdf is deprecated in the pandoc manual and is no longer used.
   const pdfEngines = [
     { name: "weasyprint", label: "WeasyPrint (recommended — best CSS support)" },
-    { name: "wkhtmltopdf", label: "wkhtmltopdf (good HTML->PDF)" },
-    { name: "pdflatex", label: "pdflatex (LaTeX->PDF)" },
+    { name: "typst", label: "Typst (lightweight, no LaTeX needed)" },
+    { name: "pdflatex", label: "pdflatex (LaTeX; needs extra setup for Cyrillic)" },
   ];
 
   const availablePdfEngines = pdfEngines.filter((e) => checkSystemTool(e.name));
 
   if (availablePdfEngines.length === 0) {
+    // pip can refuse on distributions with PEP 668 — prefer the system package manager.
     const cmd =
       platform === "macos"
-        ? "pip3 install weasyprint"
+        ? "brew install weasyprint"
         : platform === "linux"
-          ? "pip3 install weasyprint"
-          : "pip3 install weasyprint";
+          ? "sudo apt install -y weasyprint"
+          : "pip install weasyprint";
     missing.push({
       type: "pdf_engine",
       name: "weasyprint",
       description:
-        "No PDF engine found for pandoc-based conversions. " +
-        "WeasyPrint recommended. Playwright/Puppeteer handles primary PDF generation.",
+        "No PDF engine found for pandoc-based conversions (convert.sh). " +
+        "WeasyPrint recommended. Playwright handles primary PDF generation and does not need one.",
       required: false,
       alternatives: pdfEngines.map((e) => e.label),
     });
@@ -169,7 +217,9 @@ function main() {
     ? nodeModules.filter((m) => !checkNodeModule(m))
     : missingModules;
 
-  const ready = nowMissingModules.length === 0;
+  // The browser counts: a first run after a marketplace install has the npm modules but no browser.
+  const browserStillMissing = browserMissing && !autoInstalled.includes("playwright_chromium");
+  const ready = nowMissingModules.length === 0 && !nodeTooOld && !browserStillMissing;
   const result = {
     ready,
     platform,
@@ -180,6 +230,7 @@ function main() {
       pandoc: checkSystemTool("pandoc"),
       pdfEngines: availablePdfEngines.map((e) => e.name),
       playwright: checkNodeModule("playwright"),
+      playwrightChromium: !browserStillMissing && checkNodeModule("playwright") && !nodeTooOld,
       puppeteer: checkNodeModule("puppeteer"),
     },
     autoInstalled: autoInstall ? autoInstalled : undefined,
@@ -188,4 +239,7 @@ function main() {
   console.log(JSON.stringify(result, null, 2));
 }
 
-main();
+main().catch((err) => {
+  console.error(`[check_deps] ${err.message}`);
+  process.exit(1);
+});

@@ -1,6 +1,6 @@
 ---
 description: Generate a professional presentation (PPTX)
-allowed-tools: ["Bash", "Read", "Write", "Glob"]
+allowed-tools: ["Bash", "Read", "Write"]
 argument-hint: <title> [--slides <number>] [--theme <corporate|minimal|bold>]
 ---
 
@@ -19,13 +19,14 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-1. **Resolve plugin directory:**
-   Find the plugin dir by globbing for `**/document-generator-ops/scripts/generate_pptx.js`.
+1. **Plugin directory:**
+   Scripts and templates live under `${CLAUDE_PLUGIN_ROOT}` (Claude Code substitutes it with the installed plugin path). Use it as is; do not search for the plugin.
 
 2. **Check dependencies:**
    ```bash
-   cd <plugin_dir> && node -e "require('pptxgenjs')" 2>&1
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
    ```
+   If `ready` is false, show what is missing and ask permission to run the listed `installCommands`. (`ready` covers Node, the npm modules and the Playwright browser; pandoc and the PDF engines are optional extras listed in `missing`.)
 
 3. **Gather required data from user:**
    - Subtitle (optional)
@@ -37,7 +38,7 @@ Parse from "$ARGUMENTS".
 
 4. **Read template:**
    ```bash
-   cat <plugin_dir>/templates/presentation_template.json
+   cat "${CLAUDE_PLUGIN_ROOT}/templates/presentation_template.json"
    ```
 
 5. **Build slide array:**
@@ -51,7 +52,7 @@ Parse from "$ARGUMENTS".
 
 6. **Generate PPTX:**
    ```bash
-   cd <plugin_dir> && node scripts/generate_pptx.js /absolute/path/.doc_input.json
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/generate_pptx.js" /absolute/path/.doc_input.json
    ```
 
 7. **Deliver result:**
@@ -59,6 +60,6 @@ Parse from "$ARGUMENTS".
 
 ## Example Usage
 ```
-/generate-presentation "Product Launch Strategy" --slides 10 --theme corporate
-/generate-presentation "Q1 Review" --theme minimal
+/document-generator-ops:generate-presentation "Product Launch Strategy" --slides 10 --theme corporate
+/document-generator-ops:generate-presentation "Q1 Review" --theme minimal
 ```

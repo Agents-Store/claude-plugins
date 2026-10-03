@@ -22,7 +22,7 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-1. **Verify AI is configured** — `mcp__dokploy__ai-getEnabledProviders`.
+1. **Verify AI is configured** — `mcp__plugin_dokploy-dev_dokploy__ai-getEnabledProviders`.
    - If the array is **empty**: tell the user no AI provider is enabled, offer `/dokploy-dev:debug <id>` (manual decision tree), and point at the `ai-assist` skill to wire one up. Stop.
    - Else: take the `aiId` of an enabled provider.
 
@@ -35,7 +35,7 @@ Parse from "$ARGUMENTS".
 3. **Run the analysis:**
 
    ```
-   mcp__dokploy__ai-analyzeLogs
+   mcp__plugin_dokploy-dev_dokploy__ai-analyzeLogs
      → { aiId: "<enabled provider id>", logs: "<text from step 2>", context: "build" | "runtime" }
    ```
 

@@ -5,7 +5,7 @@ argument-hint: <project> <items...> <changes...>
 
 # Bulk Update
 
-Apply identical field changes to a list of work items. Plane has no native bulk endpoint — this command loops `update_work_item` and reports per-item success/failure.
+Apply identical field changes to a list of work items. Plane has no bulk-edit action for arbitrary fields — this command loops `workitem(action=update)` (and the merge actions `manage_assignee` / `manage_label`) and reports per-item success/failure; cycle, module and milestone moves go through one `manage_workitems` call each.
 
 ## Arguments
 
@@ -26,17 +26,19 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `update_work_item`, `list_work_items`, `search_work_items`, plus `add_work_items_to_cycle` / `add_work_items_to_module` / `add_work_items_to_milestone` for the cycle/module/milestone moves.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `workitem`, plus `cycle`, `module` and `milestone` for the cycle/module/milestone moves.
 2. **Resolve project** → `project_id`.
 3. **Resolve item set**:
    - explicit list → resolve each identifier to UUID
-   - `--from-search` → `search_work_items`
-   - `--from-cycle` / `--from-state` → `list_work_items` with filter
+   - `--from-search` → `workitem(action=search, query)` (workspace-wide; keep the project's items) or `workitem(action=list, project_id, pql='text ~ "query"')`
+   - `--from-cycle` → `cycle(action=list_workitems, project_id, cycle_id)`
+   - `--from-state` → `workitem(action=list, project_id, pql='state = "<state-uuid>"')`
    Print the resolved set with title preview and **ask for confirmation** before mutating.
-4. **Resolve targets** — state name → state_id; label name → label_id; assignee → user_id; cycle/module/milestone name → IDs.
+4. **Resolve targets** — state name → state UUID (`state(action=list, project_id)`); label name → label UUID (`label(action=list, project_id)`); assignee → user UUID (`member(action=list_project, project_id)`); cycle/module/milestone name → IDs (`cycle` / `module` / `milestone` `action=list`).
 5. **Apply** — loop items:
-   - For field changes (state/priority/assignee/labels) → `update_work_item`. Per-item, fetch current `label_ids`/`assignee_ids` first when adding/removing rather than replacing.
-   - For cycle/module/milestone moves → use the corresponding `add_work_items_to_*` bulk tool with the full list (single API call).
+   - For field changes (state/priority/assignee replace) → `workitem(action=update, project_id, workitem_id, state=…, priority=…, assignees=[…])`.
+   - For adding or removing one assignee or label → `workitem(action=manage_assignee, ..., add_user_id|remove_user_id)` / `workitem(action=manage_label, ..., add_label_id|remove_label_id)`: the list is merged server-side, no read-first needed.
+   - For cycle/module/milestone moves → one call with the full list: `cycle(action=manage_workitems, project_id, cycle_id, add_ids=[…])`, `module(action=manage_workitems, …)`, `milestone(action=manage_workitems, …)`. `--cycle none` / `--module remove:<name>` use `remove_ids=[…]` on the cycle/module the items are in (a removal: the permission dialog asks first); find that cycle with `--from-cycle` or by asking.
 6. **Report** — table: `ID | Field | Old → New | Result`. Sum success/failure counts.
 
 ## Safety

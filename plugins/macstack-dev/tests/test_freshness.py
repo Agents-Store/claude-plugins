@@ -37,6 +37,7 @@ import io
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -181,6 +182,63 @@ class SchemaDocumentsWhatIsRead(unittest.TestCase):
         ref = self.schema['$defs']['docRef']['properties']['freshness_days']
         self.assertEqual(docs.get('default'), mf.DEFAULT_DAYS)
         self.assertEqual(ref.get('default'), mf.DEFAULT_DAYS)
+
+
+class SessionStartSources(unittest.TestCase):
+    """Фраза о свежести возвращается после каждого события, которое её стирает.
+
+    Компакция выбрасывает начало разговора, а с Claude Code 2.1.214 форкнутая
+    сессия сообщает источник `fork` вместо `resume`, так что матчер
+    `startup|resume|clear` оставлял обе ситуации без фразы. Источники `compact` и
+    `fork` перечислены в документации Claude Code
+    (https://code.claude.com/docs/en/hooks, раздел SessionStart).
+    """
+
+    SOURCES = ('startup', 'resume', 'clear', 'compact', 'fork')
+
+    def test_every_source_is_matched(self):
+        hooks = _load(os.path.join(HOOKS, 'hooks.json'))
+        matched = set()
+        for group in hooks['hooks']['SessionStart']:
+            matched.update(group['matcher'].split('|'))
+        for source in self.SOURCES:
+            self.assertIn(source, matched,
+                          'SessionStart не срабатывает на «%s» — после этого '
+                          'события фраза о свежести документов пропадает' % source)
+
+    def test_rerunning_on_any_source_says_the_same_and_changes_nothing(self):
+        # Повторный запуск безопасен только пока хук читает и не пишет, и
+        # отвечает одно и то же независимо от `source`: именно это позволяет
+        # звать его на compact и fork без файла состояния и счётчика.
+        root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        os.makedirs(os.path.join(root, 'macstack'))
+        with io.open(os.path.join(root, 'macstack', 'macstack.json'), 'w',
+                     encoding='utf-8') as fh:
+            fh.write(u'{"docs": {"files": {"overview": {}}}}')
+
+        def tree():
+            seen = {}
+            for base, _dirs, names in os.walk(root):
+                for name in names:
+                    path = os.path.join(base, name)
+                    with io.open(path, 'rb') as fh:
+                        seen[path] = fh.read()
+            return seen
+
+        before = tree()
+        answers = set()
+        for source in self.SOURCES + ('compact',):
+            proc = subprocess.run(
+                [sys.executable, os.path.join(HOOKS, 'session-start-macstack-stale.py')],
+                input=json.dumps({'source': source, 'cwd': root}).encode('utf-8'),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.assertEqual(proc.returncode, 0, proc.stderr.decode('utf-8', 'replace'))
+            answers.add(proc.stdout)
+        self.assertEqual(len(answers), 1, 'ответ хука зависит от source')
+        self.assertIn(u'additionalContext'.encode('utf-8'), answers.pop(),
+                      'на проекте с несверенным документом хук промолчал')
+        self.assertEqual(tree(), before, 'хук изменил файлы проекта')
 
 
 if __name__ == '__main__':

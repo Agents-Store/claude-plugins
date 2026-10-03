@@ -7,10 +7,16 @@ Two invariants this module exists to enforce:
    stderr. A ``2>&1`` concatenation glues a banner onto the JSON document (or
    onto a token) and every downstream consumer then fails with a misleading
    error. stderr is kept for diagnosis, never fed to the parser.
-2. **A non-zero exit is data, not failure.** Several subcommands use the exit
-   code as the finding channel: ``doctor --lint`` and ``models status --check``
-   both return 1 and 2 for meaningful, expected states. Treating "rc != 0" as an
-   error throws away the answer.
+2. **A non-zero exit is data, not failure — but only where upstream says so.**
+   Several subcommands use the exit code as the finding channel: ``doctor
+   --lint`` returns 1 for "a finding at or above the threshold" and
+   ``models status --check`` returns 1 and 2 for credential states. Treating
+   "rc != 0" as an error throws away the answer. The converse is the trap this
+   module already fell into once: reading a code nobody documented as a verdict.
+   ``doctor --lint`` exits 2 when the command itself failed before its checks
+   completed; that used to be filed as "warnings only" and a broken run read as
+   a pass. A command with no documented table gets none here — the canary run
+   that would justify one is the owner's, not an assumption.
 """
 
 import json
@@ -18,7 +24,7 @@ import re
 
 __all__ = [
     "OcResult", "EXIT_CONTRACTS", "strip_banner", "parse_json",
-    "exit_meaning", "interpret", "findings", "worst_severity",
+    "exit_meaning", "interpret", "findings", "worst_severity", "finding_severity",
 ]
 
 
@@ -31,30 +37,45 @@ __all__ = [
 # convention and MUST NOT be assumed to encode severity in its exit code.
 #
 EXIT_CONTRACTS = {
+    # 0 = nothing at or above --severity-min, 1 = at least one finding at or above it,
+    # 2 = the command or its runtime failed before the checks completed. The threshold
+    # is the caller's: the same instance exits 0 or 1 depending on --severity-min, so
+    # a caller that wants exit codes comparable across versions pins the threshold.
+    # Source: the upstream "Lint and post-upgrade modes" page, "Explicit lint exit codes".
     "doctor --lint": {
-        0: ("clean", "no findings"),
-        1: ("error", "at least one error-level finding"),
-        2: ("warn", "warn-level findings only"),
+        0: ("clean", "no findings at or above the severity threshold"),
+        1: ("findings", "at least one finding at or above the severity threshold"),
+        2: ("failed", "the command or its runtime failed before the health checks "
+                      "completed — a failure, not a finding"),
     },
+    # 1 only when a finding carries level "error"; a warning (plugin version drift is
+    # one) does not change the code. 2 is not part of the documented contract.
     "doctor --post-upgrade": {
-        0: ("clean", "post-upgrade checks passed"),
-        1: ("error", "at least one error-level finding"),
-        2: ("warn", "warn-level findings only"),
+        0: ("clean", "no error-level finding (warnings do not change the exit code)"),
+        1: ("error", "at least one finding with level error"),
     },
     "models status --check": {
         0: ("healthy", "credentials valid"),
-        1: ("expired", "expired or missing credentials"),
+        1: ("expired", "expired or missing credentials, an incompatible route, an unavailable "
+                       "runtime, or indeterminate readiness"),
         2: ("expiring", "credentials expiring inside the warning window"),
     },
-    "security audit": {
-        0: ("clean", "no findings"),
-        1: ("error", "at least one error-level finding"),
-        2: ("warn", "warn-level findings only"),
+    # Documented for CI gates: 1 on findings, 2 for unresolved references (regardless of
+    # --check) and for store validation failures.
+    "secrets audit --check": {
+        0: ("clean", "no plaintext, shadowed reference or residue found"),
+        1: ("findings", "plaintext, shadowed references or residues found"),
+        2: ("unresolved", "unresolved references or a store validation failure"),
     },
+    # `security audit` is deliberately absent: upstream documents its severities
+    # (critical / warn / info) and its JSON shape, but no exit-code table. Asserting one
+    # here would be inventing a contract. Add it only after a canary run confirms it.
 }
 
-# Severity ranking used when rolling findings up into one verdict.
+# Severity ranking used when rolling findings up into one verdict. ``warn`` and
+# ``warning`` are one rank: lint spells it ``warning``, the security audit ``warn``.
 SEVERITY_ORDER = ["info", "notice", "warn", "warning", "error", "critical", "fatal"]
+_RANK = {"info": 0, "notice": 1, "warn": 2, "warning": 2, "error": 3, "critical": 4, "fatal": 5}
 
 
 def exit_meaning(command_key, rc):
@@ -134,9 +155,16 @@ def parse_json(stdout, allow_ndjson=True):
 #   {checkId, severity, message, path, ocPath, fixHint}
 # and it is the contract between diagnostics, the report, /repair and the
 # auditor: a finding without a checkId + fixHint has no sanctioned fix and must
-# be escalated to live documentation before anything is changed.
+# be escalated to live documentation before anything is changed. (Current builds
+# print ``path`` as a config path and may omit ``ocPath``; both are read.) The
+# document around the findings is ``{schemaVersion, ok, checksRun, checksSkipped,
+# findings}``, and an id has the shape ``core/doctor/<check>`` or ``<plugin>/<check>``.
+#
+# ``doctor --post-upgrade --json`` is a different envelope, ``{probesRun,
+# findings}``, and names the severity ``level`` — not ``severity``.
 #
 FINDING_KEYS = ("checkId", "severity", "message", "path", "ocPath", "fixHint")
+SEVERITY_FIELDS = ("severity", "level")
 
 
 def findings(doc):
@@ -153,18 +181,27 @@ def findings(doc):
             val = doc.get(key)
             if isinstance(val, list):
                 return [f for f in val if isinstance(f, dict)]
-        if "checkId" in doc or "severity" in doc:
+        if "checkId" in doc or "severity" in doc or "level" in doc:
             return [doc]
     return []
+
+
+def finding_severity(item):
+    """The severity word of one finding, whichever field the command names it in."""
+    for key in SEVERITY_FIELDS:
+        value = item.get(key)
+        if value is not None:
+            return str(value).lower()
+    return ""
 
 
 def worst_severity(items):
     """Highest severity present in a finding list, or ``None`` when empty."""
     worst, rank = None, -1
     for f in items:
-        sev = str(f.get("severity", "")).lower()
-        if sev in SEVERITY_ORDER and SEVERITY_ORDER.index(sev) > rank:
-            worst, rank = sev, SEVERITY_ORDER.index(sev)
+        sev = finding_severity(f)
+        if sev in _RANK and _RANK[sev] > rank:
+            worst, rank = sev, _RANK[sev]
     return worst
 
 

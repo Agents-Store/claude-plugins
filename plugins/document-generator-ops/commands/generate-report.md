@@ -1,6 +1,6 @@
 ---
 description: Generate a professional report (DOCX/PDF)
-allowed-tools: ["Bash", "Read", "Write", "Glob"]
+allowed-tools: ["Bash", "Read", "Write"]
 argument-hint: <title> [--format <docx|pdf>] [--type <annual|quarterly|project>]
 ---
 
@@ -19,10 +19,14 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-1. **Resolve plugin directory:**
-   Find the plugin dir by globbing for `**/document-generator-ops/scripts/generate_docx.js`.
+1. **Plugin directory:**
+   Scripts and templates live under `${CLAUDE_PLUGIN_ROOT}` (Claude Code substitutes it with the installed plugin path). Use it as is; do not search for the plugin.
 
-2. **Check dependencies.**
+2. **Check dependencies:**
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/check_deps.js"
+   ```
+   If `ready` is false, show what is missing and ask permission to run the listed `installCommands`. (`ready` covers Node, the npm modules and the Playwright browser; pandoc and the PDF engines are optional extras listed in `missing`.)
 
 3. **Gather required data from user:**
    - Author name
@@ -34,7 +38,7 @@ Parse from "$ARGUMENTS".
 
 4. **Read template:**
    ```bash
-   cat <plugin_dir>/templates/report_template.json
+   cat "${CLAUDE_PLUGIN_ROOT}/templates/report_template.json"
    ```
 
 5. **Build JSON input:**
@@ -42,13 +46,13 @@ Parse from "$ARGUMENTS".
 
 6. **Generate document:**
    ```bash
-   cd <plugin_dir> && node scripts/generate_docx.js /absolute/path/.doc_input.json
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/generate_docx.js" /absolute/path/.doc_input.json
    ```
 
 7. **Deliver result.**
 
 ## Example Usage
 ```
-/generate-report "Q1 2026 Performance Analysis" --format pdf
-/generate-report "Security Audit Findings" --type project
+/document-generator-ops:generate-report "Q1 2026 Performance Analysis" --format pdf
+/document-generator-ops:generate-report "Security Audit Findings" --type project
 ```

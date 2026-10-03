@@ -133,7 +133,7 @@ not a risk.
 | `client-package` | The client package — HTML and published page — with each statement's own history, and reading the answers back into the ledger |
 | `lint` | Schema, referential integrity, the folder (41 rules, 12.0–12.40), and the status dashboard |
 | `infisical-env` | `.env` wiring from `resources.accesses` |
-| `best-practices` | Project rules and commands |
+| `best-practices` | Project rules and slash-command skills |
 | `setup` | Orientation, tooling, path resolution, the CLAUDE.md and AGENTS.md blocks |
 | `troubleshoot` | Symptom → cause → fix |
 | `feedback` | Route a fix to the plugin, the schema or the registry |
@@ -158,8 +158,13 @@ file, `macstack/` already touched, or a second pass over the same turn. A hook t
 speaks out of turn trains you to ignore it — and then it fails on the one occasion it
 was needed.
 
-A second hook runs at session start and says how far the documents have drifted from
-the code — how long since anyone checked, and which documents nobody has ever checked.
+A second hook runs at a session boundary — `startup`, `resume`, `clear`, `fork` and
+`compact` — and says how far the documents have drifted from the code: how long since
+anyone checked, and which documents nobody has ever checked. `compact` is there because a
+compaction drops the earlier sentence from the context; `fork` because from Claude Code
+2.1.214 a forked session reports `fork` instead of `resume`, so a matcher that listed only
+`startup|resume|clear` went silent on forks. The hook only reads, so running it again on
+any of those sources costs one sentence and changes nothing.
 It measures with literally the same function rule 12.17 calls: `hooks/macstack_freshness.py`
 owns the shelf life and the audit date, and the linter imports it. It was two copies
 once, and they diverged exactly as predicted — the linter lifted the clock from archived
@@ -171,14 +176,19 @@ cannot tell you different things about the same document.
 The budget is per document (`docs.files.<key>.freshness_days`), falling back to the
 folder-wide `docs.freshness_days` and then to 30.
 
-Session start rather than every turn: repeated thirty times in a session, that sentence
-stops being read by the third. The Stop hook mentions drift too, but only when it has
-already earned a word — code changed, folder untouched.
+A boundary rather than every turn: repeated thirty times in a session, that sentence
+stops being read by the third. The boundary is a stretch of context, not the whole
+session, so the sentence comes back after every compaction — which is the moment it was
+just removed. The Stop hook mentions drift too, but only when it has already earned a
+word — code changed, folder untouched.
 
 ## Prerequisites
 
-`python3` (plus `jsonschema` for full schema validation), `jq`, `gh`, and the
-`infisical` CLI if the project uses it. No MCP server required.
+`python3` 3.7 or newer (that is what the code's syntax and standard-library calls
+require, measured with `vermin`; the suite is tested on 3.12 and also passes on 3.10
+and 3.11), `jsonschema` >= 4 (the bundled schema is draft 2020-12) for full schema
+validation, `jq`, `gh`, and the `infisical` CLI (0.43.134 or newer — one named profile
+per Infisical instance) if the project uses it. No MCP server required.
 
 ## Canonical references
 

@@ -11,7 +11,7 @@ Manage Plane Pages — long-form documents attached to a project or to the works
 
 Format: `<action> [scope] [project] [args...]`
 
-- `action`: `create` | `list` | `get` | `update`
+- `action`: `create` | `list` | `get` | `update` | `archive` | `delete`
 - `scope`: `project` (default) | `workspace`
 - `project`: project name or identifier (required when `scope=project`)
 - Remaining: title, content source (`--from-file`, `--from-template`, inline body), `--page-id` for `get`/`update`
@@ -20,20 +20,22 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe `ToolSearch` for: `create_project_page`, `retrieve_project_page`, `create_workspace_page`, `retrieve_workspace_page`. Note: list and update endpoints may not exist on every Plane build — fall back gracefully and tell the user.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe `ToolSearch` for the Plane resource tools `page` and `project` (`mcp__<server>__page` takes every page action below).
 2. **Resolve scope**:
-   - `project` → `list_projects` → `project_id`
-   - `workspace` → no project lookup; uses workspace-level call
+   - `project` → `project(action=list)` → `project_id`
+   - `workspace` → no project lookup; omit `project_id` from every `page` call
 3. **Route by action**:
    - `create` → gather `name` and `description_html`. Sources of body, in order of preference:
      - `--from-file <path>` → read file, convert markdown→HTML if needed
      - `--from-template <name>` → use a template from `pages-publishing` skill (`sprint-report`, `retro`, `release-notes`, `roadmap`, `milestone-update`, `meeting-notes`, `decision-log`, `spec`, `runbook`, `blank`)
      - inline body in arguments → wrap in `<p>` paragraphs
      - none → ask the user once for the body
-     Call `create_project_page` or `create_workspace_page`.
-   - `list` → if a list tool is exposed by the connector, use it; otherwise tell the user pages must be opened from the Plane UI sidebar and offer to retrieve a known page by ID.
-   - `get` → `retrieve_*_page({ page_id })`. Render the HTML back as readable markdown for the terminal.
-   - `update` → not all Plane builds expose update; if unavailable, instruct the user to recreate the page or edit in UI. If available, patch `description_html`.
+     Call `page(action=create, project_id?, name, description_html)`. A page's parent is fixed at creation: pass `parent_id` (nest under a page) or `collection_id` (file into a collection), never both.
+   - `list` → `page(action=list, project_id?)` (follow `next_cursor`); each entry reports its `parent_id` and `collection_id`.
+   - `get` → `page(action=retrieve, project_id?, page_id)`. Render the HTML back as readable markdown for the terminal.
+   - `update` → `page(action=retrieve, ...)` first, edit the full HTML, then `page(action=update, project_id?, page_id, description_html, name?)`: `description_html` replaces the whole body, so send the complete edited page, not a fragment. A locked or archived page is refused.
+   - `archive` → `page(action=archive, project_id?, page_id)` (hides it; `archive=false` restores it).
+   - `delete` → **destructive**: show the page, ask for explicit confirmation, `page(action=archive)` it first (delete is refused for a page that is not archived), then `page(action=delete, project_id?, page_id)`.
 4. **Confirm** — print the page name, ID, and URL. Suggest where to link it (cycle description, Slack, README).
 
 ## Examples

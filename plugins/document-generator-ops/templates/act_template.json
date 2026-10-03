@@ -1,6 +1,6 @@
 {
   "type": "act",
-  "engine": "puppeteer",
+  "engine": "playwright",
   "description": "Act of Completed Works",
   "requiredFields": ["contractor", "customer", "services", "date"],
   "optionalFields": ["actNumber", "city", "contractRef", "vatRate", "currencySymbol", "notes", "language"],

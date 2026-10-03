@@ -22,7 +22,7 @@ Parse `[--log-lines <n>]` (default 20) from "$ARGUMENTS".
    ```bash
    set -a; . /root/.restic/r2.env; set +a
    restic snapshots --latest 1
-   restic snapshots --json --latest 1   # compute age; warn if > 26h old
+   restic snapshots --json --latest 1   # age = newest `time` across ALL returned groups (one per host/path); warn if > 26h old
    ```
 
 3. **Last run log:**

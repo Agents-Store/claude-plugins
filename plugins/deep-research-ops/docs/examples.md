@@ -226,7 +226,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 **Template:** Deep Research Report
 
 **Capabilities:**
-- Query expansion — generate related terms
+- Query planning — related terms and angles (a model step, no tool)
 - `~~batch_search` — multiple angles
 - `~~academic_search` — academic foundations
 - `~~code_search` — implementation examples
@@ -286,6 +286,8 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 
 ## Test Results — Run 2 (2026-03-16)
 
+Recorded on the tool surface of that date (before the 3.0.0 / 3.1.0 refresh of the chains). The findings below are historical; re-run the 7 test cases against the current `web-search-dev` tools before citing this run as proof that the present fallback chains work.
+
 ### Test 1: Competitive Analysis
 - **Status:** PASS
 - **Queries executed:** 3 (Exa + Perplexity + Firecrawl in parallel)
@@ -317,7 +319,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
 
 ### Test 3: Technical Audit
 - **Status:** PASS
-- **Queries executed:** 3 (1 Exa code + 2 parallel arxiv)
+- **Queries executed:** 3 (1 code-search query + 2 arXiv queries run in parallel)
 - **Capabilities used:** ~~code_search (Exa), ~~academic_search (Jina arXiv parallel)
 - **Fallback triggered:** No
 - **Results returned:** Exa 7 production RAG articles with code; Jina 18 arxiv papers
@@ -328,7 +330,7 @@ Sources: [dev.to](https://dev.to/alexcloudstar/claude-code-vs-cursor-vs-github-c
   - Cross-encoder reranking for quality, but adds latency
   - Key frameworks: RAGAS, DeepEval, TruLens, LangSmith for evaluation
   - 80%+ RAG implementations fail at PoC stage (root cause: data pipelines, not LLM)
-- **Notes:** Exa code search returned detailed production guides with architecture diagrams; arxiv returned 2025-2026 papers including "SoK: Agentic RAG" and "RAGPerf benchmarking"
+- **Notes:** The code-search query returned detailed production guides with architecture diagrams; arxiv returned 2025-2026 papers including "SoK: Agentic RAG" and "RAGPerf benchmarking"
 
 ### Test 4: Person/Company Lookup
 - **Status:** PASS

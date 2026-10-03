@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Convert DOCX -> PDF via pandoc (HTML) + Puppeteer
+ * Convert DOCX -> PDF via pandoc (HTML) + Playwright
  *
- * Uses the shared html_templates.js design system for consistent styling
- * with all other document outputs (PDF, DOCX pandoc engine).
+ * Wraps pandoc's HTML in the shared html_templates.js CSS, so the PDF gets the
+ * same design as generate_pdf.js output (the CSS is applied here, by the browser).
  *
  * Usage: node docx_to_pdf.js <input.docx> <output.pdf> [--margins "top,bottom,left,right"]
  *
@@ -168,13 +168,15 @@ ${htmlFragment}
 </body>
 </html>`;
 
-  // 4. Render PDF — try Playwright first, fall back to Puppeteer
+  // 4. Render PDF — Playwright first; Puppeteer only if Playwright is not installed
   let browser, page;
   try {
     const { chromium } = require("playwright");
     browser = await chromium.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"] });
     page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle" });
+    // Fonts are embedded as base64: wait for load + fonts, not "networkidle" (discouraged).
+    await page.setContent(html, { waitUntil: "load" });
+    await page.evaluate(() => document.fonts.ready);
   } catch (e) {
     if (e.code === "MODULE_NOT_FOUND") {
       const puppeteer = require("puppeteer");

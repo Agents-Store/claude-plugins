@@ -20,15 +20,15 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `create_milestone`, `list_milestones`, `retrieve_milestone`, `update_milestone`, `delete_milestone`, `add_work_items_to_milestone`, `remove_work_items_from_milestone`, `list_milestone_work_items`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `project`, `milestone` and `workitem`.
 2. **Resolve project** → `project_id`.
 3. **Route**:
-   - `create` → gather name + target date (required) + description. Call `create_milestone`. Reject milestones >6 months out — split into two.
-   - `list` → `list_milestones({ project_id })`, render with item count and target date.
-   - `get` → `retrieve_milestone` + `list_milestone_work_items`. Render scope and aggregate state buckets.
-   - `update` → resolve by name → `update_milestone`. Moving the target date is a **trade-off conversation** — reduce scope first, slip date last (see `epics-initiatives-milestones` skill).
-   - `delete` → confirm. Items are unlinked, not deleted.
-   - `add-items` / `remove-items` → resolve item IDs → `add_work_items_to_milestone({ milestone_id, work_item_ids: [...] })`.
+   - `create` → gather name + target date (required). Call `milestone(action=create, project_id, title=<name>, target_date)` (the Plane field is `title`; the milestone has no description field, so put context on a linked page). Reject milestones >6 months out — split into two.
+   - `list` → `milestone(action=list, project_id)` (follow `next_cursor`), render with item count and target date.
+   - `get` → `milestone(action=retrieve, project_id, milestone_id)` + `milestone(action=list_workitems, project_id, milestone_id)`. Render scope and aggregate state buckets (`workitem(action=count, project_id, pql='milestone = "<milestone_id>"', group_by=state__group)`).
+   - `update` → resolve by name → `milestone(action=update, project_id, milestone_id, title?, target_date?)`. Moving the target date is a **trade-off conversation** — reduce scope first, slip date last (see `epics-initiatives-milestones` skill).
+   - `delete` → confirm, then `milestone(action=delete, project_id, milestone_id)`. Items are unlinked, not deleted.
+   - `add-items` / `remove-items` → resolve item UUIDs → `milestone(action=manage_workitems, project_id, milestone_id, add_ids=[...])` or `remove_ids=[...]` (returns nothing; read back with `milestone(action=list_workitems)`). A removal asks for confirmation.
 4. **Confirm** — print milestone ID, target date, and item count.
 
 ## Examples

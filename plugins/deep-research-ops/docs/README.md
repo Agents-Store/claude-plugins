@@ -1,6 +1,6 @@
 # Deep Research Plugin
 
-Плагин для Claude Code для комплексных веб-исследований. 4 провайдера (Exa, Firecrawl, Jina, Perplexity), capability-based CONNECTORS с автоматическим FALLBACK.
+Плагин для Claude Code для комплексных веб-исследований: многошаговый workflow поверх любых search MCP-серверов. Тулы приходят из плагина `web-search-dev` (Exa, Firecrawl, Jina, Perplexity) — он указан в `dependencies` и ставится вместе с этим плагином. Capability-based CONNECTORS с автоматическим FALLBACK.
 
 ## Архитектура: CONNECTORS + FALLBACK
 
@@ -8,14 +8,16 @@
 
 | Capability | Описание | Fallback chain |
 |-----------|----------|----------------|
-| `~~search` | Поиск в интернете | Exa → Perplexity → Jina → Firecrawl |
-| `~~scrape` | Прочитать страницу | Jina → Firecrawl |
-| `~~batch_search` | Параллельный поиск | Jina parallel → multiple Exa |
-| `~~batch_scrape` | Прочитать несколько страниц | Jina parallel → multiple Firecrawl |
-| `~~crawl` | Краулинг сайта | Firecrawl crawl → map + batch_scrape |
-| `~~extract` | Структурированные данные | Firecrawl extract → scrape + JSON |
-| `~~academic_search` | Научные статьи | arXiv → SSRN → Perplexity |
-| `~~code_search` | Поиск кода | Exa code → search + "github" |
+| `~~search` | Поиск в интернете | `web_search_exa` → `perplexity_search` → `search_web` → `firecrawl_search` |
+| `~~answer` | AI-ответ с цитатами | `perplexity_ask` → `perplexity_reason` → `perplexity_search` / результаты `~~search` + свой синтез со ссылками |
+| `~~scrape` | Прочитать страницу (с `question` — только нужные пассажи) | `read_url` → `firecrawl_scrape` → `web_fetch_exa` (`maxCharacters: 20000`) |
+| `~~batch_search` | Параллельный поиск (до 5 запросов) | `search_web({query: [...]})` → по одному `web_search_exa` → по одному `perplexity_search` |
+| `~~batch_scrape` | Прочитать несколько страниц (до 5 URL) | `read_url({url: [...]})` → `web_fetch_exa` (`maxCharacters: 20000`) → по одному `firecrawl_scrape`; фолбэки игнорируют `question` — возвращают страницы целиком |
+| `~~crawl` | Краулинг сайта | `firecrawl_crawl` → `firecrawl_map` + `~~batch_scrape` |
+| `~~extract` | Структурированные данные | `firecrawl_scrape` (`formats: ["json"]`, `jsonOptions`) → `firecrawl_agent` для неизвестных URL |
+| `~~academic_search` | Научные статьи | `firecrawl_research_search_papers` → `search_arxiv` / `search_ssrn` → `perplexity_search` |
+| `~~code_search` | Поиск кода | `firecrawl_developer_search` → `web_search_advanced_exa` (opt-in) → search + "github" |
+| `~~deep_agent` | «Тяжёлый» уровень для depth=deep | `agent_run` (Exa) → `firecrawl_agent` → `perplexity_research` |
 
 См. `CONNECTORS.md` для полного маппинга.
 
@@ -23,15 +25,15 @@
 
 | Провайдер | Специализация |
 |-----------|---------------|
-| **Exa** | Семантический поиск, код |
-| **Firecrawl** | Скрапинг, краулинг, JSON extraction, браузер |
-| **Jina** | Параллельный поиск, чтение URL, arXiv, PDF, дедупликация |
-| **Perplexity** | AI-ответы с цитатами (Sonar Pro) |
+| **Exa** | Семантический поиск, поиск компаний и людей, чтение страниц |
+| **Firecrawl** | Скрапинг, краулинг, JSON extraction, developer search, поиск научных статей, агент, браузер (`firecrawl_interact`) |
+| **Jina** | Пакетный поиск и чтение (массивы), точечное чтение (`question`), arXiv/SSRN, PDF, ранжирование, дедупликация |
+| **Perplexity** | Поиск (ссылки), AI-ответы с цитатами — `~~answer` (Agent API presets `fast` / `medium` / `high`) |
 
 ## Установка
 
 1. Скопируйте папку `deep-research-ops` в директорию плагинов Claude Code
-2. Установите плагин `web-search-dev` — он подключает MCP-серверы Exa, Firecrawl, Jina и Perplexity (подойдут и любые другие серверы поиска)
+2. При установке из маркетплейса Claude Code ставит и включает `web-search-dev` вместе с плагином (он объявлен в `dependencies` в `plugin.json`, имя ищется в том же маркетплейсе); при `--plugin-dir` или ручном копировании папки установите его сами — он подключает MCP-серверы Exa, Firecrawl, Jina и Perplexity. Без него плагин работает с любыми другими серверами поиска: недоступные тулы в цепочках пропускаются
 3. Перезапустите Claude Code
 
 ## Быстрый старт

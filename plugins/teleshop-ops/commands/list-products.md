@@ -1,6 +1,6 @@
 ---
 description: List products with optional search, category, status, and limit filters
-allowed-tools: ["mcp__teleshop__list_products"]
+allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__list_products"]
 argument-hint: [--search <query>] [--category <name>] [--status available|unavailable|preorder] [--limit <n>]
 ---
 

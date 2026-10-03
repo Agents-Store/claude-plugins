@@ -18,26 +18,23 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools referenced below (`project`, `member`, `cycle`); their names are `mcp__<server>__<resource>`, never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill. Calls are written `resource(action=..., ...)`.
 
 1. **Resolve project:**
    ```
-   list_projects()
+   project(action=list)
    ```
    Find project by name or identifier.
 
 2. **Get current user:**
    ```
-   get_me()
+   member(action=me)
    ```
    Get user UUID for owned_by field.
 
 3. **Create the cycle:**
    ```
-   create_cycle({
-     project_id, name, owned_by,
-     start_date, end_date
-   })
+   cycle(action=create, project_id, name, owned_by, start_date, end_date)
    ```
 
 4. **Display result:**

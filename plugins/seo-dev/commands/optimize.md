@@ -29,7 +29,7 @@ This command orchestrates all seo-dev skills plus Directus MCP tools:
 | `seo-dev:audit` | Phase 1 & Phase 8: Audit & Report |
 | `directus-dev:schema-design` | Phase 1g: Schema audit |
 | `directus-dev:mcp-tools` | Phase 3D: Field creation & item population |
-| `stack-directus-nextjs-dev:directus-to-nextjs` | Phase 3D-4: Data fetching updates |
+| `stack-directus-nextjs:directus-to-nextjs` | Phase 3D-4: Data fetching updates |
 
 ## Process
 
@@ -101,8 +101,9 @@ grep -rn "<Image\|<img" src/ --include="*.tsx" | grep -v "alt=" | head -30
 # Images without sizes prop
 grep -rn "<Image" src/ --include="*.tsx" | grep -v "sizes=" | head -20
 
-# Images with priority prop (should be only LCP images)
-grep -rn "priority" src/ --include="*.tsx" | grep "<Image\|Image " | head -10
+# Images marked as high priority (should be only LCP images).
+# Next.js 16 replaced the `priority` prop with `preload`; the docs recommend loading="eager" / fetchPriority="high". Search for all of them
+grep -rnE "priority|preload|fetchPriority|loading=\"eager\"" src/ --include="*.tsx" | grep "<Image\|Image " | head -10
 
 # Check next.config for image formats
 grep -A5 "images:" next.config.ts 2>/dev/null || grep -A5 "images:" next.config.js 2>/dev/null
@@ -175,13 +176,13 @@ Present findings in this format before proceeding:
 ### Structured Data
 - JSON-LD present: [yes/no]
 - Organization schema: [yes/no]
-- WebSite schema: [yes/no]
+- WebSite schema (home page): [yes/no]
 - Page-specific schemas: [list]
 
 ### Images
 - Images without alt: X
 - Images without sizes: X
-- LCP images without priority: X
+- LCP images without `fetchPriority="high"` / `loading="eager"` (or `priority` / `preload`): X
 
 ### Headings
 - Pages with wrong H1 count: [list]
@@ -247,7 +248,7 @@ Preserve any existing metadata fields. Merge, do not replace.
 
 #### 2d. Create robots.ts (if missing)
 
-Apply `seo-dev:sitemap-robots` pattern with environment-aware blocking and AI crawler rules.
+Apply `seo-dev:sitemap-robots` pattern with environment-aware blocking and AI crawler rules. Never disallow `/_next/` — Google needs those JS/CSS/image files to render pages.
 
 #### 2e. Create sitemap.ts (if missing)
 
@@ -323,9 +324,9 @@ Create `lib/schema.ts` with factory functions from the `seo-dev:structured-data`
 - `createArticle` (if blog/news exists)
 - `createProduct` (if e-commerce exists)
 
-#### 3c. Add Sitewide Schemas to Root Layout
+#### 3c. Add Sitewide Schemas
 
-Add `<JsonLd>` for Organization and WebSite to the root layout `<body>`.
+Add `<JsonLd>` for Organization to the root layout `<body>`, and `<JsonLd>` for WebSite (`name` / `alternateName`, used for the site name) to the home page `app/page.tsx` — Google reads WebSite only on the home page. Do not add `SearchAction` or FAQPage/HowTo markup for search appearance: Google no longer shows those features.
 
 #### 3d. Add Page-Specific Schemas
 
@@ -572,7 +573,7 @@ Apply `seo-dev:content-seo` patterns.
 1. **Fix heading hierarchy** — Ensure single H1 per page, logical H2-H6 nesting
 2. **Fix image alt texts** — Add descriptive alt text to all `<Image>` components missing it
 3. **Add sizes prop** — Add responsive `sizes` attribute to all `<Image>` components
-4. **Mark LCP images** — Add `priority` prop to above-the-fold hero/banner images (one per page max)
+4. **Mark LCP images** — Add `loading="eager"` and `fetchPriority="high"` to above-the-fold hero/banner images (one per page max; if the LCP image differs between mobile and desktop, use `fetchPriority="high"` alone, because `loading="eager"` would download both). Next.js 16 deprecated the `priority` prop in favor of `preload`; on Next.js 15 and earlier `priority` still works
 5. **Create Breadcrumbs component** — If inner pages lack breadcrumbs, create a reusable component with BreadcrumbList schema
 
 ### Phase 6: Performance & Technical SEO
@@ -597,14 +598,13 @@ const nextConfig = {
         { key: 'X-Content-Type-Options', value: 'nosniff' },
         { key: 'X-Frame-Options', value: 'DENY' },
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-        { key: 'X-XSS-Protection', value: '1; mode=block' },
       ],
     }]
   },
 }
 ```
 
-Merge with existing config — do not overwrite.
+Merge with existing config — do not overwrite. Do not add `X-XSS-Protection` (deprecated, non-standard); a `Content-Security-Policy` is the modern control.
 
 #### 6b. Verify next/font Usage
 

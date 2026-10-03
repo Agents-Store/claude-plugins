@@ -23,7 +23,7 @@ Review the current session for discoveries that should be pushed to parent templ
 1. Read the wrap-up skill at `${CLAUDE_PLUGIN_ROOT}/skills/wrap-up/SKILL.md`
 2. Follow all phases: backlog → review → categorize → user decision → apply or record → summary
 3. For template fixes, delegate to `${CLAUDE_PLUGIN_ROOT}/skills/feedback/SKILL.md`
-4. For plugin fixes, invoke `/plugin-creator:feedback` via the Skill tool
+4. For plugin fixes, invoke `/plugin-creator:feedback` via the Skill tool (a private plugin; when it is not installed, fall back to a GitHub issue or this project's `LEARNINGS.md`, as the wrap-up skill describes)
 
 ## User request
 

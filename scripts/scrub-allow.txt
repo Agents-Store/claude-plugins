@@ -25,7 +25,6 @@ plugins/n8n-dev/skills/api-reference/references/n8n-api.json:uuid:vendor OpenAPI
 plugins/outline-ops/skills/api-reference/references/outline-openapi.yml:uuid:vendor OpenAPI document, identifiers are Outline's own examples
 plugins/outline-ops/skills/api-reference/references/outline-openapi.yml:public-ip:vendor OpenAPI document, address is Outline's own example value
 plugins/directus-dev/skills/item-operations/SKILL.md:uuid:illustrative primary keys in Directus request/response examples
-plugins/teams-dev/skills/authentication/references/sso-setup.md:uuid:Microsoft Entra tenant/app id placeholders from the vendor quickstart
 plugins/teams-dev/skills/teams-sdk-teams-dev/references/guide-setup-sso.md:uuid#sha256-4f91461b6a59:upstream microsoft/teams-sdk SSO guide, Microsoft's own public first-party Teams desktop and mobile client application id used to pre-authorize the client; vendored verbatim and re-synced weekly, so a local edit would be overwritten
 plugins/teams-dev/skills/teams-sdk-teams-dev/references/guide-setup-sso.md:uuid#sha256-0711928e9c33:upstream microsoft/teams-sdk SSO guide, Microsoft's own public first-party Teams web client application id used to pre-authorize the client; vendored verbatim and re-synced weekly, so a local edit would be overwritten
 plugins/atlassian-ops/skills/api-reference/references/jira-openapi-v3.json:high-entropy:vendor OpenAPI document, the long runs are Atlassian's own base64 example payloads (avatar SVG/XML, sample ids)
@@ -38,14 +37,12 @@ plugins/mattermost-ops/skills/api-reference/references/mattermost-openapi-v4.yam
 
 # --- documentation values that only LOOK like deployment data ---------------
 plugins/dataforseo-dev/skills/backlink-audit/SKILL.md:private-host#spamsite.com:illustrative domain in a disavow-file example, deliberately not a real site
-plugins/n8n-dev/skills/n8n-code-javascript/references/BUILTIN_FUNCTIONS.md:private-host#url.host:member access on a parsed URL object; `.host` is also a real TLD, which is what makes it parse as a hostname
 plugins/n8n-dev/skills/n8n-code-javascript/BUILTIN_FUNCTIONS.md:private-host#url.host:member access on a parsed URL object; `.host` is also a real TLD, which is what makes it parse as a hostname
 
 # --- third-party test fixtures we did not author ---------------------------
 # Editing an assertion string to satisfy the gate risks breaking a suite we do
 # not run here; the values are the upstream author's own test data.
 plugins/vercel-dev/tests/benchmark-analyze.test.ts:home-path:upstream test fixture, path is the plugin author's own machine in an assertion
-plugins/vercel-dev/tests/pretooluse-skill-inject.test.ts:private-host:upstream test fixture, short URL used to exercise link handling
 plugins/vercel-dev/tests/redaction.test.ts:private-host:upstream test fixture, short URL used to exercise the redaction code path
 plugins/vercel-dev/tests/skill-telemetry.test.ts:uuid#sha256-9fa3d1a344c5:upstream test fixture, a session UUID the telemetry code validates as v4, so it cannot be a placeholder
 

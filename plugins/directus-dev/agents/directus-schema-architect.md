@@ -96,7 +96,7 @@ Present proposed schemas like this:
 
 ### System Fields (add to every content collection)
 
-- `status` — string, select-dropdown, choices: draft/published/archived
+- `status` — string, select-dropdown, choices: draft/published/archived (Directus 12 new collections default to a boolean `archived` field instead; for draft/review/publish prefer content versioning)
 - `sort` — integer, hidden, for manual ordering
 - `user_created` — uuid, special: user-created, readonly, hidden
 - `date_created` — timestamp, special: date-created, readonly, hidden
@@ -113,11 +113,13 @@ For settings or config that has exactly one record:
 
 ### Content Versioning
 
-For editorial workflows with draft/review/publish:
+For editorial workflows with draft/review/publish (the Directus 12 draft and publish workflow):
 
 ```json
 "meta": { "versioning": true }
 ```
+
+The published item has the reserved version key `published`, drafts live in `directus_versions`, and editors need permissions on `directus_versions` and `directus_revisions` as well as on the collection.
 
 ### Archive Pattern (Soft Delete)
 

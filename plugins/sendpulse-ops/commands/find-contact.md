@@ -1,6 +1,6 @@
 ---
 description: Find a CRM contact by email address
-allowed-tools: mcp__sendpulse__crm_contacts_list_by_email, mcp__sendpulse__crm_contacts_show, mcp__sendpulse__crm_contacts_deals_list
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__crm_contacts_list_by_email, mcp__plugin_sendpulse-ops_sendpulse__crm_contacts_show, mcp__plugin_sendpulse-ops_sendpulse__crm_contacts_deals_list
 argument-hint: <email>
 ---
 

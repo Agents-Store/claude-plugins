@@ -15,7 +15,7 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 | `setup` | Verify Next.js project environment and readiness |
 | `app-router-patterns` | App Router file conventions, routing, layouts, metadata, proxy |
 | `server-client-components` | Server vs Client Component patterns, boundaries, composition |
-| `data-fetching` | Data fetching, Server Actions, caching, ISR, streaming, Cache Components (`use cache`) |
+| `data-fetching` | Data fetching, Server Actions, caching, ISR, streaming, Cache Components (`use cache`), previous-model route config (`revalidate`, `dynamic`) and what replaces it under `cacheComponents`, pages backed by a headless CMS (webhook revalidation, CMS images) |
 | `api-reference` | Framework API quick reference (functions, config, types) |
 
 ### Architecture & Patterns
@@ -32,7 +32,7 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 | Skill | Description |
 |-------|-------------|
 | `security-patterns` | CSP headers with nonces, CSRF protection, XSS prevention, env var safety, `server-only`, security headers |
-| `auth-patterns` | Authentication flows, session management (JWT/cookies), proxy auth guards, RBAC, Auth.js integration |
+| `auth-patterns` | Authentication flows, session management (JWT/cookies), proxy auth guards, RBAC, Better Auth for new projects (with the role caveat), NextAuth v4 and Auth.js v5 for existing ones |
 
 ### Quality & Testing
 
@@ -57,16 +57,28 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 
 ## Prerequisites
 
-- A Next.js project (16.x recommended — current stable 16.3; 14+ minimum for App Router content)
-- For MCP integration: install `next-devtools-mcp` in your project
+- A Next.js project (16.x recommended, pinned `next@^16.3.8` — earlier 16.3.x patches miss several security fixes; 14+ minimum for App Router content)
+- Node.js 22 or 24 LTS recommended (Next.js 16 formally requires >=20.9.0, but Node 20 is end-of-life)
+- For MCP integration: install `next-devtools-mcp` in your project and run `next@>=16.3.8` (earlier dev servers expose `/_next/mcp` without an origin check)
 
 ## Installation
 
 Install as a Claude Code plugin from the Agents Store marketplace.
 
+## What's New in v1.5.0
+
+Aligned with `next@16.3.8` and the September 2026 security release:
+- **Version floor** — recommended range is `next@^16.3.8`; the 16.3.x patches since 16.3.0 carry critical, high and medium security fixes (see `security-patterns` and `setup`)
+- **Previous-model route config is now labelled** — every `export const revalidate` / `dynamic` / `dynamicParams` / `fetchCache` example states that it works only without `cacheComponents`; with `cacheComponents: true` those options are removed and `'use cache'` + `cacheLife()` / `cacheTag()` replaces them (migration table in `data-fetching/references/cache-components.md`)
+- **Troubleshooting** — "Dynamic server usage" under Cache Components is fixed with `<Suspense>` around the runtime-API reader, not `force-dynamic`
+- **Caching details** — `fetch` tags need `cache: 'force-cache'`; `'use cache: private'` is browser-only and never part of the static shell; `experimental.cachedNavigations` is automatic under `cacheComponents`
+- **Auth** — Auth.js now lives under Better Auth: a new "Better Auth (recommended for new projects)" section; Auth.js v5 stays documented as beta, maintenance-mode
+- **New 16.3 surface** — `io()` from `next/cache`, the `instant` / `prefetch` segment configs, per-link prefetching, view transitions, and the first-party agent skills (`next-dev-loop`, `next-cache-components-adoption`, `next-cache-components-optimizer`, `next-partial-prefetching-adoption`)
+- **Tooling** — Vitest 5 requirements (Node >= 22.12, Vite >= 6.4), experimental Rust React Compiler caveats, `instant()` E2E helper needs `baseURL` and `exposeTestingApiInProductionBuild` against `next start`
+
 ## What's New in v1.4.0
 
-Full alignment with Next.js 16 (16.3 current):
+Full alignment with Next.js 16.3:
 - **proxy.ts** — `middleware.ts` is deprecated; all routing, auth, and CSP examples now use the `proxy` convention
 - **Stable error APIs** — `retry` prop and `catchError` from `next/error` (formerly `unstable_*`)
 - **Caching APIs** — `revalidateTag(tag, profile)` (single-arg form deprecated), new `updateTag()` and `refresh()` Server Action APIs, `cacheComponents: true` prerequisite for `use cache`, new Cache Components / Instant Navigations reference
@@ -90,6 +102,7 @@ Added 7 new skills covering production-ready patterns:
 
 - [`next-devtools-mcp`](https://github.com/vercel/next-devtools-mcp) — Vercel's official MCP server for Next.js runtime diagnostics
 - [Next.js Documentation](https://nextjs.org/docs) — Official framework documentation
-- [Auth.js](https://authjs.dev) — Authentication library for Next.js
+- [Better Auth](https://www.better-auth.com) — Authentication library for new Next.js projects (Auth.js is now part of Better Auth)
+- [Auth.js](https://authjs.dev) — Existing Auth.js v5 projects; migration guide to Better Auth
 - [Vitest](https://vitest.dev) — Unit testing framework
 - [Playwright](https://playwright.dev) — E2E testing framework

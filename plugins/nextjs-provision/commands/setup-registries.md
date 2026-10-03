@@ -1,5 +1,5 @@
 ---
-description: Set up community shadcn registries, MCP servers, and CLAUDE.md section for a project
+description: Set up community shadcn registries, the shadcn MCP server, and CLAUDE.md section for a project
 argument-hint: [--mcp | --claudemd | --skill]
 allowed-tools: [Read, Write, Edit, Bash, WebFetch]
 ---
@@ -18,11 +18,11 @@ Full project setup for shadcn community registry search — registries, MCP, CLA
 
 3. Parse arguments from "$ARGUMENTS":
    - (no args) — full setup: registries + MCP + CLAUDE.md + skill
-   - `--mcp` — only configure MCP servers
+   - `--mcp` — only configure the shadcn MCP server
    - `--claudemd` — only add CLAUDE.md section
    - `--skill` — only install official shadcn skill
 
-4. **Add registries** — Run `/add-registries` to fetch all 260+ registries from `https://ui.shadcn.com/r/registries.json` and add them to `components.json`
+4. **Add registries** — Run `/add-registries` to fetch the registries from `https://ui.shadcn.com/r/registries.json` (it skips `unavailable` and hidden ones) and add them to `components.json`
 
 4b. **shadcn studio registries** — If the project uses shadcn studio, write the `@`-prefixed studio registries (not legacy `ss-*` keys):
    ```json
@@ -36,7 +36,7 @@ Full project setup for shadcn community registry search — registries, MCP, CLA
    ```
    For premium, convert entries to objects with `"params": { "email": "${EMAIL}", "license_key": "${LICENSE_KEY}" }`.
 
-5. **Configure MCP servers** — Show the template from `${CLAUDE_PLUGIN_ROOT}/skills/component-search/references/mcp-config-template.json` and create/update the project's `.mcp.json`
+5. **Configure the MCP server** — Show the template from `${CLAUDE_PLUGIN_ROOT}/skills/component-search/references/mcp-config-template.json` (the official `shadcn` server) and create/update the project's `.mcp.json`; or run `pnpm dlx shadcn@latest mcp init --client claude`
 
 6. **Install the official shadcn skill**:
    ```bash

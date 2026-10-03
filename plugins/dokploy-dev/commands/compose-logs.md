@@ -25,18 +25,18 @@ Parse from "$ARGUMENTS".
 ## Process
 
 1. **Resolve the stack.**
-   - If given a name, `mcp__dokploy__compose-search { q: "<name>" }` → pick the match → `composeId`.
-   - `mcp__dokploy__compose-one { composeId }` → read `appName` and `composeType`.
+   - If given a name, `mcp__plugin_dokploy-dev_dokploy__compose-search { q: "<name>" }` → pick the match → `composeId`.
+   - `mcp__plugin_dokploy-dev_dokploy__compose-one { composeId }` → read `appName` and `composeType`.
 
 2. **Enumerate every container** (skill §2 step 2):
-   - `composeType: "docker-compose"` → `mcp__dokploy__docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }`
-   - `composeType: "stack"` → `mcp__dokploy__docker-getStackContainersByAppName { appName }`
-   - Fallback → `mcp__dokploy__docker-getContainers {}` and filter to names containing `appName`.
+   - `composeType: "docker-compose"` → `mcp__plugin_dokploy-dev_dokploy__docker-getContainersByAppNameMatch { appName, appType: "docker-compose" }`
+   - `composeType: "stack"` → `mcp__plugin_dokploy-dev_dokploy__docker-getStackContainersByAppName { appName }`
+   - Fallback → `mcp__plugin_dokploy-dev_dokploy__docker-getContainers {}` and filter to names containing `appName`.
    - Collect each container's identifier (`containerId` / `name`) and current `state` / `status`.
 
 3. **Loop — read logs for EACH container** (never stop at the first):
    ```
-   mcp__dokploy__compose-readLogs
+   mcp__plugin_dokploy-dev_dokploy__compose-readLogs
      → { composeId, containerId: <each>, tail: <--tail>, since: <--since>, search: <--search?> }
    ```
 

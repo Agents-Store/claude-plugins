@@ -21,6 +21,13 @@ Format:
 
 ---
 
+## 2026-10-03 — examples: `+meeting-prep` has no `--timezone`
+
+**Problem:** `skills/examples/references/scenarios.md` (scenario 4) told readers to override the timezone with `gws workflow +meeting-prep --timezone America/New_York`; the flag does not exist and the command would be rejected.
+**Fix:** The scenario now says `+meeting-prep` takes only `--calendar` and `--format`, that it uses the Google account's timezone, and points to `gws calendar +agenda --today --timezone America/New_York` for an explicit zone. Vendored skills untouched: a control run of `scripts/sync-google-workspace-skills.sh` produced an empty diff (still `a3768d0`, identical to upstream v0.22.5).
+**Root cause:** The flag was guessed from `calendar +agenda` when the custom `examples` skill was written. Checked against the vendored `gws-workflow-meeting-prep` and `gws-calendar-agenda` skills and against `build_meeting_prep_cmd()` in upstream v0.22.5 (`helpers/workflows.rs`).
+**Severity:** Minor
+
 ## 2026-06-22 — plugin created
 
 Initial release. Vendored ~95 official skills (44 `gws-*`, 10 `persona-*`, 41 `recipe-*`) from

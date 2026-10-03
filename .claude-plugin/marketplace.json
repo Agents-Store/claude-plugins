@@ -15,14 +15,24 @@
     "document-generator": "document-generator-ops",
     "project-template-creator": "project-template-dev",
     "sendpulse": "sendpulse-ops",
-    "teleshop": "teleshop-ops"
+    "teleshop": "teleshop-ops",
+    "firecrawl": "web-search-dev",
+    "n8n": "n8n-dev",
+    "nocodb": "nocodb-ops",
+    "nocobase": "nocobase-dev",
+    "openclaw-configurator": "openclaw-ops",
+    "media-hosting-ops": null,
+    "image-search-dev": "web-search-dev",
+    "stack-directus-nextjs-dev": "stack-directus-nextjs",
+    "stack-directus-nextjs-trigger-dev": "stack-directus-nextjs-trigger",
+    "stack-flask-sqlalchemy-dev": "stack-flask-sqlalchemy"
   },
   "plugins": [
     {
       "name": "sendpulse-ops",
       "source": "./plugins/sendpulse-ops",
-      "description": "Sendpulse multi-channel marketing plugin. Manage chatbots (Telegram, WhatsApp, Instagram, Messenger, Viber), CRM (contacts, deals, pipelines, boards, tasks), email campaigns, templates, addressbooks, and SMTP transactional email via 133+ MCP tools.",
-      "version": "2.0.0",
+      "description": "Sendpulse multi-channel marketing plugin. Manage chatbots (Telegram, WhatsApp, Instagram, Messenger, Viber, TikTok), CRM (contacts, deals, pipelines, boards, tasks), Courses (LMS) academies, courses and students, email campaigns, templates, addressbooks, and SMTP transactional email via 147 MCP tools.",
+      "version": "2.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -49,7 +59,7 @@
       "name": "teleshop-ops",
       "source": "./plugins/teleshop-ops",
       "description": "Teleshop store management plugin. Manage products, orders, categories, attributes, customers, webhooks, and addons for your Telegram store via 50 MCP tools.",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -69,95 +79,10 @@
       "category": "ecommerce"
     },
     {
-      "name": "nocodb",
-      "source": "./plugins/nocodb",
-      "description": "DEPRECATED — superseded by nocodb-dev (schema, fields, views, Meta API) and nocodb-ops (records, search, views, reports), which teach the current NocoDB MCP tool names; this plugin teaches tool names the server no longer exposes. NocoDB database development plugin. Manage tables, records, columns, views, relations, formulas, rollups, lookups, filtering, and sorting via 17+ MCP tools.",
-      "version": "1.1.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "nocodb",
-        "database",
-        "tables",
-        "records",
-        "columns",
-        "views",
-        "relations",
-        "formulas",
-        "no-code",
-        "spreadsheet",
-        "airtable-alternative"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "n8n",
-      "source": "./plugins/n8n",
-      "description": "DEPRECATED — superseded by n8n-dev (building, validating and debugging workflows against both current n8n MCP servers) and n8n-provision (template discovery and batch import). Use those two instead. n8n workflow automation plugin. Manage workflows, execute automations, configure nodes, handle credentials, and monitor executions via 17+ MCP tools.",
-      "version": "1.1.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "n8n",
-        "workflow",
-        "automation",
-        "nodes",
-        "triggers",
-        "executions",
-        "credentials",
-        "integrations",
-        "webhooks",
-        "scheduling"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "firecrawl",
-      "source": "./plugins/firecrawl",
-      "description": "DEPRECATED — superseded by web-search-dev, which covers the current Firecrawl MCP tools and REST API v2 alongside Exa, Perplexity, Jina and Context7; this plugin teaches tool names the official Firecrawl MCP server does not expose. Firecrawl web scraping and search plugin. Scrape URLs, crawl sites, search the web, map site structures, and extract structured data via 6 MCP tools.",
-      "version": "1.1.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "firecrawl",
-        "web-scraping",
-        "crawling",
-        "search",
-        "data-extraction",
-        "sitemap",
-        "markdown",
-        "content"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "nocobase",
-      "source": "./plugins/nocobase",
-      "description": "DEPRECATED — superseded by nocobase-dev, which bundles the official nocobase/skills library and works through the nb CLI and REST API. Its MCP server package (@nocobase/mcp-server) was withdrawn from npm and is no longer wired; the MCP commands and agents work only if you register your own server named `nocobase`. NocoBase platform development knowledge plugin. Expert guidance on collections, fields, relations, workflows, UI blocks, and plugin development for NocoBase applications.",
-      "version": "1.2.1",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "nocobase",
-        "low-code",
-        "collections",
-        "workflows",
-        "ui-blocks",
-        "plugin-development",
-        "no-code",
-        "application-builder"
-      ],
-      "category": "development"
-    },
-    {
       "name": "plane-ops",
       "source": "./plugins/plane-ops",
-      "description": "Plane Agile Ops knowledge plugin. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, standups, intake triage, modules, epics, milestones, roadmaps, dependencies, burndown, and page publishing. Tool- and instance-agnostic: works with any Plane MCP server or connector via a bootstrap skill that discovers tools across naming conventions.",
-      "version": "1.3.0",
+      "description": "Plane Agile Ops knowledge plugin. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, standups, intake triage, modules, epics, milestones, roadmaps, dependencies, burndown, and page publishing. Written for Plane MCP 0.3.0+ (resource tools with an action parameter, PQL filters, releases); a bootstrap skill discovers the tools across naming conventions and translates for older per-operation connectors.",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -179,8 +104,8 @@
     {
       "name": "deep-research-ops",
       "source": "./plugins/deep-research-ops",
-      "description": "Deep Research plugin. Conduct comprehensive web research using 38 tools across 4 providers (Firecrawl, Jina, Exa, Perplexity) with intelligent fallback chains, parallel search, content extraction, and structured report generation.",
-      "version": "3.0.0",
+      "description": "Multi-step research workflow over any search MCP servers; installs web-search-dev for the tools.",
+      "version": "3.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -203,8 +128,8 @@
     {
       "name": "document-generator-ops",
       "source": "./plugins/document-generator-ops",
-      "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, puppeteer, pptxgenjs, pandoc).",
-      "version": "3.0.1",
+      "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, Playwright, pptxgenjs, pandoc).",
+      "version": "3.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -226,44 +151,10 @@
       "category": "productivity"
     },
     {
-      "name": "openclaw-configurator",
-      "source": "./plugins/openclaw-configurator",
-      "description": "DEPRECATED — superseded by openclaw-ops, which operates instances from live Docker state instead of hard-coded paths. Kept for its workspace-authoring skills (AGENTS.md, SOUL.md, personas, standing orders); use openclaw-ops for anything operational. OpenClaw instance configurator and operations plugin. Scan, analyze, and optimize all workspace files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOT.md, BOOTSTRAP.md) plus openclaw.json. Update instances from official GitHub releases and reconcile config against new releases (recommend new features, migrate legacy settings, run openclaw doctor). Set up model-provider authentication with an OAuth/CLI-backend-first, cost-saving bias (Claude CLI, Codex OAuth). Migrate .env secrets into self-hosted Infisical. Guided interviews, session log analysis, standing orders design, security audit, config validation, permission fix hooks, centralized doc research, and 6 industry-specific workspace templates. Supports OPENCLAW_INSTANCE_DIR (runtime instance) and OPENCLAW_PROJECT_DIR (git/docker source) env vars to target any instance from any working directory.",
-      "version": "1.7.1",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "openclaw",
-        "workspace",
-        "configurator",
-        "agents-md",
-        "soul-md",
-        "persona",
-        "standing-orders",
-        "session-analysis",
-        "heartbeat",
-        "memory",
-        "ai-agent",
-        "self-hosted",
-        "update",
-        "docker",
-        "git",
-        "oauth",
-        "claude-cli",
-        "provider-auth",
-        "infisical",
-        "secrets-migration",
-        "release-migration",
-        "doctor"
-      ],
-      "category": "ai-agents"
-    },
-    {
       "name": "openclaw-ops",
       "source": "./plugins/openclaw-ops",
-      "description": "Day-two operations for a fleet of self-hosted OpenClaw gateway instances on one Docker host. Discovers every instance from the live Docker state instead of hard-coded paths, classifies it ok / degraded / down / alien, and drives the repair work: health and liveness reporting, provider-auth triage (expired, emptied and shadowed OAuth profiles, shared-credential token sink), config surgery with a snapshot and an executable rollback, memory and embedding repair, shared skills and plugins consolidation, secret-delivery audit by key name only, security audit, version-drift and channel-aware upgrades, and reference-instance cloning. Mutations are dry-run behind an eight-block plan, need --yes, and need a typed confirmation when irreversible. Secrets are reported as fingerprint, presence and expiry — never as values. No MCP server and no required environment variables: the one optional variable, OPENCLAW_OPS_CONFIG, is an escape hatch for the fleet-config path, and deployment specifics live in that operator-owned config outside the repository.",
-      "version": "1.0.1",
+      "description": "Day-two operations for a fleet of self-hosted OpenClaw gateway instances on one Docker host. Discovers every instance from the live Docker state instead of hard-coded paths, classifies it ok / degraded / down / alien, and drives the repair work: health and liveness reporting, provider-auth triage (expired, emptied and shadowed OAuth profiles, shared-credential token sink), config surgery with a snapshot and an executable rollback, memory and embedding repair, shared skills and plugins consolidation, secret-delivery audit by key name only, security audit, version-drift and channel-aware upgrades, and reference-instance cloning. Mutations are dry-run behind an eight-block plan, need --yes, and need a typed confirmation when irreversible. Secrets are reported as fingerprint, presence and expiry — never as values. No MCP server and no required environment variables: the one optional variable, OPENCLAW_OPS_CONFIG, is an escape hatch for the fleet-config path, and deployment specifics live in that operator-owned config outside the repository. Also carries the workspace persona guides (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, standing orders, bootstrap, memory, session analysis) taken over from the retired openclaw-configurator.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -287,6 +178,8 @@
         "embeddings",
         "security-audit",
         "dry-run",
+        "workspace",
+        "persona",
         "agents-store"
       ],
       "category": "operations"
@@ -295,7 +188,7 @@
       "name": "directus-dev",
       "source": "./plugins/directus-dev",
       "description": "Directus development plugin. Knowledge base for working with Directus MCP tools (12 tools), REST API, and @directus/sdk. Covers collections, items, fields, relations, files, flows, operations, and schema design.",
-      "version": "1.1.3",
+      "version": "1.4.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -319,7 +212,7 @@
       "name": "nextjs-dev",
       "source": "./plugins/nextjs-dev",
       "description": "Next.js development plugin. Knowledge base for building modern Next.js 16 applications with App Router, Server/Client Components, data fetching, Cache Components, performance optimization, and the next-devtools-mcp toolchain.",
-      "version": "1.4.1",
+      "version": "1.6.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -342,8 +235,8 @@
     {
       "name": "nextjs-provision",
       "source": "./plugins/nextjs-provision",
-      "description": "Next.js provisioning plugin. Set up shadcn/ui and shadcn studio — component installation, theme configuration, MCP server setup, project scaffolding, and multi-registry component search across 260+ registries from the official directory.",
-      "version": "1.2.1",
+      "description": "Next.js provisioning plugin. Set up shadcn/ui and shadcn studio — component installation, theme configuration, MCP server setup, project scaffolding, and multi-registry component search across the 400+ registries of the official directory.",
+      "version": "1.3.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -366,8 +259,8 @@
     {
       "name": "dify-ops",
       "source": "./plugins/dify-ops",
-      "description": "Dify self-hosted update operations plugin. Pull upstream changes, merge into local dev branch, sync .env variables, detect Docker project names, and rebuild containers for Dify Docker deployments.",
-      "version": "1.0.1",
+      "description": "Dify self-hosted update operations plugin. Pre-flight the target release and the bundled Weaviate migration path, back up volumes with the stack down, merge a release tag into the local dev branch, sync .env variables, and pull and restart containers for Dify Docker deployments.",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -384,55 +277,54 @@
       "category": "operations"
     },
     {
-      "name": "stack-directus-nextjs-dev",
-      "source": "./plugins/stack-directus-nextjs-dev",
-      "description": "Directus + Next.js stack dev plugin. Integrates Directus headless CMS with Next.js App Router for content-driven applications.",
-      "version": "1.0.3",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "stack",
-        "directus-nextjs",
-        "dev",
-        "agents-store",
-        "directus",
-        "nextjs",
-        "headless-cms",
-        "app-router"
-      ],
-      "category": "development"
-    },
-    {
-      "name": "stack-directus-nextjs-trigger-dev",
-      "source": "./plugins/stack-directus-nextjs-trigger-dev",
-      "description": "Directus + Next.js + Trigger.dev stack dev plugin. Adds self-hosted Trigger.dev as a workflow engine for AI agents, durable async logic, and scheduled jobs on top of the Directus + Next.js App Router stack.",
+      "name": "stack-directus-nextjs",
+      "source": "./plugins/stack-directus-nextjs",
+      "description": "Directus + Next.js architecture plugin. How Directus (content, files, access) and a Next.js App Router frontend fit together: who holds the token, how the cache is invalidated, how assets and types cross the boundary, who owns the session, and a production checklist. Tool knowledge comes from its dependencies.",
       "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
       "keywords": [
         "stack",
+        "directus-nextjs",
+        "architecture",
+        "agents-store",
+        "directus",
+        "nextjs",
+        "headless-cms",
+        "app-router"
+      ],
+      "category": "stack"
+    },
+    {
+      "name": "stack-directus-nextjs-trigger",
+      "source": "./plugins/stack-directus-nextjs-trigger",
+      "description": "Directus + Next.js + Trigger.dev architecture plugin. How Directus (content, files, access), a Next.js App Router frontend and self-hosted Trigger.dev (durable and scheduled work) fit together: who holds which token, how the cache is invalidated, how a Directus change reaches a task and the result reaches the page, who owns the session, and a production checklist. Tool knowledge comes from its dependencies.",
+      "version": "3.0.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": [
+        "stack",
         "directus-nextjs-trigger",
-        "dev",
+        "architecture",
         "agents-store",
         "directus",
         "nextjs",
         "trigger.dev",
-        "ai-agents",
-        "workflows",
+        "background-jobs",
         "scheduled-tasks",
         "self-hosted",
         "durable-execution",
         "app-router"
       ],
-      "category": "development"
+      "category": "stack"
     },
     {
       "name": "web-search-dev",
       "source": "./plugins/web-search-dev",
-      "description": "Web search and scraping developer toolkit. MCP tool patterns, REST API reference (Firecrawl v2), SDK/CLI usage for Firecrawl, Exa, Perplexity, Jina, Pexels, Unsplash, and Context7. Practical skills for web scraping, documentation search, and media discovery in dev workflows.",
-      "version": "1.1.1",
+      "description": "Developer reference for web search, scraping and documentation lookup — Firecrawl, Exa, Jina, Perplexity, Context7 MCP tools and REST/SDK/CLI — plus Pexels and Unsplash REST media search.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -452,47 +344,10 @@
       "category": "development"
     },
     {
-      "name": "media-hosting-ops",
-      "source": "./plugins/media-hosting-ops",
-      "description": "Media hosting operations plugin. Upload images by public URL to MinIO-based media hosting via the uploadImageToMinio MCP tool.",
-      "version": "1.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "media-hosting",
-        "minio",
-        "image-upload",
-        "ops",
-        "agents-store"
-      ],
-      "category": "operations"
-    },
-    {
-      "name": "image-search-dev",
-      "source": "./plugins/image-search-dev",
-      "description": "Stock image and video search developer toolkit. MCP tool patterns for Pexels (9 tools) and Unsplash (4 tools) from mcpware-dev-tools. Photo search, video search, collections, curated content, and MinIO upload integration.",
-      "version": "1.0.0",
-      "author": {
-        "name": "AGENTS.STORE"
-      },
-      "keywords": [
-        "image-search",
-        "pexels",
-        "unsplash",
-        "stock-photos",
-        "stock-videos",
-        "media",
-        "dev",
-        "agents-store"
-      ],
-      "category": "development"
-    },
-    {
       "name": "project-template-dev",
       "source": "./plugins/project-template-dev",
       "description": "Manage project template hierarchy with unified improvement workflow. Route fixes to plugins or parent templates automatically, quick-capture ideas, unified end-of-session reviews covering both plugins and templates.",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -502,7 +357,6 @@
         "feedback",
         "scaffold",
         "stack",
-        "template-creator",
         "CLAUDE.md",
         "skills",
         "agents",
@@ -516,8 +370,8 @@
     {
       "name": "trigger-dev",
       "source": "./plugins/trigger-dev",
-      "description": "Trigger.dev dev plugin for Agents Store. Comprehensive development knowledge for building background tasks, AI agent workflows, and durable execution on self-hosted Trigger.dev v4.4.4 — SDK patterns, CLI recipes, deployment, full 33-tool MCP reference, TRQL queries and dashboards, managed prompts, dev-server control, realtime API, and troubleshooting.",
-      "version": "1.2.0",
+      "description": "Trigger.dev dev plugin for Agents Store. Comprehensive development knowledge for building background tasks, AI agent workflows, and durable execution on self-hosted Trigger.dev v4 (baseline server 4.4.4; newer features are marked with the server version they need) — SDK patterns, CLI recipes, deployment, full 41-tool MCP reference, TRQL queries and dashboards, managed prompts, chat agents, dev-server control, realtime API, and troubleshooting.",
+      "version": "1.5.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -533,15 +387,16 @@
         "ai-agents",
         "trql",
         "managed-prompts",
-        "observability"
+        "observability",
+        "chat-agents"
       ],
       "category": "development"
     },
     {
       "name": "flask-dev",
       "source": "./plugins/flask-dev",
-      "description": "Flask dev plugin for Agents Store. Application factory patterns, blueprint organization, Jinja2 templates, Flask CLI recipes, and troubleshooting for developers building with Flask.",
-      "version": "1.0.0",
+      "description": "Flask dev plugin for Agents Store. Project scaffold, application factory patterns, blueprint organization, Flask-Login authentication, CRUD views, Jinja2 templates, Flask CLI recipes, and troubleshooting for developers building with Flask.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -559,8 +414,8 @@
     {
       "name": "sqlalchemy-dev",
       "source": "./plugins/sqlalchemy-dev",
-      "description": "SQLAlchemy dev plugin for Agents Store. Model definition patterns, relationship mapping, query optimization, Alembic migrations, and troubleshooting for developers building with SQLAlchemy 2.0+.",
-      "version": "1.0.0",
+      "description": "SQLAlchemy dev plugin for Agents Store. Typed SQLAlchemy 2.0 style (Mapped, mapped_column, select) with a SQLAlchemy 2.1 section: model definition patterns, relationship mapping, query optimization, Alembic migrations, and troubleshooting.",
+      "version": "2.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -576,29 +431,30 @@
       "category": "development"
     },
     {
-      "name": "stack-flask-sqlalchemy-dev",
-      "source": "./plugins/stack-flask-sqlalchemy-dev",
-      "description": "Flask + SQLAlchemy stack dev plugin for Agents Store. Integration patterns for app factory wiring, blueprint-model coordination, Flask-Login + SQLAlchemy auth, Jinja2 + query data, and full-feature recipes.",
-      "version": "1.0.0",
+      "name": "stack-flask-sqlalchemy",
+      "source": "./plugins/stack-flask-sqlalchemy",
+      "description": "Flask + SQLAlchemy architecture plugin. How the application factory, the Flask-SQLAlchemy session, Alembic migrations and Jinja2 templates fit together: where db is created, the app context, the transaction boundary, expire_on_commit, N+1 at the route-to-template edge, and a full-feature recipe. Tool knowledge comes from its dependencies flask-dev and sqlalchemy-dev.",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
       "keywords": [
         "stack",
         "flask-sqlalchemy",
-        "dev",
+        "architecture",
         "agents-store",
         "flask",
         "sqlalchemy",
-        "python"
+        "python",
+        "alembic"
       ],
-      "category": "development"
+      "category": "stack"
     },
     {
       "name": "vercel-dev",
       "source": "./plugins/vercel-dev",
-      "description": "Vercel ecosystem dev plugin. Deployment, AI SDK, Edge Functions, storage, routing, performance optimization. CLI deploy troubleshooting for non-Git projects, Hobby plan fixes, standalone output handling, CMS deploy hooks. Based on official vercel-plugin v0.51.0 by Vercel Labs; telemetry is opt-in (VERCEL_PLUGIN_TELEMETRY=on).",
-      "version": "0.51.0",
+      "description": "Vercel ecosystem dev plugin. Deployment, AI SDK, Edge Functions, storage, routing, performance optimization. CLI deploy troubleshooting for non-Git projects, Hobby plan fixes, standalone output handling, CMS deploy hooks. Based on official vercel-plugin v0.53.0 by Vercel Labs; telemetry is opt-in (VERCEL_PLUGIN_TELEMETRY=on).",
+      "version": "0.53.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -620,7 +476,7 @@
       "name": "seo-dev",
       "source": "./plugins/seo-dev",
       "description": "SEO development plugin for Agents Store. Technical SEO, structured data (JSON-LD), metadata API, Core Web Vitals, sitemaps, and content optimization patterns for Next.js App Router.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -642,8 +498,8 @@
     {
       "name": "postgresql-external-dev",
       "source": "./plugins/postgresql-external-dev",
-      "description": "PostgreSQL schema design for external database connections. Compatible SQL patterns for NocoDB and NocoBase — table creation, column types, relations, indexes, and anti-patterns.",
-      "version": "1.0.1",
+      "description": "PostgreSQL knowledge for low-code stacks. Schema design for external database connections (compatible SQL patterns for NocoDB and NocoBase — table creation, column types, relations, indexes, anti-patterns), plus the 29-tool PostgreSQL MCP reference and the PostgREST REST API.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -653,6 +509,8 @@
         "database",
         "schema",
         "sql",
+        "postgrest",
+        "mcp",
         "nocodb",
         "nocobase",
         "external-database",
@@ -665,8 +523,8 @@
     {
       "name": "dokploy-dev",
       "source": "./plugins/dokploy-dev",
-      "description": "Dokploy self-hosted PaaS development plugin (aligned with Dokploy v0.29.14). Deploy applications, provision 6 database types (Postgres, MySQL, MariaDB, MongoDB, Redis, LibSQL), manage domains and Docker Compose stacks, AND debug failed deployments end-to-end — reads runtime logs of every container (including each container in a Docker Compose stack) over the API/MCP with tail/since/search, plus AI-powered log analysis (ai-analyzeLogs), Docker container introspection, Traefik diagnosis, and a guided recovery chain. Complete MCP/REST coverage: all 546 v0.29.14 operations across 50 categories indexed with params — covers forward-auth SSO domain protection, SCIM provisioning, build concurrency, and the rewritten @dokploy/cli (546 auto-generated commands incl. read-logs). Uses the official @dokploy/mcp server plus debugging-focused slash commands including /compose-logs.",
-      "version": "1.6.1",
+      "description": "Dokploy self-hosted PaaS development plugin (aligned with Dokploy v0.30.x). Deploy applications, provision 6 database types (Postgres, MySQL, MariaDB, MongoDB, Redis, LibSQL), manage domains and Docker Compose stacks, AND debug failed deployments end-to-end — reads runtime logs of every container (including each container in a Docker Compose stack) over the API/MCP with tail/since/search, plus AI-powered log analysis (ai-analyzeLogs), Docker container and host introspection (server health, events, disk usage, images, volumes), Traefik diagnosis, and a guided recovery chain. Complete MCP/REST coverage: all 604 operations across 57 categories indexed with params — covers per-service Docker network management, vault (external secrets) providers, DNS providers, forward-auth SSO domain protection, SCIM provisioning, build concurrency, and the auto-generated @dokploy/cli (604 commands incl. read-logs). Uses the official @dokploy/mcp server (secret fields are redacted by default since 0.30.0) plus debugging-focused slash commands including /compose-logs.",
+      "version": "1.7.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -688,7 +546,7 @@
         "log-analysis",
         "runtime-logs",
         "compose-logs",
-        "dokploy-v0.29",
+        "dokploy-v0.30",
         "dev",
         "agents-store"
       ],
@@ -697,8 +555,8 @@
     {
       "name": "nocodb-ops",
       "source": "./plugins/nocodb-ops",
-      "description": "NocoDB ops plugin for Agents Store. Record management, views, reports, filtering, search, and data import/export for business users via MCP tools and CLI.",
-      "version": "1.0.6",
+      "description": "NocoDB ops plugin for Agents Store. Record management, filtering (structured filters, exactDate date filters), sorting, reports, search, webhooks (events, payload, conditions), and data import/export for business users via the NocoDB MCP server (writes in batches of up to 100 records; extra tools on Cloud/licensed through listTools/callTool) and curl on the v3 API.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -716,8 +574,8 @@
     {
       "name": "nocodb-dev",
       "source": "./plugins/nocodb-dev",
-      "description": "NocoDB schema development plugin. Full Meta API v3 coverage — tables, fields (30+ types), views, filters, sorts, hooks (HookV3), comments, scripts, dashboards & widgets, workflows, plus workspaces / members / teams / tokens. Bundles both Data API and Meta API OpenAPI specs.",
-      "version": "1.1.0",
+      "description": "NocoDB schema development plugin. Meta API v3 via curl and MCP (schema tools on Cloud/licensed through listTools/callTool) — tables, fields (35 types), views (9 types), filters, sorts, hooks (HookV3), comments, scripts, dashboards & widgets, workflows, documents, plus workspaces / members / teams / tokens. Bundles both Data API and Meta API OpenAPI specs.",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -744,8 +602,8 @@
     {
       "name": "dataforseo-dev",
       "source": "./plugins/dataforseo-dev",
-      "description": "DataForSEO data analysis plugin. Keyword research, competitor analysis, backlink auditing, SERP monitoring, on-page audits, content analysis, and AI optimization via 70+ MCP tools.",
-      "version": "1.0.0",
+      "description": "DataForSEO data for SEO work — keywords, SERP, backlinks, on-page, AI visibility — through the v3 MCP server. Not a general web-search tool.",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -768,7 +626,7 @@
       "name": "n8n-dev",
       "source": "./plugins/n8n-dev",
       "description": "n8n workflow automation dev plugin. MCP tools guide (external + native), workflow patterns, expression syntax, validation, node configuration, Code node patterns, REST API reference, CLI recipes, and troubleshooting.",
-      "version": "1.0.2",
+      "version": "1.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -785,8 +643,8 @@
     {
       "name": "n8n-provision",
       "source": "./plugins/n8n-provision",
-      "description": "n8n instance provisioning plugin. Discover workflows from the official template library (9,166+ templates), GitHub repos, and community platforms, then analyze, import, and batch-deploy them to provision an n8n instance.",
-      "version": "1.0.1",
+      "description": "n8n instance provisioning plugin. Discover workflows from the official template library (12,900+ templates), GitHub repos, and community platforms, then analyze, import, and batch-deploy them to provision an n8n instance.",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -807,8 +665,8 @@
     {
       "name": "nocobase-dev",
       "source": "./plugins/nocobase-dev",
-      "description": "NocoBase v2 development plugin. CLI primary (nb CLI) + REST API fallback (bundled OpenAPI v2.1.0-beta.29, 272 endpoints). Auto-syncs 11 official upstream skills from nocobase/skills weekly via GitHub Action. 5 custom REST-API skills (overview, auth, cli-recipes, api-reference, examples). Env vars: NB_URL + NB_USER + NB_PASSWORD (sign-in) or NB_URL + NB_TOKEN (API Key).",
-      "version": "2.0.0",
+      "description": "NocoBase v2 development plugin. CLI primary (nb CLI 2.2, stable channel) + REST API fallback (bundled OpenAPI snapshot v2.1.0-beta.29, 272 endpoints). Auto-syncs 20 official upstream skills from nocobase/skills weekly via GitHub Action; UI authoring enters through nocobase-portal-manage. 5 custom skills (overview, auth, cli-recipes, api-reference, examples). Env vars: NB_URL + NB_USER + NB_PASSWORD (sign-in) or NB_URL + NB_TOKEN (API Key).",
+      "version": "2.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -837,15 +695,15 @@
     {
       "name": "stack-composable-stack-v1",
       "source": "./plugins/stack-composable-stack-v1",
-      "description": "Composable Stack v1 dev plugin. Integrates PostgreSQL (direct MCP + PostgREST API), NocoDB, n8n, Trigger.dev, and NocoBase (prod + dev sandbox via nc-mcp) for building data-driven applications with low-code interfaces.",
-      "version": "2.0.0",
+      "description": "Composable Stack v1 architecture plugin. How PostgreSQL (direct MCP + PostgREST API), NocoDB, n8n, Trigger.dev, and NocoBase (prod + dev sandbox) fit together for data-driven applications with low-code interfaces: layer roles, data-access selection, integration patterns between services, and project bootstrap. Tool knowledge comes from its dependencies.",
+      "version": "3.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
       "keywords": [
         "stack",
         "composable-stack",
-        "dev",
+        "architecture",
         "agents-store",
         "postgresql",
         "postgrest",
@@ -860,7 +718,7 @@
       "name": "codemap-dev",
       "source": "./plugins/codemap-dev",
       "description": "Code understanding plugin for developers. Helps onboard to unfamiliar projects through beginner-friendly code review, step-by-step explanations, visual diagrams (architecture, ERD, flows) via drawio-mcp, and frontend testing via Playwright MCP.",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -881,7 +739,7 @@
       "name": "grammy-dev",
       "source": "./plugins/grammy-dev",
       "description": "grammY (Telegram bot framework) dev plugin for Agents Store. Covers bot core, filter queries, middleware, commands, keyboards, sessions, conversations, files, payments, deployment, scaling, and the full @grammyjs/* plugin catalog for Node.js/Deno/TypeScript bot developers.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -903,7 +761,7 @@
       "name": "payloadcms-dev",
       "source": "./plugins/payloadcms-dev",
       "description": "PayloadCMS dev plugin for Agents Store. Covers collections, fields, globals, hooks, access control, authentication, queries, data management (trash/query presets/folders), localization, adapters, Lexical rich text, admin customization, jobs queue, plugin development, official plugins, Next.js integration, deployment, CLI, migrations, and end-to-end scenarios for TypeScript developers building with Payload v3.",
-      "version": "1.2.1",
+      "version": "1.3.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -930,8 +788,8 @@
     {
       "name": "teams-dev",
       "source": "./plugins/teams-dev",
-      "description": "Microsoft Teams SDK dev plugin for Agents Store. TypeScript-first guidance for building Teams bots, message extensions, tabs, dialogs, and AI agents using @microsoft/teams.* packages — covers the App framework, activity routing, Adaptive Cards, AI/MCP/A2A, Microsoft Graph, SSO, sovereign clouds, the Teams CLI, devtools, sideloading, and end-to-end scenarios.",
-      "version": "1.0.0",
+      "description": "Microsoft Teams SDK dev plugin for Agents Store. TypeScript guidance for building Teams bots, message extensions, tabs, dialogs and AI agents on Teams SDK 2.1 and Teams Developer CLI 3. Vendors the official microsoft/teams-sdk skill (scaffold, bot registration, SSO setup) and adds skills for the App framework and turn state, Adaptive Cards, openai/MCP/A2A agents, Microsoft Graph, SSO with addOAuthFlow, deployment, sovereign clouds and the Agents Playground.",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -945,6 +803,9 @@
         "message-extensions",
         "ai-agents",
         "mcp",
+        "a2a",
+        "oauth",
+        "agents-playground",
         "microsoft-graph",
         "typescript",
         "nodejs",
@@ -957,7 +818,7 @@
       "name": "taiga-ops",
       "source": "./plugins/taiga-ops",
       "description": "Taiga project-management ops plugin. Drive the full Taiga REST API by curl — projects, memberships, roles, milestones (sprints), epics, user stories, tasks, issues (with statuses, types, priorities, severities, points, custom attributes), wiki, history, attachments, comments, webhooks, notify policies, search, resolver, stats, and import/export. Authenticates with TAIGA_ADMIN_USERNAME + TAIGA_ADMIN_PASSWORD to obtain TAIGA_AUTH_TOKEN against TAIGA_API_URL.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -982,7 +843,7 @@
       "name": "mattermost-ops",
       "source": "./plugins/mattermost-ops",
       "description": "Mattermost collaboration ops plugin. Drive the full Mattermost REST API v4 by curl — users, teams, channels (public/private/DM/group), posts & threads, reactions, files, custom emoji, webhooks, slash commands, bots, OAuth apps, plus system administration: config, RBAC roles & schemes, LDAP/SAML groups, compliance, data retention, plugins, jobs, and analytics. Authenticates with MATTERMOST_ADMIN_USERNAME + MATTERMOST_ADMIN_PASSWORD to obtain a session token against MATTERMOST_API_URL.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1006,8 +867,8 @@
     {
       "name": "outline-ops",
       "source": "./plugins/outline-ops",
-      "description": "Outline knowledge-base ops plugin. Drive the full Outline REST API by curl — documents (create, search, move, archive, trash, import/export, AI answers, memberships), collections (CRUD, user/group permissions, export), comments, stars, views, shares & access requests, users & groups, attachments & file operations, revisions, templates, events (audit log), OAuth clients, and data attributes. Authenticates with a Bearer OUTLINE_API_KEY against OUTLINE_API_URL.",
-      "version": "1.0.0",
+      "description": "Outline knowledge-base ops plugin. Drive the full Outline REST API by curl — documents (create, search, move, archive, trash, import/export, AI answers, memberships), collections (CRUD, archive, duplicate, import, user/group permissions, export), comments & reactions, pins, subscriptions, notifications, stars, views, shares & access requests, webhook subscriptions, users & groups, attachments & file operations, revisions, templates, events (audit log), API keys, OAuth clients, and data attributes (154 operations). Also points to Outline's built-in MCP server. Authenticates with a Bearer OUTLINE_API_KEY against OUTLINE_API_URL.",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1031,7 +892,7 @@
       "name": "infisical-dev",
       "source": "./plugins/infisical-dev",
       "description": "Infisical CLI dev plugin for Agents Store. Complete command-line coverage for secrets management — install & auth, infisical run/secrets/export, dynamic secrets, secret scanning with pre-commit hooks, machine-identity CI/CD auth, self-hosted, and troubleshooting.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1054,7 +915,7 @@
       "name": "atlassian-ops",
       "source": "./plugins/atlassian-ops",
       "description": "Atlassian Jira + Confluence Cloud ops plugin. Drive the full Jira Cloud REST API v3 and Confluence Cloud REST API v2 by curl — Jira: issues (create/edit/transition/assign, ADF bodies), JQL search, comments & worklogs, attachments & links, projects/versions/components, fields & screens, workflows/types/statuses, users & groups (accountId), permission/notification/security schemes, dashboards & filters, plans & teams; Confluence: pages & blog posts (versioned, storage/ADF bodies), spaces & permissions, comments & attachments, labels & content properties. Authenticates with Atlassian Cloud Basic auth (ATLASSIAN_EMAIL + ATLASSIAN_API_TOKEN) against ATLASSIAN_SITE_URL.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1078,8 +939,8 @@
     {
       "name": "chatwoot-dev",
       "source": "./plugins/chatwoot-dev",
-      "description": "Chatwoot dev plugin for Agents Store. Full REST API coverage (Application, Platform, and Public/Client APIs) with bundled OpenAPI specs, official chatwoot CLI recipes, webhook & agent-bot automation, and troubleshooting for developers building on Chatwoot. Authenticates with the api_access_token header via CHATWOOT_API_KEY against CHATWOOT_BASE_URL.",
-      "version": "1.0.0",
+      "description": "Chatwoot dev plugin for Agents Store. Full REST API coverage (Application, Platform, and Public/Client APIs) with bundled OpenAPI specs, official chatwoot CLI recipes, webhook & agent-bot automation, and troubleshooting for developers building on Chatwoot. Authenticates with the api-access-token header (hyphenated, proxy-safe) via CHATWOOT_API_KEY against CHATWOOT_BASE_URL.",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1103,7 +964,7 @@
       "name": "google-workspace-dev",
       "source": "./plugins/google-workspace-dev",
       "description": "Google Workspace plugin powered by the official googleworkspace/cli (gws) Agent Skills. ~95 skills for Gmail, Drive, Calendar, Sheets, Docs, Chat, Meet, Tasks, Slides, Forms, Classroom and Admin — plus role personas and ready-made recipes — all driving the gws CLI. Vendored from upstream and auto-synced weekly. Requires the gws CLI (npm i -g @googleworkspace/cli) and a one-time OAuth setup.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1130,7 +991,7 @@
       "name": "restic-dev",
       "source": "./plugins/restic-dev",
       "description": "restic backup plugin for Agents Store. Set up encrypted daily backups on any Linux server to S3-compatible storage (Cloudflare R2): server recon + restic install, auto-discovery of all Docker volumes/mounts and databases, R2 repository init, a partial-failure-tolerant backup script with logical DB dumps and retention, timezone-aware systemd/cron scheduling, verification, monitoring/dead-man's-switch, and disaster recovery. File-based knowledge, no MCP, no stored credentials.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1156,7 +1017,7 @@
       "name": "macstack-dev",
       "source": "./plugins/macstack-dev",
       "description": "Turns what a client says into documents they can correct, a machine spec an agent can build from, and a work list somebody can pick up. Keeps the macstack/ folder of a project: macstack.json — the standardized business + technical stack specification, always English — and the six client documents it is written from. OVERVIEW says what the product is and who it is for; USER-CASES carries each case with its UX bar and an addressable acceptance list; UX-UI states what each screen shows and what must never appear on it; AUTOMATION is the trigger -> task -> workflow -> role model; HANDBOOK is how a person actually uses the thing; OPEN-QUESTIONS splits what the client owes from what the team deferred. v3 makes those six pure markdown — headings and bullet lists, nothing else. No YAML blocks, no tables, no change-log sections: the only machine markup is an HTML comment the reader never sees, pointing each entity at its place in the spec. A client can edit the document in any editor and hand it back. Around them: an immutable inbox for anything a client sends, a gated delta/rulings loop that merges it, generated requirements, architecture, test cases and index that carry every id the client documents carry, an append-only ledger with one row per edit and per client comment, tasks reconciled with the team's own tracker, and a review package that shows each statement with its own history and reads the client's answers back into the ledger. Eight commands, one job each — including one that reconciles the whole folder against the source tree in a direction you have to declare: the code is master and every document is corrected through a gate that never silently overrules an answer the client gave, or the documents are master and the gaps become tasks. Every edit is journalled, every finished task sweeps the client documents and not only the generated ones, task statuses move to what the audit actually found — closing what is built and reopening what is not — and every document carries the date it was last checked against the code, so a document that reads perfectly cannot quietly describe a system that no longer exists.",
-      "version": "3.9.2",
+      "version": "3.9.3",
       "author": {
         "name": "AGENTS.STORE"
       },

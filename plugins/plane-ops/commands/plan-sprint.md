@@ -17,27 +17,30 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools referenced below (`project`, `member`, `state`, `cycle`, `workitem`); their names are `mcp__<server>__<resource>`, never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill. Calls are written `resource(action=..., ...)`.
 
 1. **Resolve project:**
    ```
-   list_projects()
+   project(action=list)
    ```
-   Find project by name or identifier. Get project_id.
+   Find project by name or identifier (follow `next_cursor` if needed). Get project_id.
 
 2. **Get team and context:**
    ```
-   get_project_members({ project_id })
-   get_me()
-   list_states({ project_id })
+   member(action=list_project, project_id)
+   member(action=me)
+   state(action=list, project_id)
    ```
    Count team members. Get current user ID. Map state names to UUIDs.
 
 3. **Calculate velocity:**
    ```
-   list_archived_cycles({ project_id })
+   cycle(action=list, project_id, status=completed)
    ```
-   For last 3-5 archived cycles, get work items and sum completed points.
+   For the last 3-5 completed cycles, sum the completed points (`point`; if `point` is empty and the project has an estimate system (`project_estimate(action=retrieve, project_id)`), sum the `value` of each item's `estimate_point` instead (`project_estimate(action=list_points, project_id, estimate_id)` maps ids to values)):
+   ```
+   cycle(action=list_workitems, project_id, cycle_id, pql='stateGroup = "completed"', fields="id,point,estimate_point")
+   ```
    Calculate average velocity.
 
 4. **Calculate capacity:**
@@ -48,10 +51,9 @@ Parse from "$ARGUMENTS".
 
 5. **Select backlog items:**
    ```
-   list_work_items({ project_id, order_by: "-priority" })
+   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', fields="id,name,point,estimate_point,priority,assignees")
    ```
-   Filter: state group = backlog/unstarted, point is set.
-   Select items by priority until capacity reached.
+   Keep items where `point` is set (PQL has no estimate field). Select items by priority until capacity reached.
 
 6. **Present proposed sprint:**
    Show table with items, points, assignees, total vs capacity.
@@ -59,13 +61,13 @@ Parse from "$ARGUMENTS".
 
 7. **On confirmation — create sprint:**
    ```
-   create_cycle({ project_id, name, owned_by, start_date, end_date, description })
-   add_work_items_to_cycle({ project_id, cycle_id, issue_ids })
+   cycle(action=create, project_id, name, owned_by, start_date, end_date, description)
+   cycle(action=manage_workitems, project_id, cycle_id, add_ids=[...])
    ```
 
 8. **Verify:**
    ```
-   list_cycle_work_items({ project_id, cycle_id })
+   cycle(action=list_workitems, project_id, cycle_id)
    ```
    Confirm all items are in the sprint.
 

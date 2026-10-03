@@ -15,8 +15,8 @@ Everything is file-based knowledge plus stdlib Python scripts. One optional vari
 `OPENCLAW_OPS_CONFIG`, the first rung of the config ladder — as an escape hatch for pointing a run at a
 specific fleet config; unset, the ladder resolves the file on its own.
 
-Replaces `openclaw-configurator` for fleet operations; that plugin remains, deprecated, for
-single-instance workspace and persona content.
+Replaces `openclaw-configurator`, which is retired: fleet operations are the commands, agents and
+scripts below, and its workspace persona skills now live here (see **Workspace persona skills**).
 
 ## Execution model
 
@@ -136,10 +136,13 @@ human to run**, not executed. Credential repair is a precondition of upgrading, 
 ```
 
 R4 on every instance, every time: the state schema migrates in place, and a failed migration does not
-undo itself. The command resolves the channel through registry dist-tags (the only mechanical fact about
-where a channel points), enforces the soak window, pins an **immutable** identifier, captures a
-pre-upgrade baseline so only *new* findings block, takes the three-layer backup — and **rejects** an
-upgrade whose backup has not passed verification rather than warning about it.
+undo itself — Doctor's own pre-migration copies are not a full-state backup, and a package rollback
+cannot undo migrated state. The command resolves the channel through registry dist-tags (the only
+mechanical fact about where a channel points), enforces the soak window, pins an **immutable**
+identifier, captures a pre-upgrade baseline so only *new* findings block, takes the three-layer backup
+(the verified layer is `backup create --verify`) — and **rejects** an upgrade whose backup has not
+passed verification rather than warning about it. An installation older than the cut-off upstream
+states gets its own verdict, `bridge-required`: it must cross the bridge release first.
 
 Afterwards, three checks that are easy to skip and expensive to miss: delivery queues behind a green
 rollup, duplicated schedule entries, and a migration that silently rewrote the primary model.
@@ -171,11 +174,32 @@ commands this fleet could adopt, with a recommendation and a risk class. **Nothi
 | `secrets-infisical` | secret delivery through an injection wrapper; a feature silently off; plaintext env files; proving a key is delivered |
 | `memory-ops` | embeddings failing authorization, paused vector search, index identity, reindexing, a state database growing without bound |
 | `shared-assets` | skills and plugins shared across instances: empty mounts, duplicates, shadows, ownership refusals, install locks |
-| `instance-upgrade` | version drift, channels and dist-tags, tag versus digest, soak windows, post-upgrade traps |
+| `instance-upgrade` | version drift, channels and dist-tags, the bridge for old installations, tag versus digest, soak windows, post-upgrade traps |
 | `security-audit` | exposure, firewall chains that do not apply to published ports, token reuse, permissions, trust boundary |
 | `instance-clone` | standing up a new instance from the reference and proving it isolated |
 | `docs-research` | before any claim that could have changed — flags, keys, versions, model names; and when two sources disagree |
 | `examples` | four end-to-end runs on a fictional fleet, threading commands, skills and scripts into one sequence |
+| `workspace-overview` | how an instance's state directory and workspace are laid out, which files are injected, character limits, what to scan and what never to scan |
+| `agents-md` | operating rules and procedures in AGENTS.md; what belongs there versus SOUL.md; the `## Tools` section |
+| `soul-md` | persona, tone, values and boundaries in SOUL.md, with industry patterns |
+| `user-md` | user profiles, preferences, multi-user setups, mapping channel ids to people |
+| `identity-md` | the agent's name, creature, vibe, emoji and avatar, including the per-agent config override |
+| `tools-md` | local tool and environment notes (now the `## Tools` section of AGENTS.md; the TOOLS.md file is retired) |
+| `heartbeat-md` | heartbeats: cadence and context weight in config, the checklist in the monitor scratch; the HEARTBEAT.md file is retired |
+| `standing-orders` | autonomous programs with scope, triggers, approval gates and escalation, paired with automation jobs |
+| `bootstrap-boot` | the first-run ritual (BOOTSTRAP.md) and the gateway-start checklist (BOOT.md) |
+| `memory-system` | MEMORY.md curation, daily logs, the pre-compaction memory flush, vector-search settings |
+| `session-analysis` | analysing session transcripts from a trajectory export to improve workspace files |
+
+### Workspace persona skills
+
+Workspace persona files (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, standing orders, bootstrap, memory)
+were moved here from `openclaw-configurator` in 2026-10, together with the retirement of that plugin;
+the marketplace `renames` map moves installed copies to `openclaw-ops`. They are content-authoring
+guides, not operating procedures: a change they lead to is an ordinary R2 edit through the same plan,
+`--yes` and rollback discipline as any other mutation here. The configurator's post-edit hook
+(recursive ownership change plus the doctor's automatic-fix mode after every write) was **not** carried
+over — both are R4 operations in this plugin and never run as a routine step.
 
 ## Commands
 
@@ -186,7 +210,7 @@ commands this fleet could adopt, with a recommendation and a risk class. **Nothi
 | `/openclaw-ops:audit` | `[selector] [--focus auth\|versions\|memory\|cron\|secrets\|security\|shared\|all]` |
 | `/openclaw-ops:repair` | `<selector> --issue <finding-id> [--all-findings] [--yes]` |
 | `/openclaw-ops:auth` | `[selector] [--provider <id>] [--status] [--print-login] [--watch]` |
-| `/openclaw-ops:update` | `<selector> [--to <version>] [--channel latest\|extended-stable] [--yes]` |
+| `/openclaw-ops:update` | `<selector> [--to <version>] [--channel stable\|extended-stable\|beta\|dev] [--yes]` |
 | `/openclaw-ops:features` | `<selector> [--from <version>]` |
 | `/openclaw-ops:shared-sync` | `[selector] [--adopt-duplicates] [--restart] [--yes]` |
 | `/openclaw-ops:clone` | `<new-instance> [--from <reference>] [--port auto\|<n>] [--yes]` |
@@ -217,7 +241,7 @@ All Python 3, stdlib only, invoked as `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/<n
 | `fleet.py` | `discover` · `resolve` · `config --init\|--show\|--validate\|--diff`. Cheap, runs constantly |
 | `ocexec.py` | the single door into the CLI: mode choice, policy refusals, redaction, exit-code meaning |
 | `healthcheck.py` | the expensive probe battery; HEALTH and LIVENESS from disjoint evidence; snapshots |
-| `versions.py` | what runs, what a channel points at, and why a target is not eligible yet |
+| `versions.py` | what runs, what a channel points at, and why a target is not eligible yet — soak, wrong release line, or a bridge hop first |
 | `report.py` | one canonical document plus the delta against earlier snapshots — new, aged, resolved |
 | `clone.py` | the deterministic half of cloning: name, free port, isolation preflight, materialisation |
 | `catalog-check.py` | contract check: every finding id the battery can emit has a catalog row, at the severity that row states |
@@ -262,8 +286,8 @@ requires a stopped gateway.
 | R0 read | free | inspect, endpoints, lint, credential **check**, list subcommands |
 | R1 read with effect | as R2 | credential **probe**, anything on the agent path, indexing |
 | R2 reversible | `--yes` | restart, config edit, enabling or disabling a schedule |
-| R3 partially reversible | `--yes` + a backup that **already exists** | forced reindex, session pruning, database compaction |
-| R4 irreversible | `--yes` + a typed phrase | version upgrade, secret write, automatic security fix, gateway-token change |
+| R3 partially reversible | `--yes` + a backup that **already exists** | forced reindex, memory reset or forget, sessions cleanup, database compaction |
+| R4 irreversible | `--yes` + a typed phrase | version upgrade, update cleanup, secret-store write, automatic fix (`doctor --fix`, `security audit --fix`), gateway-token change |
 
 Every mutation prints eight blocks before it runs: **TARGET · PRECHECK · CHANGE · BACKUP · IMPACT ·
 VALIDATE · ROLLBACK · APPLY**, plus **IRREVERSIBLE · CONFIRM** for R3 and R4. PRECHECK shows its
@@ -357,5 +381,4 @@ What that does **not** cover, and cannot:
 
 Provisioning a host or a fleet from scratch · migrating a legacy-layout instance (refused with its
 reason — that is its own project) · workloads other than OpenClaw, which appear in the inventory as
-neighbours and are never touched · workspace and persona content, which belongs to the deprecated
-`openclaw-configurator`.
+neighbours and are never touched.

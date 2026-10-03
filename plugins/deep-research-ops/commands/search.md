@@ -19,17 +19,17 @@ Search the web with automatic fallback between providers. See CONNECTORS.md for 
    **Web search (~~search):**
    ```
    Try each provider: Exa → Perplexity → Jina → Firecrawl
-   On error → next provider automatically
+   On error → next provider automatically (a tool missing from the tool list counts as an error)
    ```
 
    **Code search (~~code_search):**
    ```
-   Try: Exa code → ~~search + "github code"
+   Try: Firecrawl developer search → Exa advanced search with includeDomains github.com (opt-in) → ~~search + "github code"
    ```
 
    **Academic search (~~academic_search):**
    ```
-   Try: Jina arXiv → Jina SSRN → Perplexity + "paper"
+   Try: Firecrawl paper search → Jina arXiv → Jina SSRN → Perplexity search restricted to paper domains
    ```
 
 3. **Display results** with titles, URLs, and snippets.

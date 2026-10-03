@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "nc-mcp": {
-      "type": "http",
-      "url": "${NC_MCP_URL}",
-      "headers": {
-        "Authorization": "Bearer ${NC_MCP_TOKEN}",
-        "x-mcp-packages": "${NC_MCP_PACKAGES}"
-      }
-    },
     "nocobase-dev": {
       "type": "http",
       "url": "${NOCOBASE_DEV_URL}/api/mcp",
@@ -29,10 +21,6 @@
       "headers": {
         "Authorization": "Bearer ${DIRECTUS_ADMIN_TOKEN}"
       }
-    },
-    "n8n": {
-      "type": "http",
-      "url": "${N8N_MCP_URL}"
     },
     "n8n-mcp-external": {
       "command": "npx",
@@ -77,17 +65,13 @@
     },
     "dataforseo": {
       "command": "npx",
-      "args": ["-y", "dataforseo-mcp-server@latest"],
+      "args": ["-y", "dataforseo-mcp-server@3"],
       "env": {
         "DATAFORSEO_USERNAME": "${DATAFORSEO_USERNAME}",
         "DATAFORSEO_PASSWORD": "${DATAFORSEO_PASSWORD}"
       }
     },
     "firecrawl": {
-      "type": "http",
-      "url": "${FIRECRAWL_MCP_URL}"
-    },
-    "firecrawl-cloud": {
       "command": "npx",
       "args": ["-y", "firecrawl-mcp"],
       "env": {
