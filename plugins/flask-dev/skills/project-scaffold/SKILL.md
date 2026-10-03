@@ -32,9 +32,10 @@ myapp/
 └── .gitignore          # .env, instance/, .venv/, __pycache__/
 ```
 
-Install and first run (Python 3.10+). `SQLAlchemy<2.1` stays pinned until Flask-SQLAlchemy supports 2.1 ([pallets-eco/flask-sqlalchemy#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420)):
+Install and first run (Python 3.10+). A `MappedAsDataclass` base fails on SQLAlchemy 2.1 ([pallets-eco/flask-sqlalchemy#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420); plain `db.Model` works), so pin `SQLAlchemy<2.1` to be safe until Flask-SQLAlchemy supports 2.1. Run this after the files above exist and `.env` holds a `SECRET_KEY`:
 
 ```bash
+# run from the project root, after the files above exist and .env holds SECRET_KEY
 python3 -m venv .venv && . .venv/bin/activate
 pip install Flask Flask-SQLAlchemy "SQLAlchemy<2.1" Flask-Migrate Flask-Login Flask-WTF python-dotenv
 flask db init
@@ -49,5 +50,7 @@ Rules the scaffold follows:
 - `SECRET_KEY` has no fallback value: the factory raises when it is missing.
 - Debug mode comes from `--debug` / `FLASK_DEBUG`, never from a config class.
 - Queries use `db.session.execute(db.select(...))`, not `Model.query`.
+
+This skill is an outline for now: it gives the layout, the commands and the rules, and points to the skills that hold the details.
 
 See `app-patterns` for the factory, config classes and extension wiring in full, `auth-flask-login` for the login flow, `setup` to verify an existing project, and the `sqlalchemy-dev` plugin for models and migrations.

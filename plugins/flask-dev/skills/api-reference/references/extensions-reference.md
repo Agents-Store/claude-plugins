@@ -33,7 +33,7 @@ app.register_blueprint(bp)  # Register in factory
 pip install Flask-SQLAlchemy "SQLAlchemy<2.1"
 ```
 
-Flask-SQLAlchemy 3.1.1 does not support SQLAlchemy 2.1 yet (open issue [#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420)), so keep the pin.
+A `MappedAsDataclass` base fails on SQLAlchemy 2.1 with Flask-SQLAlchemy 3.1.1 (open issue [#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420); plain `db.Model` works), so pin `SQLAlchemy<2.1` to be safe.
 
 ```python
 from extensions import db

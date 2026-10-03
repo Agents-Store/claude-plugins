@@ -27,12 +27,9 @@ FLASK_APP=app FLASK_DEBUG=1 flask run
 
 # Extra dotenv file, loaded in addition to .env and .flaskenv
 flask --env-file .env.local --app app run
-
-# Using python directly
-python app.py
 ```
 
-`--app` and `--debug` are options of the top-level `flask` command, so they also work for other commands: `flask --app app --debug shell`. Debug mode comes only from `--debug` / `FLASK_DEBUG`; the old "environment name" variable was removed in Flask 2.3 and is ignored.
+`--app` and `--debug` are options of the top-level `flask` command, so they also work for other commands: `flask --app app --debug shell`. Debug mode comes only from `--debug` / `FLASK_DEBUG`; `FLASK_ENV` was removed in Flask 2.3 and is ignored.
 
 ## Interactive Shell
 
@@ -92,7 +89,7 @@ flask db history
 
 ## Custom CLI Commands
 
-Register custom commands on `app.cli` (or `blueprint.cli`) with Click decorators. Since Flask 2.2 an app context is already active inside them, so no extra decorator is needed:
+Register custom commands on `app.cli` (or `blueprint.cli`) with Click decorators. Since Flask 2.2 an app context is already active inside them, so `@with_appcontext` is no longer needed:
 
 ```python
 # app.py: imports at the top of the file
@@ -125,7 +122,7 @@ flask seed
 flask cleanup 60
 ```
 
-A plain `click.command` that is not registered on `app.cli` (for example one an extension ships through the `flask.commands` entry point) gets no automatic context; see "Application Context" in the Flask CLI docs for the decorator to use.
+`@with_appcontext` (from `flask.cli`) is still needed for a plain `click.command` that is not registered on `app.cli`, for example one an extension ships through the `flask.commands` entry point; such a command gets no automatic app context.
 
 ## Environment Variables
 
@@ -136,7 +133,7 @@ A plain `click.command` that is not registered on `app.cli` (for example one an 
 | `FLASK_RUN_HOST` | Server host | `127.0.0.1` |
 | `FLASK_RUN_PORT` | Server port | `5000` |
 
-Flask has no environment-name variable any more (removed in 2.3). To switch between development, production and test configuration use an application-level variable such as `APP_ENV` (see the `app-patterns` skill).
+`FLASK_ENV` is not in this table: it was removed in Flask 2.3 and is ignored. To switch between development, production and test configuration use an application-level variable such as `APP_ENV` (see the `app-patterns` skill).
 
 Use a `.flaskenv` file (with `python-dotenv` installed) for public defaults and `.env` for private values; both are loaded by the `flask` command, and `--env-file` adds another file (`-e path` wins over the defaults):
 

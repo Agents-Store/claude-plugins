@@ -3,7 +3,7 @@ name: troubleshoot
 description: >
   Use when the user encounters "Flask errors", "Flask not working",
   "Flask import error", "Flask 500 error", "debug Flask", "Flask template not found",
-  "Flask circular import", or needs to diagnose and fix common Flask problems.
+  "Flask circular import", "FLASK_ENV ignored", "Flask CSRF token missing", or needs to diagnose and fix common Flask problems.
 ---
 
 # Flask Troubleshooting
@@ -26,7 +26,7 @@ Run these checks first:
 |-------|-------|-----|
 | `ModuleNotFoundError: No module named 'flask'` | Flask not installed | `pip install Flask` |
 | `Could not locate a Flask application` | Missing `--app` / `FLASK_APP` | Run `flask --app app run`, set `FLASK_APP=app` (or in `.flaskenv`), or ensure `app.py` exists |
-| Debug mode and reloader stay off although `.flaskenv` sets the old environment-name variable | That variable was removed in Flask 2.3 and is ignored | Use `flask run --debug` or `FLASK_DEBUG=1`; pick the config class with your own `APP_ENV` |
+| `FLASK_ENV=development` has no effect: debug mode and reloader stay off | `FLASK_ENV` was removed in Flask 2.3 and is ignored (so are `ENV` and `app.env`) | Use `flask run --debug` or `FLASK_DEBUG=1`; pick the config class with your own `APP_ENV` |
 | `ImportError: cannot import name 'X' from 'models'` | Circular import | Move imports inside functions or use late imports |
 | `Address already in use` (port 5000) | Port occupied | Use `--port 5001` or kill the other process |
 | `OSError: [Errno 48] Address already in use` | macOS AirPlay on 5000 | Use port 5001: `flask run --port 5001` |
@@ -74,7 +74,7 @@ def create_app():
 | `OperationalError: table already exists` during `flask db upgrade` | Tables were first made by `db.create_all()` | Remove `create_all()` from the factory; for an existing schema that matches the models, `flask db stamp head` |
 | `flask db migrate` prints "No changes in schema detected" on a new project and creates no revision | `db.create_all()` in the factory already created the tables | Remove it, delete the dev database, re-run `flask db migrate` and `flask db upgrade` |
 | `DeprecationWarning: 'get_engine' is deprecated` from `migrations/env.py` (only visible with warnings enabled, e.g. `python -W error -m flask db migrate`) | The `env.py` template of Flask-Migrate 4.1 calls `db.get_engine()` first and falls back to `db.engine` | Harmless for now (the fallback covers Flask-SQLAlchemy 3.2); or change `get_engine()` in `env.py` to return `current_app.extensions['migrate'].db.engine` |
-| `InvalidRequestError: Class ... is already a dataclass` | SQLAlchemy 2.1 with Flask-SQLAlchemy 3.1.x and a `MappedAsDataclass` base ([#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420)) | `pip install "SQLAlchemy<2.1"` or drop `MappedAsDataclass` |
+| `InvalidRequestError: Class ... is already a dataclass` | A `MappedAsDataclass` base on SQLAlchemy 2.1 with Flask-SQLAlchemy 3.1.x ([#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420); plain `db.Model` works) | `pip install "SQLAlchemy<2.1"` or drop `MappedAsDataclass` |
 | `IntegrityError: UNIQUE constraint failed` | Duplicate value | Check for existing record before insert |
 | `DetachedInstanceError` | Accessing object outside session | Access all needed attributes before session closes |
 | `sqlite3.OperationalError: database is locked` | Concurrent writes | Use WAL mode or switch to PostgreSQL for production |

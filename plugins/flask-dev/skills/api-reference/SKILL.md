@@ -79,7 +79,7 @@ app.config['MAX_FORM_MEMORY_SIZE']       # Flask 3.1: max bytes per non-file for
 app.config['MAX_FORM_PARTS']             # Flask 3.1: max fields per multipart body (default 1_000)
 ```
 
-Debug mode is not a config setting to change in code: use `flask run --debug` or `FLASK_DEBUG=1`. Flask-SQLAlchemy 3.x has the modification-tracking signal off by default, so there is nothing to set.
+Debug mode is not a config setting to change in code: use `flask run --debug` or `FLASK_DEBUG=1`. `SQLALCHEMY_TRACK_MODIFICATIONS` has been off by default since Flask-SQLAlchemy 3.0, so it no longer needs to be set.
 
 ## Decorators and Hooks
 

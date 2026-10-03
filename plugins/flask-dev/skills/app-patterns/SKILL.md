@@ -31,7 +31,7 @@ def create_app(config_class=None):
     app = Flask(__name__)
 
     # Explicit class (tests) wins; otherwise our own APP_ENV picks it.
-    # Flask has no built-in "environment name" any more (removed in 2.3).
+    # FLASK_ENV is ignored: removed in Flask 2.3. Use our own APP_ENV.
     app.config.from_object(config_class or CONFIGS[os.environ.get('APP_ENV', 'production')])
     if not app.config.get('SECRET_KEY'):
         raise RuntimeError('SECRET_KEY is not set')
@@ -161,7 +161,7 @@ CONFIGS = {
 
 ### Choosing the config and debug mode
 
-Flask 2.3 removed the `ENV` config key, the `app.env` attribute and the environment variable that fed them, so an old "environment name" setting in `.flaskenv` or the shell is silently ignored on Flask 3. Use your own variable (`APP_ENV`) to pick the config class, and control debug mode only through `--debug` or `FLASK_DEBUG`:
+`FLASK_ENV` was removed in Flask 2.3 together with the `ENV` config key and the `app.env` attribute, so `FLASK_ENV=development` in `.flaskenv` or the shell is silently ignored on Flask 3. Use your own variable (`APP_ENV`) to pick the config class, and control debug mode only through `--debug` or `FLASK_DEBUG`:
 
 ```bash
 # .flaskenv  (committed: public values only; needs python-dotenv)
@@ -217,7 +217,7 @@ login_manager.login_view = 'auth.login'
 csrf = CSRFProtect()
 ```
 
-Install with the SQLAlchemy pin (Flask-SQLAlchemy 3.1.1 does not support SQLAlchemy 2.1 yet, see the `setup` skill):
+Install with the SQLAlchemy pin (a `MappedAsDataclass` base fails on SQLAlchemy 2.1, issue #1420; plain `db.Model` works, but pin to be safe; see the `setup` skill):
 
 ```bash
 pip install Flask Flask-SQLAlchemy "SQLAlchemy<2.1" Flask-Migrate Flask-Login Flask-WTF

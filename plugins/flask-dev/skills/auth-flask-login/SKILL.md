@@ -28,4 +28,6 @@ Install with the SQLAlchemy pin (see `setup` for why):
 pip install Flask Flask-Login Flask-WTF Flask-SQLAlchemy "SQLAlchemy<2.1"
 ```
 
+This skill is an outline for now: it lists the building blocks and points to the skills that hold the details.
+
 See `app-patterns` for the extension wiring and CSRF setup, `jinja2-patterns` for the login form template, `troubleshoot` for redirect loops and CSRF errors, and the `sqlalchemy-dev` plugin for the `User` model and queries.

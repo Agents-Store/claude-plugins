@@ -68,7 +68,9 @@ pip install Flask Flask-SQLAlchemy "SQLAlchemy<2.1" Flask-Login Flask-Migrate Fl
 
 Python: use 3.10 or newer. Flask 3.1 still runs on 3.9, but Flask 3.2 and Flask-WTF 1.3 need 3.10, and Flask-Caching 2.5 needs 3.11.
 
-**Why `SQLAlchemy<2.1`.** As of 2026-10 the latest Flask-SQLAlchemy is 3.1.1 (2023-09). It declares `sqlalchemy>=2.0.16` with no upper bound, so a plain install resolves SQLAlchemy 2.1, and compatibility with 2.1 is an open upstream issue: [pallets-eco/flask-sqlalchemy#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420) (a `MappedAsDataclass` base fails with `InvalidRequestError ... is already a dataclass`). Keep the pin until a Flask-SQLAlchemy release supports 2.1, and re-check the issue before dropping it. Pin it in `requirements.txt` / `pyproject.toml` too, not only on the command line.
+**Why `SQLAlchemy<2.1`.** As of 2026-10 the latest Flask-SQLAlchemy is 3.1.1 (2023-09). It declares `sqlalchemy>=2.0.16` with no upper bound, so a plain install resolves SQLAlchemy 2.1. A `MappedAsDataclass` base fails on SQLAlchemy 2.1 with `InvalidRequestError ... is already a dataclass` ([pallets-eco/flask-sqlalchemy#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420), open); a plain `db.Model` still works, so the pin is a precaution. Pin `SQLAlchemy<2.1` to be safe until a Flask-SQLAlchemy release supports 2.1, and re-check the issue before dropping it. Pin it in `requirements.txt` / `pyproject.toml` too, not only on the command line.
+
+If you need dataclass models on SQLAlchemy 2.1 now, drop `MappedAsDataclass` or move to [Flask-SQLAlchemy-Lite](https://flask-sqlalchemy-lite.readthedocs.io/en/stable/), the lighter extension the Flask-SQLAlchemy maintainers point to in that issue.
 
 ### 3. Check Blueprint Registration
 
@@ -97,7 +99,7 @@ app.config['SECRET_KEY'] = 'my-secret-key'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-me')
 ```
 
-Debug mode must come from `--debug` / `FLASK_DEBUG`, and the config class from an app-level variable such as `APP_ENV`. Flask 2.3 removed the `ENV` config key, `app.env` and the environment variable behind them.
+Debug mode must come from `--debug` / `FLASK_DEBUG`, and the config class from an app-level variable such as `APP_ENV`. `FLASK_ENV` was removed in Flask 2.3 (with the `ENV` config key and `app.env`) and is ignored: flag it if you find it in `.flaskenv`, `.env` or a Dockerfile.
 
 ### 5. Check CSRF Protection
 
@@ -122,7 +124,7 @@ Without it `{{ csrf_token() }}` in a template raises `UndefinedError`, and plain
 | Hardcoded `SECRET_KEY` or a fallback value | Security risk, shared key | Read it with `os.environ['SECRET_KEY']` or fail in `create_app()` |
 | No `CSRFProtect` | `csrf_token` undefined, unprotected POST routes | `csrf = CSRFProtect()` in `extensions.py`, `csrf.init_app(app)` |
 | `db.create_all()` in the factory next to Flask-Migrate | `flask db migrate` says "No changes in schema detected" and creates no revision | Remove it; use `flask db upgrade`; keep `create_all()` in test fixtures only |
-| `SQLAlchemy` 2.1 installed with Flask-SQLAlchemy 3.1.x | `InvalidRequestError ... is already a dataclass` with `MappedAsDataclass` | `pip install "SQLAlchemy<2.1"` |
+| `SQLAlchemy` 2.1 installed with Flask-SQLAlchemy 3.1.x | `InvalidRequestError ... is already a dataclass` with a `MappedAsDataclass` base | `pip install "SQLAlchemy<2.1"`, or drop `MappedAsDataclass` |
 | Python below 3.10 | pip quietly resolves older Flask and Flask-WTF releases; Flask 3.2 will not install | Use Python 3.10+ |
 | Missing `__init__.py` in routes/ | Import errors | Add empty `__init__.py` |
 | No `.gitignore` for `instance/` | Database committed to git | Add `instance/` to `.gitignore` |
