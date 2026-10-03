@@ -2,7 +2,7 @@
 
 NocoDB operations plugin for business users. Manage records, build reports, search data, and handle imports/exports through the NocoDB MCP server -- with `curl` recipes on the v3 API for scripts.
 
-> **Coming from the deprecated `nocodb` plugin?** Records, filters, reports and imports work here the same way over MCP. Schema and fields (tables, field types, views, hooks) are handled by **`nocodb-dev`**.
+> **Coming from the deprecated `nocodb` plugin?** Records, filters, reports and imports work here the same way over MCP. Schema and fields (tables, field types, views) and creating webhooks as code are handled by **`nocodb-dev`**; using webhooks — events, payload, conditions, testing — is the **webhooks** skill here.
 
 ## Skills
 
@@ -13,6 +13,7 @@ NocoDB operations plugin for business users. Manage records, build reports, sear
 | **record-management** | Create, read, update, delete records -- single and bulk; what a delete can undo |
 | **views-and-reports** | View types, aggregation reports, per-value counts, dashboards |
 | **search-filter** | Complete filter syntax reference -- structured `filter`, `where`, operators, date sub-operators |
+| **webhooks** | Events, UI setup, the payload the receiver gets (`data.rows`), conditions, the Button trigger, `listHooks`/`getHook` |
 | **import-export** | Bulk data import/export workflows (batches, `importCsv`, `upsertRecords`, `exportCsv`) |
 | **cli-reference** | curl recipes on the v3 API mapped to the official `nocodb.sh` script (from nocodb/agent-skills) |
 | **troubleshoot** | Diagnose connection, auth, and data errors |

@@ -27,3 +27,10 @@
 **Fix:** Renamed MCP server from `nocodb-1` to `nocodb` across all 19 files. Updated docs to clarify that `NOCODB_URL` must be the full MCP endpoint URL including `/mcp/{path-id}` (e.g., `https://host/mcp/ncc17zpg5n7v9vs8`). Auth uses `xc-mcp-token` header — NOT OAuth2.
 **Root cause:** The `-1` suffix didn't match convention. Docs showed incomplete URL examples without the path ID suffix, leading users to use just the base URL.
 **Severity:** Critical
+
+## 2026-10-03 — webhooks: new skill, moved in from `stack-composable-stack-v1`
+
+**Problem:** The only NocoDB webhook reference in the workspace for the receiving side sat in the stack plugin (`nocodb-to-n8n`), and it was wrong: it listed events `records.after.bulkInsert` / `bulkUpdate` that the docs do not have (After Insert / Update / Delete already cover one or more records), showed a payload without `id`, `version`, `view_id` and `view_name`, and said nothing about conditions, the Button trigger or the paid-plan sources (View, Field, Comment). `nocodb-dev:webhooks` covers creating hooks (HookV3, notification types) but not what the receiver gets.
+**Fix:** New `skills/webhooks/SKILL.md` from the NocoDB "Create Webhook" docs and the live MCP `hooks` category: events by source and edition, UI steps, the v3 payload (`data.rows` array, `previous_rows` on update), the not-met-to-met condition rule, the Button trigger, `listHooks`/`getHook` (listed) versus `createHook`/`updateHook`/`deleteHook` (behind `listTools hooks`; full replacement on update). It links to `nocodb-dev:webhooks` instead of repeating hook configuration. The syntax of `queryRecords`/`createRecords` that the stack carried is already in `mcp-patterns` (`pageSize`, `filter`, `records[{fields}]`) and was not copied.
+**Root cause:** Business-side webhook knowledge had no home in the technology plugins, so the stack plugin invented its own. Open for the owner: `nocodb-dev:webhooks` says the destination payload carries `record` / `records`, the docs sample shows `data.rows`; one live test of a record webhook would settle which shape a custom body templates against.
+**Severity:** Major
