@@ -120,7 +120,7 @@ Validate `formData` (Zod, see `form-handling`) before it reaches the CMS.
 // next.config.ts
 import type { NextConfig } from 'next';
 
-const cms = new URL(process.env.NEXT_PUBLIC_CMS_URL!);
+const cms = new URL(process.env.NEXT_PUBLIC_CMS_URL!); // the CMS address; name the variable as your project does
 
 const nextConfig: NextConfig = {
   images: {
