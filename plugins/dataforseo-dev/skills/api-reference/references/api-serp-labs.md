@@ -41,7 +41,7 @@ Body: [{
   "location_name": "United States",
   "language_code": "en",
   "limit": 50,
-  "filters": [["keyword_info.search_volume", ">", 100], "and", ["keyword_info.keyword_difficulty", "<", 40]]
+  "filters": [["keyword_info.search_volume", ">", 100], "and", ["keyword_properties.keyword_difficulty", "<", 40]]
 }]
 ```
 Returns: Related keywords with search_volume, cpc, competition, keyword_difficulty.

@@ -132,16 +132,18 @@ Labs endpoints accept nested filter arrays in the request:
 [
   ["keyword_info.search_volume", ">", 100],
   "and",
-  ["keyword_info.keyword_difficulty", "<", 30]
+  ["keyword_properties.keyword_difficulty", "<", 30]
 ]
 ```
 
 Common filter fields:
 - `keyword_info.search_volume` — monthly searches
-- `keyword_info.keyword_difficulty` — difficulty score
+- `keyword_properties.keyword_difficulty` — difficulty score (it lives in `keyword_properties`, not `keyword_info`)
 - `keyword_info.cpc` — cost per click
 - `keyword_info.competition_level` — "LOW", "MEDIUM", "HIGH"
 - `serp_info.se_results_count` — total SERP results for the keyword
+
+On `keyword_ideas` and `keyword_suggestions` these paths are as written. Endpoints that wrap each item in `keyword_data` (`related_keywords`, `ranked_keywords`, `domain_intersection`) prefix them: `keyword_data.keyword_properties.keyword_difficulty`, `keyword_data.keyword_info.search_volume`.
 
 The full field list for an endpoint is on its `docs_search` page and at `docs_search({url: "dataforseo_labs/filters"})`.
 

@@ -24,7 +24,7 @@ Use keyword suggestions for each high-value seed:
 POST /v3/dataforseo_labs/google/keyword_suggestions/live
 data: [{"keyword": "project management software", "location_code": 2840, "language_code": "en",
         "limit": 50,
-        "filters": [["keyword_info.search_volume", ">", 20], "and", ["keyword_info.keyword_difficulty", "<", 50]]}]
+        "filters": [["keyword_info.search_volume", ">", 20], "and", ["keyword_properties.keyword_difficulty", "<", 50]]}]
 ```
 
 ## Step 3: Bulk Metrics Check
