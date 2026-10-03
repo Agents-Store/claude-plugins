@@ -184,17 +184,16 @@ Insert one Customer + one Order, link them, and confirm:
 - Customer.`Lifetime Value` shows the order's Amount.
 
 ```bash
-# Create a customer
-curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \
-  -d '{"records":[{"fields":{"Name":"Acme Corp","Email":"info@example.com","Status":"Active"}}]}' \
-  "${NOCODB_URL}/api/v3/data/${BASE_ID}/${CUSTOMERS_TID}/records"
-# capture acme record id → ACME_ID
+# Create a customer. The request body is { "fields": {...} } or an array of those (DataInsertRequestV3);
+# the response is { "records": [ { "id", "fields" } ] }
+ACME_ID=$(curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \
+  -d '[{"fields":{"Name":"Acme Corp","Email":"info@example.com","Status":"Active"}}]' \
+  "${NOCODB_URL}/api/v3/data/${BASE_ID}/${CUSTOMERS_TID}/records" | jq -r '.records[0].id')
 
 # Create an order
-curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \
-  -d '{"records":[{"fields":{"OrderNo":"ACM-1001","Amount":1500,"Status":"Paid"}}]}' \
-  "${NOCODB_URL}/api/v3/data/${BASE_ID}/${ORDERS_TID}/records"
-# capture order record id → ORDER_ID
+ORDER_ID=$(curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \
+  -d '[{"fields":{"OrderNo":"ACM-1001","Amount":1500,"Status":"Paid"}}]' \
+  "${NOCODB_URL}/api/v3/data/${BASE_ID}/${ORDERS_TID}/records" | jq -r '.records[0].id')
 
 # Link order → customer
 curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \

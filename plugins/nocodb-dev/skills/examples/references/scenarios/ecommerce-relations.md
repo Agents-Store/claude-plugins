@@ -136,21 +136,21 @@ Expected fields on Orders: `OrderNo`, `Status`, `CreatedAt`, `Customer`, `Produc
 ## Step 8 — Insert and link sample data
 
 ```bash
-# Three products
+# Three products. The request body is an array of { "fields": {...} } (DataInsertRequestV3);
+# the response is { "records": [ { "id", "fields" } ] } in the same order
 curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \
-  -d '{"records":[
+  -d '[
         {"fields":{"Name":"Widget A","Price":29.99}},
         {"fields":{"Name":"Widget B","Price":49.99}},
         {"fields":{"Name":"Widget C","Price":19.99}}
-      ]}' \
+      ]' \
   "${NOCODB_URL}/api/v3/data/${BASE_ID}/${PRODUCTS_TID}/records"
-# → capture three product record IDs PA, PB, PC
+# → capture three product record IDs PA, PB, PC from .records[].id
 
 # One order
-curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \
-  -d '{"records":[{"fields":{"OrderNo":"ORD-1","Status":"Pending"}}]}' \
-  "${NOCODB_URL}/api/v3/data/${BASE_ID}/${ORDERS_TID}/records"
-# → capture ORDER_ID
+ORDER_ID=$(curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \
+  -d '[{"fields":{"OrderNo":"ORD-1","Status":"Pending"}}]' \
+  "${NOCODB_URL}/api/v3/data/${BASE_ID}/${ORDERS_TID}/records" | jq -r '.records[0].id')
 
 # Link order → customer
 curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \

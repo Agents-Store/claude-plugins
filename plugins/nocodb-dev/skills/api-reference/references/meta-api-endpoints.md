@@ -456,10 +456,11 @@ Execute payload (`WorkflowExecuteReq`):
 
 ```json
 {
-  "input": { "<workflow input variables>": "..." },
-  "trigger": "manual"
+  "trigger_data": { "<data for the workflow trigger>": "..." }
 }
 ```
+
+The response is `{ "id": "<execution id>" }`. Executions list as `{ "list": [...] }` (`limit`, `offset`), and `status` is `running`, `waiting`, `completed`, `error`, `cancelled` or `skipped`.
 
 > Workflow **creation/editing** is not a REST operation in this spec — this API surface is for listing, executing, and inspecting executions. On Cloud / licensed self-hosted, drafts are authored through MCP (`createWorkflow`, `updateWorkflow`, node and edge tools, `validateWorkflowNode`, `publishWorkflow`; enabling and `run_as` stay in the UI). The `WorkflowDraft*`, `WorkflowNode*`, `WorkflowEdge` schemas describe the node graph for read responses.
 
