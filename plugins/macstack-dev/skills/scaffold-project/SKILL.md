@@ -83,7 +83,7 @@ Backed by sources 1→3, create:
 user: "Scaffold the project from macstack.json"
 → prototype github:<owner>/project-directus-nextjs-trigger-dev → clone, copy
   compose/scripts/.claude/layout
-→ stack plugin stack-directus-nextjs-trigger-dev → enabledPlugins + .mcp.json (${VAR}) + CLAUDE.md merge
+→ stack plugin stack-directus-nextjs-trigger → enabledPlugins + .mcp.json (${VAR}) + CLAUDE.md merge
 → dev plugins directus-dev, nextjs-dev, trigger-dev → enable, follow their conventions in stubs
 → files: src/trigger/<wf-id>.ts per workflows[], collection schemas per entities[]
 → infisical-env → best-practices → documents → lint → report

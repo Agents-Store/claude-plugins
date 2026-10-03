@@ -23,7 +23,8 @@
     "openclaw-configurator": "openclaw-ops",
     "media-hosting-ops": null,
     "image-search-dev": "web-search-dev",
-    "stack-directus-nextjs-dev": "stack-directus-nextjs"
+    "stack-directus-nextjs-dev": "stack-directus-nextjs",
+    "stack-directus-nextjs-trigger-dev": "stack-directus-nextjs-trigger"
   },
   "plugins": [
     {
@@ -295,29 +296,28 @@
       "category": "stack"
     },
     {
-      "name": "stack-directus-nextjs-trigger-dev",
-      "source": "./plugins/stack-directus-nextjs-trigger-dev",
-      "description": "Directus + Next.js + Trigger.dev stack dev plugin. Adds self-hosted Trigger.dev as a workflow engine for AI agents, durable async logic, and scheduled jobs on top of the Directus + Next.js App Router stack.",
-      "version": "2.0.0",
+      "name": "stack-directus-nextjs-trigger",
+      "source": "./plugins/stack-directus-nextjs-trigger",
+      "description": "Directus + Next.js + Trigger.dev architecture plugin. How Directus (content, files, access), a Next.js App Router frontend and self-hosted Trigger.dev (durable and scheduled work) fit together: who holds which token, how the cache is invalidated, how a Directus change reaches a task and the result reaches the page, who owns the session, and a production checklist. Tool knowledge comes from its dependencies.",
+      "version": "3.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
       "keywords": [
         "stack",
         "directus-nextjs-trigger",
-        "dev",
+        "architecture",
         "agents-store",
         "directus",
         "nextjs",
         "trigger.dev",
-        "ai-agents",
-        "workflows",
+        "background-jobs",
         "scheduled-tasks",
         "self-hosted",
         "durable-execution",
         "app-router"
       ],
-      "category": "development"
+      "category": "stack"
     },
     {
       "name": "web-search-dev",
