@@ -13,10 +13,11 @@
 **Fix:** Removed TRIGGER_SECRET_KEY from all tables and .env examples. Updated SDK configure() examples to use per-env vars directly.
 **Root cause:** First iteration kept the official var alongside convention vars; the convention vars fully replace it.
 **Severity:** Minor
+**Superseded 2026-10-03:** `TRIGGER_SECRET_KEY` is the variable the SDK reads and the MCP `initialize_project` tool prints, and the plugin uses it in many places. The per-environment variables are storage; `TRIGGER_SECRET_KEY` is set to the key of the environment being targeted. README and the setup references now say so.
 
 ## 2026-04-09 — deployment: Missing --api-url flag and post-deploy verification
 
-**Problem:** Self-hosted deploy section said "ensure you're logged in" but didn't show the `--api-url` flag. Agent tried non-existent `--self-hosted` flag. Also, no guidance to verify tasks after deploy — env var issues caused silent runtime failures (`undefined` in URLs).
+**Problem:** Self-hosted deploy section said "ensure you're logged in" but didn't show the `--api-url` flag. Agent tried a non-existent self-hosted deploy flag. Also, no guidance to verify tasks after deploy — env var issues caused silent runtime failures (`undefined` in URLs).
 **Fix:** Rewrote self-hosted deploy section with explicit `--api-url` and `TRIGGER_ACCESS_TOKEN` examples. Added complete deploy flags table. Added "Post-Deploy Verification" section requiring trigger + log check for every deploy.
 **Root cause:** Skill assumed cloud-centric workflow where login profiles handle routing. Self-hosted needs explicit `--api-url`. Skill also had no verification step — deploy success != runtime success.
 **Severity:** Major
@@ -66,6 +67,8 @@
 - `README.md` — extended skills table to 12 rows, updated tech stack + sources list.
 - `plugin.json` + marketplace `version` bumped `1.1.0` → `1.2.0`; added `trql`, `managed-prompts`, `observability` keywords.
 
+**Superseded 2026-10-03:** the live server exposes 41 tools (see the 2026-10-03 entry).
+
 **Rationale:** Plugin documented only the pre-v4.4.4 14-tool MCP set. The live MCP server ships 33 tools — 11 added in v4.4.4 (profile, query/dashboards, dev server, span details, task schema) and 7 Managed Prompts tools that are live but not yet covered on trigger.dev/docs. Agents using the plugin against v4.4.4 instances lacked guidance on more than half of the available tools and were blind to the query/dashboards and prompt-override workflows entirely. This gap was surfaced by the user on 2026-04-24 with a pointer to the v4.4.4 changelog.
 
 ## 2026-04-22 — deployment/troubleshoot: Container registry login workflow missing for self-hosted staging/prod deploys
@@ -78,3 +81,10 @@
 - `skills/troubleshoot/SKILL.md` — replaced single "Push failed" row with four distinct error symptoms (`denied`, `unauthorized`, `no basic auth credentials`, `localhost:5000` pushes); added "Registry Push Failures (Self-Hosted)" sub-section with interactive + non-interactive login recipes and cred verification; updated Self-Hosted Issues row.
 - Version bumped `1.0.4` → `1.1.0` in plugin.json and marketplace.json.
 **Rationale:** Original deployment skill stated "The CLI automatically discovers the container registry from the server" but never explained that auth still depends on local Docker credentials. Users on fresh laptops and CI runners hit `unauthorized: authentication required` at the push step with no guidance. Also, the official `DEPLOY_REGISTRY_*` (server) vs ad-hoc `DOCKER_REGISTRY_*` (client) distinction was undocumented — leading users to think the CLI reads these env vars, which it doesn't. This gap was identified during a live deploy session (2026-04-22) where the agent had to research the workflow from scratch after the user asked what to do with the self-hosted registry host (`registry.<trigger-host>`) at staging/prod deploy time.
+
+## 2026-10-03 — all skills: freshness pass against Trigger.dev 4.7.2 (1.2.0 -> 1.3.0)
+
+**Problem:** The plugin targeted server 4.4.4 and a 33-tool MCP. Several commands and snippets were broken: `install-mcp --readonly` (the flag exists only on `mcp`), `defineConfig` without the required `maxDuration`, `prismaExtension` without `mode`, `@trigger.dev/build/extensions/python` and `/vercel` (no such paths), a `defaultMachine` config key and a URL key that do not exist, global hooks in `defineConfig`, `wait.forToken` on arbitrary strings, AI SDK v4 examples, `batchTriggerAndWait` results used as an array, and an agent `tools:` allowlist that cut off every MCP tool. MCP parameter names had drifted (`taskIdentifier`, `traceCursor`, `dashboardId`, `format`), 8 tools were undocumented, and `initialize_project` was described as writing files.
+**Fix:** `mcp --readonly` documented with the 15 tools it hides; `maxDuration` and Prisma `mode` in every example; real build-extension paths; `tasks.*` hooks in `init.ts`; `wait.createToken` flow; `ai.toolExecute` with AI SDK v5+; `const { runs } = await batchTriggerAndWait(...)`; the agent's `tools:` line removed; 41-tool reference rewritten from the live schemas and the CLI source (outputs are text, not JSON); CLI sections for `init --yes`, `dev start`, `deploy --external-id`, `env`, `skills` (with `install-rules` as an alias); CI pins the CLI to the SDK/server version; self-hosted stack now lists ClickHouse, Electric and s2, no shared default credentials since 4.5.6 (`generate-secrets.sh`), `MANAGED_WORKER_SECRET`, and the checkpoint caveat; new skills `ai-chat-agents` and `scheduled-tasks` (skeleton). Baseline stays server 4.4.4: features from 4.5-4.7 say which server version they need.
+**Root cause:** The plugin was written against 4.4.4 and the docs pages it relied on (the `install-mcp` page attributes `--readonly` to the wrong command; the `mcp-tools` page lists 24 of 41 tools); nothing re-checked the commands against the installed CLI.
+**Severity:** Critical

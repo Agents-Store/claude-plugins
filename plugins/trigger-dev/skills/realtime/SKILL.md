@@ -157,6 +157,8 @@ function AIResponse({ runId, accessToken }: Props) {
 
 ### Complete Token from React
 
+Create the token in your backend with `wait.createToken()`, then pass `token.id` (starts with `waitpoint_`) and `token.publicAccessToken` to the component:
+
 ```tsx
 import { useWaitToken } from "@trigger.dev/react-hooks";
 

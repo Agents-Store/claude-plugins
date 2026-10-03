@@ -143,6 +143,48 @@ await childTask.trigger(payload, {
 });
 ```
 
+These three forms (`concurrencyLimit` on a queue) run on every server version. SDK 4.7 deprecates them in favour of the `concurrency` option below; the replacement needs server ≥ 4.7.0.
+
+### Concurrency 2.0 (requires server ≥ 4.7.0)
+
+```ts
+import { concurrencyLimit, concurrencyLimits, task } from "@trigger.dev/sdk";
+
+// Cap the task itself
+export const oneAtATime = task({
+  id: "sequential-task",
+  concurrency: { total: 1 },
+  run: async (payload) => {},
+});
+
+// Per tenant (perKey) and overall (total)
+export const processUpload = task({
+  id: "process-upload",
+  concurrency: { perKey: 1, total: 10 },
+  run: async (payload) => {},
+});
+await processUpload.trigger(payload, { concurrencyKey: userId });
+
+// One named limit shared by several tasks (a shared resource such as an external API)
+export const openaiLimit = concurrencyLimit({ name: "openai", total: 25 });
+export const summarize = task({
+  id: "summarize",
+  concurrency: [{ total: 5 }, openaiLimit],   // one inline shape + up to two named limits
+  run: async (payload) => {},
+});
+
+// Switch a run's named limits at trigger time (the inline limit still applies)
+await summarize.trigger(payload, { concurrency: ["priority"] });
+```
+
+- `total` caps all runs together; `perKey` caps each `concurrencyKey` pool; runs without a key share one pool.
+- Named limits: names are 1-122 characters of letters, digits, `_` and `-`. A per-tenant cap across several tasks is `concurrencyLimit({ name: "tenant", perKey: 10 })`.
+- Subtasks do not inherit the parent's limits.
+- Manage named limits at runtime: `concurrencyLimits.list()`, `.retrieve(name)`, `.override(name, { total: 50 })`, `.reset(name)`, `.pause(name)`, `.resume(name)`. Anonymous inline limits appear as `task/<task-id>`.
+- `queues.overrideConcurrencyLimit` / `queues.resetConcurrencyLimit` are deprecated and only work for legacy queues.
+
+On a server older than 4.7.0 the `concurrency` option is accepted but not applied, so keep the queue form there.
+
 ## Wait Patterns
 
 ### Duration waits
@@ -156,12 +198,21 @@ await wait.for({ hours: 1 });
 await wait.until({ date: new Date("2024-12-25") });
 ```
 
-> Waits > 5 seconds are checkpointed — they don't consume compute time.
+> On Trigger.dev Cloud a wait of 60 seconds or longer is checkpointed: it does not consume compute and releases the run's concurrency slots (a shorter wait stays `EXECUTING` and keeps them). **Self-hosted has no checkpoints**: the run stays `EXECUTING` for the whole wait. If you poll in a loop on Cloud, use an interval well above 60 seconds.
 
 ### Wait for token (human-in-the-loop)
 
+Create the token first; its `id` starts with `waitpoint_`. Waiting on an arbitrary string does not work.
+
 ```ts
-const result = await wait.forToken<{ approved: boolean }>("approval-123");
+const token = await wait.createToken({
+  timeout: "10m",          // default 10m
+  idempotencyKey: "approval-order-123",   // optional
+  tags: ["approval"],                      // optional
+});
+// token.id, token.url (server-to-server callback), token.publicAccessToken (browser completion)
+
+const result = await wait.forToken<{ approved: boolean }>(token.id);
 
 if (result.ok) {
   console.log("Approved:", result.output.approved);
@@ -170,14 +221,35 @@ if (result.ok) {
 }
 
 // Or use .unwrap() to throw on timeout:
-const approval = await wait.forToken<{ approved: boolean }>("approval-123").unwrap();
+const approval = await wait.forToken<{ approved: boolean }>(token.id).unwrap();
 ```
 
-Complete the token via SDK or REST API:
+Complete the token via SDK or REST API (`POST /api/v1/waitpoints/tokens/{waitpointId}/complete`):
 
 ```ts
 import { wait } from "@trigger.dev/sdk";
-await wait.completeToken<{ approved: boolean }>("approval-123", { approved: true });
+await wait.completeToken<{ approved: boolean }>(token.id, { approved: true });
+```
+
+## Global lifecycle hooks
+
+Register hooks for every task in an `init.ts` file at the root of a directory listed in `dirs` — it is loaded before each run. Do not use the deprecated `onSuccess` / `onFailure` / `onStart` / `init` keys of `defineConfig`.
+
+```ts
+// src/trigger/init.ts
+import { tasks } from "@trigger.dev/sdk";
+
+tasks.onStartAttempt(({ ctx, payload, task }) => {
+  console.log("Starting", ctx.task.id);
+});
+tasks.onSuccess(({ ctx, payload, output }) => {});
+tasks.onFailure(({ ctx, payload, error }) => {});
+tasks.onWait(({ ctx, payload, wait, task }) => {});
+tasks.onResume(({ ctx, payload, wait, task }) => {});
+tasks.middleware("db", async ({ ctx, payload, next, task }) => {
+  // open resources, then continue the run
+  await next();
+});
 ```
 
 ## Trigger Options Reference
@@ -185,11 +257,13 @@ await wait.completeToken<{ approved: boolean }>("approval-123", { approved: true
 | Option | Type | Description |
 |--------|------|-------------|
 | `delay` | string/datetime | Delay before execution ("5m", "2h", ISO datetime) |
-| `tags` | string[] | Up to 10 tags, each < 128 chars |
-| `machine` | object | Machine preset override |
+| `tags` | string[] | Up to 10 tags in the SDK (the MCP `trigger_task` accepts 5), each < 128 chars |
+| `machine` | string | Machine preset name, for example `"medium-1x"` (an object is not accepted at trigger time; a task definition accepts both) |
 | `maxAttempts` | integer | Max retry attempts |
 | `maxDuration` | number | Max run duration in seconds |
 | `ttl` | string/integer | Time-to-live before auto-cancel (default "10m") |
 | `idempotencyKey` | string | Prevent duplicate runs |
-| `queue` | object | Override queue name and concurrency |
+| `queue` | string / object | Override queue name (and legacy concurrency) |
+| `concurrencyKey` | string | Per-tenant pool for `perKey` limits (server ≥ 4.7.0) |
+| `concurrency` | string[] | Replace the task's named limits for this run (server ≥ 4.7.0) |
 | `debounce` | object | Debounce config (key, delay, mode) |

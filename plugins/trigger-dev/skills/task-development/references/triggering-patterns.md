@@ -49,10 +49,13 @@ const output = await childTask.triggerAndWait({ data: "value" }).unwrap();
 ### batchTriggerAndWait() — parallel batch
 
 ```ts
-const results = await childTask.batchTriggerAndWait([
+// The result is `{ id, runs }`, not an array
+const { runs } = await childTask.batchTriggerAndWait([
   { payload: { data: "item1" } },
   { payload: { data: "item2" } },
 ]);
+
+const succeeded = runs.filter((r) => r.ok).map((r) => r.output);
 ```
 
 ## Typed Multi-Task Batch
@@ -80,7 +83,7 @@ if (sentimentResult.ok) {
 await myTask.trigger(payload, {
   delay: "5m",
   tags: ["priority", "vip"],
-  machine: { preset: "medium-1x" },
+  machine: "medium-1x",   // a string here; the task definition also accepts { preset }
   maxAttempts: 5,
   maxDuration: 300,
   ttl: "30m",

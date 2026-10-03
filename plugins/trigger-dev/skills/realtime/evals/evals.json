@@ -7,10 +7,10 @@
       "expected_output": "Should cover: auth.createPublicToken, useRealtimeRun or useRealtimeTaskTrigger hook, metadata for progress, @trigger.dev/react-hooks",
       "files": [],
       "expectations": [
-        "Mentions @trigger.dev/react-hooks package', 'type': 'content_check",
-        "Shows useRealtimeRun or useRealtimeTaskTrigger hook', 'type': 'content_check",
-        "Includes auth token creation (createPublicToken or createTriggerPublicToken)', 'type': 'content_check",
-        "Uses metadata for progress tracking', 'type': 'content_check"
+        "Mentions @trigger.dev/react-hooks package",
+        "Shows useRealtimeRun or useRealtimeTaskTrigger hook",
+        "Includes auth token creation (createPublicToken or createTriggerPublicToken)",
+        "Uses metadata for progress tracking"
       ]
     }
   ]
