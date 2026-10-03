@@ -22,7 +22,8 @@
     "nocobase": "nocobase-dev",
     "openclaw-configurator": "openclaw-ops",
     "media-hosting-ops": null,
-    "image-search-dev": "web-search-dev"
+    "image-search-dev": "web-search-dev",
+    "stack-directus-nextjs-dev": "stack-directus-nextjs"
   },
   "plugins": [
     {
@@ -274,24 +275,24 @@
       "category": "operations"
     },
     {
-      "name": "stack-directus-nextjs-dev",
-      "source": "./plugins/stack-directus-nextjs-dev",
-      "description": "Directus + Next.js stack dev plugin. Integrates Directus headless CMS with Next.js App Router for content-driven applications.",
-      "version": "1.0.3",
+      "name": "stack-directus-nextjs",
+      "source": "./plugins/stack-directus-nextjs",
+      "description": "Directus + Next.js architecture plugin. How Directus (content, files, access) and a Next.js App Router frontend fit together: who holds the token, how the cache is invalidated, how assets and types cross the boundary, who owns the session, and a production checklist. Tool knowledge comes from its dependencies.",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
       "keywords": [
         "stack",
         "directus-nextjs",
-        "dev",
+        "architecture",
         "agents-store",
         "directus",
         "nextjs",
         "headless-cms",
         "app-router"
       ],
-      "category": "development"
+      "category": "stack"
     },
     {
       "name": "stack-directus-nextjs-trigger-dev",

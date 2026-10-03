@@ -29,7 +29,7 @@ This command orchestrates all seo-dev skills plus Directus MCP tools:
 | `seo-dev:audit` | Phase 1 & Phase 8: Audit & Report |
 | `directus-dev:schema-design` | Phase 1g: Schema audit |
 | `directus-dev:mcp-tools` | Phase 3D: Field creation & item population |
-| `stack-directus-nextjs-dev:directus-to-nextjs` | Phase 3D-4: Data fetching updates |
+| `stack-directus-nextjs:directus-to-nextjs` | Phase 3D-4: Data fetching updates |
 
 ## Process
 

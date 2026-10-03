@@ -5,14 +5,14 @@ description: End-to-end scenario walkthroughs for the Directus + Next.js stack. 
 
 # Examples: Directus + Next.js Scenarios
 
-Complete walkthroughs for building common application types with this stack. Each scenario shows the full flow from Directus data model to rendered Next.js pages.
+Complete walkthroughs for building common application types with this stack. Each scenario shows the full flow from the Directus data model to rendered Next.js pages, using the rules of `directus-to-nextjs` (tagged reads, no token in asset URLs) and the pipeline of `deployment`.
 
 ## Available Scenarios
 
 | Scenario | Description | Key Patterns |
 |----------|-------------|--------------|
-| [Blog](references/scenarios/blog-with-directus.md) | Content blog with posts, authors, and categories | M2O relations, images, ISR, SEO metadata, RSS feed |
-| [Product Catalog](references/scenarios/product-catalog.md) | E-commerce catalog with products, categories, and filtering | M2M relations, search params, image gallery, dynamic filters |
+| [Blog](references/scenarios/blog-with-directus.md) | Content blog with posts, authors, and categories | M2O and M2M relations, images, tagged reads, SEO metadata, RSS feed |
+| [Product Catalog](references/scenarios/product-catalog.md) | E-commerce catalog with products, categories, and filtering | Decimal fields, search params, typed filters, image gallery, uncached search |
 
 ## How to Use
 
@@ -23,7 +23,7 @@ Complete walkthroughs for building common application types with this stack. Eac
 
 Each scenario includes:
 - Directus collection schema (fields, relations, permissions)
-- TypeScript interfaces
-- Complete Next.js page code (listing, detail, metadata)
+- TypeScript interfaces (or a pointer to the shared ones in `directus-dev`)
+- Next.js page code (listing, detail, metadata)
 - Image handling patterns
-- Revalidation strategy
+- The revalidation strategy: which tags, which collections the Flow lists
