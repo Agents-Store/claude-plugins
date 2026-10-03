@@ -37,6 +37,8 @@ An event trigger (`action`, so it runs after the change is committed) and one `r
 }
 ```
 
+Do not add a condition such as `status == published`: an edit that unpublishes or archives an item has to refresh the site as well, or the old page stays up. Let the receiving side decide what to do with the collection name.
+
 Create the flow, then the operation with that `flow` id, then PATCH the flow's `operation` to the operation id (see "Creating Operations" in `SKILL.md`). The receiver gets `{"collection":"posts"}` and decides which cache tags to invalidate (see `nextjs-dev`, `data-fetching`).
 
 ## The secret goes in a header, and `$env` needs an allow-list
