@@ -136,10 +136,13 @@ human to run**, not executed. Credential repair is a precondition of upgrading, 
 ```
 
 R4 on every instance, every time: the state schema migrates in place, and a failed migration does not
-undo itself. The command resolves the channel through registry dist-tags (the only mechanical fact about
-where a channel points), enforces the soak window, pins an **immutable** identifier, captures a
-pre-upgrade baseline so only *new* findings block, takes the three-layer backup — and **rejects** an
-upgrade whose backup has not passed verification rather than warning about it.
+undo itself — Doctor's own pre-migration copies are not a full-state backup, and a package rollback
+cannot undo migrated state. The command resolves the channel through registry dist-tags (the only
+mechanical fact about where a channel points), enforces the soak window, pins an **immutable**
+identifier, captures a pre-upgrade baseline so only *new* findings block, takes the three-layer backup
+(the verified layer is `backup create --verify`) — and **rejects** an upgrade whose backup has not
+passed verification rather than warning about it. An installation older than the cut-off upstream
+states gets its own verdict, `bridge-required`: it must cross the bridge release first.
 
 Afterwards, three checks that are easy to skip and expensive to miss: delivery queues behind a green
 rollup, duplicated schedule entries, and a migration that silently rewrote the primary model.
@@ -171,7 +174,7 @@ commands this fleet could adopt, with a recommendation and a risk class. **Nothi
 | `secrets-infisical` | secret delivery through an injection wrapper; a feature silently off; plaintext env files; proving a key is delivered |
 | `memory-ops` | embeddings failing authorization, paused vector search, index identity, reindexing, a state database growing without bound |
 | `shared-assets` | skills and plugins shared across instances: empty mounts, duplicates, shadows, ownership refusals, install locks |
-| `instance-upgrade` | version drift, channels and dist-tags, tag versus digest, soak windows, post-upgrade traps |
+| `instance-upgrade` | version drift, channels and dist-tags, the bridge for old installations, tag versus digest, soak windows, post-upgrade traps |
 | `security-audit` | exposure, firewall chains that do not apply to published ports, token reuse, permissions, trust boundary |
 | `instance-clone` | standing up a new instance from the reference and proving it isolated |
 | `docs-research` | before any claim that could have changed — flags, keys, versions, model names; and when two sources disagree |
@@ -207,7 +210,7 @@ over — both are R4 operations in this plugin and never run as a routine step.
 | `/openclaw-ops:audit` | `[selector] [--focus auth\|versions\|memory\|cron\|secrets\|security\|shared\|all]` |
 | `/openclaw-ops:repair` | `<selector> --issue <finding-id> [--all-findings] [--yes]` |
 | `/openclaw-ops:auth` | `[selector] [--provider <id>] [--status] [--print-login] [--watch]` |
-| `/openclaw-ops:update` | `<selector> [--to <version>] [--channel latest\|extended-stable] [--yes]` |
+| `/openclaw-ops:update` | `<selector> [--to <version>] [--channel stable\|extended-stable\|beta\|dev] [--yes]` |
 | `/openclaw-ops:features` | `<selector> [--from <version>]` |
 | `/openclaw-ops:shared-sync` | `[selector] [--adopt-duplicates] [--restart] [--yes]` |
 | `/openclaw-ops:clone` | `<new-instance> [--from <reference>] [--port auto\|<n>] [--yes]` |
@@ -238,7 +241,7 @@ All Python 3, stdlib only, invoked as `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/<n
 | `fleet.py` | `discover` · `resolve` · `config --init\|--show\|--validate\|--diff`. Cheap, runs constantly |
 | `ocexec.py` | the single door into the CLI: mode choice, policy refusals, redaction, exit-code meaning |
 | `healthcheck.py` | the expensive probe battery; HEALTH and LIVENESS from disjoint evidence; snapshots |
-| `versions.py` | what runs, what a channel points at, and why a target is not eligible yet |
+| `versions.py` | what runs, what a channel points at, and why a target is not eligible yet — soak, wrong release line, or a bridge hop first |
 | `report.py` | one canonical document plus the delta against earlier snapshots — new, aged, resolved |
 | `clone.py` | the deterministic half of cloning: name, free port, isolation preflight, materialisation |
 | `catalog-check.py` | contract check: every finding id the battery can emit has a catalog row, at the severity that row states |
@@ -283,8 +286,8 @@ requires a stopped gateway.
 | R0 read | free | inspect, endpoints, lint, credential **check**, list subcommands |
 | R1 read with effect | as R2 | credential **probe**, anything on the agent path, indexing |
 | R2 reversible | `--yes` | restart, config edit, enabling or disabling a schedule |
-| R3 partially reversible | `--yes` + a backup that **already exists** | forced reindex, session pruning, database compaction |
-| R4 irreversible | `--yes` + a typed phrase | version upgrade, secret write, automatic security fix, gateway-token change |
+| R3 partially reversible | `--yes` + a backup that **already exists** | forced reindex, memory reset or forget, sessions cleanup, database compaction |
+| R4 irreversible | `--yes` + a typed phrase | version upgrade, update cleanup, secret-store write, automatic fix (`doctor --fix`, `security audit --fix`), gateway-token change |
 
 Every mutation prints eight blocks before it runs: **TARGET · PRECHECK · CHANGE · BACKUP · IMPACT ·
 VALIDATE · ROLLBACK · APPLY**, plus **IRREVERSIBLE · CONFIRM** for R3 and R4. PRECHECK shows its

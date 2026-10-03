@@ -24,9 +24,10 @@ cold  ``docker run --rm -v <state-dir>:/home/node/.openclaw <image> openclaw <ar
       is on the list because it is the documented way back for a gateway that
       exited unable to migrate its state: the same image, once, against the same
       mounts, then a normal start. A read posture (``--lint``, ``--post-upgrade``)
-      runs as is; ``doctor --fix`` is an R4 and still needs the plan behind it, like
-      any other R4. Anything else is refused with the reason, because a cold
-      container is not a gateway.
+      runs as is; ``doctor --fix`` is an R4, and R4 stays refused at this door
+      like any other — the plan comes first and the cold run is its APPLY line.
+      Anything else is refused with the reason, because a cold container is not
+      a gateway.
 
 Refusals (never negotiable)
 ---------------------------

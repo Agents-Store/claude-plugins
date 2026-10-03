@@ -28,15 +28,22 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/versions.py" "<selector>" [--channel <c>]
 `<c>` is a channel **name** (`stable`, `extended-stable`, `beta`, `dev` — what `policy.update_channel`
 accepts), never the dist-tag it resolves through; the hop and why it matters: `instance-upgrade`.
 
-Exit 3 = target rejected (soak, correction release, older than installed, pre-release) — the gate
-working. Exit 5 = drift. Pin the **digest** (`gate.pin`); a moving tag is refused, so no pin, no upgrade.
+Exit 3 = target not accepted (soak, correction release, older than installed, pre-release, wrong
+release line for the channel) — the gate working. **`bridge-required`** is the same exit with its own
+reason: an installation older than the cut-off upstream states cannot go straight to the current line,
+and the verdict names the bridge release and the instances that need it (`gate.bridge`). Plan that hop
+first as its own update — backup, pin the bridge, `doctor --fix` there and confirm what it imported — then
+gate the real target again; `instance-upgrade` has the rules of the hop. Exit 5 = drift. Pin the
+**digest** (`gate.pin`); a moving tag is refused, so no pin, no upgrade.
 
 ## Phases 2–3 — baseline, then backup in three layers
 
 Baseline per instance, before the change: lint, schedules, plugins, config, credential state; only
 **new** findings block afterwards. Then the backup — config snapshot outside the `.bak` ring
-(`gate.snapshot`) · the runtime's own backup, verification **passed** · gateway stopped, **then** the
-state archived. No verified backup → rejected, not warned (red line `upgrade-without-verified-backup`).
+(`gate.snapshot`) · the runtime's own backup, `backup create --verify`, verification **passed** ·
+gateway stopped, **then** the state archived together with the `.bak` copies Doctor saved. No verified
+backup → rejected, not warned (red line `upgrade-without-verified-backup`). Every one of these carries
+working credentials in plaintext: owner-only, never a shared path.
 
 ## Phase 4 — plan, then apply on a later turn
 
@@ -50,9 +57,11 @@ turn; retry budget zero (`gate.RETRY_RULES: openclaw-update`) — a stopped gate
 
 ## Phase 5 — post-checks, and the two traps
 
-Run the post-check ladder from `instance-upgrade` (digest vs pin · `doctor` then restart · `health
---json` with queues · readiness **with the bearer** · `doctor --post-upgrade`, exit code a contract ·
-lint vs baseline), then its two traps: `fleet.cron.duplicates-after-upgrade`, `fleet.model.primary-overwritten`.
+Run the post-check ladder from `instance-upgrade` (digest vs pin · `doctor` then restart — already done
+by the image entrypoint for an image upgrade · `health --json` with queues · readiness **with the
+bearer** · `doctor --post-upgrade`, exit 1 only for an error-level finding, warnings read from the
+document · lint vs baseline at `--severity-min info`, where exit 2 is a failed run), then its two traps:
+`fleet.cron.duplicates-after-upgrade`, `fleet.model.primary-overwritten`.
 
 ## Batches
 

@@ -96,7 +96,7 @@ Checks are shown as CLI intent, run through `${CLAUDE_PLUGIN_ROOT}/scripts/ocexe
 | vector search paused, index-identity warning | provider, model or chunking changed, so the index identity no longer matches | `memory status` | `fleet.memory.index-identity-changed` |
 | search returns nothing useful, last index long ago | indexing stopped when the provider broke | last index time vs activity | `fleet.memory.stale-index` |
 | search still degraded after the provider was fixed | stuck on the fallback model; only a full restart clears it | compare behaviour before and after a full restart, not a reload | `fleet.memory.search-stuck-fallback` |
-| state database growing without bound | no retention or LRU on chunk and embedding-cache tables | database size and per-table row counts | `fleet.memory.db-growth` |
+| state database growing without bound | the per-agent database holds the index and the (bounded) embedding cache beside canonical history, and the file does not shrink by itself | `memory status --agent <id> --json`: database and WAL size, reusable bytes, cache payload | `fleet.memory.db-growth` |
 
 ### Schedules
 

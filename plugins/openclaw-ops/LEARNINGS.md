@@ -29,6 +29,51 @@ Accumulated fixes and discoveries for the OpenClaw fleet-operations plugin. Newe
 **Severity:** Critical / Major / Minor
 -->
 
+## [2026-10-03] — fleet-diagnostics: a failed lint run read as "warnings only"
+
+**Problem:** `ocjson` declared `doctor --lint` as 0 clean, 1 error-level findings, 2 warn-level findings.
+Upstream's contract is a threshold one — 0 nothing at or above `--severity-min`, 1 a finding at or above
+it, **2 the command failed before its checks completed**. A lint that crashed therefore came back as
+"warnings only", the battery recorded it as a non-event, and an instance that had not been linted at all
+looked linted. `security audit` carried the same invented 0 / 1 / 2 table although upstream documents none.
+**Fix:** the lint contract follows upstream (2 = `failed`), the post-upgrade contract reads the `level`
+field and exits 1 only for an error-level finding, `secrets audit --check` is declared (it has a documented
+table), and `security audit` is removed from `EXIT_CONTRACTS` until a test instance confirms one. The lint
+now runs with an explicit `--severity-min info`, and a failed run raises `fleet.lint.run-failed` instead of
+passing in silence.
+**Root cause:** the table was written from observed behaviour on one build, and the one code nobody had
+seen fail was assigned the most comfortable meaning.
+**Severity:** Critical
+
+## [2026-10-03] — instance-upgrade: risk markers pointed at commands that do not exist
+
+**Problem:** `READ_ONLY` listed `backup list` and `database status`, the R3 list `sessions prune` and
+`database compact`, the R4 list `secrets set` and `gateway token` — none of which exists in the current
+command tree. The real commands (`sessions cleanup`, `secrets store set`, `doctor --generate-gateway-token`,
+`update cleanup`, `memory reset`, `memory forget`) matched nothing and fell to the default class, so the
+door treated an irreversible retirement of recovery originals like a reversible edit. A bare `reset` marker
+written naively would have swallowed `memory reset` as well.
+**Fix:** every marker names a command that exists; a few classes differ from their family's
+(`update status` is a read, `update repair` an R3); `reset` and `uninstall` are R4 only as the first command
+word; `--flag=value` is read as `--flag value`. A test asserts the removed names are no longer markers.
+**Root cause:** the marker lists were never checked against the command tree, only against the commands the
+plugin itself used.
+**Severity:** Major
+
+## [2026-10-03] — fleet-model: a mount that upstream stopped needing decided template versus legacy
+
+**Problem:** the layout fingerprint required a mount at the auth-profile key path for a `template` layout.
+Upstream now calls that mount the legacy OAuth migration key; current credentials live in the state
+database under the ordinary state mount, in plaintext. An instance without the mount was classified
+`legacy` and locked against every mutation, while the copies that actually carry working credentials — a
+state archive, a snapshot — were not classified as credentials at all.
+**Fix:** the mount is optional and recorded under `fingerprint.optional`; archives, snapshots and
+state-directory copies are documented as credential artefacts; fleet-command tenant cells are documented as
+inventory-only (`alien`) on purpose.
+**Root cause:** a layout marker was inferred from one generation of the template and never re-read against
+upstream.
+**Severity:** Major
+
 ## [2026-08-31] — fleet-diagnostics: the battery and the catalog were two different id spaces
 
 **Problem:** `healthcheck.py` and `report.py` emitted ids such as `liveness.zombie`,

@@ -110,7 +110,7 @@ Additional skill directories via `skills.load.extraDirs` in openclaw.json.
 | D | Subfolders (on-demand) | `./workspace/docs/**/*.md` + `./workspace/workflows/**/*.prose` | Read + Write |
 | E | Config | `./openclaw.json` | Read; change only through `config-surgery` |
 | F | Sessions | per-agent database — read through `openclaw sessions --json`, never by opening the database | Read only |
-| G | Memory index | per-agent database — read through `openclaw memory status --index --agent <id>` | Read only |
+| G | Memory index | per-agent database — read through `openclaw memory status --agent <id>` (`--deep` adds the provider probe; `--index` **reindexes** a dirty store, so it is not a read) | Read only |
 | H | Automations (cron) | shared state database — read through `openclaw automations list --all` | Read only |
 | I | Logs | gateway log (dated files under the OS temp dir by default, or container output) — read through `/openclaw-ops:logs` | Read only |
 | J | Canvas | `./workspace/canvas/` | Read + Write |
