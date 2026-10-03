@@ -42,7 +42,15 @@ Body:           {
                 }
 ```
 
-The idempotency key (record id plus its `UpdatedAt`) keeps a repeated webhook from starting a second run for the same change. The trigger endpoint, its options and the secret-key rules: see `trigger-dev:mcp-patterns` (*REST Management API*).
+The idempotency key (record id plus its `UpdatedAt`) keeps a **repeated delivery of one event** from starting a second run. It does not stop a loop: `UpdatedAt` changes with every write. The trigger endpoint, its options and the secret-key rules: see `trigger-dev:mcp-patterns` (*REST Management API*).
+
+**Guard against a self-trigger loop.** The task writes `processing_status` back to the row that fired the webhook, and on an *After Update* webhook that write is an update too — it fires the webhook again, `UpdatedAt` is new, and the key never dedupes. Break the loop at the source, with one of:
+
+1. **A condition on the status transition** (all editions): *After Update* with the condition `processing_status` = `pending`. NocoDB fires a conditional webhook only when the record goes from "not met" to "met", and the task's own writes (`processing`, `completed`, `failed`) never meet it. Whoever wants a run (a user, a Button, an automation) sets the status to `pending`.
+2. **Watch only the business fields** (paid plans): on *After Update* choose the fields to monitor and leave out the status and detail columns the task writes.
+3. **Keep job state out of the triggering row**: write status to a separate `job_runs` table (or only into the Trigger.dev run metadata) so the task never updates the row it was started for.
+
+Also make the task check first: read the record, and return without work unless `processing_status` is `pending`. Event details and conditions: `nocodb-ops:webhooks`.
 
 ### Pattern 2: Direct Trigger via MCP
 
@@ -94,6 +102,7 @@ Input: { "limit": 10 }
 
 ## Best Practices
 
+- Never let a task's status write-back re-fire the webhook that started it (see the loop guard in Pattern 1)
 - Use descriptive task IDs: `process-order-payment`, `generate-ai-summary`
 - Include the NocoDB record ID and table ID in every task payload
 - Update the NocoDB record status before and after processing

@@ -67,7 +67,7 @@ Required variables:
 | `N8N_NATIVE_MCP_URL` | n8n | Full native MCP URL (`{N8N_API_URL}/mcp-server/http`) |
 | `N8N_MCP_TOKEN` | n8n | Native MCP bearer token |
 | `NOCODB_MCP_URL` | NocoDB | MCP server URL (full URL with `/mcp` path) |
-| `NOCODB_TOKEN` | NocoDB | MCP authentication token |
+| `NOCODB_MCP_TOKEN` | NocoDB | MCP authentication token (`xc-mcp-token` header; not the REST API token `NOCODB_TOKEN`) |
 | `POSTGRESQL_MCP_URL` | PostgreSQL MCP | MCP server URL (full URL with `/mcp` path) |
 | `POSTGRESQL_MCP_TOKEN` | PostgreSQL MCP | MCP bearer token |
 | `POSTGRESQL_API_URL` | PostgREST | PostgREST base URL (no trailing slash) |
@@ -196,7 +196,7 @@ These provide tool-specific knowledge. The stack plugin provides the architectur
 | Issue | Cause | Fix |
 |-------|-------|-----|
 | MCP connection refused | Service not running or wrong URL | Verify URL in `.env`, check service health |
-| 401 on NocoDB | Invalid token | Regenerate token in NocoDB settings |
+| 401 on NocoDB | Invalid MCP token | Regenerate the MCP token in NocoDB and update `NOCODB_MCP_TOKEN` |
 | 401 on n8n | Expired API key | Create new API key in n8n settings |
 | Trigger.dev timeout | Wrong `TRIGGER_API_URL` | Verify the self-hosted instance URL |
 | n8n native MCP 403 | Wrong MCP token | Generate new MCP token in n8n → Settings → API |

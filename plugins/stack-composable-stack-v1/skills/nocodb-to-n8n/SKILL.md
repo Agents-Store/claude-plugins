@@ -61,6 +61,8 @@ Input: {
 }
 ```
 
+If the write-back goes to the table whose webhook started the workflow, it fires that webhook again — gate the webhook with a condition on the status transition (`nocodb-ops:webhooks`, *Conditions*) or write the result to another table.
+
 ### Pattern 4: Scheduled n8n Sync
 
 An n8n Schedule trigger polls NocoDB for records matching criteria and processes them.
