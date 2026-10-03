@@ -26,6 +26,7 @@ plugins/outline-ops/skills/api-reference/references/outline-openapi.yml:uuid:ven
 plugins/outline-ops/skills/api-reference/references/outline-openapi.yml:public-ip:vendor OpenAPI document, address is Outline's own example value
 plugins/directus-dev/skills/item-operations/SKILL.md:uuid:illustrative primary keys in Directus request/response examples
 plugins/teams-dev/skills/authentication/references/sso-setup.md:uuid:Microsoft Entra tenant/app id placeholders from the vendor quickstart
+plugins/teams-dev/skills/teams-sdk-teams-dev/references/guide-setup-sso.md:uuid:vendored microsoft/teams-sdk guide, the two ids are Microsoft's own public first-party Teams client application ids used to pre-authorize the clients
 plugins/atlassian-ops/skills/api-reference/references/jira-openapi-v3.json:high-entropy:vendor OpenAPI document, the long runs are Atlassian's own base64 example payloads (avatar SVG/XML, sample ids)
 plugins/atlassian-ops/skills/api-reference/references/jira-openapi-v3.json:private-host:vendor OpenAPI document minified onto ONE line, so every dotted token in 5 MB shares a "line" — Atlassian's published avatar CDN and doc links plus property keys such as an app-key or a field id
 plugins/n8n-dev/skills/api-reference/references/n8n-api.json:high-entropy:vendor OpenAPI document, the long runs are n8n's own example ids in `example:` fields
