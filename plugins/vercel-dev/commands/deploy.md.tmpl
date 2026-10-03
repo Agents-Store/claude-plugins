@@ -1,5 +1,5 @@
 ---
-description: Deploy the current project to Vercel. Pass "prod" or "production" as argument to deploy to production. Default is preview deployment.
+description: Deploy the current project to Vercel. Pass "prod" or "production" as argument to deploy to production. Default is to ask the user which target (production or preview).
 ---
 
 # Deploy to Vercel
@@ -19,7 +19,28 @@ Run these checks before any deployment. Stop on failure and print actionable gui
 4. **Uncommitted changes** — Run `git status --porcelain`.
    - If output is non-empty: warn the user that uncommitted changes will **not** be included in the deploy. Ask whether to continue or commit first.
    - If not a git repo, skip this check.
-5. **Observability preflight** (production deploys only) —
+5. **VERCEL_TOKEN conflict?** — Check if `VERCEL_TOKEN` is set in the environment (`echo $VERCEL_TOKEN`).
+   - If set: it overrides CLI interactive login and may cause auth failures (e.g., token from Infisical/CI that doesn't match the CLI-authenticated account). Run `unset VERCEL_TOKEN` before all `vercel` CLI commands in this session, or prefix each command with `unset VERCEL_TOKEN &&`.
+6. **Framework detection (Next.js)?** — If the project has a `next.config.ts` or `next.config.js` but **no `vercel.json`** with a `"framework"` field:
+   - Create `vercel.json` with `{"$schema": "https://openapi.vercel.sh/vercel.json", "framework": "nextjs"}`.
+   - **Why:** Without this, CLI-only deploys (no Git integration) may use a generic builder. The build appears to succeed, but all routes return 404 because Vercel doesn't generate the correct routing configuration. This is the #1 cause of "build succeeds but site shows 404".
+7. **`output: 'standalone'` in Next.js config?** — Check `next.config.ts` / `next.config.js` for `output: 'standalone'`.
+   - If found: warn that `standalone` output is for Docker/self-hosting and is incompatible with Vercel. Suggest conditionally disabling it:
+     ```typescript
+     ...(process.env.VERCEL ? {} : { output: 'standalone' as const }),
+     ```
+   - Ask the user before modifying the config.
+8. **Git author email vs Vercel team (Hobby plan)?** — If `.vercel/project.json` exists and contains an `orgId` starting with `team_`:
+   - Run `vercel teams ls` and `git log -1 --format='%ae'` to check if the git author email matches the team owner.
+   - On Hobby plans, only the team owner can deploy. If emails don't match, warn the user and suggest: `git config user.email "<team-owner-email>"` followed by an empty commit (`git commit --allow-empty -m "chore: update deploy author"`).
+9. **Env vars for preview?** — If deploying a preview and the project has no Git integration (`vercel.json` has no `github` config or project was linked without Git):
+   - Preview env vars may not be configured. Check `vercel env ls` for Preview entries.
+   - If missing: pass env vars directly via `-b` (build-time) and `-e` (runtime) flags:
+     ```bash
+     vercel deploy -b KEY="value" -e KEY="value"
+     ```
+   - Read required vars from `.env.local` or `.env.example`.
+10. **Observability preflight** (production deploys only) —
 
 Before promoting to production, verify observability readiness:
 
@@ -35,7 +56,7 @@ Before promoting to production, verify observability readiness:
 
 State the intended action before executing:
 
-- **Preview deploy** (default): `vercel` — creates a preview deployment on a unique URL.
+- **Preview deploy**: `vercel` — creates a preview deployment on a unique URL.
 - **Production deploy**: `vercel --prod` — deploys to production domains.
 
 If "$ARGUMENTS" contains "prod" or "production":
@@ -44,7 +65,12 @@ If "$ARGUMENTS" contains "prod" or "production":
 > This will deploy to your live production URL and affect real users.
 > **Ask the user for explicit confirmation before proceeding.** Do not deploy to production without a clear "yes."
 
-If "$ARGUMENTS" does not indicate production:
+If "$ARGUMENTS" is empty (no target specified):
+
+> **Ask the user before proceeding:** "Deploy to **production** or **preview**?"
+> Do not assume a default — the user must explicitly choose the deployment target. Deploying to the wrong target wastes build minutes and causes confusion (e.g., preview deployments may lack required env vars).
+
+If "$ARGUMENTS" contains "preview":
 
 > Deploying a **preview** build. This creates an isolated URL and does not affect production.
 
