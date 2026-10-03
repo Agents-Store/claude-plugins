@@ -50,7 +50,7 @@ This plugin lives in the AGENTS.STORE public marketplace. From any Claude Code s
 
 Or add the marketplace and install:
 ```
-/plugin marketplace add https://github.com/AGENTS-STORE/claude-public-plugins
+/plugin marketplace add https://github.com/Agents-Store/claude-plugins
 /plugin install payloadcms-dev@agents-store-claude-plugins
 ```
 
