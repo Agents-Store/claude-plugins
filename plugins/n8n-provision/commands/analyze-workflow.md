@@ -19,6 +19,7 @@ Parse from "$ARGUMENTS".
 
 1. **Fetch the workflow:**
    - If numeric: use `~~template_get` with the ID; on "not found" fetch `https://api.n8n.io/api/workflows/templates/<id>` and take `.workflow`
+   - Look up the price: only `api.n8n.io` search items carry `price`/`purchaseUrl`. Search the template title (`.name` of the wrapper) at `https://api.n8n.io/api/templates/search?rows=20&search=<url-encoded title>` and match the item on `id` (paid = `purchaseUrl` set or `price` > 0; missing `price` = free; no match = "price unknown")
    - If URL: use `~~scrape` to read the page, extract the workflow JSON
 
 2. **Run analysis** (follow `workflow-analysis` skill):
@@ -38,6 +39,7 @@ Parse from "$ARGUMENTS".
    Community nodes: <list or "None">
    Security flags: <list or "None">
    Compatibility: <OK or issues>
+   Price: <Free | Paid (price, purchaseUrl) | Unknown — no search match>
    ```
 
 4. **Recommend action:** Deploy, deploy with caution, or skip (with reason).

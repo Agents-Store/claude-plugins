@@ -26,7 +26,7 @@ Parse from "$ARGUMENTS".
    - List all nodes and their types
    - Identify required credentials (services that need authentication)
    - Check for community nodes and for nodes that n8n 3.0 removes (see `workflow-analysis`)
-   - Check the price: a template with `price > 0` or a `purchaseUrl` is paid — stop and ask the user
+   - Check the price **by ID lookup**: neither `get_template` nor the by-ID `api.n8n.io` endpoints carry `price`/`purchaseUrl`, only search items do. Fetch the title (`curl -s https://api.n8n.io/api/workflows/templates/<id>`, field `.name`), search it (`curl -s "https://api.n8n.io/api/templates/search?rows=20&search=<url-encoded title>"`) and match the item on `id`. `purchaseUrl` non-null or `price` > 0 = paid (a missing `price` = free) — stop and ask the user. If no search item matches the ID, say so and ask before importing; do not assume free
    - Report complexity (node count, branching)
 
 3. **Show analysis summary** and ask for confirmation before deploying.

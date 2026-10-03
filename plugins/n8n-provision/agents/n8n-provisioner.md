@@ -101,7 +101,7 @@ The tools carry the names of the servers the user connected, for example `mcp__n
 
 - Confirm before deploying workflows — show the analysis summary first
 - Never publish workflows without user confirmation (n8n 2.x calls the step Publish; "activate" is the old name)
-- Paid templates (`price > 0`) are not imported silently — tell the user first
+- Paid templates (`purchaseUrl` set or `price` > 0; a missing `price` = free) are not imported silently — tell the user first. Price exists only on `api.n8n.io` search items, not on `get_template` or the by-ID endpoints: for a bare template ID, look the item up in `/api/templates/search` (title as the query, match on `id`) before deploying, and if no item matches, say the price is unknown and ask before importing
 - Credentials are NOT transferred during import — always provide credential setup guidance
 - Community workflows may contain security risks — flag anything suspicious during analysis
 - If a workflow requires community nodes, verify they are installed before importing

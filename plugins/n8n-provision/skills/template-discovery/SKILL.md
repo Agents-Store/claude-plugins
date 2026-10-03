@@ -26,7 +26,7 @@ curl -s 'https://api.n8n.io/api/templates/search?rows=20&page=1&search=<url-enco
 curl -s 'https://api.n8n.io/api/templates/search?rows=20&search=<query>&category=AI'
 ```
 
-The response is `{"totalWorkflows", "workflows": [...], "filters"}`; each item has `id, name, totalViews, price, purchaseUrl, user, description, createdAt, nodes`. Field details are in TEMPLATE_API.md.
+The response is `{"totalWorkflows", "workflows": [...], "filters"}`; each item has `id, name, totalViews, purchaseUrl, user, description, createdAt, nodes` and, on most items, `price` (absent on some free ones). Field details are in TEMPLATE_API.md.
 
 ## 5 Search Modes (n8n-mcp)
 
@@ -120,7 +120,7 @@ Each result carries quality signals. Rank candidates using:
 | `totalViews` | `views` | All-time popularity — higher = more trusted |
 | `user.username`, `user.verified` | `author.username`, `author.verified` | Creator identity — verified creators are more reliable |
 | `nodes[].name` (for example `n8n-nodes-base.slack`) | `nodes[]` (strings) | Node types used — check for deprecated or community nodes |
-| `price`, `purchaseUrl` | — | Paid template (see below) |
+| `purchaseUrl`, `price` (search items only) | — | Paid template (see below) |
 | `description` | `description` | Workflow summary — read for fit before fetching the full template |
 | `createdAt` | `created` | Age — old templates may use outdated nodes |
 
@@ -134,7 +134,9 @@ On `api.n8n.io` the node type is in `nodes[].name`; the `type` key does not exis
 
 ### Paid templates
 
-The library now has paid templates. In a sample of 500 results about 14% had a price. Their JSON is also served by the public API, but a paid template belongs to its author. **Filter on `price == 0` and `purchaseUrl == null`**, and when a paid template is the best match, tell the user instead of importing it silently.
+The library now has paid templates. In a sample of 500 results about 14% were paid. Their JSON is also served by the public API, but a paid template belongs to its author. **Paid = `purchaseUrl` non-null or `price` > 0; a missing `price` means free** (some free items have no `price` key at all, so do not filter on `price == 0`). When a paid template is the best match, tell the user instead of importing it silently.
+
+Price lives only on **search items** of `api.n8n.io`. The by-ID endpoints and n8n-mcp `get_template` do not carry it. For a bare template ID, first look the item up in `/templates/search` and match it on `id` (recipe: TEMPLATE_API.md, "Paid-template check for a bare template ID"). If no search item matches, say so and ask the user before importing.
 
 ## Pagination
 
@@ -157,7 +159,7 @@ Once a template is identified:
 ```
 1. ~~template_get(templateId) → full template with importable JSON
    (n8n-mcp get_template first; on "not found" → curl https://api.n8n.io/api/workflows/templates/<id>)
-2. Review node list, credential requirements, complexity, price
+2. Review node list, credential requirements, complexity, and the price (from the search item; for a bare ID run the paid-template check first)
 3. Import: ~~template_deploy for templates in the local database,
    ~~workflow_create for templates fetched from api.n8n.io (see single-workflow-import)
 ```

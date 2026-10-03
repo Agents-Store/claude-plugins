@@ -34,7 +34,7 @@ Review results. Pick the best match by quality signals:
 - `totalViews` / `views > 10,000` — well-established
 - Short node list (< 15 nodes) — simpler to configure
 - Recent `createdAt` — likelier to use current nodes
-- Free (`price == 0`) — a paid template needs the user's go-ahead
+- Free (no `purchaseUrl`, and `price` 0 or absent) — a paid template needs the user's go-ahead; for a bare ID look the price up in the search first
 
 If the n8n-mcp search finds nothing, the same search runs against `api.n8n.io` (`template-discovery` skill).
 

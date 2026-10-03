@@ -28,7 +28,7 @@ Parse from "$ARGUMENTS".
 2. **Execute search** via `~~template_search` with the query and any filters. If the n8n-mcp result is empty, repeat the search on `api.n8n.io` (`curl -s 'https://api.n8n.io/api/templates/search?rows=20&search=<query>'`; results are under `workflows`).
 
 3. **Display results** in a table:
-   - Template ID, name, node count, views, price (flag paid templates), description (truncated)
+   - Template ID, name, node count, views, price (flag paid templates: `purchaseUrl` set or `price` > 0; n8n-mcp results carry no price — check the `api.n8n.io` search item before recommending a deploy), description (truncated)
    - Sort by relevance (default from API)
    - Show total results count and current page
 

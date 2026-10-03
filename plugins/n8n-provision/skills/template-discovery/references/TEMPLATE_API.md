@@ -68,10 +68,26 @@ GET /templates/search?search=<query>&rows=20&page=1&category=<name>
 Notes on the items:
 
 - The top-level key is `workflows` (not `data`); `totalWorkflows` is the match count.
-- A search item has exactly: `id, name, totalViews, price, purchaseUrl, user, description, createdAt, nodes`. It has **no** `recentViews` and **no** `categories` — those are in the detail endpoint.
+- A search item has the keys `id, name, totalViews, purchaseUrl, user, description, createdAt, nodes`, plus `price` on most items. `purchaseUrl` is always present; **`price` is absent on some free items** (18 of the first 100 results had no `price` key). It has **no** `recentViews` and **no** `categories` — those are in the detail endpoint.
 - `nodes[].name` is the node type (`n8n-nodes-base.slack`). There is no `type` key. `displayName` is the human label.
-- `price` is `0` for free templates. A non-zero `price` or a non-null `purchaseUrl` marks a paid template (about 14% in a 500-result sample). Filter on `price == 0` and `purchaseUrl == null`, and tell the user before importing a paid template.
+- **Paid or free:** a template is paid when `purchaseUrl` is non-null **or** `price` > 0. A missing `price` means free, and `price: 0` means free — do not filter on `price == 0`, it drops the free items that carry no `price` key. A sample of 500 results held about 14% paid templates. Tell the user before importing a paid template.
 - `filters[].counts` lists category names with hit counts for the current query — handy for narrowing.
+
+## Paid-template check for a bare template ID
+
+`price` and `purchaseUrl` exist **only on search items**. Neither by-ID endpoint carries them — the wrapper returns just `{id, name, workflow}` and the detail endpoint has no price fields — and n8n-mcp's `get_template` has none either (nor does `search_templates` offer a price field). So when you start from a bare ID (`/n8n-provision:deploy-template <id>`, `analyze-workflow <id>`, an ID from an n8n.io URL), look the template up in the search first, whichever provider will later supply the workflow JSON:
+
+```bash
+# 1. Title of the template (wrapper endpoint)
+curl -s https://api.n8n.io/api/workflows/templates/<id> -o /tmp/template-<id>.json
+# 2. Search for that title and match the item on id
+curl -s "https://api.n8n.io/api/templates/search?rows=20&search=$(python3 -c 'import sys,json,urllib.parse;print(urllib.parse.quote(json.load(sys.stdin)["name"]))' < /tmp/template-<id>.json)" \
+  | python3 -c 'import sys,json;ws=json.load(sys.stdin)["workflows"];hit=[w for w in ws if w["id"]==<id>];print(json.dumps({"price":hit[0].get("price"),"purchaseUrl":hit[0].get("purchaseUrl")}) if hit else "NO MATCH")'
+```
+
+Reading the result: `purchaseUrl` non-null or `price` > 0 means **paid**; `price` null (key missing) with `purchaseUrl` null means **free**. Checked live: template 10132 returns `price` 5 and a `purchaseUrl`, while its wrapper has no price at all; template 6270 returns no `price` key and `purchaseUrl` null (free).
+
+If the output is `NO MATCH` (the title is ambiguous or too generic to rank the template into the first 20 hits, or the wrapper returned 404), you cannot tell whether it is paid: say so and **ask the user before importing**. Do not treat "no data" as "free".
 
 ## Get a Template
 
@@ -153,7 +169,7 @@ import json
 with open("/tmp/template-<id>.json") as f:
     tpl = json.load(f)
 wf = tpl["workflow"]                      # for /templates/workflows/<id> use tpl["workflow"]["workflow"]
-payload = {k: wf[k] for k in ("name", "nodes", "connections", "settings") if k in wf}
+payload = {k: wf[k] for k in ("name", "nodes", "connections", "settings") if k in wf}   # settings can be absent on some templates
 payload["name"] = tpl.get("name") or payload.get("name")   # the template's own title; --name overrides it
 creds = sorted({c for n in payload["nodes"] for c in (n.get("credentials") or {})})
 for n in payload["nodes"]:

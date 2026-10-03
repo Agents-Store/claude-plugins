@@ -64,7 +64,8 @@ DISCOVERING WORKFLOWS:
 
 Step 1: TEMPLATE SEARCH — search the official n8n library
   → Use ~~template_search with the user's query (local database first, then api.n8n.io)
-  → Review results, check relevance, quality and price (skip paid templates unless the user agrees)
+  → Review results, check relevance, quality and price (skip paid templates unless the user agrees;
+    price is only on api.n8n.io search items — for a bare ID look it up first, see TEMPLATE_API.md)
 
 Step 2: COMMUNITY SEARCH — if official library insufficient
   → Use ~~search on every available provider, targeting GitHub repos and community sites

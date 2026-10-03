@@ -18,7 +18,7 @@ Run these checks before any import:
 1. **Verify instance connectivity** — call `~~instance_health` to confirm the n8n instance is reachable and the API key works.
 2. **Check for duplicate names** — call `~~workflow_list` and compare the incoming workflow name against existing workflows. If a duplicate exists, append a suffix (e.g., `Workflow Name (2)`) or ask the user.
 3. **Check capabilities, not versions** — n8n stopped reporting its version to API clients in 1.119.0, so `n8n_health_check` usually has no `n8nVersion`. Probe what the key can do instead (`GET /api/v1/discover`, or just try the call) and read the `typeVersion` of each node in the workflow against what the instance accepts.
-4. **Check the source** — a paid template (`price > 0` or `purchaseUrl` set) needs the user's go-ahead; a template whose nodes fall in the n8n 3.0 removal list needs the `workflow-analysis` report first.
+4. **Check the source** — a paid template (`purchaseUrl` set or `price` > 0; a missing `price` = free) needs the user's go-ahead; a template whose nodes fall in the n8n 3.0 removal list needs the `workflow-analysis` report first. **Price is only on `api.n8n.io` search items**, not on `get_template` or the by-ID endpoints: for a bare template ID, look the item up first (`GET /api/templates/search?rows=20&search=<url-encoded title>`, title from `/api/workflows/templates/<id>`, match on `id`; recipe in `template-discovery/references/TEMPLATE_API.md`). If no search item matches, say so and ask the user before importing — never read "no data" as "free".
 
 If any check fails, stop and report before proceeding.
 
