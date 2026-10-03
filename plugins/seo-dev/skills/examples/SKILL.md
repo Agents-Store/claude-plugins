@@ -16,7 +16,7 @@ Complete, production-ready SEO implementations for common page types. Each recip
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { JsonLd } from '@/components/json-ld'
-import { createOrganization, createWebSite } from '@/lib/schema'
+import { createOrganization } from '@/lib/schema'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-sans' })
 
@@ -43,10 +43,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           name: 'Your Blog', logo: `${SITE_URL}/logo.png`, url: SITE_URL,
           sameAs: ['https://twitter.com/yourblog', 'https://github.com/yourblog'],
         })} />
-        <JsonLd data={createWebSite(SITE_URL, 'Your Blog')} />
         {children}
       </body>
     </html>
+  )
+}
+```
+
+### Home Page (Site Name)
+
+Google reads `WebSite` markup (the site name) from the home page only, so it lives in `app/page.tsx`, not in the root layout:
+
+```tsx
+// app/page.tsx
+import { JsonLd } from '@/components/json-ld'
+import { createWebSite } from '@/lib/schema'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourblog.com'
+
+export default function HomePage() {
+  return (
+    <>
+      <JsonLd data={createWebSite(SITE_URL, 'Your Blog')} />
+      {/* post list */}
+    </>
   )
 }
 ```
@@ -126,7 +146,8 @@ export default async function BlogPost({ params }: Props) {
         </time>
         <Image
           src={post.image} alt={post.title}
-          width={1200} height={630} priority sizes="(max-width: 768px) 100vw, 800px"
+          width={1200} height={630} loading="eager" fetchPriority="high"
+          sizes="(max-width: 768px) 100vw, 800px"
         />
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </article>
@@ -217,7 +238,8 @@ export default async function ProductPage({ params }: Props) {
       <h1>{product.name}</h1>
       <Image
         src={product.images[0]} alt={`${product.name} — ${product.brand}`}
-        width={800} height={800} priority sizes="(max-width: 768px) 100vw, 50vw"
+        width={800} height={800} loading="eager" fetchPriority="high"
+        sizes="(max-width: 768px) 100vw, 50vw"
       />
       <p className="text-2xl font-bold">${product.price}</p>
       <p>{product.description}</p>
@@ -254,7 +276,7 @@ export default function Home() {
         <p>Value proposition paragraph explaining the core benefit.</p>
         <Image
           src="/hero.jpg" alt="Product in action"
-          width={1200} height={630} priority sizes="100vw"
+          width={1200} height={630} loading="eager" fetchPriority="high" sizes="100vw"
         />
       </section>
 
