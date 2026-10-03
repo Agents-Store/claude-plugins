@@ -2,13 +2,13 @@
 
 Drive the **full [Mattermost](https://mattermost.com/) REST API v4** from Claude Code. Mattermost is an open-source, self-hostable team collaboration platform; this plugin teaches Claude every operation its API exposes — no MCP server required, just `curl` and a session token obtained from your admin credentials.
 
-Built from the official API reference: https://api.mattermost.com/ (OpenAPI 3.0 spec bundled in `skills/api-reference/references/mattermost-openapi-v4.yaml`).
+Built from the official API reference: https://docs.mattermost.com/api (OpenAPI 3.0 spec bundled in `skills/api-reference/references/mattermost-openapi-v4.yaml` — 512 path templates / 640 operations, built from the official sources of server v11.11.1).
 
 ## What it covers
 
 Every documented resource group, including system administration:
 
-- **Auth & users** — login/logout, sessions, personal access tokens, MFA, users CRUD, search/autocomplete, activation/deactivation, roles, preferences, status, profile images
+- **Auth & users** — login/logout, sessions, personal access tokens (expiry, rotation), MFA, users CRUD, search/autocomplete, activation/deactivation, roles, preferences, status, profile images
 - **Teams** — teams CRUD, members, invites, stats, search, team schemes
 - **Channels** — public/private channels, direct & group messages, members, stats, bookmarks, sidebar categories, moderation
 - **Posts** — posts & threads, replies, pinning, reactions, drafts, ephemeral messages, full-text search
@@ -65,9 +65,11 @@ MATTERMOST_TOKEN=$(curl -si -X POST "${MATTERMOST_API_URL%/}/api/v4/users/login"
 
 ## Notes
 
-- **No MCP dependency.** This is a pure REST knowledge plugin so it can cover *all* operations. The official Mattermost MCP server and community ones (`kakehashi-inc/mcp-server-mattermost`, `pvev/mattermost-mcp`) authenticate with Personal Access Tokens and expose only a handful of tools (read/search/create posts) — optional convenience, not required and not a match for full admin operations.
+- **No MCP dependency.** This is a pure REST knowledge plugin so it can cover *all* operations. Mattermost now ships an **official MCP server inside its Agents plugin** (server v11.2+): enable *System Console → Plugins → Agents → Model Context Protocol (MCP) → Enable Mattermost MCP Server (HTTP)*, then point your MCP client at `https://<your-server>/plugins/mattermost-ai/mcp-server/mcp` (streamable HTTP; OAuth 2.0 or a personal access token). It exposes 16 native tools — read/search/create posts, DMs, channels, teams, members, `list_agents` — plus an on-demand extended catalogue, and runs with the calling user's permissions; read-only tools work on every licence, state-changing ones need Enterprise or above. See the [Agents admin guide](https://docs.mattermost.com/administration-guide/configure/agents-admin-guide.html#mattermost-mcp-server) and the [announcement](https://mattermost.com/blog/mattermost-mcp-server/). It is optional and not a match for full admin work (RBAC, config, compliance); community servers (`kakehashi-inc/mcp-server-mattermost`, `pvev/mattermost-mcp`) exist too.
 - **Token lives in a header.** Unlike most APIs, Mattermost returns the session token in the `Token` HTTP response header on login — the `setup` skill extracts it. A `401` mid-session means it expired: log in again.
+- **Personal access tokens can expire (v11.9+).** Create them with `expires_at` (Unix milliseconds); an admin may force an expiry through `MaximumPersonalAccessTokenLifetimeDays`; an expired PAT answers `401`; v11.10 adds `POST /users/tokens/rotate`, DM warnings 7/3/1 days before expiry and a bulk revoke of non-compliant tokens. Tokens made without `expires_at` (and all older ones) never expire. Details: `setup` and `references/auth-sessions.md`.
 - **Admin role required for system endpoints.** A `403` on `/api/v4/system/*`, `/config`, `/roles`, `/ldap`, etc. means the account lacks the System Admin role — not a workaround target.
+- **Heads-up for Mattermost v12.0 (October 2026).** A user session or PAT can no longer set sender-identity `props` (`from_webhook`, `override_username`, `override_icon_url`, …) on posts — the server **silently** drops them (use an incoming webhook or a bot instead); channel-member responses omit `last_viewed_at`/`last_update_at` for other users instead of returning `-1`; the built-in Slack team import endpoint is gone (use `mmetl` + `mmctl import`). Removed already: `POST /posts/ids/reactions` (v11.11) and the `format` parameter on `/config/client`.
 
 ## License
 
