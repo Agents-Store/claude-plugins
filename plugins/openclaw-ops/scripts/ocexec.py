@@ -116,8 +116,11 @@ UNDER_FAMILY = {("update", "status"): "R0", ("update", "repair"): "R3"}
 # Reads that cost money, hold a lock, or move state. ``memory status --index``
 # reindexes when the store is dirty (and implies ``--deep``, which calls the
 # embedding provider), so it is not the plain read its name suggests.
+#
+# ``--allow-exec`` is the other one: it lets doctor and the secrets audit EXECUTE the
+# exec-backed secret references the config declares — a command run on a read's behalf.
 R1_MARKERS = (("models", "status", "--probe"), ("memory", "index"), ("memory", "status", "--index"),
-              ("run",), ("chat",))
+              ("--allow-exec",), ("run",), ("chat",))
 
 # Backup-requiring and irreversible operations: they belong to a command that
 # builds a plan, not to the escape hatch.
@@ -189,9 +192,31 @@ def _expand(argv):
     return out
 
 
-def _head(positional, marker):
+# Global options that take a value and may stand before the command word. Their value is
+# not a command: ``--profile work reset`` is ``reset``, not a command called ``work``.
+GLOBAL_VALUE_OPTIONS = ("--profile", "--container", "--log-level")
+
+
+def _lead(argv):
+    """The command words of a call, with any leading global options (and their values) dropped."""
+    words, index = [], 0
+    while index < len(argv):
+        token = argv[index]
+        if token in GLOBAL_VALUE_OPTIONS:
+            index += 2
+            continue
+        if token.startswith("-") and not words:
+            index += 1
+            continue
+        if not token.startswith("-"):
+            words.append(token)
+        index += 1
+    return words
+
+
+def _head(argv, marker):
     """Is ``marker`` the leading command words of the call?"""
-    return list(positional[:len(marker)]) == list(marker)
+    return _lead(argv)[:len(marker)] == list(marker)
 
 
 WRITE_FLAGS = ("--fix", "--force", "--write", "--set", "--apply")
@@ -210,14 +235,14 @@ def classify_argv(argv):
     flags = [a for a in argv if a.startswith("-")]
     carries_write = any(f in flags for f in WRITE_FLAGS)
     for marker, risk in UNDER_FAMILY.items():
-        if _head(positional, marker) and not (risk == "R0" and carries_write):
+        if _head(argv, marker) and not (risk == "R0" and carries_write):
             return risk, ("read-only subcommand" if risk == "R0"
                           else "matches %s" % " ".join(marker))
     for marker in R4_MARKERS:
         if _has(argv, marker):
             return "R4", "matches %s" % " ".join(marker)
     for marker in R4_HEAD_MARKERS:
-        if _head(positional, marker):
+        if _head(argv, marker):
             return "R4", "matches %s" % " ".join(marker)
     for marker in R3_MARKERS:
         if _has(argv, marker):

@@ -328,6 +328,20 @@ class RiskMarkerTest(unittest.TestCase):
             with self.subTest(argv=argv):
                 self.assertEqual(self.risk(*argv), "R4")
 
+    def test_a_global_option_in_front_does_not_hide_a_head_only_command(self):
+        # `--profile work reset` must not read as a command called `work`
+        self.assertEqual(self.risk("--profile", "work", "reset"), "R4")
+        self.assertEqual(self.risk("--container", "gw", "uninstall"), "R4")
+        self.assertEqual(self.risk("--log-level", "debug", "--dev", "reset"), "R4")
+        self.assertEqual(self.risk("--profile", "work", "memory", "reset"), "R3")
+        self.assertEqual(self.risk("--profile", "work", "update", "status"), "R0")
+
+    def test_a_read_that_executes_configured_commands_is_not_a_plain_read(self):
+        # --allow-exec lets doctor and the secrets audit run exec SecretRefs
+        self.assertEqual(self.risk("secrets", "audit", "--check"), "R0")
+        self.assertEqual(self.risk("secrets", "audit", "--check", "--allow-exec"), "R1")
+        self.assertEqual(self.risk("doctor", "--lint", "--allow-exec"), "R1")
+
     def test_a_marker_in_a_value_position_does_not_misclassify_a_read(self):
         self.assertEqual(self.risk("config", "get", "update.channel"), "R0")
         self.assertEqual(self.risk("config", "get", "reset"), "R0")
