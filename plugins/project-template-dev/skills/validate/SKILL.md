@@ -45,14 +45,19 @@ If `stack.json` is missing or invalid, flag as critical error and stop.
 
 ### Root Files
 - [ ] `stack.json` exists
-- [ ] `CLAUDE.md` exists
+- [ ] `AGENTS.md` exists (shared rules for every coding tool)
+- [ ] `CLAUDE.md` exists and starts with `@AGENTS.md` (or is a symlink to `AGENTS.md`)
 - [ ] `README.md` exists
 - [ ] `.env.example` exists
-- [ ] `.mcp.json.example` exists
+- [ ] `.mcp.json` exists and is tracked by git (empty `mcpServers` is fine at Level 0)
 - [ ] `.gitignore` exists
-- [ ] `.gitignore` excludes `.env`, `.env.local`, `.mcp.json`, `node_modules`
+- [ ] `.gitignore` excludes `.env`, `.env.local`, `.claude/settings.local.json`, `node_modules`
+- [ ] `.gitignore` does NOT exclude `.mcp.json`
+
+Legacy layout (WARN, not FAIL — recommend migrating): `.mcp.json.example` plus a gitignored `.mcp.json`; `AGENTS.md` generated from `CLAUDE.md` by `sync-context.sh`.
 
 ### `.claude/` Directory
+- [ ] `.claude/settings.json` exists with `extraKnownMarketplaces` and `enabledPlugins` objects
 - [ ] `.claude/settings.local.json.example` exists
 
 ### Core Skills (inherited from Level 0)
@@ -63,13 +68,15 @@ If `stack.json` is missing or invalid, flag as critical error and stop.
 - [ ] `.claude/skills/verification/SKILL.md` exists
 - [ ] `.claude/skills/project-config/SKILL.md` exists
 
-### Core Commands
-- [ ] `.claude/commands/init-stack.md` exists
-- [ ] `.claude/commands/commit.md` exists
-- [ ] `.claude/commands/pr.md` exists
-- [ ] `.claude/commands/plan.md` exists
-- [ ] `.claude/commands/review.md` exists
-- [ ] `.claude/commands/sync.md` exists
+### Core Workflow Skills
+- [ ] `.claude/skills/init-stack/SKILL.md` exists
+- [ ] `.claude/skills/commit/SKILL.md` exists
+- [ ] `.claude/skills/pr/SKILL.md` exists
+- [ ] `.claude/skills/plan-feature/SKILL.md` exists
+- [ ] `.claude/skills/code-review-project/SKILL.md` exists
+- [ ] `.claude/skills/sync/SKILL.md` exists
+
+Legacy layout (WARN — recommend migrating): the same workflows as `.claude/commands/<name>.md`. A command named `review` never runs (the built-in `/review` alias of `/code-review` takes the name) and `plan` collides with the built-in `/plan` — flag both and suggest `code-review-project` and `plan-feature`.
 
 ### Core Agent
 - [ ] `.claude/agents/code-reviewer.md` exists
@@ -88,6 +95,8 @@ If `stack.json` is missing or invalid, flag as critical error and stop.
 
 ### Level 1+ Additional Checks
 - [ ] At least one stack-specific skill beyond the core set (e.g., `new-page`, `new-component`)
+- [ ] `.claude/settings.json` `enabledPlugins` contains every plugin from `stack.json` `plugins` (technology, process, stack) as `<name>@<marketplace>`
+- [ ] Every plugin named in `stack.json` exists in the marketplace; stack plugins are named `stack-{name}` (no process suffix)
 - [ ] `.env.example` has stack-specific variables uncommented
 - [ ] `CLAUDE.md` has filled Tech Stack section (no `[e.g.,` placeholders)
 - [ ] `CLAUDE.md` has filled Installed Plugins section
@@ -100,37 +109,55 @@ If `stack.json` is missing or invalid, flag as critical error and stop.
 ### Level 2 Additional Checks
 - [ ] `project-config/SKILL.md` has actual resource IDs (no empty tables)
 - [ ] `.env` or `.env.local` exists locally (warn if missing, but don't fail — it's gitignored)
-- [ ] `.mcp.json` exists locally (warn if missing — it's gitignored)
+- [ ] Every `${VAR}` referenced in `.mcp.json` has a value locally, in `.env` or the `env` block of `.claude/settings.local.json` (warn if missing — both are gitignored)
 
 ## Step 5: Check CLAUDE.md Quality
 
-- [ ] Total line count under 100
+The sections below may live in `CLAUDE.md` or in the `AGENTS.md` it imports — check the combined content.
+
+- [ ] Total line count under 100, counting the imported `AGENTS.md` (the 100-line limit is this template system's own rule; Anthropic's guidance is under 200 — WARN between 100 and 200, FAIL above 200)
 - [ ] Has `## Tech Stack` section
-- [ ] Has `## Architecture` section (with `@docs/architecture.md` reference)
+- [ ] Has `## Architecture` section (pointing to `docs/architecture.md` by plain path)
 - [ ] Has `## Installed Plugins` section
 - [ ] Has `## Quick Commands` section
 - [ ] Has `## Critical Rules` section
 - [ ] No placeholder text remaining: grep for `\[e\.g\.,`, `\[Project Name\]`, `TODO`, `TBD`, `fill in`, `<!-- .*-->` with empty content around it
 - [ ] At L1+: Tech Stack lists actual technologies (not `[e.g., NocoDB, Supabase, Directus]`)
 - [ ] At L1+: Installed Plugins lists actual plugins with descriptions
+- [ ] Long reference content is linked by plain path or lives in `.claude/rules/*.md` with `paths:`. An `@docs/...` import is not a way to shrink CLAUDE.md: imported files load at launch and count toward the line budget
 
 ## Step 6: Check Consistency
 
 - [ ] Technologies in `stack.json` `layers` match CLAUDE.md Tech Stack section
 - [ ] Plugins in `stack.json` `plugins` match CLAUDE.md Installed Plugins section
-- [ ] Environment variables in `.env.example` cover what `.mcp.json.example` references
-- [ ] Commands listed in CLAUDE.md Quick Commands exist as `.claude/commands/*.md` files
+- [ ] Environment variables in `.env.example` cover every `${VAR}` that `.mcp.json` references
+- [ ] Workflows listed in CLAUDE.md Quick Commands exist as `.claude/skills/*/SKILL.md` (legacy: `.claude/commands/*.md`)
 - [ ] Skills referenced in CLAUDE.md exist as `.claude/skills/*/SKILL.md` directories
-- [ ] `AGENTS.md` exists and is in sync with `CLAUDE.md` (or has sync reminder)
+- [ ] `CLAUDE.md` imports `AGENTS.md` (or is a symlink to it); there is no second copy of the rules to keep in sync. If `AGENTS.md` is generated from `CLAUDE.md`, WARN and recommend the one-source layout
+- [ ] `.claude/settings.json` `enabledPlugins` matches `stack.json` `plugins`
 
 ## Step 7: Check Security
 
 - [ ] No `.env` file committed (check `git status` and `.gitignore`)
-- [ ] No `.mcp.json` file committed (check `.gitignore`)
+- [ ] The tracked `.mcp.json` holds only `${VAR}` references — no literal token, key or deployment host (see the check below)
 - [ ] No hardcoded API keys or tokens in any tracked file: grep for patterns like `sk-`, `Bearer `, `token: "`, `key: "` with actual-looking values
-- [ ] No real service URLs in `.env.example` or `.mcp.json.example` (only placeholders)
+- [ ] No real service URLs in `.env.example` (only placeholders)
+- [ ] `.claude/settings.json` (committed) has no `env` values or tokens — only `enabledPlugins` and `extraKnownMarketplaces`
 - [ ] `.claude/settings.local.json` is gitignored
 - [ ] No `.env.local` committed
+
+### Committed `.mcp.json` Holds Only References
+
+`.mcp.json` is meant to be committed, so validate its content, not its presence. Both commands must print nothing:
+
+```bash
+# a credential-looking key whose value is not a ${VAR} reference
+grep -niE '"[A-Za-z_-]*(token|key|secret|password|authorization)[A-Za-z_-]*"\s*:\s*"[^"]{8,}"' .mcp.json | grep -v '\${'
+# "Bearer" followed by anything other than a ${VAR}
+grep -nE 'Bearer +[^$ "]' .mcp.json
+```
+
+Also read every `url`, `command`, `args`, `headers` and `env` value: anything that differs per deployment (a host, port, path, account id) must be `${VAR}` or `${VAR:-default}`. A literal URL is acceptable only for a published product endpoint that is the same for every user. A literal secret is **CRITICAL** — rotate it at the source; editing the file does not remove it from git history.
 
 ### Git-Tracked Secrets (Critical)
 
@@ -138,10 +165,10 @@ The .gitignore check above only verifies RULES — it does not catch files that 
 
 ```bash
 # Check for tracked secrets that should be gitignored
-git ls-files | grep -E '\.env\.local$|\.env$|settings\.local\.json$|\.mcp\.json$'
+git ls-files | grep -E '\.env\.local$|\.env$|settings\.local\.json$'
 ```
 
-- [ ] `git ls-files` returns NO matches for `.env`, `.env.local`, `.mcp.json`, or `settings.local.json`
+- [ ] `git ls-files` returns NO matches for `.env`, `.env.local`, or `settings.local.json` (`.mcp.json` is expected to be tracked)
 - [ ] If matches found: flag as **CRITICAL** — these files contain real credentials and are being tracked by git. Fix: `git rm --cached <file>` and rotate all exposed tokens
 - [ ] Check `.claude/settings.local.json.example` for real URLs or tokens (should contain only placeholders like `https://your-instance.example.com`)
 
@@ -163,7 +190,7 @@ Present validation results as:
 | stack.json | PASS / FAIL | {details} |
 | Required Files | PASS / FAIL | {missing files count} |
 | Core Skills | PASS / FAIL | {missing skills} |
-| Core Commands | PASS / FAIL | {missing commands} |
+| Core Workflow Skills | PASS / WARN / FAIL | {missing skills, legacy commands} |
 | Level-Specific | PASS / FAIL / N/A | {details} |
 | CLAUDE.md Quality | PASS / WARN / FAIL | {details} |
 | Consistency | PASS / FAIL | {mismatches} |

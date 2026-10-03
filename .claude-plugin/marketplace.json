@@ -347,7 +347,7 @@
       "name": "project-template-dev",
       "source": "./plugins/project-template-dev",
       "description": "Manage project template hierarchy with unified improvement workflow. Route fixes to plugins or parent templates automatically, quick-capture ideas, unified end-of-session reviews covering both plugins and templates.",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -357,7 +357,6 @@
         "feedback",
         "scaffold",
         "stack",
-        "template-creator",
         "CLAUDE.md",
         "skills",
         "agents",
