@@ -185,10 +185,11 @@ jobs:
 
 | Task | Read |
 | --- | --- |
-| Post preview URLs on pull requests from GitHub Actions, or deploy from GitLab CI or Bitbucket Pipelines | [references/cli-pipelines.md](references/cli-pipelines.md) |
-| Let deployed functions reach AWS, GCP, or Vault without static secrets (OIDC federation) | [references/oidc-federation.md](references/oidc-federation.md) |
-| Deployment Checks, or testing protected deployments from CI | [references/deployment-checks.md](references/deployment-checks.md) |
-| Live status (MCP) | [references/live-status.md](references/live-status.md) |
+| Post PR preview URLs from GitHub Actions, or deploy from GitLab CI or Bitbucket Pipelines | [cli-pipelines](references/cli-pipelines.md) |
+| Let deployed functions reach AWS, GCP, or Vault without static secrets (OIDC federation) | [oidc-federation](references/oidc-federation.md) |
+| Deployment Checks, or testing protected deployments from CI | [deployment-checks](references/deployment-checks.md) |
+| Live status (MCP) | [live-status](references/live-status.md) |
+| CLI deploys without Git, CMS deploy hooks | [cli-deploys](references/cli-deploys.md) |
 
 ## Common CI Patterns
 
