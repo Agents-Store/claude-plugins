@@ -7,6 +7,8 @@
 **Root cause:** The Next.js half of the stack recipes lived in the stack plugin; the Better Auth example was written as a session lookup swap and the role field was not considered.
 **Severity:** Major
 
+**Update 2026-10-03 (review):** (a) The NextAuth v4 recipe refreshed in the `jwt` callback for every caller, so a server render or Server Action spent Directus's single-use refresh token without being able to save the new pair (`getServerSession` writes no cookies outside the NextAuth route), and the next poll got `401` and stored `RefreshTokenError`. Now only the `[...nextauth]` route refreshes (`authOptions`); `getServerSession` uses `sessionOptions`, whose `jwt` callback never refreshes and which reports `AccessTokenExpired`; a dead refresh token (400/401/403) is stored once and never retried, while a network failure or a 5xx keeps the token for the next poll. The login page returns a user whose cookie the provider has just refreshed. The remaining limit (two tabs polling at the same moment can race) is stated in the recipe. Logic exercised with a mocked `fetch`. (b) Server Actions in `headless-cms.md` authenticated but did not authorize: with a server credential any signed-in user could edit any item by id. The example now writes with the user's own token, and the alternative (a role or ownership check in code) is stated. (c) The login page pushed `callbackUrl` unchecked (open redirect); it now accepts only a path on the site (not `//...`, not a slash followed by a backslash).
+
 Accumulated fixes, discoveries, and improvements for the nextjs-dev plugin.
 
 ## 2026-03-30 — troubleshoot: Missing next/image debugging for authenticated upstream

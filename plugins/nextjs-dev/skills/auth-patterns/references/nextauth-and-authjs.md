@@ -4,7 +4,9 @@ For codebases that already run NextAuth, and for a credentials login against an 
 
 ## NextAuth v4 (`next-auth@latest`, 4.24.x)
 
-A working path with Next.js 16, not a deprecated one: v4 is still what `npm i next-auth` installs (v5 is published only as `next-auth@beta`). The recipe below signs users in against Directus with the Credentials provider and keeps the Directus tokens in the encrypted session cookie; swap the three `fetch` calls for another token-issuing API. The Directus side (payloads, `expires` in milliseconds, single-use refresh tokens) is in the `directus-dev` plugin, skill `sdk-patterns`, `references/ssr-client.md`.
+A working path with Next.js 16, not a deprecated one: v4 is still what `npm i next-auth` installs (v5 is published only as `next-auth@beta`). The recipe below signs users in against Directus with the Credentials provider and keeps the Directus tokens in the encrypted session cookie; swap the three `fetch` calls for another token-issuing API.
+
+**One rule shapes the recipe: only the NextAuth route may refresh the Directus tokens.** A Directus refresh token is single use, and `getServerSession()` cannot write cookies from a Server Component, Server Action or Route Handler. If server code refreshed, it would spend the refresh token and lose the new pair, and the next refresh would fail. So there are two option sets: `authOptions` (used by the `[...nextauth]` route, refreshes) and `sessionOptions` (used by `getServerSession`, never refreshes). The Directus side (payloads, `expires` in milliseconds, single-use refresh tokens) is in the `directus-dev` plugin, skill `sdk-patterns`, `references/ssr-client.md`.
 
 ```bash
 npm install next-auth
@@ -25,21 +27,32 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 type TokenResponse = { access_token: string; refresh_token: string; expires: number };
 
+const EARLY_MS = 10_000; // treat the access token as expired a little before it is
+
 async function refreshTokens(token: JWT): Promise<JWT> {
-  const res = await fetch(`${process.env.DIRECTUS_URL}/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refresh_token: token.refreshToken, mode: 'json' }),
-  });
-  if (!res.ok) return { ...token, error: 'RefreshTokenError' };
-  const { data }: { data: TokenResponse } = await res.json();
-  return {
-    ...token,
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token, // the old refresh token is now dead
-    expiresAt: Date.now() + data.expires,
-    error: undefined,
-  };
+  try {
+    const res = await fetch(`${process.env.DIRECTUS_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: token.refreshToken, mode: 'json' }),
+    });
+    // Directus refused the token (spent, expired, revoked): it is dead, stop trying with it
+    if (res.status === 400 || res.status === 401 || res.status === 403) {
+      return { ...token, error: 'RefreshTokenError' };
+    }
+    // Directus down or erroring: keep the token as it is and try again on the next poll
+    if (!res.ok) return token;
+    const { data }: { data: TokenResponse } = await res.json();
+    return {
+      ...token,
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token, // the old refresh token is now dead
+      expiresAt: Date.now() + data.expires,
+      error: undefined,
+    };
+  } catch {
+    return token; // network failure: same as above
+  }
 }
 
 export const authOptions: NextAuthOptions = {
@@ -81,22 +94,39 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    // Runs in the [...nextauth] route only (see sessionOptions below for everything else)
     async jwt({ token, user }) {
       // First call after sign-in: `user` is what authorize() returned
       if (user) {
         return { ...token, accessToken: user.accessToken, refreshToken: user.refreshToken, expiresAt: user.expiresAt };
       }
-      if (Date.now() < token.expiresAt - 10_000) return token;
+      if (token.error) return token; // a dead refresh token is never retried
+      if (Date.now() < token.expiresAt - EARLY_MS) return token;
       return refreshTokens(token);
     },
     async session({ session, token }) {
       session.user.id = token.sub ?? '';
       session.accessToken = token.accessToken; // visible to browser code through useSession(): see below
-      session.error = token.error;
+      session.error = token.error ?? (Date.now() >= token.expiresAt - EARLY_MS ? 'AccessTokenExpired' : undefined);
       return session;
     },
   },
   pages: { signIn: '/login' },
+};
+
+/**
+ * For getServerSession(): the same options, but the jwt callback never refreshes.
+ * Server code cannot save a refreshed cookie, and refreshing would spend the single-use
+ * refresh token. An expired access token shows up as session.error = 'AccessTokenExpired'.
+ */
+export const sessionOptions: NextAuthOptions = {
+  ...authOptions,
+  callbacks: {
+    ...authOptions.callbacks,
+    async jwt({ token }) {
+      return token;
+    },
+  },
 };
 ```
 
@@ -113,7 +143,7 @@ declare module 'next-auth' {
   interface Session {
     user: { id: string } & DefaultSession['user'];
     accessToken: string;
-    error?: 'RefreshTokenError';
+    error?: 'RefreshTokenError' | 'AccessTokenExpired';
   }
 }
 
@@ -158,15 +188,17 @@ Wrap `children` in `app/layout.tsx` with `<Providers>`. The session helpers used
 import 'server-only';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
+import { sessionOptions } from '@/lib/auth';
 
 /** The signed-in session, or a redirect to /login. Call it first in every Server Action and Route Handler. */
 export async function requireUser() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(sessionOptions);
   if (!session?.user || session.error) redirect('/login');
   return session;
 }
 ```
+
+Use `sessionOptions` for every `getServerSession()` call, and `authOptions` only in the route handler.
 
 ### Proxy guard (Next.js 16)
 
@@ -197,14 +229,27 @@ This is an optimistic check, as everywhere in this skill: pages, Server Actions 
 ```tsx
 // app/login/page.tsx
 'use client';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+// Only a path on this site: "/x" yes; "//evil.example", "/" followed by a backslash, and absolute URLs no
+function safeCallbackUrl(value: string | null): string {
+  return value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\') ? value : '/dashboard';
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const [error, setError] = useState('');
+  const target = safeCallbackUrl(searchParams.get('callbackUrl'));
+
+  // The provider polls /api/auth/session, which is where an expired access token gets refreshed.
+  // A user sent here by requireUser() after a long pause is therefore signed in again by the time this runs.
+  useEffect(() => {
+    if (status === 'authenticated' && !session?.error) router.replace(target);
+  }, [status, session, router, target]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -215,7 +260,7 @@ export default function LoginPage() {
       redirect: false,
     });
     if (result?.error) setError('Invalid email or password');
-    else router.push(searchParams.get('callbackUrl') || '/dashboard');
+    else router.push(target);
   }
 
   return (
@@ -233,7 +278,8 @@ export default function LoginPage() {
 
 ### Limits to know before choosing v4
 
-- **Refreshing is saved only by the client.** `getServerSession()` called from a Server Component or Route Handler cannot write cookies, so a token refreshed there is not saved, and Directus refresh tokens are single use. What saves new tokens is the NextAuth route `/api/auth/session`, which `SessionProvider` calls on mount, on focus and every `refetchInterval`. Keep that interval clearly shorter than the access token lifetime (15 minutes by default). After a gap longer than the lifetime (a closed laptop), the first server render refreshes and spends the refresh token without saving it, the next `/api/auth/session` call finds it spent, and the session ends with `RefreshTokenError`: the user signs in again.
+- **Refresh depends on a browser polling.** Only `/api/auth/session` (called by `SessionProvider` on mount, on focus and every `refetchInterval`) refreshes and saves the tokens. With a 4-minute poll and a 15-minute access token the cookie stays fresh while any tab of the site is open. With no tab open for longer than the access token lives, server code sees `AccessTokenExpired` and sends the user to `/login`; the login page's provider then refreshes the cookie from the still-unspent refresh token and the effect above returns the user to where they were. If Directus refuses the refresh token (spent, expired after 7 days, revoked), `RefreshTokenError` is stored and never retried: the user signs in again.
+- **Two tabs can race.** Two requests to `/api/auth/session` that are in flight at the same moment both carry the old refresh token. The second one is refused and stores `RefreshTokenError` over the first one's good cookie. The window is narrow (browsers share the cookie jar, so a later request sends the new token), but it exists, and Directus offers no way around single-use refresh tokens. If this matters for your users, choose Better Auth.
 - **The access token is readable in the browser.** `session.accessToken` is returned by `/api/auth/session` and `useSession()`. It is short-lived and belongs to the signed-in user, and the refresh token stays inside the encrypted cookie, but any script running in the page can read it. If that is not acceptable, do not copy it into `session`; call the API only from server code with a server credential.
 - **No rate limit.** NextAuth does not throttle credential sign-ins. Put a limit in front of `/api/auth/callback/credentials`.
 

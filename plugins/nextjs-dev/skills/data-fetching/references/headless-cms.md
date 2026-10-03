@@ -90,21 +90,27 @@ export async function POST(request: Request) {
 
 ## Mutations
 
-A Server Action is a public POST endpoint. Anyone can call it with their own form data, so authenticate inside the action before it uses a server credential, then invalidate the tag:
+A Server Action is a public POST endpoint, and anyone can call it with an id of their choosing. Authenticating the caller is not enough: with a server credential and only a "signed in" check, any signed-in user can change any item. Authenticate **and** authorize, then expire the tag:
 
 ```typescript
 // app/posts/actions.ts
 'use server';
 import { updateTag } from 'next/cache';
-import { requireUser } from '@/lib/session'; // your session library; throws or redirects when nobody is signed in
-import { createPostInCms } from '@/lib/cms';
+import { requireUser } from '@/lib/session'; // your session library; redirects when nobody is signed in
+import { updatePostInCms } from '@/lib/cms';
 
-export async function createPost(formData: FormData) {
-  await requireUser();
-  await createPostInCms({ title: String(formData.get('title') ?? '') });
+export async function updatePost(id: string, formData: FormData) {
+  const session = await requireUser(); // authenticate
+  // Authorize: act with the user's own credential, so the CMS applies that user's permissions
+  await updatePostInCms(session.accessToken, id, { title: String(formData.get('title') ?? '') });
   updateTag('posts');
 }
 ```
+
+There are two ways to authorize, and one of them is always required:
+
+- **The CMS enforces it.** Send the signed-in user's own token to the CMS (as above). The CMS answers `403` for what that user may not change. This needs a session library that holds a CMS token for the user.
+- **Your code enforces it.** When the CMS only ever sees a server credential (a login library with its own user table), check role or ownership before the write (`if (post.authorId !== session.user.id) throw new Error('Forbidden')`) and never skip it for "internal" actions.
 
 Validate `formData` (Zod, see `form-handling`) before it reaches the CMS.
 

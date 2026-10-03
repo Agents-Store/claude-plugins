@@ -471,7 +471,7 @@ If you changed Better Auth's cookie name or prefix, pass the same settings to `g
 
 Both keep working for projects that already use them; neither is the recommendation for new work. The full recipes are in [references/nextauth-and-authjs.md](references/nextauth-and-authjs.md):
 
-- **NextAuth v4** — Credentials provider against a token API with refresh, `types/next-auth.d.ts`, `app/api/auth/[...nextauth]/route.ts`, `SessionProvider`, the `proxy.ts` guard (`getToken` in Next.js 16, not `middleware.ts`), a login page, and the limits that decide whether v4 fits (refresh is saved only by `/api/auth/session`, the access token is readable in the browser).
+- **NextAuth v4** — Credentials provider against a token API with refresh, `types/next-auth.d.ts`, `app/api/auth/[...nextauth]/route.ts`, `SessionProvider`, the `proxy.ts` guard (`getToken` in Next.js 16, not `middleware.ts`), a login page, and the limits that decide whether v4 fits (only the NextAuth route may refresh, and it needs a tab polling it; two tabs can race on a single-use refresh token; the access token is readable in the browser).
 - **Auth.js v5** (`next-auth@beta`) — `auth.ts` with `handlers`, `auth()` in Server Components. Maintenance mode under Better Auth.
 
 ## Auth Check Layers — When to Use Which

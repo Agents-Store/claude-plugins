@@ -478,7 +478,7 @@ function TodoList({ todos, addTodo }: { todos: Todo[]; addTodo: (text: string) =
 
 ## Pages Backed by a Headless CMS
 
-When content lives in another system (Directus, Contentful, Strapi): one content module with `cache()`, `generateStaticParams` from CMS slugs, a webhook Route Handler that expires tags (secret in a header, tag allow-list, `revalidateTag(tag, { expire: 0 })`), Server Actions that authenticate before using a server credential, and `next/image` configuration that never carries a token in the URL. See [references/headless-cms.md](references/headless-cms.md).
+When content lives in another system (Directus, Contentful, Strapi): one content module with `cache()`, `generateStaticParams` from CMS slugs, a webhook Route Handler that expires tags (secret in a header, tag allow-list, `revalidateTag(tag, { expire: 0 })`), Server Actions that authenticate and authorize, and `next/image` configuration that never carries a token in the URL. See [references/headless-cms.md](references/headless-cms.md).
 
 ## Rendering Strategy Summary
 
