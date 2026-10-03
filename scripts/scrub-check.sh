@@ -6,7 +6,7 @@
 #   ./scripts/scrub-check.sh plugins/<name>      one plugin
 #   ./scripts/scrub-check.sh --strict <path>     force the strict ruleset
 #   ./scripts/scrub-check.sh --format json       machine-readable output
-#   ./scripts/scrub-check.sh --no-lint <path>    scrub only, skip the structure lint
+#   ./scripts/scrub-check.sh --no-lint <path>    scrub only, skip the structure lint AND the validator pass
 #
 # Exit: 0 clean · 1 hard fail (blocks the merge) · 2 warnings only.
 #
@@ -15,11 +15,13 @@
 #                    never as literal values from any real deployment, because a
 #                    gate that hardcodes the strings it hunts becomes the leak it
 #                    was meant to stop. Exceptions: scripts/scrub-allow.txt.
-#   plugin_lint.py   structure — the eight-block dry-run plan with an executable
-#                    ROLLBACK on every mutating command, one skill name across
-#                    SKILL.md / directory / evals.json, and plugin.json version
-#                    equal to the marketplace.json entry. No baseline: fixed, not
-#                    excused.
+#   plugin_lint.py   structure, four rules: mutation-plan (the eight-block dry-run
+#                    plan with an executable ROLLBACK on every mutating command),
+#                    skill-name (one name across SKILL.md / directory / evals.json),
+#                    version-parity (plugin.json version equal to the marketplace.json
+#                    entry) and mcp-prefix (a tool of the plugin's own .mcp.json
+#                    server is mcp__plugin_<plugin>_<server>__<tool>, not the bare
+#                    mcp__<server>__ form). No baseline: fixed, not excused.
 #   validate_pass.py the official manifest validator, `claude plugin validate
 #                    --strict`, over every covered plugin. Without the claude CLI
 #                    on PATH it reports "skipped" and does not fail.
