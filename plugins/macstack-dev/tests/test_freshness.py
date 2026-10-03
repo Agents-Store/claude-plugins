@@ -187,9 +187,10 @@ class SchemaDocumentsWhatIsRead(unittest.TestCase):
 class SessionStartSources(unittest.TestCase):
     """Фраза о свежести возвращается после каждого события, которое её стирает.
 
-    Компакция выбрасывает начало разговора, а форк стартует без него, так что
-    матчер `startup|resume|clear` оставлял обе ситуации без фразы. Источники
-    `compact` и `fork` перечислены в документации Claude Code
+    Компакция выбрасывает начало разговора, а с Claude Code 2.1.214 форкнутая
+    сессия сообщает источник `fork` вместо `resume`, так что матчер
+    `startup|resume|clear` оставлял обе ситуации без фразы. Источники `compact` и
+    `fork` перечислены в документации Claude Code
     (https://code.claude.com/docs/en/hooks, раздел SessionStart).
     """
 
