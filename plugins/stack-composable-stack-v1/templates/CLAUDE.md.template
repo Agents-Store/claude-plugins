@@ -29,8 +29,8 @@ Environment variables are managed through Infisical.
 - `n8n-mcp-external` — Workflow CRUD, execution, node search
 - `n8n-native-mcp` — n8n native MCP operations
 - `nocodb` — Table CRUD, record operations, views
-- `postgresql-mcp` — Direct SQL queries, schema inspection, performance analysis, database admin (27 tools)
-- `nocobase-dev` — NocoBase dev-instance `nc-mcp` (~146 tools across collections, fields, resources, workflows, flow-surfaces, RBAC, data sources) targeting `${NOCOBASE_DEV_URL}/api/mcp`. Use this for building/testing tables, UX elements, menus, pages, and workflows on the sandbox instance.
+- `postgresql-mcp` — Direct SQL queries, schema inspection, performance analysis, database admin
+- `nocobase-dev` — NocoBase MCP of the dev instance (collections, fields, resources, workflows, flow-surfaces, RBAC, data sources) targeting `${NOCOBASE_DEV_URL}/api/mcp`. Use this for building/testing tables, UX elements, menus, pages, and workflows on the sandbox instance.
 
 ## Architecture Rules
 

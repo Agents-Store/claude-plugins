@@ -5,7 +5,7 @@ description: This skill should be used when the user wants to "trigger backgroun
 
 # NocoDB to Trigger.dev Integration
 
-Patterns for triggering Trigger.dev background tasks from NocoDB data events. Use for long-running operations, AI processing, and durable execution that would timeout in n8n.
+Patterns for triggering Trigger.dev background tasks from NocoDB data events. Use for long-running operations, AI processing, and durable execution that would time out in n8n. The task code is in `trigger-dev`; the NocoDB side is in `nocodb-ops`; this skill is the link between them.
 
 ## When to Use Trigger.dev vs n8n
 
@@ -25,30 +25,28 @@ Patterns for triggering Trigger.dev background tasks from NocoDB data events. Us
 Chain through n8n as a lightweight dispatcher.
 
 ```
-[NocoDB Webhook] → [n8n: Parse + Validate] → [n8n: Trigger Task via API] → [Trigger.dev: Process]
+[NocoDB Webhook] → [n8n: Webhook] → [Split Out: body.data.rows] → [n8n: HTTP Request → Trigger.dev API] → [Trigger.dev: Process]
 ```
 
-**n8n Code node to trigger a task:**
+NocoDB sends the changed records as an array (`body.data.rows`, see `nocodb-ops:webhooks`); split it so each record becomes one task run. Use an **HTTP Request** node for the call — not a Code node. In n8n 2.x Code nodes run in task runners and cannot read `process.env` or `$env` (blocked by default), and an `Authorization` header belongs in a credential anyway:
 
-```javascript
-const taskId = 'your-task-id';
-const payload = $json.body.data.rows[0];
-
-const response = await fetch(`${process.env.TRIGGER_API_URL}/api/v1/tasks/${taskId}/trigger`, {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${process.env.TRIGGER_SECRET_KEY}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ payload })
-});
-
-return { json: await response.json() };
 ```
+Method:         POST
+URL:            <TRIGGER_API_URL>/api/v1/tasks/<taskId>/trigger      (fixed in the node)
+Authentication: Generic Credential Type → Header Auth
+                (Name: Authorization, Value: Bearer <TRIGGER_SECRET_KEY>)
+Send Body:      JSON
+Body:           {
+                  "payload": { "recordId": {{ $json.Id }}, "tableId": "<tableId>" },
+                  "options": { "idempotencyKey": "record-{{ $json.Id }}-{{ $json.UpdatedAt }}" }
+                }
+```
+
+The idempotency key (record id plus its `UpdatedAt`) keeps a repeated webhook from starting a second run for the same change. The trigger endpoint, its options and the secret-key rules: see `trigger-dev:mcp-patterns` (*REST Management API*).
 
 ### Pattern 2: Direct Trigger via MCP
 
-Trigger a task directly using the Trigger.dev MCP tools.
+Trigger a task directly from the agent with the Trigger.dev MCP tools. `trigger_task` runs in `dev` unless you pass `environment`.
 
 ```
 Tool: mcp__plugin_stack-composable-stack-v1_trigger-dev__trigger_task
@@ -58,50 +56,18 @@ Input: {
     "recordId": 123,
     "tableId": "tbl_xxx",
     "action": "process"
-  }
+  },
+  "environment": "dev"
 }
 ```
 
 ### Pattern 3: Batch Processing
 
-Process multiple NocoDB records as background tasks.
-
-**Trigger.dev task structure:**
-
-```typescript
-import { task } from "@trigger.dev/sdk/v3";
-
-export const processRecords = task({
-  id: "process-nocodb-records",
-  retry: { maxAttempts: 3 },
-  run: async (payload: { tableId: string; filter: string }) => {
-    // 1. Query records from NocoDB
-    // 2. Process each record
-    // 3. Update status back in NocoDB
-    // 4. Return summary
-  },
-});
-```
+Process many NocoDB records as background tasks: one parent task takes the table id and a list of record ids, fans out one child run per record (`batchTriggerAndWait` under a queue with a concurrency limit), and each child reads its record from NocoDB, processes it and writes its status back. Task code: see `trigger-dev:task-development` (`references/record-driven-tasks.md`, *Many records*).
 
 ### Pattern 4: AI Processing Pipeline
 
-Use Trigger.dev for AI-powered processing of NocoDB data.
-
-```typescript
-import { task } from "@trigger.dev/sdk/v3";
-
-export const aiProcessRecord = task({
-  id: "ai-process-record",
-  machine: { preset: "medium-1x" },
-  retry: { maxAttempts: 2 },
-  run: async (payload: { recordId: number; tableId: string }) => {
-    // 1. Fetch record from NocoDB
-    // 2. Send to LLM for processing
-    // 3. Store result back in NocoDB
-    // 4. Update record status
-  },
-});
-```
+Use Trigger.dev for AI-powered processing of NocoDB data: the task reads the record, sends it to the model, stores the result back in NocoDB and updates the record status. It needs a larger machine preset, a `maxDuration` and few retries. Task code: see `trigger-dev:task-development` (`references/record-driven-tasks.md`, *AI processing of a record*).
 
 ## Monitoring Task Runs
 
@@ -121,7 +87,7 @@ Input: { "limit": 10 }
 
 ## Error Handling
 
-1. **Trigger.dev retries** — configure `retry.maxAttempts` on the task
+1. **Trigger.dev retries** — configure `retry.maxAttempts` on the task; `onFailure` runs when the retries are used up
 2. **Status tracking** — update a `processing_status` field in NocoDB (`pending` → `processing` → `completed` / `failed`)
 3. **Error logging** — write errors to a NocoDB `task_errors` table with run ID, error message, and timestamp
 4. **Alerting** — chain a notification task on failure (Slack, email via n8n)
@@ -130,7 +96,7 @@ Input: { "limit": 10 }
 
 - Use descriptive task IDs: `process-order-payment`, `generate-ai-summary`
 - Include the NocoDB record ID and table ID in every task payload
-- Update NocoDB record status before and after processing
+- Update the NocoDB record status before and after processing
 - Use Trigger.dev queues for rate-limited operations
 - Set appropriate machine presets for CPU/memory-intensive tasks
-- Use `idempotencyKey` based on record ID to prevent duplicate processing
+- Use an `idempotencyKey` based on the record ID to prevent duplicate processing

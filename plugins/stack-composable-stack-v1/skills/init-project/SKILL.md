@@ -33,7 +33,7 @@ This stack uses **two NocoBase instances** for a safe develop-then-promote workf
 - Test API flows and test apps against the **dev** instance — safe to break.
 - Promote validated schema and UI to **prod** via export/import or migration.
 
-The `nocobase-dev` MCP server in this plugin points at `${NOCOBASE_DEV_URL}/api/mcp`, so the full `nc-mcp` toolset (~146 tools: collections, fields, resources, workflows, flow-surfaces, RBAC, data sources) is available for the dev instance out of the box.
+The `nocobase-dev` MCP server in this plugin points at `${NOCOBASE_DEV_URL}/api/mcp`, so the NocoBase MCP toolset (collections, fields, resources, workflows, flow-surfaces, RBAC, data sources — about 180 tools in October 2026; the number drifts between releases) is available for the dev instance out of the box. The `x-mcp-packages` header in `.mcp.json` limits which plugin groups the server exposes; keep it as small as the work needs.
 
 ## Step 1: Environment Variables
 
@@ -92,8 +92,8 @@ Expected: returns a list of tables from the connected NocoDB base.
 ### 2b. n8n External MCP (Logic layer)
 
 ```
-Tool: mcp__plugin_stack-composable-stack-v1_n8n-mcp-external__searchNodes
-Input: { "query": "webhook" }
+Tool: mcp__plugin_stack-composable-stack-v1_n8n-mcp-external__search_nodes
+Input: { "query": "webhook", "limit": 5 }
 ```
 
 Expected: returns matching n8n node types.
@@ -101,18 +101,20 @@ Expected: returns matching n8n node types.
 ### 2c. n8n Native MCP (Logic layer)
 
 ```
-Tool: mcp__plugin_stack-composable-stack-v1_n8n-native-mcp__listWorkflows
+Tool: mcp__plugin_stack-composable-stack-v1_n8n-native-mcp__search_workflows
+Input: { "limit": 5 }
 ```
 
-Expected: returns workflows from the n8n instance.
+Expected: returns a preview of workflows from the n8n instance (an empty list on a fresh instance is a pass; a 401/403 is not).
 
 ### 2d. Trigger.dev (Logic layer)
 
 ```
 Tool: mcp__plugin_stack-composable-stack-v1_trigger-dev__list_runs
+Input: { "limit": 5 }
 ```
 
-Expected: returns recent task runs.
+Expected: returns recent task runs of the `dev` environment (the tool's default; an empty list is a pass).
 
 ### 2e. PostgreSQL MCP (Data layer — direct)
 
@@ -136,7 +138,7 @@ Expected: HTTP 200 with OpenAPI spec of available endpoints.
 
 ### 2g. NocoBase dev instance (Interface layer — sandbox)
 
-The `nocobase-dev` MCP server in this plugin targets `${NOCOBASE_DEV_URL}/api/mcp`. Verify with any `nc-mcp` tool:
+The `nocobase-dev` MCP server in this plugin targets `${NOCOBASE_DEV_URL}/api/mcp`. Verify with any NocoBase MCP tool:
 
 ```
 Tool: mcp__plugin_stack-composable-stack-v1_nocobase-dev__collections_list
@@ -179,16 +181,15 @@ Replace `{{PROJECT_NAME}}` with your project name.
 
 ## Step 4: Verify Installed Plugins
 
-Confirm all technology plugins are enabled in `.claude/settings.json`:
+This plugin declares its technology plugins as `dependencies`, so they install with it. Confirm they are enabled in `.claude/settings.json`:
 
 - `trigger-dev@agents-store-claude-plugins`
 - `n8n-dev@agents-store-claude-plugins`
 - `nocodb-ops@agents-store-claude-plugins`
 - `nocobase-dev@agents-store-claude-plugins`
 - `postgresql-external-dev@agents-store-claude-plugins`
-- `n8n-provision@agents-store-claude-plugins`
 
-These provide tool-specific knowledge. The stack plugin provides integration patterns between services.
+These provide tool-specific knowledge. The stack plugin provides the architecture and the integration patterns between services. `n8n-provision@agents-store-claude-plugins` is optional: it provisions an n8n instance and is not needed to build with the stack.
 
 ## Troubleshooting
 
