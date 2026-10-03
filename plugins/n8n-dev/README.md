@@ -33,7 +33,7 @@ Hand-written for this plugin; the sync never touches them.
 | Skill | Description |
 |-------|-------------|
 | **n8n-native-mcp** | Native (instance-level) MCP guide — SDK workflows, atomic edits, tests, publishing, first-class Agents |
-| **api-reference** | REST API reference — 60 operations in the bundled spec plus the 2.x publish routes, curl examples |
+| **api-reference** | REST API reference — 154 operations across 26 tags (n8n 2.41.6 public API bundled from the n8n repo), curl examples |
 | **cli-recipes** | Server CLI (publish, export/import, license, users) and the remote `@n8n/cli` |
 | **setup** | MCP connection configuration and verification |
 | **troubleshoot** | Common errors, diagnostics, and solutions |

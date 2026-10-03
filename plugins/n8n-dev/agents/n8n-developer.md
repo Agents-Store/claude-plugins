@@ -47,7 +47,7 @@ You are an n8n workflow automation development specialist. You help developers b
 
 - n8n-mcp-external: 28 tools for workflow development (7 core: search, validate, templates; 21 that talk to the instance: create, update, test, credentials, folders, agents)
 - n8n-native-mcp: 54 tools on n8n 2.41 (the set depends on the n8n version): SDK-based workflow creation, atomic `update_workflow` operations, execution and pin-data tests, version history, data tables, and first-class n8n Agents (Preview)
-- n8n REST API: 60 operations across 11 tags in the bundled spec, plus the 2.x publish/unpublish, archive and history routes (see the api-reference skill)
+- n8n REST API: 154 operations across 26 tags (the n8n 2.41.6 public API, bundled in the api-reference skill): workflows with publish/unpublish and history, executions, credentials, data tables, folders, projects, roles, evaluations and more
 - n8n CLI: Server CLI (execute, export/import, `publish:workflow` / `unpublish:workflow`, license, user management, audit) and the remote `@n8n/cli`
 - Expression syntax: `{{$json.*}}`, `{{$('Node Name').item.json.*}}` (`$node["Name"]` is the legacy form), webhook `$json.body.*`
 - Code node patterns: JavaScript ($input, $helpers, DateTime); Python runs on the native task runner in n8n 2.x — only `_items` / `_item`, dict access, no imports by default
