@@ -15,18 +15,21 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools referenced below (`project`, `workitem`); their names are `mcp__<server>__<resource>`, never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill. Calls are written `resource(action=..., ...)`.
 
 1. **Resolve project:**
    ```
-   list_projects()
+   project(action=list)
    ```
 
 2. **Get all backlog items:**
    ```
-   list_work_items({ project_id, per_page: 100 })
+   workitem(action=count, project_id, pql='stateGroup IN ("backlog","unstarted")')
+   workitem(action=count, project_id, pql='stateGroup IN ("backlog","unstarted") AND hasNoAssignee()')
+   workitem(action=count, project_id, pql='stateGroup IN ("backlog","unstarted") AND priority = "none"')
+   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', per_page=100, fields="id,name,point,description_stripped")
    ```
-   Filter: items in "backlog" or "unstarted" state groups.
+   The counts (read `total_count`) answer the PQL-filterable metrics without paging; the list (follow `next_cursor`) is needed only for the estimate and description checks, which PQL cannot filter. Stale candidates: add `AND updatedAt < daysAgo(42)` to the first query.
 
 3. **Calculate health metrics:**
    - Total items in backlog

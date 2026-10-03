@@ -15,19 +15,21 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools referenced below (`project`, `member`, `cycle`, `workitem`); their names are `mcp__<server>__<resource>`, never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill. Calls are written `resource(action=..., ...)`.
 
 1. **Find active sprint:**
    ```
-   list_cycles({ project_id })
+   cycle(action=list, project_id, status=current)
    ```
-   Find cycle where today is between start_date and end_date.
+   The cycle where today is between start_date and end_date.
 
 2. **Get sprint details:**
    ```
-   retrieve_cycle({ project_id, cycle_id })
-   list_cycle_work_items({ project_id, cycle_id })
+   cycle(action=retrieve, project_id, cycle_id)
+   cycle(action=list_workitems, project_id, cycle_id)
+   workitem(action=count, project_id, pql='cycle = "<cycle_id>"', group_by=state__group)
    ```
+   The count gives the item totals per state group in one call; the list gives the points.
 
 3. **Calculate burndown:**
    - Total points, completed points, remaining points
@@ -37,15 +39,17 @@ Parse from "$ARGUMENTS".
 
 4. **Check WIP:**
    ```
-   get_project_members({ project_id })
+   member(action=list_project, project_id)
+   workitem(action=count, project_id, pql='stateGroup = "started"')
    ```
    WIP limit = team_size × 1.5
-   Current WIP = items in "started" state
+   Current WIP = `total_count` of the started items
 
 5. **Identify at-risk items:**
-   - Items in "started" state for > 2 days
-   - Items not started past mid-sprint
-   - Items with "blocked_by" relations
+   - Items in "started" state for > 2 days: `cycle(action=list_workitems, project_id, cycle_id, pql='stateGroup = "started" AND updatedAt < daysAgo(2)')`
+   - Items not started past mid-sprint: `pql='stateGroup IN ("backlog","unstarted")'`
+   - Items past their due date: `pql='isOverdue()'`
+   - Items with "blocked_by" relations: `workitem_relation(action=list, project_id, workitem_id)` per open item
 
 6. **Display dashboard:**
    Sprint name, dates, progress bar, burndown status, WIP, at-risk items, per-person summary.

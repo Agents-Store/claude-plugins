@@ -15,15 +15,15 @@ Parse from `"$ARGUMENTS"`. Without `--cycle` or `--item`, scan the whole active 
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_work_items`, `list_work_item_relations`, `retrieve_work_item`.
-2. **Resolve project** — `list_projects` → `project_id`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `project`, `cycle`, `workitem` and `workitem_relation`.
+2. **Resolve project** — `project(action=list)` → `project_id`.
 3. **Scope the scan**:
-   - `--cycle current` → items in the active cycle (`list_cycle_work_items`)
+   - `--cycle current` → items in the active cycle (`cycle(action=list, project_id, status=current)`, then `cycle(action=list_workitems, project_id, cycle_id, pql='stateGroup IN openStates()')`)
    - `--cycle <name>` → items in that cycle
    - `--item <id>` → just that item and its transitive relations
-   - default → in-progress + unstarted items in the project
-4. **For each item, fetch relations** — `list_work_item_relations({ project_id, work_item_id })`.
-5. **Build the graph** — direction matters: `blocked_by` (incoming), `blocking` (outgoing), `duplicate`, `relates_to`.
+   - default → in-progress + unstarted items in the project: `workitem(action=list, project_id, pql='stateGroup IN ("unstarted","started")')`
+4. **For each item, fetch relations** — `workitem_relation(action=list, project_id, workitem_id)`. Shortcut for one item: PQL `blocks("PROJ-148")` returns the items that block PROJ-148, `blockedBy("PROJ-148")` the items blocked by it.
+5. **Build the graph** — direction matters: `blocked_by` (incoming), `blocking` (outgoing), plus any duplicate / relates-to / custom relation (`workitem_relation(action=list_definitions)` names them).
 6. **Highlight risk**:
    - Items blocked by something not yet started
    - Items blocking 2+ other items (critical path candidates)

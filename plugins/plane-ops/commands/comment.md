@@ -20,13 +20,13 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `create_work_item_comment`, `list_work_item_comments`, `update_work_item_comment`, `delete_work_item_comment`.
-2. **Resolve project** → `project_id`. **Resolve work item** → `work_item_id`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tool `workitem_comment` (and `workitem`, `member` for lookups).
+2. **Resolve project** → `project_id`. **Resolve work item** → `workitem_id` (`workitem(action=retrieve_by_identifier, workitem_identifier="PROJ-42")`).
 3. **Route**:
-   - `add` → convert markdown body to HTML if the API expects `comment_html`; call `create_work_item_comment`. Mention the user via `@username` only if the API supports mentions — otherwise plain text.
-   - `list` → `list_work_item_comments`, render newest-first with author + timestamp.
-   - `update` → resolve `comment_id` (last by current user, or explicit `--id`), patch.
-   - `delete` → confirm before destructive call.
+   - `add` → convert the markdown body to HTML and call `workitem_comment(action=create, project_id, workitem_id, comment_html="<p>…</p>")` (`access` is `INTERNAL` or `EXTERNAL`). To mention someone write `@[<user uuid>]` inline (resolve the person with `member(action=list_project, project_id)`); a bare `@name` notifies nobody.
+   - `list` → `workitem_comment(action=list, project_id, workitem_id)` (follow `next_cursor`), render newest-first with author + timestamp.
+   - `update` → resolve `comment_id` (last by current user, or explicit `--id`), `workitem_comment(action=update, project_id, workitem_id, comment_id, comment_html)`.
+   - `delete` → confirm before the destructive `workitem_comment(action=delete, project_id, workitem_id, comment_id)` call.
 4. **Confirm** — print the comment ID and a one-line preview.
 
 ## Examples

@@ -69,7 +69,7 @@
       "expectations": [
         "Recognizes a tool named cycle with an action enum as the resource surface of Plane MCP 0.3+",
         "Does not conclude that Plane is not connected because legacy names like list_cycles or create_cycle are absent",
-        "Translates the legacy action name list_cycles into cycle(action=list) using the translation table",
+        "Calls cycle(action=list, project_id=...) directly, because the skills and commands are written in resource form and need no translation on this surface",
         "Resolves the project via project(action=list) (paginated: follows next_cursor if needed) before calling cycle"
       ]
     },
@@ -84,6 +84,31 @@
         "Creates the epic with workitem(action=create, type_id=...)",
         "Attaches it with initiative(action=manage_workitems, add_ids=[<epic work item id>])"
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "Add PROJ-148 and PROJ-150 to the Sprint 15 cycle of TaskFlow. This Plane connector is an old one: ToolSearch only shows list_cycles, create_cycle, list_work_items, add_work_items_to_cycle and similar per-operation tools; there is no workitem or cycle tool.",
+      "expected_output": "Agent recognizes the per-operation surface, uses the fallback table to translate cycle(action=manage_workitems, add_ids=[...]) into the connector's add_work_items_to_cycle with issue_ids, and checks the schema for parameter names first.",
+      "expectations": [
+        "Recognizes that no tool named workitem or cycle exists and that this is the per-operation fallback surface, not 'Plane not connected'",
+        "Translates cycle(action=manage_workitems, add_ids=[...]) into add_work_items_to_cycle (or manage_cycle_work_items on an official pre-0.3.0 server) using the fallback table",
+        "Passes the work item ids as issue_ids (plural array) after inspecting the tool schema, and uses work_item_id style names where the schema does",
+        "Resolves PROJ-148 and PROJ-150 with retrieve_work_item_by_identifier using the split project_identifier and integer issue_identifier",
+        "Tells the user that upgrading the server to Plane MCP 0.3.0 or later is the better fix, and that pql, count and release tools are unavailable on this connector"
+      ],
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "Which work items are overdue and still open across all our Plane projects? We run Plane MCP 0.3.3.",
+      "expected_output": "Agent finds the resource surface and uses a server-side PQL filter on workitem list without a project_id, instead of looping over projects and filtering client-side.",
+      "expectations": [
+        "Probes ToolSearch (plane, workitem cycle module) and finds the workitem tool",
+        "Calls workitem(action=list, pql='isOverdue()') or equivalent without project_id to search the whole workspace",
+        "Consults get_pql_reference for syntax beyond the documented examples and stays within 5 conditions",
+        "Follows next_cursor if the result is paginated"
+      ],
+      "files": []
     }
   ]
 }

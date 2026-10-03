@@ -81,8 +81,8 @@
     {
       "name": "plane-ops",
       "source": "./plugins/plane-ops",
-      "description": "Plane Agile Ops knowledge plugin. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, standups, intake triage, modules, epics, milestones, roadmaps, dependencies, burndown, and page publishing. Works with Plane MCP 0.3.0+ (resource tools with an action parameter) and with legacy per-operation connectors: a bootstrap skill discovers the tools across naming conventions and translates legacy action names.",
-      "version": "1.4.0",
+      "description": "Plane Agile Ops knowledge plugin. Sprint planning, task decomposition, estimation, backlog management, velocity tracking, retrospectives, standups, intake triage, modules, epics, milestones, roadmaps, dependencies, burndown, and page publishing. Written for Plane MCP 0.3.0+ (resource tools with an action parameter, PQL filters, releases); a bootstrap skill discovers the tools across naming conventions and translates for older per-operation connectors.",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },

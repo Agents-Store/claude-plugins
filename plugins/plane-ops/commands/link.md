@@ -22,12 +22,12 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `create_work_item_link`, `list_work_item_links`, `delete_work_item_link`.
-2. **Resolve project** → `project_id`. **Resolve work item** → `work_item_id`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `workitem_link` and `workitem`.
+2. **Resolve project** → `project_id`. **Resolve work item** → `workitem_id` (`workitem(action=retrieve_by_identifier, workitem_identifier="PROJ-42")`).
 3. **Route**:
-   - `add` → if title omitted, derive: `github.com/org/repo/pull/420` → `"PR #420"`, `figma.com/file/...` → `"Figma design"`, `docs.google.com/...` → `"Google Doc"`. Call `create_work_item_link({ url, title, ... })`.
-   - `list` → `list_work_item_links`, render as `Title — URL`.
-   - `remove` → with `--id`, call `delete_work_item_link`. Without, list and ask which to remove.
+   - `add` → if title omitted, derive: `github.com/org/repo/pull/420` → `"PR #420"`, `figma.com/file/...` → `"Figma design"`, `docs.google.com/...` → `"Google Doc"`. Call `workitem_link(action=create, project_id, workitem_id, url, title)` (`url` must be `http://` or `https://`; `title` is the text Plane shows instead of the URL).
+   - `list` → `workitem_link(action=list, project_id, workitem_id)`, render as `Title — URL`.
+   - `remove` → with `--id`, call `workitem_link(action=delete, project_id, workitem_id, link_id)`. Without, list and ask which to remove. To fix a title or URL use `workitem_link(action=update, ..., link_id, url?, title?)`.
 4. **Confirm** — print link title and the item identifier.
 
 ## Examples

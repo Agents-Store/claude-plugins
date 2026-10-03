@@ -15,14 +15,14 @@ Parse from `"$ARGUMENTS"`. Default limit is 20 items.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_intake_work_items`, `retrieve_intake_work_item`, `create_work_item`.
-2. **Resolve project** — `list_projects` → `project_id`.
-3. **Load intake queue** — `list_intake_work_items({ project_id })`. Sort by age (oldest first).
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `intake`, `project` and `workitem` (the project needs the `intakes` feature).
+2. **Resolve project** — `project(action=list)` → `project_id`.
+3. **Load intake queue** — `intake(action=list, project_id)` (follow `next_cursor`). Sort by age (oldest first).
 4. **Triage each item** — follow the `intake-triage` skill. For each item ask the user (or classify automatically using the routing rules):
-   - **Accept** → convert to work item in the backlog
-   - **Accept + escalate** → create work item, set urgent/high, assign on-call
-   - **Defer** → mark with rationale and revisit date
-   - **Reject** → delete with a comment
+   - **Accept** → `intake(action=update, project_id, workitem_id=<the item's issue id>, status=1)`; the item becomes a regular backlog work item, then complete it with `workitem(action=update, ...)`
+   - **Accept + escalate** → `status=1`, then `workitem(action=update, ..., priority="urgent"|"high", assignees=[<on-call>])`
+   - **Defer** → `intake(action=update, ..., status=0, snoozed_till=<revisit date>)` plus a rationale comment (`workitem_comment(action=create)`)
+   - **Reject** → `intake(action=update, ..., status=-1)` with a comment explaining why; a duplicate uses `status=2, duplicate_to=<existing work item id>`. Use `intake(action=delete)` only for spam, after confirmation.
 5. **Present session summary** — table of decisions made.
 6. **Suggest follow-ups** — items needing more info from the reporter, duplicates to close, deferred items to revisit next grooming.
 

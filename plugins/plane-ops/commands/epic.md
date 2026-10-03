@@ -20,14 +20,14 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_epics`, `retrieve_epic`, `update_epic`, `delete_epic`. Note: child items of an epic are work items with `parent_id = epic_id`.
-2. **Resolve project** → `project_id`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `workitem_type`, `workitem` and `initiative`. There are no epic tools: an epic is a work item of the type "Epic", and its child items are work items whose `parent` is the epic's id.
+2. **Resolve project** → `project_id`, then the epic type: `workitem_type(action=resolve, project_id, name="Epic")` → `type_id`.
 3. **Route**:
-   - `list` → render: name | lead | child count | state buckets | target | progress %.
-   - `get` → details + child items grouped by state. Show progress as `(completed_points / total_points)` and as `(completed_count / total_count)`.
+   - `list` → `workitem(action=list, project_id, pql='type = "<epic-type-id>"')` (follow `next_cursor`). Render: name | lead | child count | state buckets | target | progress %. Child counts per epic: `workitem(action=count, project_id, pql='childOf("<epic identifier>")', group_by=state__group)`.
+   - `get` → `workitem(action=retrieve, project_id, workitem_id)` + child items `workitem(action=list, project_id, pql='childOf("<epic identifier>")', fields="id,name,point,state")` grouped by state. Show progress as `(completed_points / total_points)` and as `(completed_count / total_count)`.
    - `status` → same as get but compact and emphasizes RAG (Red/Amber/Green) based on points completed vs time elapsed (see `epics-initiatives-milestones` skill).
-   - `update` → patch. Linking to an initiative goes through this (`--initiative` → resolve initiative ID → set `initiative_id`).
-   - `delete` → confirm. Children are unlinked, not deleted.
+   - `update` → `workitem(action=update, project_id, workitem_id, name?, description_html?, assignees?, target_date?)` (`--lead` is the assignee). Linking to an initiative: `--initiative` → `initiative(action=list)` → initiative_id → `initiative(action=manage_workitems, initiative_id, add_ids=[<epic workitem id>])`, read back with `initiative(action=list_workitems, initiative_id)`.
+   - `delete` → confirm, then `workitem(action=delete, project_id, workitem_id)` (permanent; the children are separate work items and are not deleted).
 4. **Confirm** — re-render after mutation.
 
 ## Examples

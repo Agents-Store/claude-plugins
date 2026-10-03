@@ -20,23 +20,23 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `create_work_log`, `list_work_logs`, `get_project_worklog_summary`.
-2. **Verify time tracking is enabled** — check `get_project_features` or fetch project; if `is_time_tracking_enabled` is false, tell the user how to enable it (project settings → features) and stop.
-3. **Resolve project** → `project_id`. **Resolve work item** → if identifier like `PROJ-42`, use `retrieve_work_item_by_identifier`; if UUID, skip.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `work_log`, `project` and `workitem`.
+2. **Verify time tracking is enabled** — `project(action=retrieve, project_id)`; if `is_time_tracking_enabled` is false, tell the user how to enable it (project settings → features, or `project(action=update, project_id, is_time_tracking_enabled=true)` with their consent) and stop. A plan without time tracking refuses `work_log` calls with a message naming the feature.
+3. **Resolve project** → `project_id`. **Resolve work item** → if identifier like `PROJ-42`, use `workitem(action=retrieve_by_identifier, workitem_identifier="PROJ-42")`; if UUID, skip.
 4. **Convert duration to minutes**:
    - `2h` → 120, `2h30m` → 150, `45m` → 45, `1.5h` → 90, `PT2H30M` → 150
    - Reject if result < 1 or > 24h in a single entry (likely a typo); ask user to confirm.
-5. **Create the log** — `create_work_log({ project_id, work_item_id, duration: <minutes>, description })`.
-6. **Confirm** — print: total logged today on this item, total logged this sprint by this user (use `list_work_logs` filtered).
+5. **Create the log** — `work_log(action=create, project_id, workitem_id, duration=<minutes>, description)`.
+6. **Confirm** — print: total logged today on this item, total logged on this item (`work_log(action=list, project_id, workitem_id)`, follow `next_cursor`; `work_log` lists one work item at a time), and the project totals from `project(action=worklog_summary, project_id)`.
 
 ## Subcommands
 
 The base form logs time. Additional verbs (parse `<verb> ...` if first arg is one of these):
 
-- `summary <project>` → `get_project_worklog_summary` — total logged per user / per item
-- `list <project> <item>` → `list_work_logs` for that item
-- `delete <project> <log_id>` → `delete_work_log` (confirm first)
-- `update <project> <log_id> <duration>` → `update_work_log`
+- `summary <project>` → `project(action=worklog_summary, project_id)` — total logged per user / per item
+- `list <project> <item>` → `work_log(action=list, project_id, workitem_id)` for that item
+- `delete <project> <item> <log_id>` → `work_log(action=delete, project_id, workitem_id, work_log_id)` (confirm first)
+- `update <project> <item> <log_id> <duration>` → `work_log(action=update, project_id, workitem_id, work_log_id, duration=<minutes>)`
 
 ## Examples
 
@@ -45,7 +45,7 @@ The base form logs time. Additional verbs (parse `<verb> ...` if first arg is on
 /log-time "TaskFlow" PROJ-148 45m
 /log-time summary "TaskFlow"
 /log-time list "TaskFlow" PROJ-148
-/log-time delete "TaskFlow" 9f2c-...
+/log-time delete "TaskFlow" PROJ-148 9f2c-...
 ```
 
 ## Best Practices

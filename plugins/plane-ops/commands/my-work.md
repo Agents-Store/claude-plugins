@@ -22,15 +22,17 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `get_me`, `list_projects`, `list_work_items`, `list_cycle_work_items`, `list_states`.
-2. **Resolve current user** — `get_me` → `user_id`.
-3. **Resolve scope**:
-   - if `--project` → that one `project_id`
-   - else → `list_projects` → loop over each
-4. **Fetch items** — `list_work_items({ project_id, assignees: [user_id], ... })`. If the API does not accept assignee filter, fetch and filter client-side.
-5. **Apply filters** — drop completed/cancelled (unless `--all`), apply state/priority/cycle filters. For `--cycle current`, look up the active cycle via `list_cycles({ project_id })` and filter against `list_cycle_work_items`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `member`, `project`, `workitem`, `cycle`, `state` and `get_pql_reference`.
+2. **Resolve scope** — if `--project`, resolve that one `project_id` (`project(action=list)`); otherwise leave `project_id` out: `workitem(action=list)` without a project searches the whole workspace, so there is no loop over projects.
+3. **Build one PQL filter** — `assignee = currentUser()` resolves the signed-in user server-side (no `member(action=me)` call needed). Add, joined with `AND` (at most 5 conditions; `get_pql_reference` has the syntax):
+   - default → `stateGroup IN openStates()`; `--all` drops this condition
+   - `--state <group>` → `stateGroup = "started"` etc.; `--state <name>` → `state = "<state uuid>"` (`state(action=list, project_id)` resolves the name)
+   - `--priority` → `priority = "urgent"|"high"|"medium"|"low"` (p0 = urgent, p1 = high, p2 = medium, p3 = low)
+   - `--cycle current` → `cycle IN activeCycle()`; `--cycle next` → `cycle IN upcomingCycles()`; `all` → no cycle condition
+4. **Fetch items** — `workitem(action=list, project_id?, pql=<filter>, per_page=<limit>, fields="id,name,point,priority,state,target_date,updated_at")`; follow `next_cursor` for more than one page.
+5. **Totals** — `workitem(action=count, project_id?, pql=<filter>, group_by=state__group)` for the breakdown by state group in one call, and `workitem(action=count, project_id?, pql=<filter> AND isOverdue())` for the overdue count (a `count` with `project_id` adds a `project = ...` condition of its own, so keep the filter within 4 conditions there).
 6. **Render** — group by project, sort by priority then state. Columns: `ID | Title | State | Priority | Cycle | Updated`.
-7. **Show summary** — total items, total story points, breakdown by state, count of overdue.
+7. **Show summary** — total items (`total_count`), total story points (sum of listed `point`), breakdown by state, count of overdue.
 8. **Suggest** — `/log-time` for items in progress, `/comment add` for items idle >3 days.
 
 ## Examples

@@ -15,13 +15,14 @@ Parse from `"$ARGUMENTS"`. Default horizon: 12 weeks.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_cycles`, `list_modules`, `list_epics`, `list_milestones`.
-2. **Resolve project** — `list_projects` → `project_id`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `project`, `cycle`, `module`, `workitem`, `workitem_type`, `milestone` and `release`. There are no epic tools: epics are work items of the type "Epic".
+2. **Resolve project** — `project(action=list)` → `project_id`.
 3. **Gather horizon data**:
-   - `list_cycles({ project_id })` — current and next sprint
-   - `list_modules({ project_id })` — active modules
-   - `list_epics({ project_id })` — active epics
-   - `list_milestones({ project_id })` — upcoming milestones in the horizon
+   - `cycle(action=list, project_id, status=current)` and `status=upcoming` — current and next sprint
+   - `module(action=list, project_id)` — active modules
+   - epics: `workitem_type(action=resolve, project_id, name="Epic")` → `type_id`, then `workitem(action=list, project_id, pql='type = "<epic-type-id>" AND stateGroup IN openStates()')` — active epics
+   - `milestone(action=list, project_id)` — upcoming milestones in the horizon
+   - optional: `release(action=list)` — releases with status `unreleased` and their `release_date`
 4. **Classify each item**:
    - **Now** — in the current sprint or module status `in-progress`
    - **Next** — in the next planned sprint or starting within 2 weeks

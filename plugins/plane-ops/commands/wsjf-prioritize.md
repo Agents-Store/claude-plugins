@@ -15,18 +15,18 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools referenced below (`project`, `workitem`); their names are `mcp__<server>__<resource>`, never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill. Calls are written `resource(action=..., ...)`.
 
 1. **Resolve project:**
    ```
-   list_projects()
+   project(action=list)
    ```
 
 2. **Get estimated backlog items:**
    ```
-   list_work_items({ project_id })
+   workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', fields="id,name,point,priority", per_page=100)
    ```
-   Filter: items in backlog/unstarted states WITH story points set.
+   Follow `next_cursor`; keep items WITH story points set (PQL has no estimate field, so `point` is checked on the listed items).
    (Items without estimates cannot be scored — suggest /estimate first.)
 
 3. **Score each item interactively:**
@@ -52,7 +52,7 @@ Parse from "$ARGUMENTS".
 
 6. **Update items:**
    ```
-   update_work_item({ project_id, work_item_id, priority: "<new>" })
+   workitem(action=update, project_id, workitem_id, priority="<new>")
    ```
 
 7. **Display ranked list:**

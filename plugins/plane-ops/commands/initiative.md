@@ -11,22 +11,23 @@ Initiatives are the highest-level planning unit in Plane — they group multiple
 
 Format: `<action> [args...]`
 
-- `action`: `list` | `create` | `update` | `get` | `delete` | `link-epic`
-- For `create`: `--name`, `--description`, `--lead <user>`, `--start <date>`, `--target <date>`
-- For `link-epic`: `--initiative <name|id>`, `--epic <project>:<id>`
+- `action`: `list` | `create` | `update` | `get` | `delete` | `link-epic` | `link-project`
+- For `create`/`update`: `--name`, `--description`, `--lead <user>`, `--start <date>`, `--target <date>` (stored as `end_date`), `--state DRAFT|PLANNED|ACTIVE|COMPLETED|CLOSED`
+- For `link-epic`: `--initiative <name|id>`, `--epic <project>:<id>`; for `link-project`: `--initiative <name|id>`, `--project <name>`
 
 Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_initiatives`, `create_initiative`, `update_initiative`, `retrieve_initiative`, `delete_initiative`. Initiatives are workspace-scoped (no `project_id`).
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `initiative`, `workitem` and `workspace`. Initiatives are workspace-scoped (no `project_id`). The tool needs the workspace's native initiatives feature (`workspace(action=get_features)`; enabling it with `workspace(action=update_features, initiatives=true)` needs the user's consent).
 2. **Route**:
-   - `list` → `list_initiatives`. Render: name | lead | epics count | start–target | status.
-   - `create` → gather name, description, dates. Initiatives without an explicit lead and target date drift — warn the user if either is missing.
-   - `update` → resolve by name or ID → `update_initiative`.
-   - `get` → `retrieve_initiative` + render its epics list (cross-project) and aggregate progress.
-   - `delete` → confirm. Linked epics are NOT deleted, just unlinked.
-   - `link-epic` → many Plane builds use the epic's `initiative_id` field via `update_epic`. If a dedicated `add_epic_to_initiative` tool exists, use it; otherwise patch the epic.
+   - `list` → `initiative(action=list)` (returns every initiative, unpaginated). Render: name | lead | epics count | start–end | state.
+   - `create` → gather name, description, dates. `initiative(action=create, name, description_html, lead, start_date, end_date, state)`. Initiatives without an explicit lead and end date drift — warn the user if either is missing. Projects are linked afterwards (`link-project`).
+   - `update` → resolve by name or ID → `initiative(action=update, initiative_id, ...)`.
+   - `get` → `initiative(action=retrieve, initiative_id)` + `initiative(action=list_workitems, initiative_id)` (the linked epics, cross-project) + `initiative(action=list_projects, initiative_id)`, then aggregate progress with `workitem(action=count, pql='childOf("<epic identifier>")', group_by=state__group)` per epic.
+   - `delete` → confirm, then `initiative(action=delete, initiative_id)`. Linked epics and projects are NOT deleted, just unlinked.
+   - `link-epic` → there is no epic tool: the epic is a work item, and `initiative(action=manage_workitems, initiative_id, add_ids=[<epic workitem id>])` links it (`remove_ids` unlinks it). Resolve the epic with `workitem(action=retrieve_by_identifier, workitem_identifier="<PROJ-N>")`. Read the result back with `initiative(action=list_workitems, initiative_id)`.
+   - `link-project` → `initiative(action=add_projects, initiative_id, project_ids=[<project uuid>])` (`remove_projects` unlinks), read back with `initiative(action=list_projects, initiative_id)`.
 3. **Confirm** — print initiative ID and a summary of linked epics.
 
 ## When to use what

@@ -20,15 +20,15 @@ Parse from `"$ARGUMENTS"`.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `create_work_item_relation`, `list_work_item_relations`, `remove_work_item_relation`.
-2. **Resolve project** → `project_id`. **Resolve both work items** → UUIDs.
-3. **Map relation type** to API value. Plane typically uses: `blocking` / `blocked_by` / `duplicate` / `relates_to`. Check schema and adapt. Note the API field is usually `issues: [uuid]` (plural array), not `related_issue`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `workitem_relation` and `workitem`.
+2. **Resolve project** → `project_id`. **Resolve both work items** → UUIDs (`workitem(action=retrieve_by_identifier, workitem_identifier="PROJ-42")`).
+3. **Map relation type** to API value. The built-in dependency types are `blocking`, `blocked_by`, `start_before`, `start_after`, `finish_before`, `finish_after` (they go in `relation_type`). Duplicate, relates-to and any custom relation are *definitions*: call `workitem_relation(action=list_definitions)`, match the user's wording to an entry, and pass `relation_definition_id` plus `relation_definition_label` (the matched outward or inward label, which sets the direction) instead of `relation_type`. The related items go in `workitem_ids` (an array of UUIDs).
 4. **Route**:
-   - `blocks` → from `from-item` create `blocking` to `to-item` (API may auto-create the inverse `blocked_by` on the target)
-   - `blocked-by` → from `from-item` create `blocked_by` to `to-item`
-   - `duplicate` / `duplicate-of` → `duplicate` relation
-   - `relates-to` → `relates_to`
-   - `remove` → `list_work_item_relations`, find the matching one, call `remove_work_item_relation`
+   - `blocks` → `workitem_relation(action=create, project_id, workitem_id=<from>, workitem_ids=[<to>], relation_type="blocking")` (the inverse `blocked_by` shows on the target)
+   - `blocked-by` → `workitem_relation(action=create, ..., relation_type="blocked_by")`
+   - `duplicate` / `duplicate-of` → the duplicate definition (`list_definitions`), with `relation_definition_id` and the label for the requested direction
+   - `relates-to` → the relates-to definition, the same way
+   - `remove` → `workitem_relation(action=list, project_id, workitem_id)`, find the matching one, then `workitem_relation(action=delete, project_id, workitem_id, related_workitem_id, is_dependency)`; `is_dependency` must match the kind that was created (true for the six built-in types, default false for definitions)
 5. **Confirm** — print both items and the relation direction.
 
 ## Examples

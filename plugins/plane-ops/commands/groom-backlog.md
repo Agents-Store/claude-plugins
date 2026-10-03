@@ -15,9 +15,9 @@ Parse from `"$ARGUMENTS"`. Default limit: top 20 items by priority.
 
 ## Process
 
-1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for `list_work_items`, `update_work_item`, `list_work_item_relations`.
-2. **Resolve project** — `list_projects` → `project_id`.
-3. **Load candidate items** — `list_work_items({ project_id, state_group: "backlog", order_by: "-priority" })`.
+1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `project`, `workitem` and `workitem_relation`.
+2. **Resolve project** — `project(action=list)` → `project_id`.
+3. **Load candidate items** — `workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', per_page=<limit>)`, then sort by priority client-side (follow `next_cursor` only if more are needed).
 4. **For each item, check Definition of Ready** (see `agile-fundamentals`):
    - Title and description with acceptance criteria
    - Estimated (points 1–8)
@@ -27,7 +27,7 @@ Parse from `"$ARGUMENTS"`. Default limit: top 20 items by priority.
    - Missing AC → ask user or draft and confirm
    - Unestimated → run `estimation` skill flow
    - Too large (> 8 points) → run `task-decomposition` skill
-   - Stale (not updated > 30 days) → flag for archive or re-confirm relevance
+   - Stale (not updated > 30 days; `workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted") AND updatedAt < daysAgo(30)')`) → flag for cancel-then-archive or re-confirm relevance
 6. **Reprioritize** — use `backlog-management` (MoSCoW) or run `/wsjf-prioritize` if numeric scoring is needed.
 7. **Present grooming summary** — what was refined, estimated, decomposed, archived.
 

@@ -16,26 +16,26 @@ Parse from "$ARGUMENTS".
 
 ## Process
 
-0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the action names referenced below (`list_projects`, `list_cycles`, etc.). Match tools by action suffix — never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill.
+0. **Bootstrap connector** — consult the `connector-bootstrap` skill. Probe `ToolSearch` for the Plane resource tools referenced below (`project`, `cycle`, `workitem`); their names are `mcp__<server>__<resource>`, never assume a specific MCP prefix. If multiple Plane instances are connected, ask the user which one to use. All formulas and rules come from the `agile-fundamentals` skill. Calls are written `resource(action=..., ...)`.
 
 1. **Resolve project:**
    ```
-   list_projects()
+   project(action=list)
    ```
 
 2. **Get completed sprints:**
    ```
-   list_archived_cycles({ project_id })
+   cycle(action=list, project_id, status=completed)
    ```
-   Take last N archived cycles (sorted by end_date descending).
+   Take last N completed cycles (sorted by end_date descending). Sprints that are already archived: `cycle(action=list, project_id, archived=true)` (`status` is ignored then).
 
 3. **Calculate velocity per sprint:**
    For each cycle:
    ```
-   list_cycle_work_items({ project_id, cycle_id })
+   cycle(action=list_workitems, project_id, cycle_id, pql='stateGroup = "completed"', fields="id,point")
+   cycle(action=list_workitems, project_id, cycle_id, fields="id,point")
    ```
-   Sum points of items in "completed" state group.
-   Also sum total planned points.
+   Sum `point` of the completed items (first call) and of all items (second call, total planned). Items finished per sprint for all completed cycles in one call: `workitem(action=count, project_id, pql='cycle IN completedCycles() AND stateGroup = "completed"', group_by=cycle_id)`.
 
 4. **Calculate aggregates:**
    - Average velocity
