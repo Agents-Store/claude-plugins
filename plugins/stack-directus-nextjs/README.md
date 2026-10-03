@@ -65,6 +65,7 @@ Copy `templates/.env.example` to your project root as `.env.local`:
 |----------|---------|-------------|
 | `NEXT_PUBLIC_DIRECTUS_URL` | Directus address | Yes |
 | `DIRECTUS_ADMIN_TOKEN` | Static token of a dedicated Directus user (the name is historical; an administrator token is for local development only) | No |
+| `DIRECTUS_URL`, `DIRECTUS_TOKEN` | The names the `directus-dev` and `nextjs-dev` recipes read. In `.env.local` they expand to the two variables above (`DIRECTUS_URL=${NEXT_PUBLIC_DIRECTUS_URL}`, `DIRECTUS_TOKEN=${DIRECTUS_ADMIN_TOKEN}`); without them the NextAuth login calls `undefined/auth/login` | No |
 | `NEXTAUTH_URL` | NextAuth base URL (NextAuth path only) | No |
 | `NEXTAUTH_SECRET` | NextAuth encryption secret (NextAuth path only) | No |
 | `REVALIDATION_SECRET` | Shared secret for `/api/revalidate`, sent by a Directus Flow in a header | No |

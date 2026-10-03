@@ -17,7 +17,7 @@ Four rules decide whether the two systems work together: who holds the token, wh
 
 - Never `NEXT_PUBLIC_` on a token. The prefix ships the value to every visitor.
 - A token of an administrator turns every bug of the app into full access. Use one only locally.
-- A Server Action and a Route Handler are public endpoints. Check who is calling (`requireUser()` from `authentication`) **before** they use the server token, or anyone can create and delete content through them.
+- A Server Action and a Route Handler are public endpoints that take any id. **Authenticate and authorize** (`requireUser()` from `authentication`) before they use the server token: write with the signed-in user's own token (`withToken(session.accessToken, ...)`) so Directus applies that user's policies, or check role or ownership in code. A "signed in" check followed by a write with the server token lets any user change any item.
 
 ## Cache
 
@@ -108,7 +108,7 @@ export async function getPublishedPosts() {
 
 | Mode | When | What it costs |
 |------|------|---------------|
-| **A. Public files** | Every uploaded file may be public | Grant the Public policy read on `directus_files`. Without a license this must be an unrestricted rule (a folder filter is a custom permission rule and answers `403 RESOURCE_RESTRICTED`), so **every** file becomes downloadable and listable through `GET /files` by anyone |
+| **A. Public files** | Every uploaded file may be public | Grant the Public policy read on `directus_files`. Without a license this must be an unrestricted rule (a folder filter is a custom permission rule and answered `403 RESOURCE_RESTRICTED` on Directus 12.4.1), so **every** file becomes downloadable and listable through `GET /files` by anyone |
 | **B. Proxy route** | Some files are private, or the library is mixed | A Route Handler adds the token on the server and serves only one folder. One extra request per image on a cold cache |
 
 Mode A:
@@ -179,9 +179,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const upstream = await fetch(upstreamUrl, { headers });
   if (!upstream.ok || !upstream.body) return new Response('Not found', { status: 404 });
 
+  // Serve raster images only. An HTML or SVG file from the library would run script on your own origin
+  const type = upstream.headers.get('Content-Type') ?? '';
+  if (!type.startsWith('image/') || type.startsWith('image/svg')) return new Response('Not found', { status: 404 });
+
   return new Response(upstream.body, {
     headers: {
-      'Content-Type': upstream.headers.get('Content-Type') ?? 'application/octet-stream',
+      'Content-Type': type,
+      'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
     },
   });
@@ -203,7 +208,7 @@ Both modes use `next/image` as usual (`<Image src={directusAsset(post.featured_i
 
 ## Mutations
 
-Mutations go through Server Actions that call the SDK with the server token, after the caller is authenticated, and then expire the tag. The full pattern (authenticate, validate, `updateTag`) is in `nextjs-dev` → `data-fetching` → `references/headless-cms.md`.
+Mutations go through Server Actions that authenticate the caller, **authorize** the write (the user's own token with `withToken`, or a role or ownership check in code), and then expire the tag. The full pattern is in `nextjs-dev` → `data-fetching` → `references/headless-cms.md`; the stack version with Directus is in `full-feature/template.md`.
 
 ## Where the Rest Lives
 

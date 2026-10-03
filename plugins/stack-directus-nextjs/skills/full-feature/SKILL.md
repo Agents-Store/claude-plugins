@@ -14,7 +14,7 @@ Every feature in this stack follows the same flow:
 1. **Data Model** — Create or extend the Directus collection, its fields and its permissions
 2. **TypeScript Types** — Mirror the collection in `types/directus.ts`
 3. **Reads** — One tagged read function per query in `lib/content/`, then Server Component pages that call it
-4. **Mutations** — Server Actions that authenticate first, then write, then expire the tag (if needed)
+4. **Mutations** — Server Actions that authenticate, authorize, write, then expire the tag (if needed)
 5. **Register for Revalidation** — Add the collection to the Directus Flow and to the Route Handler's allow-list
 6. **Verify** — Types compile, the page renders, an edit in Directus reaches the page
 
@@ -39,6 +39,6 @@ For data modeling guidance defer to `directus-dev`; for page patterns defer to `
 | TypeScript | `types/directus.ts` | Add the interface, update `Schema` |
 | Reads | `lib/content/{collection}.ts` | `requestTagged(readItems(...), [collection], seconds)` inside `cache()` |
 | Pages | `app/{route}/page.tsx`, `app/{route}/[slug]/page.tsx` | Server Components calling the read functions, plus `generateStaticParams` and `generateMetadata` |
-| Actions | `app/{route}/actions.ts` | `requireUser()`, then `createItem` / `updateItem`, then `updateTag` |
+| Actions | `app/{route}/actions.ts` | `requireUser()`, then `createItem` / `updateItem` with the user's token (`withToken`), then `updateTag` |
 | Revalidation | Directus Flow, `app/api/revalidate/route.ts` | The collection name in both lists |
 | Verify | `npx tsc --noEmit`, browser, Directus | Types, rendering, images, an edit reaching the page |

@@ -24,12 +24,12 @@ How to choose:
 
 - **Directus policies must decide what each end user sees** (a customer portal on top of Directus data): NextAuth v4 with the Credentials provider, or the Directus session cookie.
 - **A content site with a few app-level accounts** (comments, favourites kept in the app's own tables): Better Auth, with Directus behind the service token.
-- **Existing project already on NextAuth v4**: keep it. It works with Next.js 16. See its limits (refresh is saved only by the client, the access token is readable in the browser) in `nextjs-dev` → `auth-patterns` → `references/nextauth-and-authjs.md`. NextAuth v5 stays beta and is in maintenance mode.
+- **Existing project already on NextAuth v4**: keep it. It works with Next.js 16. See its limits (refresh needs a browser tab polling the NextAuth route, two tabs can race on the single-use refresh token, the access token is readable in the browser) in `nextjs-dev` → `auth-patterns` → `references/nextauth-and-authjs.md`. NextAuth v5 stays beta and is in maintenance mode.
 - **SSO providers at Directus** (Google, Okta through Directus) need a licensed Directus 12 tier. Signing in with Google inside Next.js (NextAuth or Better Auth) does not.
 
 ## Rules That Hold on Every Path
 
-1. **Check the session before using the service token.** A Server Action or Route Handler that calls Directus with the service token for a visitor who is not signed in is an open door. Start each with `requireUser()`: the NextAuth recipe in `nextjs-dev` → `auth-patterns` defines it in `lib/session.ts`; on Better Auth write the same in `lib/session.ts` on top of `getSession()` (the DAL's `requireAuth()` in `auth-patterns` is that helper under another name). The templates of this stack import it from `@/lib/session`.
+1. **Authenticate and authorize before writing.** A Server Action or Route Handler is a public endpoint that takes any id. "Signed in" is not permission: with the service token, every signed-in user could edit any item. On the NextAuth path write with the user's own token (`withToken(session.accessToken, ...)`, below) so Directus applies that user's policies. On the Better Auth path there is no user token: check role or ownership in code before the write. Start each action with `requireUser()`: the NextAuth recipe in `nextjs-dev` → `auth-patterns` defines it in `lib/session.ts`; on Better Auth write the same in `lib/session.ts` on top of `getSession()` (the DAL's `requireAuth()` in `auth-patterns` is that helper under another name). The templates of this stack import it from `@/lib/session`.
 2. **Tokens stay on the server.** The refresh token never reaches browser JavaScript. On the NextAuth path the access token does reach the browser through `useSession()` by default (it is short-lived and the user's own); decide on purpose whether that is acceptable.
 3. **Never cache a user-scoped read** (`'use cache'`, tagged `fetch`). See "Cache" in `directus-to-nextjs`.
 4. **`proxy.ts` only redirects.** It checks that a session cookie exists, nothing more. The page, the Server Action and the Route Handler check again. (In Next.js 16 `proxy.ts` replaces the old middleware file.)
@@ -59,6 +59,15 @@ On the Better Auth path there is no user token: call the service-token client fr
 
 | Path | Variables |
 |------|-----------|
-| NextAuth v4 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` (and `NEXT_PUBLIC_DIRECTUS_URL`) |
+| NextAuth v4 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, and `DIRECTUS_URL` (the NextAuth recipe reads it) |
 | Better Auth | `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `DATABASE_URL` |
 | Directus session cookie | `CORS_ORIGIN` and the `SESSION_COOKIE_*` settings on the Directus side |
+
+The recipes in `nextjs-dev` and `directus-dev` read `DIRECTUS_URL` and `DIRECTUS_TOKEN`; this stack names the same two values `NEXT_PUBLIC_DIRECTUS_URL` and `DIRECTUS_ADMIN_TOKEN`:
+
+| Recipe variable | This stack | How |
+|-----------------|------------|-----|
+| `DIRECTUS_URL` | `NEXT_PUBLIC_DIRECTUS_URL` | `DIRECTUS_URL=${NEXT_PUBLIC_DIRECTUS_URL}` in `.env.local` (Next.js expands `${VAR}` in `.env` files; `templates/.env.example` has the line) |
+| `DIRECTUS_TOKEN` | `DIRECTUS_ADMIN_TOKEN` | `DIRECTUS_TOKEN=${DIRECTUS_ADMIN_TOKEN}` |
+
+Without the two lines the NextAuth login calls `undefined/auth/login` and fails with no useful message. Set them in the hosting environment too, where `.env.local` does not exist (a platform may not expand `${...}` the way `.env.local` does: give both names their values).

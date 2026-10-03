@@ -25,7 +25,7 @@ Stack: Directus + Next.js (App Router)
 - `DIRECTUS_ADMIN_TOKEN` is server-side only (`import 'server-only'`) and belongs to a dedicated user, not an administrator
 - File URLs never carry a token: public files, or the asset proxy route
 - Never cache a read made with a signed-in user's token
-- A Server Action is a public endpoint: call `requireUser()` before it uses the server token
+- A Server Action is a public endpoint that takes any id: authenticate with `requireUser()` and authorize. Write with the user's own token (`withToken(session.accessToken, ...)`) so Directus applies that user's policies, or check role or ownership in code when only the server token is used
 - After a schema change: update `types/directus.ts`, then run `npx tsc --noEmit`
 - After a mutation: `updateTag(collection)`; content edited in Directus is expired by the Flow through `/api/revalidate`
 - Liveness check for Directus is `/server/ping` (the health endpoint needs a token)

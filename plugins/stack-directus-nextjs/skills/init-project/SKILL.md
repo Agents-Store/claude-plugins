@@ -11,7 +11,7 @@ Bootstrap checklist: versions, environment, dependencies, client, verification. 
 
 | Piece | Version | Why |
 |-------|---------|-----|
-| Directus | 12 (MCP needs 11.12 or later) | MCP is switched on in Settings → AI. the health endpoint needs a token in 12, use `/server/ping` |
+| Directus | 12 (MCP needs 11.12 or later) | MCP is switched on in Settings → AI. The health endpoint needs a token in 12, use `/server/ping` |
 | `@directus/sdk` | 26 | Needs Node 22 or later |
 | Next.js | `^16.3.8` | `proxy.ts` replaces the deprecated middleware file; earlier 16.3 patches miss security fixes |
 | Node.js | 22 or later | The SDK's floor (Next.js itself needs 20.9) |
@@ -26,6 +26,7 @@ cp templates/.env.example .env.local
 |----------|---------------|
 | `NEXT_PUBLIC_DIRECTUS_URL` | Directus address (`http://localhost:8055` for the local Docker stack) |
 | `DIRECTUS_ADMIN_TOKEN` | Create a dedicated user in Directus with a policy that grants only what the server code reads and writes, then generate a static token on the user's page. The name is historical: an administrator token is for local development only |
+| `DIRECTUS_URL`, `DIRECTUS_TOKEN` | Already in `.env.example` as `${...}` references to the two rows above. The recipes of `directus-dev` and `nextjs-dev` read these names, so do not delete them |
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | NextAuth path only: `http://localhost:3000`, and `openssl rand -base64 32` |
 | `REVALIDATION_SECRET` | `openssl rand -base64 32`; the Directus Flow sends it in a header (see `deployment`) |
 
@@ -45,7 +46,7 @@ npm install @directus/sdk@26 server-only
 
 ## 5. Client and Types
 
-Create `lib/directus.ts` and `types/directus.ts` as described in `directus-dev` → skill `sdk-patterns` → `references/ssr-client.md`, reading `NEXT_PUBLIC_DIRECTUS_URL` and `DIRECTUS_ADMIN_TOKEN`. Two things from that file decide how the rest works:
+Create `lib/directus.ts` and `types/directus.ts` as described in `directus-dev` → skill `sdk-patterns` → `references/ssr-client.md`, reading `DIRECTUS_URL` and `DIRECTUS_TOKEN` (they expand to this stack's `NEXT_PUBLIC_DIRECTUS_URL` and `DIRECTUS_ADMIN_TOKEN`). Two things from that file decide how the rest works:
 
 - `rest()` has **no `cache` option** (passing `cache` to `rest()` is TS2353). Caching is set per request: see "Cache" in `directus-to-nextjs`.
 - Core collections are read with their own commands (`readCollections()`; `readItems` refuses `directus_*` collections).

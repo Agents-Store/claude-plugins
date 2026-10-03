@@ -25,7 +25,7 @@ Directus 12 gives a new collection a boolean `archived` field instead of a `stat
 - M2O: `{{collection_name}}.author` → `authors` (a collection of your own; the SDK does not read `directus_users` through `readItems`)
 - M2M: `{{collection_name}}` ↔ `categories` (junction: `{{collection_name}}_categories`, which belongs in `Schema`)
 
-**Permissions:** Give the policy of the server token's user read access to the new collection and to every collection it expands. Add create and update only if Step 4 is used. Give the Public policy nothing unless the browser reads the collection directly.
+**Permissions:** Give the policy of the server token's user read access to the new collection and to every collection it expands. Writes (Step 4) are given to the policy of the *users who sign in* on the NextAuth path, because they write with their own token; keep the server token read-only. On the Better Auth path the server token's policy needs create and update, and your code decides who may call. Give the Public policy nothing unless the browser reads the collection directly.
 
 **Sample data:** Create 3-5 sample items that pass the published filter, for testing.
 
@@ -169,38 +169,44 @@ export default async function {{DetailPageName}}({ params }: { params: Promise<{
 
 ## Step 4: Mutations (if needed)
 
-A Server Action is a public endpoint: authenticate before it touches Directus with the server token, then expire the tag. Validate `formData` (Zod, see `form-handling` in `nextjs-dev`) before writing.
+A Server Action is a public endpoint and anyone can call it with any id, so authenticate **and** authorize. On the NextAuth path the write carries the signed-in user's own token (`withToken`), and Directus applies that user's policies: a user without update permission on the item gets `403`. On the Better Auth path there is no user token: write with the server token, and check role or ownership in code first (`if (session.user.role !== 'editor') throw new Error('Forbidden')`), never skip it. Validate `formData` (Zod, see `form-handling` in `nextjs-dev`) before writing, then expire the tag.
 
 Create `app/{{route}}/actions.ts`:
 
 ```typescript
 // app/{{route}}/actions.ts
 'use server';
-import { createItem, updateItem } from '@directus/sdk';
+import { createItem, updateItem, withToken } from '@directus/sdk';
 import { updateTag } from 'next/cache';
 import directus from '@/lib/directus';
 import { requireUser } from '@/lib/session';
 
 export async function create{{TypeName}}(formData: FormData) {
-  await requireUser();
+  const session = await requireUser(); // authenticate
   await directus.request(
-    createItem('{{collection_name}}', {
-      title: String(formData.get('title') ?? ''),
-      slug: String(formData.get('slug') ?? ''),
-      status: 'draft',
-      // Add feature-specific fields
-    }),
+    withToken( // authorize: Directus checks the user's own policies
+      session.accessToken,
+      createItem('{{collection_name}}', {
+        title: String(formData.get('title') ?? ''),
+        slug: String(formData.get('slug') ?? ''),
+        status: 'draft',
+        // Add feature-specific fields
+      }),
+    ),
   );
   updateTag('{{collection_name}}');
 }
 
 export async function update{{TypeName}}(id: string, formData: FormData) {
-  await requireUser();
+  const session = await requireUser();
   await directus.request(
-    updateItem('{{collection_name}}', id, {
-      title: String(formData.get('title') ?? ''),
-      // Add feature-specific fields
-    }),
+    withToken(
+      session.accessToken,
+      updateItem('{{collection_name}}', id, {
+        title: String(formData.get('title') ?? ''),
+        // Add feature-specific fields
+      }),
+    ),
   );
   updateTag('{{collection_name}}');
 }
@@ -221,6 +227,6 @@ Content edited in Directus reaches the site only through the pipeline from `depl
 - [ ] Detail page at `/{{route}}/[slug]` loads with all fields
 - [ ] Images render through `next/image` without a token in the URL (view the page source)
 - [ ] SEO metadata appears in the page source (`generateMetadata`)
-- [ ] Create and update forms work, and fail for a visitor who is not signed in (if mutations were added)
+- [ ] Create and update forms work, fail for a visitor who is not signed in, and fail with `403` for a signed-in user whose policy does not allow the write (if mutations were added)
 - [ ] Edit an item in Directus: the page changes within seconds, without a rebuild
 - [ ] Non-existent slugs show 404 (`notFound()`)

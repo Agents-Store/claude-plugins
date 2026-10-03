@@ -92,7 +92,7 @@ Where to defer for tool detail:
 - **The SDK has no cache option.** Passing `cache` to `rest()` does not compile. Tag every Directus read with the collections it reads and let a Flow expire the tags (`directus-to-nextjs`, "Cache")
 - **No token in a URL a browser sees.** An access token in an image URL's query string leaks it through `/_next/image?url=`. Public files or the asset proxy route (`directus-to-nextjs`, "Assets")
 - `DIRECTUS_ADMIN_TOKEN` is server-side only, guarded by `import 'server-only'`, and belongs to a dedicated user with a narrow policy
-- A Server Action or Route Handler that uses the server token calls `requireUser()` first
+- A Server Action or Route Handler authenticates (`requireUser()`) and authorizes: write with the user's own token (`withToken(session.accessToken, ...)`), or check role or ownership in code before using the server token. Authentication alone lets any signed-in user change any item by id
 - Never cache a read made with a signed-in user's token
 - Core collections have their own SDK commands: `readCollections()`; `readItems` refuses `directus_*` collections
 - Liveness is `/server/ping`; the health endpoint needs a token in Directus 12
