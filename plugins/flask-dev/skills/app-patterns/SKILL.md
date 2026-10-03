@@ -354,8 +354,8 @@ def app():
     app = create_app(TestingConfig)
     with app.app_context():
         db.create_all()   # tests only; real schema comes from `flask db upgrade`
-        yield app
-        db.session.remove()
+    yield app             # no app context stays open during the test
+    with app.app_context():
         db.drop_all()
 
 
@@ -383,6 +383,22 @@ def test_seed_command(runner):
     result = runner.invoke(args=['seed'])
     assert 'Database seeded.' in result.output
 ```
+
+The fixture yields the app **outside** an app context, on purpose. Every `client.get()` then gets its own app context, like a real request: its own `db.session` (closed and rolled back at the end of the request), its own `g`, and its own Flask-Login user. Holding one context open for the whole test (`yield app` inside the `with` block) makes all requests share one session and one cached `current_user`: a view that forgets `commit()` still passes (the next request sees the pending row), and a second client looks signed in as the first user. A test that reads the database itself opens a context for it:
+
+```python
+# tests/test_register.py
+from extensions import db
+from models import User
+
+
+def test_registered_user_is_stored(app, client):
+    client.post('/register', data={'name': 'Ann', 'email': 'ann@example.com', 'password': 'correct horse battery'})
+    with app.app_context():
+        assert db.session.scalar(db.select(db.func.count()).select_from(User)) == 1   # only what was committed
+```
+
+`db.session` outside a request or a `with app.app_context():` block raises `RuntimeError: Working outside of application context`.
 
 `WTF_CSRF_ENABLED = False` in `TestingConfig` lets tests post forms without a token. Keep one test with CSRF enabled for the login form if the token matters.
 

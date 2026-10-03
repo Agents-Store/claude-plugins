@@ -32,7 +32,6 @@ pip install Flask Flask-Login Flask-WTF Flask-SQLAlchemy "SQLAlchemy<2.1"
 
 ```python
 # routes/auth.py
-import re
 from urllib.parse import urlsplit
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
@@ -44,6 +43,10 @@ from extensions import db
 from models import User
 
 auth_bp = Blueprint('auth', __name__)
+
+NAME_MAX, EMAIL_MAX = 100, 120   # String(100) and String(120) of the User columns
+MIN_PASSWORD_LENGTH = 15    # NIST SP 800-63B-4: 15 when the password is the only factor, 8 with a second factor
+MAX_PASSWORD_LENGTH = 128   # NIST asks for at least 64; a cap keeps one request from hashing megabytes
 
 # Checked when the email is unknown, so "no such user" and "wrong password" cost the same time.
 DUMMY_HASH = generate_password_hash('not-a-real-password', method='scrypt')
@@ -58,12 +61,11 @@ def local_target(target):
 
 
 def password_problem(password):
-    if len(password) < 8:
-        return 'Password must be at least 8 characters'
-    if not re.search(r'[0-9]', password):
-        return 'Password must contain at least one number'
-    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        return 'Password must contain at least one special character'
+    """Length, not composition: NIST SP 800-63B-4 bans composition rules."""
+    if len(password) < MIN_PASSWORD_LENGTH:
+        return f'Password must be at least {MIN_PASSWORD_LENGTH} characters'
+    if len(password) > MAX_PASSWORD_LENGTH:
+        return f'Password must be at most {MAX_PASSWORD_LENGTH} characters'
     return None
 
 
@@ -76,8 +78,12 @@ def register():
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
 
-        problem = None if name and email else 'Name and email are required'
-        problem = problem or password_problem(password)
+        if not name or not email:
+            problem = 'Name and email are required'
+        elif len(name) > NAME_MAX or len(email) > EMAIL_MAX:
+            problem = f'Name must be at most {NAME_MAX} characters and email at most {EMAIL_MAX}'   # the column sizes: PostgreSQL raises instead of cutting
+        else:
+            problem = password_problem(password)
         if problem:
             flash(problem, 'error')
             return render_template('register.html')
@@ -131,7 +137,14 @@ Why it is written this way:
 - **Hash method named.** `generate_password_hash(password, method='scrypt')` is the Werkzeug 3 default; naming it fixes the choice in code. The hash is about 160 characters, so `String(256)` is enough. `check_password_hash` reads the method from the stored hash, so old hashes keep working when the method changes.
 - **Registration on the constraint.** The `unique=True` column is the only check that survives two simultaneous sign-ups; the `IntegrityError` branch turns it into the same flash message. A register form still tells a visitor that an address is taken: if that matters, accept any address and confirm by e-mail.
 - **`next` stays local.** `@login_required` redirects anonymous users to `/login?next=/path`; the login form posts back to the same URL, so `next` is still there. `local_target` rejects `https://evil.example`, `//evil.example` and `/\evil.example`.
+- **Passwords: length, not composition.** NIST SP 800-63B-4 asks for at least 15 characters when the password is the only factor (8 with a second factor), at least 64 allowed, and no composition rules ("one digit and one special character" pushes people to `Password1!`). Check new passwords against a list of common and breached ones as well (a local list, or the k-anonymity range API of Have I Been Pwned); that is the rule that actually stops `correct-horse-1!`-style choices, and it needs no change to the routes except one more `elif` in `password_problem`.
+- **Field sizes.** `name` and `email` are checked against the column sizes before the insert: SQLite stores an over-long value, PostgreSQL raises `DataError` and the visitor sees a 500.
 - **Logout is `POST` with a CSRF token.** A `GET` logout is triggered by any other page (`<img src="/logout">`). The form is in `base.html` (`project-scaffold`).
+
+## Rate limiting and "remember me"
+
+- **Throttle `/login` and `/register`.** Nothing above limits guesses: every request costs the attacker one scrypt check at most. Flask-Limiter (`pip install Flask-Limiter`) adds a per-address limit, for example `@limiter.limit('5 per minute', methods=['POST'])` on both views, with a shared store (Redis) once you run more than one worker. Create the `Limiter` in `extensions.py` like the other extensions.
+- **Sessions are not persistent here.** `login_user(user)` without `remember=True` signs the user in for the browser session only. If you add a "remember me" box (`login_user(user, remember=True)`), Flask-Login sets a second cookie that outlives the session; harden it like the session cookie: `REMEMBER_COOKIE_SECURE = True`, `REMEMBER_COOKIE_HTTPONLY = True`, `REMEMBER_COOKIE_SAMESITE = 'Lax'` in `ProductionConfig`, and a bounded `REMEMBER_COOKIE_DURATION` (the default is 365 days).
 
 ## Templates
 
@@ -167,15 +180,15 @@ The form has no `action`, so it posts to the URL it was loaded from and keeps `?
 <h1>Create an account</h1>
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Name <input type="text" name="name" required autofocus></label>
-  <label>Email <input type="email" name="email" required></label>
+  <label>Name <input type="text" name="name" required autofocus maxlength="100"></label>
+  <label>Email <input type="email" name="email" required maxlength="120"></label>
   <label>Password
     <span class="password-field">
-      <input type="password" name="password" id="password" required minlength="8">
+      <input type="password" name="password" id="password" required minlength="15" maxlength="128">
       <button type="button" data-toggle-password="password">Show</button>
     </span>
   </label>
-  <p class="hint">At least 8 characters, one number and one special character.</p>
+  <p class="hint">At least 15 characters. A passphrase of several words is fine; spaces and any characters are allowed.</p>
   <button type="submit">Register</button>
 </form>
 <p><a href="{{ url_for('auth.login') }}">I already have an account</a></p>
@@ -222,20 +235,47 @@ With `TestingConfig` (`WTF_CSRF_ENABLED = False`, see `app-patterns`, Testing):
 
 ```python
 # tests/test_auth.py
+import re
+
 import pytest
 
 from extensions import db
 from models import User
 
+PASSWORD = 'correct horse battery'   # 21 characters, no digit or symbol needed
 
-def register(client, email='ann@example.com', password='s3cret-pass!1'):
-    return client.post('/register', data={'name': 'Ann', 'email': email, 'password': password})
+
+def register(client, email='ann@example.com', password=PASSWORD, name='Ann'):
+    return client.post('/register', data={'name': name, 'email': email, 'password': password})
 
 
 def test_register_signs_in(client):
     response = register(client)
     assert response.status_code == 302
     assert client.get('/dashboard').status_code == 200
+
+
+def test_each_client_has_its_own_user(app):
+    ann, ben = app.test_client(), app.test_client()
+    register(ann, 'ann@example.com', name='Ann')
+    register(ben, 'ben@example.com', name='Ben')
+    assert b'ann@example.com' in ann.get('/dashboard').data
+    assert b'ben@example.com' in ben.get('/dashboard').data
+    assert b'ann@example.com' not in ben.get('/dashboard').data
+
+
+def test_password_rule_is_length(client):
+    assert register(client, password='Short1!').status_code == 200            # 7 characters: refused
+    assert b'at least 15' in register(client, password='Short1!').data
+    assert register(client, password='x' * 129).status_code == 200            # over the cap: refused
+    assert register(client).status_code == 302                                # a plain passphrase is accepted
+
+
+def test_overlong_name_or_email_is_refused_before_the_insert(app, client):
+    assert b'at most' in register(client, name='n' * 101).data
+    assert b'at most' in register(client, email='e' * 110 + '@example.com').data
+    with app.app_context():
+        assert db.session.scalar(db.select(db.func.count()).select_from(User)) == 0
 
 
 def test_login_error_is_the_same_for_unknown_email_and_wrong_password(client):
@@ -259,17 +299,27 @@ def test_next_must_stay_on_the_site(client, target):
     register(client)
     client.post('/logout')
     response = client.post('/login?next=' + target,
-                           data={'email': 'ann@example.com', 'password': 's3cret-pass!1'})
+                           data={'email': 'ann@example.com', 'password': PASSWORD})
     assert response.headers['Location'].endswith('/dashboard')
 
 
 def test_password_is_stored_hashed(app, client):
     register(client)
-    user = db.session.scalar(db.select(User))
-    assert user.password_hash != 's3cret-pass!1'
-    assert user.password_hash.startswith('scrypt:')
+    with app.app_context():
+        user = db.session.scalar(db.select(User))
+        assert user.password_hash != PASSWORD
+        assert user.password_hash.startswith('scrypt:')
+
+
+def test_login_form_needs_the_csrf_token(app, client):
+    app.config['WTF_CSRF_ENABLED'] = True       # TestingConfig switches it off
+    page = client.get('/login').data.decode()
+    token = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    form = {'email': 'nobody@example.com', 'password': 'x'}
+    assert client.post('/login', data=form).status_code == 400
+    assert b'Wrong email or password' in client.post('/login', data={**form, 'csrf_token': token}).data
 ```
 
-Keep one test with CSRF on for the login form if the token matters (`app.config['WTF_CSRF_ENABLED'] = True`, read the token from the page).
+`test_each_client_has_its_own_user` depends on the fixture of `app-patterns`: it yields the app without an open app context, so each client's requests get their own `g` and their own Flask-Login user.
 
 See `app-patterns` for the extension wiring, CSRF setup and error handlers, `jinja2-patterns` for template inheritance, `troubleshoot` for redirect loops and CSRF errors, and the `sqlalchemy-dev` plugin for the `User` model and queries.

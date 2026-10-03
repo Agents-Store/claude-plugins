@@ -153,17 +153,47 @@ def edit_client(client_id):
     return redirect(url_for('clients.clients'))
 ```
 
-The record is fetched together with its owner: another user's id answers `404` (see `owner-scoped-queries.md`). An edit button carries the current values in `data-` attributes; a few lines of JavaScript copy them into the form:
+The record is fetched together with its owner: another user's id answers `404` (see `owner-scoped-queries.md`). Each card has an edit button that carries the current values and the form's URL in `data-` attributes; one edit form per page is filled from them by a few lines of JavaScript. The form is a `POST` form like every other, so it carries the CSRF token:
 
 ```jinja2
 <button class="edit-client-btn"
-    data-id="{{ client.id }}"
+    data-action="{{ url_for('clients.edit_client', client_id=client.id) }}"
     data-name="{{ client.name }}"
     data-phone="{{ client.phone or '' }}"
     data-status="{{ client.status }}">
     Edit
 </button>
 ```
+
+```jinja2
+{# once per page, outside the loop #}
+<form method="post" id="edit-client-form" action="" hidden>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="name" required>
+    <input type="tel" name="phone">
+    <select name="status">
+        {% for s in statuses %}<option value="{{ s }}">{{ s|title }}</option>{% endfor %}
+    </select>
+    <button type="submit">Save</button>
+</form>
+```
+
+```javascript
+// static/js/clients.js
+document.querySelectorAll('.edit-client-btn').forEach(function (button) {
+  button.addEventListener('click', function () {
+    var form = document.getElementById('edit-client-form');
+    form.action = button.dataset.action;
+    form.elements['name'].value = button.dataset.name;
+    form.elements['phone'].value = button.dataset.phone;
+    form.elements['status'].value = button.dataset.status;
+    form.hidden = false;
+    form.elements['name'].focus();
+  });
+});
+```
+
+Load the script from the page with `{% block scripts %}<script src="{{ url_for('static', filename='js/clients.js') }}" defer></script>{% endblock %}`.
 
 ## Delete: Confirm, Remove
 
@@ -299,7 +329,7 @@ def add_appointment():
 ```python
 # tests/test_clients.py
 def test_client_crud(client):
-    client.post('/register', data={'name': 'Ann', 'email': 'ann@example.com', 'password': 's3cret-pass!1'})
+    client.post('/register', data={'name': 'Ann', 'email': 'ann@example.com', 'password': 'correct horse battery'})
     client.post('/clients/add', data={'name': 'Bea', 'phone': '123', 'status': 'vip'})
     assert b'Bea' in client.get('/clients').data
     assert b'Bea' not in client.get('/clients?status=new').data
