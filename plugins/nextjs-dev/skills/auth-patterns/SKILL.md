@@ -2,15 +2,25 @@
 name: auth-patterns
 description: >
   Next.js authentication and authorization patterns. Use when the user asks about
-  "authentication in Next.js", "NextAuth.js", "Auth.js", "middleware auth guards",
-  "protected routes", "session management", "role-based access", "login page",
-  "signup form", "JWT sessions", "cookies auth", or needs guidance on implementing
-  auth in App Router applications.
+  "authentication in Next.js", "NextAuth.js", "Auth.js", "Better Auth",
+  "middleware auth guards", "protected routes", "session management",
+  "role-based access", "login page", "signup form", "JWT sessions", "cookies auth",
+  or needs guidance on implementing auth in App Router applications.
 ---
 
 # Authentication Patterns
 
 Authentication in Next.js spans multiple layers: proxy (middleware), layouts, pages, Server Actions, and Route Handlers. This skill covers where and how to check auth at each layer.
+
+## Choosing an Auth Library
+
+| Option | Use when | Notes |
+|--------|----------|-------|
+| **Better Auth** | New projects | Recommended path — see "Better Auth (Recommended for New Projects)" below. The Auth.js project is now part of Better Auth |
+| **Own sessions** (`jose` + cookies, below) | Simple credentials login, full control, no extra dependency | You own password hashing, rotation and CSRF review |
+| **Auth.js v5** (`next-auth@beta`) | Existing projects already on it | Still a beta (`5.0.0-beta.32`) in maintenance mode — the Better Auth team ships security patches and critical fixes only. `next-auth@latest` on npm is still v4 (`4.24.15`) |
+
+The proxy / DAL / Server Action / Route Handler layering in this skill is library-independent: only `getSession()` changes.
 
 ## Authentication Flow Overview
 
@@ -343,9 +353,110 @@ export default async function AdminPage() {
 }
 ```
 
-## Auth.js (NextAuth v5) Quick Setup
+## Better Auth (Recommended for New Projects)
 
-For a full-featured auth solution with OAuth providers:
+The Auth.js project has joined Better Auth. The Better Auth team continues to handle security patches and critical issues for Auth.js, but for new projects they strongly recommend Better Auth; if an existing Auth.js setup works well there is no urgent need to migrate (migration guide: https://authjs.dev/getting-started/migrate-to-better-auth).
+
+```bash
+npm install better-auth
+```
+
+```bash
+# .env — generate the secret with: openssl rand -base64 32
+BETTER_AUTH_SECRET=<at least 32 characters of high entropy>
+BETTER_AUTH_URL=http://localhost:3000
+```
+
+```typescript
+// lib/auth.ts
+import { betterAuth } from 'better-auth'
+import { nextCookies } from 'better-auth/next-js'
+import { Pool } from 'pg'
+
+export const auth = betterAuth({
+  database: new Pool({ connectionString: process.env.DATABASE_URL }), // or a Drizzle / Prisma adapter
+  emailAndPassword: { enabled: true },
+  socialProviders: {
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    },
+  },
+  plugins: [nextCookies()], // lets Server Actions set cookies — must be the last plugin
+})
+```
+
+Without a `database` option Better Auth runs in stateless-session mode, but most plugins require a database. Generate the schema with the Better Auth CLI (`npx auth@latest generate`; for Prisma or Drizzle it writes the ORM schema, for the built-in database support it writes an SQL file).
+
+```typescript
+// app/api/auth/[...all]/route.ts
+import { auth } from '@/lib/auth'
+import { toNextJsHandler } from 'better-auth/next-js'
+
+export const { GET, POST } = toNextJsHandler(auth)
+```
+
+```typescript
+// lib/auth-client.ts — import from better-auth/react
+import { createAuthClient } from 'better-auth/react'
+
+export const authClient = createAuthClient()
+// Client Components: authClient.signIn.email({ email, password }), authClient.signUp.email({ name, email, password }),
+// authClient.signIn.social({ provider: 'github' }), authClient.signOut(), authClient.useSession()
+```
+
+Read the session on the server (Server Components, Server Actions, Route Handlers) with `auth.api.getSession`:
+
+```typescript
+// lib/session.ts — drop-in replacement for the getSession() used elsewhere in this skill
+import 'server-only'
+import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
+
+export async function getSession() {
+  return auth.api.getSession({ headers: await headers() })
+}
+```
+
+```tsx
+// app/dashboard/page.tsx
+import { getSession } from '@/lib/session'
+import { redirect } from 'next/navigation'
+
+export default async function DashboardPage() {
+  const session = await getSession()
+  if (!session) redirect('/login')
+  return <h1>Welcome, {session.user.name}</h1>
+}
+```
+
+Note that `session.user.id` replaces the `session.userId` field of the hand-rolled session above. Server Components cannot set cookies, so the cookie cache refreshes only when a Server Action or Route Handler runs.
+
+Optimistic redirect in `proxy.ts` — check only that a session cookie exists, never treat it as proof of authentication:
+
+```typescript
+// proxy.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { getSessionCookie } from 'better-auth/cookies'
+
+export async function proxy(request: NextRequest) {
+  // Optimistic only: the cookie may be forged or expired. Real checks live in the DAL / pages / actions.
+  if (!getSessionCookie(request)) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+  return NextResponse.next()
+}
+
+export const config = { matcher: ['/dashboard/:path*'] }
+```
+
+If you changed Better Auth's cookie name or prefix, pass the same settings to `getSessionCookie`. In Next.js 16 the proxy runs on the Node.js runtime, so full validation with `auth.api.getSession({ headers: request.headers })` is possible there too, at the cost of a database hit per matched request.
+
+**With `cacheComponents: true`:** `getSession()` reads `headers()`, so it is request-time data. Call it inside a component wrapped in `<Suspense>` (or opt a route out with `export const instant = false` while migrating), never inside a `'use cache'` scope — extract the `userId` first and pass it into the cached function. See the "Authentication with Cache Components" guide at https://nextjs.org/docs/app/guides/authentication-with-cache-components.
+
+## Auth.js (NextAuth v5) — Existing Projects
+
+> Auth.js v5 is still published as `next-auth@beta` and the project is in maintenance mode under Better Auth. Prefer Better Auth for new work; use this section when maintaining an Auth.js codebase.
 
 ```bash
 npm install next-auth@beta
@@ -393,8 +504,8 @@ export default async function Page() {
 
 ## What This Skill Does NOT Cover
 
-- Specific OAuth provider setup (Google, GitHub, etc.) — see Auth.js docs
-- Database adapter configuration for Auth.js
+- Specific OAuth provider setup (Google, GitHub, etc.) — see the Better Auth or Auth.js docs
+- Database adapter configuration for Better Auth / Auth.js
 - Multi-tenancy and organization-based access
 - Two-factor authentication (2FA) implementation
 - Social login UI components

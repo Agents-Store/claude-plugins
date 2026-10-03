@@ -2,6 +2,8 @@
 
 Build a multi-page dashboard with authentication, nested layouts, streaming data, and Server Actions.
 
+> **Auth library:** this scenario is written for Auth.js v5 (`next-auth@beta`), the existing-project path — that project is now part of Better Auth and in maintenance mode. For a new project use Better Auth (see the `auth-patterns` skill): `auth()` becomes `auth.api.getSession({ headers: await headers() })`, the `[...nextauth]` route becomes `app/api/auth/[...all]/route.ts` with `toNextJsHandler(auth)`, the proxy cookie check becomes `getSessionCookie(request)`, and `SessionProvider` is replaced by `authClient.useSession()`. The layering (proxy, layout, Server Actions) is unchanged.
+
 ## Project Structure
 
 ```
@@ -107,6 +109,8 @@ export const config = {
 ```
 
 ## Step 3: Dashboard Layout with Sidebar (Double-Layer Auth)
+
+> With `cacheComponents: true`, `auth()` reads request-time data, so the part of the layout that reads the session must sit behind a `<Suspense>` boundary (or the route opts out with `export const instant = false` while you migrate); this scenario assumes the previous model where that is not required.
 
 The layout performs a **secondary server-side auth check**. While the proxy catches most unauthenticated requests up front, the layout check provides defense in depth — it verifies the session is valid (not just that a cookie exists) and gives access to the full session object for rendering user info. This uses Auth.js v5 (`next-auth@beta`): the `auth()` helper exported from your `auth.ts` config replaces v4's `getServerSession(authOptions)`:
 
