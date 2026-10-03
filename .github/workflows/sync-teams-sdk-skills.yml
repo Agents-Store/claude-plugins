@@ -1,0 +1,70 @@
+name: Sync microsoft/teams-sdk upstream
+
+on:
+  schedule:
+    # Weekly: every Monday at 07:30 UTC
+    - cron: "30 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: "Upstream git ref to sync (branch or tag). Empty = main"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Run sync script
+        id: sync
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref || '' }}
+        run: |
+          # The script treats an empty UPSTREAM_REF as `main`.
+          SHA="$(./scripts/sync-teams-sdk-skills.sh)"
+          echo "upstream_sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "upstream_short=${SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Check for changes
+        id: diff
+        run: |
+          # `git diff` misses new upstream skill directories (untracked), so ask status.
+          if [ -z "$(git status --porcelain -- plugins/teams-dev)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/sync-teams-sdk-skills
+          commit-message: |
+            chore(teams-dev): vendor the official Teams SDK skills @ ${{ steps.sync.outputs.upstream_short }}
+
+            Source: https://github.com/microsoft/teams-sdk/commit/${{ steps.sync.outputs.upstream_sha }}
+          title: "chore(teams-dev): vendor the official Teams SDK skills @ ${{ steps.sync.outputs.upstream_short }}"
+          body: |
+            Automated sync from [`microsoft/teams-sdk`](https://github.com/microsoft/teams-sdk) (MIT) at commit [`${{ steps.sync.outputs.upstream_short }}`](https://github.com/microsoft/teams-sdk/commit/${{ steps.sync.outputs.upstream_sha }}).
+
+            **Scope:** every skill directory under upstream `plugins/teams-sdk/skills/`, mirrored to `plugins/teams-dev/skills/teams-sdk-<name>/`, plus `plugins/teams-dev/LICENSE-teams-sdk`. The hand-written skills of `teams-dev` (every directory without the `teams-sdk-` prefix) are untouched.
+
+            **Review checklist:**
+            - [ ] New / removed / renamed upstream skill directories? (a `teams-sdk-*` directory with no upstream counterpart is reported as a warning in the job log and never deleted)
+            - [ ] Does `./scripts/scrub-check.sh plugins/teams-dev` stay clean? New findings in vendored files need a baseline line in their own pull request, never an edit to the vendored file.
+            - [ ] Do the hand-written skills still point at guides and commands that exist? If upstream renamed a CLI command or a guide, update the pointers in `agents/teams-developer.md`, `commands/*.md` and `skills/cli-recipes`.
+            - [ ] Does upstream still say `teams_cli_version: 3.0.*`? A new major means `skills/cli-recipes` needs a re-check.
+
+            Triggered by: `${{ github.event_name }}`.
+          labels: |
+            automation
+            upstream-sync
+          delete-branch: true
