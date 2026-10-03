@@ -111,10 +111,10 @@ npx trigger.dev@<version> deploy --skip-promotion
 npx trigger.dev@<version> promote 20260101.1
 
 # Tag the deploy with a commit SHA (version skew protection, max 128 characters)
-npx trigger.dev@<version> deploy --env prod --external-id "$GITHUB_SHA"
+npx trigger.dev@<version> deploy --env prod --external-id "$GITHUB_SHA"  # requires CLI/SDK and server >= 4.5.12; drop it on older
 ```
 
-`--env` accepts `prod`, `staging` and `preview` (`production` is coerced to `prod`). More flags: `--force` (rebuild an already deployed `--external-id`), `--dry-run`, `--skip-sync-env-vars`, `--env-file`, `--config`, `--project-ref`, `--profile`, `-a/--api-url`, `--local-build`, `--native-build`, `--depot-build`, `--local-bundle` (experimental, needs `--native-build`), `--detach` (needs `--native-build`), `--build-logs compact|full`. See the **deployment** skill for the full table and self-hosted specifics.
+`--env` accepts `prod`, `staging` and `preview` (`production` is coerced to `prod`). More flags: `--force` (rebuild an already deployed `--external-id`; both need server ≥ 4.5.12, CLI/SDK must match), `--dry-run`, `--skip-sync-env-vars`, `--env-file`, `--config`, `--project-ref`, `--profile`, `-a/--api-url`, `--local-build`, `--native-build`, `--depot-build`, `--local-bundle` (experimental, needs `--native-build`), `--detach` (needs `--native-build`), `--build-logs compact|full`. See the **deployment** skill for the full table and self-hosted specifics.
 
 ## Environment Variables
 

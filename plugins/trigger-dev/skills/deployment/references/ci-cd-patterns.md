@@ -14,7 +14,7 @@
 
 **Authenticate with a Deploy-only API key.** Create one environment API key per environment you deploy to (Dashboard, API keys, "Deploy only" access) and pass it as `TRIGGER_ACCESS_TOKEN`; a personal access token also works but is tied to a person and not recommended for CI. Deploy-only keys are documented for Cloud; check them on your self-hosted version.
 
-**Tag the deploy.** `--external-id ${{ github.sha }}` (max 128 characters) makes re-runs idempotent and enables version skew protection (CLI/SDK 4.5.12+); give the application the same value as `TRIGGER_EXTERNAL_DEPLOYMENT_ID`.
+**Tag the deploy.** `--external-id ${{ github.sha }}` (max 128 characters) makes re-runs idempotent and enables version skew protection. **Requires server ≥ 4.5.12 (CLI/SDK must match)**: an older CLI rejects the flag, so drop it on a 4.4.4 server. Give the application the same value as `TRIGGER_EXTERNAL_DEPLOYMENT_ID`.
 
 ## GitHub Actions — Cloud
 
@@ -34,7 +34,7 @@ jobs:
           node-version: "20"
       - run: npm ci
       - name: Deploy to production
-        run: npm run deploy:trigger -- --external-id ${{ github.sha }}
+        run: npm run deploy:trigger -- --external-id ${{ github.sha }}  # requires CLI/SDK and server >= 4.5.12; drop it on older
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
 ```
@@ -66,7 +66,7 @@ jobs:
         run: echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login "${{ secrets.DOCKER_REGISTRY_URL }}" -u "${{ secrets.DOCKER_REGISTRY_USERNAME }}" --password-stdin
 
       - name: Deploy to production
-        run: npm run deploy:trigger -- --external-id ${{ github.sha }}
+        run: npm run deploy:trigger -- --external-id ${{ github.sha }}  # requires CLI/SDK and server >= 4.5.12; drop it on older
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
           TRIGGER_API_URL: ${{ secrets.TRIGGER_API_URL }}
@@ -101,13 +101,13 @@ jobs:
 
       - name: Deploy to staging
         if: github.ref == 'refs/heads/develop'
-        run: npm run deploy:trigger:staging -- --external-id ${{ github.sha }}
+        run: npm run deploy:trigger:staging -- --external-id ${{ github.sha }}  # requires CLI/SDK and server >= 4.5.12; drop it on older
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
           TRIGGER_API_URL: ${{ secrets.TRIGGER_API_URL }}
       - name: Deploy to production
         if: github.ref == 'refs/heads/main'
-        run: npm run deploy:trigger -- --external-id ${{ github.sha }}
+        run: npm run deploy:trigger -- --external-id ${{ github.sha }}  # requires CLI/SDK and server >= 4.5.12; drop it on older
         env:
           # A key for the production environment; staging uses its own secret
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
@@ -124,7 +124,7 @@ deploy-trigger:
   image: node:20
   script:
     - npm ci
-    - npm run deploy:trigger -- --external-id "$CI_COMMIT_SHA"
+    - npm run deploy:trigger -- --external-id "$CI_COMMIT_SHA"  # requires CLI/SDK and server >= 4.5.12; drop it on older
   variables:
     TRIGGER_ACCESS_TOKEN: $TRIGGER_ACCESS_TOKEN
     TRIGGER_API_URL: $TRIGGER_API_URL
@@ -151,11 +151,11 @@ For self-hosted, add a docker login step before deploy:
 echo "$DOCKER_REGISTRY_PASSWORD" | docker login "$DOCKER_REGISTRY_URL" -u "$DOCKER_REGISTRY_USERNAME" --password-stdin
 
 # Deploy with the pinned CLI (npm script that runs `trigger deploy --env prod`)
-npm run deploy:trigger -- --external-id "$CI_COMMIT_SHA"
+npm run deploy:trigger -- --external-id "$CI_COMMIT_SHA"  # requires CLI/SDK and server >= 4.5.12; drop it on older
 ```
 
 For cloud, just run the same script (no docker login):
 
 ```bash
-npx trigger.dev@<sdk-version> deploy --env prod --external-id "$CI_COMMIT_SHA"
+npx trigger.dev@<sdk-version> deploy --env prod --external-id "$CI_COMMIT_SHA"  # requires CLI/SDK and server >= 4.5.12; drop it on older
 ```

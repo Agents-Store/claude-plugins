@@ -49,8 +49,8 @@ npx trigger.dev@<version> promote <deployed-version>
 | `-c, --config <path>` | Custom trigger.config.ts path |
 | `-p, --project-ref <ref>` | Override project ref |
 | `--dry-run` | Show what would be deployed without deploying |
-| `--external-id <id>` | Your own id for the deploy (commit SHA, CI run id, release tag; max 128 characters). Deploying an id that is already live reports the existing version instead of building again. Basis of version skew protection (below) |
-| `--force` | Rebuild even if the `--external-id` is already deployed; needs `--external-id` |
+| `--external-id <id>` | Your own id for the deploy (commit SHA, CI run id, release tag; max 128 characters). Deploying an id that is already live reports the existing version instead of building again. Basis of version skew protection (below). Requires server ≥ 4.5.12 (CLI/SDK must match); an older CLI rejects the flag |
+| `--force` | Rebuild even if the `--external-id` is already deployed; needs `--external-id` (same version requirement) |
 | `--local-build` | Build the Docker image locally |
 | `--native-build` | Build on the native build server (cloud build options) |
 | `--depot-build` | Build with Depot (cloud build options) |
@@ -60,12 +60,12 @@ npx trigger.dev@<version> promote <deployed-version>
 
 On self-hosted, builds run locally on the machine that runs `deploy`, so the native and Depot build options do not apply there.
 
-## Version Skew Protection (requires CLI and SDK ≥ 4.5.12)
+## Version Skew Protection (requires server ≥ 4.5.12; CLI/SDK must match)
 
 Automatic atomic deployments are deprecated in favour of version skew protection. Give each deploy an id, give your running app the same id, and Trigger.dev pins every triggered run to the deployment built for that release:
 
 ```bash
-npx trigger.dev@<version> deploy --env prod --external-id "$GITHUB_SHA"
+npx trigger.dev@<version> deploy --env prod --external-id "$GITHUB_SHA"  # requires CLI/SDK and server >= 4.5.12; drop it on older
 # and in the application's runtime environment, the same value:
 # TRIGGER_EXTERNAL_DEPLOYMENT_ID=<same commit sha>
 ```
@@ -89,7 +89,7 @@ npx trigger.dev@<server-version> deploy \
 # TRIGGER_ACCESS_TOKEN and is not tied to one person's account.
 TRIGGER_ACCESS_TOKEN=<deploy-only-key-for-prod> \
 TRIGGER_API_URL=https://your-trigger-instance.example.com \
-npx trigger.dev@<server-version> deploy --env prod --external-id "$GITHUB_SHA"
+npx trigger.dev@<server-version> deploy --env prod --external-id "$GITHUB_SHA"  # requires CLI/SDK and server >= 4.5.12; drop it on older
 ```
 
 Deploy-only keys are documented for Trigger.dev Cloud; confirm they exist on your server version before relying on them. A personal access token is the documented fallback, but it is tied to a person and not recommended for CI.
@@ -302,7 +302,7 @@ jobs:
         run: echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login "${{ secrets.DOCKER_REGISTRY_URL }}" -u "${{ secrets.DOCKER_REGISTRY_USERNAME }}" --password-stdin
 
       - name: Deploy to production
-        run: npm run deploy:trigger -- --external-id ${{ github.sha }}
+        run: npm run deploy:trigger -- --external-id ${{ github.sha }}  # requires CLI/SDK and server >= 4.5.12; drop it on older
         env:
           # A "Deploy only" environment API key, one per environment (a personal access token also works)
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
