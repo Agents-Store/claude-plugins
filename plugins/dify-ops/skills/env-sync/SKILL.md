@@ -1,15 +1,29 @@
 ---
 name: env-sync
 description: >
-  Synchronize .env with .env.example for Dify Docker deployments — detect new variables, add
-  missing ones with default values, preserve existing customizations. Use when syncing env
-  variables, checking for new Dify configuration variables, comparing .env.example vs .env,
-  "env sync", "new env variables", "missing environment variables", or after pulling Dify updates.
+  Synchronize .env with .env.example for Dify Docker deployments, including the optional envs/
+  templates — detect new, removed and changed variables, add missing ones with default values,
+  preserve existing customizations, never print secrets. Use when syncing env variables, checking
+  for new Dify configuration variables, comparing .env.example vs .env, "env sync", "new env
+  variables", "missing environment variables", or after pulling Dify updates.
 ---
 
 ## Location
 
-Both `.env.example` and `.env` live in `dify/docker/` (DOCKER_DIR). All commands below run from that directory.
+`.env.example` and `.env` live in `dify/docker/` (DOCKER_DIR). All commands below run from that directory.
+
+Since 1.14.1 the configuration is split in two layers:
+
+- **Root `.env.example`** — essential startup settings (about 240 keys). `.env` is your copy of it plus your changes.
+- **`envs/**/*.env.example`** — optional, provider-specific and service-specific settings: `envs/core-services/` (`shared`, `api`, `web`, `worker`, `sandbox`, `plugin-daemon`, `dify-agent`, …), `envs/databases/`, `envs/infrastructure/`, `envs/vectorstores/`, `envs/security.env.example`. To use one you copy it without the `.example` suffix. `shared.env.example` alone holds more than 500 keys.
+
+Compose reads `envs/**/*.env` when present (`required: false`) and reads `.env` **last**, so a value in `.env` wins. `*.env` files are gitignored; the `*.env.example` templates are tracked and change with every release.
+
+An `.env` copied from an older, monolithic `.env.example` still works: it is read last. It simply does not follow the new split.
+
+## Never Print Secrets
+
+`.env` holds database and Redis passwords, `SECRET_KEY`, API keys and tokens. Never `cat .env`, never echo a value of a key whose name contains `SECRET`, `PASSWORD`, `PASSWD`, `TOKEN`, `KEY`, `CREDENTIAL`, `DSN` or `AUTH`. Show key **names** and, for harmless keys, the value from `.env.example` (the default). Output you produce lands in the session transcript.
 
 ## Edge Case: .env Does Not Exist
 
@@ -22,32 +36,39 @@ if [ ! -f ".env" ]; then
   cp .env.example .env
   echo "CREATED .env from .env.example"
   echo ""
-  echo "IMPORTANT: Review and set these security-sensitive values:"
-  grep -E '^(SECRET_KEY|DB_PASSWORD|REDIS_PASSWORD|INIT_PASSWORD)=' .env
+  echo "IMPORTANT: Review and set these security-sensitive keys:"
+  grep -oE '^(SECRET_KEY|DB_PASSWORD|REDIS_PASSWORD|INIT_PASSWORD|DIFY_AGENT_API_TOKEN|DIFY_AGENT_SERVER_SECRET_KEY)=' .env
 fi
 ```
 
-After creating, show the user the critical variables that need manual attention.
+`grep -o` with the `=` anchor prints the key names only. An empty `SECRET_KEY` is fine since 1.14.1: the API generates a key and stores it in `volumes/app/storage`. After creating, show the user which keys still carry development defaults.
 
-## Edge Case: Official dify-env-sync.sh
+## Default: the Official dify-env-sync.sh
 
-Check if Dify's own sync script exists before using the manual algorithm:
+When `dify-env-sync.sh` exists in DOCKER_DIR (there is also a `dify-env-sync.py`), run it first. It is a one-way sync from `.env.example` to `.env`:
+
+- backs `.env` up to `env-backup/.env.backup_<timestamp>` before changing anything
+- adds new keys with their example values and keeps every value you already set
+- lists keys whose value differs from the example, and keys removed from the example
+
+The manual algorithm below compares **key names** only, so it misses a changed default; the script reports the changed values.
+
+**The script prints the current `.env` value of every differing key, passwords and secrets included.** Run it through a filter that masks the value of any secret-looking key:
 
 ```bash
-if [ -f "$DOCKER_DIR/dify-env-sync.sh" ]; then
-  echo "Found official dify-env-sync.sh"
-  echo "This script:"
-  echo "  - One-way sync from .env.example to .env"
-  echo "  - Preserves all existing custom values"
-  echo "  - Creates timestamped backup in env-backup/"
-  echo ""
-  echo "Run it with: bash dify-env-sync.sh"
-fi
+cd $DOCKER_DIR
+bash dify-env-sync.sh 2>&1 | awk '
+  { gsub(/\033\[[0-9;]*m/, "") }
+  /^\[[0-9]+\] /{ key=$2; print; next }
+  key ~ /SECRET|PASSWORD|PASSWD|TOKEN|KEY|CREDENTIAL|DSN|AUTH/ && /^  [^ ]/ {
+    if ($0 ~ /^  \.env/) { sub(/:.*/, ": ***"); print }
+    next }
+  { print }'
 ```
 
-Offer the user a choice: use the official script or the manual algorithm below.
+Never run the script bare inside an agent session. If it fails, fall back to the manual algorithm.
 
-## Sync Algorithm
+## Sync Algorithm (manual fallback)
 
 ### Step 1: Extract Keys
 
@@ -77,7 +98,7 @@ fi
 
 ### Step 3: Extract Full Lines for New Variables
 
-For each new key, get the full `KEY=VALUE` line from `.env.example`:
+The new keys come from `.env.example`, so their values are defaults and safe to show:
 
 ```bash
 for KEY in $NEW_KEYS; do
@@ -89,22 +110,20 @@ done
 
 ### Step 4: Show User What Will Be Added
 
-Present as a table before making changes:
+Present as a table before making changes (the rows below are examples of the shape, not real variables):
 
 ```
-| Variable              | Default Value      | Action Required? |
-|-----------------------|-------------------|-----------------|
-| NEW_FEATURE_FLAG      | false             | No              |
-| PLUGIN_API_KEY        | (empty)           | YES — set value |
-| NEW_TIMEOUT_SECONDS   | 300               | No              |
+| Variable                         | Default Value                    | Action Required? |
+|----------------------------------|----------------------------------|------------------|
+| DIFY_AGENT_API_TOKEN             | *-for-dev-only                   | YES — development default |
+| DIFY_AGENT_SERVER_SECRET_KEY     | (development default)            | YES — development default |
+| WEBSOCKET_MAX_HTTP_BUFFER_SIZE   | 10485760                         | No               |
 ```
 
-**Flag as "Action Required"** any variable matching these patterns:
-- `*SECRET*`
-- `*PASSWORD*`
-- `*KEY*` (but not `*_TIMEOUT*` or `*_SIZE*`)
-- `*TOKEN*`
-- Value is empty
+**Flag as "Action Required"** any variable that:
+- matches `*SECRET*`, `*PASSWORD*`, `*KEY*` (but not `*_TIMEOUT*` or `*_SIZE*`) or `*TOKEN*`
+- has an empty value
+- carries a **development default**: a value ending in `-for-dev-only`, `difyai123456`, or any value that the release notes say to change in production (`DIFY_AGENT_API_TOKEN`, `DIFY_AGENT_SERVER_SECRET_KEY` since 1.16.1)
 
 ### Step 5: Append to .env
 
@@ -124,11 +143,36 @@ done
 echo "Added $(echo "$NEW_KEYS" | wc -l | tr -d ' ') new variables to .env"
 ```
 
-### Step 6: Cleanup
+## Optional Templates: envs/
+
+For every `envs/**/*.env` the user created, compare it with its paired template. Show new keys, never add them automatically:
 
 ```bash
-rm -f /tmp/dify-env-example-keys /tmp/dify-env-keys
+cd $DOCKER_DIR
+find envs -name '*.env' -type f | while read -r f; do
+  tpl="$f.example"
+  [ -f "$tpl" ] || { echo "$f: no template $tpl (removed upstream?)"; continue; }
+  new=$(comm -23 <(grep -oE '^[A-Z_][A-Z0-9_]*' "$tpl" | sort -u) <(grep -oE '^[A-Z_][A-Z0-9_]*' "$f" | sort -u))
+  [ -n "$new" ] && { echo "$f — new keys in the template:"; echo "$new"; }
+done
 ```
+
+Also list templates that are new in this release and might be worth enabling (`git diff --name-status <old>..<new> -- docker/envs`). Copying a template to `*.env` is the user's decision.
+
+## Cases That Need an Explicit Check
+
+A key-by-key comparison does not catch these; check them after every update to 1.14.1 or newer:
+
+| Key | What changed | Check |
+|-----|--------------|-------|
+| `COMPOSE_PROFILES` | Default gained `collaboration` in 1.14.1; the `api_websocket` service starts only with that profile | `grep -m1 '^COMPOSE_PROFILES=' .env` — add `collaboration` if an older `.env` lacks it |
+| `EDITION` | Renamed `DEPLOYMENT_EDITION` in 1.17.0 (template: `envs/core-services/shared.env.example`) | If `.env` sets `EDITION`, rename it |
+| `DIFY_AGENT_RUN_RETENTION_SECONDS` | Default dropped from 3 days to 2 hours in 1.17.1 and the key moved from the root file into `envs/core-services/dify-agent.env.example` | An `.env` copied from 1.16.x still pins the old 3 days (`.env` wins), a fresh one gets 2 hours — pick the value you want explicitly |
+| `DIFY_AGENT_SHELLCTL_AUTH_TOKEN`, `DIFY_AGENT_SHELLCTL_ENTRYPOINT` | Removed in 1.17.0 | Drop from `.env` |
+| `EXPOSE_NGINX_PORT`, `EXPOSE_NGINX_SSL_PORT` | Host ports; `NGINX_PORT` is the container-internal port | Read `EXPOSE_NGINX_PORT` for the URL, never `NGINX_PORT` |
+| `SECRET_KEY` | Empty means generated and stored in `volumes/app/storage` (1.14.1) | Never change after start; keep the storage directory in the backup |
+
+Read the "Environment Variable Changes" section of every release between the old and the new version: `gh release view <tag> -R langgenius/dify --json body -q .body`.
 
 ## Checking Removed Variables
 
@@ -140,11 +184,17 @@ if [ -n "$REMOVED_KEYS" ]; then
   echo ""
   echo "Note: These variables are in .env but no longer in .env.example:"
   echo "$REMOVED_KEYS"
-  echo "They may be deprecated. Check Dify release notes before removing."
+  echo "They may be deprecated or moved to envs/. Check Dify release notes before removing."
 fi
 ```
 
-Do NOT automatically remove these — just inform the user. They may be custom additions.
+Keys that left the root file may simply have moved into a template under `envs/`: search there (`grep -rl "^KEY=" envs`) before calling one deprecated. Do NOT automatically remove these — just inform the user. They may be custom additions.
+
+Clean up the temporary key lists once both checks are done:
+
+```bash
+rm -f /tmp/dify-env-example-keys /tmp/dify-env-keys
+```
 
 ## Security-Sensitive Variables
 
@@ -152,11 +202,12 @@ When adding new variables, flag these for special attention:
 
 | Pattern | Why |
 |---------|-----|
-| `SECRET_KEY` | Application secret — must be unique per instance |
+| `SECRET_KEY` | Application secret — unique per instance; empty = generated and stored in `volumes/app/storage` |
 | `*_PASSWORD` | Database, Redis passwords — must match service config |
 | `*_API_KEY` | External service credentials |
 | `*_SECRET` | OAuth, webhook secrets |
 | `*_TOKEN` | Auth tokens |
 | `INIT_PASSWORD` | Initial admin password |
+| `*-for-dev-only`, `difyai123456` | Development defaults — never keep them in production |
 
-If any of these are added with empty defaults, warn the user explicitly.
+If any of these are added with empty or development defaults, warn the user explicitly.
