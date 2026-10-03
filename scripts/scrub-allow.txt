@@ -26,6 +26,8 @@ plugins/outline-ops/skills/api-reference/references/outline-openapi.yml:uuid:ven
 plugins/outline-ops/skills/api-reference/references/outline-openapi.yml:public-ip:vendor OpenAPI document, address is Outline's own example value
 plugins/directus-dev/skills/item-operations/SKILL.md:uuid:illustrative primary keys in Directus request/response examples
 plugins/teams-dev/skills/authentication/references/sso-setup.md:uuid:Microsoft Entra tenant/app id placeholders from the vendor quickstart
+plugins/teams-dev/skills/teams-sdk-teams-dev/references/guide-setup-sso.md:uuid#sha256-4f91461b6a59:upstream microsoft/teams-sdk SSO guide, Microsoft's own public first-party Teams desktop and mobile client application id used to pre-authorize the client; vendored verbatim and re-synced weekly, so a local edit would be overwritten
+plugins/teams-dev/skills/teams-sdk-teams-dev/references/guide-setup-sso.md:uuid#sha256-0711928e9c33:upstream microsoft/teams-sdk SSO guide, Microsoft's own public first-party Teams web client application id used to pre-authorize the client; vendored verbatim and re-synced weekly, so a local edit would be overwritten
 plugins/atlassian-ops/skills/api-reference/references/jira-openapi-v3.json:high-entropy:vendor OpenAPI document, the long runs are Atlassian's own base64 example payloads (avatar SVG/XML, sample ids)
 plugins/atlassian-ops/skills/api-reference/references/jira-openapi-v3.json:private-host:vendor OpenAPI document minified onto ONE line, so every dotted token in 5 MB shares a "line" — Atlassian's published avatar CDN and doc links plus property keys such as an app-key or a field id
 plugins/n8n-dev/skills/api-reference/references/n8n-api.json:high-entropy:vendor OpenAPI document, the long runs are n8n's own example ids in `example:` fields
@@ -37,6 +39,7 @@ plugins/mattermost-ops/skills/api-reference/references/mattermost-openapi-v4.yam
 # --- documentation values that only LOOK like deployment data ---------------
 plugins/dataforseo-dev/skills/backlink-audit/SKILL.md:private-host#spamsite.com:illustrative domain in a disavow-file example, deliberately not a real site
 plugins/n8n-dev/skills/n8n-code-javascript/references/BUILTIN_FUNCTIONS.md:private-host#url.host:member access on a parsed URL object; `.host` is also a real TLD, which is what makes it parse as a hostname
+plugins/n8n-dev/skills/n8n-code-javascript/BUILTIN_FUNCTIONS.md:private-host#url.host:member access on a parsed URL object; `.host` is also a real TLD, which is what makes it parse as a hostname
 
 # --- third-party test fixtures we did not author ---------------------------
 # Editing an assertion string to satisfy the gate risks breaking a suite we do
@@ -69,3 +72,17 @@ plugins/vercel-dev/README.md:private-host#sha256-07fa4e17aacc:upstream README li
 plugins/vercel-dev/skills/microfrontends/references/managing-microfrontends.md:private-host#sha256-ed81f666b1c4:links to the public Terraform Registry docs of Vercel's Terraform provider
 plugins/vercel-dev/skills/react-best-practices/upstream/README.md:private-host#sha256-7f7ed12dfe7a:upstream README crediting the author's public X profile
 .github/workflows/sync-cross-cli.yml:instance-name#sha256-497be8f50190c623:the OpenClaw mirror's real repository name; CI pushes to it, so it cannot be a placeholder
+
+# --- upstream nocobase/skills content re-synced verbatim (sync-nocobase-skills.sh) ---
+# The weekly sync overwrites nocobase-* directories, so a local placeholder edit would be undone on the next run.
+plugins/nocobase-dev/skills/nocobase-publish-manage/references/test-playbook.md:home-path#sha256-afcbe8fa5959:upstream nocobase/skills test playbook, the home directory in a sample download path is the upstream author's own; vendored verbatim and re-synced weekly, so a local edit would be overwritten
+plugins/nocobase-dev/skills/nocobase-publish-manage/references/v1-runtime-contract.md:home-path#sha256-afcbe8fa5959:upstream nocobase/skills runtime contract, same sample download path as the test playbook; vendored verbatim and re-synced weekly, so a local edit would be overwritten
+
+# --- upstream czlonkowski/n8n-skills content re-synced verbatim (sync-n8n-skills.sh) ---
+# The weekly sync overwrites every vendored n8n-* skill, so a local placeholder edit would be undone on the next run.
+plugins/n8n-dev/skills/n8n-self-hosting/TASK_RUNNERS.md:host-name#sha256-49883ab20e3b1ddc:upstream n8n-skills compose snippet, the docker compose service name of the first queue-mode worker; vendored verbatim and re-synced weekly, so a local edit would be overwritten
+plugins/n8n-dev/skills/n8n-self-hosting/TASK_RUNNERS.md:host-name#sha256-803f49fadb92c15e:upstream n8n-skills compose snippet, the docker compose service name of the second queue-mode worker; vendored verbatim and re-synced weekly, so a local edit would be overwritten
+plugins/n8n-dev/skills/n8n-self-hosting/assets/.env.queue.example:secret-kv#sha256-50965e05bebf64fc:upstream n8n-skills env template, N8N_ENCRYPTION_KEY carries the literal placeholder REPLACE_WITH_openssl_rand_base64_32, not a key; vendored verbatim and re-synced weekly
+plugins/n8n-dev/skills/n8n-self-hosting/assets/.env.queue.example:secret-kv#sha256-8f101fca97b40aad:upstream n8n-skills env template, POSTGRES_PASSWORD carries the literal placeholder REPLACE_WITH_openssl_rand_base64_24, not a password; vendored verbatim and re-synced weekly
+plugins/n8n-dev/skills/n8n-self-hosting/assets/.env.queue.example:secret-kv#sha256-725ce7b1645aa6e7:upstream n8n-skills env template, POSTGRES_NON_ROOT_PASSWORD carries the literal placeholder REPLACE_WITH_openssl_rand_base64_24, not a password; vendored verbatim and re-synced weekly
+plugins/n8n-dev/skills/n8n-self-hosting/assets/.env.single.example:secret-kv#sha256-50965e05bebf64fc:upstream n8n-skills env template, N8N_ENCRYPTION_KEY carries the literal placeholder REPLACE_WITH_openssl_rand_base64_32, not a key; vendored verbatim and re-synced weekly
