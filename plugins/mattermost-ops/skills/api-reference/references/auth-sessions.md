@@ -43,10 +43,10 @@ Tokens for unattended integrations — used identically to a session token (`Aut
 | Method | Path | Purpose |
 |--------|------|---------|
 | POST | `/users/{user_id}/tokens` | Create a PAT. Body `{"description","expires_at"?}` (`expires_at` in v11.9+, Unix ms). Response includes the one-time `token` value. Needs `create_user_access_token` (plus `edit_other_users` for someone else). |
-| GET | `/users/{user_id}/tokens` | List a user's PAT metadata (not the secret). |
+| GET | `/users/{user_id}/tokens` | List a user's PAT metadata (not the secret): `id`, `description`, `is_active`, `expires_at` (Unix ms; `0` = no expiry). |
 | GET | `/users/tokens` | (Admin, `manage_system`) Page through all PATs on the server. |
 | GET | `/users/tokens/{token_id}` | Get one PAT's metadata. |
-| POST | `/users/tokens/rotate` | **v11.10+.** Rotate a PAT: body `{"token_id","expires_at"?}`; returns the new secret (shown once) and **invalidates the old secret and its sessions immediately**. Needs `create_user_access_token`; rotating a system admin's token also needs `manage_system`; OAuth sessions cannot call it. |
+| POST | `/users/tokens/rotate` | **v11.10+.** Rotate a PAT: body `{"token_id","expires_at"?}`; returns the new secret (shown once) and **invalidates the old secret and its sessions immediately**. Needs `create_user_access_token`; rotating someone else's token also needs `edit_other_users`, and a system admin's token also `manage_system`; OAuth sessions cannot call it; a **disabled** token cannot be rotated (`400` — enable it first). |
 | POST | `/users/tokens/revoke` | Revoke a PAT. Body `{"token_id"}`. |
 | POST | `/users/tokens/disable` / `/users/tokens/enable` | Disable / re-enable a PAT. Body `{"token_id"}`. |
 | POST | `/users/tokens/search` | Search PATs (admin). |
@@ -69,7 +69,7 @@ curl -s -X POST -H "Authorization: Bearer ${MATTERMOST_TOKEN}" -H "Content-Type:
 Admin policy and notifications (v11.9 / v11.10 changelog):
 
 - `ServiceSettings.MaximumPersonalAccessTokenLifetimeDays` — `0` (default) imposes no policy; non-zero means a **new** PAT must expire within that many days. Bot-account tokens are exempt; existing tokens are not touched until an admin runs the non-compliant revoke above (also in System Console → Integrations → Integration Management).
-- The server reaps expired PATs hourly. From v11.10 the owner gets a system-bot direct message 7, 3 and 1 days before expiry and when an expired token is removed. Admins can run that notifier on demand through the jobs API (`POST /jobs`, `pat_expiry_notify`).
+- The server reaps expired PATs hourly (job `cleanup_expired_access_tokens`). From v11.10 the owner gets a system-bot direct message 7, 3 and 1 days before expiry and when an expired token is removed. Admins can run the notifier on demand through the jobs API: `POST /jobs` with `{"type":"notify_expiring_access_tokens"}` (the changelog calls it the `pat_expiry_notify` job, but that string is **not** the job type and returns `400 incorrect_job_type`).
 - `mmctl user token generate` accepts `--expires-in` (for example `90d`).
 
 ## Terms of service
