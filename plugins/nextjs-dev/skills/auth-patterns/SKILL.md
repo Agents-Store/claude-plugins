@@ -18,9 +18,10 @@ Authentication in Next.js spans multiple layers: proxy (middleware), layouts, pa
 |--------|----------|-------|
 | **Better Auth** | New projects | Recommended path — see "Better Auth (Recommended for New Projects)" below. The Auth.js project is now part of Better Auth |
 | **Own sessions** (`jose` + cookies, below) | Simple credentials login, full control, no extra dependency | You own password hashing, rotation and CSRF review |
-| **Auth.js v5** (`next-auth@beta`) | Existing projects already on it | Still a beta (`5.0.0-beta.32`) in maintenance mode — the Better Auth team ships security patches and critical fixes only. `next-auth@latest` on npm is still v4 (`4.24.15`) |
+| **NextAuth.js v4** (`next-auth@latest`, `4.24.15`) | Existing projects; a credentials login against an existing token API (for example a Directus backend) | A working path with Next.js 16, not a deprecated one: `npm i next-auth` still installs v4. Config, `proxy.ts` guard and its limits: [references/nextauth-and-authjs.md](references/nextauth-and-authjs.md) |
+| **Auth.js v5** (`next-auth@beta`) | Existing projects already on it | Still a beta (`5.0.0-beta.32`) in maintenance mode — the Better Auth team ships security patches and critical fixes only |
 
-The proxy / DAL / Server Action / Route Handler layering in this skill is library-independent: only `getSession()` changes.
+The proxy / DAL / Server Action / Route Handler layering in this skill is library-independent: `getSession()` changes, and so does where a role comes from (Better Auth has none by default, see its section).
 
 ## Authentication Flow Overview
 
@@ -408,7 +409,7 @@ export const authClient = createAuthClient()
 Read the session on the server (Server Components, Server Actions, Route Handlers) with `auth.api.getSession`:
 
 ```typescript
-// lib/session.ts — drop-in replacement for the getSession() used elsewhere in this skill
+// lib/session.ts — replaces getSession() for the session lookup (it returns { session, user }, and has no role: see below)
 import 'server-only'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
@@ -430,7 +431,19 @@ export default async function DashboardPage() {
 }
 ```
 
-Note that `session.user.id` replaces the `session.userId` field of the hand-rolled session above. Server Components cannot set cookies, so the cookie cache refreshes only when a Server Action or Route Handler runs.
+Note that `session.user.id` replaces the `session.userId` field of the hand-rolled session above, and that this is a drop-in replacement only for the *session lookup*, not for everything the hand-rolled payload carried. **There is no `session.role`**: Better Auth's user has no role field by default, so the `requireAdmin()` of the RBAC section does not work until you add one. Either enable the `admin` plugin (adds `user.role`), or declare your own column and read it as `session.user.role`:
+
+```typescript
+// lib/auth.ts — inside betterAuth({ ... })
+user: {
+  additionalFields: {
+    // input: false is essential: without it a user could send their own role at sign-up
+    role: { type: 'string', required: false, defaultValue: 'user', input: false },
+  },
+},
+```
+
+Server Components cannot set cookies, so the cookie cache refreshes only when a Server Action or Route Handler runs.
 
 Optimistic redirect in `proxy.ts` — check only that a session cookie exists, never treat it as proof of authentication:
 
@@ -454,40 +467,12 @@ If you changed Better Auth's cookie name or prefix, pass the same settings to `g
 
 **With `cacheComponents: true`:** `getSession()` reads `headers()`, so it is request-time data. Call it inside a component wrapped in `<Suspense>` (or opt a route out with `export const instant = false` while migrating), never inside a `'use cache'` scope — extract the `userId` first and pass it into the cached function. See the "Authentication with Cache Components" guide at https://nextjs.org/docs/app/guides/authentication-with-cache-components.
 
-## Auth.js (NextAuth v5) — Existing Projects
+## NextAuth v4 and Auth.js v5 — Existing Projects
 
-> Auth.js v5 is still published as `next-auth@beta` and the project is in maintenance mode under Better Auth. Prefer Better Auth for new work; use this section when maintaining an Auth.js codebase.
+Both keep working for projects that already use them; neither is the recommendation for new work. The full recipes are in [references/nextauth-and-authjs.md](references/nextauth-and-authjs.md):
 
-```bash
-npm install next-auth@beta
-```
-
-```typescript
-// auth.ts
-import NextAuth from 'next-auth'
-import GitHub from 'next-auth/providers/github'
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [GitHub],
-})
-```
-
-```typescript
-// app/api/auth/[...nextauth]/route.ts
-import { handlers } from '@/auth'
-export const { GET, POST } = handlers
-```
-
-```tsx
-// Usage in Server Components
-import { auth } from '@/auth'
-
-export default async function Page() {
-  const session = await auth()
-  if (!session?.user) return <p>Not signed in</p>
-  return <p>Welcome, {session.user.name}</p>
-}
-```
+- **NextAuth v4** — Credentials provider against a token API with refresh, `types/next-auth.d.ts`, `app/api/auth/[...nextauth]/route.ts`, `SessionProvider`, the `proxy.ts` guard (`getToken` in Next.js 16, not `middleware.ts`), a login page, and the limits that decide whether v4 fits (refresh is saved only by `/api/auth/session`, the access token is readable in the browser).
+- **Auth.js v5** (`next-auth@beta`) — `auth.ts` with `handlers`, `auth()` in Server Components. Maintenance mode under Better Auth.
 
 ## Auth Check Layers — When to Use Which
 

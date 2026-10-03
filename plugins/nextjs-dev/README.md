@@ -15,7 +15,7 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 | `setup` | Verify Next.js project environment and readiness |
 | `app-router-patterns` | App Router file conventions, routing, layouts, metadata, proxy |
 | `server-client-components` | Server vs Client Component patterns, boundaries, composition |
-| `data-fetching` | Data fetching, Server Actions, caching, ISR, streaming, Cache Components (`use cache`), previous-model route config (`revalidate`, `dynamic`) and what replaces it under `cacheComponents` |
+| `data-fetching` | Data fetching, Server Actions, caching, ISR, streaming, Cache Components (`use cache`), previous-model route config (`revalidate`, `dynamic`) and what replaces it under `cacheComponents`, pages backed by a headless CMS (webhook revalidation, CMS images) |
 | `api-reference` | Framework API quick reference (functions, config, types) |
 
 ### Architecture & Patterns
@@ -32,7 +32,7 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 | Skill | Description |
 |-------|-------------|
 | `security-patterns` | CSP headers with nonces, CSRF protection, XSS prevention, env var safety, `server-only`, security headers |
-| `auth-patterns` | Authentication flows, session management (JWT/cookies), proxy auth guards, RBAC, Better Auth for new projects, Auth.js v5 for existing ones |
+| `auth-patterns` | Authentication flows, session management (JWT/cookies), proxy auth guards, RBAC, Better Auth for new projects (with the role caveat), NextAuth v4 and Auth.js v5 for existing ones |
 
 ### Quality & Testing
 

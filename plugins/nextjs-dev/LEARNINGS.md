@@ -1,5 +1,12 @@
 # LEARNINGS.md — nextjs-dev
 
+## 2026-10-03 — data-fetching, auth-patterns, troubleshoot: headless CMS pages, NextAuth v4, Better Auth role (1.6.0)
+
+**Problem:** The Directus + Next.js stack plugin carried Next.js content that belongs here (revalidation webhook, `generateStaticParams`, Server Actions, `next.config.ts` images, NextAuth config, `proxy.ts`). In this plugin: the Better Auth `lib/session.ts` was called a drop-in replacement for `getSession()` although `session.role` has no Better Auth equivalent without the `admin` plugin or `user.additionalFields`, so the `requireAdmin()` of the RBAC section silently never matched; NextAuth v4, the version `npm i next-auth` still installs, had no row in "Choosing an Auth Library"; the image troubleshooting row advised an `access_token` in the image URL, which `/_next/image?url=` copies into the HTML for every visitor.
+**Fix:** `data-fetching` gained `references/headless-cms.md` (one `cache()` content module and how tags get onto requests in both caching models, `generateStaticParams` from CMS slugs, a webhook Route Handler with the secret in a header, a tag allow-list and `revalidateTag(tag, { expire: 0 })`, Server Actions that authenticate before using a server credential, `next.config.ts` images with `dangerouslyAllowLocalIP` for development only and the `localPatterns` requirement for a proxy route). `auth-patterns` gained a NextAuth v4 "working path" row and `references/nextauth-and-authjs.md` (Credentials provider with refresh, type augmentation, the `proxy.ts` guard with `getToken`, `requireUser()`, login page, and the limits found by reading `getServerSession`: it cannot write cookies in a Server Component, so refresh is saved only by `/api/auth/session`; the access token is readable in the browser). The Auth.js v5 section moved there too (SKILL.md 511 to 496 lines). The Better Auth section now says `session.role` does not exist and shows `user.additionalFields` with `input: false`. The image troubleshooting row says: public files or a Route Handler, never a token in the URL. Type-checked with `tsc --strict` against `next@16.3.8`, `next-auth@4.24.15` and `@directus/sdk@26`.
+**Root cause:** The Next.js half of the stack recipes lived in the stack plugin; the Better Auth example was written as a session lookup swap and the role field was not considered.
+**Severity:** Major
+
 Accumulated fixes, discoveries, and improvements for the nextjs-dev plugin.
 
 ## 2026-03-30 — troubleshoot: Missing next/image debugging for authenticated upstream
