@@ -165,7 +165,7 @@ export const Media: CollectionConfig = {
 }
 ```
 
-- Multipart requests are capped at 50 MiB by default — raise `upload.requestSizeLimit` in the root `buildConfig` if you accept larger uploads.
+- Multipart requests are capped by default and oversize ones get HTTP 413: 50 MiB per request (`upload.requestSizeLimit`) **and** 20 MiB per file (`upload.limits.fileSize`; also `files: 3`, `fields: 20`, `fieldSize` 1 MiB). Raise both in the root `buildConfig` — `upload: { requestSizeLimit, limits: { fileSize } }` — if you accept larger files through Payload.
 - External files (pasted URLs, `disableLocalStorage`) need a trusted origin: set `serverURL` or add the app origin to CORS/CSRF. `externalFileHeaderFilter(headers, context)` receives `context.isSameOrigin` — strip cookies for foreign hosts.
 - `prefix` on an upload collection is a storage field now; a custom top-level field named `prefix` can no longer carry ordinary data — rename it.
 
