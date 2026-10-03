@@ -31,7 +31,7 @@ An access request is a user's request to view a document they can't currently se
 |--------|----------------------|
 | `auth.info` | Authentication details for the current key. No body → `{user, team}`. Use this as the connection/verification check. |
 | `auth.config` | Workspace auth options (name, hostname, available SSO services). **Unauthenticated** — no Bearer header needed. |
-| `auth.delete` | Sign out the current user. Per the API spec this **rotates the user's token secret, immediately invalidating all existing API tokens and sessions for that user** — assume it can cut off the key you are calling with. No body. **Confirm first**; never use it as a health check. |
+| `auth.delete` | Sign out the current user. Per the API spec this **rotates the user's token secret, immediately invalidating that user's existing tokens and sessions**. Personal `ol_api_` keys are separate records and most likely survive it, but do not rely on that. No body. **Confirm first**; never use it as a health check. |
 
 ## Webhook subscriptions
 

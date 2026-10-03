@@ -27,7 +27,7 @@ H_AUTH="Authorization: Bearer ${OUTLINE_API_KEY}"
 1. **Everything is `POST ${OUT}/<method>` with a JSON body.** No GETs, no path params. An action with no inputs still needs `-d '{}'`.
 2. **Read `.data`.** The useful payload is always under `.data` in the response envelope.
 3. **Resolve titles to ids once.** Users say "the Welcome doc"; the API wants a UUID or `urlId`. Resolve with `documents.search` / `documents.search_titles` / `collections.list` and keep the id.
-4. **Confirm before destructive actions.** `documents.delete` (trash), `permanent: true`, `documents.empty_trash`, `collections.delete`, `users.delete/suspend`, `shares.revoke`, `revisions.delete`, `apiKeys.delete`, `webhookSubscriptions.delete`, and `auth.delete` (sign out — invalidates the user's tokens) are high-impact — show the user what will change first.
+4. **Confirm before destructive actions.** `documents.delete` (trash), `permanent: true`, `documents.empty_trash`, `collections.delete`, `users.delete/suspend`, `shares.revoke`, `revisions.delete`, `apiKeys.delete`, `webhookSubscriptions.delete`, and `auth.delete` (sign out — ends the user's sessions and tokens) are high-impact — show the user what will change first.
 
 ## Workflow: find a document by title
 
@@ -90,7 +90,7 @@ Revoke with `shares.revoke` `{"id"}`. (→ `sharing-access.md`)
 
 1. **Invite** — `users.invite` `{"invites":[{"email":"alice@acme.com","name":"Alice","role":"member"}]}`. (→ `users-groups.md`)
 2. **Find / list** — `users.list` `{"query":"alice"}` or with the structured filter `{"filters":[{"field":"suspendedAt","operator":"isNull"}]}` (the older `{"filter":"active"}` still works but is deprecated). Re-send a pending invite with `users.resendInvite` `{"id"}`.
-3. **Change role** — `users.update_role` `{"id","role":"admin|member|viewer"}` (admin only).
+3. **Change role** — `users.update_role` `{"id","role":"admin|member|viewer|guest"}` (admin only).
 4. **Suspend** (reversible, preferred over delete) — `users.suspend` `{"id"}`; reverse with `users.activate`. Confirm first.
 5. **Grant collection access** — `collections.add_user` `{"id":"<collectionId>","userId","permission":"read_write"}`, or by group with `collections.add_group`. Per-document access uses `documents.add_user` / `documents.add_group`.
 

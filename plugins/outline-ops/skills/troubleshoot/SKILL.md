@@ -13,7 +13,7 @@ Match the symptom, apply the fix. Most Outline API failures come from a bad base
 
 - Confirm the header is exactly `Authorization: Bearer ${OUTLINE_API_KEY}` and the key begins with `ol_api_`.
 - Verify the key still exists under **Settings → API & Apps** (revoked keys always `401`; `apiKeys.list` shows the key's name, `last4` and `expiresAt` — an expired key no longer authenticates).
-- Did anything call `auth.delete` (sign out)? It rotates the user's token secret and invalidates the user's tokens and sessions.
+- Did anything call `auth.delete` (sign out)? It rotates the user's token secret, which ends that user's browser sessions and session tokens (JWTs). Personal `ol_api_` keys are separate records, so it most likely does **not** revoke one — but if keys stopped working right after a sign-out, check `apiKeys.list` before assuming.
 - Confirm `OUTLINE_API_KEY` is actually set in the environment: `[ -n "$OUTLINE_API_KEY" ] && echo set || echo MISSING`.
 - Re-run the `setup` check: `POST /auth.info`. A `200` there means the key is fine and the problem is elsewhere.
 
@@ -42,7 +42,7 @@ Match the symptom, apply the fix. Most Outline API failures come from a bad base
 - Send `-H "Content-Type: application/json"` and a valid JSON body. Even no-arg calls need `-d '{}'`.
 - Check required fields per method (see the reference file). E.g. publishing a document needs `collectionId` **or** `parentDocumentId`; `shares.create` needs exactly one of `documentId`/`collectionId`; `documents.update` with `editMode:"patch"` also needs `findText`.
 - `collections.create`/`collections.update` reject a body that has **both** `description` and `data` (Outline v1.9.0+) — send one. `comments.create`/`comments.update` need `text` **or** `data`. `webhookSubscriptions.create` needs `name`, `url` and `events`, and a cloud workspace requires an `https` URL. Text limits: document `title` ≤100, `text` ≤1,536,000 chars, comment `text` ≤10000 chars.
-- `views.create` is gone from the published spec (and rejects API keys on newer servers) — don't call it.
+- `views.create` is gone from the published spec (and may be rejected on newer servers, which tightened its authentication) — don't call it.
 - Escape newlines in JSON string values (`\n`). Building the body with `jq -n` avoids quoting mistakes:
   ```bash
   jq -n --arg id "$DOC_ID" --arg t "$(cat body.md)" '{id:$id, text:$t}'
@@ -77,4 +77,4 @@ Match the symptom, apply the fix. Most Outline API failures come from a bad base
 
 ## Optional convenience MCP
 
-If you'd rather call tools than curl for the most common search/read/create/edit operations, use Outline's **built-in MCP server** (every workspace since 2026-02-18): Streamable HTTP at `<workspace-origin>/mcp` (self-hosted: your domain + `/mcp`; this is **not** `OUTLINE_API_URL`), OAuth sign-in by default or `Authorization: Bearer <api-key>`; enable it under **Settings → Workspace → AI**, and run `claude mcp add --transport http outline <workspace-origin>/mcp` (details in the plugin `README.md`). If it will not connect, an admin may have disabled it. Community Outline MCP servers also exist and use the same `OUTLINE_API_KEY`/`OUTLINE_API_URL` variables: Python [`Vortiago/mcp-outline`](https://github.com/Vortiago/mcp-outline), npm [`outline-mcp-server`](https://www.npmjs.com/package/outline-mcp-server), Rust [`nizovtsevnv/outline-mcp-rs`](https://github.com/nizovtsevnv/outline-mcp-rs). They cover a convenient subset — for full coverage (admin, OAuth, data attributes, file ops) use the REST endpoints in `api-reference`. These are not dependencies of this plugin.
+If you'd rather call tools than curl for the most common search/read/create/edit operations, use Outline's **built-in MCP server** (announced 2026-02-18; self-hosted needs Outline v1.6.0+, and it is off by default for workspaces that existed before then): Streamable HTTP at `<workspace-origin>/mcp` (self-hosted: your domain + `/mcp`; this is **not** `OUTLINE_API_URL`), OAuth sign-in by default or `Authorization: Bearer <api-key>`; enable it under **Settings → Workspace → AI**, and run `claude mcp add --transport http outline <workspace-origin>/mcp` (details in the plugin `README.md`). If it will not connect, an admin may have disabled it. Community Outline MCP servers also exist and use the same `OUTLINE_API_KEY`/`OUTLINE_API_URL` variables: Python [`Vortiago/mcp-outline`](https://github.com/Vortiago/mcp-outline), npm [`outline-mcp-server`](https://www.npmjs.com/package/outline-mcp-server), Rust [`nizovtsevnv/outline-mcp-rs`](https://github.com/nizovtsevnv/outline-mcp-rs). They cover a convenient subset — for full coverage (admin, OAuth, data attributes, file ops) use the REST endpoints in `api-reference`. These are not dependencies of this plugin.

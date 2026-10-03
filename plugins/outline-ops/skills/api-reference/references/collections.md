@@ -20,8 +20,6 @@ Collections group documents into a nested hierarchy and are the level at which r
 
 ## Archive, restore, reorder, duplicate, import
 
-Added to the API after the first plugin release (bundled spec: 154 operations).
-
 | Method | Purpose & key fields |
 |--------|----------------------|
 | `collections.archive` | Hide the collection and all its documents from the sidebar and search; reversible. `{"id","reason"?(≤2000, nullable)}` — the reason is stored and returned as `deprecatedReason`. |

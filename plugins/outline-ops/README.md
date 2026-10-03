@@ -67,8 +67,9 @@ curl -s -X POST "${OUTLINE_API_URL%/}/auth.info" \
 
 ## Built-in Outline MCP server
 
-Since 2026-02-18 every Outline workspace — cloud and self-hosted — has an MCP server built in ([announcement](https://www.getoutline.com/changelog/mcp), [setup guide](https://docs.getoutline.com/s/guide/doc/mcp-6j9jtENNKL)). This plugin does **not** ship or require it; it is a complement for interactive use.
+Outline workspaces — cloud and self-hosted — have an MCP server built in, announced 2026-02-18 ([announcement](https://www.getoutline.com/changelog/mcp), [setup guide](https://docs.getoutline.com/s/guide/doc/mcp-6j9jtENNKL)). This plugin does **not** ship or require it; it is a complement for interactive use.
 
+- **Availability:** the built-in MCP server arrived in Outline **v1.6.0** (2026-03-15), so a self-hosted instance needs v1.6.0 or newer. It shipped **disabled by default for existing workspaces** — an admin has to switch it on (below). API-key header authentication was added in v1.6.1.
 - **Transport & URL:** Streamable HTTP only. The URL is the workspace origin plus `/mcp` — `https://<yoursubdomain>.getoutline.com/mcp` on cloud, `https://<your-outline-domain>/mcp` when self-hosted. It is **not** `OUTLINE_API_URL` (that one ends in `/api`).
 - **Enable it:** an admin can toggle MCP under **Settings → Workspace → AI**; if clients cannot connect, check that it has not been disabled. The same page has a field for extra guidance shown to MCP clients.
 - **Authentication:** OAuth by default — the client opens a sign-in window. API-key auth is also supported with the header `Authorization: Bearer <your-api-key>`.
@@ -89,7 +90,7 @@ Since 2026-02-18 every Outline workspace — cloud and self-hosted — has an MC
     }
   }
   ```
-- **Tool names:** because you connect the server yourself, its tools appear under the name you chose — `mcp__outline__<tool>` for a server called `outline`. List them with `/mcp`; the exact set grows with Outline releases (search, read, create/edit/delete for documents and collections, document restore, templates, comments).
+- **Tool names:** because you connect the server yourself, its tools appear under the name you chose — `mcp__outline__<tool>` for a server called `outline`. List them with `/mcp`; the exact set depends on your server version and grows with releases (e.g. search/fetch, create/update/move/delete for documents and collections, document restore, template listing, comments, and attachment upload via `create_attachment`).
 - **STDIO-only clients** can bridge with `npx -y mcp-remote https://<yoursubdomain>.getoutline.com/mcp`.
 - **REST or MCP?** Use the MCP server for interactive search/read/edit with OAuth sign-in and no static key. Use this plugin's REST skills for scripting, admin (users, groups, API keys, webhooks, OAuth clients), bulk and file operations (import/export, attachments) and anything the MCP tool list does not cover.
 
