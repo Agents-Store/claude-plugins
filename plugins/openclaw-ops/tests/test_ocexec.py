@@ -377,6 +377,36 @@ class RiskMarkerTest(unittest.TestCase):
         self.assertEqual(self.risk("triage", "--json", "--run"), "R4")
         self.assertEqual(self.risk("triage", "--agent", "codex"), "R4")
 
+    def test_the_triage_read_form_keeps_the_generic_write_flag_and_marker_passes(self):
+        # `triage --json` is a read only until something else on the line says otherwise:
+        # the highest class wins, exactly as it does for every other command
+        for argv, want in ((("triage", "--json", "--fix"), "R2"),
+                           (("triage", "--json", "--apply"), "R2"),
+                           (("triage", "--json", "--force"), "R2"),
+                           (("triage", "--non-interactive", "--force"), "R2"),
+                           (("triage", "--json", "--allow-exec"), "R1"),
+                           (("triage", "--json", "update"), "R4"),
+                           (("triage", "--json", "doctor", "--generate-gateway-token"), "R4"),
+                           (("triage", "--json", "--output", "<dir>"), "R2"),
+                           (("triage", "--json"), "R0")):
+            with self.subTest(argv=argv):
+                self.assertEqual(self.risk(*argv), want)
+
+    def test_the_agent_handoff_stays_r4_whatever_else_is_on_the_line(self):
+        self.assertEqual(self.risk("triage", "--json", "--run", "--allow-exec"), "R4")
+        self.assertEqual(self.risk("triage", "--allow-exec"), "R4")
+
+    def test_doctor_json_is_the_documented_read_only_advisory_posture(self):
+        self.assertEqual(self.risk("doctor", "--json"), "R0")
+        self.assertEqual(self.risk("doctor", "--json", "--non-interactive"), "R0")
+        # but the repair-shaped flags upstream rejects there are classified by their own markers
+        self.assertEqual(self.risk("doctor", "--json", "--fix"), "R4")
+        self.assertEqual(self.risk("doctor", "--json", "--repair"), "R4")
+        self.assertEqual(self.risk("doctor", "--json", "--yes"), "R4")
+        self.assertEqual(self.risk("doctor", "--json", "--generate-gateway-token"), "R4")
+        self.assertEqual(self.risk("doctor", "--json", "--force"), "R2")
+        self.assertEqual(self.risk("doctor", "--json", "--state-sqlite", "compact"), "R3")
+
     def test_the_diagnostics_export_is_judged_like_triage_json(self):
         # both write only a sanitized support export and change no config or state: one rule.
         # A destination the caller chooses is the difference, and that is not a read.

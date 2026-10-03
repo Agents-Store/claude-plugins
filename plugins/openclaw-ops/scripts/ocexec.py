@@ -97,6 +97,9 @@ SAFE_BROKEN = ("setup", "qa", "database", "doctor")
 READ_ONLY = {
     ("--version",), ("--help",), ("docs",), ("health",), ("status",),
     ("doctor", "--lint"), ("doctor", "--post-upgrade"),
+    # the advisory posture: read-only, exits 0 once it has a report. Upstream rejects the repair
+    # flags there; the markers below classify them by their own name if one is passed anyway.
+    ("doctor", "--json"),
     ("models", "list"), ("models", "status"), ("models", "auth", "list"),
     ("plugins", "list"), ("skills", "list"), ("cron", "list"),
     ("memory", "status"), ("gateway", "status"), ("gateway", "health"),
@@ -239,20 +242,37 @@ FLAG_ALIASES = {"--repair": "--fix"}
 
 
 def _classify_triage(flags):
-    """``triage`` collects diagnostics read-only only when told not to start an agent.
+    """The class ``triage`` has on its own, before anything else on the line is considered.
 
     Bare ``triage`` in a terminal launches the first coding agent it finds on the machine and
     asks it to repair the installation autonomously, and ``--agent`` / ``--run`` do the same
     on purpose — all R4. ``--json`` or ``--non-interactive`` collect a sanitized bundle and
-    start nothing; that is a read, except that a caller-chosen ``--output`` is not.
+    start nothing; that is a read. It is only the starting point: ``classify_argv`` still
+    applies the write-flag promotion and every marker pass to the same line and keeps the
+    highest class, so ``triage --json --allow-exec`` is an R1 and ``triage --json update`` an R4.
     """
     if "--run" in flags or "--agent" in flags:
         return "R4", "triage hands the installation to an agent that repairs on its own"
     if "--json" in flags or "--non-interactive" in flags:
-        if "--output" in flags:
-            return "R2", "read subcommand carrying a write flag"
         return "R0", "read-only subcommand (sanitized diagnostics, no agent started)"
     return "R4", "bare triage launches a coding agent that repairs on its own"
+
+
+def _marker_risk(argv):
+    """The class the marker passes give a line — R4, then R3, then R1 — or ``None``."""
+    for marker in R4_MARKERS:
+        if _has(argv, marker):
+            return "R4", "matches %s" % " ".join(marker)
+    for marker in R4_HEAD_MARKERS:
+        if _head(argv, marker):
+            return "R4", "matches %s" % " ".join(marker)
+    for marker in R3_MARKERS:
+        if _has(argv, marker):
+            return "R3", "matches %s" % " ".join(marker)
+    for marker in R1_MARKERS:
+        if _has(argv, marker):
+            return "R1", "matches %s" % " ".join(marker)
+    return None
 
 
 def classify_argv(argv):
@@ -268,23 +288,20 @@ def classify_argv(argv):
     flags = [a for a in argv if a.startswith("-")]
     carries_write = any(f in flags for f in WRITE_FLAGS)
     if _head(argv, ("triage",)):
-        return _classify_triage(flags)
+        risk, why = _classify_triage(flags)
+        if risk == "R0" and carries_write:
+            risk, why = "R2", "read subcommand carrying a write flag"
+        hit = _marker_risk(argv)
+        if hit and gate.RISK_ORDER.index(hit[0]) > gate.RISK_ORDER.index(risk):
+            risk, why = hit
+        return risk, why
     for marker, risk in UNDER_FAMILY.items():
         if _head(argv, marker) and not (risk == "R0" and carries_write):
             return risk, ("read-only subcommand" if risk == "R0"
                           else "matches %s" % " ".join(marker))
-    for marker in R4_MARKERS:
-        if _has(argv, marker):
-            return "R4", "matches %s" % " ".join(marker)
-    for marker in R4_HEAD_MARKERS:
-        if _head(argv, marker):
-            return "R4", "matches %s" % " ".join(marker)
-    for marker in R3_MARKERS:
-        if _has(argv, marker):
-            return "R3", "matches %s" % " ".join(marker)
-    for marker in R1_MARKERS:
-        if _has(argv, marker):
-            return "R1", "matches %s" % " ".join(marker)
+    hit = _marker_risk(argv)
+    if hit:
+        return hit
     for marker in READ_ONLY:
         head = [t for t in marker if not t.startswith("-")]
         tail = [t for t in marker if t.startswith("-")]

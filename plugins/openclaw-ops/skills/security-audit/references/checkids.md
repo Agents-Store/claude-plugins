@@ -48,8 +48,10 @@ in the list carries only the ordinary "0 succeeded" meaning, and its payload is 
   `doctor --non-interactive`, which suppresses prompts and not writes — can copy legacy config and
   migrate state. `--fix` and its alias `--repair` apply repairs, and `--yes` accepts defaults and
   **enters repair maintenance** (the managed gateway is stopped and restarted around it). The door
-  classifies plain `doctor` as an R2, and `--fix`, `--repair` and `--yes` as R4; the two read postures
-  are `--lint` and bare `--json`, and both reject the repair flags.
+  classifies plain `doctor` as an R2, and `--fix`, `--repair` and `--yes` as R4; the read postures are
+  `--lint` and bare `--json` (both on the door's read list), and upstream states that both reject
+  `--repair`, `--fix`, `--force`, `--yes` and `--generate-gateway-token` ("Run doctor", options
+  table) — if one is passed anyway, the door still classifies the line by that flag.
 - **Bare `doctor --json` is advisory.** It exits 0 once it has produced a report, even when `ok` is
   false — read `ok` and `findings`. Only explicit `--lint` is the threshold-based gate. A lint run
   that fails before producing a report exits 2 and prints one error finding under
