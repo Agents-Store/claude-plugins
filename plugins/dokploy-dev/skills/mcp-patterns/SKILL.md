@@ -285,7 +285,7 @@ Unlike applications, compose git source is set **via `compose-update`**, not a s
 | `mcp__plugin_dokploy-dev_dokploy__compose-cleanQueues` | Clear stuck deployment queue | `composeId` |
 | `mcp__plugin_dokploy-dev_dokploy__compose-clearDeployments` | Purge deployment history | `composeId` |
 | `mcp__plugin_dokploy-dev_dokploy__compose-refreshToken` | Regenerate webhook token | `composeId` |
-| `mcp__plugin_dokploy-dev_dokploy__compose-isolatedDeployment` | **DEPRECATED (v0.30.0)** — clones the stack's source and returns the compose file rewritten with a name suffix (it does **not** toggle anything; the mode itself is `compose-update { isolatedDeployment }`, still in Compose's advanced settings). Attaching/detaching networks per service (`serviceNetworks`, "Docker Networks") replaces the feature | `composeId`, optional `suffix` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-isolatedDeployment` | **DEPRECATED (v0.30.0)** — clones the stack's source and returns the compose file; it rewrites it with a name suffix only when the stack's `isolatedDeployment` flag is already on (otherwise the cloned file comes back unmodified), the default suffix being the compose `appName`. It does **not** toggle anything; the mode itself is `compose-update { isolatedDeployment }`, still in Compose's advanced settings. Attaching/detaching networks per service (`serviceNetworks`, "Docker Networks") replaces the feature | `composeId`, optional `suffix` |
 
 ### Compose usage notes
 

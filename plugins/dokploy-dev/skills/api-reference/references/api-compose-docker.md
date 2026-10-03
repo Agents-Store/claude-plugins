@@ -44,7 +44,7 @@ Compose services deploy multi-container apps from docker-compose.yml files.
 | POST | `/compose.killBuild` | compose.killBuild | Kill a running build |
 | POST | `/compose.cleanQueues` | compose.cleanQueues | Clear the deployment queue |
 | POST | `/compose.clearDeployments` | compose.clearDeployments | Remove all deployment history |
-| POST | `/compose.isolatedDeployment` | compose.isolatedDeployment | **DEPRECATED (v0.30.0)** — clones the source and returns the compose file rewritten with a name suffix (`composeId`, optional `suffix`); the mode itself is `compose.update { isolatedDeployment }` (still in Compose advanced settings). Replaced by per-service networks: `compose.update { serviceNetworks: [{ serviceName, networkIds, detachDokployNetwork }] }` and the `network.*` endpoints (see `api-full-index-resources.md`) |
+| POST | `/compose.isolatedDeployment` | compose.isolatedDeployment | **DEPRECATED (v0.30.0)** — clones the source and returns the compose file (`composeId`, optional `suffix`; default suffix = the compose `appName`) — rewritten with that suffix only when the stack's `isolatedDeployment` flag is already on, otherwise returned unmodified; the mode itself is `compose.update { isolatedDeployment }` (still in Compose advanced settings). Replaced by per-service networks: `compose.update { serviceNetworks: [{ serviceName, networkIds, detachDokployNetwork }] }` and the `network.*` endpoints (see `api-full-index-resources.md`) |
 
 ### Update & configuration
 
