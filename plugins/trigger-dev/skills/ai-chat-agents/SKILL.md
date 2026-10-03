@@ -36,25 +36,52 @@ Add `trigger.config.ts` with `maxDuration` like any task; an agent is a task and
 
 ## 2. Two server actions
 
-Both run on your server so the browser never holds the environment secret key. Per-user authorization goes here.
+Both run on your server so the browser never holds the environment secret key. Both are also public endpoints: the browser sends any chat id it likes, and the token `mintChatAccessToken` returns reads and writes that whole conversation. So each action authenticates the caller and checks that the chat is theirs. The owner is recorded on the Session row (`metadata.ownerId`) by server code, never taken from the browser. This is the same pattern as `refreshRunToken` in the **realtime** skill.
 
 ```ts
 // app/actions.ts
 "use server";
-import { auth } from "@trigger.dev/sdk";
+import { auth, NotFoundError, sessions } from "@trigger.dev/sdk";
 import { chat } from "@trigger.dev/sdk/ai";
+import { requireUserId } from "@/lib/session"; // your session library: throws when nobody is signed in
+import type { myChat } from "@/trigger/chat"; // type only
 
-// Creates the Session and its first run; idempotent per (environment, chatId)
-export const startChatSession = chat.createStartSessionAction("my-chat");
+const start = chat.createStartSessionAction<typeof myChat>("my-chat");
+
+// The chat's Session, or null when nobody has started it yet; throws when it belongs to someone else.
+async function findOwnedSession(userId: string, chatId: string) {
+  const session = await sessions.retrieve(chatId).catch((error) => {
+    if (error instanceof NotFoundError) return null;
+    throw error;
+  });
+  if (session && session.metadata?.ownerId !== userId) throw new Error("Forbidden");
+  return session;
+}
+
+// Idempotent per (environment, chatId). Pass on only `chatId` and `clientData`: a browser-supplied
+// `triggerConfig` or `metadata` would let the caller choose the queue, the machine or the owner.
+export async function startChatSession(params: {
+  chatId: string;
+  clientData?: Parameters<typeof start>[0]["clientData"];
+}) {
+  const userId = await requireUserId();
+  await findOwnedSession(userId, params.chatId); // a repeat start for a known chat id returns that session's token
+  return start({ chatId: params.chatId, clientData: params.clientData, metadata: { ownerId: userId } });
+}
 
 // The transport calls this to refresh an expired token
 export async function mintChatAccessToken(chatId: string) {
+  const userId = await requireUserId();
+  // The transport starts the session first, so a refresh always finds it
+  if (!(await findOwnedSession(userId, chatId))) throw new Error("Forbidden");
   return auth.createPublicToken({
     scopes: { read: { sessions: chatId }, write: { sessions: chatId } },
     expirationTime: "1h",
   });
 }
 ```
+
+`clientData` also arrives from the browser (the transport sends it on every turn), so the agent must not treat an identity inside it as proof; the owner on the Session row is the one set here. Prefer random chat ids (`crypto.randomUUID()`), which also makes the start-time race between two users on one id practically impossible.
 
 ## 3. Frontend
 
@@ -108,6 +135,7 @@ Managed prompts plug in with `chat.prompt.set(await myPrompt.resolve(vars))` in 
 - **Tools only on `streamText`.** Also declare them on `chat.agent({ tools })`.
 - **Initialising `chat.local` in `onChatStart`.** Do it in `onBoot`; continuation runs skip `onChatStart`.
 - **Minting tokens in the browser.** Only the two server actions touch the secret key.
+- **Minting a token without an ownership check.** `mintChatAccessToken(chatId)` and `startChatSession` are public Server Actions; without `requireUserId()` and the owner check, anyone who knows a chat id can read and write that conversation.
 - **Returning the raw error from `uiMessageStreamOptions.onError`.** It leaks internals; return a sanitized string.
 
 ## Sources
