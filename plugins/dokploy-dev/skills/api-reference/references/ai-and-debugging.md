@@ -104,7 +104,7 @@ Param ranges: `tail` 1–10000 (default 100); `since` is `all` or `<n>{s|m|h|d}`
 | POST | `/api/docker.restartContainer` | Restart in place |
 | POST | `/api/docker.killContainer` | SIGKILL |
 | POST | `/api/docker.removeContainer` | Hard-delete |
-| POST | `/api/docker.uploadFileToContainer` | One-off file push, multipart: `containerId`, `file`, `destinationPath`, `serverId` (does NOT survive redeploy) |
+| POST | `/api/docker.uploadFileToContainer` | One-off file push, multipart (`curl -F`; the MCP tool and CLI command have no usable schema): `containerId`, `file`, `destinationPath`, `serverId` (does NOT survive redeploy) |
 | GET | `/api/docker.getServerHealth` | **v0.30.0+** read-only host diagnostics: containers/services, memory/CPU, disk, inotify limits, network IP-pool usage, daemon errors, reservations. Params: `serverId`, `sinceHours` (1–168) |
 | GET | `/api/docker.getEvents` | **v0.30.0+** daemon events `{ events[], fetchedAt }`. Params: `serverId`, `minutes` (1–1440, default 15) |
 | GET | `/api/docker.listContainerFiles` / `.readContainerFile` | **v0.30.0+** list a directory / read a file inside a running container. Params: `containerId`, `path` (absolute), `serverId` |
@@ -135,7 +135,7 @@ All take an optional `serverId` (remote server); omit it for the Dokploy host.
 | POST | `/api/application.cancelDeployment` | Cancel queued/in-flight deploy |
 | POST | `/api/application.cleanQueues` | Clear the application's stuck queue |
 | POST | `/api/application.clearDeployments` | Wipe deployment history (destructive) |
-| POST | `/api/deployment.removeDeployment` | Drop a single bad deployment record (`deploymentId`). Do **not** use `application.dropDeployment` — it is the zip-upload deploy (`applicationId`, `zip`, `dropBuildPath`) |
+| POST | `/api/deployment.removeDeployment` | Drop a single bad deployment record (`deploymentId`). Do **not** use `application.dropDeployment` — it is the zip-upload deploy (multipart `curl -F`: `applicationId`, `zip`, `dropBuildPath`) |
 | POST | `/api/application.markRunning` | Force `running` status (cosmetic only) |
 | POST | `/api/compose.killBuild` | Abort compose builder |
 | POST | `/api/compose.cancelDeployment` | Cancel compose deploy |
@@ -175,7 +175,7 @@ Rollback points live on the resource object — `application-one` and `compose-o
 | POST | `/api/settings.cleanUnusedImages` | Remove dangling images |
 | POST | `/api/settings.cleanUnusedVolumes` | **Destructive** — orphan volumes |
 | POST | `/api/settings.cleanMonitoring` | Reset monitoring data |
-| POST | `/api/settings.cleanAll` | Combined: builder + prune + monitoring |
+| POST | `/api/settings.cleanAll` | Admin-only, **background**: returns `{ status: "scheduled" }` at once; runs containers prune, `image prune --all`, builder prune and `system prune --all` (no volumes, no monitoring data). Optional `serverId` |
 | POST | `/api/settings.updateLogCleanup` | Tune log rotation |
 | POST | `/api/settings.reloadTraefik` / `.reloadServer` | Restart subsystems |
 

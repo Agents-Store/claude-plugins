@@ -176,7 +176,7 @@ Do not block on AI. The plugin must remain useful without it.
 | `ai-testConnection` ok but `ai-analyzeLogs` times out | Log too large for provider context window | Switch to a larger-context model via `ai-update`, or truncate the log |
 | `ai-analyzeLogs` returns generic advice | Log was empty or only contained Dokploy framing | Confirm the deployment actually produced output — check `deployment-all`'s `logPath` |
 | 401 / 403 from `analyzeLogs` only | Provider key revoked or org rate-limited | Re-test with `ai-testConnection`; rotate key |
-| Tool not found (`mcp__plugin_dokploy-dev_dokploy__ai-…`) | `DOKPLOY_ENABLED_TAGS` is filtering it out | Add `ai` to the tag list in `.mcp.json` `env` |
+| Tool not found (`mcp__plugin_dokploy-dev_dokploy__ai-…`) | `DOKPLOY_ENABLED_TAGS` or a `DOKPLOY_TOOL_PRESET` is filtering it out — **no preset includes `ai`** | Add `ai` to `DOKPLOY_ENABLED_TAGS` (it overrides the preset) in `.mcp.json` `env`, or use the default preset `all` |
 | Dokploy is older than v0.29 | AI router not yet present | Upgrade Dokploy server; the official `@dokploy/mcp` requires v0.29+ for the `ai` router. Custom provider presets (`ai-getCustomProviders`/`ai-saveCustomProviders`) need >= v0.29.13 |
 
 ---

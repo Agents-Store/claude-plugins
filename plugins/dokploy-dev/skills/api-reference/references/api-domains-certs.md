@@ -20,7 +20,7 @@ Domains map hostnames to applications and compose services via Traefik.
 | POST | `/domain.create` | domain.create | Create a new domain mapping |
 | POST | `/domain.update` | domain.update | Update domain configuration |
 | POST | `/domain.delete` | domain.delete | Remove a domain mapping |
-| POST | `/domain.validateDomain` | domain.validateDomain | Check if a domain is valid and resolvable. Input: `domain` (the hostname string, NOT domainId), optional `serverId` (check against that remote server's IPs; the old IP-address parameter was removed in v0.30) |
+| POST | `/domain.validateDomain` | domain.validateDomain | Check if a domain is valid and resolvable. Input: `domain` (the hostname string, NOT domainId), optional `serverId` (check against that remote server's IPs; `serverIp` was replaced by `serverId` in v0.30) |
 | POST | `/domain.toggleEnable` | domain.toggleEnable | **v0.30.0+** flip a domain's `enabled` flag — the route leaves Traefik, certificate/path/middleware settings stay. Input: `domainId`. Applications apply instantly; compose domains (labels) change on the next deploy |
 | POST | `/domain.generateDomain` | domain.generateDomain | Auto-generate a subdomain (traefik.me) |
 | GET | `/domain.canGenerateTraefikMeDomains` | domain.canGenerateTraefikMeDomains | Check if traefik.me auto-domains are available |

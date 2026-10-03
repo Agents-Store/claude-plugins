@@ -25,7 +25,7 @@ Parse from "$ARGUMENTS".
    - Application status (running/stopped/error)
    - Build type
    - Git repository and branch (if connected)
-   - Environment: through MCP `env` is `[REDACTED]` (default since `@dokploy/mcp` 0.30.0), so say only that it is configured — do not report a count or values; the names-only REST recipe is in the `mcp-patterns` skill ("Redaction")
+   - Environment: through MCP `env` is redacted (default since `@dokploy/mcp` 0.30.0) — `null` means never set, `[REDACTED]` means a string (possibly empty), so say only "configured" for `[REDACTED]` and never report a count or values; the names-only REST recipe is in the `mcp-patterns` skill ("Redaction")
    - Domains attached (v0.30+: note any with `enabled: false` — switched off via `domain-toggleEnable`)
 
 4. **Get compose details** (if compose service exists) using MCP tool `compose-one`. Show:

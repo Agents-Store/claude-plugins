@@ -126,7 +126,7 @@ Drill down with these as needed:
 | `mcp__plugin_dokploy-dev_dokploy__docker-restartContainer` | Restart in place (no rebuild) — first try after a transient runtime failure |
 | `mcp__plugin_dokploy-dev_dokploy__docker-stopContainer` / `startContainer` | Graceful stop/start |
 | `mcp__plugin_dokploy-dev_dokploy__docker-removeContainer` | Hard-delete; Dokploy will recreate on next `deploy` |
-| `mcp__plugin_dokploy-dev_dokploy__docker-uploadFileToContainer` | Push a one-off config or credential without rebuilding (use sparingly — does not survive redeploy) |
+| `mcp__plugin_dokploy-dev_dokploy__docker-uploadFileToContainer` | Push a one-off config or credential without rebuilding (use sparingly — does not survive redeploy). Empty MCP schema: send it with REST `curl -F` (see `mcp-patterns`, "Multipart operations") |
 
 > **Crash loop pattern:** state oscillates between `restarting` and `exited`. Always read `docker-getConfig` and check the `RestartPolicy` and the container's exit code before chasing the wrong issue.
 

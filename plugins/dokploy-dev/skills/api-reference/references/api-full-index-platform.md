@@ -2,6 +2,8 @@
 
 Auto-generated from the live **REST** OpenAPI document of Dokploy v0.30.7 (`GET /api/settings.getOpenApiDocument`, `x-api-key`) — the **exhaustive** list of server, settings, integration-provider, git-provider, and tenancy/admin operations (266 operations in 24 categories). Every row maps 1:1 to an MCP tool `mcp__plugin_dokploy-dev_dokploy__<operation>` and a REST endpoint `{METHOD} /api/<operation-with-dots>` (`x-api-key` auth). `*` marks required params; only top-level body/query fields are listed (nested objects are not expanded; lists over 16 fields show the first 14 plus `…(+N)`). Many of these are ops/admin surfaces outside the day-to-day dev flow — included for completeness.
 
+> Multipart operations (`application-dropDeployment`, `docker-uploadFileToContainer`) list their form fields, but their MCP tools have an empty schema and the CLI commands declare no options — upload with REST `curl -F`.
+
 > Regenerate from REST, never through MCP: with `DOKPLOY_REDACT_ENV` on (the default since `@dokploy/mcp` 0.30.0) the MCP `settings-getOpenApiDocument` tool returns 27 operations as bare `[REDACTED]` (every `*-saveEnvironment`, `*-changePassword`, `*-refreshToken`, `user-createApiKey` …) and strips the schema of secret-named fields (`env`, `password`, `token`, …) from 73 more.
 
 ## Contents

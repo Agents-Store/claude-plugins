@@ -28,7 +28,7 @@ All runtime-log tools share three optional filters:
 |---|---|---|
 | `tail` | How many recent lines | integer `1`–`10000` (default `100`). Use `1000`+ when hunting an intermittent error |
 | `since` | Time window | `all` (default) or `<n><unit>` where unit ∈ `s m h d` — e.g. `30s`, `15m`, `2h`, `7d` |
-| `search` | Substring filter (server-side grep) | up to 500 chars, e.g. `search: "error"` or `search: "ECONNREFUSED"` |
+| `search` | Substring filter (server-side grep) | up to 500 chars, limited to letters, digits, space, `.`, `_` and `-` (so `ECONNREFUSED` works, `ECONNREFUSED 10.0.0.5:5432` does not — drop the colon), e.g. `search: "error"` |
 
 ---
 

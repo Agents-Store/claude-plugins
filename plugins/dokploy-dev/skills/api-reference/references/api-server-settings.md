@@ -90,7 +90,7 @@ Global Dokploy instance configuration, Traefik management, and system operations
 
 | Method | Path | operationId | Description |
 |--------|------|-------------|-------------|
-| POST | `/settings.cleanAll` | settings.cleanAll | Run builder + prune + monitoring cleanup |
+| POST | `/settings.cleanAll` | settings.cleanAll | Background Docker cleanup (containers, `image prune --all`, builder, `system prune --all`; no volumes, no monitoring); returns `{ status: "scheduled" }` |
 | POST | `/settings.cleanAllDeploymentQueue` | settings.cleanAllDeploymentQueue | Clear all deployment queues |
 | POST | `/settings.cleanDockerBuilder` | settings.cleanDockerBuilder | Remove Docker builder cache |
 | POST | `/settings.cleanDockerPrune` | settings.cleanDockerPrune | Docker system prune |

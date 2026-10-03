@@ -60,7 +60,7 @@ If the health check fails or `checkInfrastructureHealth` reports a problem, the 
    Call `mcp__plugin_dokploy-dev_dokploy__application-one` with the applicationId and inspect the `domains` array.
 
 4. Validate the domain:
-   Call `mcp__plugin_dokploy-dev_dokploy__domain-validateDomain` with `domain` (the hostname string, NOT the domainId; optionally `serverId` to check against a remote server's IPs; the old IP-address parameter was removed in v0.30). If the DNS record does not exist yet, create it with `dnsProvider-createRecord` (v0.30+, needs a configured DNS provider) or at your DNS host first.
+   Call `mcp__plugin_dokploy-dev_dokploy__domain-validateDomain` with `domain` (the hostname string, NOT the domainId; optionally `serverId` to check against a remote server's IPs; `serverIp` was replaced by `serverId` in v0.30). If the DNS record does not exist yet, create it with `dnsProvider-createRecord` (v0.30+, needs a configured DNS provider) or at your DNS host first.
 
 ---
 
@@ -174,7 +174,7 @@ For external access, replace `container-name` with the server IP and use the ext
 | MCP returns connection refused | Wrong DOKPLOY_URL | The URL should be the base Dokploy URL (e.g. `https://dokploy.example.com`). API routes are at `/api/…` under it |
 | Too many tools / context bloat | All 604 tools exposed | Set `DOKPLOY_TOOL_PRESET` (`minimal`, `core`, `deploy`, `databases`, `git`; `@dokploy/mcp` ≥ 0.30.0) or `DOKPLOY_ENABLED_TAGS` (explicit category list, wins over the preset, e.g. `project,application,domain,compose,postgres,settings,deployment,docker,ai`) in `.mcp.json` `env`; `DOKPLOY_DISABLED_TAGS` subtracts afterwards. Keep `docker`, `ai`, `deployment`, `settings` for `/dokploy-dev:debug` — no preset includes them all |
 | Responses show `[REDACTED]` for env, passwords, tokens | `DOKPLOY_REDACT_ENV` defaults to `true` since `@dokploy/mcp` 0.30.0 | Intended. Diagnose from logs/names, use REST for names-only listings, or set `DOKPLOY_REDACT_ENV=false` and reconnect if you knowingly want raw values. Never write `[REDACTED]` back via `saveEnvironment` (it replaces the whole env). See `mcp-patterns` → "Redaction" |
-| A Redis clean/reload `settings-*` tool gives "unknown tool" / 404 | The two Redis tools were removed in Dokploy v0.30.0 (Redis is no longer used) | Drop them from scripts; `settings-cleanAll` is now builder + prune + monitoring |
+| `settings-cleanRedis` / `settings-reloadRedis` give "unknown tool" / 404 | `settings-cleanRedis` / `settings-reloadRedis` were removed in v0.30.0 (Dokploy no longer uses Redis) | Drop them from scripts. `settings-cleanAll` is not a replacement — it prunes Docker (containers, `image prune --all`, builder, `system prune --all`; no volumes, no monitoring) in the background and returns `{ status: "scheduled" }` |
 | `dnsProvider-createRecord` / `dnsProvider-updateRecord` not in the tool list | Their `ttl` schema (numeric `exclusiveMinimum`) is rejected by some MCP clients at load time | Call REST `POST /api/dnsProvider.createRecord` / `.updateRecord` instead |
 | MCP timeout | Server overloaded or network latency | Check server health. Increase timeout in MCP client config if the server is slow |
 | MCP returns 500 | Server-side error | Check Dokploy server logs. This usually indicates a bug or corrupt state |
@@ -226,4 +226,4 @@ mcp__plugin_dokploy-dev_dokploy__project-all
 - **Persistent 502s after all checks pass** — Check server resources (CPU, memory, disk). The server may be under-provisioned.
 - **Data corruption** — If database data is corrupted, restore from backups. Enumerate configured backups per resource and list backup files with `mcp__plugin_dokploy-dev_dokploy__backup-listBackupFiles` (`backup-all` was removed — backups are now resource-scoped).
 - **Dokploy upgrade failures** — Check the Dokploy GitHub releases for known issues. Roll back to the previous version if needed.
-- **Running < v0.30.0?** Upgrade — v0.29.13 and its hotfix fixed ~20+20 security issues (OS command injection in git/docker/db paths, cross-org IDORs, credential disclosure, unauthenticated WebSocket handlers), and v0.30.0 adds a Route53 SSRF fix, a compose `serviceName` command-injection fix and Traefik 3.6.25. The v0.30 tools (networks, vault/DNS providers, host diagnostics) also need a v0.30 server.
+- **Running < v0.30.0?** Upgrade — v0.29.13 fixed ~16 security issues (OS command injection in git/docker/db paths, cross-org IDORs, credential disclosure, unauthenticated WebSocket handlers), v0.29.14 backported 20 more fixes, and v0.30.0 adds a Route53 SSRF fix, a compose `serviceName` command-injection fix and Traefik 3.6.25. The v0.30 tools (networks, vault/DNS providers, host diagnostics) also need a v0.30 server.

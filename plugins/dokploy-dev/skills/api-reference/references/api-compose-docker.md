@@ -15,7 +15,7 @@ Compose services deploy multi-container apps from docker-compose.yml files.
 | Method | Path | operationId | Description |
 |--------|------|-------------|-------------|
 | GET | `/compose.one` | compose.one | Get a compose service by ID |
-| GET | `/compose.search` | compose.search | Search compose services by name |
+| GET | `/compose.search` | compose.search | Search compose services — free-text param is `q` (plus `name`, `appName`, `projectId`, `environmentId`, `limit`, `offset`) |
 | GET | `/compose.templates` | compose.templates | List available compose templates |
 | GET | `/compose.getTags` | compose.getTags | Get available template tags |
 | GET | `/compose.loadServices` | compose.loadServices | Parse and list services from a compose file |
@@ -44,7 +44,7 @@ Compose services deploy multi-container apps from docker-compose.yml files.
 | POST | `/compose.killBuild` | compose.killBuild | Kill a running build |
 | POST | `/compose.cleanQueues` | compose.cleanQueues | Clear the deployment queue |
 | POST | `/compose.clearDeployments` | compose.clearDeployments | Remove all deployment history |
-| POST | `/compose.isolatedDeployment` | compose.isolatedDeployment | **DEPRECATED (v0.30.0)** — toggle isolated deployment (still in Compose advanced settings). Replaced by per-service networks: `compose.update { serviceNetworks: [{ serviceName, networkIds, detachDokployNetwork }] }` and the `network.*` endpoints (see `api-full-index-resources.md`) |
+| POST | `/compose.isolatedDeployment` | compose.isolatedDeployment | **DEPRECATED (v0.30.0)** — clones the source and returns the compose file rewritten with a name suffix (`composeId`, optional `suffix`); the mode itself is `compose.update { isolatedDeployment }` (still in Compose advanced settings). Replaced by per-service networks: `compose.update { serviceNetworks: [{ serviceName, networkIds, detachDokployNetwork }] }` and the `network.*` endpoints (see `api-full-index-resources.md`) |
 
 ### Update & configuration
 

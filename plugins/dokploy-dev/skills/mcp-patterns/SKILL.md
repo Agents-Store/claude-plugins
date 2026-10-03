@@ -23,7 +23,7 @@ The MCP server rewrites every response (and its own log lines) before the model 
 
 | You call | You get |
 |---|---|
-| `application-one`, `compose-one`, `{db}-one` | `env`, `buildArgs`, `composeFile`, passwords = `[REDACTED]` — not even the variable **names** |
+| `application-one`, `compose-one`, `{db}-one` | `env`, `buildArgs`, `composeFile`, passwords = `[REDACTED]` — not even the variable **names**. A `null` stays `null` (`env: null` = never set); `[REDACTED]` means *a string, possibly empty* |
 | `docker-getConfig` | the container's `Env` = `[REDACTED]` |
 | `settings-getOpenApiDocument` | 27 operations (every `*-saveEnvironment`, `*-changePassword`, `*-refreshToken`, `user-createApiKey`, …) come back as bare `[REDACTED]`, and secret-named request fields lose their schema in 73 more — regenerate API indexes over REST, never through MCP |
 | any create/update tool | **arguments are not redacted** — writes work normally; only the response echo is redacted |
@@ -70,7 +70,7 @@ Projects are the top-level container. Every application, database, and compose s
 | `mcp__plugin_dokploy-dev_dokploy__project-update` | Update project metadata | `projectId` (string, required), `name` (string), `description` (string) |
 | `mcp__plugin_dokploy-dev_dokploy__project-duplicate` | Duplicate an environment's resources | `sourceEnvironmentId` (required), `name` (required), `description`, `includeServices`, `selectedServices`, `duplicateInSameProject` |
 | `mcp__plugin_dokploy-dev_dokploy__project-remove` | Delete a project and all its resources | `projectId` (string, required) |
-| `mcp__plugin_dokploy-dev_dokploy__project-search` | Search projects | `q` (free text), `name`, `description`, `limit`, `offset` |
+| `mcp__plugin_dokploy-dev_dokploy__project-search` | Search projects (free-text key is `q`; default `limit` 20) | `q`, `name`, `description`, `limit`, `offset` |
 | `mcp__plugin_dokploy-dev_dokploy__project-homeStats` | Aggregate dashboard/home stats across projects (counts and running/error/idle status) | None |
 | `mcp__plugin_dokploy-dev_dokploy__project-onboardingStatus` | Dokploy Cloud onboarding-wizard state (trial, plan, project count) | None |
 | `mcp__plugin_dokploy-dev_dokploy__project-completeOnboarding` | Mark the onboarding wizard as done | None |
@@ -108,7 +108,7 @@ Applications are the primary deployment unit. They support multiple source types
 | `mcp__plugin_dokploy-dev_dokploy__application-create` | Create a new application | `environmentId` (required), `name` (required), `appName` (unique slug), `serverId`, `sourceType` (`github` \| `docker` \| `git` \| `gitlab` \| `bitbucket` \| `gitea` \| `drop`) |
 | `mcp__plugin_dokploy-dev_dokploy__application-update` | Update application settings (also per-service networks: `networkIds`, `detachDokployNetwork`, `networkSwarm` — see "Docker Networks") | `applicationId`, plus any updatable fields |
 | `mcp__plugin_dokploy-dev_dokploy__application-delete` | Delete an application | `applicationId` |
-| `mcp__plugin_dokploy-dev_dokploy__application-search` | Search applications by name | `query` |
+| `mcp__plugin_dokploy-dev_dokploy__application-search` | Search applications (all filters optional, AND-combined). **The free-text key is `q`; an unknown key such as `query` is silently stripped and the call returns unfiltered rows** (default `limit` 20, max 100) | `q`, `name`, `appName`, `description`, `repository`, `owner`, `dockerImage`, `projectId`, `environmentId`, `limit`, `offset` |
 
 ### Lifecycle (5 tools)
 
@@ -167,7 +167,7 @@ Connect an application to a Git source. Only one provider can be active at a tim
 | `mcp__plugin_dokploy-dev_dokploy__application-refreshToken` | Regenerate application webhook token | `applicationId` |
 | `mcp__plugin_dokploy-dev_dokploy__application-cleanQueues` | Clear stuck deployment queues | `applicationId` |
 | `mcp__plugin_dokploy-dev_dokploy__application-clearDeployments` | Purge historical deployment records | `applicationId` |
-| `mcp__plugin_dokploy-dev_dokploy__application-dropDeployment` | Deploy an uploaded zip (the `drop` source type) — multipart, not a history cleanup | `applicationId`, `zip` (file), `dropBuildPath` |
+| `mcp__plugin_dokploy-dev_dokploy__application-dropDeployment` | Deploy an uploaded zip (the `drop` source type) — multipart, not a history cleanup. **The MCP tool has an empty schema and cannot send the file; use REST `curl -F`** (below). The CLI command declares no options either | `applicationId`, `zip` (file), `dropBuildPath` |
 
 `application-deployNginxQuickstart { environmentId, serverId? }` creates and deploys the "Hello World" nginx demo application the Cloud onboarding wizard uses (on Dokploy Cloud a `serverId` is required) — a smoke test for a fresh environment, not a deploy tool for your own app.
 
@@ -196,7 +196,7 @@ Domains map hostnames to applications or compose services. Dokploy uses Traefik 
 | `mcp__plugin_dokploy-dev_dokploy__domain-update` | Update domain settings (v0.30.0+: `enabled`) | `domainId`, plus updatable fields |
 | `mcp__plugin_dokploy-dev_dokploy__domain-toggleEnable` | **Flip** a domain's `enabled` flag (v0.30.0+): the route leaves Traefik but certificate, path and middleware settings stay. Applications change instantly; compose domains are labels and only change on the next deploy | `domainId` |
 | `mcp__plugin_dokploy-dev_dokploy__domain-delete` | Delete a domain | `domainId` |
-| `mcp__plugin_dokploy-dev_dokploy__domain-validateDomain` | Check DNS resolution for a domain | `domain` (required — the hostname string, NOT domainId), `serverId` (optional — validate against that remote server's IPs instead of the Dokploy host; the old IP-address parameter was removed in v0.30) |
+| `mcp__plugin_dokploy-dev_dokploy__domain-validateDomain` | Check DNS resolution for a domain | `domain` (required — the hostname string, NOT domainId), `serverId` (optional — validate against that remote server's IPs instead of the Dokploy host; `serverIp` was replaced by `serverId` in v0.30) |
 | `mcp__plugin_dokploy-dev_dokploy__domain-generateDomain` | Auto-generate a subdomain | `appName` (required), `serverId` |
 | `mcp__plugin_dokploy-dev_dokploy__domain-canGenerateTraefikMeDomains` | Check if .traefik.me domains are available | None |
 
@@ -242,7 +242,7 @@ Docker Compose stacks deploy multi-container applications defined by a `docker-c
 | `mcp__plugin_dokploy-dev_dokploy__compose-start` | Start compose services | `composeId` |
 | `mcp__plugin_dokploy-dev_dokploy__compose-stop` | Stop all compose services | `composeId` |
 | `mcp__plugin_dokploy-dev_dokploy__compose-move` | Move compose stack to another environment | `composeId`, `targetEnvironmentId` |
-| `mcp__plugin_dokploy-dev_dokploy__compose-search` | Search compose stacks by name | `query` |
+| `mcp__plugin_dokploy-dev_dokploy__compose-search` | Search compose stacks (free-text key is `q`, not `query`; default `limit` 20) | `q`, `name`, `appName`, `description`, `projectId`, `environmentId`, `limit`, `offset` |
 
 ### Source / Git Configuration
 
@@ -285,7 +285,7 @@ Unlike applications, compose git source is set **via `compose-update`**, not a s
 | `mcp__plugin_dokploy-dev_dokploy__compose-cleanQueues` | Clear stuck deployment queue | `composeId` |
 | `mcp__plugin_dokploy-dev_dokploy__compose-clearDeployments` | Purge deployment history | `composeId` |
 | `mcp__plugin_dokploy-dev_dokploy__compose-refreshToken` | Regenerate webhook token | `composeId` |
-| `mcp__plugin_dokploy-dev_dokploy__compose-isolatedDeployment` | **DEPRECATED (v0.30.0)** — toggle isolated deployment mode; still in Compose's advanced settings, but attaching/detaching networks per service (`serviceNetworks`, "Docker Networks") replaces it | `composeId`, boolean |
+| `mcp__plugin_dokploy-dev_dokploy__compose-isolatedDeployment` | **DEPRECATED (v0.30.0)** — clones the stack's source and returns the compose file rewritten with a name suffix (it does **not** toggle anything; the mode itself is `compose-update { isolatedDeployment }`, still in Compose's advanced settings). Attaching/detaching networks per service (`serviceNetworks`, "Docker Networks") replaces the feature | `composeId`, optional `suffix` |
 
 ### Compose usage notes
 
@@ -313,7 +313,7 @@ Replace `{type}` with `postgres`, `mysql`, `mariadb`, `mongo`, `redis`, or `libs
 | `mcp__plugin_dokploy-dev_dokploy__{type}-update` | Update database config (also per-service networks: `networkIds`, `detachDokployNetwork`, `networkSwarm` — see "Docker Networks") | `{type}Id`, updatable fields |
 | `mcp__plugin_dokploy-dev_dokploy__{type}-remove` | Delete a database | `{type}Id` |
 | `mcp__plugin_dokploy-dev_dokploy__{type}-move` | Move to another environment | `{type}Id`, `targetEnvironmentId` |
-| `mcp__plugin_dokploy-dev_dokploy__{type}-search` | Search databases by name (**not libsql**) | `query` |
+| `mcp__plugin_dokploy-dev_dokploy__{type}-search` | Search databases (**not libsql**; free-text key is `q`, not `query`; default `limit` 20) | `q`, `name`, `appName`, `description`, `projectId`, `environmentId`, `limit`, `offset` |
 | `mcp__plugin_dokploy-dev_dokploy__{type}-deploy` | Deploy/start the database container | `{type}Id` |
 | `mcp__plugin_dokploy-dev_dokploy__{type}-start` | Start a stopped database | `{type}Id` |
 | `mcp__plugin_dokploy-dev_dokploy__{type}-stop` | Stop a running database | `{type}Id` |
@@ -424,7 +424,7 @@ Raw Docker container operations on the Dokploy host. Essential for runtime debug
 | `mcp__plugin_dokploy-dev_dokploy__docker-restartContainer` | Restart in place (no rebuild) — first try for transient failures | `containerId` |
 | `mcp__plugin_dokploy-dev_dokploy__docker-killContainer` | Force-kill (SIGKILL) a wedged container | `containerId` |
 | `mcp__plugin_dokploy-dev_dokploy__docker-removeContainer` | Hard-delete; Dokploy recreates on next `deploy` | `containerId` |
-| `mcp__plugin_dokploy-dev_dokploy__docker-uploadFileToContainer` | Push a one-off file into a container without rebuilding — does NOT survive redeploy. Multipart upload | `containerId`, `file` (the file), `destinationPath`, optional `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__docker-uploadFileToContainer` | Push a one-off file into a container without rebuilding — does NOT survive redeploy. Multipart upload: **the MCP tool has an empty schema and cannot send the file; use REST `curl -F`** (below). The CLI command declares no options either | `containerId`, `file` (the file), `destinationPath`, optional `serverId` |
 | `mcp__plugin_dokploy-dev_dokploy__docker-getServerHealth` | **Host diagnostics (v0.30.0+, read-only, over SSH):** container/service counts, memory and CPU, disk used/total, inotify limits, per-network IP-pool usage, recent daemon errors, memory/CPU reservations | optional `serverId`, `sinceHours` (1–168) |
 | `mcp__plugin_dokploy-dev_dokploy__docker-getEvents` | Docker daemon events (container start/stop, image pull, network connect) as `{ events[], fetchedAt }` | optional `serverId`, `minutes` (1–1440, default 15) |
 | `mcp__plugin_dokploy-dev_dokploy__docker-listContainerFiles` | List a directory inside a running container (read-only) | `containerId`, `path` (absolute), optional `serverId` |
@@ -452,7 +452,7 @@ Choosing the discovery tool: for a **standalone application** use `getContainers
 
 ## Docker Networks (9 tools + per-service attachment, v0.30.0+)
 
-Dokploy now tracks Docker networks (bridge or overlay, per server) and attaches them **per service**. Every application and compose service still joins the shared `dokploy-network` by default (that is how Traefik reaches it); a service can detach it and join only the networks it needs. Changes apply on the next deploy. This declarative model **replaces Isolated Deployment** (`compose-isolatedDeployment`, deprecated).
+Dokploy now tracks Docker networks (bridge or overlay, per server) and attaches them **per service**. Every application and compose service still joins the shared `dokploy-network` by default (that is how Traefik reaches it); a service can detach it and join only the networks it needs. Changes apply on the next deploy. This declarative model **replaces Isolated Deployment** (the `isolatedDeployment` flag of `compose-update` and the `compose-isolatedDeployment` rewrite tool, both deprecated).
 
 | Tool | Description | Key Parameters |
 |---|---|---|
@@ -472,6 +472,14 @@ Attach per service by passing these fields to the update tool of the service typ
 |---|---|---|
 | Application, each database (`postgres`/`mysql`/`mariadb`/`mongo`/`redis`/`libsql`) | `{type}-update` | `networkIds` (array of tracked `networkId`s, or `null`), `detachDokployNetwork` (boolean), `networkSwarm` (raw swarm attachment objects `{ Target, Aliases, DriverOpts }`) |
 | Compose stack | `compose-update` | `serviceNetworks`: array of `{ serviceName, networkIds, detachDokployNetwork }` (all three required per entry) |
+
+Example — attach a tracked network to an application (REST; the CLI cannot send array fields):
+
+```bash
+curl -s -X POST "$DOKPLOY_URL/api/application.update" \
+  -H "x-api-key: $DOKPLOY_API_KEY" -H "Content-Type: application/json" \
+  -d '{"applicationId":"<id>","networkIds":["<networkId>"],"detachDokployNetwork":false}'
+```
 
 Detaching `dokploy-network` from a public-facing service makes it unreachable from Traefik — only do it for backends (databases, workers) that should be reachable solely over a private network. Symptom → cause table: `troubleshoot` ("Docker / Compose Issues").
 
@@ -547,7 +555,7 @@ The `settings-*` namespace is the catch-all for server-wide operations. Highest-
 | `mcp__plugin_dokploy-dev_dokploy__settings-cleanUnusedImages` | Remove dangling/untagged images | None |
 | `mcp__plugin_dokploy-dev_dokploy__settings-cleanUnusedVolumes` | **Destroys orphan volumes** — risky | None |
 | `mcp__plugin_dokploy-dev_dokploy__settings-cleanMonitoring` | Reset monitoring data | None |
-| `mcp__plugin_dokploy-dev_dokploy__settings-cleanAll` | Aggressive: combines builder + prune + monitoring | optional `serverId` |
+| `mcp__plugin_dokploy-dev_dokploy__settings-cleanAll` | Aggressive. Admin-only; **runs in the background** and returns `{ status: "scheduled", message }` immediately (check the effect with `dockerDiskUsage-getDiskUsage` afterwards). It runs `docker container prune`, `docker image prune --all`, `docker builder prune --all` and `docker system prune --all`; volumes are excluded and monitoring data is untouched (`settings-cleanMonitoring` is separate) | optional `serverId` |
 | `mcp__plugin_dokploy-dev_dokploy__settings-cleanAllDeploymentQueue` | Force-clear every stuck deploy across all resources | None |
 | `mcp__plugin_dokploy-dev_dokploy__settings-readTraefikConfig` | Top-level Traefik static config | None |
 | `mcp__plugin_dokploy-dev_dokploy__settings-readMiddlewareTraefikConfig` | Middlewares config | None |
@@ -937,3 +945,18 @@ curl -s "$DOKPLOY_URL/api/settings.health" -H "x-api-key: $DOKPLOY_API_KEY"
 ```
 
 Without the key `/api/settings.health` answers 401 on v0.30; the tRPC route `GET /api/trpc/settings.health` is the unauthenticated liveness probe.
+
+### Multipart operations (`curl -F`)
+
+`application-dropDeployment` and `docker-uploadFileToContainer` take a file upload; their MCP tools expose an empty schema, so call REST:
+
+```bash
+# deploy a zip as the application's "drop" source
+curl -s -X POST "$DOKPLOY_URL/api/application.dropDeployment" -H "x-api-key: $DOKPLOY_API_KEY" \
+  -F "applicationId=<id>" -F "zip=@build.zip" -F "dropBuildPath=<optional-subdir>"
+
+# one-off file into a running container (lost on redeploy)
+curl -s -X POST "$DOKPLOY_URL/api/docker.uploadFileToContainer" -H "x-api-key: $DOKPLOY_API_KEY" \
+  -F "containerId=<id>" -F "destinationPath=/app/config.json" -F "file=@config.json" -F "serverId=<optional>"
+```
+

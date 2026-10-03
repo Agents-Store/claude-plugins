@@ -78,7 +78,7 @@ v0.30 added features this plugin documents (tool tables in `mcp-patterns`, per-o
 - **Docker host diagnostics** — `docker-getServerHealth`, `docker-getEvents`, `dockerDiskUsage-*`, `dockerImage-*`, `dockerVolume-*`, `docker-listContainerFiles` / `docker-readContainerFile` (read-only parts are safe for `/dokploy-dev:debug`).
 - **Overview and fresh volumes** — `overview-services` / `overview-backups` / `overview-domains`, `server-getServices`, and `freshVolumes` on `compose-deploy` / `compose-redeploy`.
 
-Removed in v0.30: the two Redis clean/reload tools under `settings-` (Dokploy no longer uses Redis; `settings-cleanAll` is now builder + prune + monitoring). `domain-validateDomain` now takes an optional `serverId` instead of a server IP.
+Removed in v0.30: `settings-cleanRedis` / `settings-reloadRedis` were removed in v0.30.0 (Dokploy no longer uses Redis). `domain-validateDomain`: `serverIp` was replaced by `serverId` in v0.30. `settings-cleanAll` now runs in the background (it returns `{ status: "scheduled" }`) and does containers + `image prune --all` + builder + `system prune --all`, never volumes or monitoring data.
 
 ## Agent
 

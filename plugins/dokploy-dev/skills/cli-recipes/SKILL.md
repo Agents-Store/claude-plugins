@@ -119,10 +119,12 @@ dokploy docker get-server-health --sinceHours 1 --json
 dokploy docker get-events --minutes 30 --json
 dokploy docker-disk-usage get-disk-usage --json
 
-# Docker networks and per-service attachment
+# Docker networks: list / create (per-service attach sends array fields — use MCP or REST, see below)
 dokploy network all --json
 dokploy network create --name backend --driver bridge --internal
-dokploy compose deploy --composeId <id> --freshVolumes   # DESTRUCTIVE: docker compose down --volumes first
+
+# DESTRUCTIVE — compose "Deploy with Fresh Volumes": runs docker compose down --volumes first (stack volumes are deleted)
+dokploy compose deploy --composeId <id> --freshVolumes
 
 # Secrets providers and DNS (names/zones only — credentials are masked in responses)
 dokploy vault-provider all --json
@@ -133,7 +135,7 @@ dokploy dns-provider list-zones --dnsProviderId <id>
 dokploy domain toggle-enable --domainId <id>
 ```
 
-Boolean fields are bare flags (`--internal`, `--freshVolumes`, `--createEnvFile`): present means `true`, omit them to leave the field unset (the CLI cannot send `false`). Object/array fields (`config`, `assignments`, `networkIds`, `ipam`) take JSON strings. The CLI is **not** redacted — everything it prints is real, so avoid `--json` on `*-one` calls in shared logs.
+Boolean fields are bare flags (`--internal`, `--freshVolumes`, `--createEnvFile`): present means `true`, omit them to leave the field unset (the CLI cannot send `false`). Object/array fields (`config`, `assignments`, `networkIds`, `ipam`, `serviceNetworks`) cannot be sent correctly: the CLI forwards the flag value as a plain string and the API rejects a string where it expects an array/object — use MCP or REST for `vault-provider create`, `network` attachment via `{type} update`, etc. The multipart commands `application drop-deployment` and `docker upload-file-to-container` declare no options and send no file; use REST `curl -F`. The CLI is **not** redacted — everything it prints is real, so avoid `--json` on `*-one` calls in shared logs.
 
 ---
 
