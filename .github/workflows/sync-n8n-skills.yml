@@ -1,0 +1,68 @@
+name: Sync czlonkowski/n8n-skills upstream
+
+on:
+  schedule:
+    # Weekly: every Monday at 07:00 UTC
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: "Upstream git ref to sync (tag or branch). Empty = latest v* tag"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Run sync script
+        id: sync
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref || '' }}
+        run: |
+          SHA="$(./scripts/sync-n8n-skills.sh)"
+          echo "upstream_sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "upstream_short=${SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Check for changes
+        id: diff
+        run: |
+          # `git diff` misses new upstream skill directories (untracked), so ask status.
+          if [ -z "$(git status --porcelain -- plugins/n8n-dev)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/sync-n8n-skills
+          commit-message: |
+            chore(n8n-dev): sync upstream skills @ ${{ steps.sync.outputs.upstream_short }}
+
+            Source: https://github.com/czlonkowski/n8n-skills/commit/${{ steps.sync.outputs.upstream_sha }}
+          title: "chore(n8n-dev): sync upstream skills @ ${{ steps.sync.outputs.upstream_short }}"
+          body: |
+            Automated sync from [`czlonkowski/n8n-skills`](https://github.com/czlonkowski/n8n-skills) (MIT) at commit [`${{ steps.sync.outputs.upstream_short }}`](https://github.com/czlonkowski/n8n-skills/commit/${{ steps.sync.outputs.upstream_sha }}).
+
+            **Scope:** every upstream skill directory under `plugins/n8n-dev/skills/` except the hand-written ones (`n8n-native-mcp`, `api-reference`, `cli-recipes`, `setup`, `troubleshoot`, `examples`), plus `plugins/n8n-dev/LICENSE-n8n-skills`. Local skills are untouched.
+
+            **Review checklist:**
+            - [ ] New / removed / renamed upstream skill directories? (a directory that is neither upstream nor in `LOCAL` is reported as a warning in the job log and never deleted)
+            - [ ] Does `./scripts/scrub-check.sh plugins/n8n-dev` stay clean? New findings in vendored files need a baseline line in their own pull request, never an edit to the vendored file.
+            - [ ] Do the "pending upstream" items in `plugins/n8n-dev/LEARNINGS.md` still apply, or did this release absorb them?
+
+            Triggered by: `${{ github.event_name }}`.
+          labels: |
+            automation
+            upstream-sync
+          delete-branch: true
