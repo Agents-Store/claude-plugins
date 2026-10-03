@@ -25,7 +25,7 @@ Run these checks before any deployment. Stop on failure and print actionable gui
    - Create `vercel.json` with `{"$schema": "https://openapi.vercel.sh/vercel.json", "framework": "nextjs"}`.
    - **Why:** Without this, CLI-only deploys (no Git integration) may use a generic builder. The build appears to succeed, but all routes return 404 because Vercel doesn't generate the correct routing configuration. This is the #1 cause of "build succeeds but site shows 404".
 7. **`output: 'standalone'` in Next.js config?** — Check `next.config.ts` / `next.config.js` for `output: 'standalone'`.
-   - If found: warn that `standalone` output is for Docker/self-hosting and is incompatible with Vercel. Suggest conditionally disabling it:
+   - If found: note that `standalone` output is meant for Docker/self-hosting and is a **possible** cause of a Ready-but-404 deploy on Vercel (not reproduced; a wrong Framework Preset, see step 6, is the documented cause). If the deploy 404s, suggest conditionally disabling it:
      ```typescript
      ...(process.env.VERCEL ? {} : { output: 'standalone' as const }),
      ```

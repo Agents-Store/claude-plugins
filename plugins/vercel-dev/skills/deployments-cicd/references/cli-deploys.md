@@ -40,13 +40,15 @@ git config user.email "team-owner@example.com"
 git commit --allow-empty -m "chore: update deploy author"
 ```
 
-### `output: 'standalone'` causes 404 on Vercel
+### `output: 'standalone'` as a possible cause of a 404 on Vercel
 
 **Symptom:** Build succeeds, `vercel inspect` shows READY, but all pages return 404.
 
-**Root cause:** `output: 'standalone'` in `next.config.ts` is designed for Docker/Node.js self-hosting. It changes the build output format in a way Vercel's routing doesn't expect.
+**Check first:** Vercel routes from metadata generated at build time, so a READY build with a 404 usually means a wrong Framework Preset ("Other") or Output Directory. Set `"framework": "nextjs"` as in the first section, or fix Project Settings → Build and Deployment. See [Why is my deployed project giving a 404?](https://vercel.com/kb/guide/why-is-my-deployed-project-giving-404).
 
-**Fix:** Conditionally disable for Vercel:
+**Possible cause (not reproduced):** `output: 'standalone'` in `next.config.ts` is designed for Docker/Node.js self-hosting and changes the build output format. No primary source confirms it breaks Vercel routing, so treat it as a suspect only after the preset and output directory are ruled out.
+
+**Test:** Conditionally disable it for Vercel and redeploy:
 ```typescript
 const nextConfig: NextConfig = {
   ...(process.env.VERCEL ? {} : { output: 'standalone' as const }),
