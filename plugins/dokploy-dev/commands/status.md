@@ -25,8 +25,8 @@ Parse from "$ARGUMENTS".
    - Application status (running/stopped/error)
    - Build type
    - Git repository and branch (if connected)
-   - Environment variables count
-   - Domains attached
+   - Environment: through MCP `env` is `[REDACTED]` (default since `@dokploy/mcp` 0.30.0), so say only that it is configured — do not report a count or values; the names-only REST recipe is in the `mcp-patterns` skill ("Redaction")
+   - Domains attached (v0.30+: note any with `enabled: false` — switched off via `domain-toggleEnable`)
 
 4. **Get compose details** (if compose service exists) using MCP tool `compose-one`. Show:
    - Compose status
@@ -38,6 +38,8 @@ Parse from "$ARGUMENTS".
    - Deployment ID, status, trigger type, start time, duration
 
 6. **Get monitoring data** using MCP tool `application-readAppMonitoring` if available. Show CPU/memory usage.
+
+7. **Instance overview (optional, v0.30+):** for "what is running overall?" call `overview-services` (and `overview-backups` / `overview-domains` if asked), or `server-getServices { serverId }` for one remote server, instead of walking every project. For host health use `docker-getServerHealth`.
 
 ## Example Usage
 ```

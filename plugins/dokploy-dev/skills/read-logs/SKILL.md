@@ -5,7 +5,7 @@ description: "This skill should be used whenever the user wants to read, tail, s
 
 # Read Dokploy Logs (runtime + build, every container)
 
-Dokploy (since **v0.29.0**; current **v0.29.14**) exposes container logs over the REST API and the `@dokploy/mcp` server. There are four log sources, each with its own tool. The single most common mistake — and the reason multi-container Compose debugging fails — is calling `compose-readLogs` **without a `containerId`**. A Compose stack has many containers; you must enumerate them and read each one.
+Dokploy (since **v0.29.0**; current **v0.30.7**) exposes container logs over the REST API and the `@dokploy/mcp` server. There are four log sources, each with its own tool. The single most common mistake — and the reason multi-container Compose debugging fails — is calling `compose-readLogs` **without a `containerId`**. A Compose stack has many containers; you must enumerate them and read each one.
 
 > **Do not** tell the user "Dokploy doesn't expose runtime logs via REST / use SSH or Beszel." That was true before [issue #3719](https://github.com/Dokploy/dokploy/issues/3719) was resolved. Since v0.29.0, `application-readLogs`, `compose-readLogs`, and every `{db}-readLogs` return **live container stdout/stderr** with `tail` / `since` / `search` filtering. SSH/Beszel is a last resort only (container not Dokploy-managed, or API unreachable).
 
@@ -108,7 +108,7 @@ The build log explains why an image failed to build (before any container starts
 >   -H "x-api-key: $DOKPLOY_API_KEY" \
 >   --data-urlencode "deploymentId=<id>" --data-urlencode "tail=500"
 > ```
-> Build logs carry `\r` progress noise — pipe through `tr '\r' '\n'` before grepping. The response is a JSON string. This MCP-tool-missing → REST-fallback move works for any endpoint; confirm exact paths/params with `settings-getOpenApiDocument` (large — dump to a file and grep). The CLI is an equivalent fallback: `dokploy deployment read-logs --deploymentId <id> --tail 500` (same endpoint, no curl quoting). Diagnosing a build failure from indirect signals when the real log is one `curl` away leads to wrong root causes.
+> Build logs carry `\r` progress noise — pipe through `tr '\r' '\n'` before grepping. The response is a JSON string. This MCP-tool-missing → REST-fallback move works for any endpoint; confirm exact paths/params in the `api-reference` indexes (or fetch the OpenAPI document over REST — `GET /api/settings.getOpenApiDocument`; the MCP tool returns 27 operations as `[REDACTED]` by default). The CLI is an equivalent fallback: `dokploy deployment read-logs --deploymentId <id> --tail 500` (same endpoint, no curl quoting). Diagnosing a build failure from indirect signals when the real log is one `curl` away leads to wrong root causes.
 
 ---
 
