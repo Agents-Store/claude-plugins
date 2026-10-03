@@ -497,7 +497,7 @@
       "name": "postgresql-external-dev",
       "source": "./plugins/postgresql-external-dev",
       "description": "PostgreSQL schema design for external database connections. Compatible SQL patterns for NocoDB and NocoBase — table creation, column types, relations, indexes, and anti-patterns.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "author": {
         "name": "AGENTS.STORE"
       },
