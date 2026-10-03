@@ -97,9 +97,13 @@ await myTask.trigger(payload, {
 ```ts
 // app/api/jobs/enrich/route.ts
 import { tasks } from "@trigger.dev/sdk";
+import { isAuthorized } from "@/lib/webhook-auth"; // your check: a secret in a header, or the signed-in user
 import type { enrichItem } from "@/trigger/enrich-item"; // a type import: no task code in the Next.js bundle
 
 export async function POST(request: Request) {
+  // Authenticate the caller first: this public endpoint starts runs, and runs cost money
+  if (!(await isAuthorized(request))) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
   const { keys } = (await request.json()) as { keys: string[] };
 
   // One request for the whole list (up to 1,000 items); every item has its own idempotency key
@@ -114,6 +118,7 @@ export async function POST(request: Request) {
 }
 ```
 
+- **Authenticate the caller before triggering.** A route handler is a public URL and a Server Action is a public endpoint, and each trigger starts a run. Check a shared secret sent in a header (compare with `timingSafeEqual`, never in the URL) or the signed-in user, and decide which tasks the caller may start. The receiver in the `stack-directus-nextjs-trigger` plugin (`directus-to-trigger`) is a complete example: header secret, `timingSafeEqual`, an allow-list of collections, debounced runs.
 - **Import the task as a type.** A value import pulls the task module and everything it imports (AI clients, image libraries) into the framework bundle. `tasks.trigger<typeof enrichItem>("enrich-item", ...)` takes the payload and output types from the type alone. For a single run, `tasks.trigger` returns `handle.id` and `handle.publicAccessToken` (see the **realtime** skill for handing the token to a browser).
 - **Make the call inside the handler.** Importing `@trigger.dev/sdk` reads no environment variable. The first API call does, and throws `You need to set the TRIGGER_SECRET_KEY environment variable` when it is missing, so a build that fails with that message is running a trigger at module top level or while prerendering. Move the call into the handler or the Server Action. A `POST` handler and a Server Action are never prerendered.
 - **Set `TRIGGER_API_URL` in the environment of the code that triggers.** Without it the SDK falls back to Trigger.dev Cloud and sends your key there, where it is rejected.

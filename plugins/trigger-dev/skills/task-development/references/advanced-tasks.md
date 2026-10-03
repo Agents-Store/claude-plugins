@@ -2,7 +2,7 @@
 
 ## Debouncing
 
-Consolidate rapid triggers into a single execution:
+Consolidate rapid triggers into a single delayed run. The first trigger with a debounce key creates a delayed run; every further trigger with the same key, while that run is still delayed, pushes its start later instead of creating a new run. The key is scoped to the task id.
 
 ```ts
 await myTask.trigger(
@@ -10,16 +10,21 @@ await myTask.trigger(
   {
     debounce: {
       key: "user-123-update",
-      delay: "5s",
-      mode: "trailing",  // Use latest payload (default: "leading")
+      delay: "5s",       // the run starts this long after the last trigger (minimum 1s)
+      maxDelay: "2m",    // but never later than this after the first trigger (server >= 4.4.0)
+      mode: "trailing",  // run with the latest payload (default: "leading")
     },
   }
 );
 ```
 
-Modes:
-- `leading` — executes immediately, ignores subsequent triggers during delay
-- `trailing` — waits for delay, uses the most recent payload
+Modes, which decide whose data the run uses once the delay has passed:
+- `leading` (default): the run uses the data of the **first** trigger (payload, metadata, tags, `maxAttempts`, `maxDuration`, machine); later triggers only push the start later
+- `trailing`: each later trigger replaces that data, so the run uses the **last** trigger's
+
+Both modes wait for the delay. Neither runs at once.
+
+`maxDelay` bounds the total wait. Without it a key that keeps being triggered pushes the run back for as long as the triggers keep coming, and it never starts. Keep `delay` well below `maxDelay`: a run is pushed back only while its new start stays inside `maxDelay`, so the room to push is `maxDelay` minus `delay`, and a `delay` equal to or above `maxDelay` makes the trigger fail instead of debouncing. Pass the same `maxDelay` on every trigger with that key: each call checks it against the first run's creation time, and a call that omits it has no bound. `delay` must be a duration (`"5s"`, `"1m"`, `"2h30m"`), not a date. A trigger that arrives after the run has started creates a new run, so two runs for one key can overlap. An `idempotencyKey` wins over a debounce key when both match.
 
 ## Idempotency
 
@@ -266,4 +271,4 @@ tasks.middleware("db", async ({ ctx, payload, next, task }) => {
 | `queue` | string / object | Override queue name (and legacy concurrency) |
 | `concurrencyKey` | string | Per-tenant pool for `perKey` limits (server ≥ 4.7.0) |
 | `concurrency` | string[] | Replace the task's named limits for this run (server ≥ 4.7.0) |
-| `debounce` | object | Debounce config (key, delay, mode) |
+| `debounce` | object | Debounce config (`key`, `delay`, `mode`, `maxDelay` on server >= 4.4.0) |

@@ -28,10 +28,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "22"
       - run: npm ci
       - name: Deploy to production
         run: npm run deploy:trigger -- --external-id ${{ github.sha }}  # requires CLI/SDK and server >= 4.5.12; drop it on older
@@ -53,10 +53,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "22"
       - run: npm ci
 
       # Self-hosted images are built on the runner
@@ -88,10 +88,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "22"
       - run: npm ci
 
       # Self-hosted only (skip if deploying to cloud): Buildx and registry login
@@ -121,7 +121,7 @@ Use a separate secret per environment (for example `TRIGGER_STAGING_ACCESS_TOKEN
 ```yaml
 deploy-trigger:
   stage: deploy
-  image: node:20
+  image: node:22
   script:
     - npm ci
     - npm run deploy:trigger -- --external-id "$CI_COMMIT_SHA"  # requires CLI/SDK and server >= 4.5.12; drop it on older

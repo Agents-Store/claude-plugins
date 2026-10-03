@@ -238,7 +238,7 @@ export const resilientTask = task({
 
 ## Scheduled Tasks (Cron)
 
-A `schedules.task` with a `cron` is a *declarative* schedule: it is created and updated when you deploy. Schedules created at runtime with `schedules.create()` are *imperative*. See the **scheduled-tasks** skill and `references/scheduled-tasks.md`.
+A `schedules.task` with a `cron` is a *declarative* schedule: it is created and updated when `dev` or `deploy` syncs it, with no attach step. Schedules created at runtime with `schedules.create()` are *imperative*. See the **scheduled-tasks** skill and `references/scheduled-tasks.md`.
 
 ```ts
 import { schedules } from "@trigger.dev/sdk";

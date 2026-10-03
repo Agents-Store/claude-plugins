@@ -21,8 +21,8 @@
       "expectations": [
         "Says the hook needs baseURL pointing at the self-hosted server because the browser has no TRIGGER_API_URL and the default is Trigger.dev Cloud",
         "Puts the address in a NEXT_PUBLIC_ variable and keeps TRIGGER_SECRET_KEY on the server",
-        "Explains that the publicAccessToken from the trigger() handle is short-lived (15 minutes by default) and can be extended with the publicAccessToken request option",
-        "Adds a refreshAccessToken callback that calls a server function which authorizes the caller before minting a token with auth.createPublicToken",
+        "Explains that the publicAccessToken from the trigger() handle is short-lived: the docs say 15 minutes, and the SDK signs a 1 hour token itself when the server sends no x-trigger-jwt, so the publicAccessToken request option applies only in that case",
+        "Adds a refreshAccessToken callback that calls a server function which authorizes the caller (a run tag set at trigger time and checked with runs.retrieve, or a token scoped to the user's tag) before minting a token with auth.createPublicToken",
         "Uses TriggerAuthContext.Provider or per-hook options and does not use a TriggerProvider component"
       ]
     }
