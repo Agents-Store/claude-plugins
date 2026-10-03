@@ -19,11 +19,11 @@ Parse from "$ARGUMENTS".
 
 1. **Search GitHub repos** (if source is github or all):
    - Use `~~search` with queries targeting known repos: `"<query> n8n workflow site:github.com"`
-   - Target high-value repos: Zie619/n8n-workflows, enescingoz/awesome-n8n-templates, Danitilahun/n8n-workflow-templates
+   - Target high-value repos: Zie619/n8n-workflows, enescingoz/awesome-n8n-templates, zengfr/n8n-workflow-all-templates, ritik-prog/n8n-automation-templates-5000 (Danitilahun/n8n-workflow-templates has had no push since 2025-07 — treat as stale)
    - See `community-source-discovery` skill and `references/GITHUB_SOURCES.md` for repo details
 
 2. **Search community platforms** (if source is community or all):
-   - Use `~~search` with queries targeting known platforms: `"<query> n8n workflow site:n8nworkflows.xyz OR site:n8nfind.net"`
+   - Use `~~search` with queries targeting known platforms: `"<query> n8n workflow site:n8nworkflows.xyz OR site:n8nflow.net"`
    - See `references/COMMUNITY_PLATFORMS.md` for platform details
 
 3. **Display results:**

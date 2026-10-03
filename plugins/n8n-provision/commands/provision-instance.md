@@ -22,7 +22,7 @@ Parse from "$ARGUMENTS".
 ## Process
 
 1. **Check instance readiness** (follow `instance-readiness` skill):
-   - Health check via `~~instance_audit`
+   - Health check via `~~instance_health` (reachable, API key valid; the response has no uptime, queue or version fields)
    - Existing workflow inventory via `~~workflow_list`
    - Check for naming conflicts
 
@@ -43,13 +43,14 @@ Parse from "$ARGUMENTS".
 
 5. **Execute batch import** (follow `batch-provisioning` skill):
    - Deploy one-by-one with validation between each
-   - Tag with batch identifier
+   - Tag with batch identifier (after each deploy: `~~workflow_update` with operation `addTag`; the deploy tools take no `tags`)
    - Report progress after each deployment
 
 6. **Post-provisioning report:**
    - All deployed workflows with IDs
    - Credential setup checklist
-   - Activation instructions
+   - Publish instructions (workflows are drafts; n8n 2.x calls the step Publish)
+   - Optional post-flight security audit via `~~instance_audit`
    - Any failures and remediation steps
 
 ## Example Usage
