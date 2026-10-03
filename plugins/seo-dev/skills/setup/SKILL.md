@@ -141,7 +141,7 @@ After setup, confirm all pieces are in place:
 1. Run `pnpm build` — no metadata errors
 2. Visit `http://localhost:3000/sitemap.xml` — valid XML
 3. Visit `http://localhost:3000/robots.txt` — correct rules
-4. Inspect the rendered page (DevTools Elements, Search Console URL Inspection, or Playwright) — `<title>`, `<meta name="description">`, and resolved absolute `og:image` URLs present. Next.js 15.2+ streams `generateMetadata` output into `<body>` for JavaScript-capable crawlers; `curl` shows `<head>` metadata only for HTML-limited bots (see the `meta-tags` skill)
+4. Inspect the rendered page (DevTools Elements, Search Console URL Inspection, or Playwright) — `<title>`, `<meta name="description">`, and resolved absolute `og:image` URLs present. on request-time rendered pages Next.js 15.2+ streams `generateMetadata` output into `<body>` for JavaScript-capable crawlers (prerendered pages with a non-dynamic `generateMetadata` keep it in the initial `<head>`); `curl` shows streamed metadata in `<head>` only for HTML-limited bots (see the `meta-tags` skill)
 5. Check `<link rel="canonical">` on each page
 
 ## SEO Setup Checklist

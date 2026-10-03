@@ -128,7 +128,7 @@ Always provide `sizes` attribute so browsers download the correct size:
 
 ### Lazy Loading
 
-`next/image` lazy-loads by default. Only disable lazy loading for the above-the-fold LCP image, with `loading="eager"` and `fetchPriority="high"` (Next.js 16 replaced the `priority` prop with `preload`; the docs recommend these two props in most cases):
+`next/image` lazy-loads by default. Only disable lazy loading for the above-the-fold LCP image, with `loading="eager"` and `fetchPriority="high"` (use `fetchPriority="high"` alone if different images are LCP at different viewport sizes; Next.js 16 replaced the `priority` prop with `preload`; the docs recommend these two props in most cases):
 
 ```tsx
 // Above the fold (LCP) — load immediately at high priority

@@ -38,9 +38,9 @@ import Image from 'next/image'
 />
 ```
 
-Mark only the LCP element this way — one image per page (or one per breakpoint when the LCP image differs between mobile and desktop). Prioritizing everything prioritizes nothing.
+Mark only the LCP element this way — one image per page. If different images are the LCP element at different viewport sizes (a mobile hero and a desktop hero), do **not** use `loading="eager"` or `preload` on them: both images would download on every device. Keep the default lazy loading and set `fetchPriority="high"` only — the Next.js docs' recommendation for that case. Prioritizing everything prioritizes nothing.
 
-**`priority` was replaced in Next.js 16.** The `priority` prop of `next/image` is deprecated since 16.0 in favor of `preload`, which inserts a `<link rel="preload">` for the image in `<head>`. The Next.js docs recommend `loading="eager"` or `fetchPriority="high"` in most cases; use `preload={true}` only when one image is the LCP element at every viewport size and you do not also set `loading` or `fetchPriority`. Do not use `preload` when different images win LCP on different screens (it would download both). On Next.js 15 and earlier the prop is still `priority`, and `fetchPriority="high"` works there too.
+**`priority` was replaced in Next.js 16.** The `priority` prop of `next/image` is deprecated since 16.0 in favor of `preload`, which inserts a `<link rel="preload">` for the image in `<head>`. The Next.js docs recommend `loading="eager"` or `fetchPriority="high"` in most cases; use `preload={true}` only when one image is the LCP element at every viewport size and you do not also set `loading` or `fetchPriority`. Do not use `preload` or `loading="eager"` when different images win LCP on different screens (both would download); use `fetchPriority="high"` alone. On Next.js 15 and earlier the prop is still `priority`, and `fetchPriority="high"` works there too.
 
 ### Optimize Image Formats
 
@@ -314,7 +314,7 @@ In a Server Action, prefer `updateTag(tag)` when the user must see their own cha
 
 | Action | Metric Impact | Effort |
 |--------|---------------|--------|
-| `fetchPriority="high"` + `loading="eager"` on the LCP image | LCP -500ms+ | Low |
+| `fetchPriority="high"` + `loading="eager"` on the LCP image (`fetchPriority` alone if the LCP image differs per viewport) | LCP -500ms+ | Low |
 | Add `sizes` to all images | LCP, bandwidth | Low |
 | Use `next/font` | CLS elimination | Low |
 | Set image width/height | CLS elimination | Low |

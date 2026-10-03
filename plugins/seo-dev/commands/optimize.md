@@ -573,7 +573,7 @@ Apply `seo-dev:content-seo` patterns.
 1. **Fix heading hierarchy** — Ensure single H1 per page, logical H2-H6 nesting
 2. **Fix image alt texts** — Add descriptive alt text to all `<Image>` components missing it
 3. **Add sizes prop** — Add responsive `sizes` attribute to all `<Image>` components
-4. **Mark LCP images** — Add `loading="eager"` and `fetchPriority="high"` to above-the-fold hero/banner images (one per page max). Next.js 16 deprecated the `priority` prop in favor of `preload`; on Next.js 15 and earlier `priority` still works
+4. **Mark LCP images** — Add `loading="eager"` and `fetchPriority="high"` to above-the-fold hero/banner images (one per page max; if the LCP image differs between mobile and desktop, use `fetchPriority="high"` alone, because `loading="eager"` would download both). Next.js 16 deprecated the `priority` prop in favor of `preload`; on Next.js 15 and earlier `priority` still works
 5. **Create Breadcrumbs component** — If inner pages lack breadcrumbs, create a reusable component with BreadcrumbList schema
 
 ### Phase 6: Performance & Technical SEO

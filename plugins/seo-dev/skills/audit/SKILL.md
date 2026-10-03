@@ -66,7 +66,7 @@ grep -r "application/ld+json" src/ --include="*.tsx" -l
 | `description` length 150-160 chars | Measure each page | High |
 | `title` length 50-60 chars | Measure each page | High |
 | Canonical URL on every page | Check `alternates.canonical` | Critical |
-| Open Graph tags present | `curl -sA "facebookexternalhit/1.1" <url> \| grep -i og:` (bots get `<head>` metadata; browsers and Googlebot get streamed metadata) | High |
+| Open Graph tags present | `curl -sA "facebookexternalhit/1.1" <url> \| grep -i og:` (bots get `<head>` metadata; on request-time rendered pages browsers and Googlebot get streamed metadata, while prerendered pages keep it in the initial `<head>`) | High |
 | OG image configured (1200x630) | Test with Facebook Debugger | High |
 | Twitter Card configured | Check `twitter:card` tags; preview in the X post composer (the Card Validator was retired) | Medium |
 
@@ -78,7 +78,7 @@ grep -r "application/ld+json" src/ --include="*.tsx" -l
 | BreadcrumbList on inner pages | Check for breadcrumb JSON-LD | Medium |
 | Article schema on blog posts | Check blog page JSON-LD | High (if blog) |
 | Product schema on product pages | Check product page JSON-LD | High (if e-commerce) |
-| Search appearance not planned around FAQPage or HowTo | Grep for FAQPage / HowTo: both rich results are removed from Google Search; existing markup is harmless, but do not count it as SEO work | Info |
+| Search appearance not planned around FAQPage or HowTo | Grep for FAQPage / HowTo: both rich results are removed from Google Search; existing markup is harmless, but do not count it as SEO work | Low |
 | WebSite markup on the home page with `name` / `alternateName` | Check home page JSON-LD | Medium |
 | Structured data matches visible page content | Compare JSON-LD with the rendered page | High |
 | Schema validates (Rich Results Test for types Google renders; Schema.org Validator for the rest) | Test live URLs | Critical |
@@ -91,7 +91,7 @@ grep -r "application/ld+json" src/ --include="*.tsx" -l
 | LCP < 2.5s | PageSpeed Insights | Critical |
 | INP < 200ms | PageSpeed Insights (field data) | Critical |
 | CLS < 0.1 | PageSpeed Insights | Critical |
-| LCP image has `loading="eager"` + `fetchPriority="high"` (`preload` in Next.js 16 only if one LCP image for all viewports) | Check hero/banner Image component | High |
+| LCP image has `loading="eager"` + `fetchPriority="high"` (`preload` in Next.js 16 only if one LCP image for all viewports; if the LCP image differs per viewport, `fetchPriority="high"` only — no `loading="eager"` or `preload`) | Check hero/banner Image component | High |
 | All images have `sizes` prop | Grep for `<Image` without sizes | High |
 | All images have `width`/`height` or `fill` | Grep for missing dimensions | High |
 | `next/font` used (no external font requests) | Check network tab, layout.tsx | High |
@@ -133,7 +133,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
 test.describe('SEO Fundamentals', () => {
   test('homepage has correct meta tags', async ({ page }) => {
-    // Playwright reads the rendered DOM, so streamed metadata is found here.
+    // Playwright reads the rendered DOM, so streamed metadata (request-time rendered pages) is found here too.
     // For HTML-limited social bots, also run: curl -sA "facebookexternalhit/1.1" <url>
     await page.goto(BASE_URL)
 

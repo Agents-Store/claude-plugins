@@ -64,7 +64,7 @@ Structured data not showing rich results?
 PageSpeed Insights score < 90?
 ├─ LCP > 2.5s?
 │  ├─ Is the LCP element an image?
-│  │  ├─ LCP image lazy-loaded or not prioritized → loading="eager" + fetchPriority="high" on the hero (Next.js 16 replaced `priority` with `preload`)
+│  │  ├─ LCP image lazy-loaded or not prioritized → loading="eager" + fetchPriority="high" on the hero (only fetchPriority="high" if the hero differs per viewport; Next.js 16 replaced `priority` with `preload`)
 │  │  ├─ Missing sizes prop → Add responsive sizes attribute
 │  │  └─ Image too large → Use AVIF/WebP, configure formats in next.config
 │  ├─ Is the LCP element text?
@@ -144,8 +144,9 @@ Social media preview missing image?
 ```
 <title>, description or og: tags not in the HTML you fetched?
 ├─ Is this a browser or Googlebot request?
-│  └─ Next.js 15.2+ streams generateMetadata output: the tags are appended to <body>
-│     after the first UI for JavaScript-capable crawlers. Check the rendered DOM instead
+│  └─ On request-time rendered pages Next.js 15.2+ streams generateMetadata output: the tags are
+│     appended to <body> after the first UI for JavaScript-capable crawlers (prerendered pages with a
+│     non-dynamic generateMetadata keep them in the initial <head>). Check the rendered DOM instead
 │     (DevTools Elements, Search Console URL Inspection, Playwright page.title())
 ├─ Is the crawler a social or HTML-limited bot?
 │  └─ facebookexternalhit, Twitterbot, LinkedInBot, Slackbot, Bingbot and others get blocking

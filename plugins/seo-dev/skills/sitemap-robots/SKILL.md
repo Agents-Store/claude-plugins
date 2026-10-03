@@ -104,9 +104,10 @@ This generates `/sitemap/0.xml`, `/sitemap/1.xml`, etc. Next.js does **not** gen
 ```ts
 // app/sitemap-index.xml/route.ts
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
+const URLS_PER_SITEMAP = 50000 // keep equal to the constant in app/sitemap.ts (or share it from a module)
 
 export async function GET() {
-  const sitemapCount = Math.ceil((await getProductCount()) / 50000)
+  const sitemapCount = Math.ceil((await getProductCount()) / URLS_PER_SITEMAP)
   const entries = Array.from(
     { length: sitemapCount },
     (_, i) => `<sitemap><loc>${BASE_URL}/sitemap/${i}.xml</loc></sitemap>`
