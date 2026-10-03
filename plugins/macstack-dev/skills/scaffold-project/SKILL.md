@@ -46,7 +46,7 @@ integration patterns (a-to-b data flows), decision frameworks, `.mcp.json` with
 `{tool}-dev` plugins define HOW to build with each software in the architecture
 (SDK patterns, API usage, gotchas). Enable them, and follow their conventions when
 writing the initial code stubs (e.g.: Directus SDK `cache: 'no-store'`; Trigger.dev
-v4 imports from `@trigger.dev/sdk/v3`). Do not copy their content into the project —
+v4 imports from `@trigger.dev/sdk`). Do not copy their content into the project —
 plugins own tool knowledge; the project only references them.
 
 ### 4. Only then — generate project files
