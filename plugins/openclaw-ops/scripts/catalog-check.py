@@ -19,7 +19,9 @@ What it asserts
    states, in the one four-name vocabulary.
 3. Upstream pass-through ids are exempt from (1) by design — they arrive from the
    runtime with their own ``checkId`` and are carried verbatim — but their
-   families must be the ones the catalog documents.
+   families must be the ones the catalog documents. The current lint ids are
+   path-shaped (``core/doctor/<check>``, ``<plugin>/<check>``); the slash is what
+   marks one, because none of ours contains it.
 
 Exit codes
 ----------
@@ -43,7 +45,17 @@ CATALOG = os.path.join(ROOT, "skills", "fleet-diagnostics", "references",
 SEVERITIES = ("info", "warn", "high", "critical")
 # Families the runtime owns. Their ids are carried through verbatim and are
 # therefore not, and must never be, rows in our catalog.
-PASSTHROUGH_FAMILIES = ("fs.", "gateway.", "tools.exec.", "plugins.", "security.exposure.")
+PASSTHROUGH_FAMILIES = ("fs.", "gateway.", "tools.exec.", "plugins.", "security.exposure.",
+                        "core/doctor/")
+# Current lint ids are path-shaped: ``core/doctor/<check>`` for a core check and
+# ``<plugin>/<check>`` for a plugin's. A slash is the shape of an upstream id — none of ours
+# has one — so a plugin that ships a new check tomorrow needs no row here.
+PASSTHROUGH_SHAPE = "/"
+
+
+def is_passthrough(fid):
+    """Is this id one the runtime owns, carried through verbatim?"""
+    return fid.startswith(PASSTHROUGH_FAMILIES) or PASSTHROUGH_SHAPE in fid
 
 ROW_RE = re.compile(r"^\|\s*`([a-z][a-z0-9.-]+)`\s*\|\s*([a-z]+)\s*\|")
 
@@ -101,7 +113,8 @@ def _or_defaults(tree):
 
 def emissions(path):
     """Every ``(id, severity)`` pair the battery can emit, plus what stayed dynamic."""
-    tree = ast.parse(open(path, encoding="utf-8").read(), filename=path)
+    with open(path, encoding="utf-8") as fh:
+        tree = ast.parse(fh.read(), filename=path)
     loops, defaults = _loop_bindings(tree), _or_defaults(tree)
     pairs, dynamic = set(), []
     for node in ast.walk(tree):
@@ -150,10 +163,11 @@ def emissions(path):
 def catalog_rows(path):
     """``id -> severity`` for every row in the catalog's tables."""
     rows = {}
-    for line in open(path, encoding="utf-8"):
-        match = ROW_RE.match(line.strip())
-        if match and match.group(2) in SEVERITIES:
-            rows[match.group(1)] = match.group(2)
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            match = ROW_RE.match(line.strip())
+            if match and match.group(2) in SEVERITIES:
+                rows[match.group(1)] = match.group(2)
     return rows
 
 
@@ -173,8 +187,7 @@ def main(argv=None):
         return 2
 
     emitted = sorted({fid for fid, _sev in pairs})
-    missing = [fid for fid in emitted
-               if fid not in rows and not fid.startswith(PASSTHROUGH_FAMILIES)]
+    missing = [fid for fid in emitted if fid not in rows and not is_passthrough(fid)]
     bad_sev = sorted({(fid, sev, rows[fid]) for fid, sev in pairs
                       if sev is not None and fid in rows and rows[fid] != sev})
     unknown_sev = sorted({(fid, sev) for fid, sev in pairs
@@ -183,7 +196,7 @@ def main(argv=None):
     print("emitted by healthcheck.py : %d distinct id(s)" % len(emitted))
     print("declared by the catalog   : %d row(s)" % len(rows))
     print("severity vocabulary       : %s" % ", ".join(SEVERITIES))
-    print("upstream pass-through     : %s (carried verbatim, no row by design)"
+    print("upstream pass-through     : %s, <plugin>/<check> (carried verbatim, no row by design)"
           % ", ".join(f + "*" for f in PASSTHROUGH_FAMILIES))
     if args.verbose:
         print("\nemitted:")

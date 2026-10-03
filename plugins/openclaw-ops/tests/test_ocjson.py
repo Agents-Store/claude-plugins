@@ -21,20 +21,65 @@ BANNER = "update available: a newer runtime has been published\n"
 class ExitContractTest(unittest.TestCase):
     """A documented exit code carries a verdict; an undocumented one carries none."""
 
-    def test_doctor_lint_encodes_severity_in_its_exit_code(self):
+    def test_doctor_lint_exit_code_is_a_threshold_contract(self):
+        # 0 = nothing at or above --severity-min, 1 = at least one finding at or above it,
+        # 2 = the command failed before the checks completed. 2 is NOT "warnings only".
         self.assertEqual(ocjson.exit_meaning("doctor --lint", 0)[0], "clean")
-        self.assertEqual(ocjson.exit_meaning("doctor --lint", 1)[0], "error")
-        self.assertEqual(ocjson.exit_meaning("doctor --lint", 2)[0], "warn")
+        self.assertEqual(ocjson.exit_meaning("doctor --lint", 1)[0], "findings")
+        self.assertEqual(ocjson.exit_meaning("doctor --lint", 2)[0], "failed")
+
+    def test_a_lint_command_failure_is_failed_and_never_warn(self):
+        for body in ("", '{"ok": false, "error": {"type": "cli_error", "message": "x"}}'):
+            with self.subTest(body=body):
+                result = ocjson.interpret("doctor --lint", 2, body, "")
+                self.assertEqual(result.label, "failed")
+                self.assertNotEqual(result.label, "warn")
+                self.assertFalse(result.ok)
+                self.assertIn("before", result.explanation)
+
+    def test_a_threshold_hit_is_not_called_an_error(self):
+        # with --severity-min info the exit code is 1 for a lone info finding
+        self.assertNotEqual(ocjson.exit_meaning("doctor --lint", 1)[0], "error")
+        self.assertIn("threshold", ocjson.exit_meaning("doctor --lint", 1)[1])
+
+    def test_post_upgrade_exits_one_only_for_an_error_level_finding(self):
+        self.assertEqual(ocjson.exit_meaning("doctor --post-upgrade", 0)[0], "clean")
+        self.assertEqual(ocjson.exit_meaning("doctor --post-upgrade", 1)[0], "error")
+        # two is not part of the documented contract: it is an ordinary failure
+        label, explanation = ocjson.exit_meaning("doctor --post-upgrade", 2)
+        self.assertEqual(label, "failed")
+        self.assertIn("no documented contract", explanation)
+
+    def test_security_audit_has_no_contract_until_a_canary_confirms_one(self):
+        # upstream documents no exit-code table for `security audit`; asserting one
+        # reads a failure as "warnings only"
+        self.assertNotIn("security audit", ocjson.EXIT_CONTRACTS)
+        label, explanation = ocjson.exit_meaning("security audit", 2)
+        self.assertEqual(label, "failed")
+        self.assertIn("no documented contract", explanation)
+        self.assertEqual(ocjson.exit_meaning("security audit", 1)[0], "failed")
+
+    def test_secrets_audit_check_is_the_documented_gate_contract(self):
+        self.assertEqual(ocjson.exit_meaning("secrets audit --check", 0)[0], "clean")
+        self.assertEqual(ocjson.exit_meaning("secrets audit --check", 1)[0], "findings")
+        self.assertEqual(ocjson.exit_meaning("secrets audit --check", 2)[0], "unresolved")
 
     def test_models_status_check_encodes_credential_state(self):
         self.assertEqual(ocjson.exit_meaning("models status --check", 0)[0], "healthy")
         self.assertEqual(ocjson.exit_meaning("models status --check", 1)[0], "expired")
         self.assertEqual(ocjson.exit_meaning("models status --check", 2)[0], "expiring")
 
-    def test_every_declared_contract_covers_zero_one_and_two(self):
+    def test_every_declared_contract_has_a_clean_zero_and_a_finding_one(self):
         for key, table in ocjson.EXIT_CONTRACTS.items():
             with self.subTest(command=key):
-                self.assertEqual(sorted(table), [0, 1, 2])
+                self.assertIn(0, table)
+                self.assertIn(1, table)
+                self.assertTrue(set(table) <= {0, 1, 2})
+
+    def test_two_is_declared_only_where_upstream_documents_it(self):
+        with_two = sorted(k for k, t in ocjson.EXIT_CONTRACTS.items() if 2 in t)
+        self.assertEqual(with_two, ["doctor --lint", "models status --check",
+                                    "secrets audit --check"])
 
     def test_an_undocumented_command_never_has_severity_read_into_its_exit_code(self):
         label, explanation = ocjson.exit_meaning("plugins list --json", 2)
@@ -136,6 +181,52 @@ class FindingsTest(unittest.TestCase):
             for key in ocjson.FINDING_KEYS:
                 with self.subTest(check=item["checkId"], key=key):
                     self.assertIn(key, item)
+
+
+class PostUpgradeEnvelopeTest(unittest.TestCase):
+    """`doctor --post-upgrade --json` is `{probesRun, findings}` and names its level `level`."""
+
+    ENVELOPE = {"probesRun": 3, "findings": [
+        {"id": "plugin.version_drift", "level": "warn", "message": "drift"},
+        {"id": "plugin.index_unavailable", "level": "error", "message": "no index"}]}
+
+    def test_findings_are_read_out_of_the_probe_envelope(self):
+        self.assertEqual(len(ocjson.findings(self.ENVELOPE)), 2)
+
+    def test_the_worst_level_is_read_when_there_is_no_severity_field(self):
+        self.assertEqual(ocjson.worst_severity(ocjson.findings(self.ENVELOPE)), "error")
+
+    def test_a_warning_only_envelope_does_not_read_as_an_error(self):
+        warn_only = {"probesRun": 1, "findings": [self.ENVELOPE["findings"][0]]}
+        self.assertEqual(ocjson.worst_severity(ocjson.findings(warn_only)), "warn")
+
+    def test_an_error_level_finding_exits_one_and_a_warning_exits_zero(self):
+        body = json.dumps(self.ENVELOPE)
+        self.assertEqual(ocjson.interpret("doctor --post-upgrade", 1, body, "").label, "error")
+        quiet = json.dumps({"probesRun": 1, "findings": [self.ENVELOPE["findings"][0]]})
+        result = ocjson.interpret("doctor --post-upgrade", 0, quiet, "")
+        self.assertTrue(result.ok)
+        self.assertEqual(len(result.findings()), 1)
+
+
+class LintEnvelopeTest(unittest.TestCase):
+    """The lint document carries `ok`, `checksRun` and `checksSkipped`; rc 2 still carries a finding."""
+
+    FAILED = {"ok": False, "checksRun": 0, "checksSkipped": 0,
+              "error": {"type": "cli_error", "message": "inspection failed"},
+              "findings": [{"checkId": "core/doctor/lint-inspection", "severity": "error",
+                            "message": "inspection failed", "path": "state"}]}
+
+    def test_the_failure_document_is_a_finding_and_the_run_is_still_failed(self):
+        result = ocjson.interpret("doctor --lint", 2, json.dumps(self.FAILED), "")
+        self.assertEqual(result.label, "failed")
+        self.assertFalse(result.ok)
+        self.assertEqual(result.findings()[0]["checkId"], "core/doctor/lint-inspection")
+
+    def test_a_warning_finding_under_the_documented_spelling_is_ranked(self):
+        doc = {"ok": False, "findings": [{"checkId": "core/doctor/gateway-config",
+                                          "severity": "warning"}]}
+        self.assertEqual(ocjson.worst_severity(ocjson.findings(doc)), "warning")
 
 
 class ContractDocumentTest(unittest.TestCase):

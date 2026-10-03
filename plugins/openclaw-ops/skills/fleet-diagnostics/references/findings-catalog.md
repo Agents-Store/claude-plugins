@@ -233,6 +233,8 @@ unchanged; add the instance and the evidence around them.
 
 | Family | Emitted by | Operational reading |
 |---|---|---|
+| `core/doctor/*` | lint | a core health check: config, state, gateway, auth profiles, plugin load. The id names the check (`core/doctor/<check>`), so it is also the argument of `doctor --lint --only` and `--skip` |
+| `<plugin>/*` | lint | a check a plugin registers for itself (`<plugin>/<check>`). Some are opt-in and appear only with `doctor --lint --all` or `--only` |
 | `fs.*` | lint, security audit | paths, permissions, ownership on the state tree and its mounts |
 | `gateway.*` | lint, security audit | gateway configuration, binding, authentication |
 | `tools.exec.*` | security audit | what the agent is permitted to execute |
@@ -245,6 +247,7 @@ passed through verbatim, because there is nothing to pass through.
 | id | sev | detect | fix | verify | risk |
 |---|---|---|---|---|---|
 | `fleet.lint.unclassified` | warn | the runtime's lint returned a finding carrying no `checkId` | read the message and the path it names, then find the matching documented check. Never invent an id in one of the upstream families to file it under | the same run reports the finding with an id, or a row is added here for a symptom upstream does not check | R0 |
+| `fleet.lint.run-failed` | high | `doctor --lint` exited 2 — the command or its runtime failed before the checks completed — and produced no finding of its own | a failed run is not a clean one: read stderr, check the state lease and disk space, run it once more by hand. Never read the silence as "no findings". When the run did emit its own error finding (`core/doctor/lint-inspection`), that finding carries the detail and this row is not raised | the next run exits 0 or 1, and `checksRun` in its document is above zero | R0 |
 
 Two rules for pass-through findings: the automatic repair flags of lint and security audit are a red
 line (`doctor-fix-or-security-fix`) — narrow, opaque, and they choose what they touch, so they are

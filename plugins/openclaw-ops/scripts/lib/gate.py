@@ -65,14 +65,19 @@ RISK_CLASSES = {
     "R3": {
         "label": "partially reversible",
         "gate": "--yes + verified backup",
-        "description": "Version change, memory index --force, session pruning, database "
-                       "compaction. The backup must be shown in the plan, not promised.",
+        "description": "Version change, memory index --force, memory reset or forget, "
+                       "sessions cleanup, state or session database maintenance "
+                       "(doctor --state-sqlite compact, doctor --session-sqlite compact, import, "
+                       "recover or restore), update repair. The backup must be shown in the plan, "
+                       "not promised.",
     },
     "R4": {
         "label": "irreversible",
         "gate": "--yes + typed confirmation",
-        "description": "State-schema migration, writing a secret to the store, "
-                       "security audit --fix, rotating the gateway token.",
+        "description": "State-schema migration, writing to the secret store "
+                       "(secrets store set, rm or import; secrets apply), security audit --fix, "
+                       "doctor --fix, doctor --generate-gateway-token (rotates the gateway "
+                       "token), update cleanup (retires the migration recovery originals).",
     },
 }
 RISK_ORDER = ["R0", "R1", "R2", "R3", "R4"]
@@ -294,6 +299,13 @@ def snapshot(path, snapshot_dir=None, tag=None, keep=20):
     Returns ``{path, source, fingerprint, created_at}``. Taken once, before the
     first edit of a session, precisely so an automated sequence cannot evict the
     human's copy.
+
+    A snapshot is a CREDENTIAL ARTEFACT, not a scratch file: a copy of a state
+    directory, a database or a config next to its included files can carry material
+    that works as is (current OAuth tokens sit in plaintext in the state database).
+    Hence the owner-only mode on both the directory and the file, and the rule for
+    whoever calls this — keep it out of any shared or world-readable path, and
+    rotate the credential at its source if a copy ever leaves the host.
     """
     import redact
     if not os.path.isfile(path):

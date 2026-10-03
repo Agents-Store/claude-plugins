@@ -20,8 +20,13 @@ hot   ``docker compose -p <project> exec -T <service> run-with-infisical opencla
       call runs without it.
 cold  ``docker run --rm -v <state-dir>:/home/node/.openclaw <image> openclaw <argv>``
       Only when the gateway is not running, and only for the subcommands that
-      are safe on a broken instance: setup, qa, database. Anything else is
-      refused with the reason, because a cold container is not a gateway.
+      are safe on a broken instance: setup, qa, database and doctor. ``doctor``
+      is on the list because it is the documented way back for a gateway that
+      exited unable to migrate its state: the same image, once, against the same
+      mounts, then a normal start. A read posture (``--lint``, ``--post-upgrade``)
+      runs as is; ``doctor --fix`` is an R4 and still needs the plan behind it, like
+      any other R4. Anything else is refused with the reason, because a cold
+      container is not a gateway.
 
 Refusals (never negotiable)
 ---------------------------
@@ -76,28 +81,83 @@ import redact                    # noqa: E402
 
 EXIT_REFUSED, EXIT_TARGET, EXIT_DOCKER = 64, 65, 66
 
-# The only subcommands documented as safe on a broken instance.
-SAFE_BROKEN = ("setup", "qa", "database")
+# The only subcommands documented as safe on a broken instance. ``doctor`` is the
+# recovery path itself (see the module docstring); with ``--fix`` it is an R4, which
+# check_policy refuses without a plan before this list is even consulted.
+SAFE_BROKEN = ("setup", "qa", "database", "doctor")
 
-# Reads with no observable effect.
+# Reads with no observable effect. Every entry names a command that exists in the
+# current tree: there is no ``backup list`` and no ``database status`` — the
+# archive reads are ``backup verify`` and ``backup sqlite list|verify``, and the
+# database reads are ``database preflight`` and ``database ownership status``.
+# A READ_ONLY entry for a command that does not exist is a classification that can
+# never fire; keep the list honest so a reader can trust a hit. (``update status``
+# is a read too; it is in UNDER_FAMILY below because its family is an R4.)
 READ_ONLY = {
     ("--version",), ("--help",), ("docs",), ("health",), ("status",),
     ("doctor", "--lint"), ("doctor", "--post-upgrade"),
     ("models", "list"), ("models", "status"), ("models", "auth", "list"),
     ("plugins", "list"), ("skills", "list"), ("cron", "list"),
-    ("memory", "status"), ("gateway", "status"), ("config", "get"),
-    ("security", "audit"), ("backup", "list"), ("database", "status"),
+    ("memory", "status"), ("gateway", "status"), ("gateway", "health"),
+    ("gateway", "probe"), ("config", "get"), ("security", "audit"),
+    ("secrets", "audit"), ("channels", "status"),
+    ("backup", "verify"), ("backup", "sqlite", "list"), ("backup", "sqlite", "verify"),
+    ("database", "preflight"), ("database", "ownership", "status"),
 }
 
-# Reads that cost money, hold a lock, or move state.
-R1_MARKERS = (("models", "status", "--probe"), ("memory", "index"), ("run",), ("chat",))
+# Subcommands whose class differs from their family's. They are checked before the
+# family markers: ``update`` is an R4 (a version change), but ``update status`` is a
+# ledger read, and ``update repair`` only finishes a half-done update, so it is an R3
+# whose backup is the one taken before that update. A write-shaped flag on a read
+# returns it to the family class.
+UNDER_FAMILY = {("update", "status"): "R0", ("update", "repair"): "R3"}
+
+# Reads that cost money, hold a lock, or move state. ``memory status --index``
+# reindexes when the store is dirty (and implies ``--deep``, which calls the
+# embedding provider), so it is not the plain read its name suggests.
+R1_MARKERS = (("models", "status", "--probe"), ("memory", "index"), ("memory", "status", "--index"),
+              ("run",), ("chat",))
 
 # Backup-requiring and irreversible operations: they belong to a command that
 # builds a plan, not to the escape hatch.
-R3_MARKERS = (("memory", "index", "--force"), ("sessions", "prune"), ("database", "compact"),
-              ("backup", "restore"))
-R4_MARKERS = (("update",), ("upgrade",), ("secrets", "set"), ("gateway", "token"),
-              ("security", "audit", "--fix"), ("doctor", "--fix"))
+#
+# R3 — partially reversible, a backup must already exist:
+#   memory index --force      a full reindex (provider cost, replaced index)
+#   memory reset / forget     clear the derived index, or delete tracked memory at once
+#   sessions cleanup          prune and cap the session stores
+#   update repair             re-run finalization after a half-finished update (see
+#                             UNDER_FAMILY: the ``update`` family is R4, this one is R3)
+#   backup restore            replace live state from an archive
+#   doctor --state-sqlite compact, --session-sqlite compact|import|recover|restore
+#                             upstream calls these modes destructive and says to stop
+#                             the gateway and take a verified backup first
+R3_MARKERS = (("memory", "index", "--force"), ("memory", "reset"), ("memory", "forget"),
+              ("sessions", "cleanup"), ("backup", "restore"),
+              ("doctor", "--state-sqlite", "compact"),
+              ("doctor", "--session-sqlite", "compact"),
+              ("doctor", "--session-sqlite", "import"),
+              ("doctor", "--session-sqlite", "recover"),
+              ("doctor", "--session-sqlite", "restore"))
+
+# R4 — irreversible or credential-bearing, a plan and a typed confirmation:
+#   update (any form)         a version change; ``update cleanup`` additionally retires
+#                             the migration recovery originals, so there is no way back
+#                             to them afterwards
+#   secrets store set|rm|import, secrets apply   credential writes
+#   doctor --generate-gateway-token              rotates the gateway bearer
+#   doctor --fix, security audit --fix           repair flags that choose what they touch
+#   fleet rm, migrate apply, upgrade             deletion and migration
+R4_MARKERS = (("update",), ("upgrade",),
+              ("secrets", "store", "set"), ("secrets", "store", "rm"),
+              ("secrets", "store", "import"), ("secrets", "apply"),
+              ("doctor", "--generate-gateway-token"),
+              ("security", "audit", "--fix"), ("doctor", "--fix"),
+              ("fleet", "rm"), ("migrate", "apply"))
+
+# R4 commands that are only the command when they are the FIRST command word. A
+# bare ``reset`` wipes an installation, ``memory reset`` clears one index: matching
+# the token anywhere would file the second as the first.
+R4_HEAD_MARKERS = (("reset",), ("uninstall",))
 
 
 # --------------------------------------------------------------------------- #
@@ -116,15 +176,47 @@ def _has(argv, marker):
     return True
 
 
+def _expand(argv):
+    """Split ``--flag=value`` into ``--flag``, ``value`` so a marker sees one spelling."""
+    out = []
+    for token in argv:
+        if token.startswith("--") and "=" in token:
+            flag, value = token.split("=", 1)
+            out.extend([flag, value])
+        else:
+            out.append(token)
+    return out
+
+
+def _head(positional, marker):
+    """Is ``marker`` the leading command words of the call?"""
+    return list(positional[:len(marker)]) == list(marker)
+
+
+WRITE_FLAGS = ("--fix", "--force", "--write", "--set", "--apply")
+
+
 def classify_argv(argv):
     """Assign a risk class to an ``openclaw`` command line.
 
     The classification is by effect, not by name: ``models status --probe`` is
     called status and is an R1 because it requires the gateway down and changes
-    what the fleet is doing while it runs.
+    what the fleet is doing while it runs; ``update status`` is called update and
+    is a read.
     """
+    argv = _expand(argv)
+    positional = [a for a in argv if not a.startswith("-")]
+    flags = [a for a in argv if a.startswith("-")]
+    carries_write = any(f in flags for f in WRITE_FLAGS)
+    for marker, risk in UNDER_FAMILY.items():
+        if _head(positional, marker) and not (risk == "R0" and carries_write):
+            return risk, ("read-only subcommand" if risk == "R0"
+                          else "matches %s" % " ".join(marker))
     for marker in R4_MARKERS:
         if _has(argv, marker):
+            return "R4", "matches %s" % " ".join(marker)
+    for marker in R4_HEAD_MARKERS:
+        if _head(positional, marker):
             return "R4", "matches %s" % " ".join(marker)
     for marker in R3_MARKERS:
         if _has(argv, marker):
@@ -132,13 +224,11 @@ def classify_argv(argv):
     for marker in R1_MARKERS:
         if _has(argv, marker):
             return "R1", "matches %s" % " ".join(marker)
-    positional = [a for a in argv if not a.startswith("-")]
-    flags = [a for a in argv if a.startswith("-")]
     for marker in READ_ONLY:
         head = [t for t in marker if not t.startswith("-")]
         tail = [t for t in marker if t.startswith("-")]
         if positional[:len(head)] == head and all(f in flags for f in tail):
-            if any(f in flags for f in ("--fix", "--force", "--write", "--set", "--apply")):
+            if carries_write:
                 return "R2", "read subcommand carrying a write flag"
             return "R0", "read-only subcommand"
     return "R2", "not on the read-only list — treated as a reversible mutation"

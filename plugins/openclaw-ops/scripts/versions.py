@@ -23,7 +23,8 @@ puts the bug back deliberately rather than by accident.
    The extended-stable line is also published as a non-prerelease GitHub release
    and it trails the stable line by about a month. Sorting by date and taking the
    first non-prerelease hands you extended-stable while you believe you are on
-   stable — a silent month-long rollback of the whole fleet.
+   stable — a silent month-long rollback of the whole fleet. No release FIELD says
+   which line an entry is on; the monthly patch number does (``release_line``).
 
 3. **Comparing npm publish dates with GitHub release dates.**
    They disagree by weeks, and the disagreement is not a bug: a build is
@@ -49,10 +50,38 @@ A target version is accepted only when all of these hold:
   date;
 * no correction release on the same line shipped after it;
 * when an image digest is checked, the digest resolved for the pinned reference
-  matches the digest of the channel's current build.
+  matches the digest of the channel's current build;
+* it is on the release line the channel is for (regular stable for ``stable`` and
+  ``beta``, the extended line for ``extended-stable``);
+* no installed version in the selection is older than the bridge cut-off while the
+  target is newer than the bridge release (the verdict is ``bridge-required``).
 
 Anything unproven is a refusal, not a warning. A missing GitHub release means the
 promotion date is unknown, which means the soak clock never started.
+
+Two more things that moved, and that a single dist-tag lookup cannot see
+------------------------------------------------------------------------
+* **The release line is machine-readable.** Monthly patch numbers from
+  ``EXTENDED_STABLE_MIN_PATCH`` up are reserved for the extended-stable line;
+  the lower ones are regular stable. A numeric correction (``-N``) keeps the line
+  of the version it corrects. ``release_line`` reads it, and the gate refuses a
+  build from the wrong line for the channel being used — a pointer must not hand
+  a fleet the line it did not ask for.
+* **``beta`` is not the ``beta`` dist-tag.** It is whichever of ``beta`` and
+  ``latest`` is NEWER by version order, so an old beta never replaces a newer
+  stable. ``dev`` is the moving head of the git ``main`` branch: there is no
+  package channel to resolve and a production gateway is never pointed at it.
+
+The bridge
+----------
+An installation older than ``BRIDGE_REQUIRED_BEFORE`` cannot go straight to the
+current line: Doctor stops and sends it through one bridge release
+(``BRIDGE_VERSION``) first, whose Doctor migrations import the retired state and
+rewrite the retired config keys. The gate says so up front, with its own verdict
+``bridge-required``, instead of letting the operator find out from the refusal
+in the middle of an upgrade. The two constants are the only version literals in
+this plugin and they are copied from the upstream "Upgrading very old versions"
+section of the updating guide; re-read that section when either looks wrong.
 
 Pinning
 -------
@@ -99,19 +128,33 @@ NPM_REGISTRY = "https://registry.npmjs.org"
 GITHUB_API = "https://api.github.com"
 USER_AGENT = "openclaw-ops/versions"
 
-# Channel name -> npm dist-tag. The channel is an operator concept and the
-# dist-tag is the only mechanical fact about where it points; the two are NOT
-# spelled the same, and the difference is the whole reason this table exists.
-# The channel names here are exactly the ones `policy.update_channel` accepts in
-# the fleet config (fleet.schema.json) — a value this table does not list fails
-# schema validation, so a dist-tag name such as "latest" is deliberately not a
-# channel name.
+# Channel name -> the npm dist-tag it is primarily read from. The channel is an operator
+# concept and the dist-tag is the only mechanical fact about where it points; the two are
+# NOT spelled the same, and the difference is the whole reason this table exists. The
+# channel names here are exactly the ones `policy.update_channel` accepts in the fleet
+# config (fleet.schema.json) — a value this table does not list fails schema validation,
+# so a dist-tag name such as "latest" is deliberately not a channel name.
+#
+# Two channels are not a plain lookup — see ``channel_target``:
+#   beta  reads ``beta`` AND ``latest`` and takes the newer;
+#   dev   has no dist-tag: it is the git ``main`` head, not a package.
 CHANNEL_TAGS = {
     "stable": "latest",            # the promoted production line; its dist-tag is "latest"
     "extended-stable": "extended-stable",
     "beta": "beta",
-    "dev": "dev",
+    "dev": None,
 }
+
+# Monthly patch numbers from here up belong to the extended-stable line; below it is regular
+# stable. Source: the upstream release-channels guide, "Tagging best practices".
+EXTENDED_STABLE_MIN_PATCH = 33
+
+# The bridge release, and the month before which an installation must cross it first.
+# Source: the upstream updating guide, "Upgrading very old versions". The cut-off is a
+# (year, month) pair because the rule is stated in months, not in patch numbers.
+BRIDGE_VERSION = "2026.9.5"
+BRIDGE_REQUIRED_BEFORE = (2026, 7)
+
 PRERELEASE_RE = re.compile(r"-(?:beta|alpha|rc|dev|next|canary|nightly|snapshot)", re.I)
 VERSION_RE = re.compile(r"^v?(?P<base>\d+(?:\.\d+){0,3})(?:-(?P<suffix>[0-9A-Za-z.\-]+))?$")
 VERSION_IN_TEXT = re.compile(r"\b(\d+\.\d+(?:\.\d+){0,2}(?:-[0-9A-Za-z.\-]+)?)\b")
@@ -168,6 +211,76 @@ def compare(left, right):
 def same_line(left, right):
     """Do two versions belong to the same release line (same base, corrections aside)?"""
     return parse_version(left)["base"] == parse_version(right)["base"]
+
+
+def release_line(text):
+    """Which release line a version was cut for: stable, extended-stable, prerelease, unknown.
+
+    A named prerelease is on neither line. A numeric correction keeps the line of the
+    version it corrects, so ``<base>-2`` is read by its base.
+    """
+    parsed = parse_version(text)
+    if not parsed["valid"]:
+        return {"line": "unknown", "patch": None}
+    if parsed["prerelease"]:
+        return {"line": "prerelease", "patch": None}
+    base = parsed["base"]
+    if len(base) < 3:
+        return {"line": "unknown", "patch": None}
+    patch = base[2]
+    line = "extended-stable" if patch >= EXTENDED_STABLE_MIN_PATCH else "stable"
+    return {"line": line, "patch": patch}
+
+
+def channel_target(name, tags):
+    """Resolve a channel NAME to ``{channel, tag, version, note}`` from a dist-tag map.
+
+    * ``stable`` and ``extended-stable`` are one dist-tag each, and a missing tag is a
+      finding — never a reason to fall back to another channel.
+    * ``beta`` is the newest of the ``beta`` and ``latest`` tags: an older beta never
+      replaces a newer stable build.
+    * ``dev`` is the git ``main`` head. There is nothing to resolve, and it is not for
+      production gateways.
+    """
+    tags = tags or {}
+    if name == "dev":
+        return {"channel": name, "tag": None, "version": None,
+                "note": "dev is the moving head of the git main branch, not a package: there is "
+                        "no build to resolve, and it is never a target for a production gateway "
+                        "(a dev dist-tag, when one exists, is not read)"}
+    if name == "beta":
+        candidates = [(tag, tags[tag]) for tag in ("beta", "latest") if tags.get(tag)]
+        if not candidates:
+            return {"channel": name, "tag": "beta", "version": None,
+                    "note": "neither the beta nor the latest dist-tag exists, so beta cannot be "
+                            "resolved"}
+        tag, version = max(candidates, key=lambda c: sort_key(parse_version(c[1])))
+        note = None
+        if tag == "latest" and tags.get("beta"):
+            note = ("beta resolves to latest: the beta dist-tag (%s) is not newer than latest, "
+                    "and an older beta never replaces a newer stable build" % tags["beta"])
+        elif tag == "latest":
+            note = "no beta dist-tag, so beta falls back to latest"
+        return {"channel": name, "tag": tag, "version": version, "note": note}
+    tag = CHANNEL_TAGS.get(name)
+    if tag is None:
+        return {"channel": name, "tag": None, "version": None,
+                "note": "unknown channel %r" % name}
+    version = tags.get(tag)
+    note = None
+    if version is None:
+        note = ("dist-tag %r does not exist in the registry — a channel name is not a docker "
+                "tag and not a git branch, and a missing tag is not a reason to try another "
+                "channel" % tag)
+    return {"channel": name, "tag": tag, "version": version, "note": note}
+
+
+def needs_bridge(installed):
+    """Is this installed version older than the bridge cut-off? Unreadable means no."""
+    parsed = parse_version(installed or "")
+    if not parsed["valid"] or len(parsed["base"]) < 2:
+        return False
+    return tuple(parsed["base"][:2]) < tuple(BRIDGE_REQUIRED_BEFORE)
 
 
 # --------------------------------------------------------------------------- #
@@ -289,12 +402,15 @@ def image_digest(reference, timeout=60):
 # --------------------------------------------------------------------------- #
 
 def soak_gate(target, releases, soak_days, installed_versions=None, now=None,
-              channel_version=None, digest_check=None):
+              channel_version=None, digest_check=None, channel=None):
     """Decide whether ``target`` may be installed. Returns a verdict dict.
 
     ``accepted`` is the only value that permits a mutation. ``unverified`` is a
     refusal with a different reason: nothing said the version is bad, but nothing
     proved it is good either, and an unproven upgrade is not a safe one.
+    ``bridge-required`` is a third: the target is fine, the route to it is not — an
+    installation older than the cut-off must cross the bridge release first. It never
+    softens a ``rejected``; the bridge reason is added beside the others.
     """
     now = now or datetime.datetime.now(datetime.timezone.utc)
     reasons, verdict = [], "accepted"
@@ -363,8 +479,37 @@ def soak_gate(target, releases, soak_days, installed_versions=None, now=None,
         reasons.append("digest mismatch: the pinned reference resolves to %s but the channel "
                        "build is %s" % (digest_check["actual"], digest_check["expected"]))
 
-    return {"verdict": verdict, "target": target, "age_days": age_days,
-            "release_url": (release or {}).get("html_url"), "reasons": reasons}
+    line = release_line(target)["line"]
+    if channel in ("stable", "beta") and line == "extended-stable":
+        verdict = "rejected"
+        reasons.append("%s is on the extended-stable line (monthly patch %d or higher is reserved "
+                       "for it): channel %s never lands there, and an extended-stable build is "
+                       "not a regular stable build"
+                       % (target, EXTENDED_STABLE_MIN_PATCH, channel))
+    elif channel == "extended-stable" and line == "stable":
+        verdict = "rejected"
+        reasons.append("%s is on the regular stable line, not the extended-stable line "
+                       "(monthly patch %d or higher): channel extended-stable fails closed "
+                       "rather than falling back to it" % (target, EXTENDED_STABLE_MIN_PATCH))
+
+    result = {"verdict": verdict, "target": target, "age_days": age_days,
+              "line": line, "release_url": (release or {}).get("html_url"),
+              "reasons": reasons}
+
+    old_ones = sorted(name for name, installed in (installed_versions or {}).items()
+                      if needs_bridge(installed))
+    if old_ones and compare(target, BRIDGE_VERSION) > 0:
+        reasons.append("%s %s older than %d.%d: Doctor refuses to migrate that state straight to "
+                       "the current line and sends it through the bridge release first. Upgrade "
+                       "to %s, run doctor --fix there and confirm what it imported, then gate the "
+                       "target again"
+                       % (", ".join(old_ones), "is" if len(old_ones) == 1 else "are",
+                          BRIDGE_REQUIRED_BEFORE[0], BRIDGE_REQUIRED_BEFORE[1], BRIDGE_VERSION))
+        result["bridge"] = {"version": BRIDGE_VERSION, "instances": old_ones,
+                            "required_before": "%d.%d" % tuple(BRIDGE_REQUIRED_BEFORE)}
+        if verdict in ("accepted", "unverified"):
+            result["verdict"] = "bridge-required"
+    return result
 
 
 # --------------------------------------------------------------------------- #
@@ -422,8 +567,12 @@ def drift_report(rows, target=None):
 def render(payload):
     lines = []
     channel = payload["channel"]
-    lines.append("channel %s -> dist-tag %s -> %s"
-                 % (channel["name"], channel["tag"], channel.get("version") or "unresolved"))
+    hop = "dist-tag %s" % channel["tag"] if channel.get("tag") else "no dist-tag"
+    lines.append("channel %s -> %s -> %s%s"
+                 % (channel["name"], hop, channel.get("version") or "unresolved",
+                    " (line %s)" % channel["line"] if channel.get("line") else ""))
+    if channel.get("note"):
+        lines.append("  %s" % channel["note"])
     if channel.get("error"):
         lines.append("  channel lookup failed: %s" % channel["error"])
     if payload.get("all_tags"):
@@ -432,9 +581,14 @@ def render(payload):
     verdict = payload.get("gate")
     if verdict:
         lines.append("")
-        lines.append("target %s -> %s" % (verdict["target"], verdict["verdict"].upper()))
+        lines.append("target %s -> %s%s" % (
+            verdict["target"], verdict["verdict"].upper(),
+            " (line %s)" % verdict["line"] if verdict.get("line") else ""))
         for reason in verdict["reasons"]:
             lines.append("  - %s" % reason)
+        if verdict.get("bridge"):
+            lines.append("  bridge: %s, needed by %s"
+                         % (verdict["bridge"]["version"], ", ".join(verdict["bridge"]["instances"])))
     drift = payload["drift"]
     lines.append("")
     lines.append("installed across %d instance(s): %d distinct version(s)%s"
@@ -477,7 +631,8 @@ def build_parser():
     ap.add_argument("--channel", default=None, choices=sorted(CHANNEL_TAGS),
                     help="release channel, as spelled in policy.update_channel (default: from "
                          "the fleet config, else stable). The channel name is not the dist-tag: "
-                         "channel 'stable' resolves through dist-tag 'latest'")
+                         "channel 'stable' resolves through dist-tag 'latest', 'beta' is the "
+                         "newer of the beta and latest tags, and 'dev' is git main (no package)")
     ap.add_argument("--target", default=None,
                     help="check this exact version instead of the channel's current build")
     ap.add_argument("--soak-days", type=int, default=None,
@@ -506,11 +661,11 @@ def main(argv=None):
                                     else "stable")
     soak_days = args.soak_days if args.soak_days is not None else (
         int(cfg.policy("soak_days", 14)) if cfg.present else 14)
-    tag = CHANNEL_TAGS.get(channel_name)
-    if tag is None:
+    if channel_name not in CHANNEL_TAGS:
         sys.stderr.write("error: unknown channel %r (known: %s)\n"
                          % (channel_name, ", ".join(sorted(CHANNEL_TAGS))))
         return EXIT_CONFIG
+    tag = CHANNEL_TAGS[channel_name]
 
     try:
         records = discovery.discover(prefix=args.prefix, cfg=cfg, probe=True)
@@ -527,15 +682,21 @@ def main(argv=None):
         return EXIT_EMPTY
 
     rows = instance_versions(picked)
-    channel = {"name": channel_name, "tag": tag, "version": None, "error": None}
+    channel = {"name": channel_name, "tag": tag, "version": None, "error": None,
+               "note": None, "line": None}
     all_tags, releases, repo = {}, None, args.repo
+    if channel_name == "dev":
+        channel["note"] = channel_target("dev", {})["note"]
     if not args.no_net:
         try:
             all_tags = dist_tags(args.package, args.timeout)
-            channel["version"] = all_tags.get(tag)
-            if channel["version"] is None:
-                channel["error"] = ("dist-tag %r does not exist for %s — the channel name is not "
-                                    "a docker tag and not a git branch" % (tag, args.package))
+            resolved = channel_target(channel_name, all_tags)
+            channel["version"], channel["tag"] = resolved["version"], resolved["tag"]
+            channel["note"] = resolved["note"]
+            channel["line"] = release_line(resolved["version"])["line"] \
+                if resolved["version"] else None
+            if channel["version"] is None and channel_name != "dev":
+                channel["error"] = "%s: %s" % (args.package, resolved["note"])
         except NetError as exc:
             channel["error"] = str(exc)
         if repo is None and (channel["version"] or all_tags.get("latest")):
@@ -567,7 +728,8 @@ def main(argv=None):
     verdict = None
     if target:
         verdict = soak_gate(target, releases, soak_days, installed_versions=installed,
-                            channel_version=channel["version"], digest_check=digest_check)
+                            channel_version=channel["version"], digest_check=digest_check,
+                            channel=channel_name)
 
     drift = drift_report(rows, target=target)
     payload = {

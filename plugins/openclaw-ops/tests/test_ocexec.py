@@ -190,7 +190,8 @@ class PlanAuthorityTest(DoorTestCase):
         self.assertIn("minted for 'beta'", err)
 
     def test_r3_and_r4_argv_never_reach_the_escape_hatch(self):
-        for argv in (["sessions", "prune"], ["gateway", "token"]):
+        for argv in (["sessions", "cleanup"], ["update", "cleanup"],
+                     ["doctor", "--generate-gateway-token"]):
             with self.subTest(argv=argv):
                 code, _, err = self.run_door(["alpha", "--yes", "--plan-id", self.mint(),
                                               "--"] + argv)
@@ -229,6 +230,109 @@ class RefusalTest(DoorTestCase):
         self.assertIn("accept-capabilities", err)
 
 
+class RiskMarkerTest(unittest.TestCase):
+    """The markers name commands that exist. A marker on a missing command classifies nothing.
+
+    Upstream reshaped the tree: there is no ``backup list`` and no ``database status``,
+    ``sessions prune`` became ``sessions cleanup``, ``secrets set`` became
+    ``secrets store set`` and the token generator is a doctor flag. A READ_ONLY entry
+    for a command that does not exist is harmless; an R3 or R4 marker for one is not,
+    because the real command then falls through to the default class.
+    """
+
+    def risk(self, *argv):
+        return ocexec.classify_argv(list(argv))[0]
+
+    def test_commands_that_do_not_exist_are_not_on_the_read_only_list(self):
+        self.assertNotIn(("backup", "list"), ocexec.READ_ONLY)
+        self.assertNotIn(("database", "status"), ocexec.READ_ONLY)
+        self.assertNotEqual(self.risk("backup", "list"), "R0")
+        self.assertNotEqual(self.risk("database", "status"), "R0")
+
+    def test_the_documented_reads_are_r0(self):
+        for argv in (("backup", "verify", "<archive>"),
+                     ("backup", "sqlite", "list"),
+                     ("backup", "sqlite", "verify", "<snapshot>"),
+                     ("database", "preflight"),
+                     ("database", "ownership", "status"),
+                     ("update", "status"),
+                     ("update", "status", "--json"),
+                     ("gateway", "health"),
+                     ("gateway", "probe"),
+                     ("secrets", "audit", "--check"),
+                     ("channels", "status"),
+                     ("doctor", "--lint", "--severity-min", "info"),
+                     ("doctor", "--post-upgrade", "--json")):
+            with self.subTest(argv=argv):
+                self.assertEqual(self.risk(*argv), "R0")
+
+    def test_sessions_cleanup_is_r3_and_the_old_name_is_not_a_marker(self):
+        self.assertEqual(self.risk("sessions", "cleanup"), "R3")
+        self.assertEqual(self.risk("sessions", "cleanup", "--enforce"), "R3")
+        self.assertNotIn(("sessions", "prune"), ocexec.R3_MARKERS)
+
+    def test_update_cleanup_is_r4_because_it_retires_the_recovery_originals(self):
+        self.assertEqual(self.risk("update", "cleanup", "--yes"), "R4")
+        self.assertEqual(self.risk("update", "cleanup", "--dry-run"), "R4")
+        self.assertEqual(self.risk("update"), "R4")
+        self.assertEqual(self.risk("update", "--tag", "<good>"), "R4")
+
+    def test_update_status_is_a_read_even_though_update_is_r4(self):
+        self.assertEqual(self.risk("update", "status"), "R0")
+        # but a write-shaped flag on it falls back to the family class
+        self.assertEqual(self.risk("update", "status", "--fix"), "R4")
+
+    def test_memory_commands_that_delete_or_rebuild_are_r3(self):
+        for argv in (("memory", "reset", "--agent", "<id>", "--yes"),
+                     ("memory", "forget", "--agent", "<id>", "--session", "<s>"),
+                     ("memory", "index", "--force", "--agent", "<id>"),
+                     ("update", "repair")):
+            with self.subTest(argv=argv):
+                self.assertEqual(self.risk(*argv), "R3")
+
+    def test_memory_reset_is_not_swallowed_by_the_top_level_reset_command(self):
+        # `reset` (wipe the whole install) is R4 only as the first command word
+        self.assertEqual(self.risk("reset"), "R4")
+        self.assertEqual(self.risk("memory", "reset", "--yes"), "R3")
+        self.assertNotEqual(self.risk("browser", "reset-profile"), "R4")
+
+    def test_a_memory_status_that_reindexes_is_not_a_plain_read(self):
+        self.assertEqual(self.risk("memory", "status", "--agent", "<id>"), "R0")
+        self.assertEqual(self.risk("memory", "status", "--index", "--agent", "<id>"), "R1")
+
+    def test_state_and_session_database_maintenance_is_r3(self):
+        self.assertEqual(self.risk("doctor", "--state-sqlite", "compact"), "R3")
+        for mode in ("compact", "import", "recover", "restore"):
+            with self.subTest(mode=mode):
+                self.assertEqual(self.risk("doctor", "--session-sqlite", mode), "R3")
+        # the equals form is the same flag
+        self.assertEqual(self.risk("doctor", "--session-sqlite=compact"), "R3")
+        self.assertEqual(self.risk("doctor", "--state-sqlite=compact"), "R3")
+
+    def test_the_secret_store_writes_and_apply_are_r4(self):
+        for argv in (("secrets", "store", "set", "NAME"),
+                     ("secrets", "store", "rm", "NAME"),
+                     ("secrets", "store", "import", "--from", "<file>"),
+                     ("secrets", "apply", "--from", "<plan>")):
+            with self.subTest(argv=argv):
+                self.assertEqual(self.risk(*argv), "R4")
+
+    def test_the_gateway_token_generator_is_a_doctor_flag_and_r4(self):
+        self.assertEqual(self.risk("doctor", "--generate-gateway-token"), "R4")
+        self.assertNotIn(("gateway", "token"), ocexec.R4_MARKERS)
+
+    def test_destructive_top_level_commands_are_r4(self):
+        for argv in (("reset", "--scope", "full"), ("uninstall",), ("fleet", "rm", "<tenant>"),
+                     ("migrate", "apply", "<provider>"), ("doctor", "--fix"),
+                     ("security", "audit", "--fix")):
+            with self.subTest(argv=argv):
+                self.assertEqual(self.risk(*argv), "R4")
+
+    def test_a_marker_in_a_value_position_does_not_misclassify_a_read(self):
+        self.assertEqual(self.risk("config", "get", "update.channel"), "R0")
+        self.assertEqual(self.risk("config", "get", "reset"), "R0")
+
+
 class ModeChoiceTest(DoorTestCase):
     """hot when there is a gateway, cold only when there is not — and never both."""
 
@@ -251,9 +355,33 @@ class ModeChoiceTest(DoorTestCase):
 
     def test_cold_runs_only_the_subcommands_safe_on_a_broken_instance(self):
         down = instance_record(state="down")
-        self.assertTrue(ocexec.check_policy(down, ["database", "status"], "R0", "cold", yes=False))
+        self.assertTrue(ocexec.check_policy(down, ["database", "preflight"], "R0", "cold",
+                                            yes=False))
         with self.assertRaises(ocexec.Refusal):
             ocexec.check_policy(down, ["health"], "R0", "cold", yes=False)
+
+    def test_cold_admits_doctor_because_it_is_the_documented_recovery_path(self):
+        # a gateway that exited unable to migrate its state is brought back by running
+        # the same image once with doctor against the same mounts
+        down = instance_record(state="down")
+        for argv in (["doctor", "--lint"], ["doctor", "--post-upgrade"],
+                     ["database", "ownership", "status"]):
+            with self.subTest(argv=argv):
+                self.assertTrue(ocexec.check_policy(down, argv, "R0", "cold", yes=False))
+
+    def test_cold_doctor_fix_is_still_a_planned_r4_not_a_free_pass(self):
+        down = instance_record(state="down")
+        risk, _ = ocexec.classify_argv(["doctor", "--fix"])
+        self.assertEqual(risk, "R4")
+        with self.assertRaises(ocexec.Refusal) as caught:
+            ocexec.check_policy(down, ["doctor", "--fix"], risk, "cold", yes=True)
+        self.assertIn("R4", str(caught.exception))
+
+    def test_the_refusal_names_doctor_among_the_cold_safe_set(self):
+        down = instance_record(state="down")
+        with self.assertRaises(ocexec.Refusal) as caught:
+            ocexec.check_policy(down, ["health"], "R0", "cold", yes=False)
+        self.assertIn("doctor", str(caught.exception))
 
     def test_the_hot_line_keeps_the_flag_json_output_depends_on(self):
         cmd = ocexec.build_argv(instance_record(), ["health", "--json"], "hot")
