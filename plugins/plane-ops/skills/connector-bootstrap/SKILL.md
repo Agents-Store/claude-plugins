@@ -142,7 +142,7 @@ Resources without a legacy name in this plugin: `release`, `release_tag`, `relea
 - **Scope.** Supply `project_id` for a project's own set; omit it to address the workspace (`workitem list`, `workitem count`, `page`, `state`, `workitem_type`). A wrong scope still succeeds against the other scope, so check which one you meant.
 - **Declared parameters only.** Parameters are validated against the action's declared set; an extra or misspelled parameter is an error, not a silent drop. When a call is rejected, re-read the tool description rather than guessing.
 - **Plural actions.** `manage_workitems` takes `add_ids` and/or `remove_ids`, returns nothing, and is read back with `list_workitems`.
-- **Archive and delete.** `archive` is an action (not a flag); `delete` is permanent. The plugin's PreToolUse hook asks for confirmation on delete-type actions.
+- **Archive and delete.** `archive` is an action (not a flag); `delete` is permanent. The plugin's PreToolUse hook makes Claude Code show its permission dialog for delete-type actions (`delete`, `remove_*`, `detach*`, `delete_point`, `delete_option`, `delete_value`, `delete_definition`) and adds a warning to the context on `archive`; name the target in your message before calling, and do not retry a delete the user declined.
 
 ## How to Connect Plane
 

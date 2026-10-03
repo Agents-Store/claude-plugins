@@ -12,11 +12,12 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "mcp__.*[Pp]lane.*__(project|cycle|module|milestone|initiative|state|label|workitem|workitem_type|workitem_property|workitem_comment|workitem_link|workitem_relation|workitem_attachment|work_log|intake|page|release|release_tag|release_label|customer|customer_property|customer_request|collection|template|project_estimate)$|delete_(project|cycle|state|work_item|work_item_type|work_item_property|label|module|epic|milestone|initiative|work_log|work_item_comment|work_item_link|intake|page)",
+        "matcher": "mcp__.*[Pp]lane.*__(project|cycle|module|milestone|initiative|state|label|workitem|workitem_type|workitem_property|workitem_comment|workitem_link|workitem_relation|workitem_attachment|work_log|intake|page|release|release_tag|release_label|customer|customer_property|customer_request|collection|template|project_estimate)$|mcp__.*[Pp]lane.*__(delete|remove|detach|archive)_",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "PLANE TOOL CALL CHECK. Hook input: $ARGUMENTS. Read `tool_name` and `tool_input.action`. Plane MCP 0.3+ resource tools (workitem, cycle, module, page, ...) take an `action` parameter; older per-operation connectors have no `action` and put the operation in the tool name (delete_cycle, delete_work_item, ...). (1) DESTRUCTIVE: `action` is `delete`, `remove_projects`, `remove_page`, `remove_member`, `detach`, `detach_from_workitem`, `delete_point`, `delete_option`, `delete_value` or `delete_definition`, or the tool name is a legacy `delete_*`. Block the call (ok=false) with a reason that tells Claude to get explicit user confirmation first: (a) show the user the exact resource being deleted (name, ID, a one-line description of what it contains); (b) state what will be lost and what will only be unlinked, e.g. deleting a cycle unlinks its work items but keeps them, deleting a project is catastrophic, deleting a state requires migrating its items first, a page can be deleted only after it is archived; (c) ask 'Proceed with the delete? (yes/no)' and WAIT for 'yes'. If the user says no or is ambiguous, abort and offer a safer alternative (archive instead of delete, migrate the state first). Each destructive call needs its own confirmation, even if the user approved a related one earlier. (2) ARCHIVE: `action` is `archive` (or a legacy archive_*). Allow (ok=true) but warn in one line what gets archived and that `unarchive` reverses it; note that `cycle archive` ends a still-running cycle first and `workitem archive` accepts only completed or cancelled items. (3) Anything else (list, retrieve, create, update, search, count, complete, manage_*, transfer_workitems, ...): allow (ok=true) silently, with no questions. If the tool does not belong to a Plane server, allow it."
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/plane_guard.py\"",
+            "timeout": 10
           }
         ]
       }
