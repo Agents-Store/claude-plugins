@@ -336,6 +336,20 @@ class RiskMarkerTest(unittest.TestCase):
         self.assertEqual(self.risk("--profile", "work", "memory", "reset"), "R3")
         self.assertEqual(self.risk("--profile", "work", "update", "status"), "R0")
 
+    def test_triage_collects_read_only_only_with_the_json_or_non_interactive_flag(self):
+        # a bare `triage` starts a local coding agent that repairs autonomously
+        self.assertEqual(self.risk("triage", "--json"), "R0")
+        self.assertEqual(self.risk("triage", "--non-interactive"), "R0")
+        self.assertNotEqual(self.risk("triage"), "R0")
+        # selecting an agent, or asking for the embedded repair turn, is a repair
+        self.assertEqual(self.risk("triage", "--run"), "R4")
+        self.assertEqual(self.risk("triage", "--json", "--run"), "R4")
+        self.assertEqual(self.risk("triage", "--agent", "codex"), "R4")
+
+    def test_the_diagnostics_export_writes_a_file_and_is_not_a_read(self):
+        # a sanitized zip is written under the state directory
+        self.assertNotEqual(self.risk("gateway", "diagnostics", "export", "--json"), "R0")
+
     def test_a_read_that_executes_configured_commands_is_not_a_plain_read(self):
         # --allow-exec lets doctor and the secrets audit run exec SecretRefs
         self.assertEqual(self.risk("secrets", "audit", "--check"), "R0")

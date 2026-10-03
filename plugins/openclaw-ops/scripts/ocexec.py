@@ -104,6 +104,8 @@ READ_ONLY = {
     ("secrets", "audit"), ("channels", "status"),
     ("backup", "verify"), ("backup", "sqlite", "list"), ("backup", "sqlite", "verify"),
     ("database", "preflight"), ("database", "ownership", "status"),
+    # sanitized diagnostics without starting an agent: only with one of these two flags
+    ("triage", "--json"), ("triage", "--non-interactive"),
 }
 
 # Subcommands whose class differs from their family's. They are checked before the
@@ -151,7 +153,11 @@ R3_MARKERS = (("memory", "index", "--force"), ("memory", "reset"), ("memory", "f
 #   doctor --generate-gateway-token              rotates the gateway bearer
 #   doctor --fix, security audit --fix           repair flags that choose what they touch
 #   fleet rm, migrate apply, upgrade             deletion and migration
-R4_MARKERS = (("update",), ("upgrade",),
+#   triage --run, triage --agent <name>          hand the installation to a coding agent that
+#                                                repairs autonomously (a bare ``triage`` does
+#                                                the same in a terminal, so it is not on the
+#                                                read list: only --json / --non-interactive is)
+R4_MARKERS = (("update",), ("upgrade",), ("triage", "--run"), ("triage", "--agent"),
               ("secrets", "store", "set"), ("secrets", "store", "rm"),
               ("secrets", "store", "import"), ("secrets", "apply"),
               ("doctor", "--generate-gateway-token"),

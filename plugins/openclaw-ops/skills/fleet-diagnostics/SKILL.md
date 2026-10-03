@@ -132,6 +132,12 @@ Checks are shown as CLI intent, run through `${CLAUDE_PLUGIN_ROOT}/scripts/ocexe
 - One instance, deep and unclear → the incident-responder agent.
 - Neither agent mutates anything. If a walkthrough proposes a change, it comes back as a finding id and
   a `/openclaw-ops:repair` line for a human to approve.
+- Evidence for a human or a ticket: `triage --json` (through the one door) writes a sanitized bundle and
+  starts no agent; without `--json` or `--non-interactive` triage launches a coding agent that repairs by
+  itself, so it is never run bare here. `gateway diagnostics export` writes a zip and is a step for a human.
+- Lint depth: `healthcheck.py --lint` is the default read; `--lint-all` adds the opt-in checks upstream
+  leaves out of the default run. An exit 2 from the lint is a failed run (`fleet.lint.run-failed`), not a
+  clean one.
 
 `references/findings-catalog.md` — every id with severity, detection, fix, verification and mutation
 class. It is one id space with the battery, not a parallel one, and that is checked rather than

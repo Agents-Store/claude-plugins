@@ -90,9 +90,10 @@ name. R3 (backup first): `sessions cleanup`, `memory reset`, `memory forget`, `m
 `doctor --session-sqlite compact|import|recover|restore`. R4 (typed confirmation): `update` in any form
 — `update cleanup` also retires the migration recovery originals for good — `secrets store
 set|rm|import`, `secrets apply`, `doctor --generate-gateway-token`, `doctor --fix`,
-`security audit --fix`, `fleet rm`, `migrate apply`, and a top-level `reset` or `uninstall`. A few
+`security audit --fix`, `fleet rm`, `migrate apply`, `triage --run` and `triage --agent` (they hand the
+installation to a coding agent that repairs on its own), and a top-level `reset` or `uninstall`. A few
 reads are not what their family suggests: `update status` is a ledger read, `memory status --index`
-reindexes, and anything carrying `--allow-exec` (doctor, the secrets audit) runs the exec-backed
+reindexes, `triage` is a read only as `triage --json` or `--non-interactive`, and anything carrying `--allow-exec` (doctor, the secrets audit) runs the exec-backed
 secret references the config declares, so it is an R1. Global options in front (`--profile <name>`) do
 not hide a command word. When a build lacks a verb, upstream's `--help` wins and the marker list is wrong
 until it is edited — the classifier is a safety net, not a command catalogue.
