@@ -11,14 +11,18 @@ The three Chatwoot API families plus the official CLI:
 
 - **Application API** (`/api/v1/accounts/{id}`) — agent/account automation: conversations,
   messages, contacts, inboxes, teams, agents, agent bots, canned responses, custom
-  attributes & filters, automation rules, webhooks, help center, reports, audit logs.
+  attributes & filters, automation rules, webhooks, help center, reports, audit logs,
+  **campaigns**, **WhatsApp message templates** (Cloud API and Twilio), branded email layout.
 - **Platform API** (`/platform/api/v1`) — installation provisioning: accounts, users,
-  account-users, agent bots, SSO links.
+  account-users, agent bots, SSO links, user access tokens.
 - **Public/Client API** (`/public/api/v1/inboxes/{inbox_identifier}`) — building a custom
   chat widget (unauthenticated).
 
 The raw OpenAPI specs are bundled under
-`skills/api-reference/references/openapi/` so the agent can grep authoritative schemas.
+`skills/api-reference/references/openapi/` so the agent can grep authoritative schemas. They are
+vendored from `chatwoot/chatwoot` `develop` at commit `843385f` (2026-10-02): Application 124
+operations, Platform 18, Client 12. The latest release, v4.18.0, has 122 and 17; the endpoints
+newer than the release are marked `develop` only in the per-family guides.
 
 ## Skills
 
@@ -48,7 +52,7 @@ It confirms before any customer-visible write.
 
 | Variable | Purpose |
 |----------|---------|
-| `CHATWOOT_API_KEY` | Application user **access token** (Profile Settings → Access Token). Auth header is `api_access_token`. |
+| `CHATWOOT_API_KEY` | Application user **access token** (Profile Settings → Access Token). Sent as the `api-access-token` header (hyphens, so reverse proxies do not drop it). |
 | `CHATWOOT_BASE_URL` | Instance origin, e.g. `https://app.chatwoot.com` or your self-hosted URL (no trailing slash). |
 | `CHATWOOT_ACCOUNT_ID` | Numeric account id from the dashboard URL `.../app/accounts/{id}/...`. |
 | `CHATWOOT_PLATFORM_TOKEN` | (Optional) Platform app token, only for `/platform/api/v1` provisioning. |
@@ -63,7 +67,7 @@ export CHATWOOT_API_KEY="your_access_token"
 export CHATWOOT_ACCOUNT_ID="1"
 
 # REST
-curl -s -H "api_access_token: ${CHATWOOT_API_KEY}" \
+curl -s -H "api-access-token: ${CHATWOOT_API_KEY}" \
   "${CHATWOOT_BASE_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/conversations" | jq '.data.meta'
 
 # CLI

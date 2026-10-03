@@ -27,9 +27,10 @@ Follow these steps:
    The human-readable endpoint tables are in
    `${CLAUDE_PLUGIN_ROOT}/skills/api-reference/references/{application,platform,client}-api.md`.
 
-3. **Build the curl** with the right auth header (`api_access_token`, never Bearer):
+3. **Build the curl** with the right auth header (`api-access-token`, hyphenated: it survives
+   proxies that drop underscore headers; Bearer works only on Chatwoot v4.19.0+):
    ```bash
-   curl -s -H "api_access_token: ${CHATWOOT_API_KEY}" \
+   curl -s -H "api-access-token: ${CHATWOOT_API_KEY}" \
      "${CHATWOOT_BASE_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/<path>" | jq .
    ```
 
