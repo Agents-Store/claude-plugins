@@ -7,6 +7,8 @@
 **Root cause:** The SDK and Docker knowledge was spread across a stack plugin instead of living with its tool; the asset advice predates the knowledge that `next/image` exposes the source URL.
 **Severity:** Major
 
+**Update 2026-10-03 (review):** The `RESOURCE_RESTRICTED` statement in `troubleshoot` is labelled as observed on Directus 12.4.1; the login and refresh contract in `references/ssr-client.md` is unchanged.
+
 ## 2026-03-30 — troubleshoot: 403 section missing file asset authentication gotcha
 
 **Problem:** The 403 troubleshooting section covered general permission issues but didn't mention the #1 403 gotcha: Directus file assets (`/assets/{id}`) returning 403 when accessed without authentication. Developers integrating with frontends (Next.js, React, etc.) hit this constantly.
