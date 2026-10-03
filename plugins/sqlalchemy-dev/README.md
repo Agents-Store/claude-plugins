@@ -7,8 +7,8 @@ SQLAlchemy dev plugin for Agents Store. Typed SQLAlchemy 2.0 style throughout (`
 | Skill | Description |
 |-------|-------------|
 | `setup` | Verify SQLAlchemy configuration, version pin, driver and database connection |
-| `model-patterns` | Model definitions, relationships, column types, constraints, mixins |
-| `query-patterns` | Queries, filtering, joins, aggregations, eager loading, pagination, bulk operations |
+| `model-patterns` | Model definitions, relationships, column types, constraints, mixins; the Flask-Login `User` model and user-owned tables |
+| `query-patterns` | Queries, filtering, joins, aggregations, eager loading, pagination, bulk operations; owner-scoped (per-user) queries |
 | `api-reference` | Core SQLAlchemy API (column types, session methods, relationship options), plus references: advanced API, SQLAlchemy 2.1, Legacy 1.x style |
 | `cli-recipes` | Alembic / Flask-Migrate migration commands |
 | `troubleshoot` | Common SQLAlchemy errors and diagnostic steps |

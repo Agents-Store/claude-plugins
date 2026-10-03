@@ -90,6 +90,9 @@ except IntegrityError:
 ### Session Best Practices
 
 ```python
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 # Always roll back on error
 try:
     session.add(obj)
@@ -99,14 +102,14 @@ except Exception:
     raise
 
 # Load what the view needs while the session is open, not in the template
-from sqlalchemy.orm import selectinload, undefer
-
 client = session.scalars(
     select(Client)
-    .options(selectinload(Client.appointments), undefer(Client.visit_count))
+    .options(selectinload(Client.appointments))
     .where(Client.id == client_id)
 ).one()
 ```
+
+A computed column that the page reads (`Client.visit_count` in `model-patterns`, Computed Values) is loaded in the same statement with `.options(undefer(Client.visit_count))`; the page then runs no further query.
 
 ## Migration Errors
 

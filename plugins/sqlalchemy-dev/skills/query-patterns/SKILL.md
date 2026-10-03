@@ -4,8 +4,9 @@ description: >
   Use when the user asks about "SQLAlchemy queries", "filter records",
   "SQLAlchemy select", "session.scalars", "join tables", "aggregate query",
   "order by", "pagination", "N+1 query problem", "eager loading",
-  "SQLAlchemy session", "bulk insert", or needs patterns for querying
-  data with SQLAlchemy.
+  "SQLAlchemy session", "bulk insert", "convert Model.query to select() 2.0
+  style", "upgrade to SQLAlchemy 2.1", "filter queries by current user",
+  "owner-scoped queries", or needs patterns for querying data with SQLAlchemy.
 ---
 
 # SQLAlchemy Query Patterns
@@ -369,6 +370,8 @@ clients = pagination.items  # also: pagination.has_next, .has_prev, .pages, .tot
 ```
 
 `db.select` is `sqlalchemy.select`, and `db.session.execute(db.select(...))` is the Flask-SQLAlchemy documented style. Install Flask-SQLAlchemy with `"SQLAlchemy<2.1"` (see `model-patterns`).
+
+For an app where every row belongs to a signed-in user, scope each query to that user through one helper, fetch records by id together with their owner, and check the foreign keys a form submits: [Owner-scoped queries](references/owner-scoped-queries.md).
 
 ## SQLAlchemy 2.1 Behavior
 

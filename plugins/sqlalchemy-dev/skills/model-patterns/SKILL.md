@@ -4,8 +4,10 @@ description: >
   Use when the user asks about "SQLAlchemy models", "define database model",
   "Mapped and mapped_column", "DeclarativeBase", "SQLAlchemy relationships",
   "one-to-many relationship", "many-to-many", "SQLAlchemy column types",
-  "model constraints", "Flask-SQLAlchemy model", or needs patterns for
-  defining database models with SQLAlchemy.
+  "model constraints", "Flask-SQLAlchemy model", "convert db.Column to Mapped
+  2.0 style", "upgrade to SQLAlchemy 2.1", "Flask-Login User model",
+  "models owned by a user", or needs patterns for defining database models
+  with SQLAlchemy.
 ---
 
 # SQLAlchemy Model Patterns
@@ -89,6 +91,10 @@ class Member(db.Model):
 - Table names are derived from the class name (`Member` becomes `member`, `BlogPost` becomes `blog_post`); set `__tablename__` when you want plural or custom names.
 - `db.session`, `db.select`, `db.get_or_404` and `db.paginate` replace `Model.query` (see `query-patterns`).
 - Install Flask-SQLAlchemy 3.1 together with `"SQLAlchemy<2.1"`: a `MappedAsDataclass` base fails on SQLAlchemy 2.1 ([pallets-eco/flask-sqlalchemy#1420](https://github.com/pallets-eco/flask-sqlalchemy/issues/1420)); a plain `DeclarativeBase` works, so the pin is a precaution until a Flask-SQLAlchemy release supports 2.1. Plain SQLAlchemy projects use 2.1 freely.
+
+### Flask-Login User and User-Owned Models
+
+The `User` model for Flask-Login (`UserMixin`, normalised email, password hash column) and the `OwnedMixin` that gives every user-owned table a `user_id`, with `Client` and `Appointment` as examples: [Flask-Login User model](references/flask-login-user.md). Its counterpart for queries is `references/owner-scoped-queries.md` in `query-patterns`.
 
 ## Column Types
 
