@@ -11,7 +11,7 @@ The result is a development stack, not a production deployment. For production, 
 
 ## Prerequisites
 
-- Docker Engine with Compose v2 (`docker compose version`)
+- Docker Engine 25 or later with Compose 2.20.2 or later (`docker compose version`). The health checks below use `start_interval`, which older versions reject or ignore. On an older setup delete the three `start_interval` lines and the stack still works, only slower to report healthy
 - A free host port for Directus (8055 is the usual default, set `LOCAL_DIRECTUS_PORT` when it is taken)
 
 ## Files
@@ -88,7 +88,7 @@ services:
   directus:
     image: directus/directus:${LOCAL_DIRECTUS_VERSION:-12.4.1}
     ports:
-      - "${LOCAL_DIRECTUS_PORT:-8055}:8055"
+      - "127.0.0.1:${LOCAL_DIRECTUS_PORT:-8055}:8055"
     volumes:
       - ./uploads:/directus/uploads
       - ./extensions:/directus/extensions
@@ -127,6 +127,8 @@ services:
       WEBSOCKETS_ENABLED: "true"
       CORS_ENABLED: "true"
       CORS_ORIGIN: ${LOCAL_FRONTEND_ORIGIN:-http://localhost:3000}
+      # Lets the Studio embed your frontend in an iframe (Live Preview)
+      CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC: ${LOCAL_FRONTEND_ORIGIN:-http://localhost:3000}
 
       LICENSE_KEY: ${LOCAL_DIRECTUS_LICENSE_KEY:-}
 
@@ -136,9 +138,11 @@ services:
 Notes on the file:
 
 - **`LOCAL_` prefix.** Compose gives variables exported in your shell precedence over `.env`, silently. A shell that already exports `DIRECTUS_*` for your app (a `DIRECTUS_ADMIN_TOKEN`, say) would override the stack's value with no warning, and a real credential could end up in a throwaway container. The prefix keeps the stack's variables apart from the app's `DIRECTUS_URL` and `DIRECTUS_TOKEN`.
+- **Loopback port.** `127.0.0.1:` in the port mapping keeps the stack off your network: the local admin password and static token are throwaway values, and a plain `8055:8055` would publish them on every interface of the machine. Remove the prefix only when another device has to reach the instance.
 - **Pinned tag.** `directus/directus:${LOCAL_DIRECTUS_VERSION}` keeps restarts from silently upgrading. Directus 12 enforces licensing and has breaking changes between minor versions, so upgrades must be deliberate.
 - **`:?` guards.** Compose stops with the message if a required variable is missing, instead of starting Directus with an empty `SECRET`.
 - **Health check** calls `127.0.0.1`, not `localhost`: the image's `wget` tries the IPv6 address for `localhost` first and Directus listens on IPv4 only, so a `localhost` probe reports the container as unhealthy while it works fine.
+- **`CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC`** is what lets Live Preview show your frontend inside the Studio. Without it the browser refuses the iframe. Your frontend must allow the Studio origin as well (`Content-Security-Policy: frame-ancestors 'self' <studio-origin>`), see the Directus Live Preview guide.
 - **`ADMIN_*`** create the first admin on an empty database, so the onboarding screen is skipped. They are ignored once the database already has users.
 - **`PUBLIC_URL`** must match the address you open in the browser. Licensing binds to it on first use and OAuth redirects use it.
 - **PostGIS image** is the one the Directus docs use, so geometry field types work. A plain `postgres` image also works if you do not need them.
@@ -176,9 +180,9 @@ The Directus container runs as the unprivileged `node` user (uid 1000). On Linux
 ## Connect Your Tools
 
 ```bash
-# App environment (point at the published port)
-DIRECTUS_URL=http://localhost:${LOCAL_DIRECTUS_PORT}     # expand it, or type the port
-DIRECTUS_TOKEN=${LOCAL_DIRECTUS_ADMIN_TOKEN}            # local dev only
+# App .env (a .env file does not expand variables: write the literal address and token)
+DIRECTUS_URL=http://localhost:8055         # the port you put in LOCAL_DIRECTUS_PORT
+DIRECTUS_TOKEN=<value of LOCAL_DIRECTUS_ADMIN_TOKEN>   # local dev only
 ```
 
 - **SDK.** See the `sdk-patterns` skill: static token on the server, `authentication('json')` for a login in Node, `authentication('session', { credentials: 'include' })` in the browser.
@@ -251,4 +255,4 @@ To go back to an older version, restore the backup taken before the upgrade. Cha
 | `503` from `/server/health` with a `storage:local` error, uploads fail with `EACCES` | `uploads/` is not writable for uid 1000, see the `chown` in Start and Verify |
 | `403` from `/server/health` | Expected without a token in Directus 12. Use `/server/ping` |
 | Cannot sign in with SSO | Directus 12 needs a licensed tier for SSO. Use an email/password user locally |
-| Assets return `403` for anonymous requests | Files are private by default. Grant the Public policy read on `directus_files` or add `?access_token=` (see `troubleshoot`) |
+| Assets return `403` for anonymous requests | Files are private by default. Grant the Public policy read on `directus_files`, or serve them through a server route that adds the token. Never put `?access_token=` in a URL a browser sees (see `troubleshoot`) |

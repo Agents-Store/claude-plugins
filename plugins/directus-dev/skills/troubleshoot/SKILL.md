@@ -124,8 +124,9 @@ curl "${DIRECTUS_URL}/users/me" \
 
 **403 on file assets (`/assets/{id}`)** — the most common 403 issue when integrating with frontends:
 - Directus file assets require authentication by default — unauthenticated requests to `/assets/{id}` return 403
-- **Fix option 1:** Add `?access_token=TOKEN` to asset URLs (quick, works for server-rendered pages)
-- **Fix option 2:** Grant the Public policy read access to `directus_files` (Settings → Access Policies → Public → `directus_files` → enable Read) — preferred for public-facing sites. Everything unauthenticated requests can reach is controlled by that one policy, so keep it minimal
+- **Fix option 1 (everything is public):** Grant the Public policy read access to `directus_files` (Settings → Access Policies → Public → `directus_files` → enable Read). Everything unauthenticated requests can reach is controlled by that one policy, so keep it minimal. Without a license this must be an unrestricted rule: a folder filter or a field list is a custom permission rule, and creating it answers `403 RESOURCE_RESTRICTED` (`custom_permission_rules_enabled`). The consequence is that **every** file of the instance becomes downloadable, and listable through `GET /files`, by anyone. Do not use this on an instance that also stores private uploads
+- **Fix option 2 (private or mixed files):** Serve assets through a server route of your own that adds the token server-side, and restrict it to the files you mean to publish (for example by folder, checked in the route)
+- **Do not put `?access_token=` into a URL that reaches a browser** (`<img src>`, HTML, or `next/image`, whose `/_next/image?url=` carries the whole source URL into the page): the token is then readable by every visitor and lands in access logs. A static token in a URL is for server-to-server calls only
 - When using `next/image`, the 403 manifests as broken/missing images with no obvious error since Next.js proxies through `/_next/image`
 
 **403 on `/server/health`** — Directus 12 requires a token for it. Use `/server/ping` for liveness probes and send a token only when you need dependency status.

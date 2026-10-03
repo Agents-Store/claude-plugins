@@ -401,6 +401,10 @@ Input: {
 
 List only flow folders with `"query": { "filter": { "type": { "_eq": "flows" } } }` on the `folders` tool.
 
+## Calling an External App
+
+A flow that tells your frontend or another service about a change (cache revalidation, outgoing webhook): event trigger, `request` operation, the secret in a header read from `$env` through `FLOWS_ENV_ALLOW_LIST`, and where the request is made from in Docker. See [references/notify-external-app.md](references/notify-external-app.md).
+
 ## Best Practices
 
 - Use explicit operation keys (e.g., `"check_status"`, `"send_email"`) — never rely on `$last`

@@ -1,6 +1,6 @@
 ---
 name: sdk-patterns
-description: "@directus/sdk patterns \u2014 composable client, TypeScript types, CRUD operations, authentication, real-time subscriptions. This skill should be used when the user asks about \"Directus SDK\", \"@directus/sdk\", \"Directus client library\", \"Directus TypeScript\", or needs code patterns for integrating Directus into a JavaScript/TypeScript project."
+description: "@directus/sdk patterns \u2014 composable client, TypeScript types, CRUD operations, authentication, real-time subscriptions, server-side use in Next.js (fetch options, per-request tokens, relations in queries). This skill should be used when the user asks about \"Directus SDK\", \"@directus/sdk\", \"Directus client library\", \"Directus TypeScript\", \"Directus in Next.js\", or needs code patterns for integrating Directus into a JavaScript/TypeScript project."
 ---
 
 # @directus/sdk Patterns
@@ -386,75 +386,19 @@ if (diff && Object.keys(diff.diff).length > 0) {
 
 SDK 26 validates some parameters before sending: `readRelationByCollection`, `createField`, `deleteCollection`, `utilsExport`, `utilsImport`, `utilitySort`, `triggerFlow` and `readShareInfo` throw immediately when given an empty collection, key or id. Check values that come from user input or config before you call them.
 
-## Content Versions (Draft and Publish)
+## Server-Side Apps (Next.js and Other SSR Frameworks)
 
-For collections with `meta.versioning: true`. In the Studio the published view is read-only since Directus 12 and edits go to a version that is then promoted; API writes to the item itself still work when the policy allows them, so use versions on purpose for review workflows. The reserved keys are `published` (alias `main`) and `draft`.
+Calling Directus from Server Components, Route Handlers or Server Actions has its own rules. They live in two files, loaded on demand:
 
-```typescript
-import {
-  readItem, readItems, createContentVersion, saveToContentVersion,
-  compareContentVersion, promoteContentVersion,
-} from '@directus/sdk';
+- **Client and runtime** (server-only module, fetch options such as `cache` and `next.tags` through `onRequest` / `withOptions` because `rest({ cache })` does not exist, system collections need their own commands, `withToken` for a per-request user token, the login and refresh REST contract, CORS): [references/ssr-client.md](references/ssr-client.md)
+- **Reading content** (relations as nested objects in `fields`, many-to-many through the junction, `readSingleton`, typed filters from URL parameters): [references/content-queries.md](references/content-queries.md)
 
-// Read the draft of an item (use 'published' for the live one; 'main' still works)
-const draft = await client.request(
-  readItem('posts', 'item-uuid', { version: 'draft', fields: ['*', { author: ['*'] }] }),
-);
+## Content Versions and Access Policies
 
-// Raw relational delta of a version (single-item reads only)
-const raw = await client.request(readItem('posts', 'item-uuid', { version: 'draft', versionRaw: true }));
+Two larger topics live in their own files, loaded on demand:
 
-// Create a custom version, save changes into it, review the difference, publish it
-const version = await client.request(
-  createContentVersion({ key: 'spring-edit', name: 'Spring edit', collection: 'posts', item: 'item-uuid' }),
-);
-await client.request(saveToContentVersion(version.id, { title: 'New title' }));
-const { outdated, mainHash, current } = await client.request(compareContentVersion(version.id));
-if (!outdated) {
-  await client.request(promoteContentVersion(version.id, mainHash));
-}
-```
-
-`outdated: true` means the published item changed after the version was created. Compare again and decide before promoting. Requesting a version key that does not exist answers `403 FORBIDDEN`, it does not fall back to the published item. That includes `draft` while nobody has saved a draft for the item yet, so read the published item first or handle the 403.
-
-## Access Control (Policies)
-
-Permissions belong to policies, which are attached to roles or users. Create the policy, then its permissions, then the role, then the attachment:
-
-```typescript
-import { createPolicy, createPermission, createRole, customEndpoint, readUserPermissions } from '@directus/sdk';
-
-const policy = await client.request(
-  createPolicy({ name: 'Blog Editor', icon: 'edit', app_access: true, admin_access: false }),
-);
-
-await client.request(
-  createPermission({
-    policy: policy.id,
-    collection: 'posts',
-    action: 'read',
-    fields: ['*'],
-    permissions: {},
-    validation: {},
-  }),
-);
-
-const role = await client.request(createRole({ name: 'Blog Editors', icon: 'edit' }));
-
-// Attach the policy to the role: a row in directus_access (REST /access)
-await client.request(
-  customEndpoint({
-    path: '/access',
-    method: 'POST',
-    body: JSON.stringify({ role: role.id, policy: policy.id }),
-  }),
-);
-
-// What can the current token do? One entry per collection with none | partial | full per action
-const mine = await client.request(readUserPermissions());
-```
-
-A role no longer holds `admin_access`, `app_access`, `enforce_tfa` or `ip_access`; those are policy fields.
+- **Content versions** (draft and publish workflows: `readItem(..., { version: 'draft' })`, `createContentVersion`, `compareContentVersion`, `promoteContentVersion`; a missing version key answers `403`): [references/content-versions.md](references/content-versions.md)
+- **Access policies** (`createPolicy`, `createPermission`, `createRole`, attaching a policy through `/access`, `readUserPermissions()`; a role no longer holds `admin_access` or `app_access`): [references/access-policies.md](references/access-policies.md)
 
 ## Real-Time (WebSocket)
 

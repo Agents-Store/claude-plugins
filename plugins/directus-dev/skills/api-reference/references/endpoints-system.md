@@ -84,12 +84,14 @@ Only `active` users can authenticate.
 
 Permissions are held by **policies**, never by roles. A user's effective permissions are the aggregate of every policy attached to the user directly, to the user's role, and to that role's parent roles. Policies are additive: each one can add access, none can take it away (the one subtractive control is a policy's IP allowlist, which removes the whole policy for non-matching clients).
 
-| Object | Endpoint | Holds |
-|--------|----------|-------|
-| Policy | `/policies` | `admin_access`, `app_access`, `enforce_tfa`, `ip_access`, and its permissions |
-| Permission | `/permissions` | One rule for one collection and action, attached to a **policy** |
-| Role | `/roles` | `name`, `icon`, `description`, `parent`, `children`, `policies`, `users` (organization only) |
-| Access | `/access` | Junction rows (`directus_access`) that attach a policy to a role or to a user |
+| Object | Endpoint | System collection | Holds |
+|--------|----------|-------------------|-------|
+| Policy | `/policies` | `directus_policies` | `admin_access`, `app_access`, `enforce_tfa`, `ip_access`, and its permissions |
+| Permission | `/permissions` | `directus_permissions` | One rule for one collection and action, attached to a **policy** |
+| Role | `/roles` | `directus_roles` | `name`, `icon`, `description`, `parent`, `children`, `policies`, `users` (organization only) |
+| Access | `/access` | `directus_access` | Junction rows that attach a policy to a role or to a user |
+
+The system collection names matter in two places: permission rules that target them (`collection: 'directus_policies'`), and the SDK, which refuses `readItems('directus_policies')` and the other generic item commands on a `directus_*` collection. Use the typed commands instead (`readPolicies()`, `readRoles()`, `readPermissions()`).
 
 Build order: policy, then its permissions, then role, then the access row that attaches the policy, then assign users to the role.
 

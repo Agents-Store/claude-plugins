@@ -40,6 +40,19 @@
         "Warns that key and query together are an error",
         "Notes that update by query applies read permissions (12.4.0+)"
       ]
+    },
+    {
+      "id": 29,
+      "prompt": "Set up a Directus flow that tells my Next.js site to refresh its cache when a post is published, and keep the shared secret out of the URL.",
+      "expected_output": "Event flow with a request operation, secret in a header via $env and FLOWS_ENV_ALLOW_LIST",
+      "files": [],
+      "expectations": [
+        "Uses an event trigger of type action on items.create, items.update and items.delete for the chosen collections",
+        "Uses a request operation with headers as an array of header/value objects and the body as a stringified JSON string",
+        "Sends the secret in a header, not in the query string",
+        "Reads the secret with {{ $env.NAME }} and explains FLOWS_ENV_ALLOW_LIST, noting the template renders undefined without it",
+        "Notes that localhost in the URL is the Directus container when Directus runs in Docker"
+      ]
     }
   ]
 }

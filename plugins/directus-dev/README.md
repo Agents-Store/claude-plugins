@@ -88,11 +88,11 @@ Or in the project's `.mcp.json` (for Stack Plugins with `${VAR}`):
 | item-operations | Items CRUD, filtering, deep queries, aggregation, batch operations |
 | schema-design | Data modeling, creation order, system fields, content versioning, archive pattern |
 | field-relations | Field types, M2O/O2M/M2M/M2A relation workflows |
-| flow-automation | Flows, operations, triggers, data chains, flow folders |
+| flow-automation | Flows, operations, triggers, data chains, flow folders, calling an external app (cache revalidation) |
 | file-management | Files, assets, folders, imports |
 | api-reference | REST API endpoints and curl examples, policies and access endpoints |
-| sdk-patterns | @directus/sdk 26 composable client, login, content versions, policies |
-| docker-local-dev | Run Directus 12 locally with Docker Compose (PostgreSQL, Redis, health checks) |
+| sdk-patterns | @directus/sdk 26 composable client, login, server-side use in Next.js (fetch options, per-request tokens, relations), content versions, policies |
+| docker-local-dev | Run Directus 12 locally with Docker Compose (PostgreSQL, Redis, loopback port, health checks, Live Preview) |
 | troubleshoot | Common errors, diagnostics, MCP issues, Directus 12 notes |
 | examples | End-to-end scenarios and tool call patterns |
 
