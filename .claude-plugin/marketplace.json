@@ -24,7 +24,8 @@
     "media-hosting-ops": null,
     "image-search-dev": "web-search-dev",
     "stack-directus-nextjs-dev": "stack-directus-nextjs",
-    "stack-directus-nextjs-trigger-dev": "stack-directus-nextjs-trigger"
+    "stack-directus-nextjs-trigger-dev": "stack-directus-nextjs-trigger",
+    "stack-flask-sqlalchemy-dev": "stack-flask-sqlalchemy"
   },
   "plugins": [
     {
@@ -431,23 +432,24 @@
       "category": "development"
     },
     {
-      "name": "stack-flask-sqlalchemy-dev",
-      "source": "./plugins/stack-flask-sqlalchemy-dev",
-      "description": "Flask + SQLAlchemy stack dev plugin for Agents Store. Integration patterns for app factory wiring, blueprint-model coordination, Flask-Login + SQLAlchemy auth, Jinja2 + query data, and full-feature recipes.",
-      "version": "1.0.0",
+      "name": "stack-flask-sqlalchemy",
+      "source": "./plugins/stack-flask-sqlalchemy",
+      "description": "Flask + SQLAlchemy architecture plugin. How the application factory, the Flask-SQLAlchemy session, Alembic migrations and Jinja2 templates fit together: where db is created, the app context, the transaction boundary, expire_on_commit, N+1 at the route-to-template edge, and a full-feature recipe. Tool knowledge comes from its dependencies flask-dev and sqlalchemy-dev.",
+      "version": "2.0.0",
       "author": {
         "name": "AGENTS.STORE"
       },
       "keywords": [
         "stack",
         "flask-sqlalchemy",
-        "dev",
+        "architecture",
         "agents-store",
         "flask",
         "sqlalchemy",
-        "python"
+        "python",
+        "alembic"
       ],
-      "category": "development"
+      "category": "stack"
     },
     {
       "name": "vercel-dev",
