@@ -1,6 +1,6 @@
 ---
 description: Send a chatbot campaign on a specific channel
-allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_list, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_t_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_m_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_wa_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_i_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_v_send
+allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_list, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_t_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_m_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_wa_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_i_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_v_send, mcp__plugin_sendpulse-ops_sendpulse__chatbots_bots_campaigns_tt_send
 argument-hint: <channel> <bot-id> [message]
 ---
 
@@ -10,7 +10,7 @@ Send a chatbot campaign to all subscribers on a specific channel.
 
 ## Arguments
 Format: `<channel> <bot-id> [message]`
-- channel: telegram, whatsapp, instagram, messenger, or viber
+- channel: telegram, whatsapp, instagram, messenger, viber, or tiktok
 - bot-id: The bot ID (optional — will list bots if omitted)
 - message: The message text to send (optional — will prompt if omitted)
 
@@ -30,6 +30,7 @@ Parse from "$ARGUMENTS".
    - whatsapp → `chatbots_bots_campaigns_wa_send`
    - instagram → `chatbots_bots_campaigns_i_send`
    - viber → `chatbots_bots_campaigns_v_send`
+   - tiktok → `chatbots_bots_campaigns_tt_send`
 
 3. **Send campaign:**
    ```

@@ -42,6 +42,13 @@ This skill contains reusable examples and patterns for Sendpulse MCP operations.
 2. chatbots_contacts_messages_{channel}_send(contact_id, messages) -> Send
 ```
 
+### Enroll a Student and Check Progress (Courses)
+```
+1. edu_courses_list() -> Find the course ID
+2. edu_students_create(course_id, name, email) -> Add the student and enroll them
+3. edu_students_statistics_show(student_id) -> Progress across courses, lessons, tests, assignments
+```
+
 ### Create CRM Pipeline with Deals
 ```
 1. crm_pipelines_create(name) -> Get pipeline ID
@@ -92,6 +99,7 @@ This skill contains reusable examples and patterns for Sendpulse MCP operations.
 | WhatsApp | `_wa` |
 | Instagram | `_i` |
 | Viber | `_v` |
+| TikTok | `_tt` |
 | Live Chat | `_lc` |
 
 ## Conventions
