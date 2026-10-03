@@ -29,7 +29,7 @@ Step 2: Try tool B for ~~search → error
 Step 3: Try tool C for ~~search → success → use result
 ```
 
-This applies to EVERY capability: search, scrape, crawl, extract, academic_search, code_search, deep_agent.
+This applies to EVERY capability: search, answer, scrape, crawl, extract, academic_search, code_search, deep_agent.
 
 ## CONNECTORS & Fallback Chains
 
@@ -38,10 +38,11 @@ See `CONNECTORS.md` for the full capability-to-provider mapping.
 | Action | Fallback chain |
 |--------|---------------|
 | `~~search` | `web_search_exa` → `perplexity_search` → `search_web` → `firecrawl_search` |
-| `~~scrape` | `read_url` → `firecrawl_scrape` → `web_fetch_exa` |
-| `~~scrape` with `question` (READ step) | `read_url({question, topk})` → `firecrawl_scrape` (`formats: ["query"]`) → full read |
+| `~~answer` | `perplexity_ask` → `perplexity_reason` → `perplexity_search` / any `~~search` results + your own cited synthesis (`perplexity_search` returns links, not an answer) |
+| `~~scrape` | `read_url` → `firecrawl_scrape` → `web_fetch_exa({urls, maxCharacters: 20000})` |
+| `~~scrape` with `question` (READ step) | `read_url({question, topk})` → `firecrawl_scrape` (`formats: ["query"]`) → full read, pick the passages yourself |
 | `~~batch_search` | `search_web({query: [≤5]})` → one `web_search_exa` per query → one `perplexity_search` per query |
-| `~~batch_scrape` | `read_url({url: [≤5]})` → `web_fetch_exa({urls})` → one `firecrawl_scrape` per URL |
+| `~~batch_scrape` | `read_url({url: [≤5]})` → `web_fetch_exa({urls, maxCharacters: 20000})` → one `firecrawl_scrape` per URL (the fallbacks ignore `question`; pass `formats: ["query"]` per URL or pick passages yourself) |
 | `~~crawl` | `firecrawl_crawl` → `firecrawl_map` + `~~batch_scrape` |
 | `~~extract` | `firecrawl_scrape` (`formats: ["json"]`, `jsonOptions`) per URL → `firecrawl_agent` for unknown URLs → `~~scrape` + extract the fields yourself |
 | `~~academic_search` | `firecrawl_research_search_papers` → `search_arxiv` / `search_ssrn` → `perplexity_search` (`search_domain_filter`) |
@@ -69,7 +70,7 @@ Step 2: SCRAPE — read the found pages
 | **Exa** | Semantic search, company/people lookup, page fetch | Meaning-based search, finding similar content |
 | **Firecrawl** | Scraping, crawling, JSON extraction, developer search, paper research, agent | JS-heavy pages, crawling sites, JSON extraction, code and papers |
 | **Jina** | Batch search and read (arrays), targeted read (`question`), arXiv/SSRN, PDF, rerank, dedup | Many queries or URLs at once, cheap page reading, academic preprints |
-| **Perplexity** | AI answers with citations (Agent API presets `fast`/`medium`/`high`) | Quick facts, answers with sources, deep research |
+| **Perplexity** | Search (links), AI answers with citations — `~~answer` (Agent API presets `fast`/`medium`/`high`) | Quick facts, answers with sources, deep research |
 
 ## 6 Research Types
 
@@ -86,7 +87,7 @@ Step 2: SCRAPE — read the found pages
 
 1. **CLASSIFY** — determine the research type from signals in the query
 2. **PLAN** — form 3-7 search queries yourself (different angles, synonyms, related terms) — there is no query-expansion tool
-3. **SEARCH** — `~~batch_search` / `~~search` with fallback; `~~academic_search` / `~~code_search` when the type calls for it
+3. **SEARCH** — `~~batch_search` / `~~search` with fallback; `~~answer` for facts; `~~academic_search` / `~~code_search` when the type calls for it
 4. **READ** — `~~batch_scrape` / `~~scrape` top-5 pages with fallback; pass the research question as `question` to get only the relevant passages (cheap), read in full only when needed
 5. **EXTRACT** — extract key facts, figures, quotes
 6. **SYNTHESIZE** — combine, deduplicate, cross-check facts

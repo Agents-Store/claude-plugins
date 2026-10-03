@@ -15,7 +15,7 @@ Read and extract content from a web page or PDF. See CONNECTORS.md for provider 
 
 2. **Read content** with fallback (~~scrape):
    ```
-   Try each provider: Jina → Firecrawl → Exa fetch
+   Try each provider: Jina → Firecrawl → Exa fetch (maxCharacters: 20000)
    On error → next provider automatically
    Long page and a specific question? pass it as `question` to get only the relevant passages
    ```

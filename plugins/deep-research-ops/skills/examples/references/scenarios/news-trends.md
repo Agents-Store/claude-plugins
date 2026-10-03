@@ -25,8 +25,8 @@ Queries:
 
 ### Step 3: SEARCH
 ```
-~~search("latest AI regulation news and developments 2026")
-→ Perplexity for most recent AI answer
+~~answer("latest AI regulation news and developments 2026")
+→ Perplexity for the most recent AI answer (recency filter month)
 
 ~~search("AI regulation policy 2026")
 → Perplexity search with a month recency filter, or Exa advanced search with
@@ -78,4 +78,4 @@ Output: Executive Summary with:
 - Methodology
 
 ### Expected Capabilities Used
-`~~search`, `~~batch_search`, `~~batch_scrape`, date detection, relevance ranking, deduplication
+`~~answer`, `~~search`, `~~batch_search`, `~~batch_scrape`, date detection, relevance ranking, deduplication

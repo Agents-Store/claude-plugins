@@ -102,5 +102,5 @@ Step 3: Search variations
   ~~search('"OpenClaw" site:github.com')
 
 Step 4: Escalation
-  ~~search("What is OpenClaw?") → Perplexity first
+  ~~answer("What is OpenClaw?") → Perplexity first
 ```

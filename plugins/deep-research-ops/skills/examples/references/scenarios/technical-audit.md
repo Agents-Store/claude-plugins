@@ -48,6 +48,9 @@ Queries:
 ])
 
 ~~search("current state of RAG architecture best practices 2026")
+
+~~deep_agent("RAG pipeline architecture: components, trade-offs, benchmarks — with sources")
+→ One heavy pass because depth is deep; cross-check its claims against the pages read in Step 4
 ```
 
 ### Step 4: READ
@@ -90,4 +93,4 @@ Output: Deep Research Report with:
 - Methodology
 
 ### Expected Capabilities Used
-`~~code_search`, `~~academic_search`, `~~batch_search`, `~~search`, `~~batch_scrape`, PDF extraction, relevance ranking, deduplication
+`~~code_search`, `~~academic_search`, `~~batch_search`, `~~search`, `~~batch_scrape`, `~~deep_agent` (one pass, depth deep), PDF extraction, relevance ranking, deduplication

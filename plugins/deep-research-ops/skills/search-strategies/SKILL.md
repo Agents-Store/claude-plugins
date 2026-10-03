@@ -18,7 +18,7 @@ Search strategies, provider selection, and query optimization. All calls use `~~
 
 ### Perplexity
 - Factual questions (market size, dates, definitions)
-- AI-synthesized answer with citations (Agent API presets: `fast`, `medium`, `high`)
+- AI-synthesized answer with citations — `~~answer` (Agent API presets: `fast`, `medium`, `high`)
 - Search with recency and domain filters (`perplexity_search`)
 - Quick fact-checking
 
@@ -89,7 +89,7 @@ Documentation:
 
 If Steps 1-3 all return empty:
 ```
-1. ~~search("What is {Name}? {context}") — try Perplexity first
+1. ~~answer("What is {Name}? {context}") — Perplexity first
 2. ~~search("{Name}") — try other providers
 3. ~~search("{Name} twitter OR linkedin OR discord")
 ```

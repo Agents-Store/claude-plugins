@@ -6,7 +6,7 @@ Plugin files use `~~capability` as a placeholder for whatever tool handles that 
 
 Plugins are **tool-agnostic** — they describe workflows in terms of actions (`~~search`, `~~scrape`, `~~crawl`) rather than specific tool names. The plugin ships no MCP server of its own: it uses whatever search and scrape servers are installed.
 
-`web-search-dev` bundles Exa, Firecrawl, Jina and Perplexity, and is declared in this plugin's `dependencies`, so Claude Code installs it with this plugin. You can also bring any other server that provides these capabilities — the fallback chains below simply skip tools that are not in your tool list.
+`web-search-dev` bundles Exa, Firecrawl, Jina and Perplexity, and is declared in this plugin's `dependencies`. When you install this plugin from the marketplace, Claude Code also installs and enables `web-search-dev` at the same scope (a bare dependency name resolves against the same marketplace). A copy loaded with `--plugin-dir` or copied by hand does not pull it in — install it yourself. You can also bring any other server that provides these capabilities — the fallback chains below simply skip tools that are not in your tool list.
 
 Tool names in the chains are the bare names (`read_url`, `firecrawl_scrape`). Servers installed through `web-search-dev` register them as `mcp__plugin_web-search-dev_<server>__<tool>` with the servers `jina`, `exa`, `firecrawl`, `perplexity`. Argument shapes and the full tool lists live in `web-search-dev` (`mcp-patterns` skill, `references/*-tools.md`) and in `docs/tool_reference.md`.
 
@@ -28,10 +28,11 @@ A tool that is not in your tool list (a server not installed, an opt-in tool not
 | Category | Placeholder | Fallback chain (live tools) | Other options |
 |----------|-------------|-----------------------------|---------------|
 | Web search | `~~search` | `web_search_exa` → `perplexity_search` → `search_web` (Jina) → `firecrawl_search` (`sources: ["web"]`) | Tavily, Brave Search, SerpAPI |
-| Scrape / read page | `~~scrape` | `read_url` (Jina) → `firecrawl_scrape` → `web_fetch_exa` | Browserbase, Apify |
+| AI answer with citations | `~~answer` | `perplexity_ask` → `perplexity_reason` → `perplexity_search` or any other `~~search` results, then write the cited answer yourself | — |
+| Scrape / read page | `~~scrape` | `read_url` (Jina) → `firecrawl_scrape` → `web_fetch_exa({urls, maxCharacters: 20000})` | Browserbase, Apify |
 | Targeted read (only the relevant passages) | `~~scrape` with `question` | `read_url({url, question, topk})` → `firecrawl_scrape({formats: ["query"], queryOptions})` → full read, then pick passages yourself | — |
 | Parallel search | `~~batch_search` | `search_web({query: [≤5 queries]})` → one `web_search_exa` call per query → one `perplexity_search` call per query | — |
-| Parallel scrape | `~~batch_scrape` | `read_url({url: [≤5 URLs]})` → `web_fetch_exa({urls})` → one `firecrawl_scrape` call per URL | — |
+| Parallel scrape | `~~batch_scrape` | `read_url({url: [≤5 URLs]})` → `web_fetch_exa({urls, maxCharacters: 20000})` → one `firecrawl_scrape` call per URL | — |
 | Crawl site | `~~crawl` | `firecrawl_crawl` → `firecrawl_map` + `~~batch_scrape` on the chosen URLs | — |
 | Structured extraction | `~~extract` | `firecrawl_scrape({formats: ["json"], jsonOptions: {prompt, schema}})` per URL → `firecrawl_agent` (unknown URLs or several sites) → `~~scrape`, then extract the fields yourself | — |
 | Academic papers | `~~academic_search` | `firecrawl_research_search_papers` (+ `firecrawl_research_read_paper`, `firecrawl_research_related_papers`) → `search_arxiv` / `search_ssrn` (Jina) → `perplexity_search` with `search_domain_filter` | Semantic Scholar |
@@ -41,11 +42,13 @@ A tool that is not in your tool list (a server not installed, an opt-in tool not
 ### Notes on the chains
 
 - **`~~batch_search` / `~~batch_scrape`** — Jina takes up to 5 queries in `query` and up to 5 URLs in `url`; every item runs concurrently in one call. `search_arxiv` and `search_ssrn` take the same array.
-- **Targeted read** — `read_url` with `question` (and `topk`, default 1) returns only the passages that answer it. It costs a fraction of a full page read. Use it for READ by default; read a page in full only for exact quotes, tables, or when the passages are not enough.
+- **Targeted read** — `read_url` with `question` (and `topk`, default 1) returns only the passages that answer it. It costs a fraction of a full page read. Use it for READ by default; read a page in full only for exact quotes, tables, or when the passages are not enough. `question` and `topk` belong to `read_url`: `web_fetch_exa` and plain `firecrawl_scrape` fall back to full pages, so select the relevant passages yourself — or call `firecrawl_scrape` with `formats: ["query"]` once per URL to keep the targeted mode.
+- **`web_fetch_exa`** truncates each page to 3000 characters unless you pass `maxCharacters`; the chains pass 20000.
 - **`~~extract`** — `firecrawl_scrape` takes plain-string `formats` (`["json"]`); the schema goes in `jsonOptions`. One call per URL. For URLs you do not know yet, or data spread across several sites, `firecrawl_agent` returns a job id — poll `firecrawl_agent_status` every 15–30 seconds until `completed` or `failed`, and set `maxCredits`.
 - **`~~academic_search`** — `firecrawl_research_search_papers` covers PubMed, bioRxiv, medRxiv and arXiv; `firecrawl_research_read_paper` returns the passages of one paper that answer a `question`; `firecrawl_research_related_papers` walks the citation graph (`mode`: `similar`, `citers`, `references`). Jina covers arXiv and SSRN as the next step.
 - **`~~code_search`** — `firecrawl_developer_search` searches repositories, GitHub issues, merged PRs, READMEs and docs; `skills: "only"` limits it to agent-skill files. Exa has no code-search tool; `web_search_advanced_exa` is opt-in.
 - **`~~deep_agent`** — runs for minutes and spends credits. Use it only for depth `deep`, as an extra pass next to the normal chain, never as the only source.
+- **`~~answer`** — a short answer with numbered citations. `perplexity_ask` (preset `fast`) for facts and summaries, `perplexity_reason` (`medium`) for comparisons and analysis. `perplexity_search`, the Perplexity tool inside `~~search`, returns ranked links with snippets and no synthesis.
 - **Perplexity** — `perplexity_search` takes `query`; `perplexity_ask`, `perplexity_reason` and `perplexity_research` take `messages` (`[{role, content}]`). They run on the Perplexity Agent API presets `fast`, `medium` and `high`.
 
 ## General workflow
@@ -62,7 +65,7 @@ Step 2: SCRAPE — read the found pages
   → Provider error = skip, next provider
 ```
 
-This same pattern applies to every capability: crawl, extract, academic_search, code_search, deep_agent.
+This same pattern applies to every capability: answer, crawl, extract, academic_search, code_search, deep_agent.
 
 ## Utility tools (unique per provider, no fallback)
 
@@ -85,6 +88,6 @@ There are no tools for query expansion, text classification or BibTeX search: pl
 | Server | Provided by | Capabilities |
 |--------|-------------|--------------|
 | Exa | `web-search-dev` | search, scrape, deep agent (`agent_run`, opt-in/OAuth), advanced search (opt-in) |
-| Perplexity | `web-search-dev` | search, AI answers with citations, deep research |
+| Perplexity | `web-search-dev` | search (links), answer (AI answer with citations), deep research |
 | Jina | `web-search-dev` | search, scrape, batch search, batch scrape, arXiv/SSRN, utilities |
 | Firecrawl | `web-search-dev` | search, scrape, crawl, extract, agent, interact, developer search, paper research |

@@ -25,9 +25,10 @@ Patterns and multi-step workflows. All calls use `~~capability` with fallback (s
 | Capability | What it does | Fallback order |
 |-----------|-------------|----------------|
 | `~~search` | Find pages on the web | `web_search_exa` → `perplexity_search` → `search_web` → `firecrawl_search` |
-| `~~scrape` | Read a single page (with `question`: only the relevant passages) | `read_url` → `firecrawl_scrape` → `web_fetch_exa` |
+| `~~answer` | Short AI answer with citations | `perplexity_ask` → `perplexity_reason` → `perplexity_search` / `~~search` results + your own cited synthesis |
+| `~~scrape` | Read a single page (with `question`: only the relevant passages) | `read_url` → `firecrawl_scrape` → `web_fetch_exa` (`maxCharacters: 20000`) |
 | `~~batch_search` | Search multiple queries (≤5 per call) | `search_web` with an array → one `web_search_exa` per query |
-| `~~batch_scrape` | Read multiple pages (≤5 per call) | `read_url` with an array → `web_fetch_exa` → one `firecrawl_scrape` per URL |
+| `~~batch_scrape` | Read multiple pages (≤5 per call) | `read_url` with an array → `web_fetch_exa` (`maxCharacters: 20000`) → one `firecrawl_scrape` per URL (fallbacks return full pages, no `question`) |
 | `~~crawl` | Crawl entire site | `firecrawl_crawl` → `firecrawl_map` + batch scrape |
 | `~~extract` | Structured data extraction | `firecrawl_scrape` (JSON format) → `firecrawl_agent` for unknown URLs |
 | `~~academic_search` | Scientific papers | `firecrawl_research_search_papers` → `search_arxiv` / `search_ssrn` → `perplexity_search` |

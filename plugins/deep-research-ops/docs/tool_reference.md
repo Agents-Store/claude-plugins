@@ -27,8 +27,8 @@ perplexity_search({ query: "AI code assistant market size", max_results: 10, sea
 ```
 Params: `query` (required), `max_results` (1-20), `max_tokens_per_page`, `country`, `search_recency_filter` (`hour`/`day`/`week`/`month`/`year`), `search_domain_filter` (префикс `-` исключает домен), `search_type` (`web`/`fast`). Возвращает ранжированные результаты без AI-синтеза.
 
-### Perplexity AI answers
-Для ответа с цитатами вместо списка ссылок:
+### Perplexity AI answers — `~~answer`
+Для ответа с цитатами вместо списка ссылок (`perplexity_search` выше возвращает только ссылки):
 
 | Tool | Agent API preset | Use for |
 |------|------------------|---------|
@@ -89,7 +89,7 @@ firecrawl_scrape({ url: "...", formats: ["query"], queryOptions: { prompt: "What
 ```
 web_fetch_exa({ urls: ["https://example.com/article"], maxCharacters: 20000 })
 ```
-Params: `urls` (required), `maxCharacters` (default 3000)
+Params: `urls` (required), `maxCharacters` (default 3000 — страница режется до 3000 символов, если не передать)
 
 ---
 
@@ -111,12 +111,12 @@ search_web({ query: ["RAG frameworks comparison", "vector database benchmarks", 
 | Tool | Provider | Best for |
 |------|----------|----------|
 | `read_url` | Jina | До 5 URL одним вызовом |
-| `web_fetch_exa` | Exa | Несколько URL одним вызовом (`urls`) |
+| `web_fetch_exa` | Exa | Несколько URL одним вызовом (`urls`); по умолчанию режет страницу до 3000 символов — передавайте `maxCharacters: 20000` |
 
 ```
 read_url({ url: ["https://example.com/1", "https://example.com/2"], question: "...", topk: 3 })
 ```
-Если оба недоступны — по одному вызову `firecrawl_scrape` на URL.
+Если оба недоступны — по одному вызову `firecrawl_scrape` на URL. `question` понимает только `read_url`; фолбэки возвращают страницы целиком (или `firecrawl_scrape` с `formats: ["query"]` на каждый URL).
 
 ---
 

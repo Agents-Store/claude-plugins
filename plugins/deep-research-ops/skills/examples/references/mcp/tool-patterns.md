@@ -11,9 +11,12 @@ Patterns organized by `~~capability`. The agent resolves these to actual tools f
 → Tries: Exa → Perplexity → Jina → Firecrawl
 → First success returns results with URLs
 
-~~search("What is the current market size for AI code assistants?")
-→ Perplexity first gives AI answer with citations
-→ Exa for semantic search results
+~~answer("What is the current market size for AI code assistants?")
+→ Tries: perplexity_ask → perplexity_reason → search results + your own cited synthesis
+→ Short AI answer with numbered citations (~~search returns links only)
+
+~~search("AI code assistant market size report")
+→ Exa for semantic search results, Perplexity search for dated links
 ```
 
 ---
@@ -22,7 +25,7 @@ Patterns organized by `~~capability`. The agent resolves these to actual tools f
 
 ```
 ~~scrape("https://example.com/article")
-→ Tries: Jina read_url → Firecrawl scrape → Exa fetch
+→ Tries: Jina read_url → Firecrawl scrape → Exa fetch (maxCharacters: 20000; default 3000)
 → Returns clean markdown content
 
 Cheap mode — only the passages that answer a question:
@@ -57,9 +60,9 @@ For JS-heavy pages:
   "https://example.com/page2",
   "https://example.com/page3"
 ])
-→ Tries: Jina read_url with a URL array (≤5) → Exa fetch with several URLs → one Firecrawl scrape per URL
+→ Tries: Jina read_url with a URL array (≤5) → Exa fetch with several URLs (maxCharacters: 20000; default 3000) → one Firecrawl scrape per URL
 → Returns content from all URLs
-→ Add question/topk to get only the relevant passages from each page
+→ Add question/topk to get only the relevant passages from each page (Jina only; the fallbacks return full pages)
 ```
 
 ---

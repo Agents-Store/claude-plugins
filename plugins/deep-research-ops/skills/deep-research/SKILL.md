@@ -88,7 +88,8 @@ Search using `~~search` / `~~batch_search` with automatic fallback (see CONNECTO
    ~~code_search(query) — repositories, issues, PRs, docs
 
 5. For facts:
-   ~~search(query) — Perplexity gives an AI-synthesized answer with citations
+   ~~answer(question) — a short AI answer with numbered citations
+   (`~~search` returns links and snippets only, no synthesis)
 
 6. depth = deep only — one heavy pass:
    ~~deep_agent(research objective) — slow and costs credits; cross-check its
@@ -118,7 +119,9 @@ Read top-5 pages using `~~scrape` / `~~batch_scrape` with fallback.
 3. Select top-5 (or top-N based on depth)
 4. ~~batch_scrape(top_urls, question: <the research question>, topk: 3)
    → only the passages that answer the question — far cheaper than whole pages
-   Fallback: ~~scrape per URL individually
+   Fallback: ~~scrape per URL individually — the fallbacks return full pages
+   (no `question`), so pick the relevant passages yourself or use the
+   Firecrawl "query" format per URL
 5. Read a page in full only when passages are not enough: exact quotes,
    tables, a page that is the primary source
 

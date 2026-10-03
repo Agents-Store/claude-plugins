@@ -22,7 +22,8 @@ Quick summary of a topic or URL content. See CONNECTORS.md for provider mapping.
 
 3. **For topic input:**
    ```
-   ~~search(topic) → AI-summarized answer + top results
+   ~~answer(topic) → AI-summarized answer with citations
+   ~~search(topic) → top results
    ~~scrape(top_result_url) → fuller context if needed
    ```
 

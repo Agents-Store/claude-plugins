@@ -13,7 +13,7 @@ Reading and extracting content from web pages, PDFs, and entire sites. All calls
 ```
 1. Jina read_url — fast, clean markdown (pages and PDFs)
 2. Firecrawl scrape — JS rendering, advanced options
-3. Exa fetch — last resort
+3. Exa fetch (pass maxCharacters: 20000 — the default is 3000 per page) — last resort
 On error → next provider.
 ```
 
@@ -41,10 +41,10 @@ If ~~scrape returns empty, try provider with waitFor/JS rendering support.
 ### Fallback chain:
 ```
 1. Jina read_url with an array — up to 5 URLs in one call
-2. Exa fetch with several URLs in one call
+2. Exa fetch with several URLs in one call (maxCharacters: 20000; default is 3000 per page)
 3. Sequential ~~scrape per URL individually
 ```
-More than 5 URLs → split into batches of 5.
+More than 5 URLs → split into batches of 5. Only the Jina call honours `question`; the fallbacks return full pages, so select the passages yourself (or use the Firecrawl "query" format per URL).
 
 ### Workflow: search → rank → read
 ```

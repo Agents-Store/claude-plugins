@@ -9,9 +9,10 @@
 | Capability | Описание | Fallback chain |
 |-----------|----------|----------------|
 | `~~search` | Поиск в интернете | `web_search_exa` → `perplexity_search` → `search_web` → `firecrawl_search` |
-| `~~scrape` | Прочитать страницу (с `question` — только нужные пассажи) | `read_url` → `firecrawl_scrape` → `web_fetch_exa` |
+| `~~answer` | AI-ответ с цитатами | `perplexity_ask` → `perplexity_reason` → `perplexity_search` / результаты `~~search` + свой синтез со ссылками |
+| `~~scrape` | Прочитать страницу (с `question` — только нужные пассажи) | `read_url` → `firecrawl_scrape` → `web_fetch_exa` (`maxCharacters: 20000`) |
 | `~~batch_search` | Параллельный поиск (до 5 запросов) | `search_web({query: [...]})` → по одному `web_search_exa` → по одному `perplexity_search` |
-| `~~batch_scrape` | Прочитать несколько страниц (до 5 URL) | `read_url({url: [...]})` → `web_fetch_exa` → по одному `firecrawl_scrape` |
+| `~~batch_scrape` | Прочитать несколько страниц (до 5 URL) | `read_url({url: [...]})` → `web_fetch_exa` (`maxCharacters: 20000`) → по одному `firecrawl_scrape`; фолбэки игнорируют `question` — возвращают страницы целиком |
 | `~~crawl` | Краулинг сайта | `firecrawl_crawl` → `firecrawl_map` + `~~batch_scrape` |
 | `~~extract` | Структурированные данные | `firecrawl_scrape` (`formats: ["json"]`, `jsonOptions`) → `firecrawl_agent` для неизвестных URL |
 | `~~academic_search` | Научные статьи | `firecrawl_research_search_papers` → `search_arxiv` / `search_ssrn` → `perplexity_search` |
@@ -27,12 +28,12 @@
 | **Exa** | Семантический поиск, поиск компаний и людей, чтение страниц |
 | **Firecrawl** | Скрапинг, краулинг, JSON extraction, developer search, поиск научных статей, агент, браузер (`firecrawl_interact`) |
 | **Jina** | Пакетный поиск и чтение (массивы), точечное чтение (`question`), arXiv/SSRN, PDF, ранжирование, дедупликация |
-| **Perplexity** | AI-ответы с цитатами (Agent API presets `fast` / `medium` / `high`) |
+| **Perplexity** | Поиск (ссылки), AI-ответы с цитатами — `~~answer` (Agent API presets `fast` / `medium` / `high`) |
 
 ## Установка
 
 1. Скопируйте папку `deep-research-ops` в директорию плагинов Claude Code
-2. При установке из маркетплейса плагин `web-search-dev` подтягивается автоматически (`dependencies` в `plugin.json`; при ручном копировании папки установите его сами) — он подключает MCP-серверы Exa, Firecrawl, Jina и Perplexity. Без него плагин работает с любыми другими серверами поиска: недоступные тулы в цепочках пропускаются
+2. При установке из маркетплейса Claude Code ставит и включает `web-search-dev` вместе с плагином (он объявлен в `dependencies` в `plugin.json`, имя ищется в том же маркетплейсе); при `--plugin-dir` или ручном копировании папки установите его сами — он подключает MCP-серверы Exa, Firecrawl, Jina и Perplexity. Без него плагин работает с любыми другими серверами поиска: недоступные тулы в цепочках пропускаются
 3. Перезапустите Claude Code
 
 ## Быстрый старт

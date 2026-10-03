@@ -29,7 +29,7 @@ Queries:
 
 ### Step 3: SEARCH
 ```
-~~search("AI code assistant market size and growth in 2026")
+~~answer("AI code assistant market size and growth in 2026")
 → Perplexity for AI-synthesized market data with citations
 
 ~~search("AI code assistant market revenue forecast")
@@ -42,6 +42,9 @@ Queries:
   "AI coding tools enterprise adoption rate",
   "AI developer productivity tools market"
 ])
+
+~~deep_agent("AI code assistant market 2026: size, growth, key players, funding — with sources")
+→ One heavy pass because depth is deep; cross-check its figures against the pages read in Step 4
 ```
 
 ### Step 4: READ
@@ -82,4 +85,4 @@ Output: Deep Research Report with:
 - Methodology (7 queries, 8 pages, Perplexity + Exa + Jina)
 
 ### Expected Capabilities Used
-`~~search`, `~~batch_search`, `~~batch_scrape`, `~~deep_agent` (one pass, depth deep), relevance ranking, date detection, deduplication
+`~~answer`, `~~search`, `~~batch_search`, `~~batch_scrape`, `~~deep_agent` (one pass, depth deep), relevance ranking, date detection, deduplication

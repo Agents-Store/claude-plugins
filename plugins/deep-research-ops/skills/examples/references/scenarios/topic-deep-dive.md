@@ -41,6 +41,9 @@ Queries:
 ~~code_search("vector search implementation example")
 
 ~~search("how does vector search work comprehensive explanation")
+
+~~deep_agent("How vector search works: algorithms, trade-offs, production use — with sources")
+→ One heavy pass because depth is deep; cross-check its claims against the pages read in Step 4
 ```
 
 ### Step 4: READ
@@ -85,4 +88,4 @@ Output: Deep Research Report with:
 - Methodology
 
 ### Expected Capabilities Used
-`~~batch_search`, `~~academic_search`, `~~code_search`, `~~search`, `~~batch_scrape`, PDF extraction, relevance ranking, deduplication
+`~~batch_search`, `~~academic_search`, `~~code_search`, `~~search`, `~~batch_scrape`, `~~deep_agent` (one pass, depth deep), PDF extraction, relevance ranking, deduplication
