@@ -206,4 +206,3 @@ curl -X POST -H "$H" -H "$J" \
 - `:list` answers `{ "data": [...], "meta": { "count", "page", "pageSize", "totalPage" } }` — page through with `page` until `totalPage`
 - The update body holds only the fields to change; `filterByTk` is the primary key of the record
 - The token needs a role that may use those actions on that collection (a `403` is ACL, see `nocobase-acl-manage`)
-- The Composable Stack plugin names the same two values `NOCOBASE_URL` and `NOCOBASE_API_KEY` (production) and `NOCOBASE_DEV_URL` and `NOCOBASE_DEV_API_KEY` (development sandbox); here they are `NB_URL` and the bearer token
