@@ -34,6 +34,8 @@ async function setStatus(recordId: number, status: string, detail?: string): Pro
 }
 
 // Declare the queue up front — the queue is shared by every run of the task
+// (SDK 4.7 deprecates `concurrencyLimit` in favour of `concurrency`, which needs server >= 4.7.0 —
+// see "Concurrency & Queues" in task-development/SKILL.md)
 const recordQueue = queue({ name: "record-processing", concurrencyLimit: 5 });
 
 export const processRecord = task({
