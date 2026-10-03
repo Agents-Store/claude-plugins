@@ -26,6 +26,20 @@
         "Builds an idempotency key from the record id (and version)",
         "Fans out with batchTriggerAndWait and does not use Promise.all with triggerAndWait"
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "My Next.js route handler receives a webhook with a list of item ids and should start a Trigger.dev task for each id. The build fails with 'You need to set the TRIGGER_SECRET_KEY environment variable', and I also want the handler to wait for one task's output in an admin script. How do I write both?",
+      "expected_output": "batchTrigger with per-item idempotency keys inside the handler, a type-only task import, the build error explained as a trigger at module level or while prerendering, runs.poll for waiting outside a task",
+      "files": [],
+      "expectations": [
+        "Imports the task with import type and calls tasks.trigger or tasks.batchTrigger inside the handler body, not at module level",
+        "Explains that importing the SDK reads no environment variable and the first API call throws when TRIGGER_SECRET_KEY is missing",
+        "Warns that TRIGGER_API_URL must be set where the trigger runs on self-hosted, or the SDK falls back to Trigger.dev Cloud",
+        "Builds the idempotency key from the item (and a version) or sets a short idempotencyKeyTTL, not the item id alone",
+        "Says triggerAndWait and triggerAndSubscribe work only inside a task, there is no triggerAndPoll, and uses runs.poll from backend code",
+        "Imports from @trigger.dev/sdk, not @trigger.dev/sdk/v3"
+      ]
     }
   ]
 }

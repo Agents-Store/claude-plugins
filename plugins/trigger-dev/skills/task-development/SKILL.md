@@ -327,6 +327,6 @@ At trigger time only the string form is accepted: `heavyTask.trigger(payload, { 
 
 - @references/basic-tasks.md — core task patterns in detail
 - @references/advanced-tasks.md — debouncing, idempotency, tags, error handling
-- @references/scheduled-tasks.md — cron patterns, dynamic schedules
+- @references/scheduled-tasks.md — the REST form of the schedule calls (the guide itself is the **scheduled-tasks** skill)
 - @references/triggering-patterns.md — all trigger and batch methods
 - @references/record-driven-tasks.md — tasks fed by records in an external system: status lifecycle, idempotency per record, fan-out, AI processing

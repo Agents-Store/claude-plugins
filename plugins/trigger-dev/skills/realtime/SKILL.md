@@ -110,6 +110,77 @@ function UserTasks({ userId, accessToken }: Props) {
 }
 ```
 
+### From a Next.js App with Self-Hosted Trigger.dev
+
+Server code triggers and hands the run id and its token to the browser; a Client Component subscribes. Three details decide whether it works against a self-hosted server.
+
+```ts
+// app/orders/actions.ts
+"use server";
+import { auth, tasks } from "@trigger.dev/sdk";
+import type { processOrder } from "@/trigger/process-order"; // type only: keeps the task code out of the bundle
+
+export async function startOrder(orderId: string) {
+  const handle = await tasks.trigger<typeof processOrder>(
+    "process-order",
+    { orderId },
+    { idempotencyKey: `order-${orderId}` },
+    { publicAccessToken: { expirationTime: "1h" } }, // lifetime of the token on the returned handle
+  );
+  return { runId: handle.id, publicAccessToken: handle.publicAccessToken };
+}
+
+// Called by the browser when the token runs out before the run ends
+export async function refreshRunToken(runId: string): Promise<string> {
+  // Authorize first: this action mints a read token for any run id it is given.
+  // Check that the signed-in user owns `runId` (your own table, or a run tag) before minting.
+  return auth.createPublicToken({ scopes: { read: { runs: [runId] } }, expirationTime: "15m" });
+}
+```
+
+```tsx
+// components/order-status.tsx
+"use client";
+import { useRealtimeRun } from "@trigger.dev/react-hooks";
+import type { processOrder } from "@/trigger/process-order";
+import { refreshRunToken } from "@/app/orders/actions";
+
+export function OrderStatus({ runId, publicAccessToken }: { runId: string; publicAccessToken: string }) {
+  const { run, error } = useRealtimeRun<typeof processOrder>(runId, {
+    accessToken: publicAccessToken,
+    baseURL: process.env.NEXT_PUBLIC_TRIGGER_API_URL, // required when self-hosted
+    refreshAccessToken: () => refreshRunToken(runId),
+  });
+
+  if (error) return <p>Error: {error.message}</p>;
+  if (!run) return <p>Starting...</p>;
+  return <p>Status: {run.status}</p>;
+}
+```
+
+- **`baseURL` is required on self-hosted.** Without it a hook calls Trigger.dev Cloud, because the browser has no `TRIGGER_API_URL` to read: server code gets the address from that variable, a hook gets it only from `baseURL`. Put the address in a `NEXT_PUBLIC_` variable (an address, never a key).
+- **A token from the handle is short-lived and read-only for that run.** The docs give 15 minutes by default. Pass `{ publicAccessToken: { expirationTime } }` as the fourth argument of `trigger()` to change it, and give long runs a `refreshAccessToken` callback: a subscription rejected with `401` or `403` then fetches a new token once and reconnects. Without the callback an expired token ends the subscription.
+- **Never send `TRIGGER_SECRET_KEY` to the browser.** Only the run-scoped public token travels, and `refreshAccessToken` must call your own server code, which holds the key.
+
+To share one configuration across several hooks, wrap them in the context provider instead of repeating the options. There is no `TriggerProvider` component in `@trigger.dev/react-hooks`:
+
+```tsx
+// components/trigger-provider.tsx
+"use client";
+import { TriggerAuthContext } from "@trigger.dev/react-hooks";
+import type { ReactNode } from "react";
+
+export function RunProvider({ accessToken, children }: { accessToken: string; children: ReactNode }) {
+  return (
+    <TriggerAuthContext.Provider value={{ accessToken, baseURL: process.env.NEXT_PUBLIC_TRIGGER_API_URL }}>
+      {children}
+    </TriggerAuthContext.Provider>
+  );
+}
+```
+
+Hooks below it can then be called without `accessToken` and `baseURL`.
+
 ## Realtime Streams (AI/LLM)
 
 ### Define Stream

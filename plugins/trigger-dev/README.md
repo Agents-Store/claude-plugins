@@ -7,12 +7,12 @@ Trigger.dev development plugin for Agents Store. Comprehensive knowledge for dev
 | Skill | Description |
 |-------|-------------|
 | **setup** | Project initialization (incl. non-interactive `init --yes`), CLI authentication, self-hosted verification, MCP install and `mcp --readonly`, agent skills |
-| **task-development** | Writing tasks — retries, queues, concurrency (incl. the `concurrency` option, server ≥ 4.7.0), wait tokens, TTL, metadata, tags, Zod schemas, global hooks |
-| **scheduled-tasks** | Declarative (`schedules.task` + `cron`) and imperative schedules |
+| **task-development** | Writing tasks — retries, queues, concurrency (incl. the `concurrency` option, server ≥ 4.7.0), wait tokens, TTL, metadata, tags, Zod schemas, global hooks; starting runs from a Next.js route handler or Server Action, batches, waiting for a result outside a task |
+| **scheduled-tasks** | Declarative (`schedules.task` + `cron`, no attach step) and per-user imperative schedules, timezones, the spread window (server ≥ 4.6.0), `ttl`, idempotent scheduled runs, testing, why a schedule did not fire |
 | **config-and-build** | trigger.config.ts (required `maxDuration`), build extensions (Prisma with `mode`, Playwright, FFmpeg, Python), TTL defaults |
 | **ai-agent-patterns** | Prompt chaining, routing, parallelization, orchestrator-workers, evaluator, task-backed AI tools (AI SDK v5+) |
 | **ai-chat-agents** | `chat.agent`, sessions, `useTriggerChatTransport` — durable AI chat (server ≥ 4.5.0) |
-| **realtime** | React hooks, streaming AI responses, wait tokens, live dashboards |
+| **realtime** | React hooks, streaming AI responses, wait tokens, live dashboards; handing a run token to a Next.js browser against a self-hosted server (`baseURL`, token lifetime, `refreshAccessToken`) |
 | **deployment** | Deploy to staging/prod/preview, CI/CD with a pinned CLI, version skew protection, self-hosted Docker (ClickHouse, s2, generated secrets) and Helm |
 | **cli-recipes** | CLI commands — dev server, deploy, profiles, env vars, runs, reports, `install-mcp`, `mcp`, agent skills |
 | **mcp-patterns** | All 41 MCP tools across 13 categories — tasks, runs, deploys, profiles, query/analytics, reports, dev server, managed prompts, agent chat, session channels, feedback; REST Management API |
