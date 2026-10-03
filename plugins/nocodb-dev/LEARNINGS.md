@@ -11,6 +11,47 @@ Accumulated fixes and discoveries for the `nocodb-dev` plugin. Append entries ch
 **Severity:** Critical / Major / Minor
 ```
 
+## 2026-10 — nc CLI never existed; NOCODB_TOKEN; v3 payload keys; schema tools exist on Cloud/licensed
+
+**Problem:** Five separate defects, all present in 1.1.0:
+1. Every recipe called a CLI named `nc` (196 occurrences in 21 files). NocoDB has no such binary — on Linux/macOS `nc` is netcat, so the old recipes either hung or made netcat connect to a "host" named after the subcommand. The official CLI is `scripts/nocodb.sh` in the `nocodb/agent-skills` skill (renamed from `nc` on 2026-08-07 for exactly this reason), and it has no hook commands, no per-type view-create commands, no view-column or view-share commands.
+2. The REST token variable was the old API-token name; the official script (and the root `.env.example`) use `NOCODB_TOKEN`.
+3. Payloads were written in v2 style (`colOptions`, `linked_table_id`, `fk_*_column_id`, `calendar_range`, `subheading`, …) although the plugin's own bundled spec is v3: type-specific settings live in `options`, and several keys were renamed. Sorts used `order` instead of `direction`; filter groups used `logical_op` instead of `group_operator`.
+4. Docs claimed the MCP server offers nothing for schema writes (tables, fields, views, hooks). Since NocoDB 2026.09.0 the server has them on Cloud and licensed self-hosted (199 tools in 2026.09.1) — they are just not in the tool list: `listTools(category)` reveals them, `callTool(name, arguments)` runs them. Community Edition still has record tools only.
+5. The bundled OpenAPI specs were from 2026-05-07 and lacked the Docs API, `POST`/`DELETE …/fields/{fieldId}/options`, the Environments API and the gantt / timeline / list view types.
+
+**Fix:** Rewrote every recipe as `curl` on Meta API v3 (a `nocodb_api` wrapper where a walkthrough repeats calls) with the matching MCP `callTool` form on Cloud/licensed; `cli-reference` now maps official `nocodb.sh` commands to REST calls and does not vendor the script (install with `npx skills add nocodb/agent-skills`). `NOCODB_TOKEN` everywhere, with one legacy-alias note in `setup`. Payloads rewritten to the v3 keys below. `mcp-patterns` carries the contract: Community = record tools only → REST; Cloud/licensed = MCP-first through `listTools` → `callTool`, REST as fallback. Both specs re-cut from NocoDB's current `swagger-v3.json` (meta + docs: 49 paths / 100 operations; data: 7 paths / 12 operations). New content: nine view types and `lock_type`, 35 field types, the select-options endpoints, Docs API, `getBaseSchema`, trash / audit tools, MCP workflow authoring. While rewriting, three more payload bugs against the bundled spec were fixed: hook notifications (messaging `type` is `Slack`/`Discord`/`Telegram`/`Whatsapp`/`Twilio` with only `payload.body`; Script payload key is `scriptId`; Email has no `cc`), dashboard widgets (`type` is `chart`/`metric`/`text`/`iframe`, `table_id` and `position` are top-level, charts select `options.chart_type`), and view `row_coloring` (`mode`, not `type`). The example scenario that showed a hook with `event: "after"` / a string `operation` was brought in line with the 2026-05-07 HookV3 correction below.
+
+**Old key → v3 key** (everything type-specific moves inside `options`; only `title`, `type`, `description`, `default_value`, `unique` stay at the top level):
+
+| Old | v3 |
+|-----|----|
+| `colOptions.options[]` (select) | `options.choices[{title, color?}]`; add/remove later via `…/fields/{fieldId}/options` |
+| `linked_table_id` | `options.related_table_id` |
+| `type_of_relation` | `options.relation_type` (`bt`, `hm`, `mm`, `oo`, `om`, `mo`) |
+| classic link `parentId` / `childId` | gone — `related_table_id` + `relation_type` |
+| Lookup `fk_relation_column_id` | `options.related_field_id` |
+| Lookup `fk_lookup_column_id` | `options.related_table_lookup_field_id` |
+| Rollup `fk_relation_column_id` / `fk_rollup_column_id` | `options.related_field_id` / `options.related_table_rollup_field_id` (`rollup_function` stays, inside `options`) |
+| Rollup `countEmpty` / `countNotEmpty` | not in v3 — use `count`, `countDistinct`, `sumDistinct`, `avgDistinct` |
+| `currency_code`, `date_format`, `time_format`, `precision`, `max`, `icon`, `color` (flat) | the same names inside `options` (Rating `max` → `options.max_value`; Duration `duration` → `options.duration_format`) |
+| Barcode / QrCode `fk_column_id` | `options.barcode_value_field_id` (+ `barcode_format`) / `options.qrcode_value_field_id` |
+| Button `action: {type: "url", url}` | `options: {type: "url", formula, label}` (also `webhook`, `script`, `ai`, `formula`) |
+| `cdf` (default) | top-level `default_value` |
+| Kanban `fk_grp_col_id` | `options.stack_by: {field_id, stack_order?}` |
+| Gallery / Kanban `fk_cover_image_col_id` | `options.cover_field_id` |
+| Calendar `calendar_range[{fk_from_column_id, fk_to_column_id}]` | `options.date_ranges[{start_date_field_id, end_date_field_id?}]` |
+| Map `fk_geo_data_col_id` | `options.geo_data_field_id` |
+| Form `subheading` / `success_msg` | `options.form_description` (+ `form_title`) / `options.thank_you_message` |
+| Form `redirect_after_secs` / `show_blank_form` / `submit_another_btn` / `email` | `options.form_redirect_after_secs` / `reset_form_after_submit` / `show_submit_another_button` / `send_response_email_to` |
+| Filter `fk_column_id` / `comparison_op` | `field_id` / `operator` |
+| Filter group `logical_op` (`and`/`or`/`not`) | `group_operator` (`AND`/`OR`) |
+| Sort `fk_column_id`, `order` | `field_id`, `direction` (`asc`/`desc`) |
+| View-column commands | `PATCH` the view with the complete ordered `fields` list |
+
+**Root cause:** The plugin was scaffolded from an older CLI-and-v2 mental model instead of from the bundled v3 spec and the real upstream repository, and nobody re-checked it when the upstream CLI was renamed (2026-08-07) and the MCP server grew its schema tools (2026-09). The 2026-05-07 entries below fixed paths and hook shapes but left the payload keys and the CLI name alone — and added a wrong "order" claim.
+**Severity:** Critical
+
 ## 2026-05-07 — webhooks: HookV3 shape correction
 
 **Problem:** Initial draft documented the hook payload with `event: "before"|"after"`, a single-string `operation` (with `bulkInsert`/`bulkUpdate`/`bulkDelete` variants), and a top-level `condition` filter — none of which exist in the actual NocoDB v3 API. Worked examples and troubleshooting tables propagated this wrong shape into command files (`add-webhook.md`) and the troubleshoot skill.
@@ -34,8 +75,8 @@ Accumulated fixes and discoveries for the `nocodb-dev` plugin. Append entries ch
 
 ## 2026-05-07 — view-management: Filter/Sort field names
 
-**Problem:** Filter and sort payloads documented as `{ fk_column_id, comparison_op, value }` and `{ fk_column_id, direction }` (the names used by the older `nc filter:create` / `nc sort:create` CLI commands). Meta API v3 uses `field_id` + `operator` + `value` for filters and `field_id` + `order` for sorts.
-**Fix:** Updated filter/sort recipes in `view-management/SKILL.md` and the corresponding section of `meta-api-endpoints.md`. Added a note that the CLI translates between the legacy `fk_column_id` / `comparison_op` / `direction` names and the API's `field_id` / `operator` / `order`.
+**Problem:** Filter and sort payloads documented as `{ fk_column_id, comparison_op, value }` and `{ fk_column_id, direction }` (the names used by an older generation of NocoDB tooling). Meta API v3 uses `field_id` + `operator` + `value` for filters and `field_id` + `direction` for sorts. *(Corrected 2026-10: this entry originally said sorts use `order`; the spec has always had `direction`.)*
+**Fix:** Updated filter/sort recipes in `view-management/SKILL.md` and the corresponding section of `meta-api-endpoints.md`. *(The note added then — that the CLI translates between legacy names and `field_id` / `operator` / `order` — was wrong on both counts and was removed in 2026-10.)*
 **Severity:** Major
 
 ## 2026-05-07 — coverage gap: Comments, Scripts, Dashboards, Widgets, Workflows, Members, Teams, Tokens

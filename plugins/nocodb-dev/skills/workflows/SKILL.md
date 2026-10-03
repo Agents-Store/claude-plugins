@@ -1,7 +1,7 @@
 ---
 name: workflows
 description: |
-  List, execute, and inspect NocoDB Workflows (the platform's built-in automation engine) via Meta API v3. Use when:
+  List, execute, and inspect NocoDB Workflows (the platform's built-in automation engine) via Meta API v3; author drafts over MCP on Cloud/licensed. Use when:
   - "list NocoDB workflows"
   - "execute a workflow"
   - "view workflow execution"
@@ -11,9 +11,11 @@ description: |
 
 # Workflows & Executions
 
-NocoDB Workflows is the platform's built-in automation engine — a node-graph editor inside the NocoDB UI. The Meta API v3 surface for Workflows is **read + execute only**: you can list workflows, fetch their definitions, run them on demand, list executions, and read execution details. Workflow **authoring** (creating / editing the node graph) lives in the NocoDB UI; this API does not expose it.
+NocoDB Workflows is the platform's built-in automation engine — a node-graph editor inside the NocoDB UI. The **REST** surface (Meta API v3) for Workflows is **read + execute only**: you can list workflows, fetch their definitions, run them on demand, list executions, and read execution details. REST does not expose workflow **authoring**.
 
-> If you need to *create* automations programmatically, integrate with an external orchestrator (n8n, Trigger.dev) instead — see the related plugins. NocoDB Workflows is a no-code in-UI tool.
+**Authoring over MCP (Cloud / licensed self-hosted).** The MCP server can write **drafts**: `listTools category: "workflows"` (and `"workflow-nodes"`) reveals `createWorkflow`, `updateWorkflow`, `duplicateWorkflow`, `deleteWorkflow`, `publishWorkflow`, the single-node tools (`addWorkflowNode`, `updateWorkflowNode`, `deleteWorkflowNode`, `connectWorkflowNodes`, `disconnectWorkflowNodes`) and `validateWorkflowNode`. Read `getWorkflowAuthoringInstructions` and `listWorkflowNodeTypes` before writing a draft. Only the draft is writable; every node must be tested (`validateWorkflowNode`) before `publishWorkflow` puts it live, and **enabling an automation and its `run_as` identity stay in the UI** — a human sets those. Writes replace the whole draft graph (last write wins against anyone editing in the UI), so `getWorkflow` first, change the graph it returns, and send it back. Community Edition has no workflow tools: author in the UI.
+
+> For automations that must run across several systems, an external orchestrator (n8n, Trigger.dev) is still the better fit — see the related plugins.
 
 ## Endpoints
 
@@ -28,8 +30,8 @@ NocoDB Workflows is the platform's built-in automation engine — a node-graph e
 ## List Workflows
 
 ```bash
-curl -sS -H "xc-token: $NOCODB_API_TOKEN" \
-  "$NOCODB_URL/api/v3/meta/bases/$BASE_ID/workflows"
+curl -sS -H "xc-token: ${NOCODB_TOKEN}" \
+  "${NOCODB_URL}/api/v3/meta/bases/$BASE_ID/workflows"
 ```
 
 Returns a `WorkflowList` — array of `{ id, title, description, status, created_at, updated_at }`.
@@ -37,8 +39,8 @@ Returns a `WorkflowList` — array of `{ id, title, description, status, created
 ## Get Workflow Definition
 
 ```bash
-curl -sS -H "xc-token: $NOCODB_API_TOKEN" \
-  "$NOCODB_URL/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID"
+curl -sS -H "xc-token: ${NOCODB_TOKEN}" \
+  "${NOCODB_URL}/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID"
 ```
 
 Returns a `WorkflowGetResponse` containing:
@@ -58,13 +60,13 @@ Returns a `WorkflowGetResponse` containing:
 
 ```bash
 curl -sS -X POST \
-  -H "xc-token: $NOCODB_API_TOKEN" \
+  -H "xc-token: ${NOCODB_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{
     "input":   { "customer_id": "rec_abc123", "amount": 1500 },
     "trigger": "manual"
   }' \
-  "$NOCODB_URL/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/execute"
+  "${NOCODB_URL}/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/execute"
 ```
 
 `input` keys must match the workflow's `WorkflowVariableDefinition` names. The response returns the new `execution_id` — poll `/executions/{execution_id}` to get the result, or stream the dashboard.
@@ -72,8 +74,8 @@ curl -sS -X POST \
 ## List Recent Executions
 
 ```bash
-curl -sS -H "xc-token: $NOCODB_API_TOKEN" \
-  "$NOCODB_URL/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/executions"
+curl -sS -H "xc-token: ${NOCODB_TOKEN}" \
+  "${NOCODB_URL}/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/executions"
 ```
 
 Returns a `WorkflowExecutionList` — array of `{ id, status, started_at, finished_at, trigger, error? }`. Status values: `pending`, `running`, `succeeded`, `failed`, `cancelled`.
@@ -81,8 +83,8 @@ Returns a `WorkflowExecutionList` — array of `{ id, status, started_at, finish
 ## Inspect One Execution
 
 ```bash
-curl -sS -H "xc-token: $NOCODB_API_TOKEN" \
-  "$NOCODB_URL/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/executions/$EXECUTION_ID"
+curl -sS -H "xc-token: ${NOCODB_TOKEN}" \
+  "${NOCODB_URL}/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/executions/$EXECUTION_ID"
 ```
 
 Returns a `WorkflowExecutionGetResponse` with:
@@ -105,13 +107,13 @@ A workflow can be wired in the NocoDB UI to a Hook event. Programmatically you'd
 ### Poll until done
 
 ```bash
-EXEC_ID=$(curl -sS -X POST -H "xc-token: $NOCODB_API_TOKEN" \
+EXEC_ID=$(curl -sS -X POST -H "xc-token: ${NOCODB_TOKEN}" \
   -d '{"trigger":"manual"}' \
-  "$NOCODB_URL/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/execute" | jq -r '.id')
+  "${NOCODB_URL}/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/execute" | jq -r '.id')
 
 while :; do
-  STATUS=$(curl -sS -H "xc-token: $NOCODB_API_TOKEN" \
-    "$NOCODB_URL/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/executions/$EXEC_ID" | jq -r '.status')
+  STATUS=$(curl -sS -H "xc-token: ${NOCODB_TOKEN}" \
+    "${NOCODB_URL}/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/executions/$EXEC_ID" | jq -r '.status')
   case "$STATUS" in
     succeeded|failed|cancelled) echo "Done: $STATUS"; break ;;
     *) sleep 2 ;;
@@ -122,8 +124,8 @@ done
 ### List failures from the last hour
 
 ```bash
-curl -sS -H "xc-token: $NOCODB_API_TOKEN" \
-  "$NOCODB_URL/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/executions" \
+curl -sS -H "xc-token: ${NOCODB_TOKEN}" \
+  "${NOCODB_URL}/api/v3/meta/bases/$BASE_ID/workflows/$WORKFLOW_ID/executions" \
   | jq '[ .executions[] | select(.status=="failed") | select(.started_at > (now - 3600 | strftime("%Y-%m-%dT%H:%M:%SZ"))) ]'
 ```
 
@@ -132,14 +134,14 @@ curl -sS -H "xc-token: $NOCODB_API_TOKEN" \
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | 422 on `/execute` | `input` keys don't match workflow variables | Fetch the workflow definition; align `input` to declared `variables` |
-| 404 on `/execute` | Workflow disabled or wrong `workflow_id` | List workflows; confirm `status` is enabled |
+| 404 on `/execute` | Workflow not published/enabled, or wrong `workflow_id` | List workflows; confirm the automation is published and enabled (a human enables it in the UI) |
 | Execution stuck `running` | A node is awaiting an external callback | Check that node's expected callback URL; cancel via NocoDB UI |
 | Per-node `error` field populated | The named node failed | Open the workflow in NocoDB UI, inspect that node's config |
 | Race: `/execute` returns before result is available | Async by design | Poll `/executions/{execution_id}`, or rely on workflow callbacks |
 
 ## What This Skill Does NOT Cover
 
-- **Authoring** workflows (creating nodes, connecting edges) — done in the NocoDB UI.
+- **Authoring** workflows in depth (node configuration forms, expression syntax) — use the MCP authoring instructions or the NocoDB UI; enabling and `run_as` are UI-only.
 - **Workflow templates** or marketplace integration.
 - **Cross-platform automation** (use n8n / Trigger.dev for that, with workflows reaching out via HTTP).
 
