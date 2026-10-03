@@ -5,7 +5,10 @@ Reads the hook input JSON from stdin (``tool_name``, ``tool_input``) and answers
 Claude Code's PreToolUse decision format:
 
 * destructive action  -> ``permissionDecision: "ask"``: Claude Code shows its normal
-  permission dialog with the reason; the user's "yes" lets the call through.
+  permission dialog with the reason; the user's "yes" lets the call through. Besides the
+  actions the server marks destructive, ``manage_workitems`` with a non-empty ``remove_ids``
+  counts: it takes work items out of a cycle, module, milestone, initiative or release, which
+  the per-operation ``remove_*`` tools did and which the dialog must keep covering.
 * archive action      -> ``additionalContext`` only (a warning for Claude, no dialog).
 * anything else, a tool of a server that is not Plane, or malformed input -> no output.
 
@@ -33,6 +36,11 @@ DESTRUCTIVE_ACTIONS = frozenset(
         "delete_definition",
     }
 )
+
+# manage_workitems is a plural action (add_ids and/or remove_ids) that the server does not mark
+# destructive; the removal half is what the old remove_* tools asked about.
+UNLINK_ACTION = "manage_workitems"
+UNLINK_PARAM = "remove_ids"
 
 LEGACY_DESTRUCTIVE = re.compile(r"^(delete|remove|detach)_")
 LEGACY_ARCHIVE = re.compile(r"^archive_")
@@ -80,6 +88,16 @@ LOSS_BY_ACTION = {
     "delete_definition": "the relation definition (relations that use it lose their type)",
 }
 
+# What a removal through manage_workitems takes the work items out of, by resource tool.
+UNLINK_FROM = {
+    "cycle": "the cycle; the work items are kept and return to the backlog",
+    "module": "the module; the work items are kept in the project",
+    "milestone": "the milestone; the work items are kept in the project",
+    "initiative": "the initiative; the work items are kept in their projects",
+    "release": "the release; the work items are kept in the project",
+    "customer": "the customer record; the work items are kept in the project",
+}
+
 # Fields worth echoing to the user in the dialog; everything else (bodies, HTML) is left out.
 ID_KEY = re.compile(r"(?:^|_)ids?$")
 SHOWN_KEYS = ("name", "workitem_identifier")
@@ -120,6 +138,13 @@ def _target(tool_input):
     return ", ".join(parts) if parts else "target not named in the call"
 
 
+def _is_set(value):
+    """True for a value a caller really supplied: not empty, not an empty JSON array or null."""
+    if value in (None, "", [], {}):
+        return False
+    return not (isinstance(value, str) and value.strip() in ("[]", "{}", "null"))
+
+
 def _is_off(value):
     return value is False or (isinstance(value, str) and value.strip().lower() in ("false", "0"))
 
@@ -155,6 +180,18 @@ def decide(payload):
             name,
             _target(tool_input),
             loss,
+        )
+        return {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "ask",
+            "permissionDecisionReason": reason,
+        }
+
+    if action == UNLINK_ACTION and _is_set(tool_input.get(UNLINK_PARAM)):
+        reason = "Plane %s removes work items. Target: %s. Removes: the listed work items from %s. Confirm before it runs." % (
+            name,
+            _target(tool_input),
+            UNLINK_FROM.get(tool, "the container; the work items are kept in the project"),
         )
         return {
             "hookEventName": "PreToolUse",

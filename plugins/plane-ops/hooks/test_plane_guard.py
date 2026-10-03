@@ -4,12 +4,46 @@ python3 -W error::ResourceWarning -m unittest discover -s plugins/plane-ops/hook
 
 import json
 import os
+import re
 import subprocess
 import sys
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 GUARD = os.path.join(HERE, "plane_guard.py")
+HOOKS_JSON = os.path.join(HERE, "hooks.json")
+
+# Every resource tool of Plane MCP 0.3.x that has a destructive "delete" action.
+DELETABLE_RESOURCES = (
+    "project",
+    "cycle",
+    "module",
+    "milestone",
+    "initiative",
+    "state",
+    "label",
+    "workitem",
+    "workitem_type",
+    "workitem_property",
+    "workitem_comment",
+    "workitem_link",
+    "workitem_relation",
+    "workitem_attachment",
+    "work_log",
+    "intake",
+    "page",
+    "project_estimate",
+    "release",
+    "release_tag",
+    "release_label",
+    "customer",
+    "customer_property",
+    "customer_request",
+    "collection",
+    "template",
+)
+# Resource tools that have a manage_workitems action taking add_ids / remove_ids.
+MANAGE_WORKITEMS_RESOURCES = ("cycle", "module", "milestone", "initiative", "release", "customer")
 
 
 def run_guard(stdin_text):
@@ -113,6 +147,104 @@ class PlaneGuardTest(unittest.TestCase):
                      '{"tool_name": "mcp__plane__cycle", "tool_input": "x"}', "{"):
             with self.subTest(stdin=text):
                 self.assertSilent(text)
+
+
+    def test_workitem_delete_asks_and_names_what_is_lost(self):
+        out = self.decision(
+            call("mcp__plane__workitem", action="delete", project_id="p-1", workitem_id="w-7", name="Fix login")
+        )
+        self.assertEqual(out["permissionDecision"], "ask")
+        reason = out["permissionDecisionReason"]
+        self.assertIn("workitem(action=delete)", reason)
+        self.assertIn("workitem_id=w-7", reason)
+        self.assertIn("comments", reason)
+
+    def test_delete_asks_on_every_resource_tool(self):
+        for tool in DELETABLE_RESOURCES:
+            with self.subTest(tool=tool):
+                out = self.decision(call("mcp__my-plane-cloud__" + tool, action="delete", project_id="p"))
+                self.assertEqual(out["permissionDecision"], "ask")
+                self.assertIn("%s(action=delete)" % tool, out["permissionDecisionReason"])
+                self.assertNotIn("the addressed Plane object", out["permissionDecisionReason"])
+
+    def test_removing_work_items_from_a_container_asks(self):
+        for tool in MANAGE_WORKITEMS_RESOURCES:
+            with self.subTest(tool=tool):
+                out = self.decision(
+                    call("mcp__plane__" + tool, action="manage_workitems", project_id="p", remove_ids=["w-1", "w-2"])
+                )
+                self.assertEqual(out["permissionDecision"], "ask")
+                reason = out["permissionDecisionReason"]
+                self.assertIn("%s(action=manage_workitems)" % tool, reason)
+                self.assertIn("remove_ids=w-1, w-2", reason)
+                self.assertIn("kept", reason)
+
+    def test_remove_ids_in_the_same_call_as_add_ids_still_asks(self):
+        out = self.decision(
+            call("mcp__plane__cycle", action="manage_workitems", cycle_id="c", add_ids=["a"], remove_ids=["b"])
+        )
+        self.assertEqual(out["permissionDecision"], "ask")
+
+    def test_remove_ids_sent_as_a_json_string_still_asks(self):
+        out = self.decision(call("mcp__plane__module", action="manage_workitems", module_id="m", remove_ids='["w-1"]'))
+        self.assertEqual(out["permissionDecision"], "ask")
+
+    def test_adding_work_items_is_silent(self):
+        self.assertSilent(call("mcp__plane__cycle", action="manage_workitems", project_id="p", add_ids=["w-1"]))
+        for empty in ([], "", "[]", None):
+            with self.subTest(remove_ids=empty):
+                self.assertSilent(
+                    call("mcp__plane__cycle", action="manage_workitems", project_id="p", add_ids=["w-1"], remove_ids=empty)
+                )
+
+    def test_label_and_assignee_removal_are_silent(self):
+        self.assertSilent(call("mcp__plane__workitem", action="manage_label", workitem_id="w", remove_label_id="l"))
+        self.assertSilent(call("mcp__plane__workitem", action="manage_assignee", workitem_id="w", remove_user_id="u"))
+
+    def test_remove_ids_on_another_action_does_not_ask(self):
+        self.assertSilent(call("mcp__plane__cycle", action="list_workitems", cycle_id="c", remove_ids=["w"]))
+
+    def test_destructive_action_list_matches_the_server(self):
+        # destructive=True actions of plane-mcp-server 0.3.x (plane_mcp/tools/*.py)
+        server = {
+            "delete",
+            "remove_projects",
+            "remove_page",
+            "remove_member",
+            "detach",
+            "detach_from_workitem",
+            "delete_point",
+            "delete_option",
+            "delete_value",
+            "delete_definition",
+        }
+        sys.path.insert(0, HERE)
+        try:
+            import plane_guard
+        finally:
+            sys.path.remove(HERE)
+        self.assertEqual(set(plane_guard.DESTRUCTIVE_ACTIONS), server)
+
+    def test_matcher_in_hooks_json_reaches_every_guarded_tool(self):
+        with open(HOOKS_JSON, encoding="utf-8") as handle:
+            hooks = json.load(handle)
+        entry = hooks["hooks"]["PreToolUse"][0]
+        self.assertIn("plane_guard.py", entry["hooks"][0]["command"])
+        matcher = re.compile(entry["matcher"])
+        for tool in DELETABLE_RESOURCES:
+            with self.subTest(tool=tool):
+                self.assertIsNotNone(matcher.search("mcp__plane__" + tool))
+                self.assertIsNotNone(matcher.search("mcp__plugin_x_my-plane-cloud__" + tool))
+        # read-only tools have no destructive action: the hook does not need to start for them
+        for read_only in ("member", "workspace", "workitem_activity", "get_pql_reference"):
+            with self.subTest(read_only=read_only):
+                self.assertIsNone(matcher.search("mcp__plane__" + read_only))
+        for legacy in ("delete_cycle", "remove_work_item_relation", "detach_page_from_work_item", "archive_cycle"):
+            with self.subTest(legacy=legacy):
+                self.assertIsNotNone(matcher.search("mcp__plane__" + legacy))
+        for other in ("mcp__notion__page", "mcp__github__delete_branch", "Bash"):
+            with self.subTest(other=other):
+                self.assertIsNone(matcher.search(other))
 
 
 if __name__ == "__main__":
