@@ -148,7 +148,7 @@ Combine options in one header, comma separated: `Prefer: return=representation,m
 | `missing=default` | A key missing from a bulk-insert object takes the column `DEFAULT` instead of `NULL` — use it with `?columns=` |
 | `handling=strict` | Reject an unknown or unusable preference with `400` instead of ignoring it; required for `max-affected` |
 | `max-affected=N` | Fail with `400` / `PGRST124` when a write would touch more than N rows — needs `handling=strict` |
-| `tx=rollback` | Run the request and roll it back (a dry run) — only if the server sets `db-tx-end` to `rollback-allow`; otherwise silently ignored |
+| `tx=rollback` | Run the request and roll it back (a dry run) — needs `db-tx-end = commit-allow-override`; with the default `commit` the preference is silently ignored. (`db-tx-end` takes `commit`, `commit-allow-override`, `rollback`, `rollback-allow-override`; under `rollback-allow-override` every request rolls back unless the client sends `tx=commit`.) |
 
 `return=none` is not a PostgREST value; it is ignored and the default `minimal` applies.
 
@@ -164,7 +164,15 @@ curl -X PATCH "${POSTGRESQL_API_URL}/orders?status=eq.pending" \
   -d '{"status": "queued"}'
 ```
 
-If more than 50 rows match, nothing is changed and the answer is `400` with `"The query affects N rows"`. Without `handling=strict`, `max-affected` is ignored and a filterless `DELETE` removes everything.
+The same guard on a `DELETE`:
+
+```bash
+curl -X DELETE "${POSTGRESQL_API_URL}/orders?status=eq.cancelled" \
+  -H "Authorization: Bearer ${POSTGRESQL_API_TOKEN}" \
+  -H "Prefer: handling=strict,max-affected=50"
+```
+
+If more than 50 rows match, nothing is changed and the answer is `400` / `PGRST124` with `"The query affects N rows"`. Without `handling=strict`, `max-affected` is ignored and a filterless `DELETE` removes everything.
 
 ### Bulk Insert With Missing Keys
 
