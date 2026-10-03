@@ -405,6 +405,8 @@ List only flow folders with `"query": { "filter": { "type": { "_eq": "flows" } }
 
 A flow that tells your frontend or another service about a change (cache revalidation, outgoing webhook): event trigger, `request` operation, the secret in a header read from `$env` through `FLOWS_ENV_ALLOW_LIST`, and where the request is made from in Docker. See [references/notify-external-app.md](references/notify-external-app.md).
 
+When the receiver processes the changed items (enrich, sync, transcode) rather than only expiring a cache: send the keys (`$trigger.keys` is always an array), keep the worker's write-back from re-firing the flow (a `condition` operation with filter rules), and know why a Run Script cannot sign the request. See [references/send-items-to-a-worker.md](references/send-items-to-a-worker.md).
+
 ## Best Practices
 
 - Use explicit operation keys (e.g., `"check_status"`, `"send_email"`) — never rely on `$last`

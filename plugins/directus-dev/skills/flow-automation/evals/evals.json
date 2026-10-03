@@ -53,6 +53,20 @@
         "Reads the secret with {{ $env.NAME }} and explains FLOWS_ENV_ALLOW_LIST, noting the template renders undefined without it",
         "Notes that localhost in the URL is the Directus container when Directus runs in Docker"
       ]
+    },
+    {
+      "id": 30,
+      "prompt": "When an article is created or its body edited in Directus, my worker should process it. The worker writes ai_summary back into the same article and now the flow fires in a loop. Set up the flow so it sends the item ids to the worker and does not re-fire on the worker's own write.",
+      "expected_output": "Event flow with a request operation sending event, collection and keys; a condition with filter rules on $trigger.payload that the write-back does not satisfy; the secret in a header",
+      "files": [],
+      "expectations": [
+        "Sends $trigger.keys, noting that it is always an array, in a stringified JSON body such as \"keys\":{{ $trigger.keys }}",
+        "Puts a condition operation before the request and writes it as filter rules in nested objects (for example $trigger.payload.body _nnull true), not as an expression string",
+        "Explains that on items.update the payload holds only the fields that request changed, so the worker's write-back (without the source field) fails the condition and the flow ends",
+        "Keeps the secret in a header read from $env with FLOWS_ENV_ALLOW_LIST, not in the URL",
+        "Says a Run Script (exec) operation cannot compute an HMAC (isolated context, no crypto or Node modules) and offers the header secret, a JWT operation or a custom operation",
+        "Tells the receiver to answer quickly and be idempotent, because the request operation does not retry and editors save repeatedly"
+      ]
     }
   ]
 }
