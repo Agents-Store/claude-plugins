@@ -80,6 +80,7 @@ import Image from 'next/image'
 import { JsonLd } from '@/components/json-ld'
 import { createArticle, createBreadcrumbList } from '@/lib/schema'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import sanitizeHtml from 'sanitize-html' // npm i sanitize-html @types/sanitize-html
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL!
 
@@ -149,12 +150,20 @@ export default async function BlogPost({ params }: Props) {
           width={1200} height={630} loading="eager" fetchPriority="high"
           sizes="(max-width: 768px) 100vw, 800px"
         />
-        <div dangerouslySetInnerHTML={{ __html: post.content }} />
+        {/* CMS HTML is untrusted input (one compromised editor account is enough for stored XSS):
+            sanitize it on the server before it reaches dangerouslySetInnerHTML */}
+        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content, {
+          allowedTags: [...sanitizeHtml.defaults.allowedTags, 'img', 'h1', 'h2'],
+          allowedAttributes: { ...sanitizeHtml.defaults.allowedAttributes, img: ['src', 'alt', 'width', 'height'] },
+          allowedSchemes: ['https', 'http', 'mailto'],
+        }) }} />
       </article>
     </>
   )
 }
 ```
+
+`sanitizeHtml` drops `<script>`, `<iframe>`, event-handler attributes (`onerror`) and `javascript:` links, and keeps the headings, links and images a post needs. Storing Markdown in the CMS and rendering it with a renderer that escapes raw HTML is the alternative; `JsonLd` below escapes `<` instead because its payload is JSON, not HTML.
 
 ### Blog Sitemap
 
