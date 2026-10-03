@@ -1,29 +1,49 @@
 ---
-description: Scaffold a new Microsoft Teams bot, tab, AI agent, or Graph app with the Teams Developer CLI
-argument-hint: <project-name> [template?]
+description: Scaffold a new Microsoft Teams bot, Graph bot or tab on Teams SDK 2.1 with the Teams Developer CLI 3
+argument-hint: <project-name> [echo|graph|tab]
 allowed-tools: ["Bash", "Read", "Write", "Edit", "Skill"]
 ---
 
 # /teams-dev:scaffold
 
-Bootstraps a new Microsoft Teams application in the current working directory using `@microsoft/teams.cli`. Args:
+Creates a new Microsoft Teams project in the current directory with `@microsoft/teams.cli` 3.x. Arguments:
 
-- `$ARG1` — project folder name (required), e.g. `quote-agent`
-- `$ARG2` — template (optional, default `echo`). Allowed: `echo`, `ai`, `graph`, `tab`.
+- `$1` — project name (required), for example `quote-agent`; the CLI turns it into a package name.
+- `$2` — template (optional, default `echo`). The CLI 3.0 ships `echo`, `graph` and `tab` for TypeScript.
 
 ## Steps
 
-1. Invoke `Skill: setup` to confirm Node 18+ and a Teams developer account.
-2. If `teams --version` fails, run `npm i -g @microsoft/teams.cli@preview`.
-3. Run `teams project new typescript "$ARG1" --template "${ARG2:-echo}"`.
-4. Cd into the new directory and `npm install`.
-5. Open `src/index.ts`, `appPackage/manifest.json`, and `.env` to confirm scaffolding.
-6. Read `Skill: getting-started` for next steps (run `npm run dev`, set up a devtunnel, sideload into Teams).
+1. Check the toolchain. Node must be 22.12 or newer; the CLI must be installed:
+
+   ```bash
+   node --version
+   teams --version
+   ```
+
+   If `teams` is missing, install it with `npm install -g @microsoft/teams.cli` (no dist-tag; `latest` is the stable 3.x line).
+2. Check the sign-in with `teams status --json`. If the user is not logged in, **stop and ask them to run `teams login` themselves**; never run the sign-in on their behalf. Registration (step 5) needs it, scaffolding does not.
+3. Scaffold. Without a TTY the CLI does not prompt, and `--json` gives machine-readable output:
+
+   ```bash
+   teams project new typescript "$1" -t "${2:-echo}" --json
+   ```
+
+   If it answers `Unknown template`, run `teams project new typescript --help` and use a template from that list.
+4. Install dependencies in the new directory:
+
+   ```bash
+   cd "$1" && npm install
+   ```
+
+5. Tell the user what comes next, and invoke the skill that owns each step:
+   - **Test without registering anything:** the Agents Playground — `Skill: agents-playground`. It needs the local-only opt-in `DANGEROUSLY_ALLOW_UNAUTHENTICATED_REQUESTS=true`; never put it in a committed file.
+   - **Register the bot, get credentials, set up a tunnel:** the official walkthrough — `Skill: teams-sdk-teams-dev` → `references/guide-create-bot-infra.md` (`teams app create --name … --endpoint https://<tunnel-host>/api/messages --env .env`).
+   - **Write code:** `/teams-dev:add-feature`, or the skills `messaging`, `adaptive-cards`, `ai-agents`.
 
 ## Notes
 
-- Template `echo` is the simplest message-echo bot; pick it unless the user asked otherwise.
-- Template `ai` wires up `@microsoft/teams.ai` with a `ChatPrompt` + `OpenAIChatModel` — needs `OPENAI_API_KEY` in `.env`.
-- Template `graph` wires up `api.graph` calls with user-token auth — needs SSO setup; route through `Skill: authentication` before testing.
-- Template `tab` scaffolds a static-hosted React tab — pair with `Skill: tabs` for client-side SDK usage.
-- Do not commit `.env` or `appPackage/manifest.json` rewrites that contain real `botId` values.
+- `echo` is a message-echo bot with `new App()` and no plugins; pick it unless the user asked otherwise.
+- `graph` signs the user in and calls Microsoft Graph. It needs an Azure-managed bot with an OAuth connection (`Skill: authentication`) and is written in the SDK 2.0 style; offer to rewrite it to `addOAuthFlow`.
+- `tab` is a bot plus a Vite/React tab with `@microsoft/teams.client` and an `app.function()` (`Skill: tabs`).
+- There is no AI, MCP or A2A template. Scaffold `echo` and add the feature with `/teams-dev:add-feature ai`.
+- Credentials land in `.env`. Do not commit it, and do not paste real client ids, secrets or tenant ids into files that are committed.
