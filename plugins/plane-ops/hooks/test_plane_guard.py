@@ -42,8 +42,9 @@ DELETABLE_RESOURCES = (
     "collection",
     "template",
 )
-# Resource tools that have a manage_workitems action taking add_ids / remove_ids.
-MANAGE_WORKITEMS_RESOURCES = ("cycle", "module", "milestone", "initiative", "release", "customer")
+# Resource tools whose manage_workitems action takes add_ids / remove_ids; customer takes
+# link_ids / unlink_ids instead (plane-mcp-server 0.3.x, plane_mcp/tools/customer.py).
+MANAGE_WORKITEMS_RESOURCES = ("cycle", "module", "milestone", "initiative", "release")
 
 
 def run_guard(stdin_text):
@@ -178,6 +179,35 @@ class PlaneGuardTest(unittest.TestCase):
                 self.assertIn("%s(action=manage_workitems)" % tool, reason)
                 self.assertIn("remove_ids=w-1, w-2", reason)
                 self.assertIn("kept", reason)
+
+    def test_unlinking_work_items_from_a_customer_asks(self):
+        out = self.decision(
+            call("mcp__plane__customer", action="manage_workitems", customer_id="c-1", unlink_ids=["w-1", "w-2"])
+        )
+        self.assertEqual(out["permissionDecision"], "ask")
+        reason = out["permissionDecisionReason"]
+        self.assertIn("customer(action=manage_workitems)", reason)
+        self.assertIn("customer_id=c-1", reason)
+        self.assertIn("unlink_ids=w-1, w-2", reason)
+        self.assertIn("kept", reason)
+        out = self.decision(
+            call("mcp__plane__customer", action="manage_workitems", customer_id="c-1", link_ids=["a"], unlink_ids='["b"]')
+        )
+        self.assertEqual(out["permissionDecision"], "ask")
+
+    def test_linking_work_items_to_a_customer_is_silent(self):
+        self.assertSilent(call("mcp__plane__customer", action="manage_workitems", customer_id="c-1", link_ids=["w-1"]))
+        for empty in ([], "", "[]", None):
+            with self.subTest(unlink_ids=empty):
+                self.assertSilent(
+                    call("mcp__plane__customer", action="manage_workitems", customer_id="c", link_ids=["w"], unlink_ids=empty)
+                )
+
+    def test_each_tool_is_judged_by_the_parameter_it_declares(self):
+        # customer declares no remove_ids (the server would reject it) and the other
+        # containers declare no unlink_ids: neither is a removal on the wrong tool
+        self.assertSilent(call("mcp__plane__customer", action="manage_workitems", customer_id="c", remove_ids=["w"]))
+        self.assertSilent(call("mcp__plane__cycle", action="manage_workitems", cycle_id="c", unlink_ids=["w"]))
 
     def test_remove_ids_in_the_same_call_as_add_ids_still_asks(self):
         out = self.decision(

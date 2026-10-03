@@ -7,8 +7,9 @@ Claude Code's PreToolUse decision format:
 * destructive action  -> ``permissionDecision: "ask"``: Claude Code shows its normal
   permission dialog with the reason; the user's "yes" lets the call through. Besides the
   actions the server marks destructive, ``manage_workitems`` with a non-empty ``remove_ids``
-  counts: it takes work items out of a cycle, module, milestone, initiative or release, which
-  the per-operation ``remove_*`` tools did and which the dialog must keep covering.
+  (``unlink_ids`` on ``customer``) counts: it takes work items out of a cycle, module,
+  milestone, initiative, release or customer, which the per-operation ``remove_*`` tools did
+  and which the dialog must keep covering.
 * archive action      -> ``additionalContext`` only (a warning for Claude, no dialog).
 * anything else, a tool of a server that is not Plane, or malformed input -> no output.
 
@@ -41,6 +42,8 @@ DESTRUCTIVE_ACTIONS = frozenset(
 # destructive; the removal half is what the old remove_* tools asked about.
 UNLINK_ACTION = "manage_workitems"
 UNLINK_PARAM = "remove_ids"
+# The one resource tool that names the removal half differently (link_ids / unlink_ids).
+UNLINK_PARAM_BY_TOOL = {"customer": "unlink_ids"}
 
 LEGACY_DESTRUCTIVE = re.compile(r"^(delete|remove|detach)_")
 LEGACY_ARCHIVE = re.compile(r"^archive_")
@@ -187,7 +190,7 @@ def decide(payload):
             "permissionDecisionReason": reason,
         }
 
-    if action == UNLINK_ACTION and _is_set(tool_input.get(UNLINK_PARAM)):
+    if action == UNLINK_ACTION and _is_set(tool_input.get(UNLINK_PARAM_BY_TOOL.get(tool, UNLINK_PARAM))):
         reason = "Plane %s removes work items. Target: %s. Removes: the listed work items from %s. Confirm before it runs." % (
             name,
             _target(tool_input),
