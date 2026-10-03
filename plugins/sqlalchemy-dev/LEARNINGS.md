@@ -1,0 +1,9 @@
+# Learnings
+
+## 2026-10-03 — model-patterns, query-patterns, troubleshoot: Flask-Login User model and owner-scoped queries moved in (2.1.0)
+
+**Problem:** The `User` model and the per-user query code lived in the Flask stack plugin in the 1.x style (`db.Column`, `Model.query.filter_by(user_id=...)`), and "filter every query by `current_user.id`" was a convention without a helper: one forgotten filter exposed another user's rows, and a foreign key that a form submits (`client_id`) was never checked against the owner. The `troubleshoot` "Session Best Practices" snippet used `select` without importing it and relied on `Client.visit_count`, which only `model-patterns` defines. The `model-patterns` and `query-patterns` descriptions had no trigger for converting 1.x code or upgrading to SQLAlchemy 2.1.
+**Fix:** `model-patterns/references/flask-login-user.md` (typed `User` with `UserMixin`, e-mail normalised in the model, `OwnedMixin`, `Client` / `Appointment` with `lazy='raise'` and a deferred computed column) and `query-patterns/references/owner-scoped-queries.md` (`owned_by()`, fetch by id together with the owner, foreign keys from forms, search with autoescaped `icontains`, a half-open date range for the month aggregate, a two-user isolation test). Descriptions gained "convert db.Column to Mapped 2.0 style", "convert Model.query to select() 2.0 style", "upgrade to SQLAlchemy 2.1". The `troubleshoot` snippet imports what it uses and points to `undefer` and Computed Values. Everything runs under `python -W error` on SQLAlchemy 2.0.54 and 2.1.x with Flask-SQLAlchemy 3.1.1.
+**Root cause:** Task 32 rewrote the plugin to the 2.0 style but the Flask-specific recipes were still in the stack plugin, which was not rewritten until Task 51.
+**Severity:** Major (cross-user data exposure pattern); Minor for the snippet and the descriptions.
+

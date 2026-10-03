@@ -130,21 +130,24 @@ from models import Client, User
 
 
 def test_other_users_client_is_a_404(app, client):
-    ann = User(name='Ann', email='ann@example.com', password_hash='x')
-    ben = User(name='Ben', email='ben@example.com', password_hash='x')
-    db.session.add_all([ann, ben])
-    db.session.flush()
-    row = Client(user_id=ann.id, name='Ann client')
-    db.session.add(row)
-    db.session.commit()
+    with app.app_context():
+        ann = User(name='Ann', email='ann@example.com', password_hash='x')
+        ben = User(name='Ben', email='ben@example.com', password_hash='x')
+        db.session.add_all([ann, ben])
+        db.session.flush()
+        row = Client(user_id=ann.id, name='Ann client')
+        db.session.add(row)
+        db.session.commit()
+        row_id, ben_id = row.id, ben.id            # plain ints: the instances die with the context
 
     with client.session_transaction() as session:
-        session['_user_id'] = str(ben.id)    # Flask-Login's session key: Ben is signed in
-    assert client.post(f'/clients/{row.id}/edit', data={'name': 'Hacked'}).status_code == 404
-    assert client.post(f'/clients/{row.id}/delete').status_code == 404
-    assert db.session.get(Client, row.id).name == 'Ann client'
+        session['_user_id'] = str(ben_id)          # Flask-Login's session key: Ben is signed in
+    assert client.post(f'/clients/{row_id}/edit', data={'name': 'Hacked'}).status_code == 404
+    assert client.post(f'/clients/{row_id}/delete').status_code == 404
+    with app.app_context():
+        assert db.session.get(Client, row_id).name == 'Ann client'
 ```
 
-The test uses the `app` and `client` fixtures of `app-patterns` (Testing). Repeat the two requests for every owned entity. A view that forgets `owned_by` answers `302` and changes the row, and this test fails.
+The test uses the `app` and `client` fixtures of `flask-dev` → `app-patterns` (Testing), which yield the app outside an app context; the test opens one for its own database access. Repeat the two requests for every owned entity. A view that forgets `owned_by` answers `302` and changes the row, and this test fails.
 
 The 1.x forms of these queries (`Client.query.filter_by(user_id=...)`, `.first_or_404()`) are translated in [Legacy 1.x style](../../api-reference/references/legacy-1x-style.md).
