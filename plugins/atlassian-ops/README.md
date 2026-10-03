@@ -99,7 +99,7 @@ The two can coexist; this plugin does not configure the MCP server for you.
 
 - **Jira rich text is ADF (JSON), not markdown** — `description` and comment `body` must be Atlassian Document Format documents.
 - **Jira users are `accountId`** (not username/email) — resolve via `GET /rest/api/3/user/search`.
-- **Confluence updates are read-then-write** — fetch the current `version.number`, then `PUT` with `number + 1`, or you get a `409`. In a space that **requires approval before publishing**, a direct `PUT` on a published page returns `409` whatever the version (CHANGE-3432): save a draft, get it approved, then publish the approved draft.
+- **Confluence updates are read-then-write** — fetch the current `version.number`, then `PUT` with `number + 1`, or you get a `409`. In a space that **requires approval before publishing**, a direct `PUT` on a published page will return `409` whatever the version (CHANGE-3432, announced 2026-09-28, rollout pending). Atlassian says to save a draft, get it approved, then publish the approved draft; no REST draft→approval→publish flow is documented yet — use the UI or ask a Confluence admin.
 - **Pagination differs**: Jira uses `startAt`/`maxResults` (and `nextPageToken` on `/search/jql`, which has no `total`); Confluence v2 uses cursor pagination (`_links.next`).
 - **`/search/jql` needs a bounded JQL and returns only `id` unless you list `fields`.** To fetch many issues, search for ids and then `POST /issue/bulkfetch` (up to 1000 issues per call when `fields` is an explicit list without multi-value fields; 100 otherwise).
 - **Workflow search is `GET /workflows/search`** — the older singular path was scheduled for removal on 2026-06-01 (CHANGE-2569); treat it as gone.

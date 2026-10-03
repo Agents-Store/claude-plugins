@@ -24,7 +24,7 @@ JSON=(-H "Content-Type: application/json")
 
 1. **`/wiki/api/v2` base** — the `/wiki` prefix is mandatory; omitting it is the usual cause of a `404`.
 2. **Bodies carry a `representation`** — `{"representation":"storage","value":"<p>…</p>"}` (XHTML) or `atlas_doc_format` (ADF JSON string).
-3. **Update = read-then-write.** Fetch the current `version.number`, then `PUT` with `number + 1`. A stale number returns `409`. **In a space that requires approval before publishing, a direct `PUT` on a published page returns `409` whatever the version** (CHANGE-3432) — save a draft, complete the approval, publish the approved draft (see "update a page safely" below).
+3. **Update = read-then-write.** Fetch the current `version.number`, then `PUT` with `number + 1`. A stale number returns `409`. **In a space that requires approval before publishing, a direct `PUT` on a published page will return `409` whatever the version** (CHANGE-3432, announced 2026-09-28, rollout pending) — see "update a page safely" below.
 4. **`spaceId` is numeric**, not the space key — resolve the key first.
 5. **Cursor pagination** — follow `_links.next`, don't compute offsets.
 6. **Confirm destructive actions** — `DELETE /pages/{id}` (especially `?purge=true`).
@@ -68,7 +68,7 @@ curl -s "${AUTH[@]}" "${JSON[@]}" -X PUT "${CONF}/pages/${PAGE_ID}" -d "{
 ```
 Skipping the version bump → `409 Conflict`.
 
-**Approval spaces.** If the space needs approval before publishing, this `PUT` (and `PUT /pages/{id}/title`) returns `409` even with the right `version.number`; Atlassian announced the change on 2026-09-28 and will add the rollout date. Do not loop on retries. Check whether the space has approvals on, then save the edit as a draft, have it approved, and publish the approved draft instead of updating the published page directly. (→ `pages-blogposts.md`)
+**Approval spaces (announced 2026-09-28, rollout pending).** Once enabled, in a space that needs approval before publishing this `PUT` (and `PUT /pages/{id}/title`) returns `409` even with the right `version.number`. Do not loop on retries. Atlassian's guidance is to save the change as a draft, complete the approval, and publish the approved draft — but no REST draft→approval→publish flow is documented yet, so use the Confluence UI or ask a Confluence admin. (→ `pages-blogposts.md`)
 
 ## Workflow: list child pages
 

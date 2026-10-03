@@ -57,10 +57,10 @@ Match the symptom, apply the fix. Most failures come from a wrong base path (or 
 
 - Re-read the page: `GET ${CONF}/pages/{id}` → take `.version.number` → `PUT` with that number `+ 1`. Always read-then-write.
 
-**Cause 2 — approval space (CHANGE-3432):** the space requires approval before publishing. A direct `PUT /pages/{id}`, `PUT /pages/{id}/title` (or v1 `PUT /wiki/rest/api/content/{id}`) on a published page returns `409` **even with the correct `version.number`**.
+**Cause 2 — approval space (CHANGE-3432, announced 2026-09-28, rollout pending):** the space requires approval before publishing. Once the change is enabled, a direct `PUT /pages/{id}`, `PUT /pages/{id}/title` (or v1 `PUT /wiki/rest/api/content/{id}`) on a published page returns `409` **even with the correct `version.number`**.
 
 - A version bump will not fix it and retries will not help. Atlassian announced this on 2026-09-28 and will publish the rollout date; it applies only to regular pages in approval-enabled spaces.
-- Fix: save the change as a draft, complete the approval, publish the approved draft. Ask a space admin whether approvals are on if a `409` survives a correct version.
+- Atlassian's guidance: save the change as a draft, complete the approval, publish the approved draft. **No REST draft→approval→publish flow is documented yet** — use the Confluence UI or ask a Confluence admin; ask a space admin whether approvals are on if a `409` survives a correct version.
 
 ## 429 Too Many Requests
 
@@ -74,20 +74,20 @@ Match the symptom, apply the fix. Most failures come from a wrong base path (or 
 
 **Cause:** Confluence v2 list endpoints filter by `space-id`/`title`/`status` only — they are not full-text search.
 
-- Use the **v1** search endpoint: `GET ${ATLASSIAN_SITE_URL%/}/wiki/rest/api/search?cql=space=PROJ%20AND%20text~%22term%22`.
+- Use the **v1** search endpoint: `GET ${CONF_ROOT}/wiki/rest/api/search?cql=space=PROJ%20AND%20text~%22term%22`.
 
 ## "Label add / attachment upload returns 404/405 in v2"
 
 **Cause:** those writes aren't in the Confluence v2 spec.
 
-- Labels: `POST ${ATLASSIAN_SITE_URL%/}/wiki/rest/api/content/{id}/label` (v1).
-- Attachment upload: `POST ${ATLASSIAN_SITE_URL%/}/wiki/rest/api/content/{id}/child/attachment` (v1, multipart, header `X-Atlassian-Token: nocheck`).
+- Labels: `POST ${CONF_ROOT}/wiki/rest/api/content/{id}/label` (v1).
+- Attachment upload: `POST ${CONF_ROOT}/wiki/rest/api/content/{id}/child/attachment` (v1, multipart, header `X-Atlassian-Token: nocheck`).
 
 ## "Boards / sprints / backlog endpoint not found"
 
 **Cause:** those aren't in the Jira platform API.
 
-- They live in the **Jira Software Agile REST API**: `${ATLASSIAN_SITE_URL%/}/rest/agile/1.0/board`, `/sprint`, `/backlog`. The bundled `jira-openapi-v3.json` does not cover them.
+- They live in the **Jira Software Agile REST API**: `${JIRA_ROOT}/rest/agile/1.0/board`, `/sprint`, `/backlog`. The bundled `jira-openapi-v3.json` does not cover them.
 
 ## Multipart upload rejected (Jira attachments)
 

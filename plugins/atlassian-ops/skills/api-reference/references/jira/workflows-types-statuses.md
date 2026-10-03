@@ -33,7 +33,7 @@ How issues move (workflows) and how they're classified (types, statuses). Base `
 
 | Method | Purpose & key fields |
 |--------|----------------------|
-| `GET /workflows/search` | Paginated workflow search (`searchWorkflows`). `?queryString=&orderBy=name&scope=<global|project>&isActive=true&projectId=&expand=values.transitions&startAt=&maxResults=` (`global` = company-managed, `project` = team-managed). Needs *Administer Jira*, or *Administer projects* / *View (read-only) workflow* for project-scoped workflows. |
+| `GET /workflows/search` | Paginated workflow search (`searchWorkflows`). `?queryString=&orderBy=name&scope=GLOBAL&isActive=true&projectId=&expand=values.transitions&startAt=&maxResults=` (`scope` is `GLOBAL` for company-managed or `PROJECT` for team-managed projects). Needs *Administer Jira*, or *Administer projects* / *View (read-only) workflow* for project-scoped workflows. |
 | `POST /workflows` | Read workflows by id/name with full detail (`readWorkflows`). |
 | `POST /workflows/copy` | Copy a workflow and the statuses it uses into a new workflow in the same scope (`copyWorkflow`). Body `{"workflowId":"<uuid>","workflowName":"Copy of Software workflow","description":"…"?}`. Needs *Administer Jira*, or for a project-scoped workflow *Edit workflows* (or *View workflow* + *Administer projects*). |
 | `POST /workflows/create` | Create workflows (`createWorkflows`); validate first with `POST /workflows/create/validation`. |
