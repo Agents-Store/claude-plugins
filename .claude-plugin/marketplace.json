@@ -719,7 +719,7 @@
       "name": "codemap-dev",
       "source": "./plugins/codemap-dev",
       "description": "Code understanding plugin for developers. Helps onboard to unfamiliar projects through beginner-friendly code review, step-by-step explanations, visual diagrams (architecture, ERD, flows) via drawio-mcp, and frontend testing via Playwright MCP.",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "author": {
         "name": "AGENTS.STORE"
       },

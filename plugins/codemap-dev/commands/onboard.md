@@ -38,5 +38,5 @@ Generate a comprehensive onboarding package for a developer joining this project
 
    **Phase 5 — Summary:**
    - List all generated files with descriptions
-   - Show diagram preview URLs
+   - Show diagram file paths (and the inline preview, if the client rendered one)
    - Suggest next steps

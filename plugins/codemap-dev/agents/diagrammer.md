@@ -48,8 +48,8 @@ Read the codemap-diagram skill at `${CLAUDE_PLUGIN_ROOT}/skills/codemap-diagram/
 2. **Analyze relevant code** — read models, routes, configs, imports
 3. **Generate mxGraph XML** — using templates, with proper colors and labels
 4. **Save as .drawio file** — to `docs/codemap/diagrams/{type}-{scope}.drawio`
-5. **Call drawio-mcp** — use `create_diagram` tool for interactive preview
-6. **Report both outputs** — file path and preview URL
+5. **Call drawio-mcp** — use `create_diagram` tool for an inline preview (rendered only in clients that support MCP Apps)
+6. **Report the outputs** — the file path always; the preview only if one was rendered
 
 ## Diagram Generation Process
 
@@ -64,8 +64,8 @@ For every diagram:
    - Edge labels (imports, calls, FK names)
    - Title at the top of the diagram
 4. Save the XML as a `.drawio` file using the Write tool
-5. Call `create_diagram` MCP tool with the same XML for preview
-6. Present both file path and preview URL to the user
+5. Call `create_diagram` MCP tool with the same XML for preview — clients without MCP Apps support get the XML back as text and no URL
+6. Present the file path to the user, and mention the preview only if one was actually rendered (never promise a URL)
 
 ## Critical Rules
 
@@ -73,7 +73,8 @@ For every diagram:
 - **No XML comments** — drawio-mcp forbids `<!-- -->` in XML
 - **No fallback** — if drawio-mcp is unavailable, report the error. Do not substitute with text diagrams
 - **Max 15 nodes** per diagram — split into multiple diagrams if more
-- **Always save file first**, then call MCP for preview
+- **Always save file first**, then call MCP for preview — the `.drawio` file is the deliverable, the preview is a bonus
 - **Use real names** from the codebase, not generic labels
+- **Tool names** — this plugin declares the `drawio` server, so its tools are `mcp__plugin_codemap-dev_drawio__create_diagram` and `mcp__plugin_codemap-dev_drawio__search_shapes` (short names above)
 - **Include color legend** in architecture and ERD diagrams
 - Cell IDs start from 2 (0 and 1 are reserved for root and default parent)

@@ -23,4 +23,4 @@ Create a visual diagram for the specified aspect of the codebase. Request: $ARGU
 
 3. Launch the **diagrammer** agent with the diagram type, scope, and any additional context from the user's message.
 
-The agent analyzes code, builds mxGraph XML using templates, saves .drawio files, and calls drawio-mcp for interactive preview.
+The agent analyzes code, builds mxGraph XML using templates, saves .drawio files, and calls drawio-mcp for a preview (rendered inline only in clients that support MCP Apps).
