@@ -809,20 +809,26 @@ def check_lint(rec, record, opts):
 
     The exit code is a threshold contract: 0 nothing at or above the threshold, 1 at least
     one finding, 2 the command failed before its checks completed. A 2 is not "warnings
-    only" — it used to be read that way, which filed a broken run as a clean one. A failed
-    run is reported as such, and when it came with no finding of its own a catalogued one
-    is raised, so the failure cannot leave the report in silence.
+    only" — it used to be read that way, which filed a broken run as a clean one.
+
+    A run that did not produce a verdict is never silent. Exit 2, a kill or timeout (124, 137,
+    143) and any other exit outside the contract are one thing — a FAILED run — and raise
+    ``fleet.lint.run-failed`` unless the run supplied an error finding of its own, which then
+    carries the detail. Two cases deliberately raise nothing and leave their status in
+    ``commands`` only, because that is this module's rule for them: ``unsupported`` (this
+    build has no such verb — drift, not a defect) and ``refused`` (the gateway is not running,
+    so no CLI read is possible).
     """
     if not opts.lint or opts.skip_cli:
         return
     result, status = oc_read(record, lint_argv(opts), opts.timeout)
     rec["commands"]["doctor_lint"] = status
-    if result is None or status in ("unsupported", "failed"):
+    if result is None or status == "unsupported":
         return
     label, explanation = ocjson.exit_meaning("doctor --lint", result.rc)
     rec["metrics"]["lint"] = label
     items = result.findings()
-    if label == "failed":
+    if status == "failed" or label in ("failed", "timeout", "missing"):
         rec["commands"]["doctor_lint"] = "failed"
         if not items:
             finding(rec, "fleet.lint.run-failed", "high",

@@ -29,6 +29,21 @@ Accumulated fixes and discoveries for the OpenClaw fleet-operations plugin. Newe
 **Severity:** Critical / Major / Minor
 -->
 
+## [2026-10-03] — instance-upgrade: a documented alias walked past the R4 marker written for the original
+
+**Problem:** the repair posture of `doctor` has two spellings (`--fix` and `--repair`), the update command has a
+root shorthand (`--update`), and `doctor --yes` enters repair maintenance without either flag. The markers named
+only `--fix` and `update`, so each alternative classified as a reversible edit, and `doctor --lint --repair` even
+classified as a read. A bare `triage` — which launches a coding agent that repairs on its own — sat at the default
+class while the comment next to it called it R4.
+**Fix:** documented aliases are rewritten to their canonical flag before any marker is consulted, `--update`, `doctor
+--yes` and any `triage` that is not `--json` / `--non-interactive` are R4, a `--output` makes a read an R2, and the
+cold-mode command word is read with the same option-skipping rule as the head-only markers (`--log-level setup
+config …` is `config`, not `setup`).
+**Root cause:** markers were written per spelling, and the comments describing them were never asserted against the
+classifier — the tests now pin the exact class, not "not R0".
+**Severity:** Major
+
 ## [2026-10-03] — fleet-diagnostics: a failed lint run read as "warnings only"
 
 **Problem:** `ocjson` declared `doctor --lint` as 0 clean, 1 error-level findings, 2 warn-level findings.

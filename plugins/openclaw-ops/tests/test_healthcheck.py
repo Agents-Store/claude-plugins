@@ -179,6 +179,36 @@ class LintFailureTest(unittest.TestCase):
                           ("memory-core/managed-local-embedding-setup", "info")])
         self.assertEqual(rec["findings"][0]["evidence"], "gateway.mode")
 
+    def test_a_killed_or_timed_out_run_is_a_failed_run_with_a_finding(self):
+        # oc_read reports status "failed" for a non-zero exit outside the 0/1/2 contract
+        for rc in (124, 137, 143, 70):
+            with self.subTest(rc=rc):
+                rec = _rec()
+                with mock.patch.object(healthcheck, "oc_read",
+                                       return_value=(_lint_result(rc, ""), "failed")):
+                    healthcheck.check_lint(rec, {}, _LintOpts())
+                self.assertEqual(rec["commands"]["doctor_lint"], "failed")
+                self.assertEqual([f["id"] for f in rec["findings"]], ["fleet.lint.run-failed"])
+                self.assertIn("NOT a clean result", rec["findings"][0]["message"])
+
+    def test_a_build_without_the_verb_is_drift_recorded_in_commands_only(self):
+        # the module's rule: a missing verb is "unsupported", never a failure and never a finding
+        rec = _rec()
+        with mock.patch.object(healthcheck, "oc_read",
+                               return_value=(_lint_result(1, ""), "unsupported")):
+            healthcheck.check_lint(rec, {}, _LintOpts())
+        self.assertEqual(rec["commands"]["doctor_lint"], "unsupported")
+        self.assertEqual(rec["findings"], [])
+        self.assertNotIn("lint", rec["metrics"])
+
+    def test_a_refused_read_leaves_only_its_status(self):
+        rec = _rec()
+        with mock.patch.object(healthcheck, "oc_read",
+                               return_value=(None, "refused:gateway is down")):
+            healthcheck.check_lint(rec, {}, _LintOpts())
+        self.assertTrue(rec["commands"]["doctor_lint"].startswith("refused"))
+        self.assertEqual(rec["findings"], [])
+
     def test_a_clean_run_records_clean_and_no_finding(self):
         rec = self.run_lint(_lint_result(0, json.dumps({"ok": True, "findings": []})))
         self.assertEqual(rec["metrics"]["lint"], "clean")

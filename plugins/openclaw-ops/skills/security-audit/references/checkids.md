@@ -44,6 +44,12 @@ in the list carries only the ordinary "0 succeeded" meaning, and its payload is 
   and opt-in checks; `doctor --lint --all` is the complete inventory (the audit posture), and
   `--only <id>` / `--skip <id>` select by the path-shaped check id. `checksRun` and `checksSkipped` in
   the document prove a focused gate ran what you meant.
+- **Plain `doctor` is not a read.** Without `--lint` or `--json`, ordinary `doctor` — including
+  `doctor --non-interactive`, which suppresses prompts and not writes — can copy legacy config and
+  migrate state. `--fix` and its alias `--repair` apply repairs, and `--yes` accepts defaults and
+  **enters repair maintenance** (the managed gateway is stopped and restarted around it). The door
+  classifies plain `doctor` as an R2, and `--fix`, `--repair` and `--yes` as R4; the two read postures
+  are `--lint` and bare `--json`, and both reject the repair flags.
 - **Bare `doctor --json` is advisory.** It exits 0 once it has produced a report, even when `ok` is
   false — read `ok` and `findings`. Only explicit `--lint` is the threshold-based gate. A lint run
   that fails before producing a report exits 2 and prints one error finding under

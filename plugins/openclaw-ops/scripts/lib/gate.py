@@ -76,8 +76,10 @@ RISK_CLASSES = {
         "gate": "--yes + typed confirmation",
         "description": "State-schema migration, writing to the secret store "
                        "(secrets store set, rm or import; secrets apply), security audit --fix, "
-                       "doctor --fix, doctor --generate-gateway-token (rotates the gateway "
-                       "token), update cleanup (retires the migration recovery originals).",
+                       "doctor --fix (alias --repair), doctor --yes (enters repair maintenance), "
+                       "doctor --generate-gateway-token (rotates the gateway token), update "
+                       "cleanup (retires the migration recovery originals), a triage that "
+                       "starts a repair agent.",
     },
 }
 RISK_ORDER = ["R0", "R1", "R2", "R3", "R4"]

@@ -152,6 +152,12 @@ EXTENDED_STABLE_MIN_PATCH = 33
 # The bridge release, and the month before which an installation must cross it first.
 # Source: the upstream updating guide, "Upgrading very old versions". The cut-off is a
 # (year, month) pair because the rule is stated in months, not in patch numbers.
+#
+# The cut-off is stated differently by two builds of the same page (checked 2026-10-03): the
+# docs at the latest release tag say "older than June 2026", the live site (built from main)
+# says "older than July 2026". July is used: it is the newer statement, and it errs towards
+# one extra hop for a June build rather than a Doctor refusal in the middle of an upgrade.
+# When the release docs catch up, or retire the bridge, this is the line to revisit.
 BRIDGE_VERSION = "2026.9.5"
 BRIDGE_REQUIRED_BEFORE = (2026, 7)
 

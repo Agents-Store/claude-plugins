@@ -145,6 +145,34 @@ posture (`--lint`, `--post-upgrade`) runs as is, while `doctor --fix` is an R4 l
 door refuses it as a raw call, and the plan (BACKUP, an executable ROLLBACK, the typed confirmation)
 comes first, with the cold run as its APPLY line for the operator.
 
+## An update driven by the one older updater, across a schema bump
+
+The upstream updating guide singles out one older updater release (section "Updating from … across a
+schema bump") whose ledger writes outlive the schema change. What happens when it drives an update that
+bumps the shared-state schema, and what to do — read the guide for the release in question, do not
+recite it:
+
+- **The normal case is deferral, not a fault.** The target applies the migration content but keeps
+  publishing the old schema version until every affected update run has been terminal for a few
+  minutes (a run that has not moved for much longer counts as abandoned for this purpose only). Doctor
+  says so: schema content applied, version publication deferred. The new gateway runs on the migrated
+  content in the meantime. Do not kill the run, hand-edit the database or "complete" the bump yourself.
+- **`update-schema-bump-unfenced` is the refusal.** It appears when state metadata is missing or backup
+  coverage cannot be verified, and it prints the database versions and the recovery instructions. Quote
+  them. *Before* the package commit, let the failed update finish restoring the previous package — that
+  older updater leaves the gateway **stopped** after a failed post-install verification, which is the
+  designed outcome here too (zero restart retries). *After* the package commit the old package backup is
+  gone: finish `doctor --fix` with the installed compatible build, then start the gateway.
+- **If the compatible package still has to be installed,** it is a manual update from a shell *outside*
+  the gateway: stop the gateway, install the exact target named in the refusal with the installation's
+  own package manager, run `doctor --fix`, start the gateway — each step only after the previous one
+  succeeded. All of it is an R4 with a plan; the refusal text is the source for the target version,
+  never this page.
+- **Package rollback cannot undo migrated state.** The verified backup taken before the update is what
+  would; for a git checkout, a Doctor refusal before state writes prints source recovery commands only
+  when the reflog identifies the previous commit unambiguously, and restoring source alone never
+  restores state.
+
 ## There is no rollback — there is recovery
 
 The migration is in place, and a restore path that exists only for a clean target is not a rollback.

@@ -89,12 +89,18 @@ name. R3 (backup first): `sessions cleanup`, `memory reset`, `memory forget`, `m
 `backup restore`, `update repair`, `doctor --state-sqlite compact` and
 `doctor --session-sqlite compact|import|recover|restore`. R4 (typed confirmation): `update` in any form
 — `update cleanup` also retires the migration recovery originals for good — `secrets store
-set|rm|import`, `secrets apply`, `doctor --generate-gateway-token`, `doctor --fix`,
-`security audit --fix`, `fleet rm`, `migrate apply`, `triage --run` and `triage --agent` (they hand the
-installation to a coding agent that repairs on its own), and a top-level `reset` or `uninstall`. A few
+set|rm|import`, `secrets apply`, `doctor --generate-gateway-token`, `doctor --fix` (and its alias
+`--repair`, which is normalised to it, so `doctor --lint --repair` is an R4 too), `doctor --yes` (it
+enters repair maintenance), `security audit --fix`, `fleet rm`, `migrate apply`, the root shorthand
+`--update`, any `triage` that is not `--json` / `--non-interactive` (it hands the installation to a
+coding agent that repairs on its own), and a top-level `reset` or `uninstall`. Plain `doctor` and
+`doctor --non-interactive` are R2: ordinary doctor can copy legacy config and migrate state even
+without `--fix`. A few
 reads are not what their family suggests: `update status` is a ledger read, `memory status --index`
-reindexes, `triage` is a read only as `triage --json` or `--non-interactive`, and anything carrying `--allow-exec` (doctor, the secrets audit) runs the exec-backed
-secret references the config declares, so it is an R1. Global options in front (`--profile <name>`) do
+reindexes, and anything carrying `--allow-exec` (doctor, the secrets audit) runs the exec-backed
+secret references the config declares, so it is an R1. `triage --json` and `gateway diagnostics export`
+follow one rule: they write only a sanitized support export and change no config or state, so they are
+reads — unless a caller-chosen `--output` names the destination, which makes either an R2. Global options in front (`--profile <name>`) do
 not hide a command word. When a build lacks a verb, upstream's `--help` wins and the marker list is wrong
 until it is edited — the classifier is a safety net, not a command catalogue.
 

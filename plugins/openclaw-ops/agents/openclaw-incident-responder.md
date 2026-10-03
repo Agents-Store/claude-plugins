@@ -88,9 +88,11 @@ Scripts live in `${CLAUDE_PLUGIN_ROOT}/scripts/`; they are named bare below.
    Doctor findings, version and platform facts and a diagnostics archive of sanitized config, status,
    health and log summaries — and, with `--json` (or `--non-interactive`), **starts no agent**. A bare
    `triage`, `--agent <name>` and `--run` hand the installation to a coding agent that repairs on its
-   own: never run them, they are R4 here. `gateway diagnostics export` writes the same kind of zip
-   under the state directory, so it is not a read — name it as a step for a human. Redaction is
-   upstream's and this plugin's, never a substitute for one another: check the bundle before it leaves.
+   own: never run them, they are R4 here. `gateway diagnostics export --json` is the same kind of
+   artefact — a sanitized support export that changes no config or state — and is judged the same way:
+   a read, unless a caller-chosen `--output` names the destination (then it is an R2 for a human).
+   Redaction is upstream's and this plugin's, never a substitute for one another: check the bundle
+   before it leaves.
 
 ## What you return
 

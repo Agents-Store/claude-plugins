@@ -336,19 +336,54 @@ class RiskMarkerTest(unittest.TestCase):
         self.assertEqual(self.risk("--profile", "work", "memory", "reset"), "R3")
         self.assertEqual(self.risk("--profile", "work", "update", "status"), "R0")
 
+    def test_repair_is_the_documented_alias_of_fix_and_cannot_bypass_the_r4(self):
+        for argv in (("doctor", "--repair"),
+                     ("doctor", "--repair", "--non-interactive"),
+                     ("doctor", "--lint", "--repair"),
+                     ("doctor", "--lint", "--severity-min", "info", "--repair"),
+                     ("--profile", "work", "doctor", "--repair"),
+                     ("--log-level", "debug", "doctor", "--lint", "--repair")):
+            with self.subTest(argv=argv):
+                self.assertEqual(self.risk(*argv), "R4")
+
+    def test_doctor_yes_enters_repair_maintenance_and_is_an_r4(self):
+        # upstream: --yes accepts defaults and enters repair maintenance without prompting
+        self.assertEqual(self.risk("doctor", "--yes"), "R4")
+        self.assertEqual(self.risk("doctor", "--non-interactive", "--yes"), "R4")
+
+    def test_bare_doctor_and_non_interactive_are_not_reads(self):
+        # ordinary doctor can copy legacy config and migrate state even without --fix
+        for argv in (("doctor",), ("doctor", "--non-interactive")):
+            with self.subTest(argv=argv):
+                self.assertEqual(self.risk(*argv), "R2")
+
+    def test_the_root_update_shorthand_is_the_update_command(self):
+        # `openclaw --update` is documented as a shorthand for `openclaw update`
+        self.assertEqual(self.risk("--update"), "R4")
+        self.assertEqual(self.risk("--update", "--yes"), "R4")
+        self.assertEqual(self.risk("--profile", "work", "--update"), "R4")
+
+    def test_a_bare_triage_hands_the_installation_to_a_coding_agent_and_is_an_r4(self):
+        self.assertEqual(self.risk("triage"), "R4")
+        self.assertEqual(self.risk("--profile", "work", "triage"), "R4")
+        self.assertEqual(self.risk("triage", "--update-result", "<path>"), "R4")
+
     def test_triage_collects_read_only_only_with_the_json_or_non_interactive_flag(self):
-        # a bare `triage` starts a local coding agent that repairs autonomously
         self.assertEqual(self.risk("triage", "--json"), "R0")
         self.assertEqual(self.risk("triage", "--non-interactive"), "R0")
-        self.assertNotEqual(self.risk("triage"), "R0")
+        self.assertEqual(self.risk("--profile", "work", "triage", "--json"), "R0")
         # selecting an agent, or asking for the embedded repair turn, is a repair
         self.assertEqual(self.risk("triage", "--run"), "R4")
         self.assertEqual(self.risk("triage", "--json", "--run"), "R4")
         self.assertEqual(self.risk("triage", "--agent", "codex"), "R4")
 
-    def test_the_diagnostics_export_writes_a_file_and_is_not_a_read(self):
-        # a sanitized zip is written under the state directory
-        self.assertNotEqual(self.risk("gateway", "diagnostics", "export", "--json"), "R0")
+    def test_the_diagnostics_export_is_judged_like_triage_json(self):
+        # both write only a sanitized support export and change no config or state: one rule.
+        # A destination the caller chooses is the difference, and that is not a read.
+        self.assertEqual(self.risk("gateway", "diagnostics", "export", "--json"), "R0")
+        self.assertEqual(self.risk("gateway", "diagnostics", "export"), "R0")
+        self.assertEqual(self.risk("gateway", "diagnostics", "export", "--output", "<zip>"), "R2")
+        self.assertEqual(self.risk("triage", "--json", "--output", "<dir>"), "R2")
 
     def test_a_read_that_executes_configured_commands_is_not_a_plain_read(self):
         # --allow-exec lets doctor and the secrets audit run exec SecretRefs
@@ -356,7 +391,10 @@ class RiskMarkerTest(unittest.TestCase):
         self.assertEqual(self.risk("secrets", "audit", "--check", "--allow-exec"), "R1")
         self.assertEqual(self.risk("doctor", "--lint", "--allow-exec"), "R1")
 
-    def test_a_marker_in_a_value_position_does_not_misclassify_a_read(self):
+    def test_a_dotted_config_path_or_a_head_only_word_as_a_value_is_still_a_read(self):
+        # `update.channel` is one token that is not `update`; `reset` is R4 only as a first word.
+        # (A bare value spelled exactly `update` is still read as the update family: a known
+        # over-classification, the safe direction, deliberately not "fixed" by loosening it.)
         self.assertEqual(self.risk("config", "get", "update.channel"), "R0")
         self.assertEqual(self.risk("config", "get", "reset"), "R0")
 
@@ -396,6 +434,18 @@ class ModeChoiceTest(DoorTestCase):
                      ["database", "ownership", "status"]):
             with self.subTest(argv=argv):
                 self.assertTrue(ocexec.check_policy(down, argv, "R0", "cold", yes=False))
+
+    def test_a_global_option_cannot_smuggle_a_command_past_the_cold_gate(self):
+        down = instance_record(state="down")
+        # the value of --log-level is not a command: the command here is `config`
+        with self.assertRaises(ocexec.Refusal):
+            ocexec.check_policy(down, ["--log-level", "setup", "config", "set", "a", "b"],
+                                "R0", "cold", yes=False)
+        with self.assertRaises(ocexec.Refusal):
+            ocexec.check_policy(down, ["--profile=setup", "health"], "R0", "cold", yes=False)
+        # and a real safe command behind a global option is still admitted
+        self.assertTrue(ocexec.check_policy(down, ["--profile", "work", "doctor", "--lint"],
+                                            "R0", "cold", yes=False))
 
     def test_cold_doctor_fix_is_still_a_planned_r4_not_a_free_pass(self):
         down = instance_record(state="down")
