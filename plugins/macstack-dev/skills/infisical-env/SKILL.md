@@ -77,10 +77,32 @@ Create `scripts/setup.sh` — pulls secrets from Infisical:
 - Fetch as JSON (`infisical secrets -o json`) and render `KEY='value'` —
   **single quotes** keep `$ # & =`, spaces, base64, JWT dots and multiline PEM
   intact; an embedded quote is escaped the POSIX way `'\''`.
-- **Instance switching**: the Infisical CLI keeps a separate login per self-hosted
-  instance, but only ONE is active; before reading, check the active domain and, on
-  mismatch, run `infisical login --domain=<domain>` (the --domain flag is IGNORED on
-  authenticated reads!).
+- **Instance selection — one named profile per instance** (Infisical CLI >= 0.43.134).
+  A profile is one login: an account on one instance plus the organization it uses.
+  Do not check "which instance is active" and re-login; keep every instance logged in
+  as its own profile and let the CLI pick:
+  - once per instance: `infisical login --save-as <profile> --domain=<domain>` (the
+    domain is `infisical.domain` from the organization's registry);
+  - once per project, in the project root: `infisical profile bind <profile>` — every
+    command under that directory then selects the profile by itself. The binding lives
+    in the user's CLI config, never in the repository;
+  - `infisical profile current` prints which profile applies here and why — the
+    script's pre-flight line, and what to run when a pull reads the wrong vault;
+  - one terminal: `eval "$(infisical profile pin <profile>)"`; one command or a
+    script: `--profile <profile>` or `INFISICAL_PROFILE` (`pin` only prints an
+    `export` line). Order of precedence: `--profile`, `INFISICAL_PROFILE`, a bound
+    directory, the default profile (`infisical profile use`).
+- **Wrong-instance guard**: the instance itself is chosen by `--domain`, then
+  `INFISICAL_DOMAIN`, then a `domain` field in `.infisical.json`, then US Cloud. After
+  a user login a `--domain` / `INFISICAL_DOMAIN` that names a different instance than
+  the profile in use makes the command FAIL instead of reading the wrong vault — so
+  the script sets `INFISICAL_DOMAIN` (or passes `--domain`) from the registry value on
+  every read; never a literal in the script. Keep `domain` out of the committed
+  `.infisical.json` unless the team wants it there: anyone who can edit that file can
+  redirect the CLI, and the CLI prints a warning naming the host each time it uses it.
+- A CLI older than 0.43.134 has no `profile` command or `--profile` flag
+  (`unknown command "profile"`) — upgrade it (`infisical --version`). Everything else
+  about the Infisical CLI: the `infisical-dev` plugin, skill `cli-reference`.
 - **Guard**: on a failed fetch NEVER wipe the existing .env (write to a temp file
   first, then mv on success).
 - Also mirrors the values into the `.claude/settings.local.json` env block (so the
@@ -101,7 +123,7 @@ Create `scripts/env-audit.sh` — reconciliation: macstack.json accesses ⇄ Inf
 | `secrets-sync.md` | `Run ./scripts/setup.sh prod .env .claude/settings.local.json and report` (description: Pull Infisical → .env/.env.prod/.env.dev) |
 | `secrets-push.md` | dry-run by default, `--yes` to write; upsert, never deletes |
 | `env-audit.md` | reconcile keys macstack.json ⇄ Infisical ⇄ .env |
-| `setup-tokens.md` | first-time setup: login + first pull |
+| `setup-tokens.md` | first-time setup: named profile (`login --save-as`) + `profile bind` + first pull |
 
 `.claude/rules/secrets-env-sync.md` (installed by the `best-practices` skill):
 Infisical is the truth; changed .env → `/secrets-push`; before a deploy/push →

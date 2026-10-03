@@ -11,6 +11,7 @@ Severity. Enhancements use: date, component, Feature / Implementation / Rational
 - **Infisical CLI gotcha** (baked into infisical-env skill): the CLI keeps one ACTIVE
   instance; `--domain` is ignored on authenticated reads — always
   `infisical login --domain=…` before pulling from a different self-hosted instance.
+  *(Obsolete since CLI 0.43.134 — see the 2026-10-03 entry at the end of this file.)*
 - **Env rendering**: values must be written as `KEY='value'` (single quotes, POSIX
   escape for embedded quotes) or multiline PEM/JWT values break `source .env`.
 - **Scaffold order is the product**: prototype → stack plugins → dev plugins. Every
@@ -1178,3 +1179,12 @@ journal, что и `intake`, — сменился только источник 
 **Fix:** Примеры описаны по роли (корень организации, сайт, бот поддержки, клиентский BPMS), имя организации в примерах — выдуманное `acme`; приватный репозиторий — «ops-репозиторий». Версия 3.9.1 → 3.9.2.
 **Root cause:** Примеры стандарта писались с живых стеков.
 **Severity:** Minor
+
+## 2026-10-03 — infisical-env, troubleshoot, hooks: именованные профили Infisical; SessionStart после compact и fork
+
+**Problem:** `infisical-env` и `troubleshoot` (и запись от 2026-08-09 выше) учили, что CLI держит один активный инстанс, а `--domain` на авторизованном чтении игнорируется, поэтому перед чтением надо сверять активный домен и делать `infisical login --domain=…`. Хук `SessionStart` стоял на `startup|resume|clear`: после компакции и в форкнутой сессии фраза о «свежести» документов пропадала.
+**Fix:** `setup.sh` теперь опирается на именованные профили CLI >= 0.43.134: `infisical login --save-as <profile> --domain=<domain>` один раз на инстанс, `infisical profile bind <profile>` один раз на проект, `infisical profile current` вместо проверки активного домена, `--profile` / `INFISICAL_PROFILE` в скрипте. Порядок выбора инстанса — `--domain`, `INFISICAL_DOMAIN`, `domain` в `.infisical.json`, US Cloud; явный `--domain` другого инстанса, чем у профиля, завершает команду ошибкой, поэтому скрипт задаёт домен из реестра (`INFISICAL_DOMAIN` или `--domain`) на каждом чтении. `troubleshoot` получил строки про неверный профиль, несовпадение домена и `unknown command "profile"` на старом CLI. Матчер хука: `startup|resume|clear|compact|fork`. Версия 3.9.2 -> 3.9.3 в `plugin.json` и в каталоге.
+**Root cause:** запись писалась против CLI 0.43.9x; `domain` в `.infisical.json` и `INFISICAL_DOMAIN` появились в 0.43.92, именованные профили — в 0.43.134. Проверено по `--help` бинарника 0.43.138 и по исходникам (`packages/util/credentials.go`: `ErrProfileDomainMismatch`, `packages/cmd/root.go`: `resolveDomain`); с живым инстансом не запускалось. Список источников `SessionStart` в документации Claude Code: `startup`, `resume`, `clear`, `compact`, `fork` (https://code.claude.com/docs/en/hooks); хук только читает файлы проекта и пишет одну фразу, повторный запуск безвреден.
+**Severity:** Major (Infisical), Minor (хук)
+
+**Не сделано здесь, владельцу:** строка `coverage-areas.json:150` в upstream-реестре `macstacks/registry` всё ещё `"document-generator"`, в зеркале уже `"document-generator-ops"`. Нужен PR в `macstacks/registry`; зеркало не трогали.

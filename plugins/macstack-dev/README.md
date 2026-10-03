@@ -158,8 +158,11 @@ file, `macstack/` already touched, or a second pass over the same turn. A hook t
 speaks out of turn trains you to ignore it — and then it fails on the one occasion it
 was needed.
 
-A second hook runs at session start and says how far the documents have drifted from
-the code — how long since anyone checked, and which documents nobody has ever checked.
+A second hook runs at session start — `startup`, `resume`, `clear`, and also `compact` and
+`fork`, because a compaction drops the earlier sentence from the context and a forked
+session starts without it — and says how far the documents have drifted from the code:
+how long since anyone checked, and which documents nobody has ever checked. It only
+reads, so running it again on those sources costs one sentence and changes nothing.
 It measures with literally the same function rule 12.17 calls: `hooks/macstack_freshness.py`
 owns the shelf life and the audit date, and the linter imports it. It was two copies
 once, and they diverged exactly as predicted — the linter lifted the clock from archived
@@ -178,7 +181,8 @@ already earned a word — code changed, folder untouched.
 ## Prerequisites
 
 `python3` (plus `jsonschema` for full schema validation), `jq`, `gh`, and the
-`infisical` CLI if the project uses it. No MCP server required.
+`infisical` CLI (0.43.134 or newer — one named profile per Infisical instance) if the
+project uses it. No MCP server required.
 
 ## Canonical references
 
