@@ -60,9 +60,15 @@ const nextConfig: NextConfig = {
 
 **Symptom:** Build fails with `TypeError: Invalid URL` or similar — env vars like `NEXT_PUBLIC_*` are `undefined` during build.
 
-**Root cause:** `vercel env add <name> preview` requires a Git branch when the project has no Git integration, and fails.
+**Root cause:** The Preview environment has no value for them. Vercel CLI 62.2.0 takes `vercel env add name [environment] [--git-branch <NAME>] [--value <VALUE>] [--yes]`, so a Git branch is not required (read from `vercel env add --help`, not re-run on a project without Git integration). If `vercel env add ... preview` still fails on your CLI, use the `-b`/`-e` fallback below.
 
-**Fix:** Pass env vars directly during deploy:
+**Fix:** Add the variables to Preview non-interactively:
+```bash
+vercel env add NEXT_PUBLIC_DIRECTUS_URL preview --value "$NEXT_PUBLIC_DIRECTUS_URL" --yes
+```
+`--value` is visible in the process list and shell history; for secrets pipe the value on stdin instead of passing `--value`.
+
+**Fallback (nothing stored):** Pass env vars directly during deploy:
 ```bash
 source .env.local && vercel deploy \
   -b NEXT_PUBLIC_DIRECTUS_URL="$NEXT_PUBLIC_DIRECTUS_URL" \

@@ -35,7 +35,12 @@ Run these checks before any deployment. Stop on failure and print actionable gui
    - On Hobby plans, only the team owner can deploy. If emails don't match, warn the user and suggest: `git config user.email "<team-owner-email>"` followed by an empty commit (`git commit --allow-empty -m "chore: update deploy author"`).
 9. **Env vars for preview?** — If deploying a preview and the project has no Git integration (`vercel.json` has no `github` config or project was linked without Git):
    - Preview env vars may not be configured. Check `vercel env ls` for Preview entries.
-   - If missing: pass env vars directly via `-b` (build-time) and `-e` (runtime) flags:
+   - If missing: add them to Preview non-interactively. The Git branch is optional (`--git-branch` only narrows it):
+     ```bash
+     vercel env add KEY preview --value "value" --yes
+     ```
+     `--value` is visible in the process list and shell history; for secrets pipe the value on stdin instead.
+   - Or pass env vars for this deploy only via `-b` (build-time) and `-e` (runtime) flags — still valid, nothing is stored:
      ```bash
      vercel deploy -b KEY="value" -e KEY="value"
      ```
