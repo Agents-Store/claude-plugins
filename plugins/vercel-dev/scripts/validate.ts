@@ -602,13 +602,13 @@ async function validateCommandConventions() {
       if (critical.length > 0) {
         fail("CMD_MISSING_CRITICAL_SECTIONS", `commands/${file} — missing critical sections: ${critical.join(", ")}`, {
           file: `commands/${file}`,
-          hint: `Add the following required sections: ${critical.join(", ")}. See commands/_conventions.md for details.`,
+          hint: `Add the following required sections: ${critical.join(", ")}. See references/command-conventions.md for details.`,
         });
       }
       if (recommended.length > 0) {
         warn("CMD_MISSING_SECTIONS", `commands/${file} — missing recommended sections: ${recommended.join(", ")}`, {
           file: `commands/${file}`,
-          hint: `Add the following sections: ${recommended.join(", ")}. See commands/_conventions.md for details.`,
+          hint: `Add the following sections: ${recommended.join(", ")}. See references/command-conventions.md for details.`,
         });
       }
     } else {
