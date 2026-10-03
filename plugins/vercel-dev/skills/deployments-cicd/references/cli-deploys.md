@@ -81,14 +81,24 @@ Use `-b` for build-time vars and `-e` for runtime vars. `NEXT_PUBLIC_*` vars nee
 
 ## Deploy Hooks (CMS / External Trigger Rebuilds)
 
-Deploy Hooks let external services trigger a full production rebuild via a POST request — useful for headless CMS content changes (Directus, Sanity, Contentful, Strapi, etc.).
+Deploy Hooks let external services trigger a full rebuild of one Git branch via a GET or POST request — useful for headless CMS content changes (Directus, Sanity, Contentful, Strapi, etc.).
 
 ### Create a Deploy Hook
 
-1. Vercel dashboard → project Settings → Git → **Deploy Hooks**
-2. Name: e.g. "CMS Content Update"
+Deploy Hooks exist only for a project **connected to a Git repository**. A project that is deployed from the CLI alone cannot have one, so connect a repository first (or use ISR revalidation below).
+
+1. Vercel dashboard → project Settings → Git → **Deploy Hooks** (or `vercel deploy-hooks create [name]`)
+2. Name: e.g. "CMS Content Update" — one hook per branch unless you have several data sources
 3. Branch: `main` (or your production branch)
 4. Copy the generated URL (format: `https://api.vercel.com/v1/integrations/deploy/prj_xxx/xxx`)
+
+### Limits and Options
+
+- **Count:** 5 deploy hooks per project on Hobby and Pro, 10 on Enterprise.
+- **Rate:** up to 60 triggers per hour per project, summed over all of its hooks. A CMS that fires a webhook on every save can hit this; trigger on publish only.
+- **Build cache:** a hook reuses the build cache by default. Append `?buildCache=false` to the URL to skip it. Hooks created before 2021-05-11 default to no cache; append `?buildCache=true` or recreate the hook.
+- **Duplicates:** repeated requests for the same version cancel the earlier deployments of that hook.
+- **Off switch:** hooks do nothing when `vercel.json` contains `"github": { "enabled": false }`.
 
 ### Wire to a Headless CMS
 
@@ -108,7 +118,7 @@ Point your CMS webhook at the deploy hook URL. Examples:
 
 | Approach | When to use |
 |----------|-------------|
-| **Deploy Hook** (full rebuild) | Static sites, infrequent content updates, need guaranteed fresh build |
+| **Deploy Hook** (full rebuild; 60 triggers per hour per project) | Static sites, infrequent content updates, need guaranteed fresh build |
 | **ISR on-demand revalidation** (`revalidateTag`/`revalidatePath`) | Dynamic sites, frequent updates, instant refresh without full rebuild |
 
 For most Next.js App Router projects, **ISR revalidation is preferred** — it's faster (seconds vs minutes) and doesn't burn a build. Deploy hooks are simpler but trigger a full redeploy. You can use both: ISR for instant cache invalidation + deploy hook as a safety net for daily full rebuilds.
@@ -118,6 +128,9 @@ For most Next.js App Router projects, **ISR revalidation is preferred** — it's
 ```bash
 # Trigger a deploy hook from CLI or CI
 curl -X POST "https://api.vercel.com/v1/integrations/deploy/prj_xxx/xxx"
+
+# Same, without the build cache
+curl -X POST "https://api.vercel.com/v1/integrations/deploy/prj_xxx/xxx?buildCache=false"
 ```
 
-No authentication needed — the URL itself is the secret. Keep it private.
+No authentication needed — the URL itself is the secret. Keep it private (a CI secret, never the repository) and revoke it in Settings → Git if it leaks. Source: https://vercel.com/docs/deploy-hooks.
