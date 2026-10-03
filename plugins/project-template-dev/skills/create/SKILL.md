@@ -247,13 +247,13 @@ for TECH in {data-layer} {logic-layer} {interface-layer}; do
 done
 ```
 
-For each found plugin, read its `plugin.json` to get the name and classify by type (technology, process, stack).
+For each found plugin, read its `plugin.json` to get the name and classify by type (technology, process, stack). Note which directory it was found in: a plugin from `$PLUGINS_PUBLIC_SOURCE_DIR` is public (it is in the Agents Store marketplace), one found only in `$PLUGINS_PRIVATE_SOURCE_DIR` is private.
 
 Update `stack.json` `plugins` arrays with found plugins. Stack plugins are named `stack-{name}`; technology plugins `{tool}-{process}`. Use the `name` from each plugin's `plugin.json` (it can differ from the directory name); a retired or renamed name is not a plugin.
 
 Update `CLAUDE.md` Installed Plugins section with plugin names and descriptions.
 
-Write `.claude/settings.json` (committed) from the same list, so the plugins are offered to everyone who clones the template:
+Write `.claude/settings.json` (committed) from the **public** plugins in that list, so they are offered to everyone who clones the template:
 ```json
 {
   "extraKnownMarketplaces": {
@@ -266,7 +266,7 @@ Write `.claude/settings.json` (committed) from the same list, so the plugins are
   }
 }
 ```
-Add one `"<name>@agents-store-claude-plugins": true` entry per plugin from `stack.json`. Keep any other keys the parent already has; never put `env` values or tokens in this file.
+Add one `"<name>@agents-store-claude-plugins": true` entry per public plugin from `stack.json`. Plugins found only in the private source stay in `stack.json` and in the CLAUDE.md Installed Plugins section, but are NOT written to `.claude/settings.json`: they do not exist in the public marketplace, and a committed file must never name a private marketplace. The owner installs them separately from their own marketplace. Keep any other keys the parent already has; never put `env` values or tokens in this file.
 
 Report:
 ```
@@ -313,6 +313,6 @@ Template created: {new-name}
 
 Next steps:
   1. Review generated files
-  2. Install the listed plugins: `.claude/settings.json` enables them, but each person still runs `claude plugin install <name>@agents-store-claude-plugins --scope project` once (add the marketplace first with `claude plugin marketplace add Agents-Store/claude-plugins`)
+  2. Install the public plugins: `.claude/settings.json` enables them, but each person still runs `claude plugin install <name>@agents-store-claude-plugins --scope project` once (add the marketplace first with `claude plugin marketplace add Agents-Store/claude-plugins`). Private plugins: install them yourself from their own marketplace
   3. Push to GitHub: git remote add origin git@github.com:$PROJECT_TEMPLATES_GITHUB_ORG/{new-name}.git && git push -u origin main
 ```

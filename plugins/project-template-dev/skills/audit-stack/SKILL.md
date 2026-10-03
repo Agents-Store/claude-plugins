@@ -16,7 +16,7 @@ Read reference files before starting:
 - [technology-signatures.md](references/technology-signatures.md) — detection signatures for 80+ technologies
 - [layer-classification.md](references/layer-classification.md) — canonical tech-to-layer mapping
 
-<!-- SYNC NOTE: Phases 1-4 are identical to plugin-creator/skills/audit-stack/SKILL.md — keep in sync -->
+<!-- SYNC NOTE: Phases 1-4 started as a copy of plugin-creator/skills/audit-stack/SKILL.md; the two copies have drifted (reference links, newer signatures), so port a change by hand when it applies to both -->
 
 ---
 

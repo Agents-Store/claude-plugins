@@ -114,6 +114,23 @@ What `create` generates and `validate` checks:
 - **CLAUDE.md stays short.** The template rule is under 100 lines (Anthropic's guidance is under 200). An `@docs/...` import does not save context, because imported files load at launch; link long documents by plain path or move file-specific rules into `.claude/rules/*.md` with `paths:`.
 - **Stack plugins are named `stack-{name}`** (no process suffix), technology plugins `{tool}-{process}`.
 
+## Upgrading from 2.1.x
+
+Templates built on the 2.1 layout keep working: `validate` reports the differences as WARN, except the two new security checks, which FAIL.
+
+| Finding | Severity | Migration |
+|---------|----------|-----------|
+| `.mcp.json.example` committed, `.mcp.json` gitignored | WARN | Move any real value from the local `.mcp.json` into `.env` and `.claude/settings.local.json` first, commit `.mcp.json` with `${VAR}` references, drop it from `.gitignore`, delete the `.example`. Rotate any secret that was ever committed |
+| `AGENTS.md` generated from `CLAUDE.md`, or `CLAUDE.md` without `@AGENTS.md` | WARN | Move the shared sections into `AGENTS.md`, make `CLAUDE.md` `@AGENTS.md` plus the Claude-specific lines, stop generating `AGENTS.md` |
+| No `.claude/settings.json`, or `enabledPlugins` that does not match `stack.json` | WARN | Add `extraKnownMarketplaces` and `enabledPlugins` for the public plugins of `stack.json` (private plugins stay out of the committed file) |
+| Workflows in `.claude/commands/`, including `plan` and `review` | WARN | Move each to `.claude/skills/<name>/SKILL.md`; rename `plan` to `plan-feature` and `review` to `code-review-project` |
+| CLAUDE.md between 100 and 200 lines | WARN | Trim, or move file-specific rules to `.claude/rules/*.md` with `paths:` |
+| Literal token, key or secret in the tracked `.mcp.json` | FAIL (CRITICAL) | Replace with `${VAR}`; rotate the secret — editing the file does not remove it from git history |
+| `env` values or tokens in the committed `.claude/settings.json` | FAIL (CRITICAL) | Move them to the gitignored `.claude/settings.local.json` |
+| CLAUDE.md over 200 lines | FAIL | Trim as above |
+
+Plugin names in `stack.json` follow the marketplace `renames` map; check them against the current marketplace listing.
+
 ## What Can Be Pushed to Parent Templates
 
 - Skills (`.claude/skills/`), including the workflow skills (`commit`, `pr`, `plan-feature`, ...); the older `.claude/commands/<name>.md` form still works
