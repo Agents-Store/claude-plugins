@@ -6,7 +6,7 @@ import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const PLUGIN_VERSION = JSON.parse(
-  readFileSync(join(ROOT, ".plugin", "plugin.json"), "utf-8"),
+  readFileSync(join(ROOT, ".claude-plugin", "plugin.json"), "utf-8"),
 ).version as string;
 const HOOK_PATH = join(ROOT, "hooks", "posttooluse-skill-telemetry.mjs");
 const LIB_PATH = join(ROOT, "hooks", "skill-telemetry.mjs");
