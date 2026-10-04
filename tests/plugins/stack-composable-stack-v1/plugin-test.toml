@@ -1,9 +1,13 @@
+# start = server (было ci): снимок снят с реальным env, и слова из описаний, совпавшие со значениями env,
+# записаны как ${ИМЯ}; CI без env получает исходный текст — WARN «изменились описания». Сравнение — ночью.
 [mcp.trigger-dev]
-start = "ci"
+start = "server"
 env = { TRIGGER_ACCESS_TOKEN = "dummy", TRIGGER_API_URL = "https://trigger.example.com" }
 
+# start = server (было ci): снимок снят с реальным env, и слова из описаний, совпавшие со значениями env,
+# записаны как ${ИМЯ}; CI без env получает исходный текст — WARN «изменились описания». Сравнение — ночью.
 [mcp.n8n-mcp-external]
-start = "ci"
+start = "server"
 env = { N8N_API_URL = "https://n8n.example.com", N8N_API_KEY = "dummy" }
 
 # Self-hosted серверы: tools/list может нести имена баз и таблиц инстанса — в снимок только имена.

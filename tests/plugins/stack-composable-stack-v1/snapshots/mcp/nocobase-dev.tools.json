@@ -1,0 +1,1718 @@
+{
+  "tools": [
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "ai_employees_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "ai_employees_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "ai_employees_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "ai_employees_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "ai_employees_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "ai_list_llmproviders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "ai_list_llmservices"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "llmService"
+        ],
+        "type": "object"
+      },
+      "name": "ai_list_models"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "ai_list_provider_models"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "ai_test_flight"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "auth_change_password"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "auth_check"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "auth_sign_in"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "auth_sign_out"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "auth_sign_up"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "authenticators_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "authenticators_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "authenticators_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "authenticators_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "authenticators_list_types"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "authenticators_public_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "authenticators_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "available_actions_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "collection_categories_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collection_categories_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collection_categories_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "collection_categories_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "collection_categories_move"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collection_categories_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "collections_apply"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "collections_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collections_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "collectionName"
+        ],
+        "type": "object"
+      },
+      "name": "collections_fields_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "collectionName",
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collections_fields_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "collectionName",
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collections_fields_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "collectionName"
+        ],
+        "type": "object"
+      },
+      "name": "collections_fields_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "collectionName"
+        ],
+        "type": "object"
+      },
+      "name": "collections_fields_move"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "collectionName"
+        ],
+        "type": "object"
+      },
+      "name": "collections_fields_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collections_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "collections_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "collections_list_meta"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "collections_move"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collections_set_fields"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "collections_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "associatedIndex"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_collections_fields_apply"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "associatedIndex"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_collections_fields_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "associatedIndex"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_collections_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "data_sources_list_enabled"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataSourceKey",
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_roles_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataSourceKey",
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_roles_resources_scopes_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataSourceKey"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_roles_resources_scopes_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataSourceKey"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_roles_resources_scopes_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataSourceKey"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_roles_resources_scopes_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataSourceKey",
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_roles_resources_scopes_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataSourceKey",
+          "filterByTk",
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "data_sources_roles_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "db_views_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "db_views_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "db_views_query"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "desktop_routes_list_accessible"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "executions_cancel"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "executions_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "executions_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "executions_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "fields_apply"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "flow_nodes_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "branchIndex",
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "flow_nodes_destroy_branch"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "flow_nodes_duplicate"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "flow_nodes_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "flow_nodes_move"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_nodes_test"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "flow_nodes_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_action"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_actions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_block"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_blocks"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_event_flow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_field"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_fields"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_popup_tab"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_record_action"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_record_actions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_add_tab"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_apply"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_apply_approval_blueprint"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_apply_blueprint"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_catalog"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_compose"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_configure"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_context"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_convert_template_to_copy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_create_menu"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_create_page"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_describe_surface"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_destroy_page"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_destroy_template"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_export_blueprint"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "flow_surfaces_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_get_event_flow_meta"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_get_reaction_meta"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_get_template"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_list_navigation_targets"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_list_templates"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_move_node"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_move_popup_tab"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_move_tab"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_mutate"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_remove_event_flow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_remove_node"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_remove_popup_tab"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_remove_tab"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_save_template"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_set_action_linkage_rules"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_set_block_linkage_rules"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_set_event_flow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_set_event_flows"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_set_field_linkage_rules"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_set_field_value_rules"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_set_layout"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_update_menu"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_update_popup_tab"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_update_settings"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_update_tab"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "flow_surfaces_update_template"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "jobs_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "jobs_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "jobs_resume"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "llm_services_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "llm_services_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "llm_services_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "llm_services_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "llm_services_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "resource",
+          "values"
+        ],
+        "type": "object"
+      },
+      "name": "resource_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "resource"
+        ],
+        "type": "object"
+      },
+      "name": "resource_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "resource"
+        ],
+        "type": "object"
+      },
+      "name": "resource_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "resource"
+        ],
+        "type": "object"
+      },
+      "name": "resource_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "resource"
+        ],
+        "type": "object"
+      },
+      "name": "resource_query"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "resource",
+          "values"
+        ],
+        "type": "object"
+      },
+      "name": "resource_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "roles_apply_data_permissions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "roles_check"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "roles_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody",
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_data_source_resources_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_data_source_resources_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody",
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_data_source_resources_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_data_sources_collections_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody",
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_desktop_routes_add"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_desktop_routes_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody",
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_desktop_routes_remove"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody",
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_desktop_routes_set"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "roles_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "roles_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "roles_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "roles_resources_scopes_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "roles_resources_scopes_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "roles_set_default_role"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "roles_set_system_role_mode"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "roles_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_users_add"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_users_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "roleName"
+        ],
+        "type": "object"
+      },
+      "name": "roles_users_remove"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "user_workflow_task_stats_list_mine"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "user_workflow_tasks_list_mine"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "users_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "users_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "users_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "users_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "userId"
+        ],
+        "type": "object"
+      },
+      "name": "users_roles_add"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "userId"
+        ],
+        "type": "object"
+      },
+      "name": "users_roles_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "userId"
+        ],
+        "type": "object"
+      },
+      "name": "users_roles_remove"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk"
+        ],
+        "type": "object"
+      },
+      "name": "users_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "workflows_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "workflows_destroy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterByTk",
+          "requestBody"
+        ],
+        "type": "object"
+      },
+      "name": "workflows_execute"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "workflows_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "workflows_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "workflows_nodes_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "workflows_revision"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "workflows_sync"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "workflows_update"
+    }
+  ]
+}
