@@ -3,7 +3,7 @@
 Каждая задача плана добавляет сюда свою строку; порядок запуска задаёт
 model.CHECK_IDS, а не этот словарь.
 """
-from . import cli_flags, hook_fixtures, mcp_list, mcp_names, skill_budget, skill_links, skill_snippets
+from . import api_paths, cli_flags, hook_fixtures, mcp_list, mcp_names, skill_budget, skill_links, skill_snippets
 
 REGISTRY = {
     "skill-links": skill_links.run,
@@ -13,4 +13,5 @@ REGISTRY = {
     "mcp-list": mcp_list.run,
     "hook-fixtures": hook_fixtures.run,
     "cli-flags": cli_flags.run,
+    "api-paths": api_paths.run,
 }
