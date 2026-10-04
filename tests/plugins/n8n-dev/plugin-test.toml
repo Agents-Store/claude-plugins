@@ -1,0 +1,10 @@
+# 2026-10-04 owner accepted: длинные справочные skills и всегда-загружаемая часть принимаются как есть
+# (skill-budget — advisory); потолок always_on_tokens поднят чуть выше текущего значения (~3579), чтобы
+# ночной прогон сообщал только о росте.
+[budget]
+always_on_tokens = 3600
+
+[skip]
+"skill-budget" = ["skills/api-reference/SKILL.md", "skills/n8n-expression-syntax/SKILL.md",
+                  "skills/n8n-node-configuration/SKILL.md", "skills/n8n-validation-expert/SKILL.md",
+                  "skills/n8n-workflow-patterns/SKILL.md"]

@@ -13,3 +13,8 @@ name = "openclaw-ops unittest"
 run = "python3 -m unittest discover -s tests -t tests -v"
 cwd = "plugins/openclaw-ops"
 needs = ["python3"]
+
+# 2026-10-04 owner accepted: всегда-загружаемая часть ~4769 токенов принимается как есть (skill-budget — advisory);
+# потолок поднят чуть выше текущего значения, чтобы ночной прогон сообщал только о росте.
+[budget]
+always_on_tokens = 4800
