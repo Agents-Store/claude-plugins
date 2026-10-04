@@ -1,0 +1,116 @@
+import os
+import sys
+import unittest
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from plugin_test_fixtures import Repo, load_plugin  # noqa: E402
+
+from plugin_test import envfile, manifest  # noqa: E402
+from plugin_test.model import FAIL, WARN  # noqa: E402
+
+FULL = '''
+[mcp.dataforseo]
+start = "ci"
+env = { DATAFORSEO_USERNAME = "dummy", DATAFORSEO_PASSWORD = "dummy" }
+
+[mcp.nocodb]
+snapshot = "names"
+
+[cli.infisical]
+version = "0.43.138"
+commands = ["login", "secrets set"]
+
+[[api]]
+spec = "skills/api/references/jira.json"
+base_vars = { JIRA = "/rest/api/3", JIRA_ROOT = "" }
+
+[[api]]
+spec = "skills/api/references/conf.json"
+base_vars = ["CONF"]
+
+[[unit]]
+name = "suite"
+run = "python3 -m unittest"
+cwd = "plugins/demo-dev"
+needs = ["python3"]
+timeout = 30
+
+[budget]
+always_on_tokens = 5000
+
+[skip]
+"skill-snippets" = ["skills/legacy/*"]
+'''
+
+
+class ManifestTest(unittest.TestCase):
+    def setUp(self):
+        self.repo = Repo()
+        self.addCleanup(self.repo.cleanup)
+        self.repo.plugin("demo-dev")
+
+    def load(self, text=None):
+        if text is not None:
+            self.repo.tests("demo-dev", {"plugin-test.toml": text})
+        return manifest.load(load_plugin(self.repo.root, "demo-dev"))
+
+    def test_absent_manifest_is_empty(self):
+        m, findings = self.load()
+        self.assertEqual(findings, [])
+        self.assertEqual(m.mcp_spec("x").start, "server")
+        self.assertEqual(m.always_on_tokens, manifest.DEFAULT_ALWAYS_ON)
+
+    def test_full_manifest(self):
+        m, findings = self.load(FULL)
+        self.assertEqual(findings, [])
+        self.assertEqual(m.mcp_spec("dataforseo").start, "ci")
+        self.assertEqual(m.mcp_spec("dataforseo").env["DATAFORSEO_USERNAME"], "dummy")
+        self.assertEqual((m.mcp_spec("dataforseo").snapshot, m.mcp_spec("nocodb").snapshot), ("full", "names"))
+        self.assertEqual(m.cli["infisical"].bin, "infisical")
+        self.assertEqual(m.cli["infisical"].commands, ["login", "secrets set"])
+        self.assertEqual(m.api[0].base_vars, {"JIRA": "/rest/api/3", "JIRA_ROOT": ""})
+        self.assertEqual(m.api[1].base_vars, {"CONF": ""})
+        self.assertEqual((m.unit[0].cwd, m.unit[0].timeout, m.unit[0].needs), ("plugins/demo-dev", 30, ["python3"]))
+        self.assertEqual(m.skip["skill-snippets"], ["skills/legacy/*"])
+        self.assertEqual(m.always_on_tokens, 5000)
+
+    def test_single_api_table_is_accepted(self):
+        m, findings = self.load('[api]\nspec = "a.json"\nbase_vars = ["X"]\n')
+        self.assertEqual(findings, [])
+        self.assertEqual(m.api[0].spec, "a.json")
+
+    def test_malformed_toml_is_a_finding(self):
+        m, findings = self.load("[mcp.x\nstart = ")
+        self.assertEqual(len(findings), 1)
+        self.assertEqual((findings[0].check, findings[0].level), ("manifest", FAIL))
+        self.assertEqual(findings[0].file, "tests/plugins/demo-dev/plugin-test.toml")
+        self.assertEqual(m.mcp, {})
+
+    def test_bad_values_are_findings(self):
+        m, findings = self.load('extra = 1\n[mcp.x]\nstart = "always"\n[skip]\n"nope" = ["a"]\n'
+                                '[[unit]]\nname = "no run"\n[[unit]]\nrun = "x"\ntimeout = "slow"\n')
+        levels = sorted((f.level, f.message.split()[0]) for f in findings)
+        self.assertIn(FAIL, [lvl for lvl, _ in levels])
+        self.assertIn(WARN, [lvl for lvl, _ in levels])
+        self.assertEqual(len(findings), 5)
+        self.assertEqual(m.mcp_spec("x").start, "server")
+        self.assertEqual(m.unit, [])
+
+
+class EnvFileTest(unittest.TestCase):
+    def test_parse(self):
+        env = envfile.parse('# c\nA=1\nexport B="two words"\nC=\'q\'\nD=v # note\nbad line\n=x\n')
+        self.assertEqual(env, {"A": "1", "B": "two words", "C": "q", "D": "v"})
+
+    def test_expand(self):
+        self.assertEqual(envfile.expand("${A}/x/${B:-dflt}/${C}", {"A": "a"}), ("a/x/dflt/", ["C"]))
+        self.assertEqual(envfile.expand("${E:-d}", {"E": ""}), ("d", []))
+
+    def test_expand_obj(self):
+        obj, missing = envfile.expand_obj({"args": ["--k", "${K}"], "env": {"U": "${U}"}, "n": 1}, {"K": "kk"})
+        self.assertEqual(obj, {"args": ["--k", "kk"], "env": {"U": ""}, "n": 1})
+        self.assertEqual(missing, ["U"])
+
+
+if __name__ == "__main__":
+    unittest.main()
