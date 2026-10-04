@@ -1,0 +1,6 @@
+{
+  "event": "PreToolUse",
+  "stdin": {"hook_event_name": "PreToolUse", "tool_name": "mcp__plugin_plane-ops_plane__workitem",
+            "tool_input": {"action": "list"}},
+  "expect": {"exit": 0, "stdout_empty": true}
+}

@@ -13,6 +13,7 @@
 # skill-creator evals scratch space
 **/evals/workspace/
 **/evals/*-workspace/
+**/evals/results/
 **/iteration-*/
 **/benchmark.json
 **/grading.json

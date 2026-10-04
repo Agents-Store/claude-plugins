@@ -1,0 +1,92 @@
+name: Plugin tests
+
+# L1 «Контракт» (spec agents.store 2026-10-04): текст плагина против снимков
+# реальности — ссылки и сниппеты skills, имена MCP-инструментов против снимков
+# tools/list, hooks на фикстурах, флаги CLI и пути API против снимков, собственные
+# тесты плагинов ([[unit]]). Без модели, без ключей, без сети к инстансам: всё,
+# что требует ключей, проверяет ночной прогон на сервере.
+#
+# Pull request — только изменённые плагины и те, кто от них зависит, под --strict.
+# Push в main и ручной запуск — все плагины.
+#
+# Коды runner-а как у publication gate: 0 чисто, 1 есть fail (задача падает),
+# 2 только warn/infra (аннотации, задача зелёная). Какая проверка уже блокирует,
+# а какая пока только предупреждает, задаёт STATUS в scripts/plugin_test/model.py.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: L1 contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python packages
+        run: python3 -m pip install 'PyYAML>=6,<7'
+
+      # stdio MCP-серверы со start = "ci" запускаются через npx.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # [[unit]] vercel-dev — bun test.
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      # skill-budget читает `claude plugin details`.
+      - name: Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      # Тесты самого runner-а и правил gate: правило, которое перестало
+      # срабатывать, само ничего не роняет, поэтому у каждого есть тест.
+      - name: Runner self-tests
+        run: python3 -m unittest discover -s scripts/tests -v
+
+      - name: L1 contract
+        id: l1
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set +e
+          if [ "$EVENT" = "pull_request" ]; then
+            python3 scripts/plugin_test.py --mode ci --changed "$BASE_SHA" --strict --json report.json | tee l1.log
+          else
+            python3 scripts/plugin_test.py --mode ci --json report.json | tee l1.log
+          fi
+          status="${PIPESTATUS[0]}"
+          set -e
+          python3 scripts/plugin_test_issue.py render report.json >> "$GITHUB_STEP_SUMMARY" || true
+          grep -E '^(WARN|INFRA)' l1.log | while read -r line; do echo "::warning::${line}"; done
+          case "$status" in
+            0|2) exit 0 ;;
+            *) grep '^FAIL' l1.log | while read -r line; do echo "::error::${line}"; done
+               echo "::error::plugin-test found a contract violation. Each FAIL line names the file, the line and the fix. A deliberate exception goes into tests/plugins/<plugin>/plugin-test.toml [skip] with a comment saying why."
+               exit 1 ;;
+          esac
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-test-report
+          path: report.json
+          if-no-files-found: ignore

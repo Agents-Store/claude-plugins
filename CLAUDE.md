@@ -254,6 +254,16 @@ Such a leak is answered by **revoking the value at its source** (rotate the toke
 endpoint, move the host), never by editing a file. A green gate means "nothing new is leaving", not
 "nothing has left".
 
+## Тесты плагинов (L1 «Контракт»)
+
+`python3 scripts/plugin_test.py --plugin <name>` сверяет плагин со снимками реальности:
+ссылки и сниппеты skills, имена MCP-инструментов (`tests/plugins/<p>/snapshots/mcp/`),
+hooks на фикстурах, флаги CLI и пути API (opt-in), собственные тесты (`[[unit]]`).
+CI (`plugin-test.yml`) гоняет его на каждом PR; ночью он же идёт по обоим репозиториям
+на сервере владельца и пишет провалы в issue «Nightly plugin tests». Данные тестов — в
+`tests/plugins/<p>/`, вне плагина; формат — `tests/README.md`. Исключение — только
+`[skip]` в манифесте с комментарием-причиной.
+
 ## Patterns Worth Knowing
 
 - **CONNECTORS pattern** (see `deep-research-ops`): Uses `~~capability` placeholders instead of hard-coding tool names. Agents try providers in fallback order.

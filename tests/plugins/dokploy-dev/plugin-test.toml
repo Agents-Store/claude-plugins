@@ -1,0 +1,7 @@
+[mcp.dokploy]
+start = "ci"
+env = { DOKPLOY_URL = "https://dokploy.example.com", DOKPLOY_API_KEY = "dummy" }
+
+# 2026-10-04 owner accepted: справочный skill грузится по требованию, разбивать его не нужно; skill-budget — advisory.
+[skip]
+"skill-budget" = ["skills/mcp-patterns/SKILL.md"]

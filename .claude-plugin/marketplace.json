@@ -59,7 +59,7 @@
       "name": "teleshop-ops",
       "source": "./plugins/teleshop-ops",
       "description": "Teleshop store management plugin. Manage products, orders, categories, attributes, customers, webhooks, and addons for your Telegram store via 50 MCP tools.",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -129,7 +129,7 @@
       "name": "document-generator-ops",
       "source": "./plugins/document-generator-ops",
       "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, Playwright, pptxgenjs, pandoc).",
-      "version": "3.1.0",
+      "version": "3.1.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -188,7 +188,7 @@
       "name": "directus-dev",
       "source": "./plugins/directus-dev",
       "description": "Directus development plugin. Knowledge base for working with Directus MCP tools (12 tools), REST API, and @directus/sdk. Covers collections, items, fields, relations, files, flows, operations, and schema design.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -212,7 +212,7 @@
       "name": "nextjs-dev",
       "source": "./plugins/nextjs-dev",
       "description": "Next.js development plugin. Knowledge base for building modern Next.js 16 applications with App Router, Server/Client Components, data fetching, Cache Components, performance optimization, and the next-devtools-mcp toolchain.",
-      "version": "1.6.0",
+      "version": "1.6.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -236,7 +236,7 @@
       "name": "nextjs-provision",
       "source": "./plugins/nextjs-provision",
       "description": "Next.js provisioning plugin. Set up shadcn/ui and shadcn studio — component installation, theme configuration, MCP server setup, project scaffolding, and multi-registry component search across the 400+ registries of the official directory.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -347,7 +347,7 @@
       "name": "project-template-dev",
       "source": "./plugins/project-template-dev",
       "description": "Manage project template hierarchy with unified improvement workflow. Route fixes to plugins or parent templates automatically, quick-capture ideas, unified end-of-session reviews covering both plugins and templates.",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -371,7 +371,7 @@
       "name": "trigger-dev",
       "source": "./plugins/trigger-dev",
       "description": "Trigger.dev dev plugin for Agents Store. Comprehensive development knowledge for building background tasks, AI agent workflows, and durable execution on self-hosted Trigger.dev v4 (baseline server 4.4.4; newer features are marked with the server version they need) — SDK patterns, CLI recipes, deployment, full 41-tool MCP reference, TRQL queries and dashboards, managed prompts, chat agents, dev-server control, realtime API, and troubleshooting.",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -556,7 +556,7 @@
       "name": "nocodb-ops",
       "source": "./plugins/nocodb-ops",
       "description": "NocoDB ops plugin for Agents Store. Record management, filtering (structured filters, exactDate date filters), sorting, reports, search, webhooks (events, payload, conditions), and data import/export for business users via the NocoDB MCP server (writes in batches of up to 100 records; extra tools on Cloud/licensed through listTools/callTool) and curl on the v3 API.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -575,7 +575,7 @@
       "name": "nocodb-dev",
       "source": "./plugins/nocodb-dev",
       "description": "NocoDB schema development plugin. Meta API v3 via curl and MCP (schema tools on Cloud/licensed through listTools/callTool) — tables, fields (35 types), views (9 types), filters, sorts, hooks (HookV3), comments, scripts, dashboards & widgets, workflows, documents, plus workspaces / members / teams / tokens. Bundles both Data API and Meta API OpenAPI specs.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -603,7 +603,7 @@
       "name": "dataforseo-dev",
       "source": "./plugins/dataforseo-dev",
       "description": "DataForSEO data for SEO work — keywords, SERP, backlinks, on-page, AI visibility — through the v3 MCP server. Not a general web-search tool.",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -626,7 +626,7 @@
       "name": "n8n-dev",
       "source": "./plugins/n8n-dev",
       "description": "n8n workflow automation dev plugin. MCP tools guide (external + native), workflow patterns, expression syntax, validation, node configuration, Code node patterns, REST API reference, CLI recipes, and troubleshooting.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -644,7 +644,7 @@
       "name": "n8n-provision",
       "source": "./plugins/n8n-provision",
       "description": "n8n instance provisioning plugin. Discover workflows from the official template library (12,900+ templates), GitHub repos, and community platforms, then analyze, import, and batch-deploy them to provision an n8n instance.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -666,7 +666,7 @@
       "name": "nocobase-dev",
       "source": "./plugins/nocobase-dev",
       "description": "NocoBase v2 development plugin. CLI primary (nb CLI 2.2, stable channel) + REST API fallback (bundled OpenAPI snapshot v2.1.0-beta.29, 272 endpoints). Auto-syncs 20 official upstream skills from nocobase/skills weekly via GitHub Action; UI authoring enters through nocobase-portal-manage. 5 custom skills (overview, auth, cli-recipes, api-reference, examples). Env vars: NB_URL + NB_USER + NB_PASSWORD (sign-in) or NB_URL + NB_TOKEN (API Key).",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -761,7 +761,7 @@
       "name": "payloadcms-dev",
       "source": "./plugins/payloadcms-dev",
       "description": "PayloadCMS dev plugin for Agents Store. Covers collections, fields, globals, hooks, access control, authentication, queries, data management (trash/query presets/folders), localization, adapters, Lexical rich text, admin customization, jobs queue, plugin development, official plugins, Next.js integration, deployment, CLI, migrations, and end-to-end scenarios for TypeScript developers building with Payload v3.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -915,7 +915,7 @@
       "name": "atlassian-ops",
       "source": "./plugins/atlassian-ops",
       "description": "Atlassian Jira + Confluence Cloud ops plugin. Drive the full Jira Cloud REST API v3 and Confluence Cloud REST API v2 by curl — Jira: issues (create/edit/transition/assign, ADF bodies), JQL search, comments & worklogs, attachments & links, projects/versions/components, fields & screens, workflows/types/statuses, users & groups (accountId), permission/notification/security schemes, dashboards & filters, plans & teams; Confluence: pages & blog posts (versioned, storage/ADF bodies), spaces & permissions, comments & attachments, labels & content properties. Authenticates with Atlassian Cloud Basic auth (ATLASSIAN_EMAIL + ATLASSIAN_API_TOKEN) against ATLASSIAN_SITE_URL.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -964,7 +964,7 @@
       "name": "google-workspace-dev",
       "source": "./plugins/google-workspace-dev",
       "description": "Google Workspace plugin powered by the official googleworkspace/cli (gws) Agent Skills. ~95 skills for Gmail, Drive, Calendar, Sheets, Docs, Chat, Meet, Tasks, Slides, Forms, Classroom and Admin — plus role personas and ready-made recipes — all driving the gws CLI. Vendored from upstream and auto-synced weekly. Requires the gws CLI (npm i -g @googleworkspace/cli) and a one-time OAuth setup.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -991,7 +991,7 @@
       "name": "restic-dev",
       "source": "./plugins/restic-dev",
       "description": "restic backup plugin for Agents Store. Set up encrypted daily backups on any Linux server to S3-compatible storage (Cloudflare R2): server recon + restic install, auto-discovery of all Docker volumes/mounts and databases, R2 repository init, a partial-failure-tolerant backup script with logical DB dumps and retention, timezone-aware systemd/cron scheduling, verification, monitoring/dead-man's-switch, and disaster recovery. File-based knowledge, no MCP, no stored credentials.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "AGENTS.STORE"
       },

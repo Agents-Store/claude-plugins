@@ -23,7 +23,7 @@ nocobase-dev/
     ├── examples/                        # end-to-end scenarios mixing CLI + API
     │
     │   # Sync-managed mirror of nocobase/skills (DO NOT EDIT — auto-overwritten):
-    ├── nocobase-portal-manage/          # PRIMARY ENTRY for every UI authoring request (Portal dispatcher)
+    ├── nocobase-portal-manage/          # PRIMARY ENTRY for every UI authoring request (Default dispatcher for NocoBase UI authoring)
     ├── nocobase-ui-builder/             # no-code Portal UI authoring (entered via portal-manage)
     ├── nocobase-ai-builder/             # AI Portal source-code applications
     ├── nocobase-prototype-repro/        # rebuild an app from an HTML/image/link prototype

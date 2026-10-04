@@ -67,3 +67,10 @@ These are defects or gaps in the **vendored** files. They are not fixed here (th
 **Fix:** New local file `skills/examples/references/background-processing-patterns.md` (`examples` is one of the six local skills in the sync script's LOCAL list), linked from `examples/SKILL.md` as scenario 4. The error-recovery sketch retries through `POST /executions/{executionId}/retry` (present in the bundled 2.41.6 API reference, with `loadWorkflow`), and the credentials section says to use credentials and fixed URLs instead of `$env`. No vendored file was touched.
 **Root cause:** Content about one tool lived in the stack plugin because no local, sync-safe place for n8n workflow sketches existed.
 **Severity:** Minor
+
+## 2026-10-04 — plugin-test L1: vendored n8n skills are skipped, not edited
+
+**Problem:** The L1 runner (`skill-snippets`, `skill-links`) flagged 13 spots. One is in a local skill (`api-reference/SKILL.md`, a `[...]` placeholder). The other 12 are in vendored skills: 10 ```json fences that are not strict JSON (`connections` fragments without braces, `// comments`) in `n8n-agents`, `n8n-error-handling` and `n8n-workflow-patterns`, the queue-mode compose fragment in `n8n-self-hosting/TASK_RUNNERS.md` (`*n8n` is the `x-n8n` anchor of `assets/docker-compose.queue.yml`, not defined in the block), and the link `../../n8n-expression-syntax/SKILL.md` in `n8n-workflow-patterns/webhook_processing.md`.
+**Fix:** The local fence is relabelled ```jsonc. The vendored files stay exactly as upstream ships them: every skill directory that `scripts/sync-n8n-skills.sh` mirrors (all except the six local ones) is listed under `[skip]` for `skill-snippets` and `skill-links` in `tests/plugins/n8n-dev/plugin-test.toml`. A label or link fixed in those directories is overwritten by the next `rsync --delete`, and once `skill-snippets` is blocking the weekly sync PR would fail CI.
+**Root cause:** Upstream labels pseudo-JSON as ```json and uses a relative link that is valid only from the skill's parent directory. Fix it upstream (czlonkowski/n8n-skills), not here.
+**Severity:** Minor

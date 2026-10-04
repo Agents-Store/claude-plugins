@@ -1,0 +1,5 @@
+# Снимок --help официального релиза. Версию поднимать вместе с пересъёмкой снимка.
+[cli.infisical]
+version = "0.43.138"
+commands = ["login", "run", "export", "init", "scan", "agent", "vault", "token", "user",
+            "secrets", "secrets get", "secrets set", "secrets delete", "secrets folders", "dynamic-secrets", "profile", "profile create"]

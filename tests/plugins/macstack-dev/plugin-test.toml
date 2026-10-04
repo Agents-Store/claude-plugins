@@ -1,0 +1,4 @@
+[[unit]]
+name = "macstack-dev run-tests.sh"
+run = "sh run-tests.sh"
+needs = ["sh", "python3"]

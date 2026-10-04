@@ -1,0 +1,6 @@
+{
+  "event": "PostToolUse",
+  "stdin": {"hook_event_name": "PostToolUse", "tool_name": "Write",
+            "tool_input": {"file_path": "notes.md", "content": "hi"}},
+  "expect": {"exit": 0, "stdout_empty": true}
+}

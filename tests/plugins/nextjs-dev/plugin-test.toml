@@ -1,0 +1,3 @@
+# 2026-10-04 owner accepted: testing-patterns — справочный skill (503 строки), грузится по требованию; skill-budget — advisory.
+[skip]
+"skill-budget" = ["skills/testing-patterns/SKILL.md"]

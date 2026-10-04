@@ -1,0 +1,1633 @@
+{
+  "tools": [
+    {
+      "description": "Cancel a run. The run ID is the ID of the run that was triggered. It starts with run_",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "runId": {
+            "description": "The ID of the run to get the details of, starts with run_",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "type": "object"
+      },
+      "name": "cancel_run"
+    },
+    {
+      "description": "Close an agent chat conversation. The agent exits its loop gracefully. Without this, the agent will close on its own when its idle timeout expires.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "chatId": {
+            "description": "The chat ID to close.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chatId"
+        ],
+        "type": "object"
+      },
+      "name": "close_agent_chat"
+    },
+    {
+      "description": "Create a new project in an organization. Only do this if the user wants to add Trigger.dev to an existing project. If there is already a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file present, then you should not create a new project.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "name": {
+            "description": "The name of the project to create.",
+            "type": "string"
+          },
+          "orgParam": {
+            "description": "The organization to create the project in, can either be the organization slug or the ID. Use the list_orgs tool to get a list of organizations and ask the user to select one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "orgParam"
+        ],
+        "type": "object"
+      },
+      "name": "create_project_in_org"
+    },
+    {
+      "description": "Create a dashboard override for a prompt. The override takes precedence over the current code version when resolving the prompt. Provide the full text content for the override.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "commitMessage": {
+            "description": "Optional commit message describing the change",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "model": {
+            "description": "Optional model override",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "slug": {
+            "description": "The prompt slug",
+            "type": "string"
+          },
+          "textContent": {
+            "description": "The full text content for the override",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "textContent"
+        ],
+        "type": "object"
+      },
+      "name": "create_prompt_override"
+    },
+    {
+      "description": "Deploy a project. Use this tool when you need to deploy a project. This will ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} a deployment for the project. This is a long running operation and including a progress token will allow you to display the progress to the user.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "prod",
+            "description": "The environment to ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} the task in",
+            "enum": [
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "skipPromotion": {
+            "description": "Skip promoting the deployment to the current deployment for the environment",
+            "type": "boolean"
+          },
+          "skipSyncEnvVars": {
+            "description": "Skip syncing environment variables when using the syncEnvVars extension",
+            "type": "boolean"
+          },
+          "skipUpdateCheck": {
+            "description": "Skip checking for @${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev package updates",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "name": "deploy"
+    },
+    {
+      "description": "Check the status of the dev server and view recent output. Shows whether it is stopped, starting, ready, or has errors, along with recent log lines.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "lines": {
+            "default": 50,
+            "description": "Number of recent log lines to return. Defaults to 50.",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "name": "dev_server_status"
+    },
+    {
+      "description": "Get the current worker for the project, including version and registered task slugs. Use get_task_schema to get the payload schema for a specific task.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "get_current_worker"
+    },
+    {
+      "description": "List all versions for a specific prompt. Shows version number, labels (current, override, latest), source (code or dashboard), model, and content.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "slug": {
+            "description": "The prompt slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug"
+        ],
+        "type": "object"
+      },
+      "name": "get_prompt_versions"
+    },
+    {
+      "description": "Get the column schema for a specific TRQL table. Available tables: 'runs' (task execution data), 'metrics' (CPU, memory, custom metrics), 'llm_metrics' (LLM token usage, costs, latency). Returns columns, types, descriptions, and allowed values for the specified table.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "table": {
+            "description": "The table name to get the schema for (e.g. 'runs', 'metrics', 'llm_metrics').",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table"
+        ],
+        "type": "object"
+      },
+      "name": "get_query_schema"
+    },
+    {
+      "description": "Render an interpreted report (an answered question, not a raw panel) as text + sparklines. The server computes the verdict deterministically. Currently: 'health' — whether work is flowing, whether the runs that start are healthy, and whether the telemetry is fresh, with a headline verdict and a suggested next action.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "color": {
+            "description": "Return the report as ANSI-coloured text instead of markdown. Only renders in hosts that display ANSI in tool output.",
+            "type": "boolean"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "key": {
+            "description": "The report to render. 'health' answers 'is work flowing, and is a problem my code or the platform?' with an interpreted verdict (flow / execution / liveness).",
+            "enum": [
+              "health"
+            ],
+            "type": "string"
+          },
+          "period": {
+            "description": "Time period shorthand for the live window, e.g. '1h' (default), '24h', '7d'. Minutes (m) to weeks (w), max 90d. Seconds are not supported — reports bucket by whole minutes.",
+            "pattern": "^[1-9]\\d*[mhdw]$",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "type": "object"
+      },
+      "name": "get_report"
+    },
+    {
+      "description": "Get the details and trace of a run. Trace events are paginated — the first call returns run details and the first page of trace lines. Pass the returned cursor to fetch subsequent pages without re-fetching the trace. The run ID starts with run_.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "cursor": {
+            "description": "Pagination cursor returned from a previous get_run_details call. Pass this to fetch the next page of trace events.",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "maxTraceLines": {
+            "default": 200,
+            "description": "The maximum number of trace lines per page. Defaults to 200. Use the `cursor` parameter to fetch subsequent pages.",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "runId": {
+            "description": "The ID of the run to get the details of, starts with run_",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "type": "object"
+      },
+      "name": "get_run_details"
+    },
+    {
+      "description": "Get detailed information about a specific span within a run trace. Use get_run_details first to see the trace and find span IDs (shown as [spanId] in the trace output). Returns timing, properties/attributes, error info, and for AI spans: model, tokens, cost, and response data.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "runId": {
+            "description": "The ID of the run to get the details of, starts with run_",
+            "type": "string"
+          },
+          "spanId": {
+            "description": "The span ID to get details for. You can find span IDs in the trace output from get_run_details — they appear as [spanId] before each span message.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runId",
+          "spanId"
+        ],
+        "type": "object"
+      },
+      "name": "get_span_details"
+    },
+    {
+      "description": "Get the payload schema for a specific task. Use get_current_worker first to see available task slugs.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "taskSlug": {
+            "description": "The task slug/identifier to get the payload schema for. Use get_current_worker to see available tasks.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskSlug"
+        ],
+        "type": "object"
+      },
+      "name": "get_task_schema"
+    },
+    {
+      "description": "Initialize Trigger.dev in your project. This will create a new project in the organization you select and add Trigger.dev to your project.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "cwd": {
+            "description": "The current working directory of the project",
+            "type": "string"
+          },
+          "orgParam": {
+            "description": "The organization to create the project in, can either be the organization slug or the ID. Use the list_orgs tool to get a list of organizations and ask the user to select one.",
+            "type": "string"
+          },
+          "projectName": {
+            "description": "The name of the project to create. If projectRef is not provided, we will use this name to create a new project in the organization you select.",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "orgParam",
+          "projectName"
+        ],
+        "type": "object"
+      },
+      "name": "initialize_project"
+    },
+    {
+      "description": "List all chat agents in the current worker. Agents are tasks created with chat.agent() or chat.customAgent(). Use start_agent_chat with an agent's slug to start a conversation.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_agents"
+    },
+    {
+      "description": "List available built-in dashboards with their widgets. Each dashboard contains pre-built queries for common metrics like run success rates, costs, LLM usage, and more. Use run_dashboard to execute a dashboard's queries.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_dashboards"
+    },
+    {
+      "description": "List all deploys for a project. Use this tool when you need to search for a deploy or list all deploys for a project.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "cursor": {
+            "description": "The deployment ID to start the search from, to get the next page",
+            "type": "string"
+          },
+          "environment": {
+            "default": "prod",
+            "description": "The environment to ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} the task in",
+            "enum": [
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "from": {
+            "description": "The date to start the search from, in ISO 8601 format",
+            "type": "string"
+          },
+          "limit": {
+            "description": "The number of deployments to return, defaults to 20 (max 100)",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "number"
+          },
+          "period": {
+            "description": "The period to search within (e.g. 1d, 7d, 3h, etc.)",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "status": {
+            "description": "Filter deployments that are in this status",
+            "enum": [
+              "PENDING",
+              "BUILDING",
+              "DEPLOYING",
+              "DEPLOYED",
+              "FAILED",
+              "CANCELED",
+              "TIMED_OUT"
+            ],
+            "type": "string"
+          },
+          "to": {
+            "description": "The date to end the search, in ISO 8601 format",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_deploys"
+    },
+    {
+      "description": "List all organizations for the current user. Useful when looking up an org slug or ID.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_orgs"
+    },
+    {
+      "description": "List all preview branches for a project. Use this tool when you need to search for a preview branch or list all preview branches for a project.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_preview_branches"
+    },
+    {
+      "description": "List all configured CLI profiles. Shows which profile is currently active.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_profiles"
+    },
+    {
+      "description": "List all projects for the current user, useful for when searching for a project and for looking up a projectRef",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_projects"
+    },
+    {
+      "description": "List all managed prompts in the project environment. Shows slug, current version, override status, and version count.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_prompts"
+    },
+    {
+      "description": "List all runs for a project. Use this tool when you need to search for a run or list all runs for a project.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "cursor": {
+            "description": "The cursor to use for pagination, starts with run_",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "from": {
+            "description": "Filter for runs created after this ISO 8601 timestamp",
+            "type": "string"
+          },
+          "limit": {
+            "description": "The number of runs to list in a single page. Up to 100",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "machine": {
+            "description": "Filter for runs that match this machine preset",
+            "enum": [
+              "micro",
+              "small-1x",
+              "small-2x",
+              "medium-1x",
+              "medium-2x",
+              "large-1x",
+              "large-2x"
+            ],
+            "type": "string"
+          },
+          "period": {
+            "description": "Filter for runs created in the last N time period. e.g. 7d, 30d, 365d",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "region": {
+            "description": "Filter for runs that executed in this region (the worker instance group masterQueue identifier, e.g. '${AWS_DEFAULT_REGION}' or 'main')",
+            "type": "string"
+          },
+          "status": {
+            "description": "Filter for runs with this run status",
+            "enum": [
+              "PENDING_VERSION",
+              "QUEUED",
+              "DEQUEUED",
+              "EXECUTING",
+              "WAITING",
+              "COMPLETED",
+              "CANCELED",
+              "FAILED",
+              "CRASHED",
+              "SYSTEM_FAILURE",
+              "DELAYED",
+              "EXPIRED",
+              "TIMED_OUT"
+            ],
+            "type": "string"
+          },
+          "tag": {
+            "description": "Filter for runs that include this tag",
+            "type": "string"
+          },
+          "taskIdentifier": {
+            "description": "Filter for runs that match this task identifier",
+            "type": "string"
+          },
+          "to": {
+            "description": "Filter for runs created before this ISO 8601 timestamp",
+            "type": "string"
+          },
+          "version": {
+            "description": "Filter for runs that match this version, e.g. 20250808.3",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_runs"
+    },
+    {
+      "description": "Promote a prompt version to be the current active version. Only code-sourced versions can be promoted — dashboard overrides must use the override tools instead.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "slug": {
+            "description": "The prompt slug",
+            "type": "string"
+          },
+          "version": {
+            "description": "The version number to promote to current",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "version"
+        ],
+        "type": "object"
+      },
+      "name": "promote_prompt_version"
+    },
+    {
+      "description": "Execute a TRQL query against your Trigger.dev data. TRQL is a SQL-style query language for analyzing runs, metrics, and LLM usage. Call the get_query_schema tool first to discover available tables and columns before writing a query.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "from": {
+            "description": "Start of time range (ISO 8601). Must be paired with 'to'.",
+            "type": "string"
+          },
+          "period": {
+            "description": "Time period shorthand, e.g. '1h', '7d', '30d'. Mutually exclusive with from/to.",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "query": {
+            "description": "The TRQL query to execute. TRQL is a SQL-style language for analyzing your Trigger.dev data. Use the get_query_schema tool first to discover available tables and columns.",
+            "type": "string"
+          },
+          "scope": {
+            "default": "environment",
+            "description": "Data access scope. 'environment' (default) limits to the current environment, 'project' spans all environments, 'organization' spans all projects.",
+            "enum": [
+              "environment",
+              "project",
+              "organization"
+            ],
+            "type": "string"
+          },
+          "to": {
+            "description": "End of time range (ISO 8601). Must be paired with 'from'.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "query"
+    },
+    {
+      "description": "Reactivate a previous dashboard-sourced version as the active override. Use get_prompt_versions to find dashboard versions that can be reactivated.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "slug": {
+            "description": "The prompt slug",
+            "type": "string"
+          },
+          "version": {
+            "description": "The dashboard-sourced version number to reactivate as override",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "version"
+        ],
+        "type": "object"
+      },
+      "name": "reactivate_prompt_override"
+    },
+    {
+      "description": "Read records from a session's realtime stream: a named side channel (pass `channel`) or the reserved chat transcript pair (omit `channel`). By default returns whatever records exist after the optional cursor and closes (a point-in-time drain). Set `timeoutInSeconds` to wait for the next record when none exist yet. Read `out` for the producer's feed (e.g. a screencast) or `in` for what clients have sent. Use the returned nextCursor as `afterEventId` to page forward.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "afterEventId": {
+            "description": "Cursor: only return records after this event id. Use the nextCursor from a prior read.",
+            "type": "string"
+          },
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "channel": {
+            "description": "The named side channel to read. Omit to read the session's reserved chat transcript pair.",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "io": {
+            "default": "out",
+            "description": "Which side to read: `out` (producer feed) or `in` (client input).",
+            "enum": [
+              "out",
+              "in"
+            ],
+            "type": "string"
+          },
+          "maxRecords": {
+            "default": 100,
+            "description": "Maximum records to return (default 100).",
+            "exclusiveMinimum": 0,
+            "maximum": 500,
+            "type": "integer"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "sessionId": {
+            "description": "The session id (session_* friendlyId) or the externalId it was created with.",
+            "type": "string"
+          },
+          "timeoutInSeconds": {
+            "description": "Wait up to this many seconds for at least one record when none exist yet (a bounded tail). Omit for an immediate point-in-time read.",
+            "exclusiveMinimum": 0,
+            "maximum": 60,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sessionId"
+        ],
+        "type": "object"
+      },
+      "name": "read_session_channel"
+    },
+    {
+      "description": "Remove the active dashboard override for a prompt, reverting to the current code version.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "slug": {
+            "description": "The prompt slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug"
+        ],
+        "type": "object"
+      },
+      "name": "remove_prompt_override"
+    },
+    {
+      "description": "Execute a single widget query from a built-in dashboard. Use list_dashboards first to see available dashboards, widget IDs, and their queries. Supports time period and scope options.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "dashboardKey": {
+            "description": "The dashboard key (e.g. 'overview', 'llm'). Use list_dashboards to discover available dashboards.",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "from": {
+            "description": "Start of time range (ISO 8601). Must be paired with 'to'.",
+            "type": "string"
+          },
+          "period": {
+            "description": "Time period shorthand, e.g. '1h', '7d', '30d'. Defaults to 1d.",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "scope": {
+            "default": "environment",
+            "description": "Data access scope.",
+            "enum": [
+              "environment",
+              "project",
+              "organization"
+            ],
+            "type": "string"
+          },
+          "to": {
+            "description": "End of time range (ISO 8601). Must be paired with 'from'.",
+            "type": "string"
+          },
+          "widgetId": {
+            "description": "The widget ID to execute. Use list_dashboards to see available widget IDs and their queries.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dashboardKey",
+          "widgetId"
+        ],
+        "type": "object"
+      },
+      "name": "run_dashboard_query"
+    },
+    {
+      "description": "Search across the Trigger.dev documentation to find relevant information, code examples, API references, and guides. Use this tool when you need to answer questions about Trigger.dev, find specific documentation, understand how features work, or locate implementation details. The search returns contextual content with titles and direct links to the documentation pages",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search_docs"
+    },
+    {
+      "description": "Send a message to an active agent chat and get the full response text back. Use the chatId from start_agent_chat. The agent remembers full context from previous messages in the same chat.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "chatId": {
+            "description": "The chat ID from start_agent_chat.",
+            "type": "string"
+          },
+          "message": {
+            "description": "The message to send to the agent.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chatId",
+          "message"
+        ],
+        "type": "object"
+      },
+      "name": "send_agent_message"
+    },
+    {
+      "description": "Start a conversation with a chat agent. Returns a chatId you can use with send_agent_message. Optionally preloads the agent so it initializes before the first message.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "agentId": {
+            "description": "The agent task ID to chat with. Use get_current_worker to see available agents.",
+            "type": "string"
+          },
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "chatId": {
+            "description": "A unique conversation ID. Reuse to resume a conversation.",
+            "type": "string"
+          },
+          "clientData": {
+            "additionalProperties": {},
+            "description": "Client data to include with every message (e.g. userId, model).",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "preload": {
+            "default": true,
+            "description": "Whether to preload the agent before the first message.",
+            "type": "boolean"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "start_agent_chat"
+    },
+    {
+      "description": "Start the Trigger.dev dev server (`${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} dev`) in the background. Waits up to 30 seconds for the worker to be ready. Use `dev_server_status` to check output and `stop_dev_server` to stop it.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file or project directory. Only needed when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "start_dev_server"
+    },
+    {
+      "description": "Stop the running Trigger.dev dev server.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "stop_dev_server"
+    },
+    {
+      "description": "Report a problem with the Trigger.dev MCP server, SDK, or documentation. Use this when a tool returned a confusing error, the docs disagreed with the actual behaviour, a capability you needed was missing, or you had to work around something to finish the user's task. Describe what you were trying to do, what happened, and what you expected instead, in your own words. Never include secrets, credentials, environment variables, tokens or the user's own data - summarise and redact instead of pasting raw output. Tell the user what you reported. Do not call this more than once for the same problem.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "description": "What you were trying to do, what actually happened, and what you expected instead, in your own words. Summarise the failing call and error rather than pasting raw output, and leave out secrets, credentials, environment variables and the user's own data.",
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. Optional: a report without one is still useful.",
+            "maxLength": 100,
+            "pattern": "^proj_.*",
+            "type": "string"
+          },
+          "toolName": {
+            "description": "The MCP tool the problem happened in, if it was one tool in particular.",
+            "maxLength": 100,
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "type": "object"
+      },
+      "name": "submit_feedback"
+    },
+    {
+      "description": "Switch the active CLI profile for this MCP session. This changes which Trigger.dev account and API URL are used for all subsequent tool calls.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "profile": {
+            "description": "The profile name to switch to. Use list_profiles to see available profiles.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile"
+        ],
+        "type": "object"
+      },
+      "name": "switch_profile"
+    },
+    {
+      "description": "Trigger a task in the project. Use the get_tasks tool to get a list of tasks and ask the user to select one if it's not clear which one to use. The run executes in the background, so only wait for it to complete (with the wait_for_run_to_complete tool) if the user asked you to.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "options": {
+            "properties": {
+              "delay": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    "type": "string"
+                  }
+                ],
+                "description": "The delay before the task run is executed"
+              },
+              "idempotencyKey": {
+                "description": "The idempotency key to use for the task run",
+                "type": "string"
+              },
+              "machine": {
+                "description": "The machine preset to use for the task run",
+                "enum": [
+                  "micro",
+                  "small-1x",
+                  "small-2x",
+                  "medium-1x",
+                  "medium-2x",
+                  "large-1x",
+                  "large-2x"
+                ],
+                "type": "string"
+              },
+              "maxAttempts": {
+                "description": "The maximum number of attempts to retry the task run",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              "maxDuration": {
+                "description": "The maximum duration in seconds of the task run",
+                "type": "number"
+              },
+              "queue": {
+                "properties": {
+                  "name": {
+                    "description": "The name of the queue to ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} the task in, by default will use the queue configured in the task",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              },
+              "region": {
+                "description": "The region to run the task in, overriding the default region set for the project. Available regions are listed on the Regions page in the dashboard, and this has no effect in the dev environment",
+                "type": "string"
+              },
+              "tags": {
+                "description": "Tags to add to the task run. Must be less than 128 characters and cannot have more than 5",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "ttl": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "maximum": 9007199254740991,
+                    "minimum": -9007199254740991,
+                    "type": "integer"
+                  }
+                ],
+                "default": "10m",
+                "description": "The time to live of the task run. If the run doesn't start executing within this time, it will be automatically cancelled."
+              }
+            },
+            "type": "object"
+          },
+          "payload": {
+            "description": "The payload to ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} the task with. Should match the task's payload schema. Not a JSON string, but the actual payload object"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "taskId": {
+            "description": "The ID/slug of the task to ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}. Use the get_tasks tool to get a list of tasks and ask the user to select one if it's not clear which one to use.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payload",
+          "taskId"
+        ],
+        "type": "object"
+      },
+      "name": "trigger_task"
+    },
+    {
+      "description": "Update the active dashboard override for a prompt. Only works if an override is currently active.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "commitMessage": {
+            "description": "Commit message describing the change",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "model": {
+            "description": "Updated model",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "slug": {
+            "description": "The prompt slug",
+            "type": "string"
+          },
+          "textContent": {
+            "description": "Updated text content",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug"
+        ],
+        "type": "object"
+      },
+      "name": "update_prompt_override"
+    },
+    {
+      "description": "Wait for a run to complete. The run ID is the ID of the run that was triggered. It starts with run_. Has an optional timeoutInSeconds parameter (default 60s) - if the run doesn't complete within that time, the current state of the run will be returned.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "runId": {
+            "description": "The ID of the run to get the details of, starts with run_",
+            "type": "string"
+          },
+          "timeoutInSeconds": {
+            "default": 60,
+            "description": "The maximum time in seconds to wait for the run to complete. If the run doesn't complete within this time, the current state of the run will be returned. Defaults to 60 seconds.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "type": "object"
+      },
+      "name": "wait_for_run_to_complete"
+    },
+    {
+      "description": "Show the current authenticated user, active CLI profile, email, and API URL.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "whoami"
+    },
+    {
+      "description": "Append one record to a named side channel's `in` stream on a session. Use this to send control input to a running agent (e.g. a pause/viewport command) without waking or triggering a run. Requires a `channel` name; the reserved transcript and the `out` side are not writable here (`out` is producer-only). Pass `value` as an object for a structured record or a string for a raw one.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "channel": {
+            "description": "The named side channel to write to.",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "sessionId": {
+            "description": "The session id (session_* friendlyId) or the externalId it was created with.",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            ],
+            "description": "The record to append to the channel's `in` stream. Pass an object for a structured record (e.g. { paused: true }) or a string for a raw record."
+          }
+        },
+        "required": [
+          "channel",
+          "sessionId",
+          "value"
+        ],
+        "type": "object"
+      },
+      "name": "write_session_channel"
+    }
+  ]
+}

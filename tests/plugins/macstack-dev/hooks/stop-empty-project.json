@@ -1,0 +1,5 @@
+{
+  "event": "Stop",
+  "stdin": {"hook_event_name": "Stop"},
+  "expect": {"exit": 0, "stdout_empty": true}
+}

@@ -1,0 +1,422 @@
+{
+  "tools": [
+    {
+      "description": "Screenshot a page as base64 JPEG. Use when the page must be seen rather than read.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "firstScreenOnly": {
+            "default": false,
+            "description": "Capture only the first screen instead of the full page. Faster.",
+            "type": "boolean"
+          },
+          "return_url": {
+            "default": false,
+            "description": "Return URLs instead of base64 images.",
+            "type": "boolean"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "capture_screenshot_url"
+    },
+    {
+      "description": "Select the top-k semantically distinct strings from a list, dropping near-duplicates.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "k": {
+            "description": "How many to keep. Omit to pick k automatically from diminishing returns.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "strings": {
+            "description": "Strings to deduplicate, up to 1000.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "strings"
+        ],
+        "type": "object"
+      },
+      "name": "deduplicate_strings"
+    },
+    {
+      "description": "Extract figures, tables and equations from a PDF as images, by arXiv id or URL.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "description": "arXiv id, e.g. '2301.12345'. Give id or url.",
+            "type": "string"
+          },
+          "max_edge": {
+            "default": 1024,
+            "description": "Longest image edge in pixels, default 1024.",
+            "type": "number"
+          },
+          "type": {
+            "description": "Comma-separated types to keep: figure, table, equation. Default all.",
+            "type": "string"
+          },
+          "url": {
+            "description": "PDF URL. Give id or url.",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "extract_pdf"
+    },
+    {
+      "description": "Guess when a page was published or last updated, with a confidence score. Checks HTTP headers, metadata, Schema.org, visible dates, feeds and sitemaps.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "guess_datetime_url"
+    },
+    {
+      "description": "Current time, user location and network environment for the session. Use before answering anything time- or location-dependent.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "primer"
+    },
+    {
+      "description": "Fetch a URL (page or PDF) as clean markdown. Pass `question` to get only the passages answering it instead of the whole page - far cheaper than reading the full body into context.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "chunk_size": {
+            "description": "Passage size in words, default 100. Larger gives more surrounding context, smaller pinpoints the answer. Comparable across scripts. Needs `question`.",
+            "maximum": 4096,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "ocr": {
+            "description": "Read the rendered page as an image with jina-ocr-v1 instead of its HTML. Use for scanned documents and PDFs whose text is not in the markup, and to keep formulas and table structure. Parses ONE page per call, page 1 unless `page` says otherwise, and costs about 40x the tokens per page, so leave off unless the HTML path has failed you.",
+            "type": "boolean"
+          },
+          "page": {
+            "description": "Which page the OCR pass should parse, 1-based. Needs `ocr`; the HTML path returns the whole document at once.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "question": {
+            "description": "Return only the passages answering this question, instead of the full body. Omit for the whole page.",
+            "type": "string"
+          },
+          "topk": {
+            "description": "Passages to return, default 1. Needs `question`.",
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "type": "string"
+              },
+              {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "minItems": 1,
+                "type": "array"
+              }
+            ],
+            "description": "Page or PDF URL, or up to 5 URLs to read in parallel."
+          },
+          "withAllImages": {
+            "description": "Also return every image on the page.",
+            "type": "boolean"
+          },
+          "withAllLinks": {
+            "description": "Also return every link on the page.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "read_url"
+    },
+    {
+      "description": "Search arXiv preprints (physics, maths, CS, quantitative biology and finance).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "num": {
+            "default": 30,
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "tbs": {
+            "description": "Age limit: qdr:h, qdr:d, qdr:w, qdr:m, qdr:y (hour to year).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search_arxiv"
+    },
+    {
+      "description": "Search the web for images. Returns base64 JPEGs by default.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "gl": {
+            "description": "Country code, e.g. 'de'.",
+            "type": "string"
+          },
+          "hl": {
+            "description": "Language code, e.g. 'zh-cn'.",
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "num": {
+            "default": 10,
+            "maximum": 30,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "type": "string"
+          },
+          "return_url": {
+            "default": false,
+            "description": "Return URLs and metadata instead of base64 images.",
+            "type": "boolean"
+          },
+          "tbs": {
+            "description": "Age limit: qdr:h, qdr:d, qdr:w, qdr:m, qdr:y (hour to year).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search_images"
+    },
+    {
+      "description": "Search Jina AI's news and blog at jina.ai/news: product announcements, model releases, technical write-ups.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "num": {
+            "default": 30,
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "tbs": {
+            "description": "Age limit: qdr:h, qdr:d, qdr:w, qdr:m, qdr:y (hour to year).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search_jina_blog"
+    },
+    {
+      "description": "Search SSRN working papers (social science, economics, law, finance, management).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "num": {
+            "default": 30,
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "tbs": {
+            "description": "Age limit: qdr:h, qdr:d, qdr:w, qdr:m, qdr:y (hour to year).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search_ssrn"
+    },
+    {
+      "description": "Search the web. Returns titles, URLs and search-engine snippets.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "gl": {
+            "description": "Country code, e.g. 'de'.",
+            "type": "string"
+          },
+          "hl": {
+            "description": "Language code, e.g. 'zh-cn'.",
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "num": {
+            "default": 30,
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "tbs": {
+            "description": "Age limit: qdr:h, qdr:d, qdr:w, qdr:m, qdr:y (hour to year).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search_web"
+    },
+    {
+      "description": "Rerank documents by relevance to a query, using Jina Reranker.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "documents": {
+            "description": "Documents to rank, up to 1024.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1024,
+            "minItems": 1,
+            "type": "array"
+          },
+          "query": {
+            "type": "string"
+          },
+          "top_n": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "documents",
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "sort_by_relevance"
+    }
+  ]
+}

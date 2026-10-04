@@ -1,0 +1,18 @@
+# Ключи фиктивные: в CI проверяется только, что сервер стартует и отдаёт свой список. jina — http, ночью.
+# start = server (было ci): снимок снят с реальным env, и слова из описаний, совпавшие со значениями env,
+# записаны как ${ИМЯ}; CI без env получает исходный текст — WARN «изменились описания». Сравнение — ночью.
+[mcp.firecrawl]
+start = "server"
+env = { FIRECRAWL_API_TOKEN = "dummy" }
+
+[mcp.exa]
+start = "ci"
+env = { EXA_API_KEY = "dummy" }
+
+[mcp.perplexity]
+start = "ci"
+env = { PERPLEXITY_API_KEY = "dummy" }
+
+[mcp.context7]
+start = "ci"
+env = { CONTEXT7_API_KEY = "dummy" }

@@ -1,0 +1,6 @@
+# gws-*, persona-*, recipe-* и SKILLS_INDEX.md — зеркало googleworkspace/cli, его перезаписывает
+# еженедельный sync (см. LEARNINGS.md плагина). Руками их не правят: ссылки upstream
+# (SKILLS_INDEX.md пишет `../skills/…` вместо `skills/…`, gws-chat ссылается на /chat/api/…) чинятся только апстримом.
+[skip]
+"skill-links" = ["SKILLS_INDEX.md", "skills/gws-*", "skills/persona-*", "skills/recipe-*"]
+"skill-snippets" = ["skills/gws-*", "skills/persona-*", "skills/recipe-*"]

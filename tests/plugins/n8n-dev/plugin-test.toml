@@ -1,0 +1,25 @@
+# 2026-10-04 owner accepted: длинные справочные skills и всегда-загружаемая часть принимаются как есть
+# (skill-budget — advisory); потолок always_on_tokens поднят чуть выше текущего значения (~3579), чтобы
+# ночной прогон сообщал только о росте.
+[budget]
+always_on_tokens = 3600
+
+[skip]
+"skill-budget" = ["skills/api-reference/SKILL.md", "skills/n8n-expression-syntax/SKILL.md",
+                  "skills/n8n-node-configuration/SKILL.md", "skills/n8n-validation-expert/SKILL.md",
+                  "skills/n8n-workflow-patterns/SKILL.md"]
+
+# Vendored from czlonkowski/n8n-skills by scripts/sync-n8n-skills.sh (rsync --delete); fix upstream, not here.
+# Все каталоги skills/ плагина, кроме шести своих (n8n-native-mcp, api-reference, cli-recipes, setup, troubleshoot,
+# examples), зеркалятся синхронизацией: правка в них перезаписывается, а находки upstream (json-блоки без метки,
+# ссылка ../../n8n-expression-syntax/SKILL.md, якорь *n8n в TASK_RUNNERS.md) уронили бы PR еженедельного sync.
+"skill-snippets" = ["skills/n8n-agents/*", "skills/n8n-binary-and-data/*", "skills/n8n-code-javascript/*",
+                    "skills/n8n-code-python/*", "skills/n8n-code-tool/*", "skills/n8n-error-handling/*",
+                    "skills/n8n-expression-syntax/*", "skills/n8n-mcp-tools-expert/*", "skills/n8n-multi-instance/*",
+                    "skills/n8n-node-configuration/*", "skills/n8n-self-hosting/*", "skills/n8n-subworkflows/*",
+                    "skills/n8n-validation-expert/*", "skills/n8n-workflow-patterns/*", "skills/using-n8n-mcp-skills/*"]
+"skill-links" = ["skills/n8n-agents/*", "skills/n8n-binary-and-data/*", "skills/n8n-code-javascript/*",
+                 "skills/n8n-code-python/*", "skills/n8n-code-tool/*", "skills/n8n-error-handling/*",
+                 "skills/n8n-expression-syntax/*", "skills/n8n-mcp-tools-expert/*", "skills/n8n-multi-instance/*",
+                 "skills/n8n-node-configuration/*", "skills/n8n-self-hosting/*", "skills/n8n-subworkflows/*",
+                 "skills/n8n-validation-expert/*", "skills/n8n-workflow-patterns/*", "skills/using-n8n-mcp-skills/*"]

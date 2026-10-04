@@ -1,0 +1,8 @@
+# vendored by scripts/sync-teams-sdk-skills.sh; fix upstream, not here.
+# Every skills/teams-sdk-<name>/ directory is an rsync --delete mirror of an upstream skill (weekly
+# sync-teams-sdk-skills.yml): a local edit is overwritten, and an upstream finding (an unlabelled json block,
+# a link that only works in the upstream tree) would fail the sync pull request. The hand-written skills
+# (no teams-sdk- prefix) stay checked.
+[skip]
+"skill-snippets" = ["skills/teams-sdk-*/*"]
+"skill-links" = ["skills/teams-sdk-*/*"]

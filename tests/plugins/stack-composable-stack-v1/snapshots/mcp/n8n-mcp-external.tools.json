@@ -1,0 +1,1653 @@
+{
+  "tools": [
+    {
+      "description": "Get node info with progressive detail levels and multiple modes. Detail: minimal (~200 tokens), standard (~1-2K, default), full (~3-8K). Modes: info (default), docs (markdown documentation), search_properties (find properties), versions/compare/breaking/migrations (version info). Use format='docs' for readable documentation, mode='search_properties' with propertyQuery for finding specific fields.",
+      "inputSchema": {
+        "properties": {
+          "detail": {
+            "default": "standard",
+            "description": "Information detail level. standard=essential properties (recommended), full=everything",
+            "enum": [
+              "minimal",
+              "standard",
+              "full"
+            ],
+            "type": "string"
+          },
+          "fromVersion": {
+            "description": "Source version for compare/breaking/migrations modes (e.g., \"1.0\")",
+            "type": "string"
+          },
+          "includeExamples": {
+            "default": false,
+            "description": "Include real-world configuration examples from templates. Only applies to mode=info with detail=standard. Adds ~200-400 tokens per example.",
+            "type": "boolean"
+          },
+          "includeTypeInfo": {
+            "default": false,
+            "description": "Include type structure metadata (type category, JS type, validation rules). Only applies to mode=info. Adds ~80-120 tokens per property.",
+            "type": "boolean"
+          },
+          "maxPropertyResults": {
+            "default": 20,
+            "description": "For mode=search_properties: max results (default 20)",
+            "type": "number"
+          },
+          "mode": {
+            "default": "info",
+            "description": "Operation mode. info=node schema, docs=readable markdown documentation, search_properties=find specific properties, versions/compare/breaking/migrations=version info",
+            "enum": [
+              "info",
+              "docs",
+              "search_properties",
+              "versions",
+              "compare",
+              "breaking",
+              "migrations"
+            ],
+            "type": "string"
+          },
+          "nodeType": {
+            "description": "Full node type: \"nodes-base.httpRequest\" or \"nodes-langchain.agent\"",
+            "type": "string"
+          },
+          "propertyQuery": {
+            "description": "For mode=search_properties: search term to find properties (e.g., \"auth\", \"header\", \"body\")",
+            "type": "string"
+          },
+          "toVersion": {
+            "description": "Target version for compare mode (e.g., \"2.0\"). Defaults to latest if omitted.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nodeType"
+        ],
+        "type": "object"
+      },
+      "name": "get_node"
+    },
+    {
+      "description": "Get template by ID. Use mode to control response size: nodes_only (minimal), structure (nodes+connections), full (complete workflow).",
+      "inputSchema": {
+        "properties": {
+          "mode": {
+            "default": "full",
+            "description": "Response detail level. nodes_only: just node list, structure: nodes+connections, full: complete workflow JSON.",
+            "enum": [
+              "nodes_only",
+              "structure",
+              "full"
+            ],
+            "type": "string"
+          },
+          "templateId": {
+            "description": "The template ID to retrieve",
+            "type": "number"
+          }
+        },
+        "required": [
+          "templateId"
+        ],
+        "type": "object"
+      },
+      "name": "get_template"
+    },
+    {
+      "description": "Security audit of n8n instance. Combines n8n's built-in audit API (credentials, database, nodes, instance, filesystem risks) with deep workflow scanning (hardcoded secrets via 50+ regex patterns, unauthenticated webhooks, error handling gaps, data retention risks). Returns actionable markdown report with remediation steps using n8n_manage_credentials and n8n_update_partial_workflow.",
+      "inputSchema": {
+        "properties": {
+          "categories": {
+            "description": "Built-in audit categories to check (default: all 5)",
+            "items": {
+              "enum": [
+                "credentials",
+                "database",
+                "nodes",
+                "instance",
+                "filesystem"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "customChecks": {
+            "description": "Specific custom checks to run (default: all 4)",
+            "items": {
+              "enum": [
+                "hardcoded_secrets",
+                "unauthenticated_webhooks",
+                "error_handling",
+                "data_retention"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "daysAbandonedWorkflow": {
+            "description": "Days threshold for abandoned workflow detection (default: 90)",
+            "type": "number"
+          },
+          "includeCustomScan": {
+            "description": "Run deep workflow scanning for secrets, webhooks, error handling (default: true)",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "name": "n8n_audit_instance"
+    },
+    {
+      "description": "Automatically fix common workflow validation errors. Preview fixes or apply them. Fixes expression format, typeVersion, error output config, webhook paths, connection structure issues (numeric keys, invalid types, ID-to-name, duplicates, out-of-bounds indices).",
+      "inputSchema": {
+        "properties": {
+          "applyFixes": {
+            "description": "Apply fixes to workflow (default: false - preview mode)",
+            "type": "boolean"
+          },
+          "confidenceThreshold": {
+            "description": "Minimum confidence level for fixes (default: medium)",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "type": "string"
+          },
+          "fixTypes": {
+            "description": "Types of fixes to apply (default: all)",
+            "items": {
+              "enum": [
+                "expression-format",
+                "typeversion-correction",
+                "error-output-config",
+                "node-type-correction",
+                "webhook-missing-path",
+                "typeversion-upgrade",
+                "version-migration",
+                "tool-variant-correction",
+                "connection-numeric-keys",
+                "connection-invalid-type",
+                "connection-id-to-name",
+                "connection-duplicate-removal",
+                "connection-input-index"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "description": "Workflow ID to fix",
+            "type": "string"
+          },
+          "maxFixes": {
+            "description": "Maximum number of fixes to apply (default: 50)",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_autofix_workflow"
+    },
+    {
+      "description": "Create workflow. Requires: name, nodes[], connections{}. Created inactive. Returns workflow with ID.",
+      "inputSchema": {
+        "properties": {
+          "connections": {
+            "description": "Workflow connections object. Keys are source node names (the name field, not id), values define output connections",
+            "type": "object"
+          },
+          "name": {
+            "description": "Workflow name (required)",
+            "type": "string"
+          },
+          "nodeGroups": {
+            "description": "Optional canvas groups (n8n 2.28+): named frames around a connected run of non-trigger nodes. Members are node IDs from nodes[]. Dropped automatically on older n8n.",
+            "items": {
+              "properties": {
+                "description": {
+                  "description": "Optional, max 155 chars (n8n 2.32+)",
+                  "type": "string"
+                },
+                "id": {
+                  "description": "Optional; generated when omitted",
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "nodeIds": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "name",
+                "nodeIds"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "nodes": {
+            "description": "Array of workflow nodes. Each node must have: id, name, type, typeVersion, position, and parameters",
+            "items": {
+              "properties": {
+                "continueOnFail": {
+                  "type": "boolean"
+                },
+                "credentials": {
+                  "type": "object"
+                },
+                "disabled": {
+                  "type": "boolean"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "maxTries": {
+                  "type": "number"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "parameters": {
+                  "type": "object"
+                },
+                "position": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "type": "array"
+                },
+                "retryOnFail": {
+                  "type": "boolean"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "typeVersion": {
+                  "type": "number"
+                },
+                "waitBetweenTries": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "parameters",
+                "position",
+                "type",
+                "typeVersion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "parentFolderId": {
+            "description": "Optional folder ID to place the workflow in (n8n 2.32+). Omit for the project root. Find or create folders with n8n_manage_folders.",
+            "type": "string"
+          },
+          "projectId": {
+            "description": "Optional project ID to create the workflow in (enterprise feature)",
+            "type": "string"
+          },
+          "settings": {
+            "description": "Optional workflow settings (execution order, timezone, error handling). Any other key the n8n Public API accepts is forwarded as well, e.g. availableInMCP (expose the workflow to n8n's instance-level MCP server), callerPolicy, callerIds.",
+            "properties": {
+              "availableInMCP": {
+                "description": "Expose the workflow to n8n's instance-level MCP server (n8n 1.119+)",
+                "type": "boolean"
+              },
+              "errorWorkflow": {
+                "type": "string"
+              },
+              "executionOrder": {
+                "enum": [
+                  "v0",
+                  "v1"
+                ],
+                "type": "string"
+              },
+              "executionTimeout": {
+                "type": "number"
+              },
+              "saveDataErrorExecution": {
+                "enum": [
+                  "all",
+                  "none"
+                ],
+                "type": "string"
+              },
+              "saveDataSuccessExecution": {
+                "enum": [
+                  "all",
+                  "none"
+                ],
+                "type": "string"
+              },
+              "saveExecutionProgress": {
+                "type": "boolean"
+              },
+              "saveManualExecutions": {
+                "type": "boolean"
+              },
+              "timezone": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "connections",
+          "name",
+          "nodes"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_create_workflow"
+    },
+    {
+      "description": "Permanently delete a workflow. This action cannot be undone.",
+      "inputSchema": {
+        "properties": {
+          "id": {
+            "description": "Workflow ID to delete",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_delete_workflow"
+    },
+    {
+      "description": "Deploy a workflow template from n8n.io directly to your n8n instance. Deploys first, then auto-fixes common issues (expression format, typeVersions). Returns workflow ID, required credentials, and fixes applied.",
+      "inputSchema": {
+        "properties": {
+          "autoFix": {
+            "default": true,
+            "description": "Auto-apply fixes after deployment for expression format issues, missing = prefix, etc. (default: true)",
+            "type": "boolean"
+          },
+          "autoUpgradeVersions": {
+            "default": true,
+            "description": "Automatically upgrade node typeVersions to latest supported (default: true)",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Custom workflow name (default: template name)",
+            "type": "string"
+          },
+          "stripCredentials": {
+            "default": true,
+            "description": "Remove credential references from nodes - user configures in n8n UI (default: true)",
+            "type": "boolean"
+          },
+          "templateId": {
+            "description": "Template ID from n8n.io (required)",
+            "type": "number"
+          }
+        },
+        "required": [
+          "templateId"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_deploy_template"
+    },
+    {
+      "description": "Run and read evaluation test runs for a workflow. Reading requires n8n >= 2.30, run/cancel require n8n >= 2.32, and the API key must be created on the matching release to carry the testRun scopes; run/cancel also need the key owner to hold workflow:execute on the workflow. Actions: list_runs=list runs for a workflow, get_run=single run with aggregated metrics, list_cases=per-case results (paginate - cases can be large), run=${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} a run on a workflow with an evaluation ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}, cancel=stop a running run.",
+      "inputSchema": {
+        "properties": {
+          "action": {
+            "description": "Operation: list_runs=list test runs, get_run=run details with metrics, list_cases=per-case results, run=${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} a run, cancel=stop a running run",
+            "enum": [
+              "list_runs",
+              "get_run",
+              "list_cases",
+              "run",
+              "cancel"
+            ],
+            "type": "string"
+          },
+          "cursor": {
+            "description": "Pagination cursor from previous response",
+            "type": "string"
+          },
+          "limit": {
+            "description": "Results per page (1-250). Defaults: n8n server default (100) for list_runs, 20 for list_cases (per-case inputs/outputs can be large)",
+            "type": "number"
+          },
+          "runId": {
+            "description": "Test run ID (required for action=get_run, list_cases, or cancel)",
+            "type": "string"
+          },
+          "status": {
+            "description": "For action=list_runs: filter by run status",
+            "enum": [
+              "new",
+              "running",
+              "completed",
+              "error",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "workflowId": {
+            "description": "Workflow ID the test runs belong to (required)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_evaluations"
+    },
+    {
+      "description": "Manage workflow executions: get details, list, or delete. Use action='get' with id for execution details, action='list' (the default) for listing executions, action='delete' to remove execution record.",
+      "inputSchema": {
+        "properties": {
+          "action": {
+            "default": "list",
+            "description": "Operation: get=get execution details, list=list executions (default), delete=delete execution",
+            "enum": [
+              "get",
+              "list",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "cursor": {
+            "description": "For action=list: pagination cursor from previous response",
+            "type": "string"
+          },
+          "errorItemsLimit": {
+            "description": "For action=get with mode=error: sample items from upstream node (default: 2, max: 100)",
+            "type": "number"
+          },
+          "fetchWorkflow": {
+            "description": "For action=get with mode=error: fetch workflow for accurate upstream detection (default: true)",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "Execution ID. Required for action=delete; for action=get, omitting it lists executions instead",
+            "type": "string"
+          },
+          "includeData": {
+            "description": "For action=list: include execution data (default: false)",
+            "type": "boolean"
+          },
+          "includeExecutionPath": {
+            "description": "For action=get with mode=error: include execution path leading to error (default: true)",
+            "type": "boolean"
+          },
+          "includeInputData": {
+            "description": "For action=get: include input data in addition to output (default: false)",
+            "type": "boolean"
+          },
+          "includeStackTrace": {
+            "description": "For action=get with mode=error: include full stack trace (default: false, shows truncated)",
+            "type": "boolean"
+          },
+          "itemsLimit": {
+            "description": "For action=get with mode=filtered: items per node (0=structure, 2=default, -1=unlimited)",
+            "type": "number"
+          },
+          "limit": {
+            "description": "For action=list: number of executions to return (1-100, default: 100)",
+            "type": "number"
+          },
+          "mode": {
+            "description": "For action=get: preview=structure only, summary=2 items (default), filtered=custom, full=all data, error=optimized error debugging",
+            "enum": [
+              "preview",
+              "summary",
+              "filtered",
+              "full",
+              "error"
+            ],
+            "type": "string"
+          },
+          "nodeNames": {
+            "description": "For action=get with mode=filtered: filter to specific nodes by name",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "projectId": {
+            "description": "For action=list: filter by project ID (enterprise feature)",
+            "type": "string"
+          },
+          "status": {
+            "description": "For action=list: filter by execution status",
+            "enum": [
+              "success",
+              "error",
+              "waiting"
+            ],
+            "type": "string"
+          },
+          "workflowId": {
+            "description": "For action=list: filter by workflow ID",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "n8n_executions"
+    },
+    {
+      "description": "Resolve the real options behind a node's dynamic dropdown (loadOptions) or resource-locator search (listSearch) using one of the instance's credentials — Slack channels, Google Sheets tabs, model lists — so workflow configs use existing IDs instead of invented ones. Requires N8N_MCP_ACCESS_TOKEN. Find methodName/methodType in get_node output (dynamicOptions on a property) and the credentialId with n8n_manage_credentials list.",
+      "inputSchema": {
+        "properties": {
+          "credentialId": {
+            "description": "ID of an existing credential of that type",
+            "type": "string"
+          },
+          "credentialType": {
+            "description": "Credential type the node uses, e.g. slackApi",
+            "type": "string"
+          },
+          "currentNodeParameters": {
+            "description": "Parameters the method depends on (loadOptionsDependsOn), e.g. {documentId: {...}}",
+            "type": "object"
+          },
+          "filter": {
+            "description": "Search text (listSearch only)",
+            "type": "string"
+          },
+          "methodName": {
+            "description": "loadOptionsMethod or searchListMethod name from the property definition",
+            "type": "string"
+          },
+          "methodType": {
+            "enum": [
+              "listSearch",
+              "loadOptions"
+            ],
+            "type": "string"
+          },
+          "nodeType": {
+            "description": "Full node type, e.g. n8n-nodes-base.slack",
+            "type": "string"
+          },
+          "paginationToken": {
+            "description": "Token from a previous page (listSearch only)",
+            "type": "string"
+          },
+          "timeoutMs": {
+            "description": "Request timeout in ms (default 30000)",
+            "maximum": 600000,
+            "minimum": 5000,
+            "type": "integer"
+          },
+          "version": {
+            "description": "Node typeVersion",
+            "type": "number"
+          }
+        },
+        "required": [
+          "credentialId",
+          "credentialType",
+          "methodName",
+          "methodType",
+          "nodeType",
+          "version"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_explore_node_resources"
+    },
+    {
+      "description": "Get workflow by ID with different detail levels. n8n has a draft/publish model: the workflow body holds the draft (latest edits); use mode='active' to see the published graph that is actually running. Modes: 'full' (draft + metadata), 'details' (full + execution stats), 'active' (published graph only), 'structure' (nodes/connections topology), 'filtered' (full config of only the nodes named in nodeNames - use to read one heavy node without the whole workflow), 'minimal' (id/name/active/tags).",
+      "inputSchema": {
+        "properties": {
+          "id": {
+            "description": "Workflow ID",
+            "type": "string"
+          },
+          "mode": {
+            "default": "full",
+            "description": "Detail level: full=draft + metadata (activeVersionId pointer kept, heavy activeVersion payload stripped), details=full+execution stats, active=published graph (errors if workflow has no live version), structure=nodes/connections topology, filtered=full config of only the nodes listed in nodeNames, minimal=metadata only",
+            "enum": [
+              "full",
+              "details",
+              "structure",
+              "minimal",
+              "active",
+              "filtered"
+            ],
+            "type": "string"
+          },
+          "nodeNames": {
+            "description": "For mode='filtered': node names or node IDs to return with full config. Returns only matching nodes (avoids client-side truncation on large workflows with long Code-node source). Discover names with mode='structure' first.",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_get_workflow"
+    },
+    {
+      "description": "Check n8n instance health and API connectivity. Use mode='diagnostic' for detailed troubleshooting with env vars and tool status.",
+      "inputSchema": {
+        "properties": {
+          "mode": {
+            "default": "status",
+            "description": "Mode: \"status\" (default) for quick health check, \"diagnostic\" for detailed debug info including env vars and tool status",
+            "enum": [
+              "status",
+              "diagnostic"
+            ],
+            "type": "string"
+          },
+          "verbose": {
+            "description": "Include extra details in diagnostic mode (default: false)",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "name": "n8n_health_check"
+    },
+    {
+      "description": "List instance-level catalog entries: projects (with the personal project marked, needed as projectId for agents and data tables) or tags. Reads the Public API first; when team projects are not licensed there, falls back to n8n's MCP server if N8N_MCP_ACCESS_TOKEN is set.",
+      "inputSchema": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "projects",
+              "tags"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "description": "Case-insensitive name filter",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_list_catalog"
+    },
+    {
+      "description": "List workflows (minimal metadata only). Returns id/name/active/dates/tags. Check hasMore/nextCursor for pagination.",
+      "inputSchema": {
+        "properties": {
+          "active": {
+            "description": "Filter by active status",
+            "type": "boolean"
+          },
+          "cursor": {
+            "description": "Pagination cursor from previous response",
+            "type": "string"
+          },
+          "excludePinnedData": {
+            "description": "Exclude pinned data from response (default: true)",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Number of workflows to return (1-100, default: 100)",
+            "type": "number"
+          },
+          "projectId": {
+            "description": "Filter by project ID (enterprise feature)",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Filter by tags (exact match)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "name": "n8n_list_workflows"
+    },
+    {
+      "description": "Manage n8n Agents (persisted assistants with a model, instructions, tools, skills, tasks, memory and channels) through n8n's instance-level MCP server. Requires N8N_MCP_ACCESS_TOKEN (MCP API key from n8n Settings → Instance-level MCP) and n8n >= 2.34 with the agents module. Actions: reference, search, get, create, mutate, validate, call, publish, unpublish, revert, versions, delete, discover_assets, verify_mcp_server, update_integration. Start with action=reference (config shape and mutate operations), then discover_assets → create → mutate (one resource at a time, always with the latest configHash) → validate. projectId for create, discover_assets and verify_mcp_server defaults to your personal project. publish only when the user explicitly asks. call runs the agent with real credentials and tools and may return approvals[] that need a human decision — never approve on the user's behalf. This is not the AI Agent workflow node; use get_node for that.",
+      "inputSchema": {
+        "properties": {
+          "action": {
+            "description": "Operation to perform",
+            "enum": [
+              "reference",
+              "search",
+              "get",
+              "create",
+              "mutate",
+              "validate",
+              "call",
+              "publish",
+              "unpublish",
+              "revert",
+              "versions",
+              "delete",
+              "discover_assets",
+              "verify_mcp_server",
+              "update_integration"
+            ],
+            "type": "string"
+          },
+          "args": {
+            "description": "Arguments for the action, forwarded to n8n unchanged except that an omitted, null, empty or \"personal\" projectId on create, discover_assets and verify_mcp_server is replaced with your personal project ID. See tools_documentation(\"n8n_manage_agents\", \"full\") for the per-action fields.",
+            "type": "object"
+          },
+          "timeoutMs": {
+            "description": "Request timeout in ms. Default 30000; 180000 for action=call. The agent run continues in n8n even if this expires.",
+            "maximum": 600000,
+            "minimum": 5000,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_manage_agents"
+    },
+    {
+      "description": "Manage n8n credentials. Actions: list, get, create, update, delete, getSchema. Use getSchema to discover required fields before creating. For list, page beyond 100 results with cursor (from the previous response's nextCursor). NOTE: list/get need an n8n deployment whose ${POSTGRESQL_SCHEMA} API permits credential reads — older n8n versions, restricted API keys, or instance settings can reject them, returning NOT_SUPPORTED (create, delete, getSchema — and update where the API version supports it — still work). SECURITY: credential data values are never logged.",
+      "inputSchema": {
+        "properties": {
+          "action": {
+            "description": "Action to perform",
+            "enum": [
+              "list",
+              "get",
+              "create",
+              "update",
+              "delete",
+              "getSchema"
+            ],
+            "type": "string"
+          },
+          "cursor": {
+            "description": "For list: pagination cursor from a previous response's nextCursor. Ignored when includeUsage is true.",
+            "type": "string"
+          },
+          "data": {
+            "description": "Credential data fields - use getSchema to discover required fields (required for create, optional for update)",
+            "type": "object"
+          },
+          "id": {
+            "description": "Credential ID (required for get, update, delete)",
+            "type": "string"
+          },
+          "includeUsage": {
+            "description": "For list/get: also return workflows that reference each credential (id, name, active). On list, triggers a full scan of all credential pages (up to 5000 credentials; ignores cursor/limit, no nextCursor returned). Slower on large instances. Default: false.",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "For list: max results per page (1-100, default 100). Ignored when includeUsage is true.",
+            "type": "number"
+          },
+          "name": {
+            "description": "Credential name (required for create)",
+            "type": "string"
+          },
+          "type": {
+            "description": "Credential type e.g. httpHeaderAuth, httpBasicAuth, oAuth2Api (required for create, getSchema)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_manage_credentials"
+    },
+    {
+      "description": "Manage n8n data tables, rows and columns. Actions: createTable, listTables, getTable, updateTable, deleteTable, getRows, insertRows, updateRows, upsertRows, deleteRows, addColumn, deleteColumn, renameColumn. The column actions run through n8n's own MCP server (N8N_MCP_ACCESS_TOKEN, n8n 2.34+) because the ${POSTGRESQL_SCHEMA} API cannot change a table's columns after creation; everything else uses the ${POSTGRESQL_SCHEMA} API.",
+      "inputSchema": {
+        "properties": {
+          "action": {
+            "description": "Operation to perform. addColumn/deleteColumn/renameColumn need N8N_MCP_ACCESS_TOKEN.",
+            "enum": [
+              "createTable",
+              "listTables",
+              "getTable",
+              "updateTable",
+              "deleteTable",
+              "getRows",
+              "insertRows",
+              "updateRows",
+              "upsertRows",
+              "deleteRows",
+              "addColumn",
+              "deleteColumn",
+              "renameColumn"
+            ],
+            "type": "string"
+          },
+          "column": {
+            "description": "For addColumn: the column to add. Name must start with a letter, contain only letters, digits and underscores, and be at most 63 characters.",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "date"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "type": "object"
+          },
+          "columnId": {
+            "description": "For deleteColumn/renameColumn: ID of the column (from getTable).",
+            "type": "string"
+          },
+          "columns": {
+            "description": "For createTable (required, at least one): column definitions. Change columns later with addColumn/deleteColumn/renameColumn.",
+            "items": {
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "enum": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "date"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "cursor": {
+            "description": "For listTables/getRows: pagination cursor",
+            "type": "string"
+          },
+          "data": {
+            "description": "For insertRows: array of row objects. For updateRows/upsertRows: object with column values."
+          },
+          "dryRun": {
+            "description": "For updateRows/upsertRows/deleteRows: preview without applying (default: false)",
+            "type": "boolean"
+          },
+          "filter": {
+            "description": "For getRows/updateRows/upsertRows/deleteRows: {type?: \"and\"|\"or\", filters: [{columnName, condition, value}]}",
+            "type": "object"
+          },
+          "limit": {
+            "description": "For listTables/getRows: max results (1-100)",
+            "type": "number"
+          },
+          "name": {
+            "description": "For createTable: table name. For updateTable: new table name. For renameColumn: new column name.",
+            "type": "string"
+          },
+          "projectId": {
+            "description": "For createTable: project ID to create the table in. If omitted, uses the default project. For the column actions: the project owning the table - resolved automatically when the instance has exactly one accessible project, otherwise required (the error lists the candidates).",
+            "type": "string"
+          },
+          "returnData": {
+            "description": "For updateRows/upsertRows/deleteRows: return affected rows (default: false)",
+            "type": "boolean"
+          },
+          "returnType": {
+            "description": "For insertRows: what to return (default: count)",
+            "enum": [
+              "count",
+              "id",
+              "all"
+            ],
+            "type": "string"
+          },
+          "search": {
+            "description": "For getRows: text search across string columns",
+            "type": "string"
+          },
+          "sortBy": {
+            "description": "For getRows: \"columnName:asc\" or \"columnName:desc\"",
+            "type": "string"
+          },
+          "tableId": {
+            "description": "Data table ID (required for all actions except createTable and listTables)",
+            "type": "string"
+          },
+          "timeoutMs": {
+            "description": "For the column actions: client timeout in ms (5000-600000, default 30000).",
+            "maximum": 600000,
+            "minimum": 5000,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_manage_datatable"
+    },
+    {
+      "description": "Manage workflow folders (n8n 2.19+; folders need a registered Community instance or higher). Actions: create, list, get, rename, move, delete. projectId defaults to 'personal' (the calling user's personal project). Place workflows into folders via n8n_create_workflow's parentFolderId or the moveToFolder operation of n8n_update_partial_workflow (both n8n 2.32+). Note: n8n's API cannot report which folder a workflow is in - folder contents are visible only as counts.",
+      "inputSchema": {
+        "properties": {
+          "action": {
+            "description": "Operation: create=new folder, list=folders in a project (with workflow/subfolder counts), get=folder details with recursive totals, rename=change name, move=re-parent under another folder or the project root, delete=remove folder",
+            "enum": [
+              "create",
+              "list",
+              "get",
+              "rename",
+              "move",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "folderId": {
+            "description": "Folder ID (required for get, rename, move, delete)",
+            "type": "string"
+          },
+          "name": {
+            "description": "For create: folder name (required). For rename: new name (required).",
+            "type": "string"
+          },
+          "nameFilter": {
+            "description": "For list: filter folders by name (contains match)",
+            "type": "string"
+          },
+          "parentFolderId": {
+            "description": "For create: optional parent folder to nest under. For move: target parent folder ID, or null to move to the project root (required). For list: only return direct children of this folder.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "projectId": {
+            "description": "Project containing the folder(s). Defaults to 'personal' - resolved to the calling user's personal project. Pass a real project ID on multi-project (enterprise) instances.",
+            "type": "string"
+          },
+          "skip": {
+            "description": "For list: items to skip for pagination (default 0)",
+            "type": "number"
+          },
+          "sortBy": {
+            "description": "For list: sort order (default: updatedAt:desc)",
+            "enum": [
+              "name:asc",
+              "name:desc",
+              "createdAt:asc",
+              "createdAt:desc",
+              "updatedAt:asc",
+              "updatedAt:desc"
+            ],
+            "type": "string"
+          },
+          "take": {
+            "description": "For list: items to return (default 50, max 100)",
+            "type": "number"
+          },
+          "transferToFolderId": {
+            "description": "For delete: move contained workflows and sub-folders into this folder first ('0' = project root). If omitted, workflows are moved to the project root AND ARCHIVED, and sub-folders are deleted.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_manage_folders"
+    },
+    {
+      "description": "Run a workflow. method=auto (default) triggers it over HTTP through its webhook/form/chat ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}. Workflows without such a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} need n8n's MCP server: method=prepare lists the nodes that need pinned data, method=pinned runs the workflow with that data, method=direct starts a run with optional inputs. The official methods need N8N_MCP_ACCESS_TOKEN and the workflow's \"Available in MCP\" setting (exposeToMcp: true enables it after you confirm with the user).",
+      "inputSchema": {
+        "properties": {
+          "data": {
+            "description": "Input data/payload for webhook, form fields, or execution data",
+            "type": "object"
+          },
+          "executionMode": {
+            "description": "For method=direct: manual (default) runs it as a manual execution; production runs it through the production execution path. Both execute the workflow's nodes for real - this only changes the execution context. Never chosen implicitly.",
+            "enum": [
+              "manual",
+              "production"
+            ],
+            "type": "string"
+          },
+          "exposeToMcp": {
+            "description": "For the official methods: enable the workflow's persistent \"Available in MCP\" setting when n8n refuses the call. Confirm with the user first.",
+            "type": "boolean"
+          },
+          "headers": {
+            "description": "Custom HTTP headers",
+            "type": "object"
+          },
+          "httpMethod": {
+            "description": "For webhook: HTTP method (default: from workflow config or POST)",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "DELETE"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "description": "For chat: message to send (required for chat triggers)",
+            "type": "string"
+          },
+          "method": {
+            "description": "How to run it. auto (default): ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} over HTTP when the workflow has a webhook/form/chat ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}, otherwise report that it cannot be triggered - auto never runs through n8n's MCP server. ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}: force the HTTP path. prepare: list the nodes needing pinned data (read-only). pinned: run with pinData through n8n's MCP server. direct: start a run through n8n's MCP server, with optional inputs.",
+            "enum": [
+              "auto",
+              "${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}",
+              "prepare",
+              "pinned",
+              "direct"
+            ],
+            "type": "string"
+          },
+          "pinData": {
+            "description": "For method=pinned (required, non-empty): pinned ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} data keyed by node name. Each value is an array of ITEMS, and every item must be wrapped as { \"json\": { ... } } - e.g. {\"Webhook\": [{\"json\": {\"id\": \"123\"}}]}, never a flat object. Get the node list from method=prepare.",
+            "type": "object"
+          },
+          "sessionId": {
+            "description": "For chat: session ID for conversation continuity",
+            "type": "string"
+          },
+          "timeout": {
+            "description": "Timeout in ms (default: 120000). HTTP ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} path only (method auto/${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}) — the official methods (prepare/pinned/direct) use timeoutMs instead.",
+            "type": "number"
+          },
+          "timeoutMs": {
+            "description": "Client-side deadline for the official call (default: 30000 for prepare, 300000 for pinned/direct)",
+            "maximum": 600000,
+            "minimum": 5000,
+            "type": "integer"
+          },
+          "triggerNodeName": {
+            "description": "For method=pinned/direct: which ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} node to start from. Defaults to the detected ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} node. Required by n8n when inputs are given.",
+            "type": "string"
+          },
+          "triggerType": {
+            "description": "Trigger type. Auto-detected if not specified. Workflow must have a matching ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} node.",
+            "enum": [
+              "webhook",
+              "form",
+              "chat"
+            ],
+            "type": "string"
+          },
+          "waitForResponse": {
+            "description": "Wait for workflow completion (default: true)",
+            "type": "boolean"
+          },
+          "webhookPath": {
+            "description": "For webhook: override the webhook path",
+            "type": "string"
+          },
+          "workflowId": {
+            "description": "Workflow ID to execute (required)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_test_workflow"
+    },
+    {
+      "description": "Full workflow update. Requires complete nodes[] and connections{}. For incremental use n8n_update_partial_workflow.",
+      "inputSchema": {
+        "properties": {
+          "connections": {
+            "description": "Complete connections object (required if modifying workflow structure)",
+            "type": "object"
+          },
+          "id": {
+            "description": "Workflow ID to update",
+            "type": "string"
+          },
+          "name": {
+            "description": "New workflow name",
+            "type": "string"
+          },
+          "nodeGroups": {
+            "description": "Canvas groups (n8n 2.28+). Omit to keep the existing groups; pass [] to ungroup everything. Members are node IDs.",
+            "items": {
+              "properties": {
+                "description": {
+                  "description": "Optional, max 155 chars (n8n 2.32+)",
+                  "type": "string"
+                },
+                "id": {
+                  "description": "Optional; generated when omitted",
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "nodeIds": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "name",
+                "nodeIds"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "nodes": {
+            "description": "Complete array of workflow nodes (required if modifying workflow structure)",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "parentFolderId": {
+            "description": "Move the workflow into this folder (n8n 2.32+): folder ID = move there, null = move to project root, omit = leave the current folder unchanged. For a move without other changes prefer the moveToFolder operation of n8n_update_partial_workflow.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "settings": {
+            "description": "Workflow settings to update",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_update_full_workflow"
+    },
+    {
+      "description": "Update workflow incrementally with diff operations. Types: addNode, removeNode, updateNode, patchNodeField, moveNode, enable/disableNode, addConnection, removeConnection, rewireConnection, cleanStaleConnections, replaceConnections, updateSettings, updateName, setNodeGroups, add/removeTag, activate/deactivateWorkflow, transferWorkflow, moveToFolder. patchNodeField requires fieldPath (dot path, e.g. \"parameters.jsCode\") and patches: [{find, replace}]. setNodeGroups replaces all canvas groups: [{name, nodeNames|nodeIds}] (or [] to ungroup). moveToFolder moves the workflow into a folder (n8n 2.32+): {parentFolderId: folder ID or null for project root}. See tools_documentation(\"n8n_update_partial_workflow\", \"full\") for details.",
+      "inputSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "continueOnError": {
+            "description": "If true, apply valid operations even if some fail (best-effort mode). Returns applied and failed operation indices. Default: false (atomic)",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "Workflow ID to update",
+            "type": "string"
+          },
+          "operations": {
+            "description": "Array of diff operations to apply. Each operation must have a \"type\" field and relevant properties for that operation type.",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "validateOnly": {
+            "description": "If true, only validate operations without applying them",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "operations"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_update_partial_workflow"
+    },
+    {
+      "description": "Validate workflow by ID. Checks nodes, connections, expressions. Returns errors/warnings/suggestions.",
+      "inputSchema": {
+        "properties": {
+          "id": {
+            "description": "Workflow ID to validate",
+            "type": "string"
+          },
+          "options": {
+            "description": "Validation options",
+            "properties": {
+              "profile": {
+                "description": "Validation profile to use (default: runtime)",
+                "enum": [
+                  "minimal",
+                  "runtime",
+                  "ai-friendly",
+                  "strict"
+                ],
+                "type": "string"
+              },
+              "validateConnections": {
+                "description": "Validate workflow connections (default: true)",
+                "type": "boolean"
+              },
+              "validateExpressions": {
+                "description": "Validate n8n expressions (default: true)",
+                "type": "boolean"
+              },
+              "validateNodes": {
+                "description": "Validate node configurations (default: true)",
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "n8n_validate_workflow"
+    },
+    {
+      "description": "Manage workflow version history, rollback, comparison, and cleanup. Six modes:\n- list: Show version history for a workflow\n- get: Get details of a specific version\n- rollback: Restore workflow to a previous version (creates backup first)\n- diff: Compare two versions\n- delete: Delete specific version or all versions for a workflow\n- prune: Manually ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} pruning to keep N most recent versions\n\nTwo sources:\n- source: 'local' (default) - snapshots n8n-mcp takes before it changes a workflow. Scoped to your n8n instance, works on any n8n version, and covers only changes made through n8n-mcp. Old backups are pruned automatically (10 most recent per workflow, plus an age-based retention window).\n- source: 'native' - n8n's own workflow history, the same list the n8n UI shows, including edits made by people in the UI. Needs an n8n MCP access token and the workflow's \"Available in MCP\" setting; supports list, get, rollback and diff only. Native rollback is not pre-validated.",
+      "inputSchema": {
+        "properties": {
+          "deleteAll": {
+            "default": false,
+            "description": "Delete all versions for workflow (delete mode only)",
+            "type": "boolean"
+          },
+          "exposeToMcp": {
+            "description": "Native only. When n8n refuses the workflow because it is not available in MCP, enable that setting on the workflow and retry once. This is a visible, persistent workflow setting - confirm with the user first.",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 10,
+            "description": "Max versions to return in list mode (native: capped at 50)",
+            "type": "number"
+          },
+          "maxVersions": {
+            "default": 10,
+            "description": "Keep N most recent versions (prune mode only)",
+            "type": "number"
+          },
+          "mode": {
+            "default": "list",
+            "description": "Operation mode (default: list)",
+            "enum": [
+              "list",
+              "get",
+              "rollback",
+              "delete",
+              "prune",
+              "diff"
+            ],
+            "type": "string"
+          },
+          "offset": {
+            "description": "Skip this many versions in native list mode",
+            "minimum": 0,
+            "type": "number"
+          },
+          "source": {
+            "default": "local",
+            "description": "Which history to read: 'local' (n8n-mcp snapshots, default) or 'native' (n8n's own version history). delete and prune are local-only.",
+            "enum": [
+              "local",
+              "native"
+            ],
+            "type": "string"
+          },
+          "timeoutMs": {
+            "description": "Client deadline for the native call (default 30000)",
+            "maximum": 600000,
+            "minimum": 5000,
+            "type": "integer"
+          },
+          "toVersionId": {
+            "description": "The second version to compare against in diff mode (same id format as versionId)"
+          },
+          "validateBefore": {
+            "default": true,
+            "description": "Validate workflow structure before rollback (local only; accepted and ignored for native)",
+            "type": "boolean"
+          },
+          "versionId": {
+            "description": "Version ID. local: numeric snapshot id (number or numeric string); native: n8n's version id string. Required for get and diff, for a single-version delete, and for native rollback; optional for local rollback."
+          },
+          "workflowId": {
+            "description": "Workflow ID (required for list, rollback, delete, prune, diff; required for every native mode)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "n8n_workflow_versions"
+    },
+    {
+      "description": "Search n8n nodes by keyword with optional real-world examples. Pass query as string. Example: query=\"webhook\" or query=\"database\". Returns max 20 results. Use includeExamples=true to get top 2 template configs per node.",
+      "inputSchema": {
+        "properties": {
+          "includeExamples": {
+            "default": false,
+            "description": "Include top 2 real-world configuration examples from popular templates (default: false)",
+            "type": "boolean"
+          },
+          "includeOperations": {
+            "default": false,
+            "description": "Include resource/operation tree per node. Adds ~100-300 tokens per result but saves a get_node round-trip.",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 20,
+            "description": "Max results (default 20)",
+            "type": "number"
+          },
+          "mode": {
+            "default": "OR",
+            "description": "OR=any word, AND=all words, FUZZY=typo-tolerant",
+            "enum": [
+              "OR",
+              "AND",
+              "FUZZY"
+            ],
+            "type": "string"
+          },
+          "query": {
+            "description": "Search terms. Use quotes for exact phrase.",
+            "type": "string"
+          },
+          "source": {
+            "default": "all",
+            "description": "Filter by node source: all=everything (default), core=n8n base nodes, community=community nodes, verified=verified community nodes only",
+            "enum": [
+              "all",
+              "core",
+              "community",
+              "verified"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search_nodes"
+    },
+    {
+      "description": "Search templates with multiple modes. Use searchMode='keyword' for text search, 'by_nodes' to find templates using specific nodes, 'by_task' for curated task-based templates, 'by_metadata' for filtering by complexity/setup time/services, 'patterns' for lightweight workflow pattern summaries mined from 2700+ templates.",
+      "inputSchema": {
+        "properties": {
+          "category": {
+            "description": "For searchMode=by_metadata: filter by category (e.g., \"automation\", \"integration\")",
+            "type": "string"
+          },
+          "complexity": {
+            "description": "For searchMode=by_metadata: filter by complexity level",
+            "enum": [
+              "simple",
+              "medium",
+              "complex"
+            ],
+            "type": "string"
+          },
+          "fields": {
+            "description": "For searchMode=keyword: fields to include in response. Default: all fields.",
+            "items": {
+              "enum": [
+                "id",
+                "name",
+                "description",
+                "author",
+                "nodes",
+                "views",
+                "created",
+                "url",
+                "metadata"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "limit": {
+            "default": 20,
+            "description": "Maximum number of results. Default 20.",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "number"
+          },
+          "maxSetupMinutes": {
+            "description": "For searchMode=by_metadata: maximum setup time in minutes",
+            "maximum": 480,
+            "minimum": 5,
+            "type": "number"
+          },
+          "minSetupMinutes": {
+            "description": "For searchMode=by_metadata: minimum setup time in minutes",
+            "maximum": 480,
+            "minimum": 5,
+            "type": "number"
+          },
+          "nodeTypes": {
+            "description": "For searchMode=by_nodes: array of node types (e.g., [\"n8n-nodes-base.httpRequest\", \"n8n-nodes-base.slack\"])",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Pagination offset. Default 0.",
+            "minimum": 0,
+            "type": "number"
+          },
+          "query": {
+            "description": "For searchMode=keyword: search keyword (e.g., \"chatbot\")",
+            "type": "string"
+          },
+          "requiredService": {
+            "description": "For searchMode=by_metadata: filter by required service (e.g., \"openai\", \"slack\")",
+            "type": "string"
+          },
+          "searchMode": {
+            "default": "keyword",
+            "description": "Search mode. keyword=text search (default), by_nodes=find by node types, by_task=curated task templates, by_metadata=filter by complexity/services, patterns=lightweight workflow pattern summaries",
+            "enum": [
+              "keyword",
+              "by_nodes",
+              "by_task",
+              "by_metadata",
+              "patterns"
+            ],
+            "type": "string"
+          },
+          "targetAudience": {
+            "description": "For searchMode=by_metadata: filter by target audience (e.g., \"developers\", \"marketers\")",
+            "type": "string"
+          },
+          "task": {
+            "description": "For searchMode=by_task: the type of task. For searchMode=patterns: optional category filter (omit for overview of all categories).",
+            "enum": [
+              "ai_automation",
+              "data_sync",
+              "webhook_processing",
+              "email_automation",
+              "slack_integration",
+              "data_transformation",
+              "file_processing",
+              "scheduling",
+              "api_integration",
+              "database_operations"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "search_templates"
+    },
+    {
+      "description": "Get documentation for n8n MCP tools. Call without parameters for quick start guide. Use topic parameter to get documentation for specific tools. Use depth='full' for comprehensive documentation.",
+      "inputSchema": {
+        "properties": {
+          "depth": {
+            "default": "essentials",
+            "description": "Level of detail. \"essentials\" (default) for quick reference, \"full\" for comprehensive docs.",
+            "enum": [
+              "essentials",
+              "full"
+            ],
+            "type": "string"
+          },
+          "topic": {
+            "description": "Tool name (e.g., \"search_nodes\") or \"overview\" for general guide. Leave empty for quick reference.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "tools_documentation"
+    },
+    {
+      "description": "Validate n8n node configuration. Use mode='full' for comprehensive validation with errors/warnings/suggestions, mode='minimal' for quick required fields check. Example: nodeType=\"nodes-base.slack\", config={resource:\"channel\",operation:\"create\"}",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "config": {
+            "description": "Configuration as object. For simple nodes use {}. For complex nodes include fields like {resource:\"channel\",operation:\"create\"}",
+            "type": "object"
+          },
+          "mode": {
+            "default": "full",
+            "description": "Validation mode. full=comprehensive validation with errors/warnings/suggestions, minimal=quick required fields check only. Default is \"full\"",
+            "enum": [
+              "full",
+              "minimal"
+            ],
+            "type": "string"
+          },
+          "nodeType": {
+            "description": "Node type as string. Example: \"nodes-base.slack\"",
+            "type": "string"
+          },
+          "profile": {
+            "default": "ai-friendly",
+            "description": "Profile for mode=full: \"minimal\", \"runtime\", \"ai-friendly\", or \"strict\". Default is \"ai-friendly\"",
+            "enum": [
+              "strict",
+              "runtime",
+              "ai-friendly",
+              "minimal"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "config",
+          "nodeType"
+        ],
+        "type": "object"
+      },
+      "name": "validate_node"
+    },
+    {
+      "description": "Full workflow validation: structure, connections, expressions, AI tools. Returns errors/warnings/fixes. Essential before deploy.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "options": {
+            "description": "Optional validation settings",
+            "properties": {
+              "profile": {
+                "default": "runtime",
+                "description": "Validation profile for node validation. Default \"runtime\".",
+                "enum": [
+                  "minimal",
+                  "runtime",
+                  "ai-friendly",
+                  "strict"
+                ],
+                "type": "string"
+              },
+              "validateConnections": {
+                "default": true,
+                "description": "Validate node connections and flow. Default true.",
+                "type": "boolean"
+              },
+              "validateExpressions": {
+                "default": true,
+                "description": "Validate n8n expressions syntax and references. Default true.",
+                "type": "boolean"
+              },
+              "validateNodes": {
+                "default": true,
+                "description": "Validate individual node configurations. Default true.",
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "workflow": {
+            "description": "The complete workflow JSON to validate. Must include nodes array and connections object.",
+            "type": "object"
+          }
+        },
+        "required": [
+          "workflow"
+        ],
+        "type": "object"
+      },
+      "name": "validate_workflow"
+    }
+  ]
+}

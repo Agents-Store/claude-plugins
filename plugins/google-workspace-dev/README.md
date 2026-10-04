@@ -46,8 +46,8 @@ Just ask in natural language — Claude loads the right skill:
 
 | Piece | Location |
 |-------|----------|
-| Sync script | [`scripts/sync-google-workspace-skills.sh`](../../scripts/sync-google-workspace-skills.sh) |
-| GitHub workflow | [`.github/workflows/sync-google-workspace-skills.yml`](../../.github/workflows/sync-google-workspace-skills.yml) |
+| Sync script | `scripts/sync-google-workspace-skills.sh` |
+| GitHub workflow | `.github/workflows/sync-google-workspace-skills.yml` |
 
 Every **Monday 06:30 UTC** (and on manual `workflow_dispatch`) the workflow clones upstream, mirrors the `gws-*`/`persona-*`/`recipe-*` directories (adds new, prunes removed), refreshes `SKILLS_INDEX.md`, and — if anything changed — opens a PR labelled `upstream-sync` for review. Custom skills (`google-workspace-setup`, `examples`) and all root metadata are never touched.
 
