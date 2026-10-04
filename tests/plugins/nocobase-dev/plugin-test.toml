@@ -1,11 +1,17 @@
-# skills/nocobase-* — vendored из upstream NocoBase; их ссылки (nocobase-workflow-manage → nocobase-ui-builder/
-# references/recipes/forms-and-actions.md) и JSON-примеры с `<ПЛЕЙСХОЛДЕРАМИ>`, комментариями и «...»
-# чинятся только синхронизацией. Свои skills плагина (auth, api-reference, cli-recipes, examples, overview) проверяются.
-#
-# [[unit]] этого плагина (node --test в skills/nocobase-ui-builder/runtime) пока не подключён: тест
-# docs-consistency.test.js:777 читает README.md плагина и требует фразу «Default dispatcher for NocoBase UI authoring»
-# рядом с nocobase-portal-manage. Правка README — пакет nocobase-dev в triage-ledger; после неё вернуть [[unit]]
-# (см. ledger).
+# skills/nocobase-* — vendored из upstream NocoBase (nocobase/skills; зеркало делает scripts/sync-nocobase-skills.sh,
+# еженедельный sync его перезаписывает). Их ссылки (nocobase-workflow-manage → nocobase-ui-builder/references/recipes/
+# forms-and-actions.md) и JSON-примеры с `<ПЛЕЙСХОЛДЕРАМИ>`, комментариями и «...» чинятся только синхронизацией.
+# Свои skills плагина (auth, api-reference, cli-recipes, examples, overview) проверяются.
 [skip]
 "skill-links" = ["skills/nocobase-*"]
 "skill-snippets" = ["skills/nocobase-*"]
+
+# Vendored-тесты runtime nocobase-ui-builder (node --test, 99 тестов). docs-consistency.test.js читает README.md плагина
+# (../../README.md, как README апстрима) и требует на строке nocobase-portal-manage фразу «Default dispatcher for NocoBase
+# UI authoring»; она стоит в README плагина. README ведётся вручную, поэтому переформулировка этой строки без фразы
+# ломает unit — а он блокирующий.
+[[unit]]
+name = "nocobase-ui-builder runtime"
+run = "node --test ./tests/*.test.js ../scripts/*.test.mjs"
+cwd = "plugins/nocobase-dev/skills/nocobase-ui-builder/runtime"
+needs = ["node"]
