@@ -1,0 +1,122 @@
+{
+  "tools": [
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "assets"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "collections"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "fields"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "files"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "flows"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "folders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action",
+          "collection"
+        ],
+        "type": "object"
+      },
+      "name": "items"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "operations"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "name": "relations"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "schema"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "system-prompt"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "collection",
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "trigger-flow"
+    }
+  ]
+}
