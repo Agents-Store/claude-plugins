@@ -10,6 +10,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import tomllib
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -164,11 +165,19 @@ class CiWiring(unittest.TestCase):
         with open(os.path.join(ROOT, "plugins", "macstack-dev", "run-tests.sh")) as fh:
             self.assertNotIn("check-macstack-canon", fh.read())
 
-    def test_the_tests_job_runs_the_macstack_dev_suite(self):
-        text = self.read("scrub.yml")
-        start = text.index("\n  tests:")
-        self.assertIn("run-tests.sh", text[start:])
-        self.assertIn("plugins/macstack-dev", text[start:])
+    def test_the_macstack_dev_suite_is_gated_as_a_plugin_test_unit(self):
+        # The suite gated nothing before 3.10.0. It used to be a step of the `tests`
+        # job in scrub.yml; that job moved into plugin-test.yml, where every plugin's
+        # own suite is a [[unit]] of tests/plugins/<plugin>/plugin-test.toml and the
+        # runner (--mode ci) executes it from the plugin's directory.
+        self.assertNotIn("\n  tests:", self.read("scrub.yml"))
+        self.assertIn("scripts/plugin_test.py --mode ci", self.read("plugin-test.yml"))
+        path = os.path.join(ROOT, "tests", "plugins", "macstack-dev", "plugin-test.toml")
+        with open(path, "rb") as fh:
+            units = tomllib.load(fh).get("unit", [])
+        self.assertIn("sh run-tests.sh", [u.get("run") for u in units])
+        self.assertTrue(os.path.isfile(os.path.join(ROOT, "plugins", "macstack-dev", "run-tests.sh")))
+
 
 if __name__ == "__main__":
     unittest.main()
