@@ -3,4 +3,8 @@
 Каждая задача плана добавляет сюда свою строку; порядок запуска задаёт
 model.CHECK_IDS, а не этот словарь.
 """
-REGISTRY = {}
+from . import skill_links
+
+REGISTRY = {
+    "skill-links": skill_links.run,
+}
