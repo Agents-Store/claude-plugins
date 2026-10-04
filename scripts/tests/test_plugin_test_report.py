@@ -119,5 +119,12 @@ class RenderTest(unittest.TestCase):
         self.assertIn("`plugins/p/a.md:1`", md)
 
 
+class StatusPolicyTest(unittest.TestCase):
+    def test_skill_budget_never_blocks(self):
+        from plugin_test.model import STATUS
+        self.assertEqual(STATUS["skill-budget"], ADVISORY)
+        self.assertEqual((STATUS["manifest"], STATUS["unit"]), (BLOCKING, BLOCKING))
+
+
 if __name__ == "__main__":
     unittest.main()

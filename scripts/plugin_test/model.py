@@ -20,17 +20,19 @@ CHECK_IDS = (
 # остаётся fail, под --strict и warn становится fail. Меняется только коммитом.
 # manifest и unit — blocking с первого дня: unit наследует блокирующую задачу
 # `tests` из scrub.yml, а сломанный манифест молча выключил бы проверки плагина.
+# Остальные проверки стали blocking 2026-10-04: итоговый прогон по обоим репозиториям
+# дал у них 0 находок fail и warn.
 # skill-budget — advisory навсегда: spec §5 называет его «только предупреждение».
 STATUS = {
     "manifest": BLOCKING,
-    "skill-links": ADVISORY,
-    "skill-snippets": ADVISORY,
+    "skill-links": BLOCKING,
+    "skill-snippets": BLOCKING,
     "skill-budget": ADVISORY,
-    "mcp-names": ADVISORY,
-    "mcp-list": ADVISORY,
-    "hook-fixtures": ADVISORY,
-    "cli-flags": ADVISORY,
-    "api-paths": ADVISORY,
+    "mcp-names": BLOCKING,
+    "mcp-list": BLOCKING,
+    "hook-fixtures": BLOCKING,
+    "cli-flags": BLOCKING,
+    "api-paths": BLOCKING,
     "unit": BLOCKING,
 }
 

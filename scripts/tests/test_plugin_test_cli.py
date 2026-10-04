@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plugin_test_fixtures import Repo  # noqa: E402
 
 from plugin_test import checks, cli  # noqa: E402
-from plugin_test.model import FAIL, WARN, Finding  # noqa: E402
+from plugin_test.model import ADVISORY, FAIL, WARN, Finding  # noqa: E402
 
 
 def fake_check(plugin, ctx, manifest):
@@ -40,6 +40,11 @@ class CliTest(unittest.TestCase):
         patcher = mock.patch.dict(checks.REGISTRY, {"skill-links": fake_check}, clear=True)
         patcher.start()
         self.addCleanup(patcher.stop)
+        # Эти тесты проверяют механику CLI, а не политику статусов (она в
+        # StatusPolicyTest): статус проверок-заглушек закреплён, а не берётся из STATUS.
+        pin = mock.patch.dict("plugin_test.model.STATUS", {"skill-links": ADVISORY, "skill-snippets": ADVISORY})
+        pin.start()
+        self.addCleanup(pin.stop)
 
     def run_cli(self, *args):
         out = io.StringIO()
