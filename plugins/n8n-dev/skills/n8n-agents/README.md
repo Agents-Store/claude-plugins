@@ -89,7 +89,7 @@ Main skill content — loaded when the skill activates.
 ## Quick Reference
 
 ### Wiring a sub-node (connection lives on the sub-node)
-```jsonc
+```json
 "Main LLM": { "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]] }
 ```
 

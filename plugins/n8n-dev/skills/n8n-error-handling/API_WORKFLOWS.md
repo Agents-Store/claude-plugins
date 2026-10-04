@@ -210,7 +210,7 @@ Instead: log the full error privately, return a sanitized message.
 { type: "addConnection", source: "Log Full Error", target: "Respond Error",  sourceIndex: 0 }
 ```
 
-```jsonc
+```json
 // Respond Error keeps the body clean:
 { "responseCode": 502,
   "responseBody": "={{ JSON.stringify({ error: 'upstream_error', message: 'External service failed' }) }}" }

@@ -115,7 +115,7 @@ The error path is the easy one to forget — without it the indicator sits forev
 
 Use the surface's thread primitive as the memory `sessionKey`:
 
-```jsonc
+```json
 "workflowInputs": {
   "value": {
     "chatInput": "={{ $('Filter bot').item.json.text }}",
@@ -144,7 +144,7 @@ A sub-workflow with two declared inputs: `chatInput` (the user's message) and `t
 
 The only chat-specific wiring beyond **MEMORY.md** is plumbing `threadId` straight to `sessionKey`:
 
-```jsonc
+```json
 "sessionIdType": "customKey",
 "sessionKey": "={{ $json.threadId }}"
 ```

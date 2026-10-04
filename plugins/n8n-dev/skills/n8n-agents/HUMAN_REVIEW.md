@@ -21,7 +21,7 @@ The review node sits **between** the wrapped tool and the agent on the `ai_tool`
 
 In workflow JSON, the wrapped tool's `ai_tool` output points at the **review node**, and the review node's `ai_tool` output points at the **agent**:
 
-```jsonc
+```json
 "Refund customer": {
   "ai_tool": [[{ "node": "Slack approval", "type": "ai_tool", "index": 0 }]]
 },
@@ -127,7 +127,7 @@ message: =Refund {{ $tool.parameters.amount }} to {{ $tool.parameters.customerId
 
 ### Put values in the button labels
 
-```jsonc
+```json
 "approvalOptions": {
   "values": {
     "approvalType": "double",

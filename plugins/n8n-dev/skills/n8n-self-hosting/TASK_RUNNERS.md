@@ -90,8 +90,6 @@ workers have no runner, so their Code nodes wait out `N8N_RUNNERS_TASK_REQUEST_T
 
 Use explicit pairs instead, one per worker:
 
-<!-- reason: *n8n is the anchor defined in skills/n8n-self-hosting/assets/docker-compose.queue.yml (x-n8n: &n8n), so this block does not parse on its own -->
-<!-- plugin-test: skip -->
 ```yaml
   n8n-worker-1:
     <<: *n8n

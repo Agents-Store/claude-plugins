@@ -76,7 +76,7 @@ Type enforcement happens on the **agent side** via the `type` argument of `$from
 
 Wire it into the agent with `ai_tool`:
 
-```jsonc
+```json
 "Generate or edit image": {
   "ai_tool": [[{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]]
 }
