@@ -13,7 +13,8 @@ GOOD = """# Skill
 See [the guide](references/guide.md#setup), ![diagram](assets/d.png) and [dir](references/).
 [ref]: references/guide.md
 External: [docs](https://example.com/x), [anchor](#top), [mail](mailto:a@example.com).
-Placeholder: [file](<your-file>.md), [var](${ROOT}/x.md).
+Placeholder: [file](<your-file>.md), [t](<url>), [var](${ROOT}/x.md).
+Regex-like: [a](redis|ioredis), [b](refs/*.md), [c](a\\d+).
 Pointers: `other-dev:helper-skill`, `other-dev:run`, `superpowers:brainstorming`, `node:lts`.
 Inline code is not a link: `[x](missing.md)`.
 
@@ -30,6 +31,14 @@ Pointer `other-dev:no-such-skill`.
 Unknown `ghost-ops:thing`.
 """
 
+FRONTMATTER = """---
+name: s
+pattern: 'from\\s+[\'\'"](express)[\'\'"]|[x](redis|ioredis)'
+---
+# Skill
+Broken [link](references/nope.md) on line 6.
+"""
+
 
 class MarkdownTest(unittest.TestCase):
     def test_blocks_and_skip_marker(self):
@@ -42,6 +51,22 @@ class MarkdownTest(unittest.TestCase):
     def test_links_skip_fences_and_inline_code(self):
         text = "[a](x.md) `[b](y.md)`\n```\n[c](z.md)\n```\n[d]: w.md"
         self.assertEqual(list(markdown.links(text)), [("x.md", 1), ("w.md", 5)])
+
+    def test_links_keep_angle_wrapped_target_raw(self):
+        self.assertEqual(list(markdown.links("[t](<url>)")), [("<url>", 1)])
+        self.assertEqual(list(markdown.links("[f](<your-file>.md)")), [("<your-file>.md", 1)])
+
+    def test_links_skip_frontmatter_keep_line_numbers(self):
+        text = "---\npattern: '[a](express)'\n---\n[b](y.md)"
+        self.assertEqual(list(markdown.links(text)), [("y.md", 4)])
+
+    def test_links_unclosed_frontmatter_skips_nothing(self):
+        text = "---\n[a](x.md)\ntext"
+        self.assertEqual(list(markdown.links(text)), [("x.md", 2)])
+
+    def test_links_dashes_not_on_first_line_are_not_frontmatter(self):
+        text = "intro\n---\n[a](x.md)\n---\n[b](y.md)"
+        self.assertEqual(list(markdown.links(text)), [("x.md", 3), ("y.md", 5)])
 
     def test_iter_markdown_skips(self):
         repo = Repo()
@@ -75,6 +100,17 @@ class SkillLinksTest(unittest.TestCase):
         self.assertTrue(all(f.file == "plugins/bad-dev/skills/s/SKILL.md" for f in found))
         self.assertIn("за пределы", next(f for f in found if f.line == 3).message)
         self.assertIn("helper-skill", next(f for f in found if f.line == 5).fix)
+
+    def test_frontmatter_is_not_scanned_for_links(self):
+        self.repo.plugin("fm-dev", files={"skills/s/SKILL.md": FRONTMATTER})
+        found = run_check(skill_links, self.repo.root, "fm-dev")
+        self.assertEqual([(f.line, f.level) for f in found], [(6, FAIL)])
+
+    def test_frontmatter_description_pointer_is_still_checked(self):
+        text = "---\ndescription: use `other-dev:no-such-skill`\n---\nbody\n"
+        self.repo.plugin("fp-dev", files={"skills/s/SKILL.md": text})
+        found = run_check(skill_links, self.repo.root, "fp-dev")
+        self.assertEqual([(f.line, f.level) for f in found], [(2, FAIL)])
 
     def test_pointer_into_other_repo(self):
         other = Repo()

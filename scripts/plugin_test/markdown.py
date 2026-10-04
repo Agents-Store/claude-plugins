@@ -11,7 +11,7 @@ SKIP_FILES = {"CHANGELOG.md", "LEARNINGS.md"}
 SKIP_MARKER = re.compile(r"<!--\s*plugin-test:\s*skip\s*-->")
 RE_FENCE = re.compile(r"^\s{0,3}(?P<fence>`{3,}|~{3,})(?P<info>[^`]*)$")
 RE_INLINE_CODE = re.compile(r"`[^`\n]*`")
-RE_LINK = re.compile(r"\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
+RE_LINK = re.compile(r"\]\(\s*(<[^<>\n]*>|[^)\s]+)(?:\s+\"[^\"]*\")?\s*\)")
 RE_REF_DEF = re.compile(r"^\s{0,3}\[[^\]]+\]:\s*<?(\S+?)>?(?:\s+.*)?$")
 
 
@@ -63,9 +63,22 @@ def blocks(text):
     return out
 
 
+def _frontmatter_end(lines):
+    """Индекс строки закрывающего `---` YAML-frontmatter или -1, если его нет."""
+    if lines and lines[0] == "---":
+        for i in range(1, len(lines)):
+            if lines[i] == "---":
+                return i
+    return -1
+
+
 def links(text):
     fence = None
-    for n, line in enumerate(text.split("\n"), 1):
+    lines = text.split("\n")
+    fm_end = _frontmatter_end(lines)
+    for n, line in enumerate(lines, 1):
+        if n <= fm_end + 1:
+            continue
         m = RE_FENCE.match(line)
         if fence is None and m:
             fence = m.group("fence")

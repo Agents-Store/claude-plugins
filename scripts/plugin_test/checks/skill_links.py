@@ -11,7 +11,7 @@ from ..model import FAIL, WARN, Finding
 
 CHECK = "skill-links"
 EXTERNAL = re.compile(r"^(?:[a-z][a-z0-9+.-]*:|//|#)", re.I)
-PLACEHOLDER = re.compile(r"[<>{}$]|\.\.\.")
+PLACEHOLDER = re.compile(r"[<>{}$|\\*]|\.\.\.")
 RE_POINTER = re.compile(r"`([a-z][a-z0-9-]*):([a-z][a-z0-9-]*)`")
 PLUGIN_NAME = re.compile(r"^(?:stack-[a-z0-9-]+|[a-z0-9-]+-(?:dev|ops|provision))$")
 # Официальные и сторонние плагины, на которые skills ссылаются намеренно.
