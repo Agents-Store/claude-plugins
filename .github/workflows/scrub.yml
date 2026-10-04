@@ -25,6 +25,11 @@ name: Scrub check
 #      the official manifest validator, so a manifest Claude Code itself would
 #      refuse never reaches the marketplace.
 #
+# The three files macstack-dev bundles from other repositories — the standard's
+# schema and the registry's two vocabularies — are compared with the canon on
+# GitHub by a workflow of its own, macstack-canon.yml: it needs the network and
+# other repositories, so it must not gate unrelated pull requests.
+#
 # Passes 1 and 2 read the WORKING TREE only. A value that already reached git
 # history is not caught here and cannot be fixed by editing a file — revoke it
 # at the source. Locally, ./scripts/scrub-check.sh runs passes 1, 2 and 5 at
@@ -158,3 +163,11 @@ jobs:
       # nothing by itself, so each one has a test that must still fire.
       - name: scripts (plugin_lint)
         run: python3 -m unittest discover -s scripts/tests -v
+
+      # macstack-dev's linter, migration and sync scripts decide what every
+      # project's documents are judged by; its suite (stdlib only, ~3 s) gated
+      # nothing until 3.10.0 — a regression passed CI as long as nobody ran it
+      # locally.
+      - name: macstack-dev
+        working-directory: plugins/macstack-dev
+        run: sh run-tests.sh

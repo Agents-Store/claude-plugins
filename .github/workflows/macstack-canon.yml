@@ -1,0 +1,46 @@
+# macstack-dev bundles copies of the MACSTACK canon in
+# plugins/macstack-dev/skills/lint/references/ — the standard's
+# schema/macstack.schema.json (macstacks/macstack) and the registry's
+# coverage-areas.json and software-categories.json (macstacks/registry). The
+# canon moves in those repositories and nothing here changes when it does, so
+# the copies drift in silence, and the lint rules that read them (12.1 builds
+# its expected docs.files keys from the schema) judge projects against a
+# standard that has moved on.
+#
+# A workflow of its own, not a job in scrub.yml: the check depends on the
+# network and on other repositories, so a canon change or a raw.githubusercontent
+# hiccup must not turn unrelated pull requests red. It runs when the plugin or
+# this check changes, weekly to catch a canon that moved on its own, and on
+# demand. A mirror refreshed from an UNMERGED canon branch fails here until
+# that branch merges — by design. Locally, MACSTACK_CANON_OFFLINE=1 skips it.
+name: macstack canon mirrors
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/macstack-dev/**'
+      - 'scripts/check-macstack-canon.sh'
+      - '.github/workflows/macstack-canon.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/macstack-dev/**'
+      - 'scripts/check-macstack-canon.sh'
+      - '.github/workflows/macstack-canon.yml'
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macstack-canon:
+    name: macstack-dev mirrors equal the canon
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Bundled schema and registry files equal macstacks/macstack and macstacks/registry
+        run: ./scripts/check-macstack-canon.sh
