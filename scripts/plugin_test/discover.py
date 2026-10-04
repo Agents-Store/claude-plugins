@@ -90,15 +90,18 @@ def select(plugins, wanted):
 
 
 def changed_paths(repo, base):
+    # -z: пути через NUL и без кавычек — иначе git берёт в кавычки не-ASCII имена
+    # (core.quotePath), и плагин с таким файлом молча не выбирается.
     try:
         out = subprocess.run(
-            ["git", "-C", repo, "diff", "--name-only", "%s...HEAD" % base],
-            capture_output=True, text=True, check=True, timeout=60).stdout
+            ["git", "-C", repo, "diff", "-z", "--name-only", "--relative", "%s...HEAD" % base],
+            capture_output=True, check=True, timeout=60).stdout
     except subprocess.CalledProcessError as exc:
-        raise ChangedError("git diff %s...HEAD: %s" % (base, exc.stderr.strip()[:200])) from exc
+        stderr = (exc.stderr or b"").decode("utf-8", "replace").strip()
+        raise ChangedError("git diff %s...HEAD: %s" % (base, stderr[:200])) from exc
     except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
         raise ChangedError("git diff %s...HEAD: %s" % (base, exc)) from exc
-    return [line for line in out.splitlines() if line]
+    return [p for p in out.decode("utf-8", "surrogateescape").split("\0") if p]
 
 
 def _plugin_dir_of(path):

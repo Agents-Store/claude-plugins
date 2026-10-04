@@ -108,6 +108,11 @@ class ChangedTest(unittest.TestCase):
         self.repo.commit_all("delete, outside, new")
         self.assertEqual(self.names(), ["renamed-dev"])
 
+    def test_non_ascii_path_selects_plugin(self):
+        self.repo.write("plugins/lone-ops/skills/s/привет.md", "x")
+        self.repo.commit_all("non-ascii name")
+        self.assertEqual(self.names(), ["lone-ops"])
+
     def test_bad_base_raises(self):
         plugins = discover.discover(self.repo.root)
         with self.assertRaises(discover.ChangedError):
