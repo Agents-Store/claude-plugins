@@ -25,6 +25,11 @@ name: Scrub check
 #      the official manifest validator, so a manifest Claude Code itself would
 #      refuse never reaches the marketplace.
 #
+# A sixth, separate job (macstack-canon) compares the three files macstack-dev
+# bundles from other repositories — the standard's schema and the registry's
+# two vocabularies — with the canon on GitHub. It needs the network, so it is
+# not part of the unit-test job above.
+#
 # Passes 1 and 2 read the WORKING TREE only. A value that already reached git
 # history is not caught here and cannot be fixed by editing a file — revoke it
 # at the source. Locally, ./scripts/scrub-check.sh runs passes 1, 2 and 5 at
@@ -158,3 +163,20 @@ jobs:
       # nothing by itself, so each one has a test that must still fire.
       - name: scripts (plugin_lint)
         run: python3 -m unittest discover -s scripts/tests -v
+
+  # The canon moves in other repositories and nothing here changes when it does,
+  # so the bundled copies drift in silence — and the lint rules that read them
+  # (12.1 builds its expected docs.files keys from the schema) start judging
+  # projects against a standard that has moved on. Blocking, because a mirror
+  # that differs from main is wrong by definition. One consequence to expect: a
+  # copy refreshed from an UNMERGED canon branch fails here until that branch
+  # merges. Locally, MACSTACK_CANON_OFFLINE=1 skips the check.
+  macstack-canon:
+    name: macstack-dev mirrors equal the canon
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Bundled schema and registry files equal macstacks/macstack and macstacks/registry
+        run: ./scripts/check-macstack-canon.sh

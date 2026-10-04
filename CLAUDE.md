@@ -272,6 +272,18 @@ The `plugin-creator` plugin routes feedback to the correct repo via env vars:
 
 Skills check **both** directories to find a plugin automatically.
 
+## Mirrors of other repositories (macstack-dev)
+
+`plugins/macstack-dev/skills/lint/references/` bundles three files that other repositories own:
+`macstack.schema.json` (`macstacks/macstack`, `schema/`), `coverage-areas.json` and
+`software-categories.json` (`macstacks/registry`). Fix a mirror at its source, then refresh the copy
+byte-for-byte in the same pull request — a fix made only here is overwritten by the next sync.
+`./scripts/check-macstack-canon.sh` compares the three with `main` of those repositories and prints
+the file name and both sha256 digests of any that differ; CI runs it as the `macstack-canon` job of
+`.github/workflows/scrub.yml`. It needs the network, so it is not part of any unit-test run
+(`MACSTACK_CANON_OFFLINE=1` skips it locally). A copy taken from an unmerged canon branch fails the
+job until that branch merges — expected, not a reason to skip the job.
+
 ## Skill Improvement System
 
 Three methods for improving plugin skills:
