@@ -29,6 +29,12 @@ cat <<EOF > f.txt
 EOF
 diff <(sort a) <(sort b)
 ```
+```bash
+echo "a<b" > out
+```
+```bash
+grep -c "<h1\\|<H1" "$f" 2>/dev/null || true
+```
 ```console
 $ echo "unterminated
 ```
@@ -76,6 +82,15 @@ class SkillSnippetsTest(unittest.TestCase):
         self.assertEqual([(f.line, f.level) for f in found], [(5, FAIL), (8, FAIL), (13, FAIL)])
         self.assertIn("json", found[0].message)
         self.assertIn("bash -n", found[2].message)
+
+    def test_yaml_value_error_is_a_finding(self):
+        doc = "# Doc\n```yaml\na: 2024-13-45\n```\n```json\n{\"a\": 1,}\n```\n"
+        self.repo.plugin("t-dev", files={"skills/s/SKILL.md": doc})
+        found = run_check(skill_snippets, self.repo.root, "t-dev")
+        self.assertEqual([(f.line, f.level) for f in found], [(3, FAIL), (6, FAIL)])
+        self.assertIn("yaml", found[0].message)
+        self.assertIn("month", found[0].message)
+        self.assertIn("json", found[1].message)
 
     def test_yaml_missing_is_one_infra(self):
         self.repo.plugin("y-dev", files={"a.md": "```yaml\na: 1\n```\n", "b.md": "```yml\nb: 2\n```\n"})

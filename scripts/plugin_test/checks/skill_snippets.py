@@ -59,7 +59,7 @@ def _json(plugin, b, rel):
 def _yaml(plugin, b, rel):
     try:
         list(yaml.safe_load_all(b.body))
-    except yaml.YAMLError as exc:
+    except (yaml.YAMLError, ValueError) as exc:  # ValueError — невозможная дата вроде 2024-13-45, без problem_mark
         mark = getattr(exc, "problem_mark", None)
         problem = getattr(exc, "problem", None) or str(exc).split("\n")[0]
         return [Finding(plugin.name, CHECK, FAIL, "yaml-блок не парсится: %s" % problem, rel,
@@ -68,13 +68,19 @@ def _yaml(plugin, b, rel):
     return []
 
 
+def _bash_n(body):
+    return subprocess.run(["bash", "-n"], input=body, capture_output=True, text=True,
+                          env={"PATH": os.environ.get("PATH", "/usr/bin:/bin")}, timeout=CHECK_TIMEOUT)
+
+
 def _bash(plugin, b, rel):
     if any(line.startswith("$ ") for line in b.body.split("\n")):
         return []  # транскрипт сессии, а не скрипт
-    body = RE_PLACEHOLDER.sub("PLACEHOLDER", b.body)
     try:
-        proc = subprocess.run(["bash", "-n"], input=body, capture_output=True, text=True,
-                              env={"PATH": os.environ.get("PATH", "/usr/bin:/bin")}, timeout=CHECK_TIMEOUT)
+        proc = _bash_n(b.body)  # сначала как есть: подстановка плейсхолдеров сама ломает кавычки
+        if proc.returncode == 0:
+            return []
+        proc = _bash_n(RE_PLACEHOLDER.sub("PLACEHOLDER", b.body))
     except subprocess.TimeoutExpired:
         return [Finding(plugin.name, CHECK, INFRA, "bash -n не уложился в %d с" % CHECK_TIMEOUT, rel, b.line)]
     if proc.returncode == 0:
