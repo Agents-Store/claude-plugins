@@ -7,6 +7,7 @@ import re
 
 RE_VAR = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-([^}]*))?\}")
 RE_KEY = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+RE_QUOTED = re.compile(r"""^(["'])(.*?)\1\s*(?:#.*)?$""")    # "значение" или 'значение', затем, возможно, # комментарий
 
 
 def parse(text):
@@ -22,8 +23,9 @@ def parse(text):
         if not sep or not RE_KEY.fullmatch(key):
             continue
         value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
+        quoted = RE_QUOTED.match(value)
+        if quoted:
+            value = quoted.group(2)
         else:
             value = re.split(r"\s+#", value, maxsplit=1)[0]
         env[key] = value

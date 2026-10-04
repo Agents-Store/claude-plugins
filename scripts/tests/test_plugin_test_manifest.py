@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plugin_test_fixtures import Repo, load_plugin  # noqa: E402
@@ -127,11 +128,34 @@ class ManifestTest(unittest.TestCase):
         self.assertEqual([(f.check, f.level) for f in findings], [("manifest", FAIL)])
         self.assertEqual(m.mcp, {})
 
+    def test_huge_integer_is_a_finding(self):
+        m, findings = self.load("[budget]\nalways_on_tokens = %s\n" % ("9" * 5000))
+        self.assertEqual([(f.check, f.level, f.file) for f in findings],
+                         [("manifest", FAIL, "tests/plugins/demo-dev/plugin-test.toml")])
+        self.assertEqual(m.always_on_tokens, manifest.DEFAULT_ALWAYS_ON)
+
+    def test_deep_nesting_is_a_finding(self):
+        m, findings = self.load("x = %s1%s\n" % ("[" * 100000, "]" * 100000))
+        self.assertEqual([(f.check, f.level) for f in findings], [("manifest", FAIL)])
+        self.assertEqual(m.mcp, {})
+
+    def test_unreadable_file_is_a_finding_without_the_absolute_path(self):
+        self.load("")
+        plugin = load_plugin(self.repo.root, "demo-dev")
+        denied = PermissionError(13, "Permission denied", manifest.path_of(plugin))
+        with mock.patch("plugin_test.manifest.open", side_effect=denied, create=True):
+            m, findings = manifest.load(plugin)
+        self.assertEqual([(f.check, f.level, f.file) for f in findings],
+                         [("manifest", FAIL, "tests/plugins/demo-dev/plugin-test.toml")])
+        self.assertNotIn(self.repo.root, findings[0].message)
+        self.assertEqual(m.mcp, {})
+
 
 class EnvFileTest(unittest.TestCase):
     def test_parse(self):
-        env = envfile.parse('# c\nA=1\nexport B="two words"\nC=\'q\'\nD=v # note\nbad line\n=x\n')
-        self.assertEqual(env, {"A": "1", "B": "two words", "C": "q", "D": "v"})
+        env = envfile.parse('# c\nA=1\nexport B="two words"\nC=\'q\'\nD=v # note\nbad line\n=x\n'
+                            'E="v" # c\nF=\'w\'  # d\n')
+        self.assertEqual(env, {"A": "1", "B": "two words", "C": "q", "D": "v", "E": "v", "F": "w"})
 
     def test_expand(self):
         self.assertEqual(envfile.expand("${A}/x/${B:-dflt}/${C}", {"A": "a"}), ("a/x/dflt/", ["C"]))

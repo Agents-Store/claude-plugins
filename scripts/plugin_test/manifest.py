@@ -75,11 +75,16 @@ def load(plugin):
     def bad(message, level=FAIL):
         findings.append(Finding(plugin.name, "manifest", level, message, rel, 0, FIX))
 
+    # ValueError покрывает TOMLDecodeError и UnicodeDecodeError, а ещё слишком длинное целое
+    # (лимит int() в 4300 цифр); RecursionError — очень глубокая вложенность; OSError — файл не читается.
     try:
         with open(path, "rb") as fh:
             data = tomllib.load(fh)
-    except (tomllib.TOMLDecodeError, UnicodeDecodeError) as exc:
-        bad("TOML не разбирается: %s" % exc)
+    except (ValueError, RecursionError, OSError) as exc:
+        if isinstance(exc, OSError):    # str(OSError) несёт абсолютный путь — в находку он не попадает
+            bad("файл не читается: %s" % (exc.strerror or type(exc).__name__))
+        else:
+            bad("TOML не разбирается: %s" % exc)
         return Manifest(), findings
 
     m = Manifest()
