@@ -22,6 +22,17 @@ import v3
 import render as _render                   # покрытие считаем ЕГО функцией, не своей                                              # noqa: E402
 
 RESERVED = ('X', 'S', 'Z')          # сквозное, сценарии, запреты — ничьи по определению
+
+
+def kind_letter(case_id):
+    """Буква, стоящая непосредственно перед дефисом: `X-01` -> `X`, `CX-01` -> `X`.
+
+    В двухбуквенной форме первая буква всегда `C` («case»), и `split('-')[0]` целиком
+    — это `CX`, которое никогда не равно `X`: каждый сквозной кейс, сценарий и запрет
+    проекта на новой форме id считался сиротой. Та же буква ВИДА, что читают правила
+    линтера (rules_ids.py, 12.4), — один способ читать id, а не два.
+    """
+    return case_id.split('-')[0][-1:]
 NOT_SCREENS = ('channel', 'api_portal', 'report')      # интерфейсы, которые человек не открывает
 
 HOLE, INFO, OK = 'ДЫРА', 'инфо', 'ок'
@@ -108,10 +119,10 @@ def run(root):
         for pat in (r.get('cases') or []):
             declared[pat.split('-')[0]] = r['id']
     orphan = [c for c in cases
-              if c.split('-')[0] not in declared and c.split('-')[0] not in RESERVED]
+              if c.split('-')[0] not in declared and kind_letter(c) not in RESERVED]
     say(OK, u'кейсы: %d, из них ничьих по определению (%s) — %d'
         % (len(cases), u'/'.join(RESERVED),
-           sum(1 for c in cases if c.split('-')[0] in RESERVED)))
+           sum(1 for c in cases if kind_letter(c) in RESERVED)))
     if orphan:
         say(HOLE, u'%d кейсов не покрыты ни одним roles[].cases: %s'
             % (len(orphan), u', '.join(orphan[:10])))
