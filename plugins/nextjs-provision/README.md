@@ -71,4 +71,4 @@ Use the `component-search` skill or `/search-components` command to find and ins
 
 - [shadcn/ui](https://ui.shadcn.com/) -- The underlying component system
 - [shadcn studio](https://shadcnstudio.com/) -- Premium components, blocks, and themes
-- [nextjs-dev](../nextjs-dev/) -- Companion plugin for Next.js development patterns
+- `nextjs-dev` -- Companion plugin for Next.js development patterns

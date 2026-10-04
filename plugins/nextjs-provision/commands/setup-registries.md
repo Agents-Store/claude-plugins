@@ -25,7 +25,7 @@ Full project setup for shadcn community registry search — registries, MCP, CLA
 4. **Add registries** — Run `/add-registries` to fetch the registries from `https://ui.shadcn.com/r/registries.json` (it skips `unavailable` and hidden ones) and add them to `components.json`
 
 4b. **shadcn studio registries** — If the project uses shadcn studio, write the `@`-prefixed studio registries (not legacy `ss-*` keys):
-   ```json
+   ```jsonc
    "registries": {
      "@shadcn-studio": "https://shadcnstudio.com/r/{style}/{name}.json",
      "@ss-components": "https://shadcnstudio.com/r/components/{style}/{name}.json",
