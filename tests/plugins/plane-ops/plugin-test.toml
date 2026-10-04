@@ -1,0 +1,7 @@
+# PreToolUse-hook решает, какие вызовы Plane MCP спрашивают подтверждение,
+# поэтому его таблица разрушительных действий тестируется как код.
+[[unit]]
+name = "plane-ops hook unittest"
+run = "python3 -W error::ResourceWarning -m unittest discover -s . -v"
+cwd = "plugins/plane-ops/hooks"
+needs = ["python3"]

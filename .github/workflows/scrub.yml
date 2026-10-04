@@ -1,6 +1,6 @@
 name: Scrub check
 
-# Publication gate. Five passes, all blocking.
+# Publication gate. Three passes, all blocking.
 #
 #   1. scrub_check.py  — a public plugin must not carry deployment-specific
 #      data: host and instance names, private endpoints, routable IPs, layout
@@ -12,23 +12,18 @@ name: Scrub check
 #      evals.json, plugin.json version equal to the marketplace.json entry, and
 #      the mcp__plugin_<plugin>_<server>__ prefix on tools of the plugin's own
 #      MCP servers.
-#   3. catalog-check.py — the finding ids the code can emit and the ids the
-#      findings catalog declares are one id space. They drift silently, one
-#      finding at a time, and the drift only shows up as a repair line nobody
-#      can resolve.
-#   4. unittest        — level 2 of the verification ladder: the plugin's own
-#      logic (openclaw-ops, the plane-ops hook) and the gate's own lint rules
-#      (scripts/tests) against dry fixtures, no server and no Docker daemon. The
-#      fixtures are scanned by pass 1 like any other file, because a
-#      captured fixture is the quietest way to publish a secret.
-#   5. validate_pass.py — `claude plugin validate --strict` on every plugin:
+#   3. validate_pass.py — `claude plugin validate --strict` on every plugin:
 #      the official manifest validator, so a manifest Claude Code itself would
 #      refuse never reaches the marketplace.
 #
 # Passes 1 and 2 read the WORKING TREE only. A value that already reached git
 # history is not caught here and cannot be fixed by editing a file — revoke it
-# at the source. Locally, ./scripts/scrub-check.sh runs passes 1, 2 and 5 at
+# at the source. Locally, ./scripts/scrub-check.sh runs all three passes at
 # once.
+#
+# The findings catalog check (openclaw-ops), the plugins' own unit tests and
+# the gate's rule tests moved to plugin-test.yml: [[unit]] entries in
+# tests/plugins/<plugin>/plugin-test.toml and the runner self-tests step.
 
 on:
   pull_request:
@@ -90,7 +85,7 @@ jobs:
                exit 1 ;;
           esac
 
-      # Fifth pass: the official validator. Runs even when an earlier pass
+      # Third pass: the official validator. Runs even when an earlier pass
       # failed, so one run reports every kind of defect at once.
       - name: Official validator
         if: always()
@@ -119,42 +114,3 @@ jobs:
             exit 1
           fi
           echo "Baseline grew by ${added} line(s) in a baseline-only pull request — reviewable."
-
-  tests:
-    name: Plugin logic on dry fixtures
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      # The findings catalog is a contract with four consumers, and the loop
-      # audit -> report -> repair breaks silently per finding when the code and
-      # the catalog drift apart: the report prints a repair line nobody can
-      # resolve. Blocking, and before the suite, because a split id space makes
-      # every other result harder to read.
-      - name: openclaw-ops findings catalog
-        working-directory: plugins/openclaw-ops
-        run: python3 scripts/catalog-check.py
-
-      # Standard library only, deliberately: these scripts run on an operator's
-      # server, so a suite that needed a package index would be testing a
-      # machine the operator does not have.
-      - name: openclaw-ops
-        working-directory: plugins/openclaw-ops
-        run: python3 -m unittest discover -s tests -t tests -v
-
-      # The plane-ops PreToolUse hook decides which Plane MCP calls ask first,
-      # so its table of destructive actions is tested like code.
-      - name: plane-ops hook
-        working-directory: plugins/plane-ops/hooks
-        run: python3 -W error::ResourceWarning -m unittest discover -s . -v
-
-      # The gate's own rules (plugin_lint.py): a rule that stops matching fails
-      # nothing by itself, so each one has a test that must still fire.
-      - name: scripts (plugin_lint)
-        run: python3 -m unittest discover -s scripts/tests -v

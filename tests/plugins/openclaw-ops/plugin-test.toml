@@ -1,0 +1,15 @@
+# Шаги бывшей задачи `tests` из .github/workflows/scrub.yml — теперь [[unit]] (spec §5).
+
+# Каталог находок — контракт с четырьмя потребителями; код и каталог расходятся молча.
+[[unit]]
+name = "openclaw-ops findings catalog"
+run = "python3 scripts/catalog-check.py"
+cwd = "plugins/openclaw-ops"
+needs = ["python3"]
+
+# Только стандартная библиотека: скрипты работают на сервере оператора.
+[[unit]]
+name = "openclaw-ops unittest"
+run = "python3 -m unittest discover -s tests -t tests -v"
+cwd = "plugins/openclaw-ops"
+needs = ["python3"]
