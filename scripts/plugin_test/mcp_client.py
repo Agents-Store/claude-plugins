@@ -7,19 +7,24 @@
 """
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import queue
 import signal
+import ssl
 import subprocess
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 PROTOCOL_VERSION = "2025-06-18"
 CLIENT_INFO = {"name": "agents-store-plugin-test", "version": "1"}
 MAX_PAGES = 50
+MAX_BODY = 10 * 1024 * 1024
+READ_CHUNK = 64 * 1024
 INFRA_HTTP = {401, 403, 407, 408, 429}
 
 
@@ -89,7 +94,14 @@ def list_tools_stdio(command, args, env, cwd, timeout):
             proc.stdin.write((json.dumps(obj) + "\n").encode())
             proc.stdin.flush()
         except OSError as exc:
-            raise McpError("infra", "сервер закрыл stdin%s" % _tail(stderr_tail)) from exc
+            # Сервер умер раньше, чем мы написали: дать процессу завершиться, а потоку stderr — дочитать хвост.
+            try:
+                proc.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                pass
+            threads[1].join(timeout=1)
+            raise McpError("infra", "%s: сервер завершился, код %s%s" % (
+                obj.get("method"), proc.poll(), _tail(stderr_tail))) from exc
 
     def request(method, params):
         counter[0] += 1
@@ -150,37 +162,86 @@ def _kill(proc, threads):
 
 
 # --- streamable HTTP ---------------------------------------------------------
+#
+# В тексте ошибок нет ни URL, ни заголовков, ни тела ответа, ни str() исключения:
+# в них бывают хост и токен. Только метод, код, класс исключения или причина (strerror).
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """3xx — не повод идти дальше: POST превратился бы в GET, а Authorization ушёл бы на другой origin."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_OPENER = urllib.request.build_opener(_NoRedirect)
+
+
+def _check_target(url, headers):
+    try:
+        parts = urllib.parse.urlsplit(url)
+        ok = parts.scheme in ("http", "https") and bool(parts.netloc)
+    except ValueError:
+        ok = False
+    if not ok:
+        raise McpError("protocol", "URL сервера не http(s)")
+    for name, value in headers.items():
+        if "\r" in str(value) or "\n" in str(value):
+            raise McpError("protocol", "значение заголовка %s содержит перевод строки" % name)
+
+
+def _net_reason(exc):
+    """Причина сетевой ошибки без хоста и URL: код TLS, strerror, errno или имя класса."""
+    reason = exc.reason if isinstance(exc, urllib.error.URLError) else exc
+    if isinstance(reason, ssl.SSLError):
+        return str(getattr(reason, "reason", None) or type(reason).__name__)
+    if isinstance(reason, OSError):
+        if reason.strerror:
+            return reason.strerror
+        return "errno %s" % reason.errno if reason.errno else type(reason).__name__
+    return type(reason).__name__ if not isinstance(reason, str) else "URLError"
+
 
 def list_tools_http(url, headers, timeout):
     deadline = time.monotonic() + timeout
     session = {}
     counter = [0]
+    _check_target(url, headers)
 
     def post(obj, want_reply=True):
+        method = obj.get("method")
         left = deadline - time.monotonic()
         if left <= 0:
-            raise McpError("infra", "%s: нет ответа за %d с" % (obj.get("method"), timeout))
+            raise McpError("infra", "%s: нет ответа за %d с" % (method, timeout))
         hdrs = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream", **headers}
         if "id" in session:
             hdrs["Mcp-Session-Id"] = session["id"]
         if "version" in session:
             hdrs["MCP-Protocol-Version"] = session["version"]
-        req = urllib.request.Request(url, data=json.dumps(obj).encode(), headers=hdrs, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=left) as resp:
+            req = urllib.request.Request(url, data=json.dumps(obj).encode(), headers=hdrs, method="POST")
+            with _OPENER.open(req, timeout=left) as resp:
                 sid = resp.headers.get("Mcp-Session-Id")
                 if sid:
                     session["id"] = sid
-                body = resp.read().decode("utf-8", "replace")
                 if not want_reply:
                     return None
-                ctype = resp.headers.get("Content-Type", "")
+                return _read_reply(resp, resp.headers.get("Content-Type", ""), obj["id"], method, deadline, timeout)
         except urllib.error.HTTPError as exc:
+            exc.close()
+            if 300 <= exc.code < 400:
+                raise McpError("protocol", "%s: HTTP %d — сервер перенаправляет, укажи в .mcp.json конечный URL"
+                               % (method, exc.code)) from None
             kind = "infra" if exc.code in INFRA_HTTP or exc.code >= 500 else "protocol"
-            raise McpError(kind, "%s: HTTP %d" % (obj.get("method"), exc.code)) from exc
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise McpError("infra", "%s: сеть: %s" % (obj.get("method"), getattr(exc, "reason", exc))) from exc
-        return _pick(body, ctype, obj["id"], obj["method"])
+            raise McpError(kind, "%s: HTTP %d" % (method, exc.code)) from None
+        except (urllib.error.URLError, OSError) as exc:
+            reason = exc.reason if isinstance(exc, urllib.error.URLError) else exc
+            if isinstance(reason, TimeoutError):
+                raise McpError("infra", "%s: нет ответа за %d с" % (method, timeout)) from None
+            raise McpError("infra", "%s: сеть: %s" % (method, _net_reason(exc))) from None
+        except http.client.HTTPException as exc:
+            raise McpError("infra", "%s: %s" % (method, type(exc).__name__)) from None
+        except ValueError as exc:
+            raise McpError("protocol", "%s: %s" % (method, type(exc).__name__)) from None
 
     def request(method, params):
         counter[0] += 1
@@ -192,26 +253,54 @@ def list_tools_http(url, headers, timeout):
     return _paginate(request)
 
 
-def _pick(body, ctype, rid, method):
-    """JSON-RPC ответ с нужным id из JSON-тела или из событий SSE."""
-    candidates = []
-    if "text/event-stream" in ctype:
-        data = []
-        for line in body.split("\n") + [""]:
-            line = line.rstrip("\r")
-            if line.startswith("data:"):
-                data.append(line[5:].lstrip())
-            elif not line and data:
-                candidates.append("\n".join(data))
-                data = []
+def _match(chunk, rid):
+    """JSON-RPC сообщение с id rid из одного JSON-текста, иначе None."""
+    try:
+        msg = json.loads(chunk)
+    except ValueError:
+        return None
+    for m in msg if isinstance(msg, list) else [msg]:
+        if isinstance(m, dict) and m.get("id") == rid:
+            return m
+    return None
+
+
+def _sse_line(data, line, rid):
+    """Одна строка SSE; пустая строка закрывает событие. Возвращает нужное сообщение или None."""
+    if line.startswith("data:"):
+        data.append(line[5:].lstrip())
+    elif not line and data:
+        chunk = "\n".join(data)
+        data.clear()
+        return _match(chunk, rid)
+    return None
+
+
+def _read_reply(resp, ctype, rid, method, deadline, timeout):
+    """Читает ответ порциями под общим дедлайном; SSE — до события с нужным id, не до закрытия потока."""
+    sse = "text/event-stream" in ctype
+    body, data, total = b"", [], 0
+    while True:
+        if time.monotonic() >= deadline:
+            raise McpError("infra", "%s: нет ответа за %d с" % (method, timeout))
+        chunk = resp.read1(READ_CHUNK)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > MAX_BODY:
+            raise McpError("protocol", "ответ больше 10 МиБ")
+        body += chunk
+        if sse:
+            *lines, body = body.split(b"\n")
+            for raw in lines:
+                found = _sse_line(data, raw.decode("utf-8", "replace").rstrip("\r"), rid)
+                if found is not None:
+                    return found
+    if sse:
+        found = _sse_line(data, body.decode("utf-8", "replace").rstrip("\r"), rid)
+        found = found if found is not None else _sse_line(data, "", rid)
     else:
-        candidates.append(body)
-    for chunk in candidates:
-        try:
-            msg = json.loads(chunk)
-        except ValueError:
-            continue
-        for m in msg if isinstance(msg, list) else [msg]:
-            if isinstance(m, dict) and m.get("id") == rid:
-                return m
-    raise McpError("protocol", "%s: в ответе нет JSON-RPC сообщения с id %s" % (method, rid))
+        found = _match(body.decode("utf-8", "replace"), rid)
+    if found is None:
+        raise McpError("protocol", "%s: в ответе нет JSON-RPC сообщения с id %s" % (method, rid))
+    return found

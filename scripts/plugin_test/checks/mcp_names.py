@@ -6,6 +6,7 @@ import re
 
 from .. import snapshots
 from ..markdown import iter_markdown, read
+from ..mcp_config import McpConfigError
 from ..mcp_config import servers as mcp_servers
 from ..model import FAIL, SKIPPED, Finding
 
@@ -37,9 +38,10 @@ def run(plugin, ctx, manifest):
                 if kind == "no-server":
                     out.append(Finding(plugin.name, CHECK, FAIL, "у плагина %s нет MCP-сервера %r" % (owner, server),
                                        rel, n, "имя сервера — ключ в .mcp.json плагина %s" % owner))
-                elif kind in ("no-snapshot", "bad-snapshot"):
-                    if key not in reported:
-                        reported.add(key)
+                elif kind in ("no-snapshot", "bad-snapshot", "bad-config"):
+                    rkey = ("config", owner) if kind == "bad-config" else key
+                    if rkey not in reported:
+                        reported.add(rkey)
                         out.append(payload)
                 elif tool not in payload:
                     close = difflib.get_close_matches(tool, sorted(payload), n=3)
@@ -51,7 +53,14 @@ def run(plugin, ctx, manifest):
 
 def _snapshot(ctx, owner_name, server):
     owner = ctx.catalog.plugins.get(owner_name)
-    if owner is None or server not in mcp_servers(owner):
+    if owner is None:
+        return "no-server", None
+    try:
+        known = mcp_servers(owner)
+    except McpConfigError as exc:
+        return "bad-config", Finding(owner_name, CHECK, FAIL, "MCP-конфиг не читается: %s" % exc.msg,
+                                     owner.rel(exc.path), 0, "исправь JSON в .mcp.json")
+    if server not in known:
         return "no-server", None
     path = snapshots.mcp_path(owner, server)
     try:

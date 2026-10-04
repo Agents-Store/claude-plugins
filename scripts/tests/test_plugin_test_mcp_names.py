@@ -82,6 +82,19 @@ class McpConfigTest(unittest.TestCase):
         self.assertEqual(list(mcp_config.servers(load_plugin(repo.root, "c-dev"))), ["inline"])
         self.assertEqual(mcp_config.servers(load_plugin(repo.root, "d-dev")), {})
 
+    def test_unreadable_config_raises_mcp_config_error(self):
+        repo = Repo()
+        self.addCleanup(repo.cleanup)
+        repo.plugin("a-dev", files={".mcp.json": "{not json"})
+        repo.plugin("b-dev", plugin_json={"name": "b-dev", "mcpServers": "extra.json"},
+                    files={"extra.json": "[1, 2"})
+        for name, rel in (("a-dev", ".mcp.json"), ("b-dev", "extra.json")):
+            with self.subTest(plugin=name):
+                with self.assertRaises(mcp_config.McpConfigError) as cm:
+                    mcp_config.servers(load_plugin(repo.root, name))
+                self.assertTrue(cm.exception.path.endswith(os.path.join("plugins", name, rel)))
+                self.assertTrue(cm.exception.msg)
+
 
 class McpNamesTest(unittest.TestCase):
     def setUp(self):
@@ -112,6 +125,25 @@ class McpNamesTest(unittest.TestCase):
         found = run_check(mcp_names, self.repo.root, "db-ops")
         self.assertEqual([(f.level, f.file) for f in found],
                          [(FAIL, "tests/plugins/db-ops/snapshots/mcp/nocodb.tools.json")])
+
+    def test_bad_mcp_json_is_a_finding(self):
+        self.repo.plugin("db-ops", files={
+            ".mcp.json": "{not json",
+            "a.md": "mcp__plugin_db-ops_nocodb__x\nmcp__plugin_db-ops_other__y\nmcp__plugin_db-ops_nocodb__z"})
+        found = run_check(mcp_names, self.repo.root, "db-ops")
+        self.assertEqual([(f.plugin, f.level, f.file) for f in found],
+                         [("db-ops", FAIL, "plugins/db-ops/.mcp.json")])
+        self.assertIn("MCP-конфиг не читается", found[0].message)
+        self.assertIn(".mcp.json", found[0].fix)
+
+    def test_bad_mcp_json_of_a_dependency_is_reported_on_the_owner(self):
+        self.repo.plugin("broken-dev")
+        with open(os.path.join(self.repo.root, "plugins", "broken-dev", ".mcp.json"), "wb") as fh:
+            fh.write(b"\xff\xfe\x00 not utf8")
+        self.repo.plugin("db-ops", deps=["broken-dev"], files={"a.md": "mcp__plugin_broken-dev_s__x"})
+        found = run_check(mcp_names, self.repo.root, "db-ops")
+        self.assertEqual([(f.plugin, f.level, f.file) for f in found],
+                         [("broken-dev", FAIL, "plugins/broken-dev/.mcp.json")])
 
 
 if __name__ == "__main__":
