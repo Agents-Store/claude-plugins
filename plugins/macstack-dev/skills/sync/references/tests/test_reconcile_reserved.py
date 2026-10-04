@@ -89,6 +89,20 @@ class Reconcile(unittest.TestCase):
         self.assertEqual(self.orphans(out), ['CT-01'], out)
         self.assertEqual(self.reserved_count(out), 1, out)
 
+    # Роль и её кейсы мигрируют не одним шагом: roles[].cases может ещё держать `A-*`,
+    # когда USER-CASES.md уже пишет `CA-01`, — и наоборот. Это одна роль, а не сирота.
+    def test_a_legacy_role_glob_covers_a_migrated_case(self):
+        out = self.run_on(['A-*'], 'CA-01')
+        self.assertEqual(self.orphans(out), [], out)
+
+    def test_a_migrated_role_glob_covers_a_legacy_case(self):
+        out = self.run_on(['CA-*'], 'A-01')
+        self.assertEqual(self.orphans(out), [], out)
+
+    def test_mixed_forms_do_not_hide_a_different_role(self):
+        out = self.run_on(['A-*'], 'CA-01', 'CB-01')
+        self.assertEqual(self.orphans(out), ['CB-01'], out)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

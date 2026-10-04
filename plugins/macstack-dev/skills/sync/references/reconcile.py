@@ -114,12 +114,15 @@ def run(root):
     # кейсы и роли
     cases = [i.id for i in v3.load(os.path.join(C, 'USER-CASES.md'))
              if i.id and re.match(r'^C?[A-Z]-\d{2}$', i.id)]
+    # Роль и её кейсы сравниваются по букве роли, а не по приставке целиком: глоб
+    # `A-*` в roles[].cases и кейс `CA-01` (или `CA-*` и `A-01`) — одна роль в двух
+    # формах id, а миграция переводит документ и спеку не одним шагом.
     declared = {}
     for r in (spec.get('roles') or []):
         for pat in (r.get('cases') or []):
-            declared[pat.split('-')[0]] = r['id']
+            declared[kind_letter(pat)] = r['id']
     orphan = [c for c in cases
-              if c.split('-')[0] not in declared and kind_letter(c) not in RESERVED]
+              if kind_letter(c) not in declared and kind_letter(c) not in RESERVED]
     say(OK, u'кейсы: %d, из них ничьих по определению (%s) — %d'
         % (len(cases), u'/'.join(RESERVED),
            sum(1 for c in cases if kind_letter(c) in RESERVED)))
