@@ -25,7 +25,7 @@ The parser, with `autoFix` and its own fixer model:
 
 Wire the parser to the agent, and a **coding-capable fixer model** to the parser:
 
-```json
+```jsonc
 "Structured Output Parser": {
   "ai_outputParser": [[{ "node": "AI Agent", "type": "ai_outputParser", "index": 0 }]]
 },

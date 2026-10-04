@@ -67,3 +67,10 @@ These are defects or gaps in the **vendored** files. They are not fixed here (th
 **Fix:** New local file `skills/examples/references/background-processing-patterns.md` (`examples` is one of the six local skills in the sync script's LOCAL list), linked from `examples/SKILL.md` as scenario 4. The error-recovery sketch retries through `POST /executions/{executionId}/retry` (present in the bundled 2.41.6 API reference, with `loadWorkflow`), and the credentials section says to use credentials and fixed URLs instead of `$env`. No vendored file was touched.
 **Root cause:** Content about one tool lived in the stack plugin because no local, sync-safe place for n8n workflow sketches existed.
 **Severity:** Minor
+
+## 2026-10-04 — plugin-test L1: fence labels and one link fixed in vendored files (pending upstream)
+
+**Problem:** The L1 runner (`skill-snippets`, `skill-links`) flagged 13 spots: 11 ```json fences that are not strict JSON (several `connections` fragments without braces, `// comments`, `[...]`) in `api-reference` (local) and `n8n-agents`, `n8n-error-handling`, `n8n-workflow-patterns` (vendored); the queue-mode compose fragment in `n8n-self-hosting/TASK_RUNNERS.md` that uses the `*n8n` anchor from `assets/docker-compose.queue.yml`; and the link `../../n8n-expression-syntax/SKILL.md` in `n8n-workflow-patterns/webhook_processing.md`, which pointed outside the skill tree.
+**Fix:** Fences relabelled ```jsonc (label only, text untouched); a `<!-- plugin-test: skip -->` marker with a reason comment above the compose fragment; the link is now `../n8n-expression-syntax/SKILL.md`. The edits in the vendored directories are local: the next `scripts/sync-n8n-skills.sh` run overwrites them, so send them upstream (czlonkowski/n8n-skills) or re-apply them after that sync (`python3 scripts/plugin_test.py --plugin n8n-dev --check skill-snippets --check skill-links` lists what returns).
+**Root cause:** The upstream skills label pseudo-JSON as ```json and use a relative link that is valid only from the skill's parent directory.
+**Severity:** Minor

@@ -44,7 +44,7 @@ The Agent has a **main input** (the prompt / user message) and up to four **sub-
 
 A sub-node connects FROM itself TO the agent. In workflow JSON the connection lives on the **sub-node**, keyed by the `ai_*` type:
 
-```json
+```jsonc
 "Main LLM": {
   "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]]
 },
