@@ -92,9 +92,10 @@ Each answers one question, and none answers another's.
   apply on fifty-seven routes.
 - **`AUTOMATION.md`** — *what happens by itself, and who is responsible.* The universal
   trigger → task → workflow → role model. A trigger declares both its `type` (the
-  mechanism) and its `source` (interface · backend · integration · schedule · manual),
-  because the client cares about the second and the engineer about the first, and
-  neither implies the other.
+  mechanism — a field of the spec) and, in the document only, its `source` (interface ·
+  backend · integration · schedule · manual): a bullet derived from the type, which the
+  spec does not carry. The client cares about the second and the engineer about the
+  first, and neither implies the other.
 - **`HANDBOOK.md`** — *how a person actually uses it on a Tuesday.* Seeded from the
   cases and screens, then written by a human. This is the document the client's own
   staff reads, and it is the reason the case documents can stay abstract.

@@ -1457,8 +1457,9 @@
         "ru": "Чужого не видит",
         "en": "Sees nothing else"
       },
-      "type": "bool",
-      "render": "text"
+      "type": "text",
+      "render": "text",
+      "$comment": "A description, not a yes/no: the schema's roles[].isolation is a STRING (\"Tenant isolation, e.g. by the company field\") and the live spec carries strings (`own records only`). The contract used to declare `bool`; the seed wrote the spec's string into the bullet anyway, and a reader that met `да` returned True — which `sync-spec.py --apply` then wrote into a string field. sync-spec still reads a bare yes/no from a document but only COMPARES it, and never writes a boolean."
     },
     "kind": {
       "label": {

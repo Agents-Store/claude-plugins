@@ -68,8 +68,9 @@ Each answers one question, and none answers another's.
   accessibility and tone once; then per screen what is on it, what can be done, and
   what must **not** be visible there.
 - **`client/AUTOMATION.md`** — the trigger → task → workflow → role model. A trigger
-  declares its `type` (the mechanism) and its `source` (interface · backend ·
-  integration · schedule · manual), because the client asks the second question.
+  declares its `type` (the mechanism — a field of the spec) and, in the document only,
+  its `source` (interface · backend · integration · schedule · manual), a bullet derived
+  from the type because the client asks the second question; the spec has no such field.
 - **`client/HANDBOOK.md`** — how a person actually uses the platform.
 - **`client/OPEN-QUESTIONS.md`** — §A owed by the client, §B deferred by the team with
   the trigger that ends the deferral.
