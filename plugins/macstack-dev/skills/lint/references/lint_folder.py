@@ -64,6 +64,11 @@ class Ctx(object):
         _files_props = (((sch.get('properties') or {}).get('docs') or {})
                         .get('properties', {}).get('files', {}).get('properties') or {})
         self.docs_files_keys = set(_files_props)
+        # Верхнеуровневые коллекции спецификации — массивы схемы (roles, triggers,
+        # cases, …). Нужны правилу 12.0: отсутствие такой коллекции в спеке равно
+        # «ни одной записи», а не «не знаю».
+        self.spec_lists = set(k for k, v in ((sch.get('properties') or {}).items())
+                              if isinstance(v, dict) and v.get('type') == 'array')
         # Ключи, которые сама схема объявила устаревшими (`log` с rev 18): они
         # допустимы, но называть их в новом файле не нужно.
         self.docs_files_deprecated = set(k for k, v in _files_props.items()
@@ -126,7 +131,9 @@ class Ctx(object):
     def entity_kind(self, item):
         """Which contract entity kind this heading is. None when it is not one."""
         if not item.ref:
-            return 'case' if item.id and re.match(r'^[XSZ]-\d\d$', item.id) else None
+            # Сквозной кейс, сценарий и запрет могли не нести указателя; `C` перед буквой
+            # вида — двухбуквенная форма того же id (`CX-01`), а не другой вид сущности.
+            return 'case' if item.id and re.match(r'^C?[XSZ]-\d\d$', item.id) else None
         tail = item.ref.split('.')[-1] if '.' in item.ref else ''
         if tail.startswith('tasks'):
             return 'role_task'
@@ -184,6 +191,23 @@ TABLE = re.compile(r'^\s*\|')
 
 
 # ---------------------------------------------------------------- rules
+def _spec_expects(c, decl):
+    """Does macstack.json hold at least one entity of this kind?
+
+    True / False, or None when it cannot be told from the spec's top-level collections —
+    and then 12.0 keeps its old strictness, because "cannot tell" is not "none".
+    `role_task` is not a collection: it is a task that has a `human` block (a
+    workflow-only task is the machine half, which AUTOMATION.md does not own)."""
+    if decl.get('kind') == 'role_task':
+        return any(isinstance(t, dict) and t.get('human')
+                   for p in (c.spec.get('processes') or []) if isinstance(p, dict)
+                   for t in (p.get('tasks') or []))
+    names = decl.get('collections') or [_CONTRACT_KIND.get(decl.get('kind'), decl.get('kind'))]
+    if not all(n in c.spec_lists for n in names):
+        return None
+    return any(c.spec.get(n) for n in names)
+
+
 @rule('12.0', 'A declared entity kind is actually found in its document')
 def r_12_0(c):
     """The guard against the failure this whole pass exists to catch.
@@ -196,6 +220,13 @@ def r_12_0(c):
 
     So: if the contract declares an entity kind for a document and the document has
     headings, finding none of that kind is an ERROR, not silence.
+
+    One exception, and it is the whole point of asking the spec: when the SPEC holds
+    none of that kind, an empty result is the right answer, not a broken filter. An
+    AUTOMATION.md of a project whose tasks are all machine ones (which the document does
+    not own) has no `role_task`; one whose spec declares no triggers has no `trigger`.
+    The rule used to call both documents broken. It still fires whenever the spec expects
+    the kind — which is the situation it was written for.
     """
     out = []
     for key in sorted(c.docs):
@@ -206,7 +237,7 @@ def r_12_0(c):
             if e.get('status') == 'unrealised':
                 continue
             _, items = c.entities_of(key, e['kind'])
-            if not items:
+            if not items and _spec_expects(c, e) is not False:
                 out.append(Finding('12.0', ERROR, c.rel(doc.path), 0,
                                    'the contract declares a %s here and not one was '
                                    'matched — the document has %d headings, so this is '

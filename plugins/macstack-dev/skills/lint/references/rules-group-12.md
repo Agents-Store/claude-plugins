@@ -36,6 +36,10 @@ ever cited one.
      still matched the old collection and silently returned zero.
      Any rule that can return "nothing to check" must be able to tell that apart from
      "checked, and it was fine" — otherwise it is decoration.
+     It asks the spec before it fires: when `macstack.json` holds **none** of the kind
+     (an `AUTOMATION.md` whose tasks are all machine ones, which the document does not
+     own, or whose spec declares no triggers), an empty result is the right answer and
+     the rule stays silent. It fires whenever the spec expects the kind.
 
 12.1 **Layout** — `docs.root` resolves and holds exactly SIX entries: `README.md`,
      `macstack.json` and the four folders `client/`, `generated/`, `inbox/`,
@@ -65,7 +69,8 @@ ever cited one.
      rule: a Cyrillic capital KA (U+041A) renders exactly like `K` (U+004B), greps as
      absent and silently breaks every cross-reference check, so compare codepoints
      rather than glyphs; no gaps in D-numbering; A/B numbers never reused after a
-     strike — `A5` and `QA5` are one number in two spellings, so reuse across them counts.
+     strike — `A5` and `QA5` are one number in two spellings, so reuse across them counts;
+     so are `X-01` and `CX-01` (and `C-01` / `CC-01`) in the case space.
 12.4 **Cross-file refs** — every `D<n>` cited anywhere resolves in `DECISIONS.md`;
      every `A<n>` **and every `B<n>`** (also `QA<n>` / `QB<n>`) in `lifecycle.*` resolves to a
      live item; every

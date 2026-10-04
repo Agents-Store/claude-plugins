@@ -55,6 +55,15 @@ def _open_item_number(token):
     return token[1:] if token.startswith('Q') else token
 
 
+def _case_number(token):
+    """`CX-01` -> `X-01`. Номер один, форм две — как у открытого пункта выше.
+
+    Двухбуквенная форма — `C` («case») и буква вида или роли; одна буква — наследие.
+    `C-01` и `CC-01` поэтому тоже один номер (роль `C` в старой записи), а `CA-01` и
+    `A-02` — разные. Срезается только `C`, за которой стоит ещё буква и дефис."""
+    return token[1:] if re.match(r'^C[A-Z]-', token) else token
+
+
 # ---------------------------------------------------------------- raw-line extraction
 # "The first token after the hashes" - works for every heading-based id space this
 # project has (`### A1 · ...`, `### К-1 · ...`, `## M11 · ...`, `### BL-3 · ...`)
@@ -181,7 +190,8 @@ def r_12_3(c):
     # case - X-01..Z-15 &c, headings in USER-CASES.md
     if 'user_cases' in c.docs:
         doc = c.docs['user_cases']
-        scan(doc.lines, c.rel(doc.path), _heading_tokens, r'^C?[A-Z]-[0-9]{2}$', 'case')
+        scan(doc.lines, c.rel(doc.path), _heading_tokens, r'^C?[A-Z]-[0-9]{2}$', 'case',
+             canon=_case_number)
 
     # open_item - A<n>/B<n>, headings in OPEN-QUESTIONS.md (see module docstring
     # for why this reads raw lines instead of it.id)
