@@ -72,7 +72,12 @@ ever cited one.
      `roles[].cases` prefix yields ≥1 case heading; every case-section letter maps to
      exactly one role; every `<case>.T<n>` carries a case that still exists; every
      `covers` in `TEST-CASES.md` names an acceptance id that still exists; every
-     `blocked_by` in `TASKS.md` resolves to a live task or open item; every `screens`
+     `blocked_by` in `TASKS.md` resolves to a live task or open item — **as a WARNING for
+     now, not an error** (owner, 2026-10-04: warnings first, errors later). The leg used
+     to read only the anchored v2 shape and saw nothing in a v3 `TASKS.md` (headings and
+     bullet labels), so a dangling `blocked_by` passed; it reads v3 now, and the finding
+     says it will become an error once the projects that carry the field are clean.
+     Every `screens`
      entry in a case resolves to a screen in `UX-UI.md`; every `triggers` entry
      resolves to a trigger in `AUTOMATION.md`.
 12.5 **Checked copies** — `open_questions[].summary` equals the first sentence of its
