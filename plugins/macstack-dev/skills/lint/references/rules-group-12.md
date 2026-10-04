@@ -321,7 +321,12 @@ ever cited one.
       roles, same human tasks, same gates, same triggers. A spec that disagrees with the
       document the client signed off on is the failure the whole folder exists to
       prevent. Additions and removals are ERRORS here even though `sync` will not apply
-      them: they mean a human still owes an id.
+      them: they mean a human still owes an id. **`gate: none` is never written** (owner's
+      ruling, 2026-10-04): the schema's `human.gate` is `approve · input · review ·
+      execute`, and a task with no person in it has no `human` block and no entry in
+      `AUTOMATION.md`. A document that already carries `gate: none` draws a **warning**
+      with the fix (set the gate the spec declares, or remove the machine task's entry),
+      not an error — the mistake was the seed's and the migration's, not the author's.
 12.23 **Every screen is declared** — every `interfaces[]` entry a person opens (`web`,
       `admin_ui`, `dashboard`, `approval_center`, `form`) has an entity in
       `client/UX-UI.md`, and every screen's `path` belongs to a declared interface. The

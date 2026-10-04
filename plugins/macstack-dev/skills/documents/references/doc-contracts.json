@@ -1396,8 +1396,7 @@
         "input",
         "execute",
         "approve",
-        "review",
-        "none"
+        "review"
       ],
       "value_label": {
         "ru": {
@@ -1408,7 +1407,7 @@
         }
       },
       "render": "text",
-      "$comment": "label_aliases is read-only: the reader accepts them, the writer never emits one. The shipped table said \"что требуется от человека\" while all 33 live bullets say \"что от человека требуется\" — the words are transposed, and 33 fields vanished."
+      "$comment": "label_aliases is read-only: the reader accepts them, the writer never emits one. The shipped table said \"что требуется от человека\" while all 33 live bullets say \"что от человека требуется\" — the words are transposed, and 33 fields vanished. `none` is NOT a gate and is never written (owner's ruling, 2026-10-04): the enum is exactly the schema's `human.gate`, which has no `none` — a task with no human gate has no `human` block in the spec and no gate bullet (indeed no entry at all) in AUTOMATION.md, because the machine half is not the document's. A document that already carries `gate: none` still reads; lint 12.22 warns on it and names the fix."
     },
     "goes_to": {
       "label": {

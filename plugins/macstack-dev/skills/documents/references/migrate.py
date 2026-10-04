@@ -38,6 +38,11 @@ TODO = '_TODO —'
 # the English enum silently set `gate: none` on every task of a Russian project — 33 of
 # them on the live one — and `none` reads as "nobody owns this", which is the opposite
 # of what the row said.
+#
+# `none` is not a gate and is never written (owner's ruling, 2026-10-04; the schema's
+# `human.gate` has no such value). An empty cell means "no person in this task" — the
+# machine half — and a task like that gets no gate line at all. A word that is neither a
+# gate nor empty is not guessed at either: no line, and the row's other fields survive.
 GATES = {
     'input': 'input', 'ввод': 'input', 'eingabe': 'input', 'ввід': 'input',
     'execute': 'execute', 'исполнение': 'execute', 'выполнение': 'execute',
@@ -46,7 +51,6 @@ GATES = {
     'freigabe': 'approve', 'рішення': 'approve',
     'review': 'review', 'проверка': 'review', 'ревью': 'review',
     'prüfung': 'review', 'перевірка': 'review',
-    '—': 'none', '-': 'none', '': 'none',
 }
 
 MOVES = [
@@ -412,7 +416,8 @@ def convert_roles_tasks(text, lang, spec=None):
                 y = {}
                 if cur_role:
                     y['role'] = cur_role[0]
-                y['gate'] = GATES.get(gate.strip().lower(), 'none')
+                if GATES.get(gate.strip().lower()):
+                    y['gate'] = GATES[gate.strip().lower()]
                 if starts and starts not in ('—', '-'):
                     y['trigger'] = starts
                 if wf and wf not in ('—', '-'):
