@@ -120,7 +120,7 @@ def list_tools_stdio(command, args, env, cwd, timeout):
             except queue.Empty:
                 continue
             if raw is None:
-                settle()  # тот же ожидающий путь, что и в send(): фиксированная пауза мигала под нагрузкой
+                settle()  # тот же ожидающий путь, что и в send(): убирает детерминированную гонку (фиксированная пауза перед чтением кода выхода и stderr)
                 raise McpError("infra", "%s: сервер завершился, код %s%s" % (method, proc.poll(), _tail(stderr_tail)))
             try:
                 msg = json.loads(raw)

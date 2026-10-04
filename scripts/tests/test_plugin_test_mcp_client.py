@@ -81,8 +81,9 @@ class StdioTest(unittest.TestCase):
                 self.assertIn("fatal-stderr-line", str(cm.exception))
 
     def test_stdout_eof_waits_for_exit_code_and_late_stderr(self):
-        # stdout закрыт сразу, процесс живёт ещё 0.4 с, пишет в stderr и выходит с кодом 5. Фиксированная
-        # пауза 0.1 с давала «код None» без хвоста stderr (и мигающий test_crash_… под нагрузкой).
+        # stdout закрыт сразу, процесс живёт ещё 0.4 с, пишет в stderr и выходит с кодом 5. Ожидание процесса и
+        # потока stderr убирает детерминированную гонку (фиксированная пауза 0.1 с перед чтением кода выхода и stderr
+        # давала «код None» без хвоста stderr).
         with self.assertRaises(McpError) as cm:
             mcp_client.list_tools_stdio("/bin/sh", ["-c", "exec 1>&-; sleep 0.4; echo late-stderr-line >&2; exit 5"],
                                         stub_env("ok"), FIXTURES, 10)
