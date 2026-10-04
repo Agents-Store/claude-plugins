@@ -4,6 +4,7 @@ import subprocess
 import sys
 import time
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plugin_test_fixtures import Repo, run_check  # noqa: E402
@@ -26,6 +27,13 @@ HOOKS = {"hooks": {
         {"matcher": "Bash", "hooks": [{"type": "prompt", "prompt": "check"}]},
     ],
     "Stop": [{"hooks": [{"type": "command", "command": "sleep 30 & sleep 30", "timeout": 1}]}],
+    "PostToolUse": [
+        {"matcher": "A", "hooks": [{"type": "command", "command": "true", "timeout": "10s"}]},
+        {"matcher": "B", "hooks": [{"type": "command", "command": "true", "timeout": -5}]},
+    ],
+    "SessionEnd": [{"hooks": [{"type": "command", "command": "echo ok", "timeout": 2.5}]}],
+    "PreCompact": [{"hooks": [{"type": "command"}]}],
+    "UserPromptSubmit": ["junk"],
 }}
 
 
@@ -90,6 +98,59 @@ class HookFixturesTest(unittest.TestCase):
         found = self.check(broken="{oops")
         self.assertEqual([(f.level, f.file) for f in found], [(FAIL, "tests/plugins/h-ops/hooks/broken.json")])
 
+    def test_malformed_data_is_findings_and_later_fixtures_still_run(self):
+        bad = {
+            "a_event": fixture(["x"], {}),
+            "b_stdin": fixture("SessionStart", {}, stdin="text"),
+            "c_expect": dict(fixture("SessionStart", {}), expect="x"),
+            "d_exit": fixture("SessionStart", {"exit": "0"}),
+            "e_timeout_str": fixture("PostToolUse", {}, matcher="A"),
+            "f_timeout_neg": fixture("PostToolUse", {}, matcher="B"),
+            "g_json_list": fixture("SessionStart", {"json": ["a"]}),
+            "h_no_command": fixture("PreCompact", {}),
+            "i_junk_entry": fixture("UserPromptSubmit", {}),
+        }
+        found = self.check(**dict(bad, y_float_timeout=fixture("SessionEnd", {"stdout_contains": "ok"}),
+                                  z_ok=fixture("SessionStart", {"stdout_contains": "plugin loaded from /"}),
+                                  z_wrong=fixture("SessionStart", {"exit": 5})))
+        by_file = {}
+        for f in found:
+            by_file.setdefault(f.file, []).append(f)
+        self.assertTrue(all(f.level == FAIL for f in found))
+        for name in bad:
+            path = "tests/plugins/h-ops/hooks/%s.json" % name
+            self.assertEqual(len(by_file.get(path, [])), 1, (name, by_file.get(path)))
+        self.assertIn("event", by_file["tests/plugins/h-ops/hooks/a_event.json"][0].message)
+        self.assertIn("stdin", by_file["tests/plugins/h-ops/hooks/b_stdin.json"][0].message)
+        self.assertIn("expect", by_file["tests/plugins/h-ops/hooks/c_expect.json"][0].message)
+        self.assertIn("expect.exit", by_file["tests/plugins/h-ops/hooks/d_exit.json"][0].message)
+        self.assertIn("timeout", by_file["tests/plugins/h-ops/hooks/e_timeout_str.json"][0].message)
+        self.assertIn("timeout", by_file["tests/plugins/h-ops/hooks/f_timeout_neg.json"][0].message)
+        self.assertIn("expect.json", by_file["tests/plugins/h-ops/hooks/g_json_list.json"][0].message)
+        self.assertIn("command", by_file["tests/plugins/h-ops/hooks/h_no_command.json"][0].message)
+        # a float timeout is valid, z_ok passes silently, z_wrong really ran and failed on its own
+        self.assertNotIn("tests/plugins/h-ops/hooks/y_float_timeout.json", by_file)
+        self.assertNotIn("tests/plugins/h-ops/hooks/z_ok.json", by_file)
+        self.assertEqual([f.file for f in by_file["tests/plugins/h-ops/hooks/z_wrong.json"]],
+                         ["tests/plugins/h-ops/hooks/z_wrong.json"])
+        self.assertEqual(len(found), len(bad) + 1)
+
+    def test_unexpected_exception_is_a_finding_and_run_continues(self):
+        self.repo.tests("h-ops", {"hooks/a.json": fixture("SessionStart", {}), "hooks/b.json": fixture("SessionStart", {})})
+        with mock.patch.object(hook_fixtures, "_fixture", side_effect=[RuntimeError("boom"), []]):
+            found = run_check(hook_fixtures, self.repo.root, "h-ops")
+        self.assertEqual([(f.level, f.file) for f in found], [(FAIL, "tests/plugins/h-ops/hooks/a.json")])
+        self.assertIn("фикстура не обработана: RuntimeError", found[0].message)
+
+
+def _alive(pid):
+    try:
+        with open("/proc/%d/stat" % pid) as fh:
+            state = fh.read().rpartition(")")[2].split()[0]
+    except (FileNotFoundError, ProcessLookupError):
+        return False
+    return state != "Z"
+
 
 class ProcTest(unittest.TestCase):
     def test_run_group(self):
@@ -102,6 +163,22 @@ class ProcTest(unittest.TestCase):
         with self.assertRaises(subprocess.TimeoutExpired):
             proc.run_group(["bash", "-c", "sleep 30 & sleep 30"], env={"PATH": os.environ["PATH"]}, cwd="/", timeout=1)
         self.assertLess(time.monotonic() - started, 10)
+
+    def test_normal_return_reaps_daemonized_child(self):
+        done = proc.run_group(["bash", "-c", "sleep 47 >/dev/null 2>&1 & echo $!"], env={"PATH": os.environ["PATH"]},
+                              cwd="/", timeout=10)
+        pid = int(done.stdout.strip())
+
+        def cleanup():
+            try:
+                os.kill(pid, 9)
+            except ProcessLookupError:
+                pass
+        self.addCleanup(cleanup)
+        deadline = time.monotonic() + 3
+        while _alive(pid) and time.monotonic() < deadline:
+            time.sleep(0.05)
+        self.assertFalse(_alive(pid), "фоновый процесс пережил нормальный возврат run_group")
 
 
 if __name__ == "__main__":
