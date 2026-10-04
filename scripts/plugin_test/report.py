@@ -7,6 +7,7 @@ Redactor: значения env-файла превращаются в ${ИМЯ},
 from __future__ import annotations
 
 import os
+import re
 import sys
 
 from . import model
@@ -19,6 +20,8 @@ import scrub_check  # noqa: E402
 
 REPORT_VERSION = 1
 MIN_SECRET_LEN = 6
+# Значение короче этого порога — слово, а не ключ: подставляется только целым токеном (решение владельца 2026-10-04).
+WHOLE_TOKEN_BELOW = 16
 SECRET_RULES = ("secret-material", "secret-kv")
 HIDDEN = "<строка скрыта: похожа на секрет>"
 MAX_MARKDOWN = 60000
@@ -56,12 +59,25 @@ def exit_code(findings):
 
 
 class Redactor:
-    """Значения env-файла → ${ИМЯ}; строки, похожие на секрет, → HIDDEN."""
+    """Значения env-файла → ${ИМЯ}; строки, похожие на секрет, → HIDDEN.
+
+    Значение короче 16 знаков (имя схемы, namespace, регион) заменяется только как целый токен — без соседних
+    [A-Za-z0-9_]: иначе list_publication_tables превращается в list_${ИМЯ}ation_tables. Значение от 16 знаков
+    заменяется где угодно. Подстановка идёт одним проходом, поэтому вставленное ${ИМЯ} не разбирается повторно."""
 
     def __init__(self, env):
-        pairs = [(v, k) for k, v in (env or {}).items()
-                 if isinstance(v, str) and len(v) >= MIN_SECRET_LEN]
-        self.pairs = sorted(pairs, key=lambda p: -len(p[0]))
+        names = {}
+        for name, value in sorted((env or {}).items()):  # одно значение у нескольких имён — берётся первое по порядку
+            if isinstance(value, str) and len(value) >= MIN_SECRET_LEN:
+                names.setdefault(value, name)
+        self.names = names
+        alternatives = []
+        for value in sorted(names, key=lambda v: (-len(v), v)):
+            escaped = re.escape(value)
+            if len(value) < WHOLE_TOKEN_BELOW:
+                escaped = r"(?<![A-Za-z0-9_])%s(?![A-Za-z0-9_])" % escaped
+            alternatives.append(escaped)
+        self.pattern = re.compile("|".join(alternatives)) if alternatives else None
         self.rules = [scrub_check.RULES_BY_ID[r] for r in SECRET_RULES]  # KeyError — громкий отказ, не тихое ослабление
 
     def _secret_line(self, line):
@@ -72,8 +88,8 @@ class Redactor:
     def text(self, s):
         if not s:
             return s
-        for value, name in self.pairs:
-            s = s.replace(value, "${%s}" % name)
+        if self.pattern is not None:
+            s = self.pattern.sub(lambda m: "${%s}" % self.names[m.group(0)], s)
         return "\n".join(HIDDEN if self._secret_line(line) else line for line in s.split("\n"))
 
     def obj(self, o):

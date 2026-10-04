@@ -22,6 +22,7 @@ import urllib.request
 
 PROTOCOL_VERSION = "2025-06-18"
 CLIENT_INFO = {"name": "agents-store-plugin-test", "version": "1"}
+USER_AGENT = "%s/%s" % (CLIENT_INFO["name"], CLIENT_INFO["version"])
 MAX_PAGES = 50
 MAX_BODY = 10 * 1024 * 1024
 READ_CHUNK = 64 * 1024
@@ -213,6 +214,8 @@ def list_tools_http(url, headers, timeout):
         if left <= 0:
             raise McpError("infra", "%s: нет ответа за %d с" % (method, timeout))
         hdrs = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream", **headers}
+        if not any(k.lower() == "user-agent" for k in hdrs):
+            hdrs["User-Agent"] = USER_AGENT  # без него urllib шлёт Python-urllib/x.y, а Cloudflare отвечает 403 (error 1010)
         if "id" in session:
             hdrs["Mcp-Session-Id"] = session["id"]
         if "version" in session:

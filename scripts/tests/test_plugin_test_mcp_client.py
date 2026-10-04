@@ -100,6 +100,7 @@ HUGE = 10 * 1024 * 1024 + 1
 class Handler(http.server.BaseHTTPRequestHandler):
     mode = "ok"
     seen = []
+    agents = []
     redirect_code = 302
     redirect_to = ""
     stop = threading.Event()
@@ -109,6 +110,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         msg = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        Handler.agents.append(self.headers.get("User-Agent"))
         Handler.seen.append((msg.get("method"), self.headers.get("Mcp-Session-Id"),
                              self.headers.get("MCP-Protocol-Version"), self.headers.get("Authorization")))
         if Handler.mode == "401":
@@ -204,7 +206,7 @@ class Target(http.server.BaseHTTPRequestHandler):
 
 class HttpTest(unittest.TestCase):
     def setUp(self):
-        Handler.mode, Handler.seen, Target.seen = "ok", [], []
+        Handler.mode, Handler.seen, Handler.agents, Target.seen = "ok", [], [], []
         Handler.stop.clear()
         self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
@@ -264,6 +266,14 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(Handler.seen[0], ("initialize", None, None, "Bearer x"))
         self.assertEqual(Handler.seen[1][:3], ("notifications/initialized", "sess-1", "2025-06-18"))
         self.assertEqual(Handler.seen[2][1], "sess-1")
+
+    def test_user_agent_is_sent_and_caller_can_override_it(self):
+        # Cloudflare отвечает 403 (error 1010) на Python-urllib/x.y — у draw.io это блокировало снимок.
+        mcp_client.list_tools_http(self.url, {}, 10)
+        self.assertEqual(set(Handler.agents), {"agents-store-plugin-test/1"})
+        Handler.agents.clear()
+        mcp_client.list_tools_http(self.url, {"user-agent": "custom/2"}, 10)
+        self.assertEqual(set(Handler.agents), {"custom/2"})
 
     def test_401_is_infra(self):
         Handler.mode = "401"

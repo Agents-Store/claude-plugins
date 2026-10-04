@@ -42,6 +42,28 @@ class RedactorTest(unittest.TestCase):
         r = report.Redactor({"API_TOKEN": FAKE, "SHORT": "abc"})
         self.assertEqual(r.text("bad credentials %s abc" % FAKE), "bad credentials ${API_TOKEN} abc")
 
+    def test_short_value_is_redacted_as_a_whole_token_only(self):
+        # Имя схемы или namespace — обычное слово в именах и описаниях инструментов (решение владельца 2026-10-04).
+        r = report.Redactor({"SCHEMA": "public", "T": "trigger"})
+        self.assertEqual(r.text("list_publication_tables"), "list_publication_tables")
+        self.assertEqual(r.text("schema public here"), "schema ${SCHEMA} here")
+        self.assertEqual(r.text("trigger_task"), "trigger_task")
+        self.assertEqual(r.text("triggered by (trigger)"), "triggered by (${T})")
+
+    def test_long_value_is_redacted_inside_a_longer_word(self):
+        r = report.Redactor({"K": FAKE})
+        self.assertEqual(r.text("prefix%ssuffix" % FAKE), "prefix${K}suffix")
+
+    def test_substitution_is_a_single_pass(self):
+        # Имя переменной само бывает значением другой: уже вставленное ${ИМЯ} повторно не разбирается.
+        r = report.Redactor({"API_TOKEN": FAKE, "FOO": "API_TOKEN"})
+        self.assertEqual(r.text("invalid key %s" % FAKE), "invalid key ${API_TOKEN}")
+        self.assertEqual(r.text("name API_TOKEN"), "name ${FOO}")
+
+    def test_longest_value_wins_when_values_overlap(self):
+        r = report.Redactor({"SHORT": "example", "LONG": "example.internal"})
+        self.assertEqual(r.text("host example.internal and example"), "host ${LONG} and ${SHORT}")
+
     def test_secret_shaped_line_is_hidden(self):
         r = report.Redactor({})
         # join во время выполнения: компилятор не склеит строку в константу .pyc
