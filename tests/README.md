@@ -21,14 +21,30 @@ python3 scripts/plugin_test.py --changed origin/main --strict   # как в pull
 python3 scripts/plugin_test.py --check skill-snippets   # одна проверка
 python3 scripts/plugin_test.py --mode server --env-file <workspace>/.env   # с ключами
 python3 scripts/plugin_test.py --repo <workspace>/claude-plugins-private   # private-репо
+python3 scripts/plugin_test.py --repo <workspace>/claude-plugins-private \
+  --with-repo <workspace>/claude-public-plugins   # зависимость лежит в другом репозитории
+python3 scripts/plugin_test.py --plugin <name> --verbose   # печатать и skipped / info
 ```
 
 Коды выхода: 0 чисто, 1 есть `fail`, 2 только `warn` / `infra`.
+
+`--with-repo` — ещё один репозиторий, где ищутся плагины по имени (ссылки `` `плагин:skill` ``,
+имена `mcp__plugin_<p>_…`); соседний репозиторий workspace находится сам. `--verbose` добавляет в вывод
+`skipped` и `info` (запись снимка), которые на код выхода не влияют.
+
+## Статусы
+
+Все проверки блокирующие (`blocking`), кроме `skill-budget`: у неё `fail` понижается до `warn`
+навсегда. У блокирующей проверки `fail` остаётся `fail`, а под `--strict` (так запускает CI)
+её `warn` тоже становится `fail`. `infra` — сбой окружения (сеть, сервер не стартовал, нет
+toolchain, дрейф снимка не закреплённого MCP-сервера) — не блокирует никогда: код выхода 2.
+Статусы — константа `STATUS` в `scripts/plugin_test/model.py`, меняются только коммитом.
 
 ## Проверки
 
 | ID | Что проверяет | Режим |
 |---|---|---|
+| `manifest` | `plugin-test.toml` разбирается: синтаксис TOML, известные ключи, типы и значения; ошибка — находка с путём файла, а не traceback | ci |
 | `skill-links` | относительные ссылки Markdown ведут в файлы плагина; `` `плагин:skill` `` указывает на существующий skill, команду или агента | ci |
 | `skill-snippets` | ```` ```json ````, ```` ```yaml ```` разбираются, ```` ```bash ```` проходит `bash -n` (`<плейсхолдер>` заменяется словом) | ci |
 | `skill-budget` | всегда-загружаемые токены (`claude plugin details`) и SKILL.md длиннее 500 строк — только предупреждение | ci |
