@@ -15,7 +15,8 @@ from .model import CHECK_TIMEOUT
 
 RE_HELP_FLAG = re.compile(r"(?<![\w-])--[a-z0-9][a-z0-9-]*")
 RE_SECTION = re.compile(r"^(available commands|commands|subcommands)\s*:?\s*$", re.I)
-RE_SUBCOMMAND = re.compile(r"^\s{2,}([a-z][a-z0-9-]*)(?:,\s*[a-z][a-z0-9-]*)*(?:\s{2,}\S|\s*$)")
+# cobra выравнивает по самому длинному имени + ОДИН пробел: между именем и описанием бывает один пробел
+RE_SUBCOMMAND = re.compile(r"^\s{2,}([a-z][a-z0-9-]*)(?:,\s*[a-z][a-z0-9-]*)*(?:\s+\S|\s*$)")
 RE_VERSION = re.compile(r"\d+\.\d+(?:\.\d+)?")
 
 

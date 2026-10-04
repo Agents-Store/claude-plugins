@@ -91,6 +91,17 @@ def _check(plugin, snap, tokens, rel, line):
     depth = len(path.split())
     if path and len(words) > depth and words[depth] in (snap.get("children") or {}).get(path, []):
         return []  # дочерняя подкоманда снятой команды — её флаги не сняты
+    known = (snap.get("children") or {}).get(path, []) if path else subs
+    seen_flag, after = False, []
+    for t in args:
+        if t == "--":
+            break
+        if t.startswith("-"):
+            seen_flag = True
+        elif seen_flag:
+            after.append(t)
+    if any(t in known for t in after):
+        return []  # флаг стоит перед подкомандой: чьи флаги — неясно, молчим
     allowed = ALWAYS | set(snap.get("global") or []) | set(snap["commands"].get(path, []))
     out = []
     for t in args:

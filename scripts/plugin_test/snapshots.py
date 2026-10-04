@@ -66,12 +66,23 @@ def load(path):
     return data
 
 
+def _strings(value):
+    return isinstance(value, list) and all(isinstance(x, str) for x in value)
+
+
 def load_cli(path):
     data = _read(path)
     if data is None:
         return None
     if not isinstance(data, dict) or not isinstance(data.get("commands"), dict):
         raise SnapshotError(path, "ожидался объект с картой commands")
+    for key in ("global", "subcommands"):
+        if key in data and not _strings(data[key]):
+            raise SnapshotError(path, "%s — ожидался список строк" % key)
+    for key in ("commands", "children"):
+        value = data.get(key, {})
+        if not isinstance(value, dict) or not all(_strings(v) for v in value.values()):
+            raise SnapshotError(path, "%s — ожидалась карта команда → список строк" % key)
     return data
 
 
