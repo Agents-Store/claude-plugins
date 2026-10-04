@@ -271,6 +271,21 @@ def _relpath(c, key, fallback):
 
 # ---------------------------------------------------------------- 12.13
 
+def _status_vocabulary(c):
+    """(accepted tokens, {deprecated token: how to fix it}) from the contract.
+
+    One place, `fields.status` in `doc-contracts.json`: the enum is the union the
+    schema declares for `taskRef.status` / `milestoneRef.status`, and `deprecated`
+    marks the tokens that stay valid but are no longer the way to write a status.
+    """
+    f = (c.contract.get('fields') or {}).get('status') or {}
+    fixes = {}
+    for tok, d in (f.get('deprecated') or {}).items():
+        d = d or {}
+        fixes[tok] = d.get('fix') or ('use %r' % d.get('replace_with'))
+    return set(f.get('enum') or []), fixes
+
+
 @rule('12.14', 'Every task is tracked in both places')
 def r_12_14(c):
     """The file says what the work IS; the tracker is where the conversation happens.
@@ -278,6 +293,13 @@ def r_12_14(c):
     A task living in only one of the two is a task half the team cannot see. A task
     still in `backlog` is exempt: it has not been sent anywhere yet, and demanding a
     tracker id from it demands that somebody invent one.
+
+    Also the status vocabulary of tasks AND milestones. The canonical five are the
+    tracker's (`backlog · todo · in_progress · done · cancelled`); `doing`, `blocked`
+    and `dropped` stay accepted so no existing file breaks, but each draws a WARNING that
+    names the replacement (owner's ruling, 2026-10-04). A task token outside the
+    vocabulary is an ERROR; a milestone token outside it is a warning, because milestones
+    had no vocabulary check at all before and a new error would redden existing projects.
     """
     out = []
     doc = c.docs.get('tasks')
@@ -287,7 +309,7 @@ def r_12_14(c):
     for e in ((c.contract.get('documents') or {}).get('tasks') or {}).get('entities') or []:
         if e['kind'] == 'task':
             decl = e
-    states = set((c.contract.get('fields') or {}).get('status', {}).get('enum') or [])
+    states, deprecated = _status_vocabulary(c)
     exempt = {'backlog', 'cancelled'}
     for it in doc.items:
         if it.level < 3 or not it.id or not re.match(r'^M\d+-T\d+$', it.id):
@@ -300,7 +322,11 @@ def r_12_14(c):
         elif states and st not in states:
             out.append(Finding('12.14', ERROR, 'history/TASKS.md', ln,
                                '%s has status %r, not one of %s'
-                               % (it.id, st, ', '.join(sorted(states)))))
+                               % (it.id, st, ', '.join(sorted(states - set(deprecated))))))
+        elif st in deprecated:
+            out.append(Finding('12.14', WARNING, 'history/TASKS.md', ln,
+                               '%s has status %r, which is deprecated — %s'
+                               % (it.id, st, deprecated[st])))
         if not it.get('tracker') and st not in exempt:
             out.append(Finding('12.14', ERROR, 'history/TASKS.md', ln,
                                '%s is %s and carries no tracker id' % (it.id, st or '—')))
@@ -309,6 +335,19 @@ def r_12_14(c):
                 and not re.search(r'снят|cancel|отменен', ' '.join(it.body), re.I):
             out.append(Finding('12.14', ERROR, 'history/TASKS.md', ln,
                                '%s is struck through and does not say why' % it.id))
+    # milestones: the same vocabulary, warnings only (see the docstring)
+    _, milestones = c.entities_of('tasks', 'milestone')
+    for it in milestones:
+        st = str(it.get('status') or '').strip().lower()
+        ln = (it.head_line or 0) + 1
+        if st in deprecated:
+            out.append(Finding('12.14', WARNING, 'history/TASKS.md', ln,
+                               'milestone %s has status %r, which is deprecated — %s'
+                               % (it.id, st, deprecated[st])))
+        elif st and states and st not in states:
+            out.append(Finding('12.14', WARNING, 'history/TASKS.md', ln,
+                               'milestone %s has status %r, not one of %s'
+                               % (it.id, st, ', '.join(sorted(states - set(deprecated))))))
     return out
 
 @rule('12.16', 'Milestones are falsifiable')

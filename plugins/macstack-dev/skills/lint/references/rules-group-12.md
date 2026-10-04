@@ -266,8 +266,14 @@ ever cited one.
 12.14 **Every task is tracked in both places** — every task in `TASKS.md` declares a
       `tracker` id. The file is the source of truth for what the work IS; the team's
       tracker is where the conversation about it happens, and a task in only one of
-      them is a task half the team cannot see. Also: `status` declared and one of the
-      five; a struck task states why.
+      them is a task half the team cannot see. Also: `status` declared and in the
+      vocabulary; a struck task states why. The vocabulary is the tracker's five
+      (`backlog · todo · in_progress · done · cancelled`); `doing`, `blocked` and
+      `dropped` stay accepted but each draws a **warning** naming the replacement
+      (`doing` → `in_progress`, `dropped` → `cancelled`, `blocked` → keep a real status
+      and record the blocker in `blocked_by`), on tasks and on milestones alike. A task
+      token outside the vocabulary is an error; a milestone token outside it is a
+      warning (milestones had no vocabulary check before).
 12.15 **A release is paired** — every `release` row in `history/ledger.jsonl` has a `CHANGELOG.md`
       entry with the same id, and every `CHANGELOG.md` entry has its `release` entry in
       the log. `CHANGELOG.md` is ordered newest first.
