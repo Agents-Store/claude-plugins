@@ -68,7 +68,7 @@ def _server(plugin, ctx, spec, name, cfg):
     except Exception as exc:  # noqa: BLE001 — клиент упал не по протоколу (RecursionError и т.п.): остальные серверы идут дальше
         return [finding(INFRA, "клиент упал: %s" % type(exc).__name__)]
 
-    redactor = Redactor(ctx.env)
+    redactor = Redactor(ctx.env, repo=ctx.repo)
     current = redactor.obj(snapshots.normalize_tools(tools))
     if spec.snapshot == "names":
         current = snapshots.names_only(current)
@@ -90,11 +90,16 @@ def _server(plugin, ctx, spec, name, cfg):
     for tool, was, now in d.required_changed:
         out.append(finding(FAIL, "%s: обязательные параметры %s → %s" % (tool, was, now),
                            "обнови примеры вызова в skills и снимок", rel_snap))
+    # Сервер из .mcp.json обычно не закреплён по версии (npx без @версии): upstream выпускает новые инструменты и
+    # правит описания без нашего участия. В ci такой дрейф — сбой окружения (infra, не блокирует); пропавший
+    # инструмент и смена обязательных параметров ломают рецепты и остаются fail в любом режиме.
+    drift, fix = (INFRA, "сними свежий снимок на сервере: --update-snapshots") if ctx.mode == CI \
+        else (WARN, "обнови снимок (--update-snapshots)")
     if d.extra:
-        out.append(finding(WARN, "новые инструменты: %s" % ", ".join(d.extra), "обнови снимок (--update-snapshots)", rel_snap))
+        out.append(finding(drift, "новые инструменты: %s" % ", ".join(d.extra), fix, rel_snap))
     if d.description_changed:
         shown = ", ".join(d.description_changed[:10])
-        out.append(finding(WARN, "изменились описания: %s" % shown, "обнови снимок (--update-snapshots)", rel_snap))
+        out.append(finding(drift, "изменились описания: %s" % shown, fix, rel_snap))
     return out
 
 

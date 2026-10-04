@@ -61,14 +61,50 @@ class McpListTest(unittest.TestCase):
                                                            "inputSchema": {"type": "object", "required": ["x", "y"]}})
         self.assertEqual(run_check(mcp_list, self.repo.root, "s-dev"), [])
 
-    def test_drift(self):
+    def drifted(self, extra=False):
+        """Снимок, отстающий от сервера: описание beta другое, alpha без y, лишний gone (+ beta неизвестен при extra)."""
         old = json.loads(json.dumps(EXPECTED))
         old["tools"][0]["inputSchema"]["required"] = ["x"]
         old["tools"][1]["description"] = "old text"
         old["tools"].append({"name": "gone", "description": "", "inputSchema": {}})
-        self.make(snapshot=old)
-        found = run_check(mcp_list, self.repo.root, "s-dev")
+        if extra:
+            del old["tools"][1]
+        return old
+
+    def test_drift_in_server_mode_warns_as_before(self):
+        self.make(snapshot=self.drifted())
+        found = run_check(mcp_list, self.repo.root, "s-dev", mode="server")
         self.assertEqual(sorted(f.level for f in found), [FAIL, FAIL, WARN])
+        self.assertIn("изменились описания: beta", next(f for f in found if f.level == WARN).message)
+        self.make(snapshot=self.drifted(extra=True))
+        found = run_check(mcp_list, self.repo.root, "s-dev", mode="server")
+        self.assertEqual(sorted(f.level for f in found), [FAIL, FAIL, WARN])
+        warn = next(f for f in found if f.level == WARN)
+        self.assertIn("новые инструменты: beta", warn.message)
+        self.assertEqual(warn.fix, "обнови снимок (--update-snapshots)")
+
+    def test_drift_in_ci_mode_new_tools_and_descriptions_are_infra(self):
+        # Не закреплённый npx-сервер: релиз upstream не должен краснить чужой PR (blocking + --strict).
+        self.make(snapshot=self.drifted())
+        found = run_check(mcp_list, self.repo.root, "s-dev")
+        by_level = {}
+        for f in found:
+            by_level.setdefault(f.level, []).append(f)
+        self.assertEqual(sorted(by_level), [FAIL, INFRA])
+        self.assertEqual(len(by_level[FAIL]), 2)
+        self.assertTrue(any("пропали инструменты: gone" in f.message for f in by_level[FAIL]))
+        self.assertTrue(any("обязательные параметры" in f.message for f in by_level[FAIL]))
+        self.assertIn("изменились описания: beta", by_level[INFRA][0].message)
+        self.assertIn("--update-snapshots", by_level[INFRA][0].fix)
+        self.assertIn("на сервере", by_level[INFRA][0].fix)
+
+    def test_new_tools_in_ci_mode_are_infra(self):
+        self.make(snapshot=self.drifted(extra=True))
+        found = run_check(mcp_list, self.repo.root, "s-dev")
+        self.assertEqual(sorted(f.level for f in found), [FAIL, FAIL, INFRA])
+        infra = next(f for f in found if f.level == INFRA)
+        self.assertIn("новые инструменты: beta", infra.message)
+        self.assertEqual(infra.fix, "сними свежий снимок на сервере: --update-snapshots")
 
     def test_no_snapshot_is_warn(self):
         self.make()
@@ -104,6 +140,17 @@ class McpListTest(unittest.TestCase):
         self.repo.write("plugins/s-dev/.mcp.json", "{not json")
         found = run_check(mcp_list, self.repo.root, "s-dev")
         self.assertEqual([(f.level, f.file) for f in found], [(FAIL, "plugins/s-dev/.mcp.json")])
+
+    def test_env_value_in_a_tool_description_is_written_as_its_name(self):
+        self.make(start="server", extra_env={"STUB_DESC": "call it with ${STUB_SECRET} please"})
+        found = run_check(mcp_list, self.repo.root, "s-dev", mode="server",
+                          env={"STUB_SECRET": SECRET}, update_snapshots=True)
+        self.assertEqual([f.level for f in found], [INFO])
+        path = os.path.join(self.repo.root, "tests/plugins/s-dev/snapshots/mcp/stub.tools.json")
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+        self.assertNotIn(SECRET, text)
+        self.assertIn("call it with ${STUB_SECRET} please", text)
 
     def test_secret_echoed_by_server_is_redacted(self):
         self.make(mode="crash", start="server", extra_env={"STUB_SECRET": "${STUB_SECRET}"})

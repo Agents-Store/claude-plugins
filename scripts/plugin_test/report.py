@@ -9,6 +9,8 @@ from __future__ import annotations
 import os
 import re
 import sys
+import tempfile
+import urllib.parse
 
 from . import model
 from .model import ADVISORY, BLOCKING, FAIL, INFO, INFRA, LEVELS, SKIPPED, WARN
@@ -58,18 +60,48 @@ def exit_code(findings):
     return 0
 
 
+def _hostname(value):
+    try:
+        return urllib.parse.urlsplit(value).hostname
+    except ValueError:  # http://[oops — не URL, значит и хоста нет
+        return None
+
+
+def _path_labels(repo):
+    """Абсолютные префиксы, которые не должны попасть в публичный текст: корень репозитория, $HOME, временный каталог."""
+    home = os.environ.get("HOME") or os.path.expanduser("~")
+    labels = {}
+    for path, label in ((repo, "<repo>"), (home, "~"), (tempfile.gettempdir(), "<tmp>")):
+        if not path:
+            continue
+        for variant in (os.path.abspath(path), os.path.realpath(path)):
+            variant = variant.rstrip(os.sep)
+            if len(variant) > 1:  # корень «/» как префикс превратил бы в метку каждый путь
+                labels.setdefault(variant, label)
+    return labels
+
+
 class Redactor:
-    """Значения env-файла → ${ИМЯ}; строки, похожие на секрет, → HIDDEN.
+    """Значения env-файла → ${ИМЯ}; строки, похожие на секрет, → HIDDEN; абсолютные пути → <repo>, ~, <tmp>.
 
     Значение короче 16 знаков (имя схемы, namespace, регион) заменяется только как целый токен — без соседних
     [A-Za-z0-9_-] (имена MCP-инструментов — такие идентификаторы): иначе list_publication_tables превращается
-    в list_${ИМЯ}ation_tables. Значение от 16 знаков заменяется где угодно. Подстановка идёт одним проходом, поэтому вставленное ${ИМЯ} не разбирается повторно."""
+    в list_${ИМЯ}ation_tables. Значение от 16 знаков заменяется где угодно. Подстановка идёт одним проходом, поэтому вставленное ${ИМЯ} не разбирается повторно.
 
-    def __init__(self, env):
+    Значение-URL регистрирует и свой хост под тем же именем: ошибка сети печатает host:port, а не весь URL.
+    Прямое значение env сильнее хоста чужого URL. Путь заменяется только на границе пути: /work/repo-private
+    не начинается с /work/repo, а `</root>` в описании инструмента — не путь к $HOME."""
+
+    def __init__(self, env, repo=None):
         names = {}
-        for name, value in sorted((env or {}).items()):  # одно значение у нескольких имён — берётся первое по порядку
+        items = sorted((env or {}).items())  # одно значение у нескольких имён — берётся первое по порядку
+        for name, value in items:
             if isinstance(value, str) and len(value) >= MIN_SECRET_LEN:
                 names.setdefault(value, name)
+        for name, value in items:
+            host = _hostname(value) if isinstance(value, str) else None
+            if host and len(host) >= MIN_SECRET_LEN:
+                names.setdefault(host, name)
         self.names = names
         alternatives = []
         for value in sorted(names, key=lambda v: (-len(v), v)):
@@ -78,6 +110,10 @@ class Redactor:
                 escaped = r"(?<![A-Za-z0-9_-])%s(?![A-Za-z0-9_-])" % escaped
             alternatives.append(escaped)
         self.pattern = re.compile("|".join(alternatives)) if alternatives else None
+        self.path_labels = _path_labels(repo)
+        prefixes = "|".join(re.escape(p) for p in sorted(self.path_labels, key=lambda p: (-len(p), p)))
+        self.path_pattern = re.compile(r"(?:(?<![A-Za-z0-9_./<>-])|(?<=://))(?:%s)(?![A-Za-z0-9_-])" % prefixes) \
+            if prefixes else None
         self.rules = [scrub_check.RULES_BY_ID[r] for r in SECRET_RULES]  # KeyError — громкий отказ, не тихое ослабление
 
     def _secret_line(self, line):
@@ -90,6 +126,8 @@ class Redactor:
             return s
         if self.pattern is not None:
             s = self.pattern.sub(lambda m: "${%s}" % self.names[m.group(0)], s)
+        if self.path_pattern is not None:
+            s = self.path_pattern.sub(lambda m: self.path_labels[m.group(0)], s)
         return "\n".join(HIDDEN if self._secret_line(line) else line for line in s.split("\n"))
 
     def obj(self, o):
@@ -159,7 +197,7 @@ def render_markdown(report, title="Plugin tests"):
                 current = f["plugin"]
                 out += ["", "**%s**" % current, ""]
             loc = _location(f["file"], f["line"])
-            message = f["message"].replace("\n", " ⏎ ")
+            message = f["message"].split("\n", 1)[0]  # issue публичный: остальное (stdout проверки, пути) — в JSON и журнале
             out.append("- `%s` %s%s" % (f["check"], "`%s` — " % loc if loc else "", message))
         if level == WARN:
             out += ["", "</details>"]

@@ -77,7 +77,7 @@ def main(argv=None):
         findings.extend(got)
         suppressed += skipped
 
-    redactor = report.Redactor(env)
+    redactor = report.Redactor(env, repo=repo)
     findings = [redactor.finding(f) for f in report.apply_status(findings, args.strict)]
     for note in notes:
         print(redactor.text(note))

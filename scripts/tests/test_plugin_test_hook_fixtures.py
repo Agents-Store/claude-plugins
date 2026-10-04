@@ -175,7 +175,7 @@ class ProcTest(unittest.TestCase):
             except ProcessLookupError:
                 pass
         self.addCleanup(cleanup)
-        deadline = time.monotonic() + 3
+        deadline = time.monotonic() + 15  # под нагрузкой CPU 3 с не хватало
         while _alive(pid) and time.monotonic() < deadline:
             time.sleep(0.05)
         self.assertFalse(_alive(pid), "фоновый процесс пережил нормальный возврат run_group")

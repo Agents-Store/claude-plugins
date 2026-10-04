@@ -1,3 +1,6 @@
+import contextlib
+import io
+import json
 import os
 import sys
 import time
@@ -6,7 +9,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plugin_test_fixtures import Repo, context, load_plugin, run_check  # noqa: E402
 
-from plugin_test import manifest as manifest_mod  # noqa: E402
+from plugin_test import cli, manifest as manifest_mod, report  # noqa: E402
 from plugin_test.checks import REGISTRY, unit  # noqa: E402
 from plugin_test.model import CHECK_IDS, FAIL, INFRA, WARN  # noqa: E402
 
@@ -54,6 +57,44 @@ class UnitTest(unittest.TestCase):
         found = self.check("[[unit]]\nrun = \"printf '\\\\377\\\\n'; exit 1\"\n")
         self.assertEqual([f.level for f in found], [FAIL])
         self.assertIn("код 1", found[0].message)
+
+
+class PublicIssueBodyTest(unittest.TestCase):
+    """Тело публичного issue и JSON-отчёт не содержат ни пути workspace, ни хоста инстанса."""
+    HOST = "nocodb.corp-internal.example"
+
+    def run_failing_unit(self):
+        repo = Repo()
+        self.addCleanup(repo.cleanup)
+        repo.plugin("u-dev")
+        repo.tests("u-dev", {"plugin-test.toml": '[[unit]]\nname = "net"\nrun = "pwd; echo ECONNREFUSED %s:443; exit 1"\n' % self.HOST})
+        env_file = repo.write("server.env", "NOCODB_URL=https://%s/api\n" % self.HOST)
+        out_json = os.path.join(repo.root, "report.json")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = cli.main(["--repo", repo.root, "--mode", "server", "--env-file", env_file,
+                             "--check", "unit", "--json", out_json])
+        with open(out_json, encoding="utf-8") as fh:
+            text = fh.read()
+        return repo, code, out.getvalue(), text
+
+    def test_paths_and_hosts_are_masked_in_stdout_and_json(self):
+        repo, code, stdout, text = self.run_failing_unit()
+        self.assertEqual(code, 1)
+        for where in (stdout, text):
+            self.assertNotIn(repo.root, where)
+            self.assertNotIn(self.HOST, where)
+        self.assertIn("<repo>/plugins/u-dev", text)
+        self.assertIn("ECONNREFUSED ${NOCODB_URL}:443", text)
+
+    def test_markdown_of_the_report_shows_only_the_first_line(self):
+        repo, _, _, text = self.run_failing_unit()
+        md = report.render_markdown(json.loads(text))
+        self.assertIn("net: код 1", md)
+        self.assertNotIn("ECONNREFUSED", md)
+        self.assertNotIn("<repo>", md)
+        self.assertNotIn(repo.root, md)
+        self.assertNotIn(self.HOST, md)
 
 
 class BarePluginTest(unittest.TestCase):

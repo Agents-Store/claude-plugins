@@ -8,6 +8,8 @@
   crash  печатает STUB_SECRET в stderr и выходит с кодом 3
   error  на tools/list отвечает JSON-RPC ошибкой
   spawn  запускает дочерний `sleep 300`, пишет его pid в STUB_PIDFILE и не отвечает
+
+Если задана STUB_DESC, это описание инструмента alpha (так тест кладёт значение env в tools/list).
 """
 import json
 import os
@@ -21,6 +23,8 @@ TOOLS = [
     {"name": "alpha", "description": "first",
      "inputSchema": {"type": "object", "properties": {"y": {}, "x": {}}, "required": ["y", "x"]}},
 ]
+if os.environ.get("STUB_DESC"):
+    TOOLS[1]["description"] = os.environ["STUB_DESC"]
 
 
 def reply(obj):
