@@ -279,7 +279,10 @@ the `glossary` section of `OVERVIEW.md`. Lint measures the ratio and errors past
    `archive/` **lazily, on first use** — git does not
    track an empty directory, so creating them up front either leaves untracked empties
    that vanish on clone or scatters four `.gitkeep` files. Their absence in a fresh
-   folder is correct, not a gap; lint must not report it.
+   folder is correct, not a gap; lint must not report it. Name every materialised
+   document in `docs.files` — including `requirements`, `ledger` and `inbox_manifest`,
+   the keys schema rev 18 added: lint 12.1 warns about a missing one and prints the
+   entry to add.
 3. Seed each document from `doc-contracts.json`: the required anchors, the section
    headings in `docs.language`, and a one-line placeholder saying what belongs there.
    Seed `USER-CASES.md` role sections from `roles[]`, and back-fill `roles[].cases`
