@@ -1,0 +1,11 @@
+# skills/nocobase-* — vendored из upstream NocoBase; их ссылки (nocobase-workflow-manage → nocobase-ui-builder/
+# references/recipes/forms-and-actions.md) и JSON-примеры с `<ПЛЕЙСХОЛДЕРАМИ>`, комментариями и «...»
+# чинятся только синхронизацией. Свои skills плагина (auth, api-reference, cli-recipes, examples, overview) проверяются.
+#
+# [[unit]] этого плагина (node --test в skills/nocobase-ui-builder/runtime) пока не подключён: тест
+# docs-consistency.test.js:777 читает README.md плагина и требует фразу «Default dispatcher for NocoBase UI authoring»
+# рядом с nocobase-portal-manage. Правка README — пакет nocobase-dev в triage-ledger; после неё вернуть [[unit]]
+# (см. ledger).
+[skip]
+"skill-links" = ["skills/nocobase-*"]
+"skill-snippets" = ["skills/nocobase-*"]

@@ -8,3 +8,16 @@ name = "vercel-dev bun suite"
 run = "bun install --frozen-lockfile && bun run typecheck && bun run validate && bun run build:from-skills:check && bun test"
 needs = ["bun"]
 timeout = 900
+
+# Плагин — vendored upstream vercel-plugin с локальными патчами из LEARNINGS.md. Находки ниже — в vendored
+# файлах (upstream-ссылки на ./*.md без файлов, JSON-фрагменты и HTTP-запрос в ```bash, длинные SKILL.md):
+# правятся только синхронизацией с апстримом. agents/deployment-expert.md генерируется из .tmpl, а ссылка
+# `references/deployment-checks.md` приходит из включённого раздела skills/deployments-cicd (относительно skill, не агента).
+[skip]
+"skill-links" = ["agents/deployment-expert.md", "skills/react-best-practices/AGENTS.md",
+                 "skills/react-best-practices/upstream/AGENTS.md"]
+"skill-snippets" = [".claude/skills/*", "skills/microfrontends/references/path-routing.md",
+                    "skills/vercel-cli/references/firewall.md", "skills/vercel-cli/upstream/references/firewall.md",
+                    "skills/vercel-connect/SKILL.md", "skills/vercel-firewall/SKILL.md"]
+"skill-budget" = ["skills/flags-sdk/SKILL.md", "skills/vercel-functions/SKILL.md", "skills/vercel-storage/SKILL.md",
+                  "skills/workflow/SKILL.md"]
