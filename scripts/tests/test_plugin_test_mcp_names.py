@@ -119,6 +119,16 @@ class McpNamesTest(unittest.TestCase):
         self.assertEqual([(f.line, f.level) for f in found], [(1, FAIL), (2, FAIL), (3, FAIL), (0, SKIPPED)])
         self.assertIn("queryRecords", found[0].fix)
 
+    def test_ellipsis_after_a_prefix_is_a_mask(self):
+        # `…` (U+2026) прямо за префиксом — такая же маска, как `*`: «ai-…» не значит инструмент «ai».
+        self.repo.plugin("db-ops", mcp=NOCODB, files={"skills/s/SKILL.md":
+                         "Prefix `mcp__plugin_db-ops_nocodb__get…` and mcp__plugin_db-ops_nocodb__query\u2026 only.\n"
+                         "A real typo still fails: mcp__plugin_db-ops_nocodb__queryRecord here\n"})
+        self.repo.tests("db-ops", {"snapshots/mcp/nocodb.tools.json": SNAPSHOT})
+        found = run_check(mcp_names, self.repo.root, "db-ops")
+        self.assertEqual([(f.line, f.level) for f in found], [(2, FAIL)])
+        self.assertIn("queryRecord", found[0].message)
+
     def test_bad_snapshot_is_a_finding(self):
         self.repo.plugin("db-ops", mcp=NOCODB, files={"a.md": "mcp__plugin_db-ops_nocodb__x\nmcp__plugin_db-ops_nocodb__y"})
         self.repo.tests("db-ops", {"snapshots/mcp/nocodb.tools.json": "{not json"})

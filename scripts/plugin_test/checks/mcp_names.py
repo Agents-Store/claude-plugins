@@ -11,7 +11,8 @@ from ..mcp_config import servers as mcp_servers
 from ..model import FAIL, SKIPPED, Finding
 
 CHECK = "mcp-names"
-RE_NAME = re.compile(r"mcp__plugin_([a-z0-9][a-z0-9-]*)_([A-Za-z0-9-]+)__([A-Za-z0-9_.-]*)([*<{])?")
+# Хвост-маска: `*`, плейсхолдер `<` / `{`, многоточие `…` (U+2026) — «ai-…» это префикс, а не инструмент «ai».
+RE_NAME = re.compile(r"mcp__plugin_([a-z0-9][a-z0-9-]*)_([A-Za-z0-9-]+)__([A-Za-z0-9_.-]*)([*<{\u2026])?")
 
 
 def run(plugin, ctx, manifest):

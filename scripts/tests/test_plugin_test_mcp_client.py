@@ -80,6 +80,16 @@ class StdioTest(unittest.TestCase):
                 self.assertIn("код 4", str(cm.exception))
                 self.assertIn("fatal-stderr-line", str(cm.exception))
 
+    def test_stdout_eof_waits_for_exit_code_and_late_stderr(self):
+        # stdout закрыт сразу, процесс живёт ещё 0.4 с, пишет в stderr и выходит с кодом 5. Фиксированная
+        # пауза 0.1 с давала «код None» без хвоста stderr (и мигающий test_crash_… под нагрузкой).
+        with self.assertRaises(McpError) as cm:
+            mcp_client.list_tools_stdio("/bin/sh", ["-c", "exec 1>&-; sleep 0.4; echo late-stderr-line >&2; exit 5"],
+                                        stub_env("ok"), FIXTURES, 10)
+        self.assertEqual(cm.exception.kind, "infra")
+        self.assertIn("код 5", str(cm.exception))
+        self.assertIn("late-stderr-line", str(cm.exception))
+
     def test_children_are_killed(self):
         with tempfile.TemporaryDirectory() as tmp:
             pidfile = os.path.join(tmp, "pid")

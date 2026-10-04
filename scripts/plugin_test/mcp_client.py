@@ -90,17 +90,20 @@ def list_tools_stdio(command, args, env, cwd, timeout):
     deadline = time.monotonic() + timeout
     counter = [0]
 
+    def settle():
+        """Дать процессу завершиться (до 2 с), а потоку stderr — дочитать хвост (до 1 с)."""
+        try:
+            proc.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            pass
+        threads[1].join(timeout=1)
+
     def send(obj):
         try:
             proc.stdin.write((json.dumps(obj) + "\n").encode())
             proc.stdin.flush()
         except OSError as exc:
-            # Сервер умер раньше, чем мы написали: дать процессу завершиться, а потоку stderr — дочитать хвост.
-            try:
-                proc.wait(timeout=2)
-            except subprocess.TimeoutExpired:
-                pass
-            threads[1].join(timeout=1)
+            settle()  # сервер умер раньше, чем мы написали
             raise McpError("infra", "%s: сервер завершился, код %s%s" % (
                 obj.get("method"), proc.poll(), _tail(stderr_tail))) from exc
 
@@ -117,7 +120,7 @@ def list_tools_stdio(command, args, env, cwd, timeout):
             except queue.Empty:
                 continue
             if raw is None:
-                time.sleep(0.1)  # дать stderr-потоку дочитать хвост
+                settle()  # тот же ожидающий путь, что и в send(): фиксированная пауза мигала под нагрузкой
                 raise McpError("infra", "%s: сервер завершился, код %s%s" % (method, proc.poll(), _tail(stderr_tail)))
             try:
                 msg = json.loads(raw)
