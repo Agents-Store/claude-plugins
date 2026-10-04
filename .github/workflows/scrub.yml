@@ -16,6 +16,11 @@ name: Scrub check
 #      the official manifest validator, so a manifest Claude Code itself would
 #      refuse never reaches the marketplace.
 #
+# The three files macstack-dev bundles from other repositories — the standard's
+# schema and the registry's two vocabularies — are compared with the canon on
+# GitHub by a workflow of its own, macstack-canon.yml: it needs the network and
+# other repositories, so it must not gate unrelated pull requests.
+#
 # Passes 1 and 2 read the WORKING TREE only. A value that already reached git
 # history is not caught here and cannot be fixed by editing a file — revoke it
 # at the source. Locally, ./scripts/scrub-check.sh runs all three passes at
@@ -24,6 +29,9 @@ name: Scrub check
 # The findings catalog check (openclaw-ops), the plugins' own unit tests and
 # the gate's rule tests moved to plugin-test.yml: [[unit]] entries in
 # tests/plugins/<plugin>/plugin-test.toml and the runner self-tests step.
+# macstack-dev's suite (`sh run-tests.sh`, which main added as a step of the
+# `tests` job) moved there the same way: it is the [[unit]] entry of
+# tests/plugins/macstack-dev/plugin-test.toml.
 
 on:
   pull_request:

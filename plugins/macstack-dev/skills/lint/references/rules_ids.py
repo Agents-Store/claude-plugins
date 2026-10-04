@@ -39,6 +39,31 @@ def _fold(token):
     return ''.join(_CONFUSABLE.get(ch, ch) for ch in token)
 
 
+# ---------------------------------------------------------------- open-item ids
+# Один и тот же номер пишется в двух формах (`doc-contracts.json` -> id_spaces.open_item):
+# `A27` / `B3` — наследие, `QA27` / `QB3` — форма, в которую переводит `migrate_ids.py`.
+# Приставка `Q` называет ФАЙЛ (client/OPEN-QUESTIONS.md), а не состояние: закрытость
+# по-прежнему читается со строки заголовка — зачёркнуто `~~QA6~~` и/или слово CLOSED.
+# Правила этой группы раньше знали только `[AB]\d+`: пункт в новой форме не входил ни в
+# проверку повторов (12.3), ни в поиск закрытых (12.4/12.6), и миграция тихо отключала
+# каждую из них.
+OPEN_ITEM_ID = r'^Q?[AB][0-9]+$'
+
+
+def _open_item_number(token):
+    """`QA5` -> `A5`. Номер один, форм две: повтор в любой из них — повтор."""
+    return token[1:] if token.startswith('Q') else token
+
+
+def _case_number(token):
+    """`CX-01` -> `X-01`. Номер один, форм две — как у открытого пункта выше.
+
+    Двухбуквенная форма — `C` («case») и буква вида или роли; одна буква — наследие.
+    `C-01` и `CC-01` поэтому тоже один номер (роль `C` в старой записи), а `CA-01` и
+    `A-02` — разные. Срезается только `C`, за которой стоит ещё буква и дефис."""
+    return token[1:] if re.match(r'^C[A-Z]-', token) else token
+
+
 # ---------------------------------------------------------------- raw-line extraction
 # "The first token after the hashes" - works for every heading-based id space this
 # project has (`### A1 · ...`, `### К-1 · ...`, `## M11 · ...`, `### BL-3 · ...`)
@@ -117,7 +142,7 @@ def _bullet_tokens(lines):
     return out
 
 
-def _check_space(out, seen, path, occurrences, strict, space):
+def _check_space(out, seen, path, occurrences, strict, space, canon=None):
     """Classify every candidate token against one id space.
 
     A token that matches `strict` outright is a normal id and goes into `seen` for
@@ -130,9 +155,12 @@ def _check_space(out, seen, path, occurrences, strict, space):
     shape, since the shape still demands the digits/hyphens land in the right spots.
     """
     strict_re = re.compile(strict)
+    # `canon` сводит разные написания одного номера к одному ключу (см. OPEN_ITEM_ID);
+    # без него у пространства ключ — сам токен.
+    key_of = canon or (lambda token: token)
     for lineno, raw, line in occurrences:
         if strict_re.match(raw):
-            seen.setdefault((space, raw), []).append((path, lineno, line))
+            seen.setdefault((space, key_of(raw)), []).append((path, lineno, line, raw))
             continue
         folded = _fold(raw)
         if folded != raw and strict_re.match(folded):
@@ -145,30 +173,32 @@ def _check_space(out, seen, path, occurrences, strict, space):
             # still register it under the id it was clearly TRYING to be, so a
             # second, genuine A1 elsewhere in the document is still caught as a
             # reuse rather than swallowed by this token's own ASCII finding.
-            seen.setdefault((space, folded), []).append((path, lineno, line))
+            seen.setdefault((space, key_of(folded)), []).append((path, lineno, line, folded))
 
 
 @rule('12.3', 'ID integrity - unique per space, ASCII-only, D has no gaps, '
       'A/B numbers are never reused after a strike')
 def r_12_3(c):
     out = []
-    seen = {}          # (space, id) -> [(path, line, raw_line)]
+    seen = {}          # (space, id) -> [(path, line, raw_line, token as written)]
 
-    def scan(lines, path, extractor, strict, space):
+    def scan(lines, path, extractor, strict, space, canon=None):
         if lines is None:
             return
-        _check_space(out, seen, path, extractor(lines), strict, space)
+        _check_space(out, seen, path, extractor(lines), strict, space, canon)
 
     # case - X-01..Z-15 &c, headings in USER-CASES.md
     if 'user_cases' in c.docs:
         doc = c.docs['user_cases']
-        scan(doc.lines, c.rel(doc.path), _heading_tokens, r'^C?[A-Z]-[0-9]{2}$', 'case')
+        scan(doc.lines, c.rel(doc.path), _heading_tokens, r'^C?[A-Z]-[0-9]{2}$', 'case',
+             canon=_case_number)
 
     # open_item - A<n>/B<n>, headings in OPEN-QUESTIONS.md (see module docstring
     # for why this reads raw lines instead of it.id)
     if 'open_questions' in c.docs:
         doc = c.docs['open_questions']
-        scan(doc.lines, c.rel(doc.path), _heading_tokens, r'^[AB][0-9]+$', 'open_item')
+        scan(doc.lines, c.rel(doc.path), _heading_tokens, OPEN_ITEM_ID, 'open_item',
+             canon=_open_item_number)
 
     # decision - D<n>, registry bullets in DECISIONS.md
     dtext = c.text.get('decisions')
@@ -221,14 +251,20 @@ def r_12_3(c):
     for (space, ident), occ in sorted(seen.items()):
         if len(occ) < 2:
             continue
-        first_path, first_line, _ = occ[0]
-        struck = any(('~~%s~~' % ident) in raw or 'CLOSED' in raw for _, _, raw in occ)
-        for path, lineno, raw in occ[1:]:
+        first_path, first_line, _, first_tok = occ[0]
+        # У открытого пункта ключ — номер без `Q`, а зачёркнут может быть любой из
+        # двух написаний: `~~A5~~` и `~~QA5~~` — одно и то же «закрыт».
+        pref = 'Q?' if space == 'open_item' else ''
+        struck = any(re.search(r'~~%s%s~~' % (pref, re.escape(ident)), raw) or 'CLOSED' in raw
+                     for _, _, raw, _ in occ)
+        for path, lineno, raw, tok in occ[1:]:
             why = (' - A/B numbers are never reused after a strike-through'
                    if space == 'open_item' and struck else '')
+            # Первое вхождение названо, когда оно написано иначе: «QA5 reused ... (as A5)».
+            as_ = ' (as %s)' % first_tok if first_tok != tok else ''
             out.append(Finding('12.3', ERROR, path, lineno,
-                                '%s %s reused: already assigned at %s:%d%s'
-                                % (space, ident, first_path, first_line, why)))
+                                '%s %s reused: already assigned at %s:%d%s%s'
+                                % (space, tok, first_path, first_line, as_, why)))
 
     # -------- D-numbering has no gaps --------
     dnums = sorted(int(i[1:]) for (sp, i) in seen if sp == 'decision')
@@ -244,7 +280,7 @@ def r_12_3(c):
 
 # ---------------------------------------------------------------- 12.4 shared lookups
 def _open_item_ids(c):
-    """{id: (line, closed)} for every A/B heading in OPEN-QUESTIONS.md.
+    """{id: (line, closed)} for every A/B (or QA/QB) heading in OPEN-QUESTIONS.md.
 
     Raw scan, not it.id - see the module docstring. `closed` follows the rule text
     verbatim: struck (`~~A6~~`) and/or the word CLOSED in the heading line.
@@ -254,7 +290,7 @@ def _open_item_ids(c):
         return None
     out = {}
     for n, tok, line in _heading_tokens(doc.lines):
-        if re.match(r'^[AB][0-9]+$', tok):
+        if re.match(OPEN_ITEM_ID, tok):
             closed = (('~~%s~~' % tok) in line) or ('CLOSED' in line)
             out[tok] = (n, closed)
     return out
@@ -291,10 +327,12 @@ def _v3_style_field(body_lines, field_key, lang):
     silently going blind the day someone writes the first one by hand.
 
     What "both" reaches is bounded by the contract, and the bound is worth stating
-    because it was measured rather than assumed: `covers` carries a declared label
-    (`Проверяет`) and so reads from a bullet in any language the contract knows;
-    `blocked_by` carries none, so only its yaml form and a literal `**blocked_by:**`
-    bullet read. Give it a label in `doc-contracts.json` and the rest follows.
+    because it was measured rather than assumed: a field reads from a bullet in any
+    language the contract declares a label for. `covers` carries `Проверяет`, and
+    `blocked_by` carries `Чем заблокирована` / `Blocked by` / `Blockiert durch`; the
+    ASCII key itself is accepted as well. (`blocked_by` once had no label here and read
+    only from yaml — that is why the `TASKS.md` leg of 12.4 now goes through `v3` first
+    and uses this fallback only for the legacy anchored shape.)
     """
     labels = v3.READ.get(lang) or v3.READ['en']
     bullet = re.compile(r'^\s*[-*]\s+\*\*(.+?):\*\*\s*(.*)$')
@@ -340,8 +378,49 @@ def _ids_of(c, key, kind):
     return set(it.id for it in items if it.id)
 
 
+TASK_ID = re.compile(r'^M[0-9]+-T[0-9]+$')
+
+
+def _task_blockers(c):
+    """(every task id, [(task id, line, token)]) from history/TASKS.md, in either shape.
+
+    v3 — a heading, with `blocked_by` as a bullet carrying the declared label — is what
+    the contract requires and what `c.docs['tasks']` holds. The anchored v2 form
+    (`<!-- macstack:task= -->` + a yaml block) is still read through `mdblocks` for a
+    project that has not migrated. The same task named by both is reported once."""
+    task_ids, blockers, seen = set(), [], set()
+
+    def add(tid, line, token):
+        if (tid, token) not in seen:
+            seen.add((tid, token))
+            blockers.append((tid, line, token))
+
+    doc = c.docs.get('tasks')
+    if doc is not None:
+        for it in doc.items:
+            if it.level < 3 or not it.id or not TASK_ID.match(it.id):
+                continue
+            task_ids.add(it.id)
+            field = it.field_lines.get('blocked_by')
+            line = (field[0] if field else (it.head_line or 0)) + 1
+            for token in _as_list(it.get('blocked_by')):
+                add(it.id, line, str(token))
+    try:
+        text = io.open(c.path_of('tasks'), encoding='utf-8').read()
+    except IOError:
+        return task_ids, blockers
+    _header, blocks = mdblocks.parse(text)
+    legacy = [e for e in mdblocks.entities(blocks) if TASK_ID.match(e.id or '')]
+    task_ids.update(e.id for e in legacy)
+    for e in legacy:
+        for token in _as_list(_entity_value(e, 'blocked_by', c.lang)):
+            add(e.id, (e.start or 0) + 2, str(token))
+    return task_ids, blockers
+
+
+
 D_CITE = re.compile(r'(?<![A-Za-z0-9_-])D([0-9]+)(?![A-Za-z0-9_-])')
-AB_CITE = re.compile(r'(?<![A-Za-z0-9_-])([AB][0-9]+)(?![A-Za-z0-9_-])')
+AB_CITE = re.compile(r'(?<![A-Za-z0-9_-])(Q?[AB][0-9]+)(?![A-Za-z0-9_-])')
 
 
 @rule('12.4', 'Cross-file refs - every id an ERROR resolves to a live target')
@@ -456,27 +535,21 @@ def r_12_4(c):
                                             'that exists' % (e.id, token)))
 
     # -------- history/TASKS.md: blocked_by resolves to a live task or open item --------
-    tasks_path = c.path_of('tasks')
-    if tasks_path and os.path.exists(tasks_path):
-        try:
-            tasks_text = io.open(tasks_path, encoding='utf-8').read()
-        except IOError:
-            tasks_text = None
-        if tasks_text is not None:
-            _header, blocks = mdblocks.parse(tasks_text)
-            task_ids = set(e.id for e in mdblocks.entities(blocks)
-                            if re.match(r'^M[0-9]+-T[0-9]+$', e.id or ''))
-            item_ids = set(open_items) if open_items is not None else set()
-            for e in mdblocks.entities(blocks):
-                if e.id not in task_ids:
-                    continue
-                for token in _as_list(_entity_value(e, 'blocked_by', c.lang)):
-                    token = str(token)
-                    if token not in task_ids and token not in item_ids:
-                        out.append(Finding('12.4', ERROR, c.rel(tasks_path),
-                                            (e.start or 0) + 2,
-                                            '%s: blocked_by %r resolves to no live task '
-                                            'or open item' % (e.id, token)))
+    # WARNINGS, for now (owner, 2026-10-04: warnings first, errors later). The leg read
+    # only the anchored v2 shape and saw nothing in a v3 file — headings and bullet
+    # labels, which is what the contract has required for a long time — so a dangling
+    # `blocked_by` passed. Reading v3 makes it start firing on projects that already
+    # carry the field; a new ERROR there would redden files nobody had ever checked.
+    if c.path_of('tasks') and os.path.exists(c.path_of('tasks')):
+        task_ids, blockers = _task_blockers(c)
+        tasks_rel = c.rel(c.path_of('tasks'))
+        item_ids = set(open_items) if open_items is not None else set()
+        for tid, line, token in blockers:
+            if token not in task_ids and token not in item_ids:
+                out.append(Finding('12.4', WARNING, tasks_rel, line,
+                                    '%s: blocked_by %r resolves to no live task or open '
+                                    'item (a warning for now: this check will become an '
+                                    'error)' % (tid, token)))
 
     # -------- a case's screens/triggers resolve into UX-UI.md / AUTOMATION.md --------
     # NOTE (measured): no case currently carries either field, so this leg finds
@@ -570,8 +643,10 @@ def r_12_6(c):
     items = _open_item_ids(c)
     if items is None:
         return out
+    # §A — это `A<n>` и `QA<n>`; `startswith('A')` не узнавал вторую форму, и открытый
+    # вопрос в ней молча выпадал из проверки «клиента спросят».
     a_open = sorted(i for i, (n, closed) in items.items()
-                     if i.startswith('A') and not closed)
+                     if re.match(r'^Q?A', i) and not closed)
     view = (c.spec.get('lifecycle') or {}).get('needs_from_client') or []
     view_ids = set()
     for entry in view:

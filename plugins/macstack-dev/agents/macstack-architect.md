@@ -57,7 +57,12 @@ in the root of a Claude project).
 4. **Entities with a single master.** Every entity declares all stores and exactly
    one master data source; external client systems (legacy ERP, accounting) are
    software with hosting: external; cross-stack masters use
-   `<stack-id>:<element-id>`.
+   `<stack-id>:<element-id>`. Infrastructure that exists in the system but has no place
+   in the client documents — a proxy or queue worker (`software[]`), a file store or
+   delivery log (`entities[]`), a housekeeping job (`workflows[]`) — is declared like
+   anything else and marked `technical: true` (schema rev 14), never left out: the flag
+   is what tells "not described" from "must not be described". A workflow also names the
+   path of its code in `source` (rev 15).
 5. **Agents.** stack_agents (runtime CLI, reads_stack/can_modify_stack,
    hierarchy: control_plane → orchestrator → worker, delegation only downward) and
    managed_agents (model + instructions + tools + invocations via
