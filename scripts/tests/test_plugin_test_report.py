@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import plugin_test_fixtures  # noqa: E402,F401  (кладёт scripts/ в sys.path)
@@ -47,6 +48,20 @@ class RedactorTest(unittest.TestCase):
         jwt = "".join(["eyJ", "a" * 12, ".eyJ", "b" * 12, ".", "c" * 12])
         self.assertNotIn(jwt, r.text("ok line\nAuthorization: Bearer %s" % jwt))
         self.assertIn("ok line", r.text("ok line"))
+
+    def test_kv_shaped_line_is_hidden(self):
+        r = report.Redactor({})
+        # значение собирается во время выполнения, чтобы gate не принял тест за утечку
+        value = "abcd1234" + "efgh5678" + "ijkl"
+        line = "API_KEY=" + '"' + value + '"'
+        self.assertNotIn(value, r.text(line))
+        self.assertEqual(r.text("api_token: ${API_TOKEN}"), "api_token: ${API_TOKEN}")
+
+    def test_missing_secret_rule_fails_loud(self):
+        rules = {k: v for k, v in report.scrub_check.RULES_BY_ID.items() if k != "secret-kv"}
+        with mock.patch.dict(report.scrub_check.RULES_BY_ID, rules, clear=True):
+            with self.assertRaises(KeyError):
+                report.Redactor({})
 
     def test_obj_and_finding(self):
         r = report.Redactor({"K": FAKE})

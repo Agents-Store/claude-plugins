@@ -26,7 +26,7 @@ def run_plugin(plugin, ctx, checks):
         if fn is None:
             continue
         try:
-            got = fn(plugin, ctx, loaded)
+            got = list(fn(plugin, ctx, loaded))
         except Exception as exc:  # одна сломанная проверка не роняет прогон
             got = [Finding(plugin.name, cid, INFRA, "проверка упала: %s: %s" % (type(exc).__name__, exc),
                            fix="это дефект runner-а: заведи задачу с этим текстом")]

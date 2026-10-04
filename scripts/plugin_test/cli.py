@@ -33,7 +33,11 @@ def parse_args(argv):
 
 
 def main(argv=None):
-    args = parse_args(argv)
+    try:
+        args = parse_args(argv)
+    except SystemExit as exc:
+        # argparse выходит с 2 при ошибке использования; 2 здесь — «только warn/infra», CI считает его зелёным
+        return 1 if exc.code == 2 else (exc.code or 0)
     repo = os.path.abspath(args.repo)
     plugins = discover.discover(repo)
     if not plugins:

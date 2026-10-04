@@ -25,6 +25,10 @@ def exploding_check(plugin, ctx, manifest):
     raise RuntimeError("boom")
 
 
+def none_check(plugin, ctx, manifest):
+    return None
+
+
 class CliTest(unittest.TestCase):
     def setUp(self):
         self.repo = Repo()
@@ -96,6 +100,21 @@ class CliTest(unittest.TestCase):
         self.assertIn("RuntimeError: boom", out)
         self.assertIn("WARN bad-dev [skill-links]", out)
         self.assertEqual(code, 2)
+
+    def test_check_returning_none_is_infra_and_run_continues(self):
+        with mock.patch.dict(checks.REGISTRY, {"skill-snippets": none_check}):
+            code, out = self.run_cli()
+        self.assertIn("INFRA good-dev [skill-snippets]", out)
+        self.assertIn("WARN bad-dev [skill-links]", out)
+        self.assertEqual(code, 2)
+
+    def test_usage_errors_exit_1_not_2(self):
+        self.assertEqual(self.run_cli("--check", "no-such-check")[0], 1)
+        self.assertEqual(self.run_cli("--no-such-flag")[0], 1)
+        self.assertIn("usage:", self.err)
+
+    def test_help_exits_0(self):
+        self.assertEqual(self.run_cli("--help")[0], 0)
 
     def test_env_file_missing(self):
         self.assertEqual(self.run_cli("--mode", "server", "--env-file", "/nonexistent/.env")[0], 1)

@@ -62,7 +62,7 @@ class Redactor:
         pairs = [(v, k) for k, v in (env or {}).items()
                  if isinstance(v, str) and len(v) >= MIN_SECRET_LEN]
         self.pairs = sorted(pairs, key=lambda p: -len(p[0]))
-        self.rules = [scrub_check.RULES_BY_ID[r] for r in SECRET_RULES if r in scrub_check.RULES_BY_ID]
+        self.rules = [scrub_check.RULES_BY_ID[r] for r in SECRET_RULES]  # KeyError — громкий отказ, не тихое ослабление
 
     def _secret_line(self, line):
         ctx = {"strict": True, "config_surface": False, "extra_allowed_prefixes": [],
