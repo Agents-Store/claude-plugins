@@ -62,8 +62,8 @@ class Redactor:
     """Значения env-файла → ${ИМЯ}; строки, похожие на секрет, → HIDDEN.
 
     Значение короче 16 знаков (имя схемы, namespace, регион) заменяется только как целый токен — без соседних
-    [A-Za-z0-9_]: иначе list_publication_tables превращается в list_${ИМЯ}ation_tables. Значение от 16 знаков
-    заменяется где угодно. Подстановка идёт одним проходом, поэтому вставленное ${ИМЯ} не разбирается повторно."""
+    [A-Za-z0-9_-] (имена MCP-инструментов — такие идентификаторы): иначе list_publication_tables превращается
+    в list_${ИМЯ}ation_tables. Значение от 16 знаков заменяется где угодно. Подстановка идёт одним проходом, поэтому вставленное ${ИМЯ} не разбирается повторно."""
 
     def __init__(self, env):
         names = {}
@@ -75,7 +75,7 @@ class Redactor:
         for value in sorted(names, key=lambda v: (-len(v), v)):
             escaped = re.escape(value)
             if len(value) < WHOLE_TOKEN_BELOW:
-                escaped = r"(?<![A-Za-z0-9_])%s(?![A-Za-z0-9_])" % escaped
+                escaped = r"(?<![A-Za-z0-9_-])%s(?![A-Za-z0-9_-])" % escaped
             alternatives.append(escaped)
         self.pattern = re.compile("|".join(alternatives)) if alternatives else None
         self.rules = [scrub_check.RULES_BY_ID[r] for r in SECRET_RULES]  # KeyError — громкий отказ, не тихое ослабление

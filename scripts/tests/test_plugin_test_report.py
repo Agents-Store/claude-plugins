@@ -50,6 +50,13 @@ class RedactorTest(unittest.TestCase):
         self.assertEqual(r.text("trigger_task"), "trigger_task")
         self.assertEqual(r.text("triggered by (trigger)"), "triggered by (${T})")
 
+    def test_hyphenated_identifier_is_one_token(self):
+        # Имена MCP-инструментов — идентификаторы [A-Za-z0-9_-]: trigger-flow остаётся одним токеном (решение контроллера).
+        r = report.Redactor({"NS": "trigger"})
+        self.assertEqual(r.text("trigger-flow"), "trigger-flow")
+        self.assertEqual(r.text("flow-trigger and my-trigger-x"), "flow-trigger and my-trigger-x")
+        self.assertEqual(r.text("ns trigger here"), "ns ${NS} here")
+
     def test_long_value_is_redacted_inside_a_longer_word(self):
         r = report.Redactor({"K": FAKE})
         self.assertEqual(r.text("prefix%ssuffix" % FAKE), "prefix${K}suffix")
