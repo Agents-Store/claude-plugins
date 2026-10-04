@@ -74,7 +74,11 @@ while read -r name remote; do
     continue
   fi
   if ! curl -fsSL --retry 2 --max-time 30 -o "$tmp/$name" "$url" 2>"$tmp/err"; then
+    # curl's own last line names the cause (404, 429, DNS, timeout); without it
+    # every fetch failure reads the same. It carries the URL already printed.
     echo "FAIL $name: could not fetch the canon from $url (set MACSTACK_CANON_OFFLINE=1 to skip)" >&2
+    reason="$(tail -n 1 "$tmp/err" 2>/dev/null)"
+    [ -n "$reason" ] && echo "     $reason" >&2
     [ "$status" -eq 1 ] || status=2
     continue
   fi

@@ -102,6 +102,18 @@ class GateNoneInADocument(Folder):
         self.doc([('approve-refund', 'ops', '`approve`')])
         self.assertEqual(self.lint(), [])
 
+    def test_none_in_the_spec_too_does_not_advise_copying_none(self):
+        # Spec `human.gate: none` is itself schema-invalid; "set it to 'none'" would
+        # never clear the warning. The fix must point at the spec.
+        spec = json.loads(json.dumps(SPEC))
+        spec['processes'][0]['tasks'][0]['human']['gate'] = 'none'
+        write(os.path.join(self.root, 'macstack.json'), json.dumps(spec))
+        self.doc([('approve-refund', 'ops', '`none`')])
+        found = self.lint()
+        self.assertEqual([(f.rule, f.severity) for f in found], [('12.22', lf.WARNING)], found)
+        self.assertNotIn("set it to 'none'", found[0].message)
+        self.assertIn('macstack.json', found[0].message)
+
     def test_none_where_the_spec_has_a_real_gate_is_a_warning_naming_the_real_one(self):
         self.doc([('approve-refund', 'ops', '`none`')])
         found = self.lint()

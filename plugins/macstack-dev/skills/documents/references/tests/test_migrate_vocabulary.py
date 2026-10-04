@@ -55,6 +55,17 @@ class MilestoneStatuses(unittest.TestCase):
             self.assertFalse(any(re.search(r'^status:\s*%s\b' % tok, e, re.M) for e in ents),
                              tok)
 
+    def test_the_deprecated_words_in_a_cell_map_like_their_glyphs(self):
+        # A v1 table may carry the word instead of the glyph; the mapping must be the
+        # same, or a cell's spelling would decide the migrated status.
+        words = (u"| ID | Name | Status | Done when |\n|---|---|---|---|\n"
+                 u"| M1 | A | doing | x |\n| M2 | B | blocked | y |\n| M3 | C | dropped | z |\n")
+        migrate.MILESTONE_NOTES[:] = []
+        ents, n = migrate.convert_milestones(words)
+        self.assertEqual(n, 3)
+        self.assertEqual(status_of(ents), {'M1': 'in_progress', 'M2': 'todo', 'M3': 'cancelled'})
+        self.assertEqual([m for m, _ in migrate.MILESTONE_NOTES], ['M2'])
+
     def test_a_blocked_milestone_is_reported_not_silently_flattened(self):
         migrate.MILESTONE_NOTES[:] = []
         migrate.convert_milestones(MILESTONES)

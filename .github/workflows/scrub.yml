@@ -25,10 +25,10 @@ name: Scrub check
 #      the official manifest validator, so a manifest Claude Code itself would
 #      refuse never reaches the marketplace.
 #
-# A sixth, separate job (macstack-canon) compares the three files macstack-dev
-# bundles from other repositories — the standard's schema and the registry's
-# two vocabularies — with the canon on GitHub. It needs the network, so it is
-# not part of the unit-test job above.
+# The three files macstack-dev bundles from other repositories — the standard's
+# schema and the registry's two vocabularies — are compared with the canon on
+# GitHub by a workflow of its own, macstack-canon.yml: it needs the network and
+# other repositories, so it must not gate unrelated pull requests.
 #
 # Passes 1 and 2 read the WORKING TREE only. A value that already reached git
 # history is not caught here and cannot be fixed by editing a file — revoke it
@@ -164,19 +164,10 @@ jobs:
       - name: scripts (plugin_lint)
         run: python3 -m unittest discover -s scripts/tests -v
 
-  # The canon moves in other repositories and nothing here changes when it does,
-  # so the bundled copies drift in silence — and the lint rules that read them
-  # (12.1 builds its expected docs.files keys from the schema) start judging
-  # projects against a standard that has moved on. Blocking, because a mirror
-  # that differs from main is wrong by definition. One consequence to expect: a
-  # copy refreshed from an UNMERGED canon branch fails here until that branch
-  # merges. Locally, MACSTACK_CANON_OFFLINE=1 skips the check.
-  macstack-canon:
-    name: macstack-dev mirrors equal the canon
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Bundled schema and registry files equal macstacks/macstack and macstacks/registry
-        run: ./scripts/check-macstack-canon.sh
+      # macstack-dev's linter, migration and sync scripts decide what every
+      # project's documents are judged by; its suite (stdlib only, ~3 s) gated
+      # nothing until 3.10.0 — a regression passed CI as long as nobody ran it
+      # locally.
+      - name: macstack-dev
+        working-directory: plugins/macstack-dev
+        run: sh run-tests.sh

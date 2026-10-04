@@ -112,6 +112,23 @@ class CanonGuard(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertNotIn("TOKEN-SHOULD-NEVER-BE-PRINTED", out + err)
 
+    def test_file_contents_are_never_printed_on_a_match_either(self):
+        # The `ok` line is the other place a careless echo would leak a file.
+        marker = b"TOKEN-SHOULD-NEVER-BE-PRINTED"
+        for name, remote in CANON.items():
+            put(os.path.join(self.canon, remote), marker + name.encode())
+            put(os.path.join(self.mirror, name), marker + name.encode())
+        code, out, err = self.run_guard()
+        self.assertEqual(code, 0, out + err)
+        self.assertNotIn(marker.decode(), out + err)
+
+    def test_a_fetch_failure_names_curls_reason(self):
+        # Without curl's own line a 404, a 429 and a timeout all read the same.
+        os.remove(os.path.join(self.canon, CANON["coverage-areas.json"]))
+        code, _out, err = self.run_guard()
+        self.assertEqual(code, 2, err)
+        self.assertIn("curl:", err)
+
     def test_the_default_mirror_directory_holds_the_three_bundled_files(self):
         for name in CANON:
             self.assertTrue(os.path.isfile(os.path.join(BUNDLED, name)), name)
@@ -125,23 +142,33 @@ class CanonGuard(unittest.TestCase):
 
 
 class CiWiring(unittest.TestCase):
-    def test_the_publication_workflow_runs_the_guard(self):
-        with open(os.path.join(ROOT, ".github", "workflows", "scrub.yml")) as fh:
-            text = fh.read()
-        self.assertIn("scripts/check-macstack-canon.sh", text)
+    WF = os.path.join(ROOT, ".github", "workflows")
+
+    def read(self, name):
+        with open(os.path.join(self.WF, name)) as fh:
+            return fh.read()
+
+    def test_a_workflow_of_its_own_runs_the_guard(self):
+        self.assertIn("scripts/check-macstack-canon.sh", self.read("macstack-canon.yml"))
+
+    def test_the_guard_does_not_gate_unrelated_pull_requests(self):
+        # It needs the network and other repositories: a canon change or a fetch
+        # hiccup must not turn a PR that never touched macstack-dev red.
+        text = self.read("macstack-canon.yml")
+        self.assertIn("plugins/macstack-dev/**", text)
+        self.assertIn("schedule:", text)
+        self.assertNotIn("check-macstack-canon", self.read("scrub.yml"))
 
     def test_the_guard_is_not_part_of_the_no_network_unit_tests(self):
-        # It needs the canon, a network resource. The plugin's own suite and the
-        # `tests` job must stay runnable offline.
+        # The plugin's own suite and the `tests` job must stay runnable offline.
         with open(os.path.join(ROOT, "plugins", "macstack-dev", "run-tests.sh")) as fh:
             self.assertNotIn("check-macstack-canon", fh.read())
-        with open(os.path.join(ROOT, ".github", "workflows", "scrub.yml")) as fh:
-            text = fh.read()
-        start = text.index("\n  tests:")
-        end = text.index("\n  macstack-canon:")
-        self.assertLess(start, end)
-        self.assertNotIn("check-macstack-canon", text[start:end])
 
+    def test_the_tests_job_runs_the_macstack_dev_suite(self):
+        text = self.read("scrub.yml")
+        start = text.index("\n  tests:")
+        self.assertIn("run-tests.sh", text[start:])
+        self.assertIn("plugins/macstack-dev", text[start:])
 
 if __name__ == "__main__":
     unittest.main()

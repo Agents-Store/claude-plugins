@@ -429,8 +429,16 @@ def r_12_22(c):
         want = spec_human[tid].get('gate')
         got = it.fields.get('gate')
         if _is_gate_none(got):
-            fix = ('set it to %r, the gate the spec declares' % want if want
-                   else 'delete the line: the spec declares no gate for it')
+            if _is_gate_none(want):
+                # The spec itself carries `none`, which the schema's human.gate never
+                # allowed: copying it into the document would only move the error.
+                fix = ('the spec says none too, and the schema has no such gate — drop '
+                       'the human block for this task in macstack.json, or give it a real '
+                       'gate, then mirror that here')
+            elif want:
+                fix = 'set it to %r, the gate the spec declares' % want
+            else:
+                fix = 'delete the line: the spec declares no gate for it'
             out.append(Finding('12.22', WARNING, path, (it.head_line or 0) + 1,
                                'task %s: gate: none is never written — %s' % (tid, fix)))
         elif got != want:
