@@ -78,25 +78,47 @@ def load(plugin):
     try:
         with open(path, "rb") as fh:
             data = tomllib.load(fh)
-    except tomllib.TOMLDecodeError as exc:
+    except (tomllib.TOMLDecodeError, UnicodeDecodeError) as exc:
         bad("TOML не разбирается: %s" % exc)
         return Manifest(), findings
 
     m = Manifest()
     for key in sorted(set(data) - TOP_KEYS):
         bad("неизвестный ключ верхнего уровня %r" % key, WARN)
-    _mcp(data.get("mcp"), m, bad)
-    _cli(data.get("cli"), m, bad)
-    _api(data.get("api"), m, bad)
-    _unit(data.get("unit"), m, bad)
-    _skip(data.get("skip"), m, bad)
-    budget = data.get("budget") or {}
-    if isinstance(budget, dict) and "always_on_tokens" in budget:
-        if isinstance(budget["always_on_tokens"], int):
-            m.always_on_tokens = budget["always_on_tokens"]
-        else:
-            bad("[budget] always_on_tokens должно быть целым числом")
+    _mcp(_section(data, "mcp", dict, "должна быть таблицей серверов", bad), m, bad)
+    _cli(_section(data, "cli", dict, "должна быть таблицей утилит", bad), m, bad)
+    _api(_section(data, "api", (dict, list), "должна быть таблицей или массивом таблиц ([[api]])", bad), m, bad)
+    _unit(_section(data, "unit", list, "должен быть массивом таблиц ([[unit]])", bad), m, bad)
+    _skip(_section(data, "skip", dict, "должна быть таблицей «проверка = [маски]»", bad), m, bad)
+    _budget(_section(data, "budget", dict, "должна быть таблицей", bad), m, bad)
     return m, findings
+
+
+def _section(data, key, kinds, expected, bad):
+    """data[key], если он нужного типа; иначе одна находка FAIL и None (секция пропускается).
+
+    TOML не имеет null, поэтому None — это «ключа нет»; 0, "", false и [] — уже неверный тип.
+    """
+    raw = data.get(key)
+    if raw is None:
+        return None
+    if not isinstance(raw, kinds):
+        bad("[%s] %s" % (key, expected))
+        return None
+    return raw
+
+
+def _is_int(value):
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _budget(raw, m, bad):
+    if raw is None or "always_on_tokens" not in raw:
+        return
+    if _is_int(raw["always_on_tokens"]):
+        m.always_on_tokens = raw["always_on_tokens"]
+    else:
+        bad("[budget] always_on_tokens должно быть целым числом")
 
 
 def _mcp(raw, m, bad):
@@ -108,7 +130,7 @@ def _mcp(raw, m, bad):
         if start not in START_VALUES:
             bad("[mcp.%s] start=%r, ожидалось одно из: %s" % (server, start, ", ".join(START_VALUES)))
             start = "server"
-        env = spec.get("env") or {}
+        env = spec.get("env", {})
         if not isinstance(env, dict) or not all(isinstance(v, str) for v in env.values()):
             bad("[mcp.%s] env должна быть таблицей строк" % server)
             env = {}
@@ -150,7 +172,7 @@ def _unit(raw, m, bad):
             continue
         timeout = spec.get("timeout", UNIT_TIMEOUT)
         needs = spec.get("needs", [])
-        if not isinstance(timeout, int) or not isinstance(needs, list):
+        if not _is_int(timeout) or not isinstance(needs, list):
             bad("[[unit]] %r: timeout — целое число секунд, needs — список" % spec["run"])
             continue
         m.unit.append(UnitSpec(run=spec["run"], cwd=str(spec.get("cwd", "")), needs=[str(n) for n in needs],

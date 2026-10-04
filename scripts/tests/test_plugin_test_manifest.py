@@ -96,6 +96,37 @@ class ManifestTest(unittest.TestCase):
         self.assertEqual(m.mcp_spec("x").start, "server")
         self.assertEqual(m.unit, [])
 
+    def test_wrong_section_types_are_findings_not_tracebacks(self):
+        m, findings = self.load('mcp = 1\ncli = "x"\nskip = 1\napi = 5\nunit = 3\nbudget = 2\n')
+        self.assertEqual(len(findings), 6)
+        for f in findings:
+            self.assertEqual((f.check, f.level), ("manifest", FAIL))
+            self.assertEqual(f.file, "tests/plugins/demo-dev/plugin-test.toml")
+        for key in ("mcp", "cli", "skip", "api", "unit", "budget"):
+            self.assertEqual(sum("[%s]" % key in f.message for f in findings), 1, key)
+        self.assertEqual((m.mcp, m.cli, m.api, m.unit, m.skip), ({}, {}, [], [], {}))
+        self.assertEqual(m.always_on_tokens, manifest.DEFAULT_ALWAYS_ON)
+
+    def test_falsy_wrong_section_types_are_findings(self):
+        m, findings = self.load('mcp = 0\nskip = false\nbudget = ""\nunit = {}\n')
+        self.assertEqual([f.level for f in findings], [FAIL] * 4)
+        self.assertEqual(m.always_on_tokens, manifest.DEFAULT_ALWAYS_ON)
+
+    def test_bool_is_not_an_integer(self):
+        m, findings = self.load('[[unit]]\nrun = "x"\ntimeout = true\n[budget]\nalways_on_tokens = true\n')
+        self.assertEqual([(f.check, f.level) for f in findings], [("manifest", FAIL)] * 2)
+        self.assertEqual(m.unit, [])
+        self.assertEqual(m.always_on_tokens, manifest.DEFAULT_ALWAYS_ON)
+
+    def test_not_utf8_is_a_finding(self):
+        self.repo.tests("demo-dev", {"plugin-test.toml": ""})
+        path = manifest.path_of(load_plugin(self.repo.root, "demo-dev"))
+        with open(path, "wb") as fh:
+            fh.write(b'[mcp.x]\nstart = "\xff"\n')
+        m, findings = manifest.load(load_plugin(self.repo.root, "demo-dev"))
+        self.assertEqual([(f.check, f.level) for f in findings], [("manifest", FAIL)])
+        self.assertEqual(m.mcp, {})
+
 
 class EnvFileTest(unittest.TestCase):
     def test_parse(self):
