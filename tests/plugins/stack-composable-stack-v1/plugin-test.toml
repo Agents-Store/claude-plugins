@@ -1,0 +1,20 @@
+[mcp.trigger-dev]
+start = "ci"
+env = { TRIGGER_ACCESS_TOKEN = "dummy", TRIGGER_API_URL = "https://trigger.example.com" }
+
+[mcp.n8n-mcp-external]
+start = "ci"
+env = { N8N_API_URL = "https://n8n.example.com", N8N_API_KEY = "dummy" }
+
+# Self-hosted серверы: tools/list может нести имена баз и таблиц инстанса — в снимок только имена.
+[mcp.n8n-native-mcp]
+snapshot = "names"
+
+[mcp.nocodb]
+snapshot = "names"
+
+[mcp.postgresql-mcp]
+snapshot = "names"
+
+[mcp.nocobase-dev]
+snapshot = "names"

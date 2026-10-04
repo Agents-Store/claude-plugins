@@ -1,0 +1,5 @@
+{
+  "event": "SessionStart",
+  "stdin": {"hook_event_name": "SessionStart", "source": "startup"},
+  "expect": {"exit": 0, "stdout_empty": true}
+}

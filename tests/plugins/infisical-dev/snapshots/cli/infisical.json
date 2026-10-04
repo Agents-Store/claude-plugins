@@ -1,0 +1,276 @@
+{
+  "children": {
+    "dynamic-secrets": [
+      "lease"
+    ],
+    "login": [
+      "status"
+    ],
+    "scan": [
+      "git-changes",
+      "install"
+    ],
+    "secrets": [
+      "delete",
+      "folders",
+      "generate-example-env",
+      "get",
+      "set"
+    ],
+    "secrets folders": [
+      "create",
+      "delete",
+      "get"
+    ],
+    "token": [
+      "renew"
+    ],
+    "user": [
+      "get",
+      "switch",
+      "update"
+    ],
+    "vault": [
+      "set"
+    ]
+  },
+  "commands": {
+    "agent": [
+      "--config",
+      "--help",
+      "--log-level",
+      "--silent",
+      "--telemetry"
+    ],
+    "dynamic-secrets": [
+      "--domain",
+      "--env",
+      "--help",
+      "--log-level",
+      "--output",
+      "--path",
+      "--project",
+      "--project-slug",
+      "--silent",
+      "--telemetry",
+      "--token"
+    ],
+    "export": [
+      "--domain",
+      "--env",
+      "--expand",
+      "--format",
+      "--help",
+      "--include-imports",
+      "--log-level",
+      "--output-file",
+      "--path",
+      "--project",
+      "--secret-overriding",
+      "--silent",
+      "--tags",
+      "--telemetry",
+      "--template",
+      "--token"
+    ],
+    "init": [
+      "--domain",
+      "--help",
+      "--log-level",
+      "--silent",
+      "--telemetry"
+    ],
+    "login": [
+      "--clear-domains",
+      "--client-id",
+      "--client-secret",
+      "--domain",
+      "--email",
+      "--help",
+      "--interactive",
+      "--jwt",
+      "--log-level",
+      "--machine-identity-id",
+      "--method",
+      "--organization-id",
+      "--organization-slug",
+      "--password",
+      "--plain",
+      "--service-account-key-file-path",
+      "--service-account-token-path",
+      "--silent",
+      "--telemetry"
+    ],
+    "run": [
+      "--command",
+      "--domain",
+      "--env",
+      "--expand",
+      "--help",
+      "--include-imports",
+      "--log-level",
+      "--path",
+      "--project",
+      "--project-config-dir",
+      "--recursive",
+      "--secret-overriding",
+      "--silent",
+      "--tags",
+      "--telemetry",
+      "--token",
+      "--watch",
+      "--watch-interval"
+    ],
+    "scan": [
+      "--baseline-path",
+      "--config",
+      "--domain",
+      "--exit-code",
+      "--follow-symlinks",
+      "--help",
+      "--log-level",
+      "--log-opts",
+      "--max-target-megabytes",
+      "--no-color",
+      "--no-git",
+      "--pipe",
+      "--redact",
+      "--report-format",
+      "--report-path",
+      "--silent",
+      "--source",
+      "--telemetry",
+      "--verbose"
+    ],
+    "secrets": [
+      "--domain",
+      "--env",
+      "--expand",
+      "--help",
+      "--include-imports",
+      "--log-level",
+      "--output",
+      "--path",
+      "--plain",
+      "--project",
+      "--recursive",
+      "--secret-overriding",
+      "--silent",
+      "--tags",
+      "--telemetry",
+      "--token"
+    ],
+    "secrets delete": [
+      "--domain",
+      "--env",
+      "--help",
+      "--log-level",
+      "--output",
+      "--path",
+      "--project",
+      "--silent",
+      "--tags",
+      "--telemetry",
+      "--token",
+      "--type"
+    ],
+    "secrets folders": [
+      "--domain",
+      "--env",
+      "--help",
+      "--log-level",
+      "--silent",
+      "--tags",
+      "--telemetry"
+    ],
+    "secrets get": [
+      "--domain",
+      "--env",
+      "--expand",
+      "--help",
+      "--include-imports",
+      "--log-level",
+      "--output",
+      "--path",
+      "--plain",
+      "--project",
+      "--recursive",
+      "--secret-overriding",
+      "--silent",
+      "--tags",
+      "--telemetry",
+      "--token"
+    ],
+    "secrets set": [
+      "--domain",
+      "--env",
+      "--file",
+      "--help",
+      "--log-level",
+      "--output",
+      "--path",
+      "--project",
+      "--silent",
+      "--tag",
+      "--tags",
+      "--telemetry",
+      "--token",
+      "--type"
+    ],
+    "token": [
+      "--domain",
+      "--help",
+      "--log-level",
+      "--silent",
+      "--telemetry"
+    ],
+    "user": [
+      "--domain",
+      "--help",
+      "--log-level",
+      "--silent",
+      "--telemetry"
+    ],
+    "vault": [
+      "--domain",
+      "--help",
+      "--log-level",
+      "--silent",
+      "--telemetry"
+    ]
+  },
+  "global": [
+    "--domain",
+    "--help",
+    "--log-level",
+    "--silent",
+    "--telemetry",
+    "--version"
+  ],
+  "subcommands": [
+    "agent",
+    "bootstrap",
+    "cert-manager",
+    "dynamic-secrets",
+    "export",
+    "gateway",
+    "help",
+    "init",
+    "kmip",
+    "login",
+    "pam",
+    "proxy",
+    "relay",
+    "reset",
+    "run",
+    "scan",
+    "secrets",
+    "service-token",
+    "ssh",
+    "token",
+    "user",
+    "vault"
+  ],
+  "tool": "infisical",
+  "version": "0.43.91"
+}

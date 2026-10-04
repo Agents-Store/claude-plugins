@@ -1,0 +1,565 @@
+{
+  "tools": [
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataTableId",
+          "name",
+          "projectId",
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "add_data_table_column"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataTableId",
+          "projectId",
+          "rows"
+        ],
+        "type": "object"
+      },
+      "name": "add_data_table_rows"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "archive_workflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "request"
+        ],
+        "type": "object"
+      },
+      "name": "call_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "name",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "create_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "columns",
+          "name",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "create_data_table"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "name",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "create_folder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "name": "create_workflow_from_code"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "delete_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "columnId",
+          "dataTableId",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "delete_data_table_column"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "kind",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "discover_agent_assets"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "executionMode",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "execute_workflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "credentialId",
+          "credentialType",
+          "methodName",
+          "methodType",
+          "nodeType",
+          "version"
+        ],
+        "type": "object"
+      },
+      "name": "explore_node_resources"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "get_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "get_agent_builder_reference"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataTableId",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "get_data_table_rows"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "nodeIds"
+        ],
+        "type": "object"
+      },
+      "name": "get_node_types"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "technique"
+        ],
+        "type": "object"
+      },
+      "name": "get_workflow_best_practices"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "get_workflow_details"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "executionId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "get_workflow_execution"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "get_workflow_history"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "get_workflow_sdk_reference"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "versionId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "get_workflow_version"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fromVersionId",
+          "toVersionId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "get_workflow_versions_diff"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "list_agent_versions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "list_credentials"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "list_n8n_gateway_services"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "list_workflow_tags"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId",
+          "workflowIds"
+        ],
+        "type": "object"
+      },
+      "name": "move_workflows_to_folder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "baseConfigHash",
+          "operation"
+        ],
+        "type": "object"
+      },
+      "name": "mutate_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "prepare_workflow_pin_data"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "publish_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "publish_workflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dataTableId",
+          "name",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "rename_data_table"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "columnId",
+          "dataTableId",
+          "name",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "rename_data_table_column"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "versionId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "restore_workflow_version"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "revert_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "search_agents"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "search_data_tables"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "search_folders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "queries"
+        ],
+        "type": "object"
+      },
+      "name": "search_nodes"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "search_projects"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "search_workflow_executions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "search_workflows"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "pinData",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "test_workflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "unpublish_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "unpublish_workflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "action",
+          "agentId",
+          "credentialId",
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "update_agent_integration"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId",
+          "projectId"
+        ],
+        "type": "object"
+      },
+      "name": "update_folder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "operations",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "update_workflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "validate_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "nodes"
+        ],
+        "type": "object"
+      },
+      "name": "validate_node_config"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "name": "validate_workflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "name",
+          "projectId",
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "verify_agent_mcp_server"
+    }
+  ]
+}

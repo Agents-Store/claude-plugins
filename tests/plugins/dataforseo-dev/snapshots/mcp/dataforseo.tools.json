@@ -1,0 +1,88 @@
+{
+  "tools": [
+    {
+      "description": "Make an authenticated request to the DataForSEO API",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "data": {
+            "description": "Request body as JSON object or array of task objects"
+          },
+          "method": {
+            "description": "HTTP method",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "DELETE"
+            ],
+            "type": "string"
+          },
+          "noAiMode": {
+            "default": false,
+            "description": "Disable the .ai path suffix and return the full response schema instead of the AI-optimized subset. Can increase context size significantly. Default: false.",
+            "type": "boolean"
+          },
+          "path": {
+            "description": "API path (e.g. /v3/serp/google/organic/live/regular)",
+            "type": "string"
+          },
+          "url": {
+            "description": "Full API URL (alternative to path)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method"
+        ],
+        "type": "object"
+      },
+      "name": "api_request"
+    },
+    {
+      "description": "Fetch the DataForSEO API documentation index (llms.txt), optionally filtered by section",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "section": {
+            "description": "Filter by API section (e.g. \"SERP API\")",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "docs_index"
+    },
+    {
+      "description": "Return available DataForSEO API documentation section names",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "docs_list_sections"
+    },
+    {
+      "description": "Fetch DataForSEO API documentation from a documentation URL",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "needCodeExample": {
+            "default": false,
+            "description": "Include multi-language code examples (PHP, Node.js, Python, C#)",
+            "type": "boolean"
+          },
+          "url": {
+            "description": "Documentation URL or path (e.g. https://docs.dataforseo.com/v3/serp/google/organic/live/regular or serp/google/organic/live/regular)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "docs_search"
+    }
+  ]
+}

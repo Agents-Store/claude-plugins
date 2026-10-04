@@ -1,0 +1,675 @@
+{
+  "tools": [
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "aggregations",
+          "filterGroups",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "aggregate"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fk_model_id",
+          "layout",
+          "settings",
+          "sourceViewId"
+        ],
+        "type": "object"
+      },
+      "name": "buildInterfacePageConfigFromView"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "name": "callTool"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "countRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "records",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "createRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "records",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "exportCsv"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "baseId"
+        ],
+        "type": "object"
+      },
+      "name": "getBase"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "getBaseInfo"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "getBaseSchema"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dashboardId"
+        ],
+        "type": "object"
+      },
+      "name": "getDashboard"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dashboardId"
+        ],
+        "type": "object"
+      },
+      "name": "getDashboardData"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "getDocument"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "executionId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "getExecution"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId"
+        ],
+        "type": "object"
+      },
+      "name": "getField"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "getFieldOptionsSchema"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "getFormFieldConditions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "hookId"
+        ],
+        "type": "object"
+      },
+      "name": "getHook"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "interfaceId"
+        ],
+        "type": "object"
+      },
+      "name": "getInterface"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "getInterfaceAuthoringInstructions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "pageId"
+        ],
+        "type": "object"
+      },
+      "name": "getInterfacePage"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "layout"
+        ],
+        "type": "object"
+      },
+      "name": "getInterfacePageConfigSchema"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "pageId"
+        ],
+        "type": "object"
+      },
+      "name": "getInterfacePageMeta"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "pageId",
+          "widgetId"
+        ],
+        "type": "object"
+      },
+      "name": "getInterfaceWidgetData"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "jobId"
+        ],
+        "type": "object"
+      },
+      "name": "getJobStatus"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "recordId",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "getRecord"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "policyId"
+        ],
+        "type": "object"
+      },
+      "name": "getRlsPolicy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "getRowColoring"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "scriptId"
+        ],
+        "type": "object"
+      },
+      "name": "getScript"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "getScriptAuthoringInstructions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "getTableSchema"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "getTablesList"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "getView"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "widgetId"
+        ],
+        "type": "object"
+      },
+      "name": "getWidget"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "getWidgetConfigSchema"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "widgetId"
+        ],
+        "type": "object"
+      },
+      "name": "getWidgetData"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "getWorkflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "getWorkflowAuthoringInstructions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "groupByRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId",
+          "records",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "linkRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listAutomationFolders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listBaseMembers"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "recordId",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "listComments"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listDashboards"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listDocuments"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "listExecutions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "listFields"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "listFilters"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listFolders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "listHooks"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "interfaceId"
+        ],
+        "type": "object"
+      },
+      "name": "listInterfacePages"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listInterfaces"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId",
+          "recordId",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "listLinkedRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listPermissions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "listRlsPolicies"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listScripts"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listSharedViews"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "listSorts"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "category"
+        ],
+        "type": "object"
+      },
+      "name": "listTools"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "listViewFolders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "listViews"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dashboardId"
+        ],
+        "type": "object"
+      },
+      "name": "listWidgets"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listWorkflowNodeTypes"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listWorkflows"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "queryRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "files"
+        ],
+        "type": "object"
+      },
+      "name": "readAttachment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId",
+          "records",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "unlinkRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "records",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "updateRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "whoami"
+    }
+  ]
+}

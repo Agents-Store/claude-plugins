@@ -1,0 +1,3 @@
+# Self-hosted сервер: tools/list может нести данные инстанса — в снимок только имена.
+[mcp.directus]
+snapshot = "names"

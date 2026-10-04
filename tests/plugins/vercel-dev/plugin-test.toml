@@ -1,0 +1,10 @@
+# OAuth (вход через браузер): наш клиент токен не получает. Снимок — очередь 4 (дрейф).
+[mcp.vercel]
+start = "never"
+
+# Цепочка проверки vendored-кода — из LEARNINGS.md плагина (как upstream CI), без build.
+[[unit]]
+name = "vercel-dev bun suite"
+run = "bun install --frozen-lockfile && bun run typecheck && bun run validate && bun run build:from-skills:check && bun test"
+needs = ["bun"]
+timeout = 900

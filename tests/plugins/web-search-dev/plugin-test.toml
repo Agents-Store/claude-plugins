@@ -1,0 +1,16 @@
+# Ключи фиктивные: в CI проверяется только, что сервер стартует и отдаёт свой список. jina — http, ночью.
+[mcp.firecrawl]
+start = "ci"
+env = { FIRECRAWL_API_TOKEN = "dummy" }
+
+[mcp.exa]
+start = "ci"
+env = { EXA_API_KEY = "dummy" }
+
+[mcp.perplexity]
+start = "ci"
+env = { PERPLEXITY_API_KEY = "dummy" }
+
+[mcp.context7]
+start = "ci"
+env = { CONTEXT7_API_KEY = "dummy" }

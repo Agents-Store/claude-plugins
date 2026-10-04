@@ -1,0 +1,4 @@
+# tools/list не требует настоящих учётных данных — сервер стартует в CI с фиктивными.
+[mcp.dataforseo]
+start = "ci"
+env = { DATAFORSEO_USERNAME = "dummy", DATAFORSEO_PASSWORD = "dummy" }

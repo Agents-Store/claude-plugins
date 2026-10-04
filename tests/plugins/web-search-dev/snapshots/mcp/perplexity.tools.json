@@ -1,0 +1,241 @@
+{
+  "tools": [
+    {
+      "description": "Answer a question using web-grounded AI (Perplexity Agent API, fast preset). Best for: quick factual questions, summaries, explanations, and general Q&A. Returns a text response with numbered citations. Fastest and cheapest option. Supports filtering by recency (hour/day/week/month/year), domain restrictions, and search context size. For in-depth multi-source research, use perplexity_research instead. For step-by-step reasoning and analysis, use perplexity_reason instead.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "messages": {
+            "description": "Array of conversation messages",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "content": {
+                  "description": "The content of the message",
+                  "type": "string"
+                },
+                "role": {
+                  "description": "Role of the message sender",
+                  "enum": [
+                    "system",
+                    "user",
+                    "assistant"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "content",
+                "role"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "search_context_size": {
+            "description": "Controls how much web context is retrieved. 'low' is fastest, 'high' provides more comprehensive results.",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "type": "string"
+          },
+          "search_domain_filter": {
+            "description": "Restrict search results to specific domains (e.g., ['wikipedia.org', 'arxiv.org']). Use '-' prefix for exclusion (e.g., ['-reddit.com']).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "search_recency_filter": {
+            "description": "Filter search results by recency. Use 'hour' for very recent news, 'day' for today's updates, 'week' for this week, etc.",
+            "enum": [
+              "hour",
+              "day",
+              "week",
+              "month",
+              "year"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "type": "object"
+      },
+      "name": "perplexity_ask"
+    },
+    {
+      "description": "Analyze a question using step-by-step reasoning with web grounding (Perplexity Agent API, medium preset). Best for: math, logic, comparisons, complex arguments, and tasks requiring chain-of-thought. Returns a reasoned response with numbered citations. Supports filtering by recency (hour/day/week/month/year), domain restrictions, and search context size. For quick factual questions, use perplexity_ask instead. For comprehensive multi-source research, use perplexity_research instead.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "messages": {
+            "description": "Array of conversation messages",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "content": {
+                  "description": "The content of the message",
+                  "type": "string"
+                },
+                "role": {
+                  "description": "Role of the message sender",
+                  "enum": [
+                    "system",
+                    "user",
+                    "assistant"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "content",
+                "role"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "search_context_size": {
+            "description": "Controls how much web context is retrieved. 'low' is fastest, 'high' provides more comprehensive results.",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "type": "string"
+          },
+          "search_domain_filter": {
+            "description": "Restrict search results to specific domains (e.g., ['wikipedia.org', 'arxiv.org']). Use '-' prefix for exclusion (e.g., ['-reddit.com']).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "search_recency_filter": {
+            "description": "Filter search results by recency. Use 'hour' for very recent news, 'day' for today's updates, 'week' for this week, etc.",
+            "enum": [
+              "hour",
+              "day",
+              "week",
+              "month",
+              "year"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "type": "object"
+      },
+      "name": "perplexity_reason"
+    },
+    {
+      "description": "Conduct deep, multi-source research on a topic (Perplexity Agent API, high preset). Best for: literature reviews, comprehensive overviews, investigative queries needing many sources. Returns a detailed response with numbered citations. Significantly slower than other tools (can take minutes). For quick factual questions, use perplexity_ask instead. For logical analysis and reasoning, use perplexity_reason instead.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "messages": {
+            "description": "Array of conversation messages",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "content": {
+                  "description": "The content of the message",
+                  "type": "string"
+                },
+                "role": {
+                  "description": "Role of the message sender",
+                  "enum": [
+                    "system",
+                    "user",
+                    "assistant"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "content",
+                "role"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "type": "object"
+      },
+      "name": "perplexity_research"
+    },
+    {
+      "description": "Search the web and return a ranked list of results with titles, URLs, snippets, and dates. Best for: finding specific URLs, checking recent news, verifying facts, discovering sources. Returns formatted results (title, URL, snippet, date) with no AI synthesis. Supports recency filters, domain restrictions, and a lower-latency fast search mode. For AI-generated answers with citations, use perplexity_ask instead.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "country": {
+            "description": "ISO 3166-1 alpha-2 country code for regional results (e.g., 'US', 'GB')",
+            "type": "string"
+          },
+          "max_results": {
+            "description": "Maximum number of results to return (1-20, default: 10)",
+            "maximum": 20,
+            "minimum": 1,
+            "type": "number"
+          },
+          "max_tokens_per_page": {
+            "description": "Maximum tokens to extract per webpage (default: 1024)",
+            "maximum": 2048,
+            "minimum": 256,
+            "type": "number"
+          },
+          "query": {
+            "description": "Search query string",
+            "type": "string"
+          },
+          "search_domain_filter": {
+            "description": "Restrict search results to specific domains (e.g., ['wikipedia.org', 'arxiv.org']). Use '-' prefix for exclusion (e.g., ['-reddit.com']).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "search_recency_filter": {
+            "description": "Filter search results by recency. Use 'hour' for very recent news, 'day' for today's updates, 'week' for this week, etc.",
+            "enum": [
+              "hour",
+              "day",
+              "week",
+              "month",
+              "year"
+            ],
+            "type": "string"
+          },
+          "search_type": {
+            "description": "Search backend. 'web' (default) is the standard web search. 'fast' is lower latency and lower cost; prefer it for routine lookups inside agent loops, and keep 'web' for rare or ambiguous questions.",
+            "enum": [
+              "web",
+              "fast"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "perplexity_search"
+    }
+  ]
+}

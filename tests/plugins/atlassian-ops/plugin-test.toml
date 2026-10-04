@@ -1,0 +1,8 @@
+# Рецепты задают JIRA="${JIRA_ROOT}/rest/api/3" и CONF="${CONF_ROOT}/wiki/api/v2".
+[[api]]
+spec = "skills/api-reference/references/jira-openapi-v3.json"
+base_vars = { JIRA = "/rest/api/3", JIRA_ROOT = "" }
+
+[[api]]
+spec = "skills/api-reference/references/confluence-openapi-v2.json"
+base_vars = { CONF = "", CONF_ROOT = "" }
