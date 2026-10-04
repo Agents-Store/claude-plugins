@@ -1,9 +1,9 @@
 """Реестр проверок L1: id → run(plugin, ctx, manifest) -> list[Finding].
 
-Каждая задача плана добавляет сюда свою строку; порядок запуска задаёт
-model.CHECK_IDS, а не этот словарь.
+Порядок запуска задаёт model.CHECK_IDS, а не этот словарь.
 """
-from . import api_paths, cli_flags, hook_fixtures, mcp_list, mcp_names, skill_budget, skill_links, skill_snippets
+from . import (api_paths, cli_flags, hook_fixtures, mcp_list, mcp_names, skill_budget, skill_links,
+               skill_snippets, unit)
 
 REGISTRY = {
     "skill-links": skill_links.run,
@@ -14,4 +14,5 @@ REGISTRY = {
     "hook-fixtures": hook_fixtures.run,
     "cli-flags": cli_flags.run,
     "api-paths": api_paths.run,
+    "unit": unit.run,
 }
