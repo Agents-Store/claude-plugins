@@ -48,7 +48,13 @@ ever cited one.
      lazily and their absence in a fresh folder is correct.
      **`docs.files` must name every fixed-path document.** Checking only that the
      entries present resolve is a rule that passes in a vacuum: `docs.files` is
-     authored, so naming nothing at all used to approve an empty folder.
+     authored, so naming nothing at all used to approve an empty folder. The expected
+     keys are read from the bundled schema mirror, with two rev-18 refinements: the four
+     keys the schema only declared in rev 18 (`ledger`, `requirements`, `review`,
+     `inbox_manifest`) are a **warning** when missing — a project written before rev 18
+     could not name them, and the schema does not make them `required` — and `log`, the
+     v2 name of the journal, is accepted as an alias of `ledger` (it draws a deprecation
+     warning naming the replacement). A key the schema knew before rev 18 stays an error.
      Exactly one `macstack.json` in the repo.
 12.2 **Headers and pointers** — each document carries its `<!-- macstack:doc= -->`
      header, and every entity heading carries a `<!-- macstack:ref= -->` pointer unless

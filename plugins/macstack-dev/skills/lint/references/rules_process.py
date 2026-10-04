@@ -39,12 +39,10 @@ block's own lines, because "the milestone has a bullet somewhere" is not the
 question 12.16 asks: an empty `done_when` beside a chatty `notes` passed, and a
 `не выполнено` written in `notes` about something else failed a done milestone.
 
-Rewiring note for whoever restructures `history/`: 12.13, 12.19, 12.20 and
-12.26 all read `log.md`'s `entries` section directly; 12.14, 12.16 and 12.26
-read `TASKS.md`'s `milestones`/`tasks` sections; 12.15 reads both `log.md` and
-`CHANGELOG.md`'s `releases` section. Whatever replaces `log.md` with a machine
-ledger needs equivalents of `_log_entries()` and of `_fields()`'s bold/plain/yaml
-union — nothing here assumes markdown past that one call site per rule.
+Rewiring note (updated for the ledger): 12.13, 12.15, 12.19, 12.20 and 12.26 read the
+journal through `_ledger()` (`ledger.py`, history/ledger.jsonl) — `log.md` is the v2
+journal and no rule reads it. 12.14, 12.16 and 12.26 read `TASKS.md`'s
+`milestones`/`tasks` sections; 12.15 also reads `CHANGELOG.md`'s `releases` section.
 """
 import datetime, os, re
 
@@ -266,12 +264,9 @@ def _relpath(c, key, fallback):
     return c.rel(p) if p else fallback
 
 
-def _log_entries(c):
-    """Every `log.md` journal entry, anchored or written the documented way."""
-    text = c.text.get('log')
-    if text is None:
-        return []
-    return _entities(text, 'entry', section='entries', dated_head=True)
+# `_log_entries()` читала `c.text.get('log')` — документ, которого в контракте нет с тех
+# пор, как журнал стал `ledger` (history/ledger.jsonl). Она всегда возвращала пустой
+# список и не имела ни одного вызова; журнал читает `_ledger()` ниже, через `ledger.py`.
 
 
 # ---------------------------------------------------------------- 12.13

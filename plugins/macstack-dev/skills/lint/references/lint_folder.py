@@ -61,9 +61,13 @@ class Ctx(object):
         # требовать записи для документа, которого схема туда не пустит:
         # inbox/README.md — манифест папки, а не документ проекта, и его там нет.
         sch = self._json(os.path.join(HERE, 'macstack.schema.json'))
-        self.docs_files_keys = set(
-            (((sch.get('properties') or {}).get('docs') or {})
-             .get('properties', {}).get('files', {}).get('properties') or {}))
+        _files_props = (((sch.get('properties') or {}).get('docs') or {})
+                        .get('properties', {}).get('files', {}).get('properties') or {})
+        self.docs_files_keys = set(_files_props)
+        # Ключи, которые сама схема объявила устаревшими (`log` с rev 18): они
+        # допустимы, но называть их в новом файле не нужно.
+        self.docs_files_deprecated = set(k for k, v in _files_props.items()
+                                         if isinstance(v, dict) and v.get('deprecated'))
         self.docs = {}          # contract key -> v3.Doc
         self.text = {}          # contract key -> raw text
         for key, decl in (self.contract.get('documents') or {}).items():
@@ -161,6 +165,19 @@ _CONTRACT_KIND = {'screen': 'interfaces', 'trigger': 'triggers', 'role': 'roles'
                   'process': 'processes', 'goal': 'goals', 'result': 'results',
                   'integration': 'integrations', 'open_item': 'lifecycle'}
 
+# Ключи `docs.files`, которые схема объявила только в rev 18. Контракт документов знал
+# эти документы и раньше, но схема о них молчала, и проект, написанный до rev 18, не мог
+# назвать их, не выйдя за схему. Правило 12.1 строит перечень обязательных записей из
+# встроенной копии схемы, поэтому обновление копии молча делало бы ошибкой отсутствие
+# записи, которую никто не просил: схема не ставит их в `required`. Для этих ключей
+# отсутствие записи — предупреждение с исправлением; ошибка остаётся за ключами, которые
+# схема знала до rev 18.
+SCHEMA_REV18_FILE_KEYS = frozenset(('ledger', 'requirements', 'review', 'inbox_manifest'))
+# Устаревшее имя -> текущее. `log` — v2-название журнала (history/log.md); с rev 18 он
+# называется `ledger` (history/ledger.jsonl). Запись под любым из двух имён закрывает
+# вопрос «проект назвал журнал».
+FILE_KEY_ALIASES = {'log': 'ledger'}
+
 CODE = re.compile(r'`[^`]*`')
 FENCE = re.compile(r'^\s*```')
 TABLE = re.compile(r'^\s*\|')
@@ -213,6 +230,15 @@ def r_12_1(c):
     if missing:
         out.append(Finding('12.1', ERROR, c.rel(c.root), 0,
                            'missing from the root: %s' % ', '.join(missing)))
+    named = set(c.files)
+    for old, new in FILE_KEY_ALIASES.items():
+        if old in c.files:
+            named.add(new)
+            if old in c.docs_files_deprecated:
+                out.append(Finding('12.1', WARNING, 'macstack.json', 0,
+                                   'docs.files.%s is the v2 name of `%s` and is deprecated '
+                                   '(schema rev 18) — rename the key to `%s` and point its '
+                                   'path at the ledger' % (old, new, new)))
     for key, decl in (c.contract.get('documents') or {}).items():
         p = decl.get('path') or ''
         if not p or '<' in p:
@@ -220,10 +246,17 @@ def r_12_1(c):
         if not os.path.exists(os.path.join(c.root, p)):
             out.append(Finding('12.1', ERROR, p, 0,
                                'the contract names this document; it does not exist'))
-        elif key not in c.files and key in c.docs_files_keys:
-            out.append(Finding('12.1', ERROR, 'macstack.json', 0,
-                               'docs.files does not name %s — an authored map that '
-                               'names nothing approves an empty folder' % key))
+        elif key not in named and key in c.docs_files_keys:
+            if key in SCHEMA_REV18_FILE_KEYS:
+                out.append(Finding('12.1', WARNING, 'macstack.json', 0,
+                                   'docs.files does not name %s — schema rev 18 declares '
+                                   'it; add {"path": "%s"} (a warning, not an error: a '
+                                   'project written before rev 18 could not name it)'
+                                   % (key, p)))
+            else:
+                out.append(Finding('12.1', ERROR, 'macstack.json', 0,
+                                   'docs.files does not name %s — an authored map that '
+                                   'names nothing approves an empty folder' % key))
     return out
 
 

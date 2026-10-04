@@ -62,9 +62,15 @@ There is no physical client/technical split beyond these four: the documents cro
 each other constantly, and more trees would multiply every relative link. Audience is
 declared in `docs.files.<key>.audience` and in the `-business.md` suffix, not in the
 path. `docs.files.<key>` uses the document keys from `doc-contracts.json` — `overview`,
-`user_cases`, `ux_ui`, `automation`, `handbook`, `open_questions`, `test_cases`,
-`architecture`, `index`, `readme`, `tasks`, `decisions`, `changelog`, `log` — not
-filenames.
+`user_cases`, `ux_ui`, `automation`, `handbook`, `open_questions` (client/);
+`test_cases`, `architecture`, `requirements`, `index`, `readme` (generated/ and the
+root); `tasks`, `decisions`, `changelog`, `ledger`, `review` (history/);
+`inbox_manifest` (inbox/) — not filenames. `ledger` is `history/ledger.jsonl`; `log`
+is its v2 name (`history/log.md`), still accepted as an alias and deprecated since
+schema rev 18 — lint 12.1 warns on it and names the replacement. Rev 18 is also what
+added `ledger`, `requirements`, `review` and `inbox_manifest` to the schema, so a
+project written before it that does not name them gets a 12.1 **warning**, not an
+error.
 
 ## The six client documents
 
@@ -210,7 +216,7 @@ is still a copy.
 | How a bullet is checked | `TEST-CASES.md` | ids carry the bullet they verify (`C-06.T3` covers `C-06.a2`) |
 | What will be done, in what order | `TASKS.md` | `lifecycle.next_steps[]` and `milestones[]` as pointers; every task also lives in the team's tracker |
 | What happened | `ledger.jsonl` | one row per edit and per client comment, keyed by the id of the thing that changed |
-| What reached the client | `CHANGELOG.md` | curated from the log's `work` and `release` entries; never a commit history in disguise |
+| What reached the client | `CHANGELOG.md` | curated from the ledger's `work` and `release` rows; never a commit history in disguise |
 | Open questions | `OPEN-QUESTIONS.md` | `lifecycle.open_questions[]` as pointers |
 | Owed by the client | `OPEN-QUESTIONS.md §A` | `lifecycle.needs_from_client[]` — a **derived view**: live §A client items only |
 | Decisions | `DECISIONS.md` | registry and argument in one file; `lifecycle.decisions[]` points here by id |
