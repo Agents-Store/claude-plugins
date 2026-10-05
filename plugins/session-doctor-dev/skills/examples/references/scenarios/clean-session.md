@@ -32,13 +32,13 @@ tests, and every request succeeded. The audit finds nothing to fix.
 ### HTTP
 | Source | Method | Host · path | × | Codes |
 |---|---|---|---|---|
-| MCP docs | POST | docs.example.com · /mcp | 6 | 200 ×6 |
-| hook | GET | api.example.test · /v1/health | 2 | 200 ×2 |
+| mcp | CALL | docs · search | 6 | ok×6 |
+| curl | GET | api.example.test · /v1/health | 2 | 200×2 |
 
 ### Tokens
 | Kind | Variable | Fingerprint | Codes | Status |
 |---|---|---|---|---|
-| bearer | EXAMPLE_API_TOKEN | a1b2c3d4 | 200 ×8 | accepted |
+| bearer | $EXAMPLE_API_TOKEN | a1b2c3d4 | 200×2 | accepted |
 
 ### Problems
 No problems found
@@ -51,6 +51,9 @@ Nothing to fix — keep the session focused on one task and `/clear` before star
 - The summary verdict is green and the Problems section says "No problems found" in one line.
 - The Tokens row shows the variable **name** and an 8-hex fingerprint — never the value.
 - Status "accepted" comes from the 200 codes in the row, not from a check made by the audit.
+- Tokens come only from Bash `curl`/`wget` commands: the token above rode on the 2 curl calls, so
+  its codes are `200×2`. The 6 MCP calls appear in HTTP (source `mcp`, method `CALL`, the server
+  and tool in the target column) but never count toward a token.
 
 ## Variant: first turn of a session
 

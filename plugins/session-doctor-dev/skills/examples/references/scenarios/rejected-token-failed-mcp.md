@@ -1,7 +1,7 @@
 # Scenario: a session with a rejected token and a failed MCP server
 
-A longer session. A tool call kept answering 401, one MCP server never connected, and the
-developer repeated the same correction several times. The audit turns this into a Problems
+A longer session. A curl call kept answering 401, one MCP server failed to connect, and the
+assistant retried it unchanged. The audit turns this into a Problems
 table with a concrete fix per row.
 
 ## Command
@@ -28,39 +28,42 @@ table with a concrete fix per row.
 | Skill | Invoked by | × | Outcome |
 |---|---|---|---|
 | audit | user | 1 | completed |
-| export-report | model | 2 | 1 failed (HTTP 401) |
+| export-report | model | 2 | completed |
 
 ### HTTP
 | Source | Method | Host · path | × | Codes |
 |---|---|---|---|---|
-| Bash (curl) | GET | api.example.test · /v1/reports | 5 | 401 ×5 |
-| Bash (curl) | POST | api.example.test · /v1/exports | 2 | 401 ×2 |
-| MCP tracker | POST | tracker.example.com · /mcp | 3 | connection refused ×3 |
-| MCP docs | POST | docs.example.com · /mcp | 9 | 200 ×9 |
+| curl | GET | api.example.test · /v1/reports | 5 | 401×5 |
+| curl | POST | api.example.test · /v1/exports | 2 | 401×2 |
+| mcp | CALL | docs · search | 9 | ok×9 |
+| mcp-connect | | tracker | 1 | AUTH_HEADER_REJECTED |
 
 ### Tokens
 | Kind | Variable | Fingerprint | Codes | Status |
 |---|---|---|---|---|
-| bearer | EXAMPLE_API_TOKEN | a1b2c3d4 | 401 ×7 | rejected |
-| bearer | DOCS_MCP_TOKEN | 0f9e8d7c | 200 ×9 | accepted |
+| bearer | $EXAMPLE_API_TOKEN | a1b2c3d4 | 401×7 | rejected |
 
 ### Problems
 | # | | Problem | Evidence | Fix |
 |---|---|---|---|---|
-| 1 | 🔴 | `EXAMPLE_API_TOKEN` is rejected by the API | 7 requests to api.example.test answered 401; fingerprint a1b2c3d4 | Issue a new token at the provider, update the variable in `.claude/settings.local.json`, restart the session |
-| 2 | 🔴 | MCP server `tracker` failed to connect | 3 attempts, connection refused | Check the server URL variable and that the service is up; run `/mcp` to reconnect |
-| 3 | 🟡 | MCP server `crm` waits for authentication | listed as needing auth | Run `/mcp` and authenticate `crm`, or remove it if unused |
-| 4 | 🟡 | The same 401 was retried 7 times without changing anything | repeated curl calls with the same header | Stop after the first 401 and fix the token before retrying (judgment) |
-| 5 | ⚪ | 2 skills have no description | context shows 2 skills without description | Add a `description` to each skill so it can trigger |
+| 1 | 🔴 | 1 API token refused by the server in this session | bearer $EXAMPLE_API_TOKEN fp a1b2c3d4 -> 401×7 @ api.example.test | Renew or replace the token and update where it is stored (settings env, `.env`, vault) |
+| 2 | 🔴 | MCP server `tracker` failed to start | AUTH_HEADER_REJECTED: the server refused the Authorization header | Run `claude mcp list` or `/mcp` to see the error and fix the server config |
+| 3 | 🟡 | The same 401 was retried 7 times without changing anything | repeated curl calls with the same header | Stop after the first 401 and fix the token before retrying (judgment) |
+| 4 | ⚪ | MCP servers waiting for authentication | 1: crm | Authenticate the ones you need in `/mcp`; disconnect the rest |
 
 ### Next step
-Replace the rejected `EXAMPLE_API_TOKEN` — it blocks every call to api.example.test.
+Replace the rejected `EXAMPLE_API_TOKEN` — it blocks every curl call to api.example.test.
 
 ## What to notice
 
-- The token Status is **rejected** only because every code in its row is 401; the audit never
-  tested the token itself.
-- The 401 rows in HTTP and the rejected row in Tokens point to the same cause, so Problems
-  merges them into one row instead of listing each request.
-- Rows 1-3 come from the data block, row 4 is a step-2 judgment and is marked "(judgment)".
-- The model name is only an illustration of the Main model cell.
+- The token Status is **rejected** only because its codes include 401; the audit never tested
+  the token itself. The Tokens table lists only tokens used in Bash `curl`/`wget` commands, so
+  an MCP server's credential never appears there.
+- A failed MCP connection is one HTTP row per (server, error code): source `mcp-connect`, empty
+  method, the server name as the target, count 1, and the server's error code as the code.
+- Rows 1-2 and 4 come from the data block's findings. Row 4 is low (⚪) because only 1 server
+  waits for authentication; it becomes medium (🟡) at 5 or more. Row 3 is a step-2 judgment and
+  is marked "(judgment)".
+- The summary counts (for example, skills without a description) stay in the summary table and
+  never become Problems rows.
+- The model name in the Main model cell is only an illustration.
