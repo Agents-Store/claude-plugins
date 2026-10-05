@@ -1,6 +1,6 @@
 ---
 name: mcp-patterns
-description: This skill should be used when the user asks about "DataForSEO MCP tools", "api_request", "docs_search", "which DataForSEO endpoint", "how to call DataForSEO", "DataForSEO request body", "DataForSEO .ai mode", or has a DataForSEO data task that none of the task skills (keyword-research, competitor-analysis, backlink-audit, site-audit, ai-optimization) covers and needs it turned into the right API call through the MCP server.
+description: This skill should be used when the user asks how to call the DataForSEO MCP server: "DataForSEO MCP tools", "api_request", "docs_search", "docs_index", "which DataForSEO endpoint", "how to call DataForSEO", "DataForSEO request body", "DataForSEO .ai mode", or when a DataForSEO task for an endpoint family that no task skill covers (SERP, Merchant, App Data, Business Data) needs the right API call built. Not for site audits, content analysis, page parsing, domain technologies or WHOIS (site-audit), and not for keyword research, competitor analysis, backlink audits or AI visibility (their own skills).
 ---
 
 # DataForSEO through the v3 MCP server
