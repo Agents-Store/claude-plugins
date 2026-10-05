@@ -91,7 +91,7 @@ def check_core(r):
         out.append(finding("info", "TRANSCRIPT_MISSING", "No transcript yet — configuration-only audit",
                            tr.get("note") or "no *.jsonl for this session or directory",
                            "Normal on the first turn: take runtime lists (skills, MCP status, agents) from "
-                           "your own context, or run /session-doctor again after one more turn"))
+                           "your own context, or run /session-doctor-dev:audit again after one more turn"))
     elif tr.get("records") and not tr.get("recognized"):
         out.append(finding("medium", "TRANSCRIPT_FORMAT", "Transcript format not recognised",
                            "Claude Code %s; parsers checked on %s" % (

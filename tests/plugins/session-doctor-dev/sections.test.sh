@@ -386,6 +386,13 @@ assert_contains "TOKENS" "$DIG" "дайджест фикстуры отдаёт 
 assert_contains "HTTP" "$DIG" "дайджест фикстуры отдаёт раздел HTTP"
 assert_contains "SKILLS" "$DIG" "дайджест фикстуры отдаёт раздел SKILLS"
 
+assert_contains "SKILLS INVOKED" "$S" "SKILL.md: метка блока SKILLS INVOKED"
+assert_contains "HTTP REQUESTS" "$S" "SKILL.md: метка блока HTTP REQUESTS"
+assert_contains "never infer or guess a token's validity" "$S" "SKILL.md: статус токена только из кодов"
+AREAS="$(cat "$SCRIPTS/doctor_areas.py")"
+assert_contains "run /session-doctor-dev:audit again" "$AREAS" "TRANSCRIPT_MISSING: fix называет /session-doctor-dev:audit"
+assert_missing "/session-doctor again" "$AREAS" "TRANSCRIPT_MISSING: нет устаревшей команды /session-doctor"
+
 # ═══ end of sections ═════════════════════════════════════════════════════════
 printf '\n  итого: %d ✓, %d ✗\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

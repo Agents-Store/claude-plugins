@@ -81,8 +81,12 @@ Render this as Markdown — not inside a code block:
 |---|---|---|---|---|
 | <kind> | <variable name> | <fingerprint> | <codes> | <status> |
 
-Each of these three tables has one row per item from the data block's matching
-section; when a section is empty or absent, write "none" instead of the table.
+Fill each of the three tables from its block in the data: Skills from the
+`SKILLS INVOKED` block, HTTP from the `HTTP REQUESTS` block, Tokens from the
+`TOKENS` block. One row per item; when a block is empty or absent, write "none"
+instead of the table. The token Status column comes only from the codes shown
+in the `TOKENS` block: never infer or guess a token's validity and never
+attempt to check a token.
 
 ### Problems
 | # | | Problem | Evidence | Fix |
