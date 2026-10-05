@@ -558,7 +558,8 @@ def collect_http(ctx):
 
 
 def _target(line):
-    return short(("%s%s" % (line.get("host") or "", line.get("path") or "")) or "-", 60)
+    sep = "·" if line.get("source") == "mcp" else ""   # server·tool, not host/path
+    return short(sep.join((line.get("host") or "", line.get("path") or "")) or "-", 60)
 
 
 def _codes(codes):
