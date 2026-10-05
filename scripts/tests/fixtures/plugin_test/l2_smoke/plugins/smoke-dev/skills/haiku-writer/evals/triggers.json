@@ -1,0 +1,2 @@
+[{"query": "write me a haiku about autumn rain on a tin roof", "should_trigger": true},
+ {"query": "what is the capital of france", "should_trigger": false}]

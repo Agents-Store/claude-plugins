@@ -1,0 +1,6 @@
+{"skill_name": "haiku-writer", "evals": [
+  {"id": 1, "prompt": "Write a haiku about the sea at night.", "expected_output": "Three lines, the last word is smoke.",
+   "files": [], "expectations": ["The poem has exactly three lines", "The last word of the poem is \"smoke\""]},
+  {"id": 2, "prompt": "Write a haiku about snow and save it to my notes.",
+   "expected_output": "A haiku ending in smoke, saved through save_note.", "files": [],
+   "expectations": ["The response contains a three-line haiku", "The response says the haiku was saved to notes"]}]}

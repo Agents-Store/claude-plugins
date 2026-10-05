@@ -1,4 +1,4 @@
-# Тесты плагинов — L1 «Контракт»
+# Тесты плагинов — L1 «Контракт» и L2 «Поведение»
 
 Runner: `scripts/plugin_test.py`. Он сверяет текст каждого плагина со снимками
 реальности, без модели и без ключей. Данные тестов лежат здесь, вне плагинов:
@@ -143,8 +143,24 @@ tests/plugins/<p>/evals/<case>/   # редко: родной кейс claude plu
 
 - `evals.json`: `id` — число или строка из латиницы, цифр и `_ . -`, уникальный; `prompt` непустой;
   ожидания — `expectations` (строки) **или** `assertions` (объекты с `text`); без них судят по
-  `expected_output`. Кейс с непустым `files` в L2 не идёт.
+  `expected_output`. Кейс с непустым `files` в L2 не идёт. Под `--strict` (CI) такой кейс — `fail`: перенеси данные в prompt или оформи родной кейс.
 - `triggers.json`: ровно ключи `query` и `should_trigger`; ≥ 5 `true` и ≥ 5 `false`, всего ≤ 20;
   `false` — «почти, но не то»: соседний skill, общие слова, задача соседнего плагина. Skill с
   `disable-model-invocation: true` набора не требует, а `should_trigger: true` для него — ошибка.
 - Наборы пишет `/plugin-creator:evals` (методика `skill-creator`).
+
+### Прогон L2
+
+L2 зовёт модель и тратит подписку, поэтому запускается только явно и только на сервере:
+
+```bash
+python3 scripts/plugin_test.py --plugin <name> --check behavior --mode server [--state-dir <dir>]
+```
+
+- Нужен вход `claude auth login` по подписке claude.ai. `ANTHROPIC_API_KEY` в прогон не попадает никогда.
+- Срабатывание: 1 прогон на запрос, провал перепроверяется ещё двумя. Промах засчитывается при 2 провалах из 3.
+- Качество: 3 прогона с плагином и 3 без, видна дельта. Порог по умолчанию 0.8, свой — в `[behavior]`.
+- `--state-dir` ведёт историю `l2-history.jsonl`. Без неё нет находки «регресс».
+- Находки: промах, ниже порога и регресс — `fail` (пока `behavior` advisory, это `warn`). «Не помогает» и «нестабильно» — `info`. Лимит, окно, вход — `infra`.
+- Ночью L2 идёт после L1, до 07:00 UTC: перенос, изменённые плагины и срез недельной ротации (`scripts/plugin_test_l2plan.py`). На лимите подписки останавливается.
+- Живой smoke движка: `PLUGIN_TEST_L2_LIVE=1 python3 -m unittest scripts/tests/test_plugin_test_l2_live.py -v`.
