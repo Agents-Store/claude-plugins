@@ -1,0 +1,18 @@
+[
+  {"query": "my dokploy deploy failed. Walk me through finding the failed run, reading the logs and recovering - it's a Node API and the error shows up at the 'npm run build' step", "should_trigger": true},
+  {"query": "deployment has been stuck in 'running' for 40 minutes in Dokploy and I can't cancel it. what do I do?", "should_trigger": true},
+  {"query": "App deployed fine in Dokploy (green) but returns 502 on the domain. How do I check container state, Traefik and the logs end to end?", "should_trigger": true},
+  {"query": "app crashed right after deploy in dokploy, the container keeps restarting. Diagnose it and tell me how to roll back safely", "should_trigger": true},
+  {"query": "Dokploy build error: failed to solve: process /bin/sh -c npm ci did not complete successfully. Find out why the deploy failed and how to fix it.", "should_trigger": true},
+  {"query": "diagnose the failed deployment of my compose stack in dokploy: web starts, but the db container exits with code 1", "should_trigger": true},
+  {"query": "Деплой в Dokploy упал. Помоги найти причину: где смотреть логи сборки, что с контейнером и как безопасно откатиться", "should_trigger": true},
+  {"query": "Приложение после деплоя в Dokploy отвечает 502. Нужна пошаговая диагностика", "should_trigger": true},
+  {"query": "Set up an AI provider in Dokploy so it can analyze my logs", "should_trigger": false},
+  {"query": "Show me the dokploy CLI command to deploy an application", "should_trigger": false},
+  {"query": "How do I add a custom domain with HTTPS to an application in Dokploy?", "should_trigger": false},
+  {"query": "My GitHub Actions workflow fails on the build step. How do I read its logs?", "should_trigger": false},
+  {"query": "My Vercel deployment failed with 'Build failed' - what should I check?", "should_trigger": false},
+  {"query": "What causes 502 Bad Gateway in nginx when proxying to an upstream?", "should_trigger": false},
+  {"query": "List all my Dokploy projects and the applications in each", "should_trigger": false},
+  {"query": "How do I roll back a Kubernetes deployment with kubectl?", "should_trigger": false}
+]
