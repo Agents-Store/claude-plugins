@@ -1,0 +1,12 @@
+{
+  "skill_name": "examples",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "show me a sample session audit",
+      "expected_output": "a rendered session audit with skills, HTTP and token sections",
+      "files": [],
+      "expectations": []
+    }
+  ]
+}
