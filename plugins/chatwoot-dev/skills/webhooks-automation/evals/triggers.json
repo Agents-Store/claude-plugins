@@ -6,7 +6,7 @@
   {"query": "Какие события можно подписать в вебхуках Chatwoot и как создать вебхук на conversation_status_changed через API?", "should_trigger": true},
   {"query": "Сделай бота-агента для Chatwoot, который получает сообщения по вебхуку и отвечает через Application API, с передачей диалога оператору", "should_trigger": true},
   {"query": "We want an integration hook from Chatwoot into our CRM so that contact_updated pushes the changes. Which events do I subscribe to and how do I deal with retries?", "should_trigger": true},
-  {"query": "is inbox_created a valid webhook subscription in Chatwoot? I get a validation error on my instance when registering it", "should_trigger": true},
+  {"query": "Register a Chatwoot webhook for inbox_created and inbox_updated on our account through the API. I get a validation error on my instance when I include them: sort it out and give me the working request", "should_trigger": true},
   {"query": "Show me the Chatwoot CLI commands to resolve a batch of conversations", "should_trigger": false},
   {"query": "Chatwoot API returns 401 when called through nginx, fix it", "should_trigger": false},
   {"query": "Set up an incoming webhook in Slack that posts a message when our CI pipeline fails", "should_trigger": false},
