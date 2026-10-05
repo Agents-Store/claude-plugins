@@ -129,13 +129,14 @@ def run(plugin, ctx, manifest):
     past = history.scores(ctx.state_dir, repo_name, plugin.name, model=evalrun.MODEL)
     entries, out = [], []
     with tempfile.TemporaryDirectory(prefix="plugin-test-l2-") as tmp:
-        copy = evalgen.copy_plugin(plugin.dir, os.path.join(tmp, plugin.dirname))
-        if src.triggers:
+        if src.triggers:     # агенты плагина в прогоне срабатывания забирают ход у Skill — копия без agents/
+            copy = evalgen.copy_plugin(plugin.dir, os.path.join(tmp, "trigger", plugin.dirname), drop_agents=True)
             out += _triggers(plugin, ctx, src, copy, tmp, claude, env, entries)
         if src.quality or src.native:
             if ctx.l2_stop:
                 out.append(_infra(plugin, "%s: %s (кейсы качества)" % (L2_NOT_RUN, ctx.l2_stop)))
             else:
+                copy = evalgen.copy_plugin(plugin.dir, os.path.join(tmp, "quality", plugin.dirname))
                 out += _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries)
     if ctx.l2_stop:   # остановил этот плагин (выше ранний возврат при уже заданной остановке)
         out.append(_stopped(plugin, ctx.l2_stop))

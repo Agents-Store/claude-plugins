@@ -4,8 +4,8 @@
   evals-trigger/  срабатывание: 1 прогон, 1 ход, только Skill, без моков — моки уводят модель в ToolSearch
   evals-quality/  качество: 3 прогона в каждом плече, Read/Grep/Glob/Skill, моки MCP из снимков L1
   evals-rerun/    повтор проваленных кейсов срабатывания
-Из plugin.json копии убран ключ dependencies: с ним плагин в песочнице не грузится. Команда плагина, которая
-ведёт к skill (skill_routes), засчитывается как срабатывание этого skill.
+Из plugin.json копии убран ключ dependencies: с ним плагин в песочнице не грузится. Копия для прогонов
+срабатывания — ещё и без agents/ (copy_plugin drop_agents). Команда плагина, которая ведёт к skill (skill_routes), засчитывается как срабатывание этого skill.
 Генерация детерминирована: одинаковый вход — байт-в-байт одинаковое дерево. Frontmatter — только
 ключи, которые знает claude plugin eval (неизвестный ключ — ошибка загрузки); строки — JSON, он валидный YAML.
 """
@@ -90,29 +90,43 @@ def _names_skill(text, plugin_name, skill):
                 or re.search(start + re.escape(plugin_name) + ":" + re.escape(skill) + end, text))
 
 
-def _strip_dependencies(dest):
-    """Убрать "dependencies" из plugin.json КОПИИ: плагин с зависимостями в песочнице eval не грузится
-    (зависимости там некому поставить). Файл без ключа, нечитаемый или лежащий вне копии не трогается;
-    ссылка заменяется обычным файлом — запись сквозь неё изменила бы источник."""
+def _strip_manifest_keys(dest, keys):
+    """Убрать keys из plugin.json КОПИИ. Файл без этих ключей, нечитаемый, не объект или лежащий вне копии
+    не трогается; ссылка заменяется обычным файлом — запись сквозь неё изменила бы источник."""
     path = os.path.join(dest, ".claude-plugin", "plugin.json")
     try:
         with open(path, encoding="utf-8") as fh:
             data = json.load(fh)
     except (OSError, ValueError, RecursionError):
         return
-    if not isinstance(data, dict) or "dependencies" not in data:
+    if not isinstance(data, dict) or not any(key in data for key in keys):
         return
     if not (os.path.realpath(os.path.dirname(path)) + os.sep).startswith(os.path.realpath(dest) + os.sep):
         return
-    del data["dependencies"]
+    for key in keys:
+        data.pop(key, None)
     if os.path.islink(path):
         os.remove(path)
     _write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
-def copy_plugin(plugin_dir, dest):
+def _remove_agents(dest):
+    """Каталог agents/ копии (ссылку — саму ссылку, не её цель)."""
+    path = os.path.join(dest, "agents")
+    if os.path.islink(path) or os.path.isfile(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
+
+
+def copy_plugin(plugin_dir, dest, drop_agents=False):
+    """Временная копия плагина для eval. В ней нет GENERATED-деревьев, .git и ключа dependencies в plugin.json:
+    с ним плагин в песочнице не грузится. drop_agents — без agents/ и без ключа agents: агенты плагина
+    предлагаются модели через Agent и забирают единственный ход срабатывания у Skill (прогоны срабатывания)."""
     shutil.copytree(plugin_dir, dest, symlinks=True, ignore=shutil.ignore_patterns(".git", *GENERATED))
-    _strip_dependencies(dest)
+    _strip_manifest_keys(dest, ("dependencies", "agents") if drop_agents else ("dependencies",))
+    if drop_agents:
+        _remove_agents(dest)
     return dest
 
 

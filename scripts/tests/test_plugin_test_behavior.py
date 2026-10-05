@@ -36,15 +36,16 @@ class BehaviorTest(unittest.TestCase):
         self.addCleanup(self.repo.cleanup)
         self.state = os.path.join(self.repo.root, "state")
 
-    def add_plugin(self, name="b-dev", queries=((YES, True), (NO, False)), quality=None, mcp=None, commands=None):
-        files = {"skills/web/SKILL.md": SKILL % "web"}
+    def add_plugin(self, name="b-dev", queries=((YES, True), (NO, False)), quality=None, mcp=None, commands=None,
+                   files=None, plugin_json=None):
+        files = dict({"skills/web/SKILL.md": SKILL % "web"}, **(files or {}))
         for command, text in (commands or {}).items():
             files["commands/%s.md" % command] = text
         if queries:
             files["skills/web/evals/triggers.json"] = json.dumps([{"query": q, "should_trigger": t} for q, t in queries])
         if quality:
             files["skills/web/evals/evals.json"] = json.dumps({"skill_name": "web", "evals": quality})
-        self.repo.plugin(name, files=files, mcp=mcp)
+        self.repo.plugin(name, files=files, mcp=mcp, plugin_json=plugin_json)
 
     def ctx(self, mode="server"):
         c = context(self.repo.root, mode=mode)
@@ -119,6 +120,51 @@ class BehaviorTest(unittest.TestCase):
             for rel, text in fired.items():
                 self.assertIn(json.dumps(want)[1:-1], text, (eval_dir, rel))    # input_match в YAML — JSON-строка
                 self.assertNotIn("unrelated", text)
+
+    AGENT = {"agents/helper.md": "---\nname: helper\ndescription: d\n---\nbody\n"}
+    WITH_AGENTS = {"name": "b-dev", "version": "1.0.0", "description": "fixture", "agents": ["./agents/helper.md"]}
+
+    def by_eval_dir(self, evals):
+        out = {}
+        for call in evals:
+            argv = call["argv"]
+            out[argv[argv.index("--eval-dir") + 1]] = call
+        return out
+
+    def test_trigger_runs_on_a_copy_without_agents_quality_on_one_with_them(self):
+        self.add_plugin(quality=QUALITY, files=self.AGENT, plugin_json=self.WITH_AGENTS)
+        first = eval_result(eval_case(T(YES), 0.0), eval_case(T(NO), 1.0))
+        rerun = eval_result(eval_case(T(YES), 1.0, runs=[{"score": 1.0, "error": None}, {"score": 1.0, "error": None}]))
+        quality = eval_result(eval_case("q-web-1", 1.0, delta=0.5))
+        with mock.patch.object(evalgen, "copy_plugin", wraps=evalgen.copy_plugin) as copies:
+            _, evals, _, _ = self.check([{"result": first}, {"result": rerun}, {"result": quality}])
+        calls = self.by_eval_dir(evals)
+        self.assertEqual(sorted(calls), [evalgen.QUALITY_DIR, evalgen.RERUN_DIR, evalgen.TRIGGER_DIR])
+        for eval_dir in (evalgen.TRIGGER_DIR, evalgen.RERUN_DIR):          # срабатывание и его повтор — без agents/
+            self.assertNotIn(os.path.join("agents", "helper.md"), calls[eval_dir]["copy_files"], eval_dir)
+            self.assertNotIn("agents", json.loads(calls[eval_dir]["manifest"]), eval_dir)
+        self.assertIn(os.path.join("agents", "helper.md"), calls[evalgen.QUALITY_DIR]["copy_files"])
+        self.assertEqual(json.loads(calls[evalgen.QUALITY_DIR]["manifest"])["agents"], ["./agents/helper.md"])
+        self.assertEqual(calls[evalgen.TRIGGER_DIR]["argv"][2], calls[evalgen.RERUN_DIR]["argv"][2])    # одна копия на оба
+        self.assertNotEqual(calls[evalgen.TRIGGER_DIR]["argv"][2], calls[evalgen.QUALITY_DIR]["argv"][2])
+        for call in calls.values():                                          # имя каталога копии — каталог плагина
+            self.assertEqual(os.path.basename(call["argv"][2]), "b-dev")
+        self.assertEqual(copies.call_count, 2)                               # по копии на вид прогона, раз на плагин
+        self.assertEqual(sorted(bool(c.kwargs.get("drop_agents")) for c in copies.call_args_list), [False, True])
+        self.assertTrue(os.path.isfile(os.path.join(self.repo.root, "plugins", "b-dev", "agents", "helper.md")))
+
+    def test_trigger_only_plugin_builds_only_the_agentless_copy(self):
+        self.add_plugin(files=self.AGENT, plugin_json=self.WITH_AGENTS)
+        with mock.patch.object(evalgen, "copy_plugin", wraps=evalgen.copy_plugin) as copies:
+            self.check([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))}])
+        self.assertEqual([bool(c.kwargs.get("drop_agents")) for c in copies.call_args_list], [True])
+
+    def test_quality_only_plugin_builds_only_the_copy_with_agents(self):
+        self.add_plugin(queries=(), quality=QUALITY, files=self.AGENT, plugin_json=self.WITH_AGENTS)
+        with mock.patch.object(evalgen, "copy_plugin", wraps=evalgen.copy_plugin) as copies:
+            _, evals, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", 1.0, delta=0.5))}])
+        self.assertEqual([bool(c.kwargs.get("drop_agents")) for c in copies.call_args_list], [False])
+        self.assertIn(os.path.join("agents", "helper.md"), evals[0]["copy_files"])
 
     def test_plugin_without_commands_keeps_plain_graders(self):
         self.add_plugin()

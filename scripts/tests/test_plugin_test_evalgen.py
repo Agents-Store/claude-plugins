@@ -381,6 +381,72 @@ class EvalgenTest(unittest.TestCase):
         with open(os.path.join(outside, "plugin.json"), encoding="utf-8") as fh:
             self.assertEqual(fh.read(), original)
 
+    def agents_plugin(self, name="withagents", manifest=None):
+        meta = manifest if manifest is not None else {"name": "p-dev", "version": "1.0.0", "agents": ["./agents/helper.md"],
+                                                      "dependencies": ["web-search-dev"]}
+        src = self.make_plugin(json.dumps(meta), name=name)
+        os.makedirs(os.path.join(src, "agents"))
+        with open(os.path.join(src, "agents", "helper.md"), "w") as fh:
+            fh.write("---\nname: helper\n---\n")
+        return src
+
+    def test_copy_plugin_drop_agents_removes_dir_and_manifest_key_in_the_copy_only(self):
+        src = self.agents_plugin()
+        before = self.manifest_of(src)
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-na"), drop_agents=True)
+        self.assertFalse(os.path.exists(os.path.join(dest, "agents")))
+        self.assertEqual(json.loads(self.manifest_of(dest)), {"name": "p-dev", "version": "1.0.0"})
+        self.assertTrue(os.path.isfile(os.path.join(dest, "skills", "a", "SKILL.md")))      # остальное на месте
+        self.assertTrue(os.path.isfile(os.path.join(src, "agents", "helper.md")))          # источник не тронут
+        self.assertEqual(self.manifest_of(src), before)
+
+    def test_copy_plugin_keeps_agents_by_default(self):
+        src = self.agents_plugin()
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-wa"))
+        self.assertTrue(os.path.isfile(os.path.join(dest, "agents", "helper.md")))
+        self.assertEqual(json.loads(self.manifest_of(dest)),
+                         {"name": "p-dev", "version": "1.0.0", "agents": ["./agents/helper.md"]})   # dependencies — прежнее поведение
+
+    def test_copy_plugin_drop_agents_without_manifest_key_keeps_manifest_byte_identical(self):
+        odd = '{ "name":"p-dev",\r\n\t"version" : "1.0.0" }\r\n'
+        src = self.agents_plugin(manifest=None)
+        with open(os.path.join(src, ".claude-plugin", "plugin.json"), "w", newline="") as fh:
+            fh.write(odd)
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-nk"), drop_agents=True)
+        self.assertFalse(os.path.exists(os.path.join(dest, "agents")))
+        self.assertEqual(self.manifest_of(dest), odd.encode("utf-8"))
+
+    def test_copy_plugin_drop_agents_without_agents_dir_and_with_unreadable_manifest(self):
+        src = self.make_plugin("{ not json", name="noagents")
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-bad2"), drop_agents=True)
+        self.assertEqual(self.manifest_of(dest), b"{ not json")
+        self.assertFalse(os.path.exists(os.path.join(dest, "agents")))
+
+    def test_copy_plugin_drop_agents_removes_a_symlink_not_its_target(self):
+        outside = os.path.join(self.tmp, "shared-agents")
+        os.makedirs(outside)
+        with open(os.path.join(outside, "x.md"), "w") as fh:
+            fh.write("x")
+        src = self.make_plugin(json.dumps({"name": "p-dev"}), name="linkagents")
+        os.symlink(outside, os.path.join(src, "agents"))
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-la"), drop_agents=True)
+        self.assertFalse(os.path.lexists(os.path.join(dest, "agents")))
+        self.assertTrue(os.path.isfile(os.path.join(outside, "x.md")))
+        self.assertTrue(os.path.islink(os.path.join(src, "agents")))
+
+    def test_copy_plugin_drop_agents_does_not_write_through_a_manifest_symlink(self):
+        real = os.path.join(self.tmp, "shared2.json")
+        original = json.dumps({"name": "p-dev", "agents": ["./agents/helper.md"]})
+        with open(real, "w", encoding="utf-8") as fh:
+            fh.write(original)
+        src = os.path.join(self.tmp, "linked2")
+        os.makedirs(os.path.join(src, ".claude-plugin"))
+        os.symlink(real, os.path.join(src, ".claude-plugin", "plugin.json"))
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-link2"), drop_agents=True)
+        with open(real, encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), original)
+        self.assertEqual(json.loads(self.manifest_of(dest)), {"name": "p-dev"})
+
     def test_copy_plugin_without_manifest_is_fine(self):
         src = os.path.join(self.tmp, "nomanifest")
         os.makedirs(os.path.join(src, "skills", "a"))
