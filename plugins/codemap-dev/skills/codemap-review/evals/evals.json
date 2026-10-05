@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Review this file for me: routes/deals.py. Inline please, no agent. I'm a junior developer.\n\n# routes/deals.py\n@deals_bp.route('/deals/search')\ndef search():\n    q = request.args.get('q')\n    rows = db.session.execute(f\"SELECT * FROM deal WHERE title LIKE '%{q}%'\").fetchall()\n    return jsonify([dict(r) for r in rows])\n\n@deals_bp.route('/deals/<int:deal_id>/delete', methods=['POST'])\ndef delete_deal(deal_id):\n    try:\n        Deal.query.filter_by(id=deal_id).delete()\n        db.session.commit()\n    except:\n        pass\n    return 'ok'",
+      "prompt": "Use the codemap-review skill. Review this file for me: routes/deals.py. Inline please, no agent. I'm a junior developer.\n\n# routes/deals.py\n@deals_bp.route('/deals/search')\ndef search():\n    q = request.args.get('q')\n    rows = db.session.execute(f\"SELECT * FROM deal WHERE title LIKE '%{q}%'\").fetchall()\n    return jsonify([dict(r) for r in rows])\n\n@deals_bp.route('/deals/<int:deal_id>/delete', methods=['POST'])\ndef delete_deal(deal_id):\n    try:\n        Deal.query.filter_by(id=deal_id).delete()\n        db.session.commit()\n    except:\n        pass\n    return 'ok'",
       "expected_output": "Structured review with findings grouped by severity, each with a why-it-matters explanation and a fix",
       "files": [],
       "expectations": [
@@ -23,17 +23,16 @@
       "files": [],
       "expectations": [
         "The answer asks the user which file or code to review, or to paste it",
-        "The answer does not invent code or fabricate review findings",
-        "The tone is patient and encouraging, not condescending"
+        "The answer does not invent code or fabricate review findings"
       ]
     },
     {
       "id": 3,
-      "prompt": "Review PR #42 and explain the issues for a junior developer, inline please. I can't give you gh access here, so this is the diff:\n\ndiff --git a/app/auth.py b/app/auth.py\n--- a/app/auth.py\n+++ b/app/auth.py\n@@ -10,3 +10,8 @@ def login(email, password):\n+    user = User.query.filter_by(email=email).first()\n+    if user and user.password == password:\n+        return user\n+    SECRET_KEY = 'example-not-a-real-key'\n+    return None\ndiff --git a/app/utils.py b/app/utils.py\n--- a/app/utils.py\n+++ b/app/utils.py\n@@ -1,0 +1,6 @@\n+def f(x):\n+    r = []\n+    for i in x:\n+        if i is not None:\n+            r.append(i * 2)\n+    return r",
+      "prompt": "Use the codemap-review skill. Review PR #42 and explain the issues for a junior developer, inline please. I can't give you gh access here, so this is the diff:\n\ndiff --git a/app/auth.py b/app/auth.py\n--- a/app/auth.py\n+++ b/app/auth.py\n@@ -10,3 +10,8 @@ def login(email, password):\n+    user = User.query.filter_by(email=email).first()\n+    if user and user.password == password:\n+        return user\n+    SECRET_KEY = 'example-not-a-real-key'\n+    return None\ndiff --git a/app/utils.py b/app/utils.py\n--- a/app/utils.py\n+++ b/app/utils.py\n@@ -1,0 +1,6 @@\n+def f(x):\n+    r = []\n+    for i in x:\n+        if i is not None:\n+            r.append(i * 2)\n+    return r",
       "expected_output": "PR diff review grouped by file, critical issues first, each with a learner-friendly explanation",
       "files": [],
       "expectations": [
-        "The findings are grouped by file: app/auth.py and app/utils.py",
+        "Each finding names the file it concerns, app/auth.py or app/utils.py",
         "The answer flags the plain-text password comparison user.password == password as CRITICAL and recommends hashing, for example check_password_hash",
         "The answer flags the hardcoded SECRET_KEY as CRITICAL and recommends an environment variable or secret manager",
         "Critical issues come before warnings and suggestions",

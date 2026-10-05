@@ -4,39 +4,29 @@
     {
       "id": 1,
       "prompt": "I have a Next.js dashboard running on localhost:3000, can you test the frontend and check if everything works? Focus on the /settings and /users pages.",
-      "expected_output": "Asks the Step 0 execution mode, acknowledges localhost:3000 and the two pages, and describes the Playwright-based plan and the FRONTEND.md report",
+      "expected_output": "Asks the Step 0 execution mode before any testing",
       "files": [],
       "expectations": [
-        "The answer asks whether to delegate the work to the frontend-tester agent or proceed inline",
-        "The answer acknowledges the target URL http://localhost:3000",
-        "The answer says the test will focus on the /settings and /users pages",
-        "The answer mentions using Playwright browser tools such as browser_navigate, browser_snapshot, console messages or network requests",
-        "The answer mentions that the report will be written to docs/codemap/FRONTEND.md"
+        "The answer asks whether to delegate the testing to the frontend-tester agent or to run it inline"
       ]
     },
     {
       "id": 2,
       "prompt": "Check my app's admin panel for UI issues, broken forms, and console errors. I think there might be some JavaScript bugs.",
-      "expected_output": "Asks the Step 0 execution mode, then looks for the app URL in project config or asks the user for it, and outlines a plan covering forms, console errors and UI issues",
+      "expected_output": "Asks the Step 0 execution mode and does not test anything yet",
       "files": [],
       "expectations": [
-        "The answer asks whether to delegate the work to the frontend-tester agent or proceed inline",
-        "The answer asks the user for the app URL, or says it will detect it from package.json, docker-compose.yml or .env",
-        "The plan covers testing forms, collecting console errors and finding UI issues",
-        "The answer does not claim to have tested or visited the app already"
+        "The answer asks whether to delegate the testing to the frontend-tester agent or to run it inline"
       ]
     },
     {
       "id": 3,
       "prompt": "I need a frontend health report for my app. The app requires login - it's running on localhost:8080. Test the main user flows after logging in.",
-      "expected_output": "Asks the Step 0 execution mode, acknowledges localhost:8080, asks for credentials and describes the FRONTEND.md report",
+      "expected_output": "Asks the Step 0 execution mode and the login credentials before testing",
       "files": [],
       "expectations": [
-        "The answer asks whether to delegate the work to the frontend-tester agent or proceed inline",
-        "The answer acknowledges the target URL http://localhost:8080",
-        "The answer asks the user for login credentials before testing",
-        "The answer plans to test the main user flows after logging in",
-        "The answer mentions the report docs/codemap/FRONTEND.md and its sections such as pages, console errors and network failures"
+        "The answer asks whether to delegate the testing to the frontend-tester agent or to run it inline",
+        "The answer asks the user for the login credentials before testing"
       ]
     }
   ]

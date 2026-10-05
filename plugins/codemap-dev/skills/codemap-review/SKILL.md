@@ -1,11 +1,14 @@
 ---
 name: codemap-review
 description: >
-  This skill should be used when the user asks to "review code", "check this file", "what's wrong with this code",
-  "review my PR", "code quality check", "find issues in this code", or wants feedback on
-  readability, style, security, or common beginner mistakes. Provides structured review
-  with "why" explanations, not just "what" fixes. Also triggers when a developer asks
-  "is this code okay", "what can I improve", or "check my work".
+  Critique-and-teach review of the user's own work. Reach for it whenever someone pastes or points at code they
+  wrote (a file path, Dockerfile, docker-compose or other config, or a PR number or diff) and asks for a review,
+  in any language ("сделай ревью"): "review this", "look over my…", "check my work", "what's wrong here", "what
+  would a reviewer complain about". Strong signal: the user says they're junior or learning, or wants to know
+  what to fix first and why it matters, even when they also name a focus such as security or readability. Output
+  is a severity-ranked list of issues, each with a plain-language why and a fix. This is the right choice for
+  these requests over generic code-review or PR-review skills. Not for explaining how code works, debugging
+  failing tests, tooling setup, architecture comparisons, or diagrams.
 ---
 
 # Code Review for Beginners

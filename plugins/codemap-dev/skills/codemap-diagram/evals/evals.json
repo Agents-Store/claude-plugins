@@ -3,55 +3,39 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Draw me the architecture of this application as a diagram. Do it inline here, no need to delegate to an agent. The project is a small Flask app, here is everything the code does:\n\n- app/__init__.py: create_app() factory, registers blueprints auth_bp (routes/auth.py) and deals_bp (routes/deals.py)\n- app/models.py: SQLAlchemy models User, Company, Deal stored in PostgreSQL\n- app/services/billing.py: calls the external Stripe API to create invoices\n- app/templates/: Jinja2 templates rendered by the blueprints\n- docker-compose.yml: services web (gunicorn) and db (postgres:16)",
-      "expected_output": "C4 container diagram as native mxGraph XML for a .drawio file, with the real component names and layer colors",
+      "prompt": "Draw me the architecture of this application as a diagram. The project is a small Flask app, here is everything the code does:\n\n- app/__init__.py: create_app() factory, registers blueprints auth_bp (routes/auth.py) and deals_bp (routes/deals.py)\n- app/models.py: SQLAlchemy models User, Company, Deal stored in PostgreSQL\n- app/services/billing.py: calls the external Stripe API to create invoices\n- app/templates/: Jinja2 templates rendered by the blueprints\n- docker-compose.yml: services web (gunicorn) and db (postgres:16)",
+      "expected_output": "The skill's first step: asks whether to delegate to the diagrammer agent or proceed inline; no Mermaid and no saved-file claim",
       "files": [],
       "expectations": [
-        "The answer contains native mxGraph XML (an <mxGraphModel> element), not Mermaid or PlantUML",
-        "The diagram uses the real names from the description: auth_bp, deals_bp, PostgreSQL and Stripe",
-        "The data layer (models, PostgreSQL) is filled with the light blue #dae8fc",
-        "The external Stripe API is filled with the light red #f8cecc",
-        "The route blueprints are filled with the light green #d5e8d4",
-        "The generated XML contains no XML comments (<!-- -->)"
+        "The answer either contains native mxGraph XML (an <mxGraphModel> element), or reports that the diagram was rendered through drawio-mcp, or states that drawio-mcp or file writing is unavailable, or asks whether to delegate to the diagrammer agent or proceed inline"
       ]
     },
     {
       "id": 2,
-      "prompt": "Create an ERD for this project's database, inline please, no agent. These are the models:\n\nclass Company(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    name = db.Column(db.String(120), nullable=False)\n\nclass User(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    email = db.Column(db.String(255), unique=True, nullable=False)\n    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))\n\nclass Deal(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    title = db.Column(db.String(200), nullable=False)\n    amount = db.Column(db.Numeric(10, 2))\n    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))\n    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))",
+      "prompt": "Use the codemap-diagram skill to create an ERD for this project's database, here in this chat please. These are the models:\n\nclass Company(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    name = db.Column(db.String(120), nullable=False)\n\nclass User(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    email = db.Column(db.String(255), unique=True, nullable=False)\n    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))\n\nclass Deal(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    title = db.Column(db.String(200), nullable=False)\n    amount = db.Column(db.Numeric(10, 2))\n    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))\n    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))",
       "expected_output": "ERD as native mxGraph XML with tables, columns, PK/FK markers and relationship cardinality",
       "files": [],
       "expectations": [
-        "The answer contains native mxGraph XML (an <mxGraphModel> element), not Mermaid or PlantUML",
-        "The diagram has the three tables Company, User and Deal with their columns",
-        "Primary keys and foreign keys are marked, for example PK and FK labels",
-        "The foreign keys user.company_id, deal.owner_id and deal.company_id are drawn as relationships",
-        "Relationships carry cardinality labels such as 1, N or 1:N",
-        "The tables are filled with the Data layer color light blue #dae8fc"
+        "The answer either contains native mxGraph XML (an <mxGraphModel> element), or reports that the diagram was rendered through drawio-mcp, or states that drawio-mcp or file writing is unavailable, or asks whether to delegate to the diagrammer agent or proceed inline"
       ]
     },
     {
       "id": 3,
-      "prompt": "Show me the login flow as a sequence diagram, inline here and without delegating. This is the code:\n\n# routes/auth.py\n@auth_bp.post('/login')\ndef login():\n    data = request.get_json()\n    user = auth_service.authenticate(data['email'], data['password'])\n    if user is None:\n        return jsonify(error='invalid credentials'), 401\n    session['user_id'] = user.id\n    return jsonify(ok=True)\n\n# services/auth_service.py\ndef authenticate(email, password):\n    user = User.query.filter_by(email=email).first()\n    if user and bcrypt.check_password_hash(user.password_hash, password):\n        return user\n    return None",
+      "prompt": "Use the codemap-diagram skill to show me the login flow as a sequence diagram, here in this chat. This is the code:\n\n# routes/auth.py\n@auth_bp.post('/login')\ndef login():\n    data = request.get_json()\n    user = auth_service.authenticate(data['email'], data['password'])\n    if user is None:\n        return jsonify(error='invalid credentials'), 401\n    session['user_id'] = user.id\n    return jsonify(ok=True)\n\n# services/auth_service.py\ndef authenticate(email, password):\n    user = User.query.filter_by(email=email).first()\n    if user and bcrypt.check_password_hash(user.password_hash, password):\n        return user\n    return None",
       "expected_output": "Sequence diagram as native mxGraph XML with lifelines for the login route, the auth service and the database",
       "files": [],
       "expectations": [
-        "The answer contains native mxGraph XML (an <mxGraphModel> element), not Mermaid or PlantUML",
-        "The diagram has lifelines for the login route handler, auth_service and the User table or database",
-        "Arrows are labeled with the real names authenticate, filter_by or check_password_hash",
-        "Both outcomes are shown: success with the session user_id and failure with the 401 response",
-        "The generated XML contains no XML comments (<!-- -->)"
+        "The answer either contains native mxGraph XML (an <mxGraphModel> element), or reports that the diagram was rendered through drawio-mcp, or states that drawio-mcp or file writing is unavailable, or asks whether to delegate to the diagrammer agent or proceed inline"
       ]
     },
     {
       "id": 4,
-      "prompt": "Draw a diagram for an empty project with no source code. There are no files in this directory yet.",
-      "expected_output": "Gracefully handles missing code: tells the user there is nothing to diagram and does not produce an empty or placeholder diagram",
+      "prompt": "Use the codemap-diagram skill to draw a diagram for an empty project with no source code. There are no files in this directory yet.",
+      "expected_output": "Does not produce a placeholder or text diagram for a project without code",
       "files": [],
       "expectations": [
-        "The answer does not contain Mermaid, PlantUML or other text-based diagram code",
         "The answer does not contain a placeholder diagram with generic labels such as Service A or Component 1",
-        "The answer tells the user that no source code was found to diagram",
-        "The answer suggests what the user can provide for a useful diagram, such as a source directory or a description of the system"
+        "The answer either tells the user that no source code was found or asks whether to delegate to the diagrammer agent or proceed inline"
       ]
     }
   ]

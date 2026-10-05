@@ -5,7 +5,7 @@
   {"query": "open my running app in the browser (the dev server is already up) and click through the checkout flow, tell me if anything is broken or throws errors in the console", "should_trigger": true},
   {"query": "Проверь фронтенд моего приложения в браузере (dev-сервер уже запущен): открой страницы, заполни формы и скажи, какие есть ошибки в консоли", "should_trigger": true},
   {"query": "Протестируй админку по адресу http://localhost:8000/admin: хочу отчёт о сломанных кнопках, ошибках сети и проблемах в интерфейсе", "should_trigger": true},
-  {"query": "can you browse the staging site and see if the signup form validation works? i changed the email regex today and want to make sure nothing broke", "should_trigger": true},
+  {"query": "can you browse our staging site https://staging.example.com/signup and see if the signup form validation works? i changed the email regex today and want to make sure nothing broke", "should_trigger": true},
   {"query": "verify that the app works in a browser after my last deploy - go through the pricing page, the contact form and the 404 page and report network failures", "should_trigger": true},
   {"query": "Write Jest and React Testing Library unit tests for the Button component in components/Button.tsx", "should_trigger": false},
   {"query": "Explain how the useEffect cleanup in components/Chart.tsx works and why it runs twice in dev", "should_trigger": false},

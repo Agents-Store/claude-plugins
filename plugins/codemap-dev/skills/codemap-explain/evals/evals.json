@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Explain this file to me: models/user.py. Moderate depth, I want to know how it works, and I'm comfortable with Python basics but have never used SQLAlchemy. Go ahead inline, no agent please.\n\n# models/user.py\nfrom werkzeug.security import generate_password_hash, check_password_hash\nfrom app import db\n\nclass User(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    email = db.Column(db.String(255), unique=True, nullable=False)\n    password_hash = db.Column(db.String(255), nullable=False)\n    deals = db.relationship('Deal', backref='owner', lazy='dynamic')\n\n    def set_password(self, password):\n        self.password_hash = generate_password_hash(password)\n\n    def check_password(self, password):\n        return check_password_hash(self.password_hash, password)",
+      "prompt": "Use the codemap-explain skill. Explain this file to me: models/user.py. Moderate depth, I want to know how it works, and I'm comfortable with Python basics but have never used SQLAlchemy. Go ahead inline, no agent please.\n\n# models/user.py\nfrom werkzeug.security import generate_password_hash, check_password_hash\nfrom app import db\n\nclass User(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    email = db.Column(db.String(255), unique=True, nullable=False)\n    password_hash = db.Column(db.String(255), nullable=False)\n    deals = db.relationship('Deal', backref='owner', lazy='dynamic')\n\n    def set_password(self, password):\n        self.password_hash = generate_password_hash(password)\n\n    def check_password(self, password):\n        return check_password_hash(self.password_hash, password)",
       "expected_output": "4-layer explanation (Context, Data Flow, How It Works, Pitfalls) with beginner-friendly terms and next steps",
       "files": [],
       "expectations": [
@@ -18,7 +18,7 @@
     },
     {
       "id": 2,
-      "prompt": "How does the authentication system work in this project? Overview depth is fine, I know basic Flask, explain how it works. Inline please. Here are the three auth files:\n\n# auth/routes.py\n@auth_bp.post('/login')\ndef login():\n    user = verify_credentials(request.form['email'], request.form['password'])\n    if not user:\n        flash('Wrong email or password')\n        return redirect(url_for('auth.login_page'))\n    login_user(user)\n    return redirect(url_for('deals.index'))\n\n# auth/service.py\ndef verify_credentials(email, password):\n    user = User.query.filter_by(email=email).first()\n    return user if user and user.check_password(password) else None\n\n# auth/middleware.py\n@app.before_request\ndef require_login():\n    if request.endpoint not in PUBLIC_ENDPOINTS and not current_user.is_authenticated:\n        return redirect(url_for('auth.login_page'))",
+      "prompt": "Use the codemap-explain skill. How does the authentication system work in this project? Overview depth is fine, I know basic Flask, explain how it works. Inline please. Here are the three auth files:\n\n# auth/routes.py\n@auth_bp.post('/login')\ndef login():\n    user = verify_credentials(request.form['email'], request.form['password'])\n    if not user:\n        flash('Wrong email or password')\n        return redirect(url_for('auth.login_page'))\n    login_user(user)\n    return redirect(url_for('deals.index'))\n\n# auth/service.py\ndef verify_credentials(email, password):\n    user = User.query.filter_by(email=email).first()\n    return user if user and user.check_password(password) else None\n\n# auth/middleware.py\n@app.before_request\ndef require_login():\n    if request.endpoint not in PUBLIC_ENDPOINTS and not current_user.is_authenticated:\n        return redirect(url_for('auth.login_page'))",
       "expected_output": "Module-level explanation of the auth components, their data flow and how the files connect",
       "files": [],
       "expectations": [
@@ -32,7 +32,7 @@
     },
     {
       "id": 3,
-      "prompt": "Walk me through the create_deal function. Moderate depth, I want to understand how it works, and I know Python reasonably well. Inline, no agent.\n\n# services/deals.py\ndef create_deal(owner_id, title, amount):\n    if amount <= 0:\n        raise ValueError('amount must be positive')\n    owner = User.query.get(owner_id)\n    if owner is None:\n        raise LookupError('unknown owner')\n    deal = Deal(title=title.strip(), amount=amount, owner=owner)\n    db.session.add(deal)\n    db.session.commit()\n    notify_slack(f'New deal {deal.title}')\n    return deal",
+      "prompt": "Use the codemap-explain skill. Walk me through the create_deal function. Moderate depth, I want to understand how it works, and I know Python reasonably well. Inline, no agent.\n\n# services/deals.py\ndef create_deal(owner_id, title, amount):\n    if amount <= 0:\n        raise ValueError('amount must be positive')\n    owner = User.query.get(owner_id)\n    if owner is None:\n        raise LookupError('unknown owner')\n    deal = Deal(title=title.strip(), amount=amount, owner=owner)\n    db.session.add(deal)\n    db.session.commit()\n    notify_slack(f'New deal {deal.title}')\n    return deal",
       "expected_output": "Function-level explanation with signature, parameters, return value, side effects and edge cases",
       "files": [],
       "expectations": [
@@ -57,21 +57,19 @@
     },
     {
       "id": 5,
-      "prompt": "I don't understand this codebase at all, give me a tour. Overview depth, I am a junior developer, I want to know how it works. Do it inline. Here is what I can see in the project:\n\nREADME.md: 'Dealflow - a small CRM for sales teams'\nrequirements.txt: Flask, Flask-SQLAlchemy, Flask-Login, psycopg2-binary, gunicorn\napp/__init__.py: create_app() registers blueprints auth_bp and deals_bp and calls db.init_app(app)\napp/routes/auth.py: login and logout views\napp/routes/deals.py: list, create and edit deals, uses services/deals.py\napp/services/deals.py: business logic, talks to the models\napp/models.py: User, Company, Deal\napp/templates/: Jinja2 HTML templates\nwsgi.py: gunicorn entry point calling create_app()",
+      "prompt": "Use the codemap-explain skill. I don't understand this codebase at all, give me a tour. Overview depth, I am a junior developer, I want to know how it works. Do it inline. Do not try to open files, this list is everything you get. Here is what I can see in the project:\n\nREADME.md: 'Dealflow - a small CRM for sales teams'\nrequirements.txt: Flask, Flask-SQLAlchemy, Flask-Login, psycopg2-binary, gunicorn\napp/__init__.py: create_app() registers blueprints auth_bp and deals_bp and calls db.init_app(app)\napp/routes/auth.py: login and logout views\napp/routes/deals.py: list, create and edit deals, uses services/deals.py\napp/services/deals.py: business logic, talks to the models\napp/models.py: User, Company, Deal\napp/templates/: Jinja2 HTML templates\nwsgi.py: gunicorn entry point calling create_app()",
       "expected_output": "Project-level tour with context, one traced request and the stack",
       "files": [],
       "expectations": [
         "The answer states what the project does and who it is for: a small CRM for sales teams",
         "The answer identifies the stack: Flask, SQLAlchemy, Flask-Login, PostgreSQL via psycopg2 and gunicorn",
-        "The answer traces one complete request from wsgi.py through a blueprint route and the service to the models and a template",
-        "The answer explains the role of each top-level directory in simple terms",
         "The answer ends with specific next steps that offer to dive into named modules",
-        "The answer offers to generate an architecture diagram"
+        "The answer says what each layer of the app is for: routes, services, models and templates"
       ]
     },
     {
       "id": 6,
-      "prompt": "Explain this file in detail, I want a deep dive: routes/api.js. Inline please.\n\n// routes/api.js\nconst router = require('express').Router();\nconst { requireAuth } = require('../middleware/auth');\nconst Order = require('../models/order');\n\nrouter.get('/orders', requireAuth, async (req, res) => {\n  const { page = '1' } = req.query;\n  const orders = await Order.find({ userId: req.user }).skip((parseInt(page, 10) - 1) * 20).limit(20);\n  res.json(orders);\n});\n\nrouter.post('/orders', requireAuth, async (req, res) => {\n  const order = await Order.create({ ...req.body, userId: req.user });\n  res.status(201).json(order);\n});\n\nmodule.exports = router;",
+      "prompt": "Use the codemap-explain skill. Explain this file in detail, I want a deep dive: routes/api.js. Inline please.\n\n// routes/api.js\nconst router = require('express').Router();\nconst { requireAuth } = require('../middleware/auth');\nconst Order = require('../models/order');\n\nrouter.get('/orders', requireAuth, async (req, res) => {\n  const { page = '1' } = req.query;\n  const orders = await Order.find({ userId: req.user }).skip((parseInt(page, 10) - 1) * 20).limit(20);\n  res.json(orders);\n});\n\nrouter.post('/orders', requireAuth, async (req, res) => {\n  const order = await Order.create({ ...req.body, userId: req.user });\n  res.status(201).json(order);\n});\n\nmodule.exports = router;",
       "expected_output": "Deep dive explanation with all four layers expanded and annotations of the key logic",
       "files": [],
       "expectations": [
