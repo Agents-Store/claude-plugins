@@ -6,7 +6,7 @@
   {"query": "Подскажи, как получить токен доступа в Chatwoot и проверить, что REST API отвечает, прежде чем мы начнём писать интеграцию", "should_trigger": true},
   {"query": "Установи официальный chatwoot CLI и помоги авторизоваться: у меня самохостинг Chatwoot, базовый URL и ключ API есть", "should_trigger": true},
   {"query": "Set up CHATWOOT_BASE_URL, CHATWOOT_API_KEY and CHATWOOT_ACCOUNT_ID for this project and run a check call. We are behind nginx, so pick the token header spelling that survives the proxy", "should_trigger": true},
-  {"query": "Check that my Chatwoot setup is complete: base URL, access token and account id are exported in my shell - confirm that the API answers and show which user the token belongs to, before I write the integration", "should_trigger": true},
+  {"query": "Set up Chatwoot access for this project from scratch: tell me where to get the token and the account id, which three variables to export, and verify that the API answers with the profile call", "should_trigger": true},
   {"query": "Chatwoot returns 401 only when the request goes through our Traefik proxy; the token works from the dashboard host directly", "should_trigger": false},
   {"query": "Register a Chatwoot webhook for conversation_created and message_created that points to https://example.com/hook", "should_trigger": false},
   {"query": "The live-chat widget of our Chatwoot website inbox looks off-brand - how do I change the widget color, welcome text and launcher position in the inbox settings of the dashboard?", "should_trigger": false},
