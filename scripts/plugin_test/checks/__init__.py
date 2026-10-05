@@ -2,8 +2,8 @@
 
 Порядок запуска задаёт model.CHECK_IDS, а не этот словарь.
 """
-from . import (api_paths, cli_flags, eval_coverage, eval_files, hook_fixtures, mcp_list, mcp_names, skill_budget,
-               skill_links, skill_snippets, unit)
+from . import (api_paths, behavior, cli_flags, eval_coverage, eval_files, hook_fixtures, mcp_list, mcp_names,
+               skill_budget, skill_links, skill_snippets, unit)
 
 REGISTRY = {
     "skill-links": skill_links.run,
@@ -17,4 +17,5 @@ REGISTRY = {
     "unit": unit.run,
     "eval-files": eval_files.run,
     "eval-coverage": eval_coverage.run,
+    "behavior": behavior.run,
 }

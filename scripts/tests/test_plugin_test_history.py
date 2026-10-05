@@ -1,0 +1,49 @@
+import os
+import shutil
+import sys
+import tempfile
+import unittest
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import plugin_test_fixtures  # noqa: E402,F401
+
+from plugin_test import history  # noqa: E402
+
+
+class HistoryTest(unittest.TestCase):
+    def setUp(self):
+        self.state = tempfile.mkdtemp(prefix="hist-test-")
+        self.addCleanup(shutil.rmtree, self.state, True)
+
+    def test_missing_file_and_empty_state(self):
+        self.assertEqual(history.scores(self.state, "r", "p"), {})
+        self.assertEqual(history.scores("", "r", "p"), {})
+        history.append("", [{"case": "x"}])          # без каталога — ничего не пишет и не падает
+
+    def test_append_and_filter(self):
+        history.append(os.path.join(self.state, "sub"), [
+            {"repo": "r", "plugin": "p", "case": "q-a-1", "score": 1.0, "ok": True},
+            {"repo": "r", "plugin": "p", "case": "q-a-1", "score": 0.5, "ok": True},
+            {"repo": "r", "plugin": "p", "case": "q-a-1", "score": 0.0, "ok": False},
+            {"repo": "r", "plugin": "other", "case": "q-a-1", "score": 0.1, "ok": True},
+            {"repo": "x", "plugin": "p", "case": "q-a-1", "score": 0.2, "ok": True},
+        ])
+        with open(os.path.join(self.state, "sub", history.FILE), "a") as fh:
+            fh.write("not json\n[1,2]\n")
+        self.assertEqual(history.scores(os.path.join(self.state, "sub"), "r", "p"), {"q-a-1": [1.0, 0.5]})
+
+    def test_append_is_sorted_json_lines(self):
+        history.append(self.state, [{"b": 1, "a": "й"}])
+        with open(os.path.join(self.state, history.FILE), encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), '{"a": "й", "b": 1}\n')
+
+    def test_regressed(self):
+        self.assertEqual(history.regressed([1, 1, 1, 1], 0.75), 1.0)
+        self.assertIsNone(history.regressed([1, 1, 1, 1], 0.76))
+        self.assertIsNone(history.regressed([0.9], 0.0))
+        self.assertEqual(history.regressed([0, 0, 0, 0, 1, 1, 1, 1], 0.7), 1.0)
+        self.assertEqual(history.regressed([0.9, 0.9], 0.65), 0.9)
+
+
+if __name__ == "__main__":
+    unittest.main()

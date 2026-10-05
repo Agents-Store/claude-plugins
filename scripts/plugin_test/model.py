@@ -14,7 +14,7 @@ CI, SERVER = "ci", "server"
 CHECK_IDS = (
     "manifest", "skill-links", "skill-snippets", "skill-budget", "mcp-names",
     "mcp-list", "hook-fixtures", "cli-flags", "api-paths", "unit",
-    "eval-files", "eval-coverage",
+    "eval-files", "eval-coverage", "behavior",
 )
 
 # Статус внедрения (spec §6). advisory: fail понижается до warn. blocking: fail
@@ -37,6 +37,7 @@ STATUS = {
     "unit": BLOCKING,
     "eval-files": BLOCKING,       # формат кейсов L2 — с первого дня (spec очереди 2 §4.1)
     "eval-coverage": ADVISORY,    # blocking после наполнения наборов срабатывания (Task 17)
+    "behavior": ADVISORY,         # L2 зовёт модель; blocking — решением владельца после калибровки (spec очереди 2 §9)
 }
 
 # Проверки, которые запускает только явный --check: behavior зовёт модель (spec очереди 2 §2).
