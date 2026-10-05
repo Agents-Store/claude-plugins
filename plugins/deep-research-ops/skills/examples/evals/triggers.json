@@ -4,7 +4,7 @@
   {"query": "do you have a worked example of the market research scenario, end to end, so I can see what the report is supposed to look like?", "should_trigger": true},
   {"query": "walk me through the person-and-company lookup scenario with an example: which tools get called and in what order", "should_trigger": true},
   {"query": "Покажи пример готового сценария исследования новостей и трендов: какие вызовы, в каком порядке и как выглядит итог", "should_trigger": true},
-  {"query": "Дай эталонные примеры вызовов инструментов для технического аудита: поиск по коду, чтение документации, сбор результата", "should_trigger": true},
+  {"query": "Нужны эталонные примеры вызовов инструментов поиска и чтения для сценария «технический аудит»: покажи справочные паттерны и пример полного рабочего процесса из этого плагина, от запросов до итогового отчёта", "should_trigger": true},
   {"query": "I'm writing training material for the team. Give me several end-to-end research workflow examples that cover the different research types", "should_trigger": true},
   {"query": "show an example of a topic deep dive done with parallel searches and then batch reading of the top pages", "should_trigger": true},
   {"query": "Do a market research report on the global lithium supply chain right now", "should_trigger": false},
