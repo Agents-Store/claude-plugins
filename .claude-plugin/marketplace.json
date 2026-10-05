@@ -105,7 +105,7 @@
       "name": "deep-research-ops",
       "source": "./plugins/deep-research-ops",
       "description": "Multi-step research workflow over any search MCP servers; installs web-search-dev for the tools.",
-      "version": "3.1.0",
+      "version": "3.1.1",
       "author": {
         "name": "AGENTS.STORE"
       },

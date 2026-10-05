@@ -1,0 +1,18 @@
+[
+  {"query": "I'm searching for a startup called Zorbly that supposedly makes AI inventory software, but the search tool finds nothing. How do I make sure it really doesn't exist before I give up?", "should_trigger": true},
+  {"query": "Which search provider should I use for what? I have Exa, Perplexity, Jina and Firecrawl connected. I want company lookups, fact checks, scientific preprints and JS-heavy pages", "should_trigger": true},
+  {"query": "my first search provider returned an error mid-research. What's the fallback chain and how do I carry on without losing the results so far?", "should_trigger": true},
+  {"query": "how do I optimize search queries for finding recent benchmarks of vector databases? I get lots of SEO spam. I'd also like to run several queries in parallel", "should_trigger": true},
+  {"query": "Какой поисковый инструмент лучше выбрать для проверки фактов, а какой для поиска похожих компаний? Расскажи, как выстроить цепочку запасных вариантов", "should_trigger": true},
+  {"query": "Не могу найти в поиске продукт по названию 'Kodari' - какие варианты доменов и источников проверить, прежде чем сказать, что его нет?", "should_trigger": true},
+  {"query": "best way to run 5 searches at once with different angles on the same topic, and then dedupe and rank the results by relevance?", "should_trigger": true},
+  {"query": "when should I use perplexity_ask instead of a plain search, and when does a semantic search like Exa win?", "should_trigger": true},
+  {"query": "Do a full research report on the global fintech market 2026", "should_trigger": false},
+  {"query": "Read the page https://example.com/changelog and extract the version list", "should_trigger": false},
+  {"query": "Format my research notes into an executive summary", "should_trigger": false},
+  {"query": "What is the best way to structure a Postgres full-text search query with ranking?", "should_trigger": false},
+  {"query": "Optimize my SEO keywords for the blog post on trail running", "should_trigger": false},
+  {"query": "How do I set up the Exa API key in my Node project and call the search endpoint?", "should_trigger": false},
+  {"query": "Give me examples of workflows for the six research types", "should_trigger": false},
+  {"query": "How do Google search operators like site: and intitle: work?", "should_trigger": false}
+]

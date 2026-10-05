@@ -1,0 +1,18 @@
+[
+  {"query": "I've finished gathering sources on the battery recycling market. Turn my notes into a Deep Research Report with key findings, data tables, inline citations and a methodology section", "should_trigger": true},
+  {"query": "format these findings as an executive summary: three key findings, key data points with sources and recommendations. Date today, depth standard", "should_trigger": true},
+  {"query": "build a comparison table report for the three CRM tools I researched - columns for pricing, integrations, limits - and cite where each number came from", "should_trigger": true},
+  {"query": "what should a research report include so a reader can trust it? I need citation rules, a methodology section and a place for gaps and limitations", "should_trigger": true},
+  {"query": "Оформи результаты моего исследования в виде структурированного отчёта: краткое резюме, ключевые находки с источниками и раздел о методологии", "should_trigger": true},
+  {"query": "Собери из этих заметок отчёт-сравнение трёх платформ в виде таблицы со ссылками на источники и разделом с ограничениями исследования", "should_trigger": true},
+  {"query": "here are my raw notes on the EU data-act: a dozen bullets with urls. write them up as a report for my manager, with confidence levels for each claim and what we couldn't verify", "should_trigger": true},
+  {"query": "which report template fits a news-and-trends research? i have a quick depth research with 5 sources and want something short", "should_trigger": true},
+  {"query": "Research the electric scooter market in Brazil from scratch and tell me the main players", "should_trigger": false},
+  {"query": "Write a quarterly business review deck outline for our sales team", "should_trigger": false},
+  {"query": "Write the README for my open-source library with install and usage sections", "should_trigger": false},
+  {"query": "Read https://example.com/whitepaper.pdf and extract all figures and tables", "should_trigger": false},
+  {"query": "Which search provider should I use for academic papers?", "should_trigger": false},
+  {"query": "Show me an example of tool call patterns for batch search", "should_trigger": false},
+  {"query": "Draft a postmortem document for yesterday's database outage using this timeline", "should_trigger": false},
+  {"query": "Proofread this paragraph for grammar and tone", "should_trigger": false}
+]
