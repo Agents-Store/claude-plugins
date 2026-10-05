@@ -1,0 +1,18 @@
+[
+  {"query": "Review this file for me: routes/deals.py. I'm a junior dev, and I'd like to know what could be wrong, especially security and readability, and why it matters", "should_trigger": true},
+  {"query": "please review PR #42 in our repo and explain every issue like I'm a junior developer - what is wrong and why", "should_trigger": true},
+  {"query": "what's wrong with this code? check my work please, I wrote src/utils/date.js last night and I'm not sure about the timezone handling", "should_trigger": true},
+  {"query": "is this code okay? app/auth.py - I store passwords with sha256 and build SQL with f-strings. be honest, what can I improve?", "should_trigger": true},
+  {"query": "Проверь мой код в файле services/orders.py: найди ошибки, проблемы безопасности и то, что новичок обычно делает неправильно, и объясни почему", "should_trigger": true},
+  {"query": "Сделай ревью моего pull request #77: хочу понять, что исправить в первую очередь, и почему это важно", "should_trigger": true},
+  {"query": "code quality check on the whole components/ folder please - naming, duplicated logic, anything a senior would flag in a review", "should_trigger": true},
+  {"query": "can you look over my Dockerfile and docker-compose.yml and tell me what a reviewer would complain about? I'm learning this stuff", "should_trigger": true},
+  {"query": "Explain what the file routes/deals.py does, I've never seen Flask before", "should_trigger": false},
+  {"query": "Draw an ERD of the models in this project", "should_trigger": false},
+  {"query": "Write a pull request description for my branch feature/refunds, it adds partial refunds and a migration", "should_trigger": false},
+  {"query": "Test the frontend of my app on localhost:8080 for broken pages and console errors", "should_trigger": false},
+  {"query": "Fix the failing test in tests/test_orders.py, the assertion on total fails with 99.9 vs 100", "should_trigger": false},
+  {"query": "Set up ESLint and Prettier for this TypeScript project with the Airbnb config and a pre-commit hook", "should_trigger": false},
+  {"query": "What are the pros and cons of a monorepo versus several repositories for a team of eight?", "should_trigger": false},
+  {"query": "Generate a CHANGELOG entry for release 2.3.0 from these commit messages", "should_trigger": false}
+]
