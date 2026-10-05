@@ -88,6 +88,10 @@ def _tail(text):
 
 def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeout=L2_TIMEOUT):
     os.makedirs(out_dir, exist_ok=True)
+    try:
+        os.remove(os.path.join(out_dir, RESULT))   # результат прошлого прохода не должен сойти за свежий
+    except FileNotFoundError:
+        pass
     args = command(claude, copy_dir, eval_dir, out_dir, ablation=ablation, runs=runs)
     try:
         done = run_group(args, env=env, cwd=out_dir, timeout=timeout)
@@ -106,10 +110,12 @@ def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeou
     result = RunResult(data=data, returncode=done.returncode)
     if done.returncode == 1:
         result.problems.append("claude plugin eval, код 1: %s" % (_tail(done.stderr) or "без stderr"))
-    usage, status, overage = _scan_traces(data)
-    _cleanup(data)
-    result.usage = usage
-    result.stop, result.invalid = _verdict(data, done.returncode, usage, status, overage)
+    try:
+        usage, status, overage = _scan_traces(data)
+        result.usage = usage
+        result.stop, result.invalid = _verdict(data, done.returncode, usage, status, overage)
+    finally:
+        _cleanup(data)
     return result
 
 
@@ -149,14 +155,17 @@ def _scan_traces(data):
                 if '"rate_limit_event"' not in line:
                     continue
                 try:
-                    info = json.loads(line).get("rate_limit_info") or {}
+                    info = json.loads(line).get("rate_limit_info")
                 except (ValueError, AttributeError):
                     continue
-                if info.get("status") and info["status"] not in OK_STATUSES:
-                    status = str(info["status"])
+                if not isinstance(info, dict):
+                    continue
+                if isinstance(info.get("status"), str) and info["status"] and info["status"] not in OK_STATUSES:
+                    status = info["status"]
                 if info.get("isUsingOverage") is True:
                     overage = True
-                for window, value in (info.get("unifiedWindows") or {}).items():
+                windows = info.get("unifiedWindows")
+                for window, value in (windows.items() if isinstance(windows, dict) else ()):
                     u = value.get("utilization") if isinstance(value, dict) else None
                     if window in usage and isinstance(u, (int, float)) and not isinstance(u, bool):
                         usage[window] = max(usage[window], float(u))
@@ -172,10 +181,11 @@ def _cleanup(data):
 
 def _verdict(data, returncode, usage, status, overage):
     """(причина остановить L2, оценки недействительны)."""
-    reason = data.get("partialReason") if data.get("partial") else None
+    partial = bool(data.get("partial"))
+    reason = data.get("partialReason") if partial else None
     if reason == "auth_failed":
         return "вход отклонён посреди прогона (auth_failed)", True
-    if reason == "interrupted" or returncode in (130, 143):
+    if reason == "interrupted" or returncode in (130, 143) or returncode < 0:
         return "прогон прерван (код %d)" % returncode, True
     if status:
         return "лимит подписки: status=%s" % status, True
@@ -183,6 +193,8 @@ def _verdict(data, returncode, usage, status, overage):
         err = r.get("error")
         if isinstance(err, str) and RE_LIMIT.search(err):
             return "ошибка лимита в прогоне: %s" % err[:120], True
+    if partial:
+        return "прогон неполный (partialReason=%s)" % (str(reason)[:60] if reason else "не указана"), True
     if overage:
         return "подписка ушла в overage — сверх подписки L2 не платит", False
     if usage["five_hour"] >= FIVE_HOUR_STOP:

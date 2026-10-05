@@ -1,4 +1,6 @@
+import json
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -164,6 +166,53 @@ class EvalrunTest(unittest.TestCase):
         self.assertIn("claude-eval-", made)
         self.assertFalse(os.path.exists(os.path.dirname(os.path.dirname(made))))
         self.assertTrue(os.path.isdir(keep))
+
+    def test_stale_result_in_reused_out_dir_is_not_returned(self):
+        os.makedirs(self.out)
+        with open(os.path.join(self.out, evalrun.RESULT), "w", encoding="utf-8") as fh:
+            json.dump(eval_result(eval_case("old-pass", 1.0)), fh)
+        with self.assertRaises(evalrun.EvalError) as ctx:
+            self.run_stub([{"exit": 1, "stderr": "died before writing"}])
+        self.assertIn("нет результата", str(ctx.exception))
+        self.assertFalse(os.path.exists(os.path.join(self.out, evalrun.RESULT)))
+
+    def test_partial_with_unknown_reason_is_invalid_and_stops(self):
+        res, _ = self.run_stub([{"exit": 0, "result": eval_result(
+            eval_case("q", 1.0), partial=True, reason="budget")}])
+        self.assertTrue(res.invalid)
+        self.assertIn("budget", res.stop)
+        res2, _ = self.run_stub([{"exit": 0, "result": eval_result(partial=True)}])
+        self.assertTrue(res2.invalid)
+        self.assertTrue(res2.stop)
+
+    def test_killed_by_signal_is_interrupted(self):
+        def die_by_signal(args, **kw):
+            with open(os.path.join(kw["cwd"], evalrun.RESULT), "w", encoding="utf-8") as fh:
+                json.dump(eval_result(eval_case("q", 1.0)), fh)
+            return subprocess.CompletedProcess(args, -15, "", "")
+        with mock.patch.object(evalrun, "run_group", die_by_signal):
+            res = evalrun.run("claude", self.copy, "evals-quality", self.out, ablation="none",
+                              env=evalrun.environment())
+        self.assertTrue(res.invalid)
+        self.assertIn("прерван", res.stop)
+
+    def test_malformed_trace_events_do_not_crash_and_temp_dir_is_removed(self):
+        junk = ["not-a-dict", {"status": ["allowed"]}, {"status": 5}, {"unifiedWindows": [1, 2]},
+                {"unifiedWindows": {"five_hour": "high", "seven_day": {"utilization": "n/a"}}}, OK]
+        res, _ = self.run_stub([{"result": eval_result(eval_case("q", 1.0, runs=[
+            {"score": 1.0, "error": None, "trace": junk}]))}])
+        self.assertEqual((res.stop, res.invalid), ("", False))
+        made = res.data["cases"][0]["arms"]["with"][0]["tracePath"]
+        self.assertFalse(os.path.exists(os.path.dirname(os.path.dirname(made))))
+
+    def test_temp_dirs_removed_even_when_trace_scan_raises(self):
+        plan = [{"result": eval_result(eval_case("q", 1.0, runs=[{"score": 1.0, "error": None, "trace": [OK]}]))}]
+        with mock.patch.object(evalrun, "_scan_traces", side_effect=RuntimeError("boom")):
+            with self.assertRaises(RuntimeError):
+                self.run_stub(plan)
+        with open(os.path.join(self.out, evalrun.RESULT), encoding="utf-8") as fh:
+            made = json.load(fh)["cases"][0]["arms"]["with"][0]["tracePath"]
+        self.assertFalse(os.path.exists(os.path.dirname(os.path.dirname(made))))
 
     def test_cases_and_run_scores(self):
         data = eval_result(eval_case("t-x", 0.5, runs=[{"score": 1.0, "error": None}, {"score": 0.0, "error": "e"}]),
