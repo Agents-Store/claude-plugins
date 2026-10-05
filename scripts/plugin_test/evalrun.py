@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass, field
 
@@ -28,6 +29,7 @@ KEEP_ENV = ("PATH", "HOME", "LANG", "USER", "LOGNAME", "TMPDIR")
 OK_STATUSES = {"allowed", "allowed_warning"}
 RE_LIMIT = re.compile(r"rate.?limit|usage.?limit|\b429\b|limit (?:reached|exceeded)|out of (?:usage|credits)", re.I)
 RESULT = "aggregate-result.json"
+RE_IDENT = re.compile(r"^[A-Za-z0-9_.-]{1,40}$")
 
 
 class EvalError(Exception):
@@ -67,7 +69,7 @@ def preflight(claude, env):
         return "нет входа в claude — на сервере: claude auth login"
     method = data.get("authMethod")
     if method != "claude.ai":
-        return "вход не по подписке claude.ai (authMethod=%s): L2 платит только подписка" % method
+        return "вход не по подписке claude.ai (authMethod=%s): L2 платит только подписка" % _ident(method)
     return ""
 
 
@@ -86,6 +88,16 @@ def _tail(text):
     return lines[-1][:200] if lines else ""
 
 
+def _debug(text):
+    """Сырая деталь — одной строкой в stderr (журнал ночного прогона), не в сообщение находки: issue публичный."""
+    print("[evalrun] %s" % " ".join(str(text).split())[:400], file=sys.stderr)
+
+
+def _ident(value, default="не указан"):
+    """Короткий идентификатор из ответа CLI (authMethod, partialReason); иной текст в сообщения не попадает."""
+    return value if isinstance(value, str) and RE_IDENT.match(value) else default
+
+
 def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeout=L2_TIMEOUT):
     os.makedirs(out_dir, exist_ok=True)
     try:
@@ -98,18 +110,20 @@ def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeou
     except subprocess.TimeoutExpired:
         raise EvalError("claude plugin eval не завершился за %d с" % timeout) from None
     except OSError as exc:
-        raise EvalError("claude не запускается: %s" % (exc.strerror or type(exc).__name__)) from None
+        _debug("claude не запускается: %s" % (exc.strerror or type(exc).__name__))
+        raise EvalError("claude не запускается") from None
     try:
         with open(os.path.join(out_dir, RESULT), encoding="utf-8") as fh:
             data = json.load(fh)
     except (OSError, ValueError):
-        raise EvalError("claude plugin eval: нет результата (код %d): %s"
-                        % (done.returncode, _tail(done.stderr) or _tail(done.stdout))) from None
+        _debug("нет результата (код %d): %s" % (done.returncode, _tail(done.stderr) or _tail(done.stdout) or "без вывода"))
+        raise EvalError("claude plugin eval: нет результата (код %d)" % done.returncode) from None
     if not isinstance(data, dict) or not isinstance(data.get("cases"), list):
         raise EvalError("claude plugin eval: результат без cases (код %d)" % done.returncode)
     result = RunResult(data=data, returncode=done.returncode)
     if done.returncode == 1:
-        result.problems.append("claude plugin eval, код 1: %s" % (_tail(done.stderr) or "без stderr"))
+        _debug("код 1: %s" % (_tail(done.stderr) or "без stderr"))
+        result.problems.append("claude plugin eval, код 1")
     try:
         usage, status, overage = _scan_traces(data)
         result.usage = usage
@@ -192,9 +206,10 @@ def _verdict(data, returncode, usage, status, overage):
     for r in _runs(data):
         err = r.get("error")
         if isinstance(err, str) and RE_LIMIT.search(err):
-            return "ошибка лимита в прогоне: %s" % err[:120], True
+            _debug("ошибка лимита в прогоне: %s" % err[:120])
+            return "ошибка лимита в прогоне", True
     if partial:
-        return "прогон неполный (partialReason=%s)" % (str(reason)[:60] if reason else "не указана"), True
+        return "прогон неполный (partialReason=%s)" % _ident(reason, "не указана"), True
     if overage:
         return "подписка ушла в overage — сверх подписки L2 не платит", False
     if usage["five_hour"] >= FIVE_HOUR_STOP:

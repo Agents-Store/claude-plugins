@@ -32,6 +32,18 @@ class HistoryTest(unittest.TestCase):
             fh.write("not json\n[1,2]\n")
         self.assertEqual(history.scores(os.path.join(self.state, "sub"), "r", "p"), {"q-a-1": [1.0, 0.5]})
 
+    def test_scores_per_model(self):
+        history.append(self.state, [
+            {"repo": "r", "plugin": "p", "case": "q-a-1", "score": 1.0, "ok": True, "model": "m-new"},
+            {"repo": "r", "plugin": "p", "case": "q-a-1", "score": 0.4, "ok": True, "model": "m-old"},
+            {"repo": "r", "plugin": "p", "case": "q-a-1", "score": 0.6, "ok": True},
+            {"repo": "r", "plugin": "p", "case": "q-a-2", "score": 0.9, "ok": True, "model": "m-new"},
+        ])
+        self.assertEqual(history.scores(self.state, "r", "p", model="m-new"), {"q-a-1": [1.0], "q-a-2": [0.9]})
+        self.assertEqual(history.scores(self.state, "r", "p", model="m-old"), {"q-a-1": [0.4]})
+        self.assertEqual(history.scores(self.state, "r", "p", model="m-none"), {})
+        self.assertEqual(history.scores(self.state, "r", "p"), {"q-a-1": [1.0, 0.4, 0.6], "q-a-2": [0.9]})
+
     def test_append_is_sorted_json_lines(self):
         history.append(self.state, [{"b": 1, "a": "й"}])
         with open(os.path.join(self.state, history.FILE), encoding="utf-8") as fh:

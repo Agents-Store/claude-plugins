@@ -19,8 +19,11 @@ def _path(state_dir):
     return os.path.join(state_dir, FILE)
 
 
-def scores(state_dir, repo, plugin):
-    """{кейс: [оценки в порядке записи]} — только ok-строки этого репозитория и плагина."""
+def scores(state_dir, repo, plugin, model=None):
+    """{кейс: [оценки в порядке записи]} — только ok-строки этого репозитория и плагина.
+
+    С model — только строки этой модели: оценки разных моделей несравнимы, регресс считается внутри одной.
+    """
     out = {}
     if not state_dir or not os.path.isfile(_path(state_dir)):
         return out
@@ -31,6 +34,8 @@ def scores(state_dir, repo, plugin):
             except ValueError:
                 continue
             if not isinstance(e, dict) or e.get("repo") != repo or e.get("plugin") != plugin or e.get("ok") is not True:
+                continue
+            if model is not None and e.get("model") != model:
                 continue
             case, score = e.get("case"), e.get("score")
             if isinstance(case, str) and isinstance(score, (int, float)) and not isinstance(score, bool):

@@ -1,3 +1,5 @@
+import contextlib
+import io
 import json
 import os
 import subprocess
@@ -92,17 +94,39 @@ class EvalrunTest(unittest.TestCase):
         self.assertIn("не завершился", str(ctx.exception))
         self.assertLess(time.time() - started, 20)
 
+    def run_stub_stderr(self, plan, **kw):
+        """(результат или EvalError, stderr процесса runner-а) — подробности уходят в журнал, не в сообщения."""
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            try:
+                got = self.run_stub(plan, **kw)[0]
+            except evalrun.EvalError as exc:
+                got = exc
+        return got, err.getvalue()
+
     def test_garbage_output_is_eval_error(self):
-        with self.assertRaises(evalrun.EvalError) as ctx:
-            self.run_stub([{"stdout": "<<garbage>>", "stderr": "boom\nlast line", "exit": 0}])
-        self.assertIn("нет результата", str(ctx.exception))
-        self.assertIn("last line", str(ctx.exception))
+        exc, err = self.run_stub_stderr([{"stdout": "<<garbage>>", "stderr": "boom\nlast line", "exit": 0}])
+        self.assertIsInstance(exc, evalrun.EvalError)
+        self.assertEqual(str(exc), "claude plugin eval: нет результата (код 0)")
+        self.assertNotIn("last line", str(exc))
+        self.assertIn("[evalrun]", err)
+        self.assertIn("last line", err)
+        self.assertEqual(len(err.strip().splitlines()), 1)
 
     def test_exit_1_with_result_is_a_problem(self):
-        res, _ = self.run_stub([{"exit": 1, "stderr": "invalid case.yaml: graders", "result": eval_result()}])
-        self.assertEqual(len(res.problems), 1)
-        self.assertIn("invalid case.yaml", res.problems[0])
+        res, err = self.run_stub_stderr([{"exit": 1, "stderr": "invalid case.yaml: graders", "result": eval_result()}])
+        self.assertEqual(res.problems, ["claude plugin eval, код 1"])
         self.assertFalse(res.invalid)
+        self.assertIn("[evalrun]", err)
+        self.assertIn("invalid case.yaml", err)
+
+    def test_preflight_and_partial_text_from_cli_is_not_echoed(self):
+        sentinel = "SENTINEL words with spaces"
+        claude, _ = stub_claude(self.repo.root, [], auth='{"loggedIn": true, "authMethod": "%s"}' % sentinel)
+        self.assertNotIn("SENTINEL", evalrun.preflight(claude, evalrun.environment()))
+        res, _ = self.run_stub([{"exit": 0, "result": eval_result(partial=True, reason=sentinel)}])
+        self.assertTrue(res.invalid)
+        self.assertNotIn("SENTINEL", res.stop)
 
     def test_interrupted_is_invalid(self):
         res, _ = self.run_stub([{"exit": 143, "result": eval_result(partial=True, reason="interrupted")}])
@@ -148,9 +172,11 @@ class EvalrunTest(unittest.TestCase):
         self.assertTrue(res.invalid)
 
     def test_limit_error_text_but_not_turn_cap(self):
-        res, _ = self.run_stub([{"result": eval_result(eval_case("q", 0.0, runs=[
-            {"score": 0.0, "error": "API Error: 429 rate limit reached"}]))}])
-        self.assertTrue(res.stop and res.invalid)
+        res, err = self.run_stub_stderr([{"result": eval_result(eval_case("q", 0.0, runs=[
+            {"score": 0.0, "error": "API Error: 429 rate limit reached SENTINEL-DETAIL"}]))}])
+        self.assertEqual((res.stop, res.invalid), ("ошибка лимита в прогоне", True))
+        self.assertIn("[evalrun]", err)
+        self.assertIn("SENTINEL-DETAIL", err)
         os.remove(os.path.join(self.repo.root, "stub", "plan.json.n"))
         res2, _ = self.run_stub([{"result": eval_result(eval_case("t", 1.0, runs=[
             {"score": 1.0, "error": "exit 1: Reached maximum number of turns (1)"}]))}])
@@ -171,9 +197,10 @@ class EvalrunTest(unittest.TestCase):
         os.makedirs(self.out)
         with open(os.path.join(self.out, evalrun.RESULT), "w", encoding="utf-8") as fh:
             json.dump(eval_result(eval_case("old-pass", 1.0)), fh)
-        with self.assertRaises(evalrun.EvalError) as ctx:
-            self.run_stub([{"exit": 1, "stderr": "died before writing"}])
-        self.assertIn("нет результата", str(ctx.exception))
+        exc, _ = self.run_stub_stderr([{"exit": 1, "stderr": "died before writing"}])
+        self.assertIsInstance(exc, evalrun.EvalError)
+        self.assertIn("нет результата", str(exc))
+        self.assertNotIn("died before writing", str(exc))
         self.assertFalse(os.path.exists(os.path.join(self.out, evalrun.RESULT)))
 
     def test_partial_with_unknown_reason_is_invalid_and_stops(self):

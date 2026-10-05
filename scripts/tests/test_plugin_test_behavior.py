@@ -1,5 +1,8 @@
+import contextlib
+import io
 import json
 import os
+import shutil
 import sys
 import time
 import unittest
@@ -46,6 +49,7 @@ class BehaviorTest(unittest.TestCase):
         return c
 
     def check(self, plan, name="b-dev", ctx=None, auth=None):
+        shutil.rmtree(os.path.join(self.repo.root, "s-" + name), ignore_errors=True)   # журнал и счётчик заглушки — с нуля
         claude, log = stub_claude(os.path.join(self.repo.root, "s-" + name), plan, auth=auth)
         ctx = ctx or self.ctx()
         plugin = load_plugin(self.repo.root, name)
@@ -136,11 +140,21 @@ class BehaviorTest(unittest.TestCase):
         self.add_plugin(queries=(), quality=QUALITY)
         self.repo.tests("b-dev", {"plugin-test.toml": "[behavior]\nthreshold = 0.6\n"})
         repo_name = os.path.basename(self.repo.root)
-        history.append(self.state, [{"repo": repo_name, "plugin": "b-dev", "case": "q-web-1", "score": 1.0, "ok": True}
-                                    for _ in range(4)])
+        history.append(self.state, [{"repo": repo_name, "plugin": "b-dev", "case": "q-web-1", "score": 1.0, "ok": True,
+                                     "model": evalrun.MODEL} for _ in range(4)])
         got, _, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", 0.7, delta=0.3))}])
         self.assertEqual([(f.level, f.message.split(":")[0]) for f in got], [(FAIL, L2_REGRESS)])
         self.assertIn("медиана", got[0].message)
+
+    def test_history_of_another_model_is_not_a_baseline(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        self.repo.tests("b-dev", {"plugin-test.toml": "[behavior]\nthreshold = 0.6\n"})
+        repo_name = os.path.basename(self.repo.root)
+        history.append(self.state, [{"repo": repo_name, "plugin": "b-dev", "case": "q-web-1", "score": 1.0, "ok": True,
+                                     "model": "claude-older"} for _ in range(4)]
+                       + [{"repo": repo_name, "plugin": "b-dev", "case": "q-web-1", "score": 1.0, "ok": True}] * 2)
+        got, _, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", 0.7, delta=0.3))}])
+        self.assertEqual(got, [])
 
     def test_mocks_only_in_quality_tree(self):
         self.add_plugin(queries=(), quality=QUALITY, mcp={"srv": {"command": "srv-bin"}})
@@ -181,16 +195,20 @@ class BehaviorTest(unittest.TestCase):
     def test_preflight_refusal_sets_stop(self):
         self.add_plugin()
         got, evals, _, ctx = self.check([], auth='{"loggedIn": true, "authMethod": "apiKey"}')
-        self.assertEqual([f.level for f in got], [INFRA])
+        self.assertEqual([f.level for f in got], [INFRA, INFO])
+        self.assertTrue(got[0].message.startswith(L2_NOT_RUN))
         self.assertIn("не по подписке", got[0].message)
+        self.assertTrue(got[1].message.startswith(L2_STOPPED))
+        self.assertIn("не по подписке", got[1].message)
         self.assertTrue(ctx.l2_stop)
         self.assertEqual(evals, [])
 
     def test_eval_error_is_one_infra(self):
         self.add_plugin()
-        got, _, _, _ = self.check([{"stdout": "<<garbage>>"}])
+        (got, _, _, _), err = self.err_check([{"stdout": "<<garbage>>"}])
         self.assertEqual([f.level for f in got], [INFRA])
         self.assertTrue(got[0].message.startswith(L2_FAILED))
+        self.assertIn("[evalrun]", err)
 
     def test_threshold_stop_with_valid_results_is_reported(self):
         self.add_plugin()
@@ -229,6 +247,132 @@ class BehaviorTest(unittest.TestCase):
         self.assertTrue(calls)
         for c in calls:
             self.assertNotIn("ANTHROPIC_API_KEY", c["env"])
+
+    def err_check(self, plan, **kw):
+        """check() с перехватом stderr: подробности сбоев уходят туда, в находки — только классификация."""
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            out = self.check(plan, **kw)
+        return out, err.getvalue()
+
+    def assert_no_text(self, found, *sentinels):
+        for f in found:
+            blob = json.dumps(f.to_dict(), ensure_ascii=False)
+            for sentinel in sentinels:
+                self.assertNotIn(sentinel, blob)
+
+    def test_free_text_never_reaches_findings(self):
+        # 1. текст ошибки прогона: все прогоны кейса с ошибкой
+        self.add_plugin(queries=(), quality=QUALITY)
+        (got, _, _, _), err = self.err_check([{"result": eval_result(eval_case("q-web-1", 0.0, runs=[
+            {"score": 0.0, "error": "SENTINEL_RUN_ERR token=abc"}, {"score": 0.0, "error": "SENTINEL_RUN_ERR again"}]))}])
+        self.assertEqual([(f.level, f.message) for f in got], [(INFRA, "%s: q-web-1 — все 2 прогонов с ошибкой" % L2_FAILED)])
+        self.assertIn("[behavior]", err)
+        self.assertIn("SENTINEL_RUN_ERR", err)
+        self.assert_no_text(got, "SENTINEL_RUN_ERR")
+        # 2. stderr CLI при коде 1 и при отсутствии результата
+        self.add_plugin("c-dev")
+        results = eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))
+        (got, _, _, _), err = self.err_check([{"exit": 1, "stderr": "SENTINEL_STDERR boom at some path", "result": results}],
+                                             name="c-dev")
+        self.assertEqual([f.message for f in got], ["%s: срабатывание: claude plugin eval, код 1" % L2_FAILED])
+        self.assertIn("SENTINEL_STDERR", err)
+        self.assert_no_text(got, "SENTINEL_STDERR")
+        self.add_plugin("d-dev")
+        (got, _, _, _), err = self.err_check([{"stdout": "<<garbage>>", "stderr": "SENTINEL_STDERR2 boom"}], name="d-dev")
+        self.assertEqual([f.message for f in got], ["%s: срабатывание: claude plugin eval: нет результата (код 0)" % L2_FAILED])
+        self.assertIn("SENTINEL_STDERR2", err)
+        self.assert_no_text(got, "SENTINEL_STDERR2")
+        # 3. текст ошибки лимита
+        self.add_plugin("e-dev")
+        limited = eval_result(eval_case(T(YES), 0.0, runs=[{"score": 0.0, "error": "429 rate limit SENTINEL_LIMIT"}]),
+                              eval_case(T(NO), 1.0))
+        (got, _, _, ctx), err = self.err_check([{"result": limited}], name="e-dev")
+        self.assertEqual(ctx.l2_stop, "ошибка лимита в прогоне")
+        self.assertTrue(got)
+        self.assertIn("SENTINEL_LIMIT", err)
+        self.assert_no_text(got, "SENTINEL_LIMIT")
+
+    def test_window_closed_before_a_following_call(self):
+        self.add_plugin()
+        ctx = self.ctx()
+        ctx.deadline = time.time() + 1000
+        real, runs = evalrun.run, []
+
+        def run_then_close_window(*args, **kw):
+            runs.append(kw.get("runs"))
+            res = real(*args, **kw)
+            ctx.deadline = time.time() - behavior.GRACE_AFTER_DEADLINE + 10   # до конца вызова осталось 10 с
+            return res
+
+        first = eval_result(eval_case(T(YES), 0.0), eval_case(T(NO), 1.0))
+        with mock.patch.object(evalrun, "run", side_effect=run_then_close_window):
+            got, evals, _, ctx = self.check([{"result": first}], ctx=ctx)
+        self.assertEqual(runs, [1])
+        self.assertEqual(len(evals), 1)
+        self.assertEqual({f.level for f in got}, {INFRA})
+        self.assertTrue(all(f.message.startswith(L2_NOT_RUN) for f in got))
+        self.assertIn("%s: окно ночи закончилось (повтор срабатывания)" % L2_NOT_RUN, [f.message for f in got])
+        self.assertEqual(ctx.l2_stop, "")
+
+    def test_eval_error_after_the_window_is_carried_not_a_failure(self):
+        self.add_plugin()
+        ctx = self.ctx()
+        ctx.deadline = time.time() + 1000
+
+        def fake_run(*args, **kw):
+            ctx.deadline = time.time() - 1
+            raise evalrun.EvalError("claude plugin eval не завершился за 5400 с")
+
+        with mock.patch.object(behavior.evalrun, "preflight", return_value=""), \
+                mock.patch.object(behavior.evalrun, "run", side_effect=fake_run), \
+                mock.patch.object(behavior.shutil, "which", return_value="/bin/true"):
+            plugin = load_plugin(self.repo.root, "b-dev")
+            got = behavior.run(plugin, ctx, manifest.load(plugin)[0])
+        self.assertEqual([(f.level, f.message) for f in got],
+                         [(INFRA, "%s: окно ночи закончилось во время прогона (срабатывание)" % L2_NOT_RUN)])
+
+    def test_unwritable_history_keeps_the_findings(self):
+        self.add_plugin()
+        blocker = os.path.join(self.repo.root, "state-is-a-file")
+        with open(blocker, "w") as fh:
+            fh.write("x")
+        ctx = self.ctx()
+        ctx.state_dir = blocker
+        first = eval_result(eval_case(T(YES), 0.0, runs=[{"score": 0.0, "error": None}]), eval_case(T(NO), 1.0))
+        rerun = eval_result(eval_case(T(YES), 0.0, runs=[{"score": 0.0, "error": None}, {"score": 0.0, "error": None}]))
+        got, _, _, _ = self.check([{"result": first}, {"result": rerun}], ctx=ctx)
+        self.assertEqual(sorted((f.level, f.message.split(":")[0]) for f in got),
+                         sorted([(FAIL, L2_MISFIRE), (INFRA, L2_FAILED)]))
+        self.assertTrue([f for f in got if "история не записана" in f.message])
+
+    def test_skip_behavior_stops_the_run_not_only_the_findings(self):
+        self.add_plugin(quality=QUALITY)
+        self.repo.tests("b-dev", {"plugin-test.toml": '[skip]\n"behavior" = ["skills/web/evals/triggers.json"]\n'})
+        got, evals, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", 1.0, delta=0.5))}])
+        self.assertEqual(got, [])
+        self.assertEqual([dict(zip(c["argv"], c["argv"][1:]))["--eval-dir"] for c in evals], ["evals-quality"])
+
+    def test_skip_quality_file_and_native_case_and_everything(self):
+        self.add_plugin(quality=QUALITY)
+        self.repo.tests("b-dev", {"evals/smoke/prompt.md": "p", "evals/smoke/graders/g.md": "g",
+                                  "plugin-test.toml": '[skip]\n"behavior" = ["skills/web/evals/evals.json", "n-smoke"]\n'})
+        _, evals, _, _ = self.check([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))}])
+        self.assertEqual([dict(zip(c["argv"], c["argv"][1:]))["--eval-dir"] for c in evals], ["evals-trigger"])
+        self.repo.tests("b-dev", {"plugin-test.toml": '[skip]\n"behavior" = ["*"]\n'})
+        got, evals, calls, _ = self.check([], name="b-dev")
+        self.assertEqual((got, evals, calls), ([], [], []))
+        both = eval_result(eval_case("q-web-1", 1.0, delta=0.5), eval_case("n-smoke", 1.0, delta=0.5))
+        self.repo.tests("b-dev", {"plugin-test.toml": '[skip]\n"behavior" = ["skills/web/evals/*"]\n'})
+        _, evals, _, _ = self.check([{"result": both}], name="b-dev")   # родной кейс остаётся
+        self.assertEqual([dict(zip(c["argv"], c["argv"][1:]))["--eval-dir"] for c in evals], ["evals-quality"])
+        top = {f.split(os.sep)[0] for f in evals[0]["files"]}
+        self.assertIn("n-smoke", top)
+        self.assertNotIn("q-web-1", top)
+        self.repo.tests("b-dev", {"plugin-test.toml": '[skip]\n"behavior" = ["skills/web/evals/triggers.json"]\n'})
+        _, evals, _, _ = self.check([{"result": both}], name="b-dev")
+        self.assertEqual([dict(zip(c["argv"], c["argv"][1:]))["--eval-dir"] for c in evals], ["evals-quality"])
+        self.assertTrue({"n-smoke", "q-web-1"} <= {f.split(os.sep)[0] for f in evals[0]["files"]})
 
 
 if __name__ == "__main__":

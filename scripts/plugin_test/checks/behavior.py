@@ -4,14 +4,17 @@
 fail — подтверждённый промах, ниже порога, регресс (advisory понижает до warn); info — «не помогает»,
 «нестабильно»; infra — лимит, окно, вход, сбой CLI. Сообщения начинаются с model.L2_*: по ним issue
 раскладывает раздел L2, а l2plan переносит плагины с L2_NOT_RUN на следующую ночь.
-В отчёт не попадает текст ответов модели — только имена кейсов, запросы из репозитория и оценки.
+В отчёт не попадает текст ответов модели и вывод CLI — только имена кейсов, запросы из репозитория, оценки
+и фиксированные классификации сбоев; сырая деталь идёт одной строкой в stderr (журнал ночного прогона).
 """
 from __future__ import annotations
 
 import datetime
+import fnmatch
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from dataclasses import dataclass, field
@@ -38,20 +41,35 @@ class Sources:
     native: list = field(default_factory=list)     # имена родных кейсов
 
 
-def _sources(plugin):
+def _sources(plugin, skip):
+    """Источники кейсов без снятых [skip] "behavior": маска — путь от каталога плагина (как runner.skipped_by),
+    у родного кейса — его имя в дереве n-<имя>. Снятый файл не доходит до генерации и до вызова claude."""
+    def skipped(rel):
+        return any(fnmatch.fnmatch(rel, g) for g in skip)
+
     src = Sources()
     for skill in evalsrc.skills(plugin.dir):
         src.skills[skill.name] = skill
-        if os.path.isfile(skill.triggers_path):
+        if os.path.isfile(skill.triggers_path) and not skipped(os.path.relpath(skill.triggers_path, plugin.dir)):
             src.triggers += evalsrc.load_triggers(skill)[0]
-        if os.path.isfile(skill.evals_path):
+        if os.path.isfile(skill.evals_path) and not skipped(os.path.relpath(skill.evals_path, plugin.dir)):
             src.quality += [c for c in evalsrc.load_quality(skill)[0] if not c.has_files]
-    src.native = evalsrc.native_cases(plugin)[0]
+    src.native = [n for n in evalsrc.native_cases(plugin)[0] if not skipped(evalgen.native_name(n))]
     return src
+
+
+def _debug(text):
+    """Сырая деталь — одной строкой в stderr, не в находку: issue публичный (spec очереди 2 §7)."""
+    print("[behavior] %s" % " ".join(str(text).split())[:400], file=sys.stderr)
 
 
 def _infra(plugin, message, file="", fix=FIX_INFRA):
     return Finding(plugin.name, CHECK, INFRA, message, file, 0, fix)
+
+
+def _stopped(plugin, reason):
+    """info: этот плагин остановил L2 на ночь — по нему l2plan откладывает остальные репозитории."""
+    return Finding(plugin.name, CHECK, INFO, "%s: %s" % (L2_STOPPED, reason), "", 0, FIX_INFRA)
 
 
 def _short(text):
@@ -80,7 +98,7 @@ def _mocks(plugin):
 def run(plugin, ctx, manifest):
     if ctx.mode != SERVER:
         return []
-    src = _sources(plugin)
+    src = _sources(plugin, manifest.skip.get(CHECK, []))
     if not (src.triggers or src.quality or src.native):
         return []
     if ctx.l2_stop:
@@ -94,9 +112,10 @@ def run(plugin, ctx, manifest):
     reason = evalrun.preflight(claude, env)
     if reason:
         ctx.l2_stop = reason
-        return [_infra(plugin, "%s: %s" % (L2_NOT_RUN, reason), fix="claude auth login под пользователем сервиса")]
+        return [_infra(plugin, "%s: %s" % (L2_NOT_RUN, reason), fix="claude auth login под пользователем сервиса"),
+                _stopped(plugin, reason)]
     repo_name = os.path.basename(os.path.abspath(plugin.repo))
-    past = history.scores(ctx.state_dir, repo_name, plugin.name)
+    past = history.scores(ctx.state_dir, repo_name, plugin.name, model=evalrun.MODEL)
     entries, out = [], []
     with tempfile.TemporaryDirectory(prefix="plugin-test-l2-") as tmp:
         copy = evalgen.copy_plugin(plugin.dir, os.path.join(tmp, plugin.dirname))
@@ -108,12 +127,15 @@ def run(plugin, ctx, manifest):
             else:
                 out += _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries)
     if ctx.l2_stop:   # остановил этот плагин (выше ранний возврат при уже заданной остановке)
-        out.append(Finding(plugin.name, CHECK, INFO, "%s: %s" % (L2_STOPPED, ctx.l2_stop), "", 0, FIX_INFRA))
+        out.append(_stopped(plugin, ctx.l2_stop))
     if entries:
         stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         commit = _commit(plugin.repo)
-        history.append(ctx.state_dir, [dict(e, repo=repo_name, plugin=plugin.name, date=stamp, commit=commit,
-                                            model=evalrun.MODEL) for e in entries])
+        try:
+            history.append(ctx.state_dir, [dict(e, repo=repo_name, plugin=plugin.name, date=stamp, commit=commit,
+                                                model=evalrun.MODEL) for e in entries])
+        except OSError as exc:   # находки уже есть — не терять их из-за каталога состояния
+            out.append(_infra(plugin, "%s: история не записана: %s" % (L2_FAILED, exc.strerror or type(exc).__name__)))
     return out
 
 
@@ -122,10 +144,14 @@ def _call(plugin, ctx, label, claude, copy, eval_dir, out_dir, env, **kw):
     timeout = L2_TIMEOUT
     if ctx.deadline:
         left = int(ctx.deadline + GRACE_AFTER_DEADLINE - time.time())
-        timeout = max(MIN_CALL_TIMEOUT, min(L2_TIMEOUT, left))
+        if left < MIN_CALL_TIMEOUT:      # до юнита-убийцы не успеть даже минимальный вызов — перенос на следующую ночь
+            return None, [_infra(plugin, "%s: окно ночи закончилось (%s)" % (L2_NOT_RUN, label))]
+        timeout = min(L2_TIMEOUT, left)
     try:
         res = evalrun.run(claude, copy, eval_dir, out_dir, env=env, timeout=timeout, **kw)
     except evalrun.EvalError as exc:
+        if ctx.deadline and time.time() >= ctx.deadline:
+            return None, [_infra(plugin, "%s: окно ночи закончилось во время прогона (%s)" % (L2_NOT_RUN, label))]
         return None, [_infra(plugin, "%s: %s: %s" % (L2_FAILED, label, exc))]
     found = [_infra(plugin, "%s: %s: %s" % (L2_FAILED, label, p)) for p in res.problems]
     if res.stop:
@@ -203,7 +229,8 @@ def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
         runs = entry["with"]
         errors = [r.get("error") for r in runs if isinstance(r.get("error"), str)]
         if runs and len(errors) == len(runs):
-            out.append(_infra(plugin, "%s: %s — все прогоны с ошибкой: %s" % (L2_FAILED, name, errors[0][:120]), file))
+            _debug("%s: %s" % (name, errors[0][:120]))
+            out.append(_infra(plugin, "%s: %s — все %d прогонов с ошибкой" % (L2_FAILED, name, len(runs)), file))
             continue
         if any(r.get("skippedPaidGraders") for r in runs):
             out.append(_infra(plugin, "%s: %s — судья пропущен, оценка несравнима" % (L2_FAILED, name), file))
