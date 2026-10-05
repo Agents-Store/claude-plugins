@@ -1,5 +1,5 @@
 [
-  {"query": "I just got a Jira Cloud site for my startup (acme-example.atlassian.net). How do I authenticate to the API from curl? I have my email but I never made a token", "should_trigger": true},
+  {"query": "Connect this repo to our new Jira Cloud site (acme-example.atlassian.net). I have my Atlassian email but no API token yet: walk me through creating one, set the ATLASSIAN_* variables and verify access with one call", "should_trigger": true},
   {"query": "I created an Atlassian API token with scopes. Which base URL do I use now and how do I get my cloudId?", "should_trigger": true},
   {"query": "Set up access to Confluence for this repo - I want to script page updates. What env variables do I need (site url, email, token?) and how do I check that it works?", "should_trigger": true},
   {"query": "Should I use the official Atlassian Rovo MCP server or just curl against the REST API for Jira? We're a small team and I'd like quick interactive reads and edits", "should_trigger": true},

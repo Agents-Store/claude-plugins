@@ -1,6 +1,6 @@
 [
   {"query": "Our Jira curl script suddenly started returning 401 Unauthorized this morning. The token was made last March - could it have expired? Same email, same site", "should_trigger": true},
-  {"query": "POST /rest/api/3/search/jql gives me 400 'Unbounded JQL queries are not allowed' when I run 'order by created DESC'. What's wrong with it?", "should_trigger": true},
+  {"query": "My nightly script: curl -s -u \"$EMAIL:$TOKEN\" -X POST \"$SITE/rest/api/3/search/jql\" -d '{\"jql\":\"order by created DESC\",\"maxResults\":50}' now prints {\"errorMessages\":[\"Unbounded JQL queries are not allowed here. Please add a search restriction to your query.\"]}. Fix the script so it works", "should_trigger": true},
   {"query": "The Jira bulkfetch call 400s when I pass 500 issue keys with fields summary and comment. What are the limits of POST /issue/bulkfetch and how should I batch it?", "should_trigger": true},
   {"query": "Confluence page update returns 409 Conflict. I fetched the page, changed the body and PUT it back with the same version number. It's a space with approvals turned on, if that matters", "should_trigger": true},
   {"query": "Скрипт для Confluence Cloud: GET /wiki/api/v2/spaces?keys=DOCS отдаёт 200, но POST /wiki/api/v2/pages со spaceId=DOCS возвращает 400. Токен scoped, cloudId подставлен в gateway URL. В чём ошибка?", "should_trigger": true},
