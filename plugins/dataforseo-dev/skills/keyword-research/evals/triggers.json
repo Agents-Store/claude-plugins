@@ -6,7 +6,7 @@
   {"query": "Подбери ключевые слова для интернет-магазина кофемашин: объём запросов, сложность и интент, регион - Россия", "should_trigger": true},
   {"query": "Сформируй стратегию по ключевым словам для блога про личные финансы: основные темы, длинные хвосты и оценка сложности через DataForSEO", "should_trigger": true},
   {"query": "for my 'standing desk' content cluster I need related keywords and the questions people ask, with volume and difficulty - pull it from DataForSEO and group by intent", "should_trigger": true},
-  {"query": "I have a list of 400 keywords in a CSV. Bulk-check their keyword difficulty and search volume and drop everything above difficulty 50", "should_trigger": true},
+  {"query": "I have a list of 400 keywords in a CSV (first rows: standing desk, ergonomic chair, desk converter, monitor arm, lumbar cushion). Bulk-check their keyword difficulty and search volume with DataForSEO and drop everything above difficulty 50", "should_trigger": true},
   {"query": "Audit the backlinks of example.com with DataForSEO", "should_trigger": false},
   {"query": "Add meta title and description to each Next.js page using generateMetadata", "should_trigger": false},
   {"query": "Explain how Google decides which keyword a page ranks for, in simple terms for my boss", "should_trigger": false},

@@ -1,8 +1,8 @@
 [
-  {"query": "We sell project management software (acme-pm.example.com). I want to know how often our brand and our three competitors get mentioned in ChatGPT and Google AI Overviews for 'best project management tool'. Pull the LLM mentions data from DataForSEO", "should_trigger": true},
+  {"query": "We sell project management software (acme-pm.example.com). I want to know how often our brand and our three competitors (asana.com, monday.com, clickup.com) get mentioned in ChatGPT and Google AI Overviews for 'best project management tool'. Pull the LLM mentions data from DataForSEO", "should_trigger": true},
   {"query": "What does ChatGPT actually answer when a user asks 'best CRM for a 10-person agency'? Scrape the live ChatGPT result with sources and brands through DataForSEO so I can see who gets cited", "should_trigger": true},
   {"query": "I'm doing generative engine optimization for a client in the US. Which domains are most often cited as sources in AI answers for the keyword 'standing desk'? Use DataForSEO LLM mentions", "should_trigger": true},
-  {"query": "check AI keyword data: how often do people search 'ai meeting notes', 'ai note taker' and 'transcription bot' inside AI assistants? bulk, one call", "should_trigger": true},
+  {"query": "For our GEO report I need AI search volume for 'ai meeting notes', 'ai note taker' and 'transcription bot', meaning how often people search them inside AI assistants. Get it from the DataForSEO AI optimization data in one bulk call", "should_trigger": true},
   {"query": "Хочу отследить видимость нашего бренда в ответах ChatGPT и Gemini по теме 'облачная бухгалтерия'. Какие эндпоинты DataForSEO взять и как собрать динамику упоминаний по месяцам?", "should_trigger": true},
   {"query": "Узнай через DataForSEO, какие бренды чаще всего упоминаются в Google AI Overview по запросу 'электросамокат для города', и как мы выглядим на их фоне", "should_trigger": true},
   {"query": "compare what chatgpt, claude, gemini and perplexity answer to the prompt 'what are the top 5 headless CMS' using the DataForSEO LLM responses endpoints, with web search on", "should_trigger": true},

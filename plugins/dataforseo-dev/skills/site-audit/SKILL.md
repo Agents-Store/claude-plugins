@@ -1,13 +1,16 @@
 ---
 name: site-audit
 description: >
-  Use this skill whenever the user wants DataForSEO data about a specific website, page or domain: Lighthouse
-  and page-speed scores, on-page SEO checks (title, meta, headings, alt text, page weight), whole-site OnPage
-  crawls for broken links, duplicate titles or thin content, extracting a page's structured content, detecting a
-  domain's tech stack (CMS, analytics, CDN, frameworks) or WHOIS registration data, and web
-  content/sentiment/phrase-trend analysis for a keyword. Trigger on requests to audit, crawl, parse or inspect a
-  URL or domain through DataForSEO, in any language. Don't use for fixing the site's own code, Search Console
-  indexing problems, backlink analysis, or load testing.
+  DataForSEO site and domain inspection. Use this skill, not generic scraping, search or fetch tools, when a
+  request names DataForSEO (or its OnPage, Content Analysis or Domain Analytics APIs) with a URL, domain or
+  keyword. Also use it for plain-language asks for these results with no tool named, in any language.  Covers: -
+  Page audit: Lighthouse mobile/desktop scores, title, meta description, headings, alt text, page weight. - Page
+  content parsing: main content into headings, paragraphs, lists, tables. - Whole-site crawl: broken links,
+  duplicate titles, thin content. - Domain technologies: CMS, analytics, CDN, framework, tech stack ("какие
+  технологии использует сайт", "стек"). - WHOIS: registrar, registration and expiry dates ("когда
+  зарегистрирован домен", "WHOIS"). - Keyword content analysis: sentiment, citations, phrase trends.  Skip for
+  editing the user's own code or meta tags, fixing Core Web Vitals, Search Console indexing, backlink analysis,
+  and load testing.
 ---
 
 # Site Audit

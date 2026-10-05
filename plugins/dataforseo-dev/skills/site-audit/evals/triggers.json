@@ -2,7 +2,7 @@
   {"query": "Run a technical SEO audit of https://example.com/landing-page: Lighthouse scores for mobile, title and meta description, heading structure, missing alt text and page weight - via DataForSEO", "should_trigger": true},
   {"query": "what technologies does competitor.example.com run on? CMS, analytics, CDN, framework - use DataForSEO domain technologies", "should_trigger": true},
   {"query": "I want to crawl my site and find broken links, duplicate titles and pages with thin content. Start a DataForSEO OnPage crawl for example.org, up to 200 pages", "should_trigger": true},
-  {"query": "check the page speed of our pricing page on mobile and tell me the top three things to fix according to the Lighthouse audits", "should_trigger": true},
+  {"query": "check the page speed of https://example.com/pricing on mobile and tell me the top three things to fix according to the Lighthouse audits, using DataForSEO", "should_trigger": true},
   {"query": "Сделай технический SEO-аудит страницы https://example.com/blog/post-1 через DataForSEO: заголовки, мета-теги, ссылки, скорость", "should_trigger": true},
   {"query": "Какие технологии использует сайт example.ru и когда зарегистрирован домен? Нужны данные WHOIS и стек", "should_trigger": true},
   {"query": "do a content analysis for the phrase 'electric bike': which pages cite it, with what sentiment, and how the phrase popularity trended over the last two years", "should_trigger": true},
