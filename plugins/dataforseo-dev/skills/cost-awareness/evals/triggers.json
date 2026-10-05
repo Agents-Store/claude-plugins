@@ -1,0 +1,18 @@
+[
+  {"query": "Before running anything on DataForSEO: how much will it cost to pull SERP results for 300 keywords, 100 results each, and what is my balance right now?", "should_trigger": true},
+  {"query": "I have a $5 budget on my DataForSEO account. Plan a keyword research run for 'organic dog food' that stays under it and show me the estimate first", "should_trigger": true},
+  {"query": "the last DataForSEO run burned through $20 and I don't know why. How do I keep spending under control and which calls are the expensive ones?", "should_trigger": true},
+  {"query": "is there any free way to check a DataForSEO request body before I pay for it? like a sandbox or the docs search?", "should_trigger": true},
+  {"query": "Сколько будет стоить аудит 500 страниц через DataForSEO OnPage и как заранее ограничить расходы?", "should_trigger": true},
+  {"query": "Хочу прогнать 2000 ключевых слов через DataForSEO. Как не выйти за бюджет — какие эндпоинты брать в bulk-режиме, чтобы не платить за каждый запрос отдельно?", "should_trigger": true},
+  {"query": "run a full SERP analysis on 'best vpn' with depth 100 for five countries - go ahead", "should_trigger": true},
+  {"query": "give me an estimate of DataForSEO credits for a monthly rank-tracking job with 150 keywords, desktop and mobile", "should_trigger": true},
+  {"query": "Find keyword ideas for 'organic dog food' with search volume", "should_trigger": false},
+  {"query": "What are the best SEO tools for a small business? Compare Ahrefs, Semrush and Moz on pricing", "should_trigger": false},
+  {"query": "How much does it cost to run a Lighthouse CI job on GitHub Actions?", "should_trigger": false},
+  {"query": "Estimate the monthly AWS bill for a small Django app with RDS and ElastiCache", "should_trigger": false},
+  {"query": "Verify my DataForSEO connection works", "should_trigger": false},
+  {"query": "Debug why the api_request tool returns a 40501 error", "should_trigger": false},
+  {"query": "Pull the backlink profile of example.com", "should_trigger": false},
+  {"query": "Set a monthly budget alert in Google Cloud Billing for $100", "should_trigger": false}
+]
