@@ -6,3 +6,6 @@
 [skip]
 "skill-snippets" = ["skills/teams-sdk-*/*"]
 "skill-links" = ["skills/teams-sdk-*/*"]
+
+# L2: vendored teams-sdk skill; наборы срабатывания — отдельной задачей после калибровки.
+"eval-coverage" = ["skills/teams-sdk-*/*"]

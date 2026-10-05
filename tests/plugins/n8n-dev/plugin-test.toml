@@ -23,3 +23,10 @@ always_on_tokens = 3600
                  "skills/n8n-expression-syntax/*", "skills/n8n-mcp-tools-expert/*", "skills/n8n-multi-instance/*",
                  "skills/n8n-node-configuration/*", "skills/n8n-self-hosting/*", "skills/n8n-subworkflows/*",
                  "skills/n8n-validation-expert/*", "skills/n8n-workflow-patterns/*", "skills/using-n8n-mcp-skills/*"]
+
+# L2: vendored из czlonkowski/n8n-skills; наборы срабатывания — отдельной задачей после калибровки.
+"eval-coverage" = ["skills/n8n-agents/*", "skills/n8n-binary-and-data/*", "skills/n8n-code-javascript/*",
+                   "skills/n8n-code-python/*", "skills/n8n-code-tool/*", "skills/n8n-error-handling/*",
+                   "skills/n8n-expression-syntax/*", "skills/n8n-mcp-tools-expert/*", "skills/n8n-multi-instance/*",
+                   "skills/n8n-node-configuration/*", "skills/n8n-self-hosting/*", "skills/n8n-subworkflows/*",
+                   "skills/n8n-validation-expert/*", "skills/n8n-workflow-patterns/*", "skills/using-n8n-mcp-skills/*"]
