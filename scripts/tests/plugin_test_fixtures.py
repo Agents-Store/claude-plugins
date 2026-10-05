@@ -8,6 +8,7 @@ fixtures/plugin_test/.
 import json
 import os
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -91,3 +92,47 @@ def run_check(module, repo_root, dirname, mode="ci", env=None,
     loaded, _ = manifest.load(plugin)
     ctx = context(repo_root, mode, env, extra_repos, update_snapshots)
     return module.run(plugin, ctx, loaded)
+
+
+STUB_CLAUDE = os.path.join(FIXTURES, "stub_claude.py")
+
+
+def stub_claude(root, plan, auth=None):
+    """Исполняемый claude-заглушка в <root>/stub/bin. Переменные STUB_* выставляет сам скрипт-обёртка:
+    evalrun передаёт дочернему процессу только allowlist окружения, и через него они бы не дошли."""
+    d = os.path.join(root, "stub")
+    os.makedirs(os.path.join(d, "bin"), exist_ok=True)
+    plan_path = os.path.join(d, "plan.json")
+    with open(plan_path, "w", encoding="utf-8") as fh:
+        json.dump(plan, fh)
+    log = os.path.join(d, "log.jsonl")
+    lines = ["#!/bin/sh", "export STUB_PLAN=%s STUB_LOG=%s" % (shlex.quote(plan_path), shlex.quote(log))]
+    if auth is not None:
+        lines.append("export STUB_AUTH=%s" % shlex.quote(auth))
+    lines.append('exec %s %s "$@"' % (shlex.quote(sys.executable), shlex.quote(STUB_CLAUDE)))
+    path = os.path.join(d, "bin", "claude")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines) + "\n")
+    os.chmod(path, 0o755)
+    return path, log
+
+
+def stub_calls(log):
+    if not os.path.exists(log):
+        return []
+    with open(log, encoding="utf-8") as fh:
+        return [json.loads(line) for line in fh if line.strip()]
+
+
+def eval_case(name, score, delta=None, runs=None, without=None):
+    aggregates = {"score": score}
+    if delta is not None:
+        aggregates["delta"] = delta
+    return {"name": name, "aggregates": aggregates,
+            "arms": {"with": runs if runs is not None else [{"score": score, "error": None}],
+                     "without": without or []}}
+
+
+def eval_result(*cases, partial=False, reason=None):
+    return {"schemaVersion": 1, "partial": partial, "partialReason": reason, "aggregates": {},
+            "cases": list(cases), "costUsd": 0.01, "durationSeconds": 1, "claudeVersion": "stub"}

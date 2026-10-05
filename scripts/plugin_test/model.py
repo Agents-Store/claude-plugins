@@ -42,6 +42,7 @@ STATUS = {
 CHECK_TIMEOUT = 120      # потолок одного subprocess проверки, секунды
 MCP_START_TIMEOUT = 60   # initialize + tools/list одного MCP-сервера
 UNIT_TIMEOUT = 600       # [[unit]] по умолчанию
+L2_TIMEOUT = 5400        # один вызов claude plugin eval (все кейсы плагина), секунды
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,215 @@
+"""Запуск `claude plugin eval` за счёт подписки и разбор результата (spec очереди 2 §6.3, §6.4, §3a).
+
+Окружение — только allowlist: ANTHROPIC_API_KEY важнее входа по подписке, и CLI передаёт большинство
+ANTHROPIC_* в прогон. Признаки лимита — события rate_limit_event в трейсах (--keep-temp); каталоги
+<tmp>/claude-eval-* удаляются сразу после чтения, только по точному шаблону.
+Вывод `claude auth status` несёт email и организацию — он не печатается и не пишется никуда.
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+from dataclasses import dataclass, field
+
+from .model import L2_TIMEOUT
+from .proc import run_group
+
+MODEL = "claude-sonnet-5-5"
+JUDGE_MODEL = "claude-haiku-4-5-20251001"
+CONCURRENCY = 4
+FIVE_HOUR_STOP = 0.9     # окно 5 часов: дальше L2 съест дневную работу
+SEVEN_DAY_STOP = 0.8     # неделя: запас для дневной работы владельца
+AUTH_TIMEOUT = 60
+KEEP_ENV = ("PATH", "HOME", "LANG", "USER", "LOGNAME", "TMPDIR")
+OK_STATUSES = {"allowed", "allowed_warning"}
+RE_LIMIT = re.compile(r"rate.?limit|usage.?limit|\b429\b|limit (?:reached|exceeded)|out of (?:usage|credits)", re.I)
+RESULT = "aggregate-result.json"
+
+
+class EvalError(Exception):
+    """Вызов не дал результата: тайм-аут, нет CLI, нет или битый aggregate-result.json."""
+
+
+@dataclass
+class RunResult:
+    data: dict
+    returncode: int
+    stop: str = ""            # причина остановить L2 на эту ночь; "" — продолжать
+    invalid: bool = False     # оценкам этого вызова не верить: лимит, вход, прерывание посреди прогона
+    usage: dict = field(default_factory=dict)
+    problems: list = field(default_factory=list)
+
+
+def environment():
+    env = {k: os.environ[k] for k in KEEP_ENV if k in os.environ}
+    env.setdefault("LANG", "C.UTF-8")
+    return env
+
+
+def preflight(claude, env):
+    """"" — вход по подписке claude.ai есть; иначе причина (без данных аккаунта)."""
+    try:
+        done = run_group([claude, "auth", "status", "--json"], env=env, cwd=env.get("HOME") or "/",
+                         timeout=AUTH_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        return "claude auth status не ответил за %d с" % AUTH_TIMEOUT
+    except OSError as exc:
+        return "claude не запускается: %s" % (exc.strerror or type(exc).__name__)
+    try:
+        data = json.loads(done.stdout)
+    except ValueError:
+        return "claude auth status: не JSON (код %d)" % done.returncode
+    if not isinstance(data, dict) or data.get("loggedIn") is not True:
+        return "нет входа в claude — на сервере: claude auth login"
+    method = data.get("authMethod")
+    if method != "claude.ai":
+        return "вход не по подписке claude.ai (authMethod=%s): L2 платит только подписка" % method
+    return ""
+
+
+def command(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None):
+    args = [claude, "plugin", "eval", copy_dir, "--eval-dir", eval_dir, "--trust-plugin", "--no-publish",
+            "--mocks", "record", "--keep-temp", "--threshold", "0", "--ablation", ablation,
+            "--concurrency", str(CONCURRENCY), "--model", MODEL, "--judge-model", JUDGE_MODEL,
+            "--output-dir", out_dir]
+    if runs is not None:
+        args += ["--runs", str(runs)]
+    return args
+
+
+def _tail(text):
+    lines = [line for line in (text or "").strip().splitlines() if line.strip()]
+    return lines[-1][:200] if lines else ""
+
+
+def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeout=L2_TIMEOUT):
+    os.makedirs(out_dir, exist_ok=True)
+    args = command(claude, copy_dir, eval_dir, out_dir, ablation=ablation, runs=runs)
+    try:
+        done = run_group(args, env=env, cwd=out_dir, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        raise EvalError("claude plugin eval не завершился за %d с" % timeout) from None
+    except OSError as exc:
+        raise EvalError("claude не запускается: %s" % (exc.strerror or type(exc).__name__)) from None
+    try:
+        with open(os.path.join(out_dir, RESULT), encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        raise EvalError("claude plugin eval: нет результата (код %d): %s"
+                        % (done.returncode, _tail(done.stderr) or _tail(done.stdout))) from None
+    if not isinstance(data, dict) or not isinstance(data.get("cases"), list):
+        raise EvalError("claude plugin eval: результат без cases (код %d)" % done.returncode)
+    result = RunResult(data=data, returncode=done.returncode)
+    if done.returncode == 1:
+        result.problems.append("claude plugin eval, код 1: %s" % (_tail(done.stderr) or "без stderr"))
+    usage, status, overage = _scan_traces(data)
+    _cleanup(data)
+    result.usage = usage
+    result.stop, result.invalid = _verdict(data, done.returncode, usage, status, overage)
+    return result
+
+
+def _runs(data):
+    for case in data.get("cases") or []:
+        if not isinstance(case, dict):
+            continue
+        arms = case.get("arms") if isinstance(case.get("arms"), dict) else {}
+        for arm in ("with", "without"):
+            for r in arms.get(arm) or []:
+                if isinstance(r, dict):
+                    yield r
+
+
+def _temp_root(path):
+    """<tmp>/claude-eval-XXXX для tracePath внутри него; иначе None."""
+    if not isinstance(path, str):
+        return None
+    base = os.path.realpath(tempfile.gettempdir())
+    m = re.match(r"^(%s/claude-eval-[A-Za-z0-9_-]+)/" % re.escape(base), os.path.realpath(path))
+    return m.group(1) if m else None
+
+
+def _scan_traces(data):
+    usage = {"five_hour": 0.0, "seven_day": 0.0}
+    status, overage = "", False
+    for r in _runs(data):
+        path = r.get("tracePath")
+        if not _temp_root(path):
+            continue
+        try:
+            fh = open(path, encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        with fh:
+            for line in fh:
+                if '"rate_limit_event"' not in line:
+                    continue
+                try:
+                    info = json.loads(line).get("rate_limit_info") or {}
+                except (ValueError, AttributeError):
+                    continue
+                if info.get("status") and info["status"] not in OK_STATUSES:
+                    status = str(info["status"])
+                if info.get("isUsingOverage") is True:
+                    overage = True
+                for window, value in (info.get("unifiedWindows") or {}).items():
+                    u = value.get("utilization") if isinstance(value, dict) else None
+                    if window in usage and isinstance(u, (int, float)) and not isinstance(u, bool):
+                        usage[window] = max(usage[window], float(u))
+    return usage, status, overage
+
+
+def _cleanup(data):
+    for r in _runs(data):
+        root = _temp_root(r.get("tracePath"))
+        if root:
+            shutil.rmtree(root, ignore_errors=True)
+
+
+def _verdict(data, returncode, usage, status, overage):
+    """(причина остановить L2, оценки недействительны)."""
+    reason = data.get("partialReason") if data.get("partial") else None
+    if reason == "auth_failed":
+        return "вход отклонён посреди прогона (auth_failed)", True
+    if reason == "interrupted" or returncode in (130, 143):
+        return "прогон прерван (код %d)" % returncode, True
+    if status:
+        return "лимит подписки: status=%s" % status, True
+    for r in _runs(data):
+        err = r.get("error")
+        if isinstance(err, str) and RE_LIMIT.search(err):
+            return "ошибка лимита в прогоне: %s" % err[:120], True
+    if overage:
+        return "подписка ушла в overage — сверх подписки L2 не платит", False
+    if usage["five_hour"] >= FIVE_HOUR_STOP:
+        return "окно 5 часов занято на %d%%" % round(usage["five_hour"] * 100), False
+    if usage["seven_day"] >= SEVEN_DAY_STOP:
+        return "недельный лимит занят на %d%% — запас для дневной работы" % round(usage["seven_day"] * 100), False
+    return "", False
+
+
+def cases(data):
+    """{имя кейса: {score, delta, with: [прогоны], without: [прогоны]}}; score/delta — None, если их нет."""
+    out = {}
+    for case in data.get("cases") or []:
+        if not isinstance(case, dict) or not isinstance(case.get("name"), str):
+            continue
+        agg = case.get("aggregates") if isinstance(case.get("aggregates"), dict) else {}
+        arms = case.get("arms") if isinstance(case.get("arms"), dict) else {}
+        score, delta = agg.get("score"), agg.get("delta")
+        out[case["name"]] = {
+            "score": float(score) if isinstance(score, (int, float)) and not isinstance(score, bool) else None,
+            "delta": float(delta) if isinstance(delta, (int, float)) and not isinstance(delta, bool) else None,
+            "with": [r for r in arms.get("with") or [] if isinstance(r, dict)],
+            "without": [r for r in arms.get("without") or [] if isinstance(r, dict)],
+        }
+    return out
+
+
+def run_scores(entry, arm="with"):
+    return [float(r["score"]) for r in entry.get(arm) or []
+            if isinstance(r.get("score"), (int, float)) and not isinstance(r.get("score"), bool)]
