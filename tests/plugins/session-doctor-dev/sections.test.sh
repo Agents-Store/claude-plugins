@@ -33,6 +33,7 @@ CFG="$T/home/.claude-test"
 SLUG="$(printf '%s' "$PROJ" | sed 's/[^A-Za-z0-9]/-/g')"
 TR="$CFG/projects/$SLUG/$SID.jsonl"
 TR2="$CFG/projects/$SLUG/$SID2.jsonl"
+TOKB="ghp_""$(printf 'B%.0s' {1..36})"        # secret inside a Bash stdout, runtime-built
 TOKA="ghp_""$(printf 'A%.0s' {1..36})"        # assembled at runtime, never a literal credential
 
 # ── фикстуры ────────────────────────────────────────────────────────────
@@ -51,6 +52,12 @@ make_events_fixture() {
 {"type":"user","isMeta":true,"timestamp":"2026-10-04T10:00:07.000Z","message":{"role":"user","content":[{"type":"text","text":"Base directory for this skill: /p/skills/local-skill\n\nbody"}]}}
 {"type":"system","subtype":"api_error","timestamp":"2026-10-04T10:00:08.000Z","retryAttempt":2,"error":{"status":529,"message":"overloaded"}}
 {"type":"assistant","timestamp":"2026-10-04T10:00:09.000Z","isApiErrorMessage":true,"apiErrorStatus":429,"error":"rate_limit","message":{"id":"m2","content":[{"type":"text","text":"API Error"}]}}
+{"type":"assistant","timestamp":"2026-10-04T10:00:09.500Z","message":{"id":"m3","content":[{"type":"tool_use","id":"t9","name":"Bash","input":{"command":"env"}}]}}
+{"type":"user","timestamp":"2026-10-04T10:00:09.600Z","toolUseResult":{"stdout":"LEAKMARK $TOKB","stderr":"","interrupted":false,"durationMs":12},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t9","content":"ok"}]}}
+{"type":"assistant","timestamp":"2026-10-04T10:00:09.700Z","message":{"id":"m4","content":[{"type":"tool_use","id":"t8","name":"mcp__x__y","input":{}}]}}
+{"type":"user","timestamp":"2026-10-04T10:00:09.800Z","toolUseResult":"Error: boom token=$TOKB","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t8","is_error":true,"content":"Error: boom"}]}}
+{"type":"user","timestamp":"2026-10-04T10:00:09.900Z","message":{"role":"user","content":"<command-name>/clear</command-name>\n<command-message>clear</command-message>"}}
+{"type":"user","timestamp":"2026-10-04T10:00:09.950Z","message":{"role":"user","content":"look: <command-name>/quoted</command-name>"}}
 {"type":"file-history-snapshot","messageId":"x"}
 JSONL
   local sub="$CFG/projects/$SLUG/$SID/subagents/agent-abc123"
@@ -94,9 +101,14 @@ ek() { printf '%s' "$JSON" | jq -r "$1"; }
 assert_eq "1" "$(ek '[.events.events[]|select(.kind=="tool" and .name=="WebFetch")]|length')" "tool_use дедуплицирован по id"
 assert_eq "404 true" "$(ek '.events.events[]|select(.kind=="tool" and .name=="WebFetch")|"\(.tool_result.code) \(.is_error)"')" "toolUseResult и is_error привязаны к tool_use"
 assert_missing "$TOKA" "$JSON" "токен в result_text не попал в отчёт"
-assert_eq "reviewer" "$(ek '.events.events[]|select(.kind=="tool" and .name=="Bash")|.actor')" "актёр субагента — agentType из meta.json"
-assert_eq "file.txt" "$(ek '.events.events[]|select(.name=="Bash")|.result_text')" "результат-список блоков склеен в текст"
-assert_eq "/model" "$(ek '.events.events[]|select(.kind=="slash")|.command')" "slash-команда из строкового content"
+assert_eq "reviewer" "$(ek '.events.events[]|select(.kind=="tool" and .input.command=="ls")|.actor')" "актёр субагента — agentType из meta.json"
+assert_eq "file.txt" "$(ek '.events.events[]|select(.input.command=="ls")|.result_text')" "результат-список блоков склеен в текст"
+assert_eq "/model /clear" "$(ek '[.events.events[]|select(.kind=="slash")|.command]|join(" ")')" "slash: <command-message> и <command-name> первым; цитата в середине игнорируется"
+assert_missing "LEAKMARK" "$JSON" "длинный stdout из toolUseResult не попал в --json"
+assert_missing "$TOKB" "$JSON" "секрет из stdout/строкового toolUseResult не попал в --json"
+assert_eq "12" "$(ek '.events.events[]|select(.name=="Bash" and .input.command=="env")|.tool_result.durationMs')" "toolUseResult урезан до скаляров (durationMs остался)"
+assert_eq "null" "$(ek '.events.events[]|select(.name=="Bash" and .input.command=="env")|.tool_result.stdout')" "stdout не хранится"
+assert_eq "Error: boom token=***" "$(ek '.events.events[]|select(.name=="mcp__x__y")|.tool_result.text')" "строковый toolUseResult -> {text} с редактированием"
 assert_eq "local-skill hooky:greet" "$(ek '.events.events[]|select(.kind=="listing")|.names|join(" ")')" "listing: имена навыков"
 assert_eq "nope:cmd" "$(ek '.events.events[]|select(.kind=="unknown_command")|.command')" "unknown_command_fallback"
 assert_eq "cms INVALID_CONFIG" "$(ek '.events.events[]|select(.kind=="mcp_connect")|"\(.name) \(.error_code)"')" "mcp_connect из failedMcpServers"

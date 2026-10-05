@@ -9,7 +9,7 @@ import os
 import re
 
 from doctor_common import (check, collector, finding, iso_seconds, iter_jsonl, read_json,
-                           redact, text_of)
+                           redact, short, text_of)
 
 RESULT_LIMIT = 4000
 BODY_LIMIT = 4000
@@ -45,6 +45,27 @@ def iter_session_files(ctx):
 
 def _text(value, limit):
     return redact(text_of(value) if not isinstance(value, str) else value[: limit * 2])[:limit]
+
+
+TOOL_RESULT_KEYS = ("code", "codeText", "success", "status", "commandName", "bytes",
+                    "durationMs", "url", "query")
+
+
+def _trim_tool_result(tur):
+    """A small, redacted copy of toolUseResult: scalars the audit reads, never stdout or file bodies."""
+    if isinstance(tur, str):
+        return {"text": short(redact(tur[: RESULT_LIMIT * 2]), RESULT_LIMIT)}
+    if not isinstance(tur, dict):
+        return None
+    out = {}
+    for key in TOOL_RESULT_KEYS:
+        if key in tur:
+            val = tur[key]
+            if isinstance(val, str):
+                out[key] = short(redact(val), 500)
+            elif isinstance(val, (int, float, bool)) or val is None:
+                out[key] = val
+    return out
 
 
 def _api_error(actor, ts, status, retry, error):
@@ -117,7 +138,7 @@ def _parse_file(actor, path):
 
         elif rtype == "user":
             if isinstance(content, str):
-                if content.startswith("<command-message>"):
+                if content.startswith(("<command-message>", "<command-name>")):
                     found = COMMAND_NAME.search(content)
                     if found and found.group(1):
                         events.append({"ts": ts, "actor": actor, "kind": "slash",
@@ -142,8 +163,7 @@ def _parse_file(actor, path):
                     continue
                 ev["is_error"] = bool(block.get("is_error"))
                 ev["result_text"] = _text(block.get("content"), RESULT_LIMIT)
-                if isinstance(tur, dict):
-                    ev["tool_result"] = tur
+                ev["tool_result"] = _trim_tool_result(tur)
 
         elif rtype == "system":
             if rec.get("subtype") == "api_error":
