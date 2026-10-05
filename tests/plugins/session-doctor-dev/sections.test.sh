@@ -370,6 +370,22 @@ import doctor_tokens as t
 print(sum(1 for m in ('urllib.request','socket','http.client') if m in __import__('sys').modules))")" "doctor_tokens не тянет сетевые модули"
 assert_eq "0" "$(find "$SCRIPTS" -name __pycache__ | wc -l | tr -d ' ')" "__pycache__ не создан"
 
+# ── SKILL.md: контракт отчёта (Task 8) ──────────────────────────────────────
+SKILLMD="$SCRIPTS/../SKILL.md"
+S="$(cat "$SKILLMD")"
+SHEAD="$(sed -n '1,8p' "$SKILLMD")"
+assert_contains "name: audit" "$SHEAD" "SKILL.md: frontmatter name: audit"
+assert_contains "### Skills" "$S" "шаблон отчёта: таблица Skills"
+assert_contains "### HTTP" "$S" "шаблон отчёта: таблица HTTP"
+assert_contains "### Tokens" "$S" "шаблон отчёта: таблица Tokens"
+assert_contains "This audit makes no network requests; token status is read from the codes requests already received in this session. A token value is never printed." "$S" "гарантия: без сети, значение токена не печатается"
+assert_contains "about 90 lines" "$S" "лимит длины отчёта поднят до ~90 строк"
+assert_eq "audit" "$(jq -r .skill_name "$SCRIPTS/../evals/evals.json")" "evals.json: skill_name == audit"
+DIG="$(SESSION="$SID3" doctor)"
+assert_contains "TOKENS" "$DIG" "дайджест фикстуры отдаёт раздел TOKENS"
+assert_contains "HTTP" "$DIG" "дайджест фикстуры отдаёт раздел HTTP"
+assert_contains "SKILLS" "$DIG" "дайджест фикстуры отдаёт раздел SKILLS"
+
 # ═══ end of sections ═════════════════════════════════════════════════════════
 printf '\n  итого: %d ✓, %d ✗\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

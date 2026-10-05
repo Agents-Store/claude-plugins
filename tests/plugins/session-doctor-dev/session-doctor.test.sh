@@ -549,7 +549,7 @@ assert_missing " PERMISSION_FRICTION " " $IDS" "один отказ — ниже
 # ═══ section: skill ══════════════════════════════════════════════════════════
 echo "▸ SKILL.md"
 HEAD="$(sed -n '1,8p' "$SKILL" 2>/dev/null)"
-assert_contains "name: session-doctor" "$HEAD" "frontmatter: имя скилла"
+assert_contains "name: audit" "$HEAD" "frontmatter: имя скилла"
 assert_contains "disable-model-invocation: true" "$HEAD" "запускается только командой пользователя"
 assert_contains 'allowed-tools: Bash(python3 "${CLAUDE_SKILL_DIR}/scripts/session_doctor.py" *)' "$HEAD" \
   "предодобрен только этот скрипт, а не любой python3"
