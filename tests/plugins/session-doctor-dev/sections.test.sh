@@ -86,6 +86,8 @@ make_skills_fixture() {
   cat > "$TR3" <<JSONL
 {"type":"user","sessionId":"$SID3","cwd":"$PROJ","timestamp":"2026-10-04T11:00:00.000Z","message":{"role":"user","content":"<command-message>model</command-message>\n<command-name>/model</command-name>"}}
 {"type":"attachment","timestamp":"2026-10-04T11:00:01.000Z","attachment":{"type":"skill_listing","names":["listed-skill","dual"]}}
+{"type":"user","timestamp":"2026-10-04T11:00:01.500Z","message":{"role":"user","content":"<command-name>/clear</command-name>\n<command-message>clear</command-message>"}}
+{"type":"user","timestamp":"2026-10-04T11:00:01.600Z","message":{"role":"user","content":"<command-message>compact</command-message>\n<command-name>/compact</command-name>"}}
 {"type":"user","timestamp":"2026-10-04T11:00:02.000Z","message":{"role":"user","content":"<command-message>plugin-dev:create-plugin</command-message>\n<command-name>/plugin-dev:create-plugin</command-name>"}}
 {"type":"user","isMeta":true,"timestamp":"2026-10-04T11:00:03.000Z","message":{"role":"user","content":[{"type":"text","text":"Base directory for this skill: /p/skills/create-plugin\n\nbody"}]}}
 {"type":"user","timestamp":"2026-10-04T11:00:04.000Z","message":{"role":"user","content":"<command-name>/listed-skill</command-name>"}}
@@ -175,7 +177,13 @@ assert_contains "plugin-dev:create-plugin" "$(sk '.skills_invoked_v2.skills[].na
 assert_eq "user" "$(sk '.skills_invoked_v2.skills[]|select(.name=="plugin-dev:create-plugin")|.caller')" "slash с телом skill — caller user"
 assert_contains "superpowers:brainstorming" "$(sk '.skills_invoked_v2.skills[]|select(.caller=="model").name')" "skill модели в списке"
 assert_eq "0" "$(sk '[.skills_invoked_v2.skills[]|select(.name=="model")]|length')" "встроенная /model не skill"
+assert_eq "2" "$(sk '[.events.events[]|select(.kind=="slash" and (.command=="/clear" or .command=="/compact"))]|length')" "фикстура: /clear и /compact есть среди slash-событий"
 assert_eq "0" "$(sk '[.skills_invoked_v2.skills[]|select(.name=="clear" or .name=="compact")]|length')" "встроенные команды не skill"
+assert_eq "1" "$(py "
+import doctor_events
+class C: transcript_path='$TR3'
+a=doctor_events.events(C()); c=C(); b1=doctor_events.events(c); b2=doctor_events.events(c)
+print(int(b1 is b2))")" "events(ctx) мемоизирован: один разбор на ctx"
 assert_contains "reviewer" "$(sk '.skills_invoked_v2.skills[].caller')" "вызов skill субагентом атрибутирован"
 assert_eq "reviewer" "$(sk '.skills_invoked_v2.skills[]|select(.name=="review-skill")|.caller')" "review-skill вызвал reviewer"
 assert_eq "2 ok" "$(sk '.skills_invoked_v2.skills[]|select(.name=="superpowers:brainstorming")|"\(.count) \(.outcome)"')" "повторные вызовы сгруппированы; invoked_skills не дублирует"

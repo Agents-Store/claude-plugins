@@ -6,7 +6,7 @@ and counts only. Missing keys never raise: a gap in the transcript is an empty r
 from datetime import datetime
 
 from doctor_common import collector, section, short
-from doctor_events import collect_events
+from doctor_events import events as session_events
 
 # Events the transcript may interleave between a slash command and its skill body.
 TRANSPARENT_KINDS = ("listing", "invoked_skills", "unknown_command")
@@ -92,9 +92,8 @@ def build_skills(events):
 
 @collector("skills_invoked_v2")
 def collect_skills_invoked(ctx):
-    # Collectors receive ctx only, not the report, so the events are rebuilt here.
-    events = (collect_events(ctx) or {}).get("events") or []
-    return {"skills": build_skills(events)}
+    # Collectors receive ctx only, not the report; events() is memoized on ctx (one parse per run).
+    return {"skills": build_skills((session_events(ctx) or {}).get("events") or [])}
 
 
 def _clock(ts):

@@ -183,8 +183,7 @@ def _parse_file(actor, path):
     return skipped, total, events
 
 
-@collector("events")
-def collect_events(ctx):
+def _compute_events(ctx):
     events, skipped, total = [], 0, 0
     for actor, path in iter_session_files(ctx):
         file_skipped, file_total, file_events = _parse_file(actor, path)
@@ -193,6 +192,23 @@ def collect_events(ctx):
         events += file_events
     events.sort(key=lambda e: (e.get("ts") is None, e.get("ts") or 0))
     return {"events": events, "skipped": skipped, "total": total}
+
+
+def events(ctx):
+    """The event list for this audit run, parsed once and cached on ctx (read-only, one run)."""
+    cached = getattr(ctx, "_sd_events", None)
+    if cached is None:
+        cached = _compute_events(ctx)
+        try:
+            ctx._sd_events = cached
+        except Exception:
+            pass
+    return cached
+
+
+@collector("events")
+def collect_events(ctx):
+    return events(ctx)
 
 
 @check
