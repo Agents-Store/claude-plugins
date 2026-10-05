@@ -2,7 +2,8 @@
 
 Порядок: перенос с прошлой ночи → изменённые с commit-а прошлого L2 → срез ротации дня недели.
 Каталог (плагины с кейсами) делится на SLICES срезов примерно равного веса — жадно и детерминированно,
-так что за неделю каждый плагин проходит хотя бы раз. Состояние — l2-state.json в каталоге состояния.
+так что за неделю каждый плагин проходит хотя бы раз. Состояние — l2-state.json в каталоге состояния,
+последний вердикт L2 по каждому плагину репозитория — l2-latest-<репозиторий>.json рядом с ним.
 """
 from __future__ import annotations
 
@@ -13,10 +14,12 @@ import subprocess
 import tempfile
 
 from . import discover, evalsrc
-from .model import L2_NOT_RUN, L2_STOPPED
+from .model import L2_FAILED, L2_NOT_RUN, L2_STOPPED, LEVELS
+from .report import REPORT_VERSION
 
 STATE = "l2-state.json"
 SLICES = 7
+MAX_FAILED_CARRY = 2   # плагин с «L2 сбой» переносится на следующую ночь, пока не упал так подряд больше стольких ночей
 TRIGGER_WEIGHT = 1     # прогон кейса срабатывания (повтор — только для провалов)
 QUALITY_WEIGHT = 6     # 3 прогона × 2 плеча
 
@@ -40,24 +43,55 @@ def slices(weights, n=SLICES):
     return [sorted(b) for b in buckets]
 
 
-def _load(state_dir):
+def _sane(entry):
+    """Запись репозитория в состоянии: чужие/битые значения → пустые (файл правят руками и другие версии)."""
+    if not isinstance(entry, dict):
+        return {}
+    if not isinstance(entry.get("commit"), str):
+        entry.pop("commit", None)
+    if "carry" in entry:
+        entry["carry"] = [n for n in entry["carry"] if isinstance(n, str)] if isinstance(entry["carry"], list) else []
+    if "failed" in entry:
+        failed = entry["failed"] if isinstance(entry["failed"], dict) else {}
+        entry["failed"] = {n: c for n, c in failed.items() if isinstance(c, int) and not isinstance(c, bool)}
+    return entry
+
+
+def _read_json(path):
     try:
-        with open(os.path.join(state_dir, STATE), encoding="utf-8") as fh:
-            data = json.load(fh)
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
     except (OSError, ValueError):
-        data = None
+        return None
+
+
+def _load(state_dir):
+    data = _read_json(os.path.join(state_dir, STATE))
     if not isinstance(data, dict) or not isinstance(data.get("repos"), dict):
         data = {"version": 1, "repos": {}}
+    data["repos"] = {key: _sane(entry) for key, entry in data["repos"].items()}
     return data
 
 
+def _write_json(path, data):
+    directory = os.path.dirname(path)
+    os.makedirs(directory, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=".l2-state-", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(data, fh, ensure_ascii=False, indent=2, sort_keys=True)
+            fh.write("\n")
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
 def _save(state_dir, data):
-    os.makedirs(state_dir, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(prefix=".l2-state-", dir=state_dir)
-    with os.fdopen(fd, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, ensure_ascii=False, indent=2, sort_keys=True)
-        fh.write("\n")
-    os.replace(tmp, os.path.join(state_dir, STATE))
+    _write_json(os.path.join(state_dir, STATE), data)
 
 
 def _key(repo):
@@ -94,22 +128,90 @@ def select(repo, state_dir, weekday):
     return out, notes
 
 
+def latest_path(state_dir, repo):
+    return os.path.join(state_dir, "l2-latest-%s.json" % _key(repo))
+
+
+def _is(finding, *prefixes):
+    return str(finding.get("message", "")).startswith(prefixes)
+
+
+def _only_notes(findings):
+    """Плагин ночью не прогонялся: у него только «L2 не прогнан» / «L2 остановлен»."""
+    return bool(findings) and all(_is(f, L2_NOT_RUN, L2_STOPPED) for f in findings)
+
+
+def _behavior(findings):
+    return [f for f in findings or [] if isinstance(f, dict) and f.get("check") == "behavior"
+            and isinstance(f.get("plugin"), str)]
+
+
+def _by_plugin(findings):
+    out = {}
+    for f in findings:
+        out.setdefault(f["plugin"], []).append(f)
+    return out
+
+
+def _latest(repo, state_dir, report, catalog, named, tonight):
+    """l2-latest-<репозиторий>.json: последний вердикт L2 по каждому плагину (spec очереди 2 §7), в форме отчёта."""
+    prev = _read_json(latest_path(state_dir, repo))
+    merged = _by_plugin(_behavior(prev.get("findings") if isinstance(prev, dict) else None))
+    for name in named | set(tonight):
+        found = tonight.get(name, [])
+        if _only_notes(found):    # не прогонялся: прежний вердикт остаётся, старые заметки заменяются новыми
+            merged[name] = [f for f in merged.get(name, []) if not _is(f, L2_NOT_RUN, L2_STOPPED)] + found
+        else:
+            merged[name] = found
+    findings = [f for name in sorted(merged) if name in catalog for f in merged[name]]
+    counts = {lvl: 0 for lvl in LEVELS}
+    for f in findings:
+        if f.get("level") in counts:
+            counts[f["level"]] += 1
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    _write_json(latest_path(state_dir, repo), {
+        "version": report.get("version", REPORT_VERSION),
+        "mode": report.get("mode", "server"),
+        "repo": report.get("repo") or _key(repo),
+        "started": report.get("started") or now,
+        "plugins": sorted({f["plugin"] for f in findings}),
+        "summary": {**counts, "suppressed": 0},
+        "findings": findings,
+    })
+
+
 def record(repo, state_dir, report):
-    """Commit этой ночи и перенос (плагины с L2_NOT_RUN). → причина остановки L2 (L2_STOPPED, иначе L2_NOT_RUN) или ""."""
-    l2 = [f for f in report.get("findings") or [] if f.get("check") == "behavior"]
-    not_run = [f for f in l2 if f.get("level") == "infra" and str(f.get("message", "")).startswith(L2_NOT_RUN)]
-    stopped = [f for f in l2 if str(f.get("message", "")).startswith(L2_STOPPED)]
+    """Итог ночи: commit, перенос и последний вердикт по плагинам. → причина остановки L2 или "".
+
+    Перенос: плагины с «L2 не прогнан» и плагины с «L2 сбой» — пока тот же плагин не падал подряд больше
+    MAX_FAILED_CARRY ночей; прогнанный без сбоя плагин счётчик обнуляет. Остановка на всю ночь — только
+    находка «L2 остановлен» (окно ночи общее для репозиториев и остановки не требует)."""
+    catalog = {p.name for p in discover.discover(repo)}
+    l2 = _behavior(report.get("findings"))
+    tonight = _by_plugin(l2)
+    named = {n for n in report.get("plugins") or [] if isinstance(n, str)}
+    ran = {n for n in named | set(tonight) if not _only_notes(tonight.get(n, []))}
+    failed_now = {n for n in ran & catalog if any(f.get("level") == "infra" and _is(f, L2_FAILED)
+                                                 for f in tonight.get(n, []))}
+    not_run = {f["plugin"] for f in l2 if f.get("level") == "infra" and _is(f, L2_NOT_RUN)}
+    stopped = [f for f in l2 if _is(f, L2_STOPPED)]
+
     data = _load(state_dir)
+    prev = data["repos"].get(_key(repo), {})
+    old_failed = prev.get("failed", {})
+    failed = {n: c for n, c in old_failed.items() if n in catalog and n not in ran}
+    for name in failed_now:
+        failed[name] = old_failed.get(name, 0) + 1
     data["repos"][_key(repo)] = {
-        "commit": _head(repo),
-        "carry": sorted({f["plugin"] for f in not_run}),
+        "commit": _head(repo) or prev.get("commit", ""),
+        "carry": sorted(not_run | {n for n in failed_now if failed[n] <= MAX_FAILED_CARRY}),
+        "failed": failed,
         "date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     _save(state_dir, data)
+    _latest(repo, state_dir, report, catalog, named, tonight)
     if stopped:
         return str(stopped[0]["message"])[len(L2_STOPPED):].lstrip(": ")
-    if not_run:
-        return str(not_run[0]["message"])[len(L2_NOT_RUN):].lstrip(": ")
     return ""
 
 
