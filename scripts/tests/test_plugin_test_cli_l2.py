@@ -35,11 +35,22 @@ class CliL2Test(unittest.TestCase):
         return code, out.getvalue()
 
     def test_default_checks_exclude_opt_in(self):
-        self.assertEqual(set(model.DEFAULT_CHECKS), set(model.CHECK_IDS) - set(model.OPT_IN_CHECKS))
         self.assertEqual(model.OPT_IN_CHECKS, ("behavior",))
-        with mock.patch.object(cli, "DEFAULT_CHECKS", ("eval-files",)):
+        self.assertNotIn("behavior", model.DEFAULT_CHECKS)
+        ran = []
+
+        def recording(check):
+            def fake(plugin, ctx, manifest):
+                ran.append(check)
+                return []
+            return fake
+
+        # Без --check идёт ровно cli.DEFAULT_CHECKS: вторая зарегистрированная проверка не запускается.
+        with mock.patch.dict(checks.REGISTRY, {"eval-files": recording("eval-files"),
+                                               "eval-coverage": recording("eval-coverage")}), \
+                mock.patch.object(cli, "DEFAULT_CHECKS", ("eval-files",)):
             code, _ = self.run_cli()
-        self.assertEqual((code, len(self.seen)), (0, 1))
+        self.assertEqual((code, ran), (0, ["eval-files"]))
 
     def test_state_dir_and_deadline_reach_context(self):
         state = os.path.join(self.repo.root, "state")
