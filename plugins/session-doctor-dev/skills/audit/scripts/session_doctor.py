@@ -25,6 +25,7 @@ from doctor_sources import (config_dir, find_claude_pid, find_transcript, git_in
 from doctor_transcript import Transcript, parse_transcript  # noqa: E402
 import doctor_areas  # noqa: E402,F401  (registers every collector, check and section)
 import doctor_events  # noqa: E402,F401
+import doctor_skills  # noqa: E402,F401
 
 
 def _cwd():

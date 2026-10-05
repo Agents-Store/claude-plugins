@@ -28,11 +28,13 @@ trap 'rm -rf "$T"' EXIT
 
 SID="aaaaaaaa-1111-2222-3333-444444444444"
 SID2="bbbbbbbb-1111-2222-3333-444444444444"
+SID3="cccccccc-1111-2222-3333-444444444444"
 PROJ="$T/projects/demo"
 CFG="$T/home/.claude-test"
 SLUG="$(printf '%s' "$PROJ" | sed 's/[^A-Za-z0-9]/-/g')"
 TR="$CFG/projects/$SLUG/$SID.jsonl"
 TR2="$CFG/projects/$SLUG/$SID2.jsonl"
+TR3="$CFG/projects/$SLUG/$SID3.jsonl"
 TOKB="ghp_""$(printf 'B%.0s' {1..36})"        # secret inside a Bash stdout, runtime-built
 TOKA="ghp_""$(printf 'A%.0s' {1..36})"        # assembled at runtime, never a literal credential
 
@@ -78,8 +80,41 @@ make_garbage_fixture() {
 JSONL
 }
 
+# Профиль навыков: slash пользователя, Skill модели, Skill субагента, встроенные команды, цитата.
+make_skills_fixture() {
+  mkdir -p "$CFG/projects/$SLUG/$SID3/subagents"
+  cat > "$TR3" <<JSONL
+{"type":"user","sessionId":"$SID3","cwd":"$PROJ","timestamp":"2026-10-04T11:00:00.000Z","message":{"role":"user","content":"<command-message>model</command-message>\n<command-name>/model</command-name>"}}
+{"type":"attachment","timestamp":"2026-10-04T11:00:01.000Z","attachment":{"type":"skill_listing","names":["listed-skill","dual"]}}
+{"type":"user","timestamp":"2026-10-04T11:00:02.000Z","message":{"role":"user","content":"<command-message>plugin-dev:create-plugin</command-message>\n<command-name>/plugin-dev:create-plugin</command-name>"}}
+{"type":"user","isMeta":true,"timestamp":"2026-10-04T11:00:03.000Z","message":{"role":"user","content":[{"type":"text","text":"Base directory for this skill: /p/skills/create-plugin\n\nbody"}]}}
+{"type":"user","timestamp":"2026-10-04T11:00:04.000Z","message":{"role":"user","content":"<command-name>/listed-skill</command-name>"}}
+{"type":"user","timestamp":"2026-10-04T11:00:05.000Z","message":{"role":"user","content":"<command-name>/dual</command-name>"}}
+{"type":"assistant","timestamp":"2026-10-04T11:00:06.000Z","message":{"id":"a1","content":[{"type":"tool_use","id":"k1","name":"Skill","input":{"skill":"superpowers:brainstorming"}}]}}
+{"type":"user","timestamp":"2026-10-04T11:00:06.500Z","toolUseResult":{"success":true,"commandName":"superpowers:brainstorming"},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"k1","content":"Launching skill"}]}}
+{"type":"assistant","timestamp":"2026-10-04T11:00:07.000Z","message":{"id":"a2","content":[{"type":"tool_use","id":"k2","name":"Skill","input":{"skill":"superpowers:brainstorming"}}]}}
+{"type":"user","timestamp":"2026-10-04T11:00:07.500Z","toolUseResult":{"success":true},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"k2","content":"Launching skill"}]}}
+{"type":"assistant","timestamp":"2026-10-04T11:00:08.000Z","message":{"id":"a3","content":[{"type":"tool_use","id":"k3","name":"Skill","input":{"skill":"forky"}}]}}
+{"type":"user","timestamp":"2026-10-04T11:00:08.500Z","toolUseResult":{"success":true,"status":"forked","commandName":"forky"},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"k3","content":"forked"}]}}
+{"type":"assistant","timestamp":"2026-10-04T11:00:09.000Z","message":{"id":"a4","content":[{"type":"tool_use","id":"k4","name":"Skill","input":{"skill":"broken-skill"}}]}}
+{"type":"user","timestamp":"2026-10-04T11:00:09.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"k4","is_error":true,"content":"Unknown skill"}]}}
+{"type":"assistant","timestamp":"2026-10-04T11:00:09.700Z","message":{"id":"a5","content":[{"type":"tool_use","id":"k5","name":"Skill","input":{"skill":"dual"}}]}}
+{"type":"user","timestamp":"2026-10-04T11:00:09.800Z","toolUseResult":{"success":true},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"k5","content":"ok"}]}}
+{"type":"attachment","timestamp":"2026-10-04T11:00:10.000Z","attachment":{"type":"invoked_skills","skills":[{"name":"compacted-skill","path":"/p/c/SKILL.md","content":"X"},{"name":"superpowers:brainstorming","path":"/p/b/SKILL.md"}]}}
+{"type":"user","timestamp":"2026-10-04T11:00:11.000Z","message":{"role":"user","content":[{"type":"text","text":"see <command-name>/foo</command-name> in docs"}]}}
+{"type":"user","timestamp":"2026-10-04T11:00:12.000Z","message":{"role":"user","content":"pasted: <command-name>/foo</command-name> in docs"}}
+JSONL
+  local sub="$CFG/projects/$SLUG/$SID3/subagents/agent-def456"
+  cat > "$sub.jsonl" <<'JSONL'
+{"type":"assistant","isSidechain":true,"timestamp":"2026-10-04T11:00:06.200Z","message":{"id":"r1","content":[{"type":"tool_use","id":"r1t","name":"Skill","input":{"skill":"review-skill"}}]}}
+{"type":"user","isSidechain":true,"timestamp":"2026-10-04T11:00:06.300Z","toolUseResult":{"success":true},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"r1t","content":"ok"}]}}
+JSONL
+  printf '{"agentType":"reviewer","description":"Review"}\n' > "$sub.meta.json"
+}
+
 make_events_fixture
 make_garbage_fixture
+make_skills_fixture
 
 doctor() {
   env -i HOME="$T/home" PATH="$PATH" PYTHONIOENCODING=utf-8 \
@@ -131,6 +166,33 @@ JSON2="$(SESSION="$SID2" doctor --json)"
 assert_eq "1" "$(printf '%s' "$JSON2" | jq '[.findings[]|select(.id=="EVENTS_FORMAT")]|length')" "3 из 4 нераспознанных записей — EVENTS_FORMAT"
 assert_eq "medium" "$(printf '%s' "$JSON2" | jq -r '.findings[]|select(.id=="EVENTS_FORMAT")|.severity')" "EVENTS_FORMAT — medium"
 assert_eq "0" "$(find "$SCRIPTS" -name __pycache__ | wc -l | tr -d ' ')" "__pycache__ не создан"
+
+# ═══ section: skills invoked ═════════════════════════════════════════════════
+echo "▸ doctor_skills"
+J="$(SESSION="$SID3" doctor --json)"
+sk() { printf '%s' "$J" | jq -r "$1"; }
+assert_contains "plugin-dev:create-plugin" "$(sk '.skills_invoked_v2.skills[].name')" "skill пользователя в списке"
+assert_eq "user" "$(sk '.skills_invoked_v2.skills[]|select(.name=="plugin-dev:create-plugin")|.caller')" "slash с телом skill — caller user"
+assert_contains "superpowers:brainstorming" "$(sk '.skills_invoked_v2.skills[]|select(.caller=="model").name')" "skill модели в списке"
+assert_eq "0" "$(sk '[.skills_invoked_v2.skills[]|select(.name=="model")]|length')" "встроенная /model не skill"
+assert_eq "0" "$(sk '[.skills_invoked_v2.skills[]|select(.name=="clear" or .name=="compact")]|length')" "встроенные команды не skill"
+assert_contains "reviewer" "$(sk '.skills_invoked_v2.skills[].caller')" "вызов skill субагентом атрибутирован"
+assert_eq "reviewer" "$(sk '.skills_invoked_v2.skills[]|select(.name=="review-skill")|.caller')" "review-skill вызвал reviewer"
+assert_eq "2 ok" "$(sk '.skills_invoked_v2.skills[]|select(.name=="superpowers:brainstorming")|"\(.count) \(.outcome)"')" "повторные вызовы сгруппированы; invoked_skills не дублирует"
+assert_eq "forked" "$(sk '.skills_invoked_v2.skills[]|select(.name=="forky")|.outcome')" "status forked -> forked"
+assert_eq "error" "$(sk '.skills_invoked_v2.skills[]|select(.name=="broken-skill")|.outcome')" "is_error -> error"
+assert_eq "after-compact model" "$(sk '.skills_invoked_v2.skills[]|select(.name=="compacted-skill")|"\(.outcome) \(.caller)"')" "invoked_skills без своего вызова -> after-compact"
+assert_eq "user" "$(sk '.skills_invoked_v2.skills[]|select(.name=="listed-skill")|.caller')" "slash без тела, но имя в listing -> skill"
+assert_eq "user 2" "$(sk '.skills_invoked_v2.skills[]|select(.name=="dual")|"\(.caller) \(.count)"')" "user специфичнее model; счётчик суммируется"
+assert_eq "0" "$(sk '[.skills_invoked_v2.skills[]|select(.name=="foo")]|length')" "<command-name> в цитате — не вызов"
+assert_eq "yes" "$([ "$(sk '.skills_invoked_v2.skills[0].first_ts | type')" = "number" ] && echo yes || echo no)" "first_ts заполнен"
+DIG="$(SESSION="$SID3" doctor)"
+assert_contains "SKILLS INVOKED" "$DIG" "раздел SKILLS INVOKED в дайджесте"
+TABLE="$(printf '%s\n' "$DIG" | awk '/^SKILLS INVOKED/{p=1;print;next} p&&/^  /{print;next} {p=0}')"
+assert_contains "plugin-dev:create-plugin" "$TABLE" "таблица содержит skill"
+assert_missing "foo" "$TABLE" "цитата не попала в таблицу"
+assert_eq "0" "$(printf '%s\n' "$TABLE" | awk 'NR>1 && $1=="model"' | wc -l | tr -d ' ')" "встроенная /model не попала в таблицу"
+assert_eq "0" "$(printf '%s' "$J" | jq '.errors|map(select(startswith("skills_invoked_v2")))|length')" "коллектор skills_invoked_v2 не упал"
 
 # ═══ end of sections ═════════════════════════════════════════════════════════
 printf '\n  итого: %d ✓, %d ✗\n' "$PASS" "$FAIL"
