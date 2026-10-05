@@ -137,8 +137,12 @@ def _is(finding, *prefixes):
 
 
 def _only_notes(findings):
-    """Плагин ночью не прогонялся: у него только «L2 не прогнан» / «L2 остановлен»."""
-    return bool(findings) and all(_is(f, L2_NOT_RUN, L2_STOPPED) for f in findings)
+    """Плагин ночью не прогонялся: есть «L2 не прогнан» и нет ничего, кроме него и «L2 остановлен».
+
+    Один «L2 остановлен» — плагин прогнан чисто и лишь упёрся в мягкий порог: его вердикт свежий.
+    """
+    return (bool(findings) and any(_is(f, L2_NOT_RUN) for f in findings)
+            and all(_is(f, L2_NOT_RUN, L2_STOPPED) for f in findings))
 
 
 def _behavior(findings):

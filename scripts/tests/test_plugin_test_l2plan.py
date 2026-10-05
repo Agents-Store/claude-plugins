@@ -238,6 +238,23 @@ class L2PlanTest(unittest.TestCase):
         self.night(["a-dev"], [fresh])                  # настоящий прогон заменяет всё
         self.assertEqual(self.latest()["findings"], [fresh])
 
+    def test_stopped_alone_means_the_plugin_ran(self):
+        self.add("a-dev", trig=10)
+        fail = finding("a-dev", "%s: кейс q без оценки" % L2_FAILED)
+        miss = finding("a-dev", "%s: q 1" % L2_MISFIRE, level="warn")
+        self.night(["a-dev"], [fail, miss])
+        self.assertEqual(self.state_of()["failed"], {"a-dev": 1})
+        stop = finding("a-dev", "%s: окно 5 часов занято на 95%%" % L2_STOPPED, level="info")
+        self.assertEqual(self.night(["a-dev"], [stop]), "окно 5 часов занято на 95%")
+        self.assertEqual(self.latest()["findings"], [stop])                 # прежний вердикт заменён
+        self.assertEqual((self.state_of()["carry"], self.state_of()["failed"]), ([], {}))
+        # а с «L2 не прогнан» тот же плагин по-прежнему не считается прогнанным
+        self.night(["a-dev"], [fail])
+        note = finding("a-dev", "%s: лимит" % L2_NOT_RUN)
+        self.night(["a-dev"], [note, stop])
+        self.assertEqual(self.state_of()["failed"], {"a-dev": 1})
+        self.assertEqual(self.latest()["findings"], [fail, note, stop])
+
     def test_latest_drops_a_plugin_removed_from_the_catalog(self):
         self.add("a-dev", trig=10)
         self.add("b-dev", trig=10)

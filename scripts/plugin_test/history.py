@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import statistics
+import sys
 
 FILE = "l2-history.jsonl"
 WINDOW = 4        # медиана последних оценок кейса
@@ -27,19 +28,23 @@ def scores(state_dir, repo, plugin, model=None):
     out = {}
     if not state_dir or not os.path.isfile(_path(state_dir)):
         return out
-    with open(_path(state_dir), encoding="utf-8", errors="replace") as fh:
-        for line in fh:
-            try:
-                e = json.loads(line)
-            except ValueError:
-                continue
-            if not isinstance(e, dict) or e.get("repo") != repo or e.get("plugin") != plugin or e.get("ok") is not True:
-                continue
-            if model is not None and e.get("model") != model:
-                continue
-            case, score = e.get("case"), e.get("score")
-            if isinstance(case, str) and isinstance(score, (int, float)) and not isinstance(score, bool):
-                out.setdefault(case, []).append(float(score))
+    try:
+        with open(_path(state_dir), encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                try:
+                    e = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(e, dict) or e.get("repo") != repo or e.get("plugin") != plugin \
+                        or e.get("ok") is not True:
+                    continue
+                if model is not None and e.get("model") != model:
+                    continue
+                case, score = e.get("case"), e.get("score")
+                if isinstance(case, str) and isinstance(score, (int, float)) and not isinstance(score, bool):
+                    out.setdefault(case, []).append(float(score))
+    except OSError as exc:   # нечитаемая история — не повод ронять проверку: путь в issue не должен попасть
+        print("[history] %s не прочитан: %s" % (FILE, exc.strerror or type(exc).__name__), file=sys.stderr)
     return out
 
 

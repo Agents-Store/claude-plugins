@@ -8,6 +8,7 @@ ANTHROPIC_* в прогон. Признаки лимита — события ra
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
@@ -29,7 +30,8 @@ KEEP_ENV = ("PATH", "HOME", "LANG", "USER", "LOGNAME", "TMPDIR")
 OK_STATUSES = {"allowed", "allowed_warning"}
 RE_LIMIT = re.compile(r"rate.?limit|usage.?limit|\b429\b|limit (?:reached|exceeded)|out of (?:usage|credits)", re.I)
 RESULT = "aggregate-result.json"
-RE_IDENT = re.compile(r"^[A-Za-z0-9_.-]{1,40}$")
+RE_IDENT = re.compile(r"[A-Za-z0-9_.-]{1,40}")
+MAX_UTILIZATION = 100.0
 
 
 class EvalError(Exception):
@@ -94,8 +96,8 @@ def _debug(text):
 
 
 def _ident(value, default="не указан"):
-    """Короткий идентификатор из ответа CLI (authMethod, partialReason); иной текст в сообщения не попадает."""
-    return value if isinstance(value, str) and RE_IDENT.match(value) else default
+    """Короткий идентификатор из ответа CLI (authMethod, partialReason, status); иной текст в сообщения не попадает."""
+    return value if isinstance(value, str) and RE_IDENT.fullmatch(value) else default
 
 
 def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeout=L2_TIMEOUT):
@@ -181,8 +183,9 @@ def _scan_traces(data):
                 windows = info.get("unifiedWindows")
                 for window, value in (windows.items() if isinstance(windows, dict) else ()):
                     u = value.get("utilization") if isinstance(value, dict) else None
-                    if window in usage and isinstance(u, (int, float)) and not isinstance(u, bool):
-                        usage[window] = max(usage[window], float(u))
+                    if window in usage and isinstance(u, (int, float)) and not isinstance(u, bool) \
+                            and math.isfinite(u):     # NaN/Infinity из JSON — не оценка; потолок 100 = 10000%, чтобы round() не падал
+                        usage[window] = max(usage[window], min(float(u), MAX_UTILIZATION))
     return usage, status, overage
 
 
@@ -202,7 +205,9 @@ def _verdict(data, returncode, usage, status, overage):
     if reason == "interrupted" or returncode in (130, 143) or returncode < 0:
         return "прогон прерван (код %d)" % returncode, True
     if status:
-        return "лимит подписки: status=%s" % status, True
+        if _ident(status) != status:       # в сообщение идёт только идентификатор; остальное — в журнал
+            _debug("лимит подписки: status=%s" % status)
+        return "лимит подписки: status=%s" % _ident(status), True
     for r in _runs(data):
         err = r.get("error")
         if isinstance(err, str) and RE_LIMIT.search(err):

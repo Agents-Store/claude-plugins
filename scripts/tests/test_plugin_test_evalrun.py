@@ -161,6 +161,43 @@ class EvalrunTest(unittest.TestCase):
         self.assertIn("overage", res2.stop)
         self.assertFalse(res2.invalid)
 
+    def test_trace_status_text_is_not_echoed(self):
+        weird = dict(OK, status="SENTINEL tail words")
+        res, err = self.run_stub_stderr([{"result": eval_result(eval_case("q", 0.0, runs=[
+            {"score": 0.0, "error": None, "trace": [weird]}]))}])
+        self.assertTrue(res.invalid)
+        self.assertEqual(res.stop, "лимит подписки: status=не указан")
+        self.assertIn("[evalrun]", err)
+        self.assertIn("SENTINEL tail words", err)
+        res2, _ = self.run_stub_stderr([{"result": eval_result(eval_case("q", 0.0, runs=[
+            {"score": 0.0, "error": None, "trace": [dict(OK, status="rejected")]}]))}])
+        self.assertEqual(res2.stop, "лимит подписки: status=rejected")
+
+    def test_ident_is_a_full_match(self):
+        self.assertEqual(evalrun._ident("apiKey"), "apiKey")
+        for bad in ("apiKey\n", "api key", "", None, 5, "x" * 41):
+            self.assertEqual(evalrun._ident(bad), "не указан")
+        claude, _ = stub_claude(self.repo.root, [], auth='{"loggedIn": true, "authMethod": "apiKey\\n"}')
+        reason = evalrun.preflight(claude, evalrun.environment())
+        self.assertIn("authMethod=не указан", reason)
+
+    def test_non_finite_and_huge_utilization_do_not_raise(self):
+        for value in (float("inf"), float("nan"), 1e308):
+            with self.subTest(value=value):
+                plan = [{"result": eval_result(eval_case("q", 1.0, runs=[
+                    {"score": 1.0, "error": None, "trace": [
+                        {"status": "allowed", "unifiedWindows": {"five_hour": {"utilization": value}}}]}]))}]
+                path = os.path.join(self.repo.root, "stub", "plan.json.n")
+                if os.path.exists(path):
+                    os.remove(path)
+                res, _ = self.run_stub(plan)
+                self.assertFalse(res.invalid)
+                self.assertTrue(all(0.0 <= u <= 100.0 for u in res.usage.values()))
+                if value == 1e308:
+                    self.assertIn("5 часов", res.stop)
+                else:
+                    self.assertEqual((res.stop, res.usage["five_hour"]), ("", 0.0))
+
     def test_quiet_usage_keeps_going(self):
         res, _ = self.run_stub([{"result": eval_result(eval_case("q", 1.0, runs=[
             {"score": 1.0, "error": None, "trace": [OK]}]))}])

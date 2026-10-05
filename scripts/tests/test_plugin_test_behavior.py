@@ -266,7 +266,7 @@ class BehaviorTest(unittest.TestCase):
         self.add_plugin(queries=(), quality=QUALITY)
         (got, _, _, _), err = self.err_check([{"result": eval_result(eval_case("q-web-1", 0.0, runs=[
             {"score": 0.0, "error": "SENTINEL_RUN_ERR token=abc"}, {"score": 0.0, "error": "SENTINEL_RUN_ERR again"}]))}])
-        self.assertEqual([(f.level, f.message) for f in got], [(INFRA, "%s: q-web-1 — все 2 прогонов с ошибкой" % L2_FAILED)])
+        self.assertEqual([(f.level, f.message) for f in got], [(INFRA, "%s: q-web-1 — все 2 прогона с ошибкой" % L2_FAILED)])
         self.assertIn("[behavior]", err)
         self.assertIn("SENTINEL_RUN_ERR", err)
         self.assert_no_text(got, "SENTINEL_RUN_ERR")
@@ -292,6 +292,12 @@ class BehaviorTest(unittest.TestCase):
         self.assertTrue(got)
         self.assertIn("SENTINEL_LIMIT", err)
         self.assert_no_text(got, "SENTINEL_LIMIT")
+
+    def test_runs_phrase_plural_forms(self):
+        for n, want in ((1, "единственный прогон"), (2, "все 2 прогона"), (4, "все 4 прогона"), (5, "все 5 прогонов"),
+                        (11, "все 11 прогонов"), (12, "все 12 прогонов"), (21, "все 21 прогон"),
+                        (22, "все 22 прогона"), (25, "все 25 прогонов")):
+            self.assertEqual(behavior._runs_phrase(n), want)
 
     def test_window_closed_before_a_following_call(self):
         self.add_plugin()

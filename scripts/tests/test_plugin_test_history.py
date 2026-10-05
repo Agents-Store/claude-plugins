@@ -1,8 +1,12 @@
+import contextlib
+import io
+import json
 import os
 import shutil
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import plugin_test_fixtures  # noqa: E402,F401
@@ -43,6 +47,31 @@ class HistoryTest(unittest.TestCase):
         self.assertEqual(history.scores(self.state, "r", "p", model="m-old"), {"q-a-1": [0.4]})
         self.assertEqual(history.scores(self.state, "r", "p", model="m-none"), {})
         self.assertEqual(history.scores(self.state, "r", "p"), {"q-a-1": [1.0, 0.4, 0.6], "q-a-2": [0.9]})
+
+    def test_unreadable_file_does_not_raise_and_keeps_what_was_read(self):
+        history.append(self.state, [{"repo": "r", "plugin": "p", "case": "q-a-1", "score": 1.0, "ok": True}])
+
+        class Flaky:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def __iter__(self):
+                yield json.dumps({"repo": "r", "plugin": "p", "case": "q-a-1", "score": 0.5, "ok": True}) + "\n"
+                raise OSError(5, "Input/output error")
+
+        err = io.StringIO()
+        with mock.patch.object(history, "open", create=True, return_value=Flaky()), contextlib.redirect_stderr(err):
+            self.assertEqual(history.scores(self.state, "r", "p"), {"q-a-1": [0.5]})
+        self.assertIn("[history]", err.getvalue())
+        self.assertEqual(len(err.getvalue().strip().splitlines()), 1)
+        err = io.StringIO()
+        with mock.patch.object(history, "open", create=True, side_effect=PermissionError(13, "Permission denied")), \
+                contextlib.redirect_stderr(err):
+            self.assertEqual(history.scores(self.state, "r", "p"), {})
+        self.assertIn("[history]", err.getvalue())
 
     def test_append_is_sorted_json_lines(self):
         history.append(self.state, [{"b": 1, "a": "й"}])

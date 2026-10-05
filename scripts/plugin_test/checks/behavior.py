@@ -72,6 +72,15 @@ def _stopped(plugin, reason):
     return Finding(plugin.name, CHECK, INFO, "%s: %s" % (L2_STOPPED, reason), "", 0, FIX_INFRA)
 
 
+def _runs_phrase(n):
+    """«все 2 прогона», «все 5 прогонов», «все 21 прогон»; один — «единственный прогон»."""
+    if n == 1:
+        return "единственный прогон"
+    last, tens = n % 10, n % 100
+    word = "прогон" if last == 1 and tens != 11 else "прогона" if 2 <= last <= 4 and not 12 <= tens <= 14 else "прогонов"
+    return "все %d %s" % (n, word)
+
+
 def _short(text):
     flat = " ".join(text.split())
     return flat if len(flat) <= QUERY_SHOWN else flat[:QUERY_SHOWN - 1] + "…"
@@ -230,7 +239,7 @@ def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
         errors = [r.get("error") for r in runs if isinstance(r.get("error"), str)]
         if runs and len(errors) == len(runs):
             _debug("%s: %s" % (name, errors[0][:120]))
-            out.append(_infra(plugin, "%s: %s — все %d прогонов с ошибкой" % (L2_FAILED, name, len(runs)), file))
+            out.append(_infra(plugin, "%s: %s — %s с ошибкой" % (L2_FAILED, name, _runs_phrase(len(runs))), file))
             continue
         if any(r.get("skippedPaidGraders") for r in runs):
             out.append(_infra(plugin, "%s: %s — судья пропущен, оценка несравнима" % (L2_FAILED, name), file))
