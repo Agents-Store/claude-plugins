@@ -25,6 +25,7 @@ RERUN_DIR = "evals-rerun"
 GENERATED = (TRIGGER_DIR, QUALITY_DIR, RERUN_DIR)
 QUALITY_TOOLS = ["Read", "Grep", "Glob", "Skill"]
 QUALITY_RUNS = 3
+MAX_ROUTES_PER_COMMAND = 2     # команда, ведущая к большему числу skills, — хаб, а не alias
 RE_JS_SPECIAL = re.compile(r"[\\^$.*+?()\[\]{}|/]")
 MOCK_RULES = ('You are the MCP server "%s". Answer each call with a realistic result that matches the tool\'s '
               "description and input schema. If required inputs are missing, or a destructive call lacks the "
@@ -58,8 +59,12 @@ def input_match(plugin_name, skill, aliases=()):
 def skill_routes(plugin_dir, plugin_name):
     """{skill: [команды]} — какие commands/*.md плагина ведут к skill. Команда (имя — stem файла) ведёт к skill,
     если её текст называет его как skills/<skill>/ или <плагин>:<skill> с границами токена: skill `api`
-    не находится в `skills/api-reference/` и `p-dev:api-reference`. Skill не ведёт сам к себе;
-    списки отсортированы, у skill без команд ключа нет."""
+    не находится в `skills/api-reference/` и `p-dev:api-reference`. Команда не берётся в alias, если
+    - её имя совпадает с именем ЛЮБОГО skill плагина: вход Skill {"skill":"<плагин>:<имя>"} один и тот же
+      для skill и для команды, и по нему не отличить, что сработало;
+    - она ведёт к более чем MAX_ROUTES_PER_COMMAND skills: это хаб (check, update, optimize), его запуск
+      не говорит ничего о конкретном skill и проваливал бы «не должен срабатывать» у каждого.
+    Списки отсортированы, у skill без команд ключа нет."""
     commands = os.path.join(plugin_dir, "commands")
     if not os.path.isdir(commands):
         return {}
@@ -67,13 +72,15 @@ def skill_routes(plugin_dir, plugin_name):
     routes = {}
     for entry in sorted(os.listdir(commands)):
         command, ext = os.path.splitext(entry)
-        if ext != ".md" or not os.path.isfile(os.path.join(commands, entry)):
+        if ext != ".md" or command in skills or not os.path.isfile(os.path.join(commands, entry)):
             continue
         with open(os.path.join(commands, entry), encoding="utf-8", errors="replace") as fh:
             text = fh.read()
-        for skill in skills:
-            if skill != command and _names_skill(text, plugin_name, skill):
-                routes.setdefault(skill, []).append(command)
+        named = [skill for skill in skills if _names_skill(text, plugin_name, skill)]
+        if len(named) > MAX_ROUTES_PER_COMMAND:
+            continue
+        for skill in named:
+            routes.setdefault(skill, []).append(command)
     return {skill: sorted(routes[skill]) for skill in sorted(routes)}
 
 

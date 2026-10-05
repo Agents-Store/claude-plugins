@@ -9,8 +9,8 @@ import unittest
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from plugin_test_fixtures import (Repo, context, eval_case, eval_result, load_plugin, stub_calls,  # noqa: E402
-                                  stub_claude)
+from plugin_test_fixtures import (Repo, context, eval_case, eval_result, isolate_l2_env, load_plugin,  # noqa: E402
+                                  stub_calls, stub_claude)
 
 from plugin_test import evalgen, history, manifest  # noqa: E402
 from plugin_test.checks import REGISTRY, behavior  # noqa: E402
@@ -31,6 +31,7 @@ def T(query):
 
 class BehaviorTest(unittest.TestCase):
     def setUp(self):
+        isolate_l2_env(self)
         self.repo = Repo()
         self.addCleanup(self.repo.cleanup)
         self.state = os.path.join(self.repo.root, "state")

@@ -10,7 +10,7 @@ import unittest
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from plugin_test_fixtures import Repo, eval_case, eval_result, stub_calls, stub_claude  # noqa: E402
+from plugin_test_fixtures import Repo, eval_case, eval_result, isolate_l2_env, stub_calls, stub_claude  # noqa: E402
 
 from plugin_test import evalrun  # noqa: E402
 
@@ -20,6 +20,7 @@ OK = {"status": "allowed", "isUsingOverage": False,
 
 class EvalrunTest(unittest.TestCase):
     def setUp(self):
+        isolate_l2_env(self)
         self.repo = Repo()
         self.addCleanup(self.repo.cleanup)
         self.copy = os.path.join(self.repo.root, "copy")
@@ -224,10 +225,14 @@ class EvalrunTest(unittest.TestCase):
         with mock.patch.dict(os.environ, env):
             return self.run_stub_stderr([{"result": self.hot(five, seven)}])
 
+    def test_isolation_hides_the_operators_threshold_variables(self):
+        os.environ["PLUGIN_TEST_L2_FIVE_HOUR_STOP"] = "1.0"      # окружение восстановит изоляция из setUp
+        isolate_l2_env(self)
+        self.assertNotIn("PLUGIN_TEST_L2_FIVE_HOUR_STOP", os.environ)
+        self.assertEqual(evalrun.five_hour_stop(), 0.9)
+
     def test_thresholds_default_without_overrides(self):
-        clean = {k: v for k, v in os.environ.items() if not k.startswith("PLUGIN_TEST_L2_")}
-        with mock.patch.dict(os.environ, clean, clear=True):
-            self.assertEqual((evalrun.five_hour_stop(), evalrun.seven_day_stop()), (0.9, 0.8))
+        self.assertEqual((evalrun.five_hour_stop(), evalrun.seven_day_stop()), (0.9, 0.8))
         res, err = self.stop_with({}, five=0.9)
         self.assertIn("5 часов", res.stop)
         self.assertEqual(err, "")

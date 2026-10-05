@@ -104,6 +104,42 @@ class EvalgenTest(unittest.TestCase):
         self.assertEqual(evalgen.skill_routes(src, "p-dev"), routes)              # детерминировано
         self.assertEqual(list(routes), sorted(routes))
 
+    def routes_plugin(self, skills, commands, name="routes2"):
+        src = os.path.join(self.tmp, name)
+        for skill in skills:
+            os.makedirs(os.path.join(src, "skills", skill))
+            with open(os.path.join(src, "skills", skill, "SKILL.md"), "w") as fh:
+                fh.write("x")
+        os.makedirs(os.path.join(src, "commands"))
+        for command, text in commands.items():
+            with open(os.path.join(src, "commands", command + ".md"), "w", encoding="utf-8") as fh:
+                fh.write(text)
+        return src
+
+    def test_command_named_like_any_skill_is_never_an_alias(self):
+        # {"skill":"p-dev:reconcile"} — одна и та же строка для skill и для команды: по ней не отличить, что сработало
+        src = self.routes_plugin(
+            ["planning", "reconcile", "intake", "setup"],
+            {"planning": "Read skills/reconcile/SKILL.md.\n",
+             "reconcile": "Read skills/intake/SKILL.md.\n",
+             "intake": "Read skills/setup/SKILL.md.\n",
+             "start": "Read skills/intake/SKILL.md and skills/setup/SKILL.md.\n"})
+        self.assertEqual(evalgen.skill_routes(src, "p-dev"), {"intake": ["start"], "setup": ["start"]})
+
+    def test_hub_command_is_not_an_alias(self):
+        self.assertEqual(evalgen.MAX_ROUTES_PER_COMMAND, 2)
+        skills = ["a", "b", "c", "d"]
+        src = self.routes_plugin(skills, {
+            "pair": "skills/a/ and skills/b/.\n",                        # 2 skill-ов — ещё alias
+            "hub": "skills/a/, skills/b/ and p-dev:c — three skills.\n",   # 3 skill-а — хаб, не alias
+            "wide": "skills/a/ skills/b/ skills/c/ skills/d/\n",
+            "single": "skills/c/\n"})
+        self.assertEqual(evalgen.skill_routes(src, "p-dev"), {"a": ["pair"], "b": ["pair"], "c": ["single"]})
+
+    def test_hub_does_not_make_siblings_fire_negatives(self):
+        src = self.routes_plugin(["a", "b", "c"], {"check": "skills/a/ skills/b/ skills/c/\n"})
+        self.assertEqual(evalgen.skill_routes(src, "p-dev"), {})
+
     def test_skill_routes_without_commands_or_skills(self):
         src = os.path.join(self.tmp, "bare")
         os.makedirs(os.path.join(src, "skills", "a"))

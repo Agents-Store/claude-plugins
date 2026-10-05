@@ -12,6 +12,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+from unittest import mock
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_DIR = os.path.dirname(TESTS_DIR)
@@ -136,3 +137,14 @@ def eval_case(name, score, delta=None, runs=None, without=None):
 def eval_result(*cases, partial=False, reason=None):
     return {"schemaVersion": 1, "partial": partial, "partialReason": reason, "aggregates": {},
             "cases": list(cases), "costUsd": 0.01, "durationSeconds": 1, "claudeVersion": "stub"}
+
+
+def isolate_l2_env(testcase):
+    """Тесты L2 не зависят от порогов, которые оператор задал в окружении runner-а (волны, ручные прогоны):
+    переменные порогов снимаются на время теста, окружение восстанавливается по его окончании."""
+    from plugin_test import evalrun
+    patcher = mock.patch.dict(os.environ)
+    patcher.start()
+    testcase.addCleanup(patcher.stop)
+    for var in (evalrun.FIVE_HOUR_VAR, evalrun.SEVEN_DAY_VAR):
+        os.environ.pop(var, None)
