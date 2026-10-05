@@ -1,7 +1,7 @@
 [
   {"query": "Show me a step-by-step walkthrough of updating self-hosted Dify to the latest stable tag, from the pre-flight check to the verification at the end", "should_trigger": true},
   {"query": "I've never updated Dify before. Can you give me a complete example of the upgrade process so I know what to expect, including the backup and the env sync?", "should_trigger": true},
-  {"query": "walk me through a tagged-release dify update where the stack has the bundled Weaviate: what does the pre-flight stop on and how do I continue after the runbook?", "should_trigger": true},
+  {"query": "Show me a worked example scenario of a tagged-release Dify update where the stack has the bundled Weaviate: the walkthrough with the pre-flight stop, the runbook and the re-run, as a teaching example", "should_trigger": true},
   {"query": "is there a dify upgrade guide with a worked scenario that includes one merge conflict on docker-compose.yaml and a custom project name?", "should_trigger": true},
   {"query": "Покажи полный пример обновления Dify на конкретную версию: от проверки до перезапуска контейнеров, чтобы я увидел, как это выглядит на практике", "should_trigger": true},
   {"query": "Хочу сценарий планового обновления Dify с внешним векторным хранилищем - все команды по порядку, как в учебном примере", "should_trigger": true},

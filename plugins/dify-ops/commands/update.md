@@ -8,6 +8,8 @@ argument-hint: "[tag-or-version|main] [--yes] [--weaviate-staged]"
 
 Update a self-hosted Dify instance without losing data: read what the target release changes, stop the stack and archive `volumes/`, and only then merge the release tag into the local `dev` branch, sync environment variables, pull images and start. Nothing is changed before the plan in Step 3 is printed and confirmed.
 
+The branch model, the backup rules and the rollback this command follows are written down in `${CLAUDE_PLUGIN_ROOT}/skills/update-workflow/SKILL.md`; read it before Step 1.
+
 The Bash tool does not keep shell variables between calls. Step 2 prints `DIFY_ROOT`, `DOCKER_DIR`, `CUR`, `TGT`, `TARGET`, `TARGET_REF` and `STAGED`; carry them into the next block as plain assignments. Step 4 writes everything later steps need to `<backup-dir>/state.env` (paths, branch names, commit ids and the compose project — no secrets), and every block from Step 5 on starts with `set -a; . <backup-dir>/state.env; set +a`.
 
 ## Arguments

@@ -5,7 +5,7 @@
   {"query": "I did git clone --branch 1.16.0 for Dify so I'm on a detached HEAD with no dev branch. How do I update to 1.17.1 properly and keep a way to roll back?", "should_trigger": true},
   {"query": "Как обновить Dify, развёрнутый в Docker: хочу слить свежий релизный тег в мою ветку dev, сделать бэкап томов и потом перезапустить контейнеры", "should_trigger": true},
   {"query": "Обновление Dify прошло с конфликтами при merge, контейнеры не поднимаются. Как откатиться на предыдущее состояние dev?", "should_trigger": true},
-  {"query": "we maintain a dev branch with local changes on top of upstream Dify. Should I merge origin/main or a release tag into dev when updating? My colleague says tags are safer, because main can drift from the latest release", "should_trigger": true},
+  {"query": "Update our self-hosted Dify to the latest stable release. Our dev branch carries local changes and main tracks origin/main. Plan the git steps and the backup before anything changes", "should_trigger": true},
   {"query": "how do I roll back a failed dify upgrade? I've merged the new tag and pulled the images but the web UI shows a 500", "should_trigger": true},
   {"query": "Sync the .env of my Dify docker deployment with the new .env.example", "should_trigger": false},
   {"query": "What does each container of the Dify docker-compose stack do?", "should_trigger": false},

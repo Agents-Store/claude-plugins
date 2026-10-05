@@ -5,7 +5,7 @@
   {"query": "my dify .env was copied from the old monolithic .env.example, and now there's an envs/ directory with shared.env.example and others. do I need to migrate, and how?", "should_trigger": true},
   {"query": "Синхронизируй .env с .env.example для Dify после обновления: найди новые переменные, добавь недостающие со значениями по умолчанию и сохрани мои настройки", "should_trigger": true},
   {"query": "Какие новые переменные окружения появились в последнем релизе Dify? Сравни .env.example с моим .env, секреты не показывай", "should_trigger": true},
-  {"query": ".env doesn't exist yet in my fresh dify/docker checkout. create it from .env.example and tell me which security-sensitive keys I still have to set", "should_trigger": true},
+  {"query": "I upgraded Dify from 1.14 to 1.17.1 and my docker/.env is missing the new envs/ split. Compare it with the new .env.example files, list the keys that were added, removed or renamed (never print values) and add the missing ones with their defaults", "should_trigger": true},
   {"query": "sync env for dify - check for new config variables since my last update, I'm on 1.16.2 and moving to 1.17.1", "should_trigger": true},
   {"query": "Merge the latest Dify tag into my dev branch and handle the conflicts", "should_trigger": false},
   {"query": "Which Dify containers should be running and what does the plugin_daemon do?", "should_trigger": false},
