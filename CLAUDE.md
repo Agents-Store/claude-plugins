@@ -267,8 +267,9 @@ CI (`plugin-test.yml`) гоняет его на каждом PR; ночью он
 L2 — `python3 scripts/plugin_test.py --plugin <name> --check behavior --mode server`: skills идут через
 `claude plugin eval` за счёт подписки. Срабатывание проверяется по `skills/<s>/evals/triggers.json`, качество — по
 `evals.json` (формат skill-creator; наборы пишет `/plugin-creator:evals`). L2 запускается только на сервере
-и только по явному флагу, ночью — после L1. Формат держит L1-проверка `eval-files`, покрытие — `eval-coverage`.
-Правка этих файлов — новая версия плагина.
+и только по явному флагу; ночью — только при `PLUGIN_TEST_L2=1` (по умолчанию выключен), после L1: новый
+плагин не начинается после 07:00 UTC (`PLUGIN_TEST_L2_UNTIL`), идущий вызов может закончиться на 45 минут позже.
+Формат держит L1-проверка `eval-files`, покрытие — `eval-coverage`. Правка этих файлов — новая версия плагина.
 
 ## Patterns Worth Knowing
 
