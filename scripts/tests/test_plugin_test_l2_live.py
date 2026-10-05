@@ -8,11 +8,12 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plugin_test_fixtures import FIXTURES  # noqa: E402
 
-from plugin_test import cli, evalgen, history  # noqa: E402
+from plugin_test import cli, evalgen, evalrun, history  # noqa: E402
 
 LIVE = os.environ.get("PLUGIN_TEST_L2_LIVE") == "1"
 SMOKE = os.path.join(FIXTURES, "l2_smoke")
@@ -25,8 +26,8 @@ OTHER_TRIGGER = evalgen.trigger_name("haiku-writer", "what is the capital of fra
 DELTA_CASES = ("q-haiku-writer-1", "q-haiku-writer-2", "q-smoke-ref-1")
 
 
-def _eval_dirs():
-    return set(glob.glob(os.path.join(tempfile.gettempdir(), "claude-eval-*")))
+def _eval_dirs(base):
+    return set(glob.glob(os.path.join(base, "claude-eval-*")))
 
 
 @unittest.skipUnless(LIVE, "живой прогон L2 за счёт подписки: PLUGIN_TEST_L2_LIVE=1")
@@ -35,9 +36,25 @@ class L2LiveSmokeTest(unittest.TestCase):
         tmp = tempfile.mkdtemp(prefix="l2-smoke-")
         self.addCleanup(shutil.rmtree, tmp, True)
         out = os.path.join(tmp, "report.json")
-        before = _eval_dirs()
+        # Свой каталог для временных файлов: CLI берёт его из TMPDIR (он проходит allowlist окружения),
+        # evalrun — из tempfile.tempdir. claude-eval-* считаются только в нём: чужие прогоны L2 на этой
+        # машине (волны, ночной) пишут в общий /tmp и проверку не ломают.
+        private = os.path.realpath(tempfile.mkdtemp(prefix="l2-smoke-tmp-"))
+        self.addCleanup(shutil.rmtree, private, True)
+        for patch in (mock.patch.dict(os.environ, {"TMPDIR": private}), mock.patch.object(tempfile, "tempdir", private)):
+            patch.start()
+            self.addCleanup(patch.stop)
+        cleaned = []
+        real_root = evalrun._temp_root
+
+        def spy(path):
+            root = real_root(path)
+            if root:
+                cleaned.append(root)
+            return root
+
         buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
+        with contextlib.redirect_stdout(buf), mock.patch.object(evalrun, "_temp_root", spy):
             code = cli.main(["--repo", SMOKE, "--check", "behavior", "--mode", "server", "--state-dir", tmp,
                              "--json", out, "--verbose"])
         print(buf.getvalue())
@@ -45,7 +62,9 @@ class L2LiveSmokeTest(unittest.TestCase):
             report = json.load(fh)
         self.assertEqual([f for f in report["findings"] if f["level"] == "infra"], [])
         self.assertIn(code, (0, 2))
-        self.assertEqual(sorted(_eval_dirs() - before), [], "движок оставил каталоги claude-eval-*")
+        self.assertTrue(cleaned, "CLI не писал в TMPDIR прогона: проверка каталогов ниже была бы пустой")
+        self.assertTrue(all(root.startswith(private + os.sep) for root in cleaned), cleaned)
+        self.assertEqual(sorted(_eval_dirs(private)), [], "движок оставил каталоги claude-eval-*")
         rows = {}
         with open(os.path.join(tmp, history.FILE), encoding="utf-8") as fh:
             for line in fh:
