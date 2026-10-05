@@ -13,7 +13,8 @@ import tempfile
 import urllib.parse
 
 from . import model
-from .model import ADVISORY, BLOCKING, FAIL, INFO, INFRA, LEVELS, SKIPPED, WARN
+from .model import (ADVISORY, BLOCKING, FAIL, INFO, INFRA, L2_BELOW, L2_FAILED, L2_FLAKY, L2_MISFIRE, L2_NOT_RUN,
+                    L2_REGRESS, L2_STOPPED, L2_UNHELPFUL, LEVELS, SKIPPED, WARN)
 
 SCRIPTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if SCRIPTS_DIR not in sys.path:
@@ -27,6 +28,14 @@ WHOLE_TOKEN_BELOW = 16
 SECRET_RULES = ("secret-material", "secret-kv")
 HIDDEN = "<строка скрыта: похожа на секрет>"
 MAX_MARKDOWN = 60000
+L2_CHECK = "behavior"
+# Раздел «L2 Поведение»: префикс сообщения → заголовок; последние три группы — для сведения, свёрнуты.
+L2_GROUPS = ((L2_MISFIRE, "Промахи срабатывания", False), (L2_BELOW, "Ниже порога", False),
+             (L2_REGRESS, "Регрессы", False), (L2_NOT_RUN, "Не прогнано", False), (L2_FAILED, "Сбои L2", False),
+             (L2_UNHELPFUL, "Не помогает (для сведения)", True), (L2_FLAKY, "Нестабильно (для сведения)", True),
+             (L2_STOPPED, "Остановлено (для сведения)", True))
+# Находка behavior без префикса (проверка упала — runner.run_plugin) не должна пропасть из issue.
+L2_OTHER = "Прочее"
 LABEL = {FAIL: "FAIL", WARN: "WARN", INFRA: "INFRA", SKIPPED: "SKIP", INFO: "INFO"}
 ORDER = {FAIL: 0, INFRA: 1, WARN: 2, SKIPPED: 3, INFO: 4}
 
@@ -185,7 +194,7 @@ def render_markdown(report, title="Plugin tests"):
            "| fail | warn | infra | skipped |", "|---|---|---|---|",
            "| %d | %d | %d | %d |" % (s.get(FAIL, 0), s.get(WARN, 0), s.get(INFRA, 0), s.get(SKIPPED, 0)), ""]
     for level, heading in ((FAIL, "Провалы"), (INFRA, "Сбои окружения"), (WARN, "Предупреждения")):
-        items = [f for f in report["findings"] if f["level"] == level]
+        items = [f for f in report["findings"] if f["level"] == level and f["check"] != L2_CHECK]
         if not items:
             continue
         out.append("### %s (%d)" % (heading, len(items)))
@@ -202,7 +211,38 @@ def render_markdown(report, title="Plugin tests"):
         if level == WARN:
             out += ["", "</details>"]
         out.append("")
+    out += _render_l2([f for f in report["findings"] if f["check"] == L2_CHECK])
     text = "\n".join(out)
     if len(text) > MAX_MARKDOWN:
         text = text[:MAX_MARKDOWN] + "\n\n… сводка обрезана; полный список — в JSON-отчёте прогона."
     return text
+
+
+def _render_l2(findings):
+    if not findings:
+        return []
+    from .evalrun import JUDGE_MODEL, MODEL  # здесь, а не наверху: evalrun нужен только при находках L2
+    out = ["### L2 Поведение", "", "Модель `%s`, судья `%s`." % (MODEL, JUDGE_MODEL), ""]
+    known = tuple(prefix for prefix, _, _ in L2_GROUPS)
+    for prefix, heading, folded in L2_GROUPS + (("", L2_OTHER, False),):
+        if prefix:
+            items = [f for f in findings if f["message"].startswith(prefix)]
+        else:
+            items = [f for f in findings if not f["message"].startswith(known)]
+        if not items:
+            continue
+        out.append("#### %s (%d)" % (heading, len(items)))
+        if folded:
+            out.append("<details><summary>показать</summary>")
+        current = None
+        for f in sorted(items, key=lambda f: (f["plugin"], f["file"], f["message"])):
+            if f["plugin"] != current:
+                current = f["plugin"]
+                out += ["", "**%s**" % current, ""]
+            loc = _location(f["file"], f["line"])
+            message = f["message"].split("\n", 1)[0][len(prefix):].lstrip(": ")
+            out.append("- %s%s" % ("`%s` — " % loc if loc else "", message))
+        if folded:
+            out += ["", "</details>"]
+        out.append("")
+    return out
