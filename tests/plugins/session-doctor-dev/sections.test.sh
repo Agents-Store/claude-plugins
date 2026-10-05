@@ -45,6 +45,9 @@ TOKA="ghp_""$(printf 'A%.0s' {1..36})"        # assembled at runtime, never a li
 TOKREJ="ey""J""$(printf 'r%.0s' {1..14})"".""$(printf 'e%.0s' {1..14})"".""$(printf 'j%.0s' {1..10})"   # JWT-shaped, rejected (401)
 TOKOK="okkey_""$(printf 'K%.0s' {1..24})"     # accepted (200), sent as x-api-key
 TOKVAR="cmsval_""$(printf 'V%.0s' {1..20})"   # lives only in the fixture settings env as CMS_TOKEN
+TOKLIT="qqqpa"'$'"sw0rd""$(printf 'S%.0s' {1..8})""Tail9"   # LITERAL credential with a $ inside (not a variable)
+TOKQ1="quoteaa""$(printf 'a%.0s' {1..8})"     # two adjacent quoted runs of ONE header value:
+TOKQ2="quotebb""$(printf 'b%.0s' {1..8})"     #   'x-api-key: <Q1>'"<Q2>" — neither is a substring of the joined value
 TOKW="webonly_""$(printf 'W%.0s' {1..20})"    # query secret in a WebFetch url only: scrubbed, never a row
 
 # ── фикстуры ────────────────────────────────────────────────────────────
@@ -162,7 +165,7 @@ JSONL
 
 # Профиль токенов: 401, 200, $VAR из settings env, $VAR без значения, WebFetch с секретом в query.
 make_tokens_fixture() {
-  printf '{"env":{"CMS_TOKEN":"%s"}}\n' "$TOKVAR" > "$CFG/settings.json"
+  printf '{"env":{"CMS_TOKEN":"%s","SHORT_TOKEN":"abc123"}}\n' "$TOKVAR" > "$CFG/settings.json"
   cat > "$TR5" <<JSONL
 {"type":"user","sessionId":"$SID5","cwd":"$PROJ","timestamp":"2026-10-04T13:00:00.000Z","message":{"role":"user","content":"go"}}
 {"type":"assistant","timestamp":"2026-10-04T13:00:01.000Z","message":{"id":"k1","content":[{"type":"tool_use","id":"a1","name":"Bash","input":{"command":"curl -s -i -H \"Authorization: Bearer $TOKREJ\" https://rej.example.test/v1/items"}}]}}
@@ -175,6 +178,12 @@ make_tokens_fixture() {
 {"type":"user","timestamp":"2026-10-04T13:00:04.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a4","content":"{}"}]}}
 {"type":"assistant","timestamp":"2026-10-04T13:00:05.000Z","message":{"id":"k5","content":[{"type":"tool_use","id":"a5","name":"WebFetch","input":{"url":"https://web.example.test/p?access_token=$TOKW"}}]}}
 {"type":"user","timestamp":"2026-10-04T13:00:05.500Z","toolUseResult":{"code":200,"url":"https://web.example.test/p"},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a5","content":"ok"}]}}
+{"type":"assistant","timestamp":"2026-10-04T13:00:06.000Z","message":{"id":"k6","content":[{"type":"tool_use","id":"a6","name":"Bash","input":{"command":"curl -s -H \"x-api-key: $TOKLIT\" https://lit.example.test/a"}}]}}
+{"type":"user","timestamp":"2026-10-04T13:00:06.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a6","content":"{}"}]}}
+{"type":"assistant","timestamp":"2026-10-04T13:00:07.000Z","message":{"id":"k7","content":[{"type":"tool_use","id":"a7","name":"Bash","input":{"command":"curl -s -H 'x-api-key: $TOKQ1'\"$TOKQ2\" https://q.example.test/b"}}]}}
+{"type":"user","timestamp":"2026-10-04T13:00:07.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a7","content":"{}"}]}}
+{"type":"assistant","timestamp":"2026-10-04T13:00:08.000Z","message":{"id":"k8","content":[{"type":"tool_use","id":"a8","name":"Bash","input":{"command":"curl -s -H \"Authorization: Bearer \$SHORT_TOKEN\" https://short.example.test/c"}}]}}
+{"type":"user","timestamp":"2026-10-04T13:00:08.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a8","content":"{}"}]}}
 JSONL
 }
 
@@ -321,12 +330,12 @@ assert_contains "✅" "$(tk '.tokens.tokens[]|select(.codes["200"])|.verdict')" 
 assert_contains "CMS_TOKEN" "$(tk '.tokens.tokens[].var')" "токен из \$VAR опознан по имени переменной"
 assert_eq "yes" "$([ "$(tk '.tokens.tokens[]|select(.var=="CMS_TOKEN")|.fp|length')" = "8" ] && echo yes || echo no)" "\$VAR из settings env разрешён: fp из 8 hex"
 assert_contains "кода про токен нет" "$(tk '.tokens.tokens[]|select(.var=="CMS_TOKEN")|.verdict')" "разрешённый токен без кода — кода про токен нет"
-assert_eq "bearer-jwt x-api-key" "$(tk '[.tokens.tokens[]|select(.var==null and .fp!=null)|.kind]|sort|join(" ")')" "kind по форме значения"
+assert_eq "bearer-jwt x-api-key x-api-key x-api-key" "$(tk '[.tokens.tokens[]|select(.var==null and .fp!=null)|.kind]|sort|join(" ")')" "kind по форме значения"
 assert_eq "gone.example.test null" "$(tk '.tokens.tokens[]|select(.var=="GONE_TOKEN")|"\(.hosts[0]) \(.fp)"')" "неразрешённый \$VAR: имя есть, fp null"
 assert_contains "не проверить" "$(tk '.tokens.tokens[]|select(.var=="GONE_TOKEN")|.verdict')" "неразрешённый \$VAR без кода — не проверить по сессии"
 assert_eq "0" "$(tk '[.tokens.tokens[]|select(.fp==null and .var==null)]|length')" "без значения и без имени — не строка"
 assert_eq "0" "$(tk '[.tokens.tokens[]|select(.hosts|index("web.example.test"))]|length')" "токен только в WebFetch — не строка"
-assert_eq "4" "$(tk '.tokens.tokens|length')" "ровно четыре токена: 401, 200, CMS_TOKEN, GONE_TOKEN"
+assert_eq "7" "$(tk '.tokens.tokens|length')" "ровно семь токенов: 401, 200, CMS_TOKEN, GONE_TOKEN, литерал с \$, два куска, SHORT_TOKEN"
 assert_contains "TOKEN_UNVERIFIED" "$(ids_of "$J")" "находка TOKEN_UNVERIFIED для токенов без кода"
 assert_eq "info" "$(tk '.findings[]|select(.id=="TOKEN_UNVERIFIED")|.severity')" "TOKEN_UNVERIFIED — info"
 # the big one: no value, anywhere (--json includes the raw tool input)
@@ -334,8 +343,22 @@ assert_missing "$TOKREJ" "$J" "значение отклонённого ток�
 assert_missing "$TOKOK" "$J" "значение рабочего токена не напечатано (--json)"
 assert_missing "$TOKVAR" "$J" "значение токена из settings env не напечатано (--json)"
 assert_missing "$TOKW" "$J" "секрет из query WebFetch стёрт из --json"
+# fix round 1: a literal with a $ inside is a literal, not a variable; quote-concatenated values are scrubbed
+assert_missing "$TOKLIT" "$J" "литерал с \$ внутри не напечатан (--json)"
+assert_missing "sw0rd" "$J" "ни хвост, ни середина литерала с \$ не напечатаны (--json)"
+assert_eq "0" "$(tk '[.tokens.tokens[]|select(.var!=null and (.var|test("sw0rd|SSSS|Tail9")))]|length')" "var не содержит часть значения литерала"
+assert_eq "CMS_TOKEN GONE_TOKEN SHORT_TOKEN" "$(tk '[.tokens.tokens[].var // empty]|sort|join(" ")')" "var — только настоящие имена переменных"
+assert_eq "1" "$(tk '[.tokens.tokens[]|select(.hosts==["lit.example.test"] and .var==null and (.fp|length)==8)]|length')" "литерал с \$ — строка с fp и без var"
+assert_missing "$TOKQ1" "$J" "первый кусок значения из двух кавычек не напечатан (--json)"
+assert_missing "$TOKQ2" "$J" "второй кусок значения из двух кавычек не напечатан (--json)"
+assert_eq "1" "$(tk '[.tokens.tokens[]|select(.hosts==["q.example.test"] and (.fp|length)==8)]|length')" "значение из двух кавычек — одна строка"
+assert_eq "null" "$(tk '.tokens.tokens[]|select(.var=="SHORT_TOKEN")|.fp')" "значение короче 8 — строка есть, fp null"
 DIG="$(SESSION="$SID5" doctor)"
 FULL="$(SESSION="$SID5" doctor --full)"
+assert_missing "$TOKLIT" "$DIG$FULL" "литерал с \$ не в дайджесте и full"
+assert_missing "sw0rd" "$DIG$FULL" "хвост литерала не в дайджесте и full (TOKEN_REJECTED/раздел)"
+assert_missing "$TOKQ1" "$DIG$FULL" "кусок 1 не в дайджесте и full"
+assert_missing "$TOKQ2" "$DIG$FULL" "кусок 2 не в дайджесте и full"
 assert_contains "TOKENS" "$DIG" "раздел TOKENS в дайджесте"
 assert_contains "❌ не принят" "$DIG" "дайджест: строка с вердиктом ❌"
 assert_missing "$TOKREJ" "$DIG$FULL" "значение отклонённого токена не в дайджесте и full"

@@ -13,6 +13,7 @@ tool input that --json dumps) erases it. The report keeps only a kind label, the
 8-hex sha256 fingerprint. A $VAR that cannot be resolved stays a row with its name and no fingerprint.
 No .env file is ever opened. Missing keys never raise.
 """
+import difflib
 import hashlib
 import json
 import re
@@ -30,7 +31,11 @@ MAX_ROWS = 100
 MAX_SWEEP = 500        # distinct values scrubbed without a row (tool input is dumped raw by --json)
 HEADER_NAME = re.compile(r"(?i)(token|key|secret|auth)")
 SCHEME_WORD = re.compile(r"(?i)^(bearer|basic|token)\s+")
-VAR_REF = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
+# A candidate is a variable ONLY when it is exactly $NAME or ${NAME} (doctor_common.PLACEHOLDER, plus
+# digits in the name). Anything else — even with a `$` inside — is a literal credential.
+PURE_REF = re.compile(r"^\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))$")
+ANSI_C = re.compile(r"\$'((?:[^'\\]|\\.)*)'")
+MAX_FRAGMENT_SCAN = 5000
 USERINFO_PASS = re.compile(r"(?i)^[a-z][a-z0-9+.\-]*://[^\s/:@]*:([^\s@/]+)@")
 TELEGRAM = re.compile(r"/bot(\d{5,}:[A-Za-z0-9_\-]{30,})")
 GITHUB_SHAPE = re.compile(r"^(?:gh[pousr]_|github_pat_)")
@@ -98,23 +103,13 @@ def _wget_candidates(ctoks, url):
 # ── resolving $VAR ───────────────────────────────────────────────────────────
 
 def _resolve(raw, lookup):
-    """raw may hold $VAR / ${VAR} -> (value or None, first variable name or None).
-    None means a variable could not be resolved; the name is then the first one missing."""
-    names = [a or b for a, b in VAR_REF.findall(raw)]
-    if not names:
+    """-> (value, var). A pure $NAME / ${NAME} reference: (value or None if unresolved, NAME).
+    Anything else is a literal credential: (raw, None) — `var` never holds any part of a value."""
+    ref = PURE_REF.match(raw)
+    if not ref:
         return raw, None
-    missing = []
-
-    def sub(match):
-        name = match.group(1) or match.group(2)
-        value = lookup(name)
-        if value is None:
-            missing.append(name)
-            return ""
-        return value
-
-    value = VAR_REF.sub(sub, raw)
-    return (None, missing[0]) if missing else (value, names[0])
+    name = ref.group(1) or ref.group(2)
+    return lookup(name), name
 
 
 def _lookup_factory(ctx):
@@ -171,7 +166,7 @@ class _Secrets(object):
         self.seen = set()
 
     def add(self, value):
-        if not isinstance(value, str) or len(value) < MIN_LEN or value.startswith("$"):
+        if not isinstance(value, str) or len(value) < MIN_LEN or PURE_REF.match(value):
             return
         for form in _forms(value):
             if form not in self.seen:
@@ -181,6 +176,22 @@ class _Secrets(object):
     def flush(self):
         # a key that always looks like a secret name, so remember_secrets() keeps the value
         remember_secrets({"TOKEN_%d" % i: v for i, v in enumerate(self.values)})
+
+    def add_fragments(self, segment, value):
+        """Every literal piece of the command that spelled this credential. shlex joins quote runs
+        ('part1'"part2"), so the value is not a substring of the raw command and scrub() would miss
+        it; add each common block of segment and value (>= MIN_LEN) and each $'...' run."""
+        if not isinstance(value, str) or not value:
+            return
+        for match in ANSI_C.finditer(segment[:MAX_FRAGMENT_SCAN]):
+            inner = match.group(1)
+            self.add(inner)
+            if ":" in inner:
+                self.add(inner.partition(":")[2].strip())
+        matcher = difflib.SequenceMatcher(None, segment[:MAX_FRAGMENT_SCAN], value[:2000], autojunk=False)
+        for block in matcher.get_matching_blocks():
+            if block.size >= MIN_LEN:
+                self.add(value[block.b:block.b + block.size])
 
 
 SWEEP = [(rx, 2) for rx in (QUERY, USERINFO, FLAG, CURL_USER)] + \
@@ -269,12 +280,15 @@ def _bash_tokens(event, make_lookup, secrets):
                 continue
             value, var = _resolve(cand["raw"], lookup)
             if value is not None:
+                secrets.add(value)                    # as resolved, before any scheme is stripped
                 if cand["hint"] == "auth":
                     value = SCHEME_WORD.sub("", value)
                 if not value or (var is None and len(value) < MIN_LEN):
                     continue
                 secrets.add(value)
                 secrets.add(cand["raw"])
+                secrets.add_fragments(segment, cand["raw"])    # quote-concatenated / unquoted pieces
+                secrets.add_fragments(segment, value)
                 token = {"kind": _kind(cand["hint"], cand["scheme"], value), "var": var, "value": value}
                 key = ("f", _fingerprint(value))
             else:
@@ -330,7 +344,8 @@ def collect_tokens(ctx):
                 if row is None:
                     value = token["value"]
                     row = rows[key] = {"kind": token["kind"], "var": token["var"],
-                                       "fp": _fingerprint(value) if value is not None else None,
+                                       "fp": (_fingerprint(value) if value is not None and len(value) >= MIN_LEN
+                                              else None),     # a short value's fingerprint is brute-forceable
                                        "hosts": [], "codes": {}, "_matched": False,
                                        "_resolved": value is not None}
                     order.append(key)
