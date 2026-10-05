@@ -7,7 +7,7 @@
       "expected_output": "PDF invoice with correct calculations ($5,500 total), two line items, due date May 1 2026",
       "files": [],
       "expectations": [
-        "A PDF file is generated in the outputs directory",
+        "The answer states that the invoice is delivered as a PDF",
         "Invoice total equals $5,500 (80×50 + 20×75)",
         "Contains two line items: Frontend development and UX Design",
         "Shows DevStudio with address 100 Main Street, San Francisco",
@@ -20,7 +20,7 @@
       "expected_output": "PDF act with services table totaling $3,800, both parties, signature blocks",
       "files": [],
       "expectations": [
-        "A PDF file is generated",
+        "The answer states that the act of completed works is delivered as a PDF",
         "Total equals $3,800 ($3,000 + $800)",
         "Contains both parties: TechCo Solutions LLC and Digital Service LLC",
         "Services table with two rows",
@@ -33,7 +33,7 @@
       "expected_output": "DOCX proposal with cover page, executive summary, 3-phase timeline, pricing table totaling $120,000",
       "files": [],
       "expectations": [
-        "A DOCX file is generated",
+        "The answer states that the proposal is delivered as a DOCX",
         "Contains a 3-phase migration timeline spanning 12 weeks",
         "Includes pricing items totaling $120,000",
         "Includes an executive summary section",
@@ -46,7 +46,7 @@
       "expected_output": "DOCX report with cover, findings section with metrics, conclusions, and recommendations",
       "files": [],
       "expectations": [
-        "A DOCX file is generated",
+        "The answer states that the report is delivered as a DOCX",
         "Contains findings with revenue $4.2M and 23% growth",
         "Contains recommendation to expand into EU market",
         "Identifies NovaTech and Data Analytics Team",
@@ -59,7 +59,7 @@
       "expected_output": "PPTX presentation with 6 slides covering the product launch",
       "files": [],
       "expectations": [
-        "A PPTX file is generated",
+        "The answer states that the presentation is delivered as a PPTX",
         "Contains approximately 6 slides",
         "Title slide mentions Nexus AI Platform and Synthex Labs",
         "Problem slide mentions 40% time wasted on manual data processing",
@@ -72,7 +72,7 @@
       "expected_output": "DOCX contract with parties, scope, payment, duration, confidentiality, and IP clauses",
       "files": [],
       "expectations": [
-        "A DOCX file is generated",
+        "The answer states that the agreement is delivered as a DOCX",
         "Identifies TechForge LLC and BrightPath Inc as parties",
         "Contains payment terms $25,000/month with net-30",
         "Duration clause specifies 12 months with auto-renewal",

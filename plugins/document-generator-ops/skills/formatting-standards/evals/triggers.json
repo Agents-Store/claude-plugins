@@ -1,0 +1,18 @@
+[
+  {"query": "What font pairing and sizes should I use for a professional invoice PDF? Heading, body and table text.", "should_trigger": true},
+  {"query": "What margins and line spacing does the plugin use for contracts versus reports? I want my DOCX to match.", "should_trigger": true},
+  {"query": "Which color palette is used for each document type, and how does the 60-30-10 rule apply to a proposal?", "should_trigger": true},
+  {"query": "The PDFs from the document generator have no page numbers and the company name is missing on every page. What should the PDF header and footer contain, in which font size and color, and where do the page numbers go?", "should_trigger": true},
+  {"query": "I generate acts of completed works for Ukrainian clients with the document generator. What is the exact PDF layout of the act - header block, parties, services table, totals, signatures and stamp area - and which fonts and margins does it use?", "should_trigger": true},
+  {"query": "What's the spacing grid and which formatting anti-patterns should I avoid in business documents?", "should_trigger": true},
+  {"query": "Какие шрифты, размеры и отступы применять в коммерческом предложении, чтобы оно выглядело профессионально?", "should_trigger": true},
+  {"query": "Как оформить титульный лист PDF для отчёта: что где размещать и какие цвета использовать?", "should_trigger": true},
+  {"query": "Generate a report PDF from this data: revenue 4.2M, churn 3.1%, three recommendations", "should_trigger": false},
+  {"query": "Which fields are required for an invoice?", "should_trigger": false},
+  {"query": "Set the Tailwind typography plugin defaults for my blog", "should_trigger": false},
+  {"query": "Save my brand colors and logo as a company profile for later documents", "should_trigger": false},
+  {"query": "Pick a color palette for my SaaS landing page", "should_trigger": false},
+  {"query": "Format the references of my thesis in Chicago style", "should_trigger": false},
+  {"query": "Show me JSON input for the presentation generator", "should_trigger": false},
+  {"query": "How do I set page margins in a Word document with python-docx?", "should_trigger": false}
+]
