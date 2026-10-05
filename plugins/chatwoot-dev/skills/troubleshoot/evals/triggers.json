@@ -1,0 +1,18 @@
+[
+  {"query": "Our Chatwoot API calls started returning 401 after we put the self-hosted instance behind nginx. The same token works in the dashboard. Curl with api_access_token fails but I haven't tried other spellings", "should_trigger": true},
+  {"query": "Chatwoot webhook signature mismatch: I verify X-Chatwoot-Signature with HMAC-SHA256 of the request body, but the compare always fails in my FastAPI handler. What am I missing?", "should_trigger": true},
+  {"query": "I get 404 on every /api/v1/accounts/... call in Chatwoot, but the dashboard works fine and my token is valid. Account id is 3", "should_trigger": true},
+  {"query": "the chatwoot CLI says 'unauthorized' when I run it in GitHub Actions, but works on my laptop after auth login. What's wrong?", "should_trigger": true},
+  {"query": "Chatwoot вернул 403 Forbidden, когда я пытаюсь создать inbox через API с обычным токеном агента. Что не так и как исправить?", "should_trigger": true},
+  {"query": "Мой токен Chatwoot корректный, но вызовы к /platform/api/v1/accounts всё равно дают 401. Почему?", "should_trigger": true},
+  {"query": "Chatwoot responds with an HTML page instead of JSON when I call the API on my self-hosted box, status 502 sometimes. Where do I start debugging?", "should_trigger": true},
+  {"query": "Authorization: Bearer token gives 401 on our Chatwoot v4.18, but the api-access-token header works. Is Bearer not supported?", "should_trigger": true},
+  {"query": "How do I register a new Chatwoot webhook for message_created events?", "should_trigger": false},
+  {"query": "Get me a Chatwoot access token and show how to verify that the API answers", "should_trigger": false},
+  {"query": "My Django app returns 404 for /api/v1/orders/ but the URLconf includes the path. Help me debug it", "should_trigger": false},
+  {"query": "Our Stripe webhook signature verification keeps failing in Express because of body parsing. How should I fix it?", "should_trigger": false},
+  {"query": "Walk me through a complete example of bulk importing contacts into Chatwoot", "should_trigger": false},
+  {"query": "Design the escalation policy for our support team: which conversations go to tier 2 and when?", "should_trigger": false},
+  {"query": "Reply to conversation 4812 in Chatwoot with a private note from the terminal", "should_trigger": false},
+  {"query": "Why is my Next.js middleware returning 401 for requests with a valid session cookie behind Cloudflare?", "should_trigger": false}
+]
