@@ -88,6 +88,12 @@ timeout = 600
 [budget]
 always_on_tokens = 3000    # порог skill-budget; поднимать только с причиной
 
+[behavior]
+threshold = 0.8            # порог оценки кейса L2; по умолчанию 0.8
+
+[behavior.case."q-<skill>-<id>"]
+threshold = 0.6            # свой порог кейса — только с причиной в комментарии (триаж калибровки)
+
 [skip]
 # Точечное исключение — глоб от каталога плагина; причина — в комментарии.
 "skill-snippets" = ["skills/legacy/SKILL.md"]   # vendored, правится только синхронизацией

@@ -151,6 +151,48 @@ class ManifestTest(unittest.TestCase):
         self.assertEqual(m.mcp, {})
 
 
+class BehaviorSectionTest(unittest.TestCase):
+    def setUp(self):
+        self.repo = Repo()
+        self.addCleanup(self.repo.cleanup)
+        self.repo.plugin("b-dev")
+
+    def load(self, toml):
+        self.repo.tests("b-dev", {"plugin-test.toml": toml})
+        return manifest.load(load_plugin(self.repo.root, "b-dev"))
+
+    def test_default_threshold(self):
+        m, findings = self.load("")
+        self.assertEqual((m.threshold, m.case_thresholds, findings), (0.8, {}, []))
+        self.assertEqual(m.threshold_for("q-a-1"), 0.8)
+
+    def test_thresholds(self):
+        m, findings = self.load('[behavior]\nthreshold = 0.7\n\n[behavior.case."q-a-1"]\nthreshold = 0.5\n'
+                                '\n[behavior.case."t-a-1234abcd"]\nthreshold = 1\n')
+        self.assertEqual(findings, [])
+        self.assertEqual(m.threshold, 0.7)
+        self.assertEqual(m.threshold_for("q-a-1"), 0.5)
+        self.assertEqual(m.threshold_for("t-a-1234abcd"), 1.0)
+        self.assertEqual(m.threshold_for("q-other"), 0.7)
+
+    def test_bad_values(self):
+        for toml in ('[behavior]\nthreshold = 1.5\n', '[behavior]\nthreshold = true\n',
+                     '[behavior]\nthreshold = "0.8"\n', '[behavior]\ncase = 3\n',
+                     '[behavior.case."q-a-1"]\nlimit = 0.5\n', '[behavior]\ncase = {"q-a-1" = 0.5}\n'):
+            m, findings = self.load(toml)
+            self.assertEqual([f.level for f in findings], [FAIL], toml)
+            self.assertEqual(m.threshold, 0.8, toml)
+
+    def test_unknown_key_warns(self):
+        m, findings = self.load('[behavior]\nthreshold = 0.9\nruns = 5\n')
+        self.assertEqual([f.level for f in findings], [WARN])
+        self.assertEqual(m.threshold, 0.9)
+
+    def test_section_type(self):
+        _, findings = self.load('behavior = 1\n')
+        self.assertEqual([f.level for f in findings], [FAIL])
+
+
 class EnvFileTest(unittest.TestCase):
     def test_parse(self):
         env = envfile.parse('# c\nA=1\nexport B="two words"\nC=\'q\'\nD=v # note\nbad line\n=x\n'

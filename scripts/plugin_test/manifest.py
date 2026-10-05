@@ -13,8 +13,9 @@ from .model import CHECK_IDS, FAIL, UNIT_TIMEOUT, WARN, Finding
 
 START_VALUES = ("ci", "server", "never")
 SNAPSHOT_VALUES = ("full", "names")
-TOP_KEYS = {"mcp", "cli", "api", "unit", "skip", "budget"}
+TOP_KEYS = {"mcp", "cli", "api", "unit", "skip", "budget", "behavior"}
 DEFAULT_ALWAYS_ON = 3000
+DEFAULT_THRESHOLD = 0.8
 FIX = "исправь plugin-test.toml по образцу из tests/README.md"
 
 
@@ -55,9 +56,14 @@ class Manifest:
     unit: list = field(default_factory=list)
     skip: dict = field(default_factory=dict)
     always_on_tokens: int = DEFAULT_ALWAYS_ON
+    threshold: float = DEFAULT_THRESHOLD                 # порог оценки кейса L2 (spec очереди 2 §5.4)
+    case_thresholds: dict = field(default_factory=dict)  # имя кейса → свой порог (с причиной в комментарии)
 
     def mcp_spec(self, server) -> McpSpec:
         return self.mcp.get(server) or McpSpec()
+
+    def threshold_for(self, case) -> float:
+        return self.case_thresholds.get(case, self.threshold)
 
 
 def path_of(plugin):
@@ -96,6 +102,7 @@ def load(plugin):
     _unit(_section(data, "unit", list, "должен быть массивом таблиц ([[unit]])", bad), m, bad)
     _skip(_section(data, "skip", dict, "должна быть таблицей «проверка = [маски]»", bad), m, bad)
     _budget(_section(data, "budget", dict, "должна быть таблицей", bad), m, bad)
+    _behavior(_section(data, "behavior", dict, "должна быть таблицей", bad), m, bad)
     return m, findings
 
 
@@ -191,3 +198,29 @@ def _skip(raw, m, bad):
             continue
         globs = globs if isinstance(globs, list) else [globs]
         m.skip[check] = [g for g in globs if isinstance(g, str)]
+
+
+def _is_score(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value <= 1
+
+
+def _behavior(raw, m, bad):
+    if raw is None:
+        return
+    for key in sorted(set(raw) - {"threshold", "case"}):
+        bad("[behavior] неизвестный ключ %r" % key, WARN)
+    if "threshold" in raw:
+        if _is_score(raw["threshold"]):
+            m.threshold = float(raw["threshold"])
+        else:
+            bad("[behavior] threshold — число от 0 до 1")
+    cases = raw.get("case", {})
+    if not isinstance(cases, dict):
+        bad("[behavior.case] должна быть таблицей: [behavior.case.\"<имя кейса>\"] threshold = …")
+        return
+    for name, spec in sorted(cases.items()):
+        value = spec.get("threshold") if isinstance(spec, dict) else None
+        if not _is_score(value):
+            bad("[behavior.case.%s] нужен threshold — число от 0 до 1" % name)
+            continue
+        m.case_thresholds[name] = float(value)
