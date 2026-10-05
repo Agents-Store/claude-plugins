@@ -27,8 +27,8 @@ table with a concrete fix per row.
 ### Skills
 | Skill | Invoked by | × | Outcome |
 |---|---|---|---|
-| audit | user | 1 | completed |
-| export-report | model | 2 | completed |
+| audit | user | 1 | ok |
+| export-report | model | 2 | ok |
 
 ### HTTP
 | Source | Method | Host · path | × | Codes |
@@ -48,7 +48,7 @@ table with a concrete fix per row.
 |---|---|---|---|---|
 | 1 | 🔴 | 1 API token refused by the server in this session | bearer $EXAMPLE_API_TOKEN fp a1b2c3d4 -> 401×7 @ api.example.test | Renew or replace the token and update where it is stored (settings env, `.env`, vault) |
 | 2 | 🔴 | MCP server `tracker` failed to start | AUTH_HEADER_REJECTED: the server refused the Authorization header | Run `claude mcp list` or `/mcp` to see the error and fix the server config |
-| 3 | 🟡 | The same 401 was retried 7 times without changing anything | repeated curl calls with the same header | Stop after the first 401 and fix the token before retrying (judgment) |
+| 3 | 🟡 | The same request was retried unchanged after a 401 | 5 identical GET /v1/reports calls returned 401 | Stop after the first 401 and fix the token before retrying (judgment) |
 | 4 | ⚪ | MCP servers waiting for authentication | 1: crm | Authenticate the ones you need in `/mcp`; disconnect the rest |
 
 ### Next step

@@ -26,8 +26,8 @@ tests, and every request succeeded. The audit finds nothing to fix.
 ### Skills
 | Skill | Invoked by | × | Outcome |
 |---|---|---|---|
-| audit | user | 1 | completed |
-| examples | model | 1 | completed |
+| audit | user | 1 | ok |
+| examples | model | 1 | ok |
 
 ### HTTP
 | Source | Method | Host · path | × | Codes |

@@ -313,16 +313,16 @@ def _is_down(code):
 def verdict(codes, matched, resolved):
     decided = [c for c in (codes or {}) if c != "?"]
     if "401" in decided:
-        return "❌ не принят"
+        return "❌ rejected"
     if "403" in decided:
-        return "⚠️ нет доступа"
+        return "⚠️ no access"
     if decided and all(_is_2xx(c) for c in decided):
-        return "✅ принимался"
+        return "✅ accepted"
     if decided and all(_is_down(c) for c in decided):
-        return "⚠️ сервис был недоступен"
+        return "⚠️ service was down"
     if decided or (matched and resolved):
-        return "— кода про токен нет"
-    return "— не проверить по сессии"
+        return "— no code for this token"
+    return "— not checkable from the session"
 
 
 # ── collector ────────────────────────────────────────────────────────────────
@@ -332,32 +332,34 @@ def collect_tokens(ctx):
     events = (session_events(ctx) or {}).get("events") or []
     make_lookup = _lookup_factory(ctx)
     secrets, rows, order = _Secrets(), {}, []
-    for event in events:
-        if not isinstance(event, dict) or event.get("kind") != "tool":
-            continue
-        try:
-            _sweep(event, secrets)
-            if event.get("name") != "Bash":      # WebFetch / WebSearch / MCP: no literal token, no row
+    try:
+        for event in events:
+            if not isinstance(event, dict) or event.get("kind") != "tool":
                 continue
-            for key, token, host, codes, matched in _bash_tokens(event, make_lookup, secrets):
-                row = rows.get(key)
-                if row is None:
-                    value = token["value"]
-                    row = rows[key] = {"kind": token["kind"], "var": token["var"],
-                                       "fp": (_fingerprint(value) if value is not None and len(value) >= MIN_LEN
-                                              else None),     # a short value's fingerprint is brute-forceable
-                                       "hosts": [], "codes": {}, "_matched": False,
-                                       "_resolved": value is not None}
-                    order.append(key)
-                row["var"] = row["var"] or token["var"]
-                if host and host not in row["hosts"]:
-                    row["hosts"].append(host)
-                for code in codes:
-                    row["codes"][code] = row["codes"].get(code, 0) + 1
-                row["_matched"] = row["_matched"] or matched
-        except Exception:                          # an odd event is a missing row, never a crash
-            continue
-    secrets.flush()
+            try:
+                _sweep(event, secrets)
+                if event.get("name") != "Bash":      # WebFetch / WebSearch / MCP: no literal token, no row
+                    continue
+                for key, token, host, codes, matched in _bash_tokens(event, make_lookup, secrets):
+                    row = rows.get(key)
+                    if row is None:
+                        value = token["value"]
+                        row = rows[key] = {"kind": token["kind"], "var": token["var"],
+                                           "fp": (_fingerprint(value) if value is not None and len(value) >= MIN_LEN
+                                                  else None),     # a short value's fingerprint is brute-forceable
+                                           "hosts": [], "codes": {}, "_matched": False,
+                                           "_resolved": value is not None}
+                        order.append(key)
+                    row["var"] = row["var"] or token["var"]
+                    if host and host not in row["hosts"]:
+                        row["hosts"].append(host)
+                    for code in codes:
+                        row["codes"][code] = row["codes"].get(code, 0) + 1
+                    row["_matched"] = row["_matched"] or matched
+            except Exception:                          # an odd event is a missing row, never a crash
+                continue
+    finally:
+        secrets.flush()
     out = []
     for key in order:
         row = rows[key]
@@ -434,7 +436,7 @@ def section_tokens(report):
            % (len(rows), bad)]
     out += [_row_text(t) for t in rows[:15]]
     if len(rows) > 15:
-        out.append("  … ещё %d — full" % (len(rows) - 15))
+        out.append("  … %d more — full" % (len(rows) - 15))
     return out
 
 

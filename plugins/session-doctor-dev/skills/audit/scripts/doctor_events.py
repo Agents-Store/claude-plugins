@@ -13,6 +13,10 @@ from doctor_common import (check, collector, finding, iso_seconds, iter_jsonl, r
 
 RESULT_LIMIT = 4000
 BODY_LIMIT = 4000
+INPUT_LIMIT = 2000
+# redact() runs regexes that backtrack badly on long keyword chains ("my-token-my-token-..."), so no
+# single call may be handed more than this many characters.
+REDACT_CEILING = 4000
 SKILL_BODY_PREFIX = "Base directory for this skill:"
 COMMAND_NAME = re.compile(r"<command-name>\s*([^<]*?)\s*</command-name>")
 
@@ -43,8 +47,14 @@ def iter_session_files(ctx):
     return files
 
 
+def _safe(text, limit=REDACT_CEILING):
+    """redact() over at most `limit` characters of text."""
+    return redact(str(text)[: min(limit, REDACT_CEILING)])
+
+
 def _text(value, limit):
-    return redact(text_of(value) if not isinstance(value, str) else value[: limit * 2])[:limit]
+    text = value if isinstance(value, str) else text_of(value)
+    return _safe(text, limit)[:limit]
 
 
 TOOL_RESULT_KEYS = ("code", "codeText", "success", "status", "commandName", "bytes",
@@ -54,7 +64,7 @@ TOOL_RESULT_KEYS = ("code", "codeText", "success", "status", "commandName", "byt
 def _trim_tool_result(tur):
     """A small, redacted copy of toolUseResult: scalars the audit reads, never stdout or file bodies."""
     if isinstance(tur, str):
-        return {"text": short(redact(tur[: RESULT_LIMIT * 2]), RESULT_LIMIT)}
+        return {"text": short(_safe(tur, RESULT_LIMIT), RESULT_LIMIT)}
     if not isinstance(tur, dict):
         return None
     out = {}
@@ -62,7 +72,7 @@ def _trim_tool_result(tur):
         if key in tur:
             val = tur[key]
             if isinstance(val, str):
-                out[key] = short(redact(val), 500)
+                out[key] = short(_safe(val, 500), 500)
             elif isinstance(val, (int, float, bool)) or val is None:
                 out[key] = val
     return out
@@ -72,7 +82,7 @@ def _api_error(actor, ts, status, retry, error):
     return {"ts": ts, "actor": actor, "kind": "api_error",
             "status": status if isinstance(status, int) else None,
             "retry_attempt": retry if isinstance(retry, int) else None,
-            "error": redact(str(error))[:300] if error is not None else ""}
+            "error": _safe(error, 300)[:300] if error is not None else ""}
 
 
 def _attachment(actor, ts, att):
@@ -87,16 +97,18 @@ def _attachment(actor, ts, att):
                  "command": str(att.get("commandName") or "")}]
     if kind == "deferred_tools_delta":
         out = []
-        for srv in att.get("failedMcpServers") or []:
+        servers = att.get("failedMcpServers")
+        for srv in servers if isinstance(servers, list) else []:
             if isinstance(srv, dict):
                 out.append({"ts": ts, "actor": actor, "kind": "mcp_connect",
-                            "name": str(srv.get("name") or ""),
-                            "error_code": str(srv.get("errorCode") or ""),
-                            "error": redact(str(srv.get("error") or ""))[:300]})
+                            "name": str(srv.get("name") or "")[:200],
+                            "error_code": str(srv.get("errorCode") or "")[:200],
+                            "error": _safe(srv.get("error") or "", 300)[:300]})
         return out
     if kind == "invoked_skills":
+        listed = att.get("skills")
         skills = [{"name": str(s.get("name") or ""), "path": str(s.get("path") or "")}
-                  for s in att.get("skills") or [] if isinstance(s, dict)]
+                  for s in (listed if isinstance(listed, list) else []) if isinstance(s, dict)]
         return [{"ts": ts, "actor": actor, "kind": "invoked_skills", "skills": skills}]
     return []
 
@@ -149,7 +161,7 @@ def _parse_file(actor, path):
                 continue
             if rec.get("isMeta") and text_of(content).startswith(SKILL_BODY_PREFIX):
                 events.append({"ts": ts, "actor": actor, "kind": "skill_body",
-                               "text": redact(text_of(content)[:BODY_LIMIT * 2])[:BODY_LIMIT]})
+                               "text": _safe(text_of(content), BODY_LIMIT)[:BODY_LIMIT]})
                 continue
             tur = rec.get("toolUseResult")
             for block in content:
@@ -158,7 +170,8 @@ def _parse_file(actor, path):
                     continue
                 if block.get("type") != "tool_result":
                     continue
-                ev = pending.get(block.get("tool_use_id"))
+                use_id = block.get("tool_use_id")
+                ev = pending.get(use_id) if isinstance(use_id, str) else None
                 if ev is None:
                     continue
                 ev["is_error"] = bool(block.get("is_error"))
@@ -206,9 +219,31 @@ def events(ctx):
     return cached
 
 
+def _redact_input(value):
+    """Deep copy of a tool input with every string redacted and capped; never touches the original."""
+    if isinstance(value, str):
+        return short(_safe(value), INPUT_LIMIT)
+    if isinstance(value, dict):
+        return {str(k)[:200]: _redact_input(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_redact_input(v) for v in value]
+    return value
+
+
 @collector("events")
 def collect_events(ctx):
-    return events(ctx)
+    """What lands in report["events"] (and --json) is a redacted copy; ctx keeps the raw events, which
+    the HTTP and token collectors read to find literal credentials."""
+    raw = events(ctx)
+    out = dict(raw)
+    safe = []
+    for ev in raw.get("events") or []:
+        if isinstance(ev, dict) and isinstance(ev.get("input"), dict):
+            ev = dict(ev)
+            ev["input"] = _redact_input(ev["input"])
+        safe.append(ev)
+    out["events"] = safe
+    return out
 
 
 @check

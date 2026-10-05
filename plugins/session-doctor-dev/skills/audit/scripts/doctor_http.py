@@ -438,9 +438,9 @@ def _mcp_code(ev, text):
     if text.lstrip().startswith("{"):
         try:
             body = json.loads(text)
-            err_body = isinstance(body, dict) and "error" in body
+            err_body = isinstance(body, dict) and bool(body.get("error"))
         except ValueError:
-            err_body = bool(re.match(r'^\s*\{\s*"error"', text))
+            err_body = bool(re.match(r'^\s*\{\s*"error"\s*:\s*(?!null\b)', text))
     if ev.get("is_error") or err_body:
         for rx in MCP_CODES:
             found = rx.search(text)
@@ -556,8 +556,8 @@ def mcp_connect_requests(events):
     for ev in events or []:
         if not isinstance(ev, dict) or ev.get("kind") != "mcp_connect":
             continue
-        name = redact(str(ev.get("name") or "")) or "?"
-        code = str(ev.get("error_code") or "") or "?"
+        name = short(redact(str(ev.get("name") or "")[:200]), 60) or "?"
+        code = short(redact(str(ev.get("error_code") or "")[:200]), 60) or "?"
         if (name, code) not in seen:
             seen[(name, code)] = {"ts": ev.get("ts"), "actor": ev.get("actor") or "main", "source": "mcp-connect",
                                   "method": "", "host": name, "path": "", "code": code}
@@ -613,7 +613,7 @@ def section_http(r):
     shown += rest[:10]
     out += [_line_text(l) for l in shown]
     if len(lines) > len(shown):
-        out.append("  … ещё %d — full" % (len(lines) - len(shown)))
+        out.append("  … %d more — full" % (len(lines) - len(shown)))
     return out
 
 

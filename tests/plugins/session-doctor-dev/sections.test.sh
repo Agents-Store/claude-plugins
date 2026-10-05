@@ -31,6 +31,7 @@ SID2="bbbbbbbb-1111-2222-3333-444444444444"
 SID3="cccccccc-1111-2222-3333-444444444444"
 SID4="dddddddd-1111-2222-3333-444444444444"
 SID5="eeeeeeee-1111-2222-3333-444444444444"
+SID6="ffffffff-1111-2222-3333-444444444444"
 PROJ="$T/projects/demo"
 CFG="$T/home/.claude-test"
 SLUG="$(printf '%s' "$PROJ" | sed 's/[^A-Za-z0-9]/-/g')"
@@ -39,6 +40,7 @@ TR2="$CFG/projects/$SLUG/$SID2.jsonl"
 TR3="$CFG/projects/$SLUG/$SID3.jsonl"
 TR4="$CFG/projects/$SLUG/$SID4.jsonl"
 TR5="$CFG/projects/$SLUG/$SID5.jsonl"
+TR6="$CFG/projects/$SLUG/$SID6.jsonl"
 TOKB="ghp_""$(printf 'B%.0s' {1..36})"        # secret inside a Bash stdout, runtime-built
 TOKH="ghp_""$(printf 'H%.0s' {1..36})"        # secret in a request URL / userinfo, runtime-built
 TOKA="ghp_""$(printf 'A%.0s' {1..36})"        # assembled at runtime, never a literal credential
@@ -49,6 +51,12 @@ TOKLIT="qqqpa"'$'"sw0rd""$(printf 'S%.0s' {1..8})""Tail9"   # LITERAL credential
 TOKQ1="quoteaa""$(printf 'a%.0s' {1..8})"     # two adjacent quoted runs of ONE header value:
 TOKQ2="quotebb""$(printf 'b%.0s' {1..8})"     #   'x-api-key: <Q1>'"<Q2>" — neither is a substring of the joined value
 TOKW="webonly_""$(printf 'W%.0s' {1..20})"    # query secret in a WebFetch url only: scrubbed, never a row
+
+TOKTG="123456789:""AAH""$(printf 'd%.0s' {1..32})"   # Telegram bot token shape, runtime-built
+LKPW="Pw9""$(printf 'x%.0s' {1..12})"                # DB_PASSWORD value in a Write content
+LKEXP="ex9""$(printf 'y%.0s' {1..12})"               # export MY_SECRET_THING value
+LKOLD="ol9""$(printf 'z%.0s' {1..12})"               # password in an Edit old_string
+LKBODY="bd9""$(printf 'q%.0s' {1..12})"              # api_key in a curl -d body
 
 # ── фикстуры ────────────────────────────────────────────────────────────
 make_events_fixture() {
@@ -187,14 +195,59 @@ make_tokens_fixture() {
 JSONL
 }
 
+# Профиль утечек (final review): Telegram-токен в URL, секреты в Write/Edit/export/-d, длинная цепочка
+# keyword-ов, MCP-успех с "error": null. Все значения собраны конкатенацией в рантайме.
+make_leak_fixture() {
+  TOKTG="$TOKTG" LKPW="$LKPW" LKEXP="$LKEXP" LKOLD="$LKOLD" LKBODY="$LKBODY" \
+  LKCHAIN="$(python3 -c "print('my-token-'*889)")" \
+  SID6="$SID6" PROJ="$PROJ" TR6="$TR6" python3 - <<'PY'
+import json, os
+E = os.environ
+def tool(i, ts, name, inp):
+    return {"type": "assistant", "timestamp": "2026-10-04T14:00:%02d.000Z" % ts,
+            "message": {"id": "m" + i, "content": [{"type": "tool_use", "id": i, "name": name, "input": inp}]}}
+def result(i, ts, text, err=False):
+    blk = {"type": "tool_result", "tool_use_id": i, "content": text}
+    if err:
+        blk["is_error"] = True
+    return {"type": "user", "timestamp": "2026-10-04T14:00:%02d.500Z" % ts,
+            "message": {"role": "user", "content": [blk]}}
+recs = [
+    {"type": "user", "sessionId": E["SID6"], "cwd": E["PROJ"], "timestamp": "2026-10-04T14:00:00.000Z",
+     "message": {"role": "user", "content": "go"}},
+    tool("l1", 1, "Bash", {"command": "curl -s https://api.telegram.org/bot" + E["TOKTG"] + "/getMe"}),
+    result("l1", 1, '{"ok":true}'),
+    tool("l2", 2, "Write", {"file_path": "/tmp/app.env", "content": "DB_PASSWORD=" + E["LKPW"] + "\nDEBUG=1\n"}),
+    result("l2", 2, "File created"),
+    tool("l3", 3, "Bash", {"command": "export MY_SECRET_THING=" + E["LKEXP"] + " && echo done"}),
+    result("l3", 3, "done"),
+    tool("l4", 4, "Edit", {"file_path": "/tmp/app.py", "old_string": "password = '" + E["LKOLD"] + "'",
+                           "new_string": "password = os.environ['PW']"}),
+    result("l4", 4, "ok"),
+    tool("l5", 5, "Bash", {"command": "curl -s -X POST https://api.example.test/v1/login -d 'api_key=" + E["LKBODY"] + "'"}),
+    result("l5", 5, "HTTP/2 200"),
+    tool("l6", 6, "Bash", {"command": E["LKCHAIN"]}),
+    result("l6", 6, "done"),
+    tool("l7", 7, "mcp__srv__ping", {}),
+    result("l7", 7, '{"error": null, "data": 1}'),
+    tool("l8", 8, "mcp__srv__bad", {}),
+    result("l8", 8, '{"error": "boom"}'),
+]
+with open(E["TR6"], "w") as f:
+    for r in recs:
+        f.write(json.dumps(r) + "\n")
+PY
+}
+
 make_events_fixture
 make_garbage_fixture
 make_skills_fixture
 make_http_fixture
 make_tokens_fixture
+make_leak_fixture
 
 doctor() {
-  env -i HOME="$T/home" PATH="$PATH" PYTHONIOENCODING=utf-8 \
+  timeout 60 env -i HOME="$T/home" PATH="$PATH" PYTHONIOENCODING=utf-8 \
     CLAUDE_CONFIG_DIR="$CFG" CLAUDE_CODE_SESSION_ID="${SESSION:-$SID}" \
     python3 "$SCRIPT" --cwd "$PROJ" "$@"
 }
@@ -329,10 +382,10 @@ assert_eq "high" "$(tk '.findings[]|select(.id=="TOKEN_REJECTED")|.severity')" "
 assert_contains "✅" "$(tk '.tokens.tokens[]|select(.codes["200"])|.verdict')" "токен с 200 — принимался"
 assert_contains "CMS_TOKEN" "$(tk '.tokens.tokens[].var')" "токен из \$VAR опознан по имени переменной"
 assert_eq "yes" "$([ "$(tk '.tokens.tokens[]|select(.var=="CMS_TOKEN")|.fp|length')" = "8" ] && echo yes || echo no)" "\$VAR из settings env разрешён: fp из 8 hex"
-assert_contains "кода про токен нет" "$(tk '.tokens.tokens[]|select(.var=="CMS_TOKEN")|.verdict')" "разрешённый токен без кода — кода про токен нет"
+assert_contains "no code for this token" "$(tk '.tokens.tokens[]|select(.var=="CMS_TOKEN")|.verdict')" "разрешённый токен без кода — кода про токен нет"
 assert_eq "bearer-jwt x-api-key x-api-key x-api-key" "$(tk '[.tokens.tokens[]|select(.var==null and .fp!=null)|.kind]|sort|join(" ")')" "kind по форме значения"
 assert_eq "gone.example.test null" "$(tk '.tokens.tokens[]|select(.var=="GONE_TOKEN")|"\(.hosts[0]) \(.fp)"')" "неразрешённый \$VAR: имя есть, fp null"
-assert_contains "не проверить" "$(tk '.tokens.tokens[]|select(.var=="GONE_TOKEN")|.verdict')" "неразрешённый \$VAR без кода — не проверить по сессии"
+assert_contains "not checkable" "$(tk '.tokens.tokens[]|select(.var=="GONE_TOKEN")|.verdict')" "неразрешённый \$VAR без кода — не проверить по сессии"
 assert_eq "0" "$(tk '[.tokens.tokens[]|select(.fp==null and .var==null)]|length')" "без значения и без имени — не строка"
 assert_eq "0" "$(tk '[.tokens.tokens[]|select(.hosts|index("web.example.test"))]|length')" "токен только в WebFetch — не строка"
 assert_eq "7" "$(tk '.tokens.tokens|length')" "ровно семь токенов: 401, 200, CMS_TOKEN, GONE_TOKEN, литерал с \$, два куска, SHORT_TOKEN"
@@ -360,7 +413,7 @@ assert_missing "sw0rd" "$DIG$FULL" "хвост литерала не в дайд
 assert_missing "$TOKQ1" "$DIG$FULL" "кусок 1 не в дайджесте и full"
 assert_missing "$TOKQ2" "$DIG$FULL" "кусок 2 не в дайджесте и full"
 assert_contains "TOKENS" "$DIG" "раздел TOKENS в дайджесте"
-assert_contains "❌ не принят" "$DIG" "дайджест: строка с вердиктом ❌"
+assert_contains "❌ rejected" "$DIG" "дайджест: строка с вердиктом ❌"
 assert_missing "$TOKREJ" "$DIG$FULL" "значение отклонённого токена не в дайджесте и full"
 assert_missing "$TOKOK" "$DIG$FULL" "значение рабочего токена не в дайджесте и full"
 assert_missing "$TOKVAR" "$DIG$FULL" "значение токена из settings env не в дайджесте и full"
@@ -369,6 +422,49 @@ assert_eq "0" "$(py "
 import doctor_tokens as t
 print(sum(1 for m in ('urllib.request','socket','http.client') if m in __import__('sys').modules))")" "doctor_tokens не тянет сетевые модули"
 assert_eq "0" "$(find "$SCRIPTS" -name __pycache__ | wc -l | tr -d ' ')" "__pycache__ не создан"
+
+# ═══ section: leaks (final review) ═══════════════════════════════════════════
+echo "▸ leaks: redaction of digest / --full / --json"
+start_ms="$(date +%s%N)"
+LJ="$(SESSION="$SID6" doctor --json)"
+LEXIT=$?
+end_ms="$(date +%s%N)"
+LDIG="$(SESSION="$SID6" doctor)"
+LFULL="$(SESSION="$SID6" doctor --full)"
+assert_eq "0" "$LEXIT" "аудит с 8000-символьной цепочкой my-token- завершился с кодом 0"
+assert_eq "yes" "$([ $(( (end_ms - start_ms) / 1000000 )) -lt 3000 ] && echo yes || echo no)" "8000-символьная цепочка keyword-ов не вешает аудит (быстрее 3 с)"
+assert_eq "0" "$(printf '%s' "$LJ" | jq '.errors|length')" "leak-фикстура: ни один коллектор не упал"
+leak_absent() {  # $1 value, $2 label — no 8-char window of the value in digest, --full or --json
+  local v="$1" i frag bad_hit=""
+  for ((i = 0; i + 8 <= ${#v}; i++)); do
+    frag="${v:i:8}"
+    case "$LDIG$LFULL$LJ" in *"$frag"*) bad_hit="$frag"; break ;; esac
+  done
+  if [ -z "$bad_hit" ]; then ok "$2: ни один 8-символьный фрагмент не в дайджесте/full/--json"; else bad "$2 — утёк фрагмент: $bad_hit"; fi
+}
+leak_absent "$TOKTG" "Telegram-токен в /bot<token>/getMe"
+leak_absent "$LKPW" "Write content DB_PASSWORD=..."
+leak_absent "$LKEXP" "Bash export MY_SECRET_THING=..."
+leak_absent "$LKOLD" "Edit old_string с паролем"
+leak_absent "$LKBODY" "curl -d 'api_key=...' тело"
+assert_contains "/bot***/getMe" "$LJ$LFULL" "Telegram: путь замаскирован как /bot***/getMe"
+assert_eq "/bot***/getMe" "$(py "
+import doctor_common as c
+print(c.redact('/bot' + '$TOKTG' + '/getMe'))")" "redact(): токен сразу после bot маскируется"
+assert_eq "ok" "$(printf '%s' "$LJ" | jq -r '.http.lines[]|select(.source=="mcp" and (.path=="ping"))|.codes|keys[0]')" "MCP-успех с \"error\": null — ok, не error"
+assert_eq "error" "$(printf '%s' "$LJ" | jq -r '.http.lines[]|select(.source=="mcp" and (.path=="bad"))|.codes|keys[0]')" "MCP с truthy error — error"
+assert_eq "yes" "$(printf '%s' "$LJ" | jq -r '[.events.events[]|select(.kind=="tool" and .name=="Bash")|.input.command|length]|max < 2100|if . then "yes" else "no" end')" "--json: строки input урезаны (<=2000)"
+assert_eq "1" "$(py "
+import json, doctor_events as e
+class C: pass
+c = C(); c.transcript_path = '$TR6'
+raw = e.events(c)
+rep = e.collect_events(c)
+cmds = [x['input'].get('command', '') for x in raw['events'] if x.get('kind') == 'tool' and x['name'] == 'Bash']
+print(int(any('$TOKTG' in x for x in cmds) and e.events(c) is raw and '$TOKTG' not in json.dumps(rep)))")" "raw events на ctx не тронуты, возвращаемая копия — редактированная"
+assert_eq "yes" "$(py "
+import time, doctor_common as c
+t = time.time(); c.redact(('my-token-' * 889)[:4000]); print('yes' if time.time() - t < 3 else 'no')")" "redact() на потолке 4000 символов быстрый"
 
 # ── SKILL.md: контракт отчёта (Task 8) ──────────────────────────────────────
 SKILLMD="$SCRIPTS/../SKILL.md"

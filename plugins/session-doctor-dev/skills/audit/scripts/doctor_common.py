@@ -27,7 +27,7 @@ TOKEN_VALUE = (
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
     re.compile(r"\bAIza[0-9A-Za-z_\-]{35}\b"),
     re.compile(r"\bxox[abprs]-[A-Za-z0-9\-]{10,}"),
-    re.compile(r"\b\d{8,10}:[A-Za-z0-9_\-]{35}\b"),
+    re.compile(r"(?<!\d)\d{8,10}:[A-Za-z0-9_\-]{35}\b"),
     re.compile(r"\beyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{4,}"),
     re.compile(r"\b[A-Fa-f0-9]{32,}\b"),
 )
@@ -39,10 +39,10 @@ CURL_USER = re.compile(r"((?<!\S)(?:-u|--user)(?:=|\s+)[^\s:]+:)(\S+)")
 # A key is an identifier whose segment ENDS in a secret word (GITHUB_TOKEN, PGPASSWORD, accessToken,
 # x-api-key, STRIPE_KEY, SENTRY_DSN, Authorization) — never a word that merely contains one
 # (Unauthorized, authenticate, oauth, authz, "primary key").
-KEY = (r"(?<![A-Za-z0-9])(?:[A-Za-z0-9]+[_.\-])*"
+KEY = (r"(?<![A-Za-z0-9])(?:[A-Za-z0-9]+[_.\-]){0,6}"
        r"(?:[A-Za-z0-9]*?(?:token|secret|passw(?:or)?d|pwd)|api[_\-]?key|access[_\-]?key|private[_\-]?key"
        r"|authorization|auth|credentials?|dsn|(?<=[_.\-])key)"
-       r"(?![A-Za-z0-9])(?:[_.\-][A-Za-z0-9]+)*")
+       r"(?![A-Za-z0-9])(?:[_.\-][A-Za-z0-9]+){0,6}")
 ASSIGNMENT = re.compile(r"(?i)(" + KEY + r"[\"']?\s*[=:]\s*(?:(?:bearer|basic|token)\s+)?)"
                         r"(\"[^\"\n]*\"|'[^'\n]*'|[^\s\"'&,;}]{4,})")
 BEARER = re.compile(r"(?i)\b((?:bearer|basic)\s+)([A-Za-z0-9._~+/=\-]{12,})")
