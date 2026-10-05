@@ -34,8 +34,9 @@ python3 scripts/plugin_test.py --plugin <name> --verbose   # печатать и
 
 ## Статусы
 
-Все проверки блокирующие (`blocking`), кроме `skill-budget`: у неё `fail` понижается до `warn`
-навсегда. У блокирующей проверки `fail` остаётся `fail`, а под `--strict` (так запускает CI)
+Все проверки блокирующие (`blocking`), кроме `skill-budget` (навсегда), `eval-coverage` (до конца
+наполнения наборов) и `behavior` (до решения владельца после калибровки L2): у них `fail` понижается до `warn`.
+У блокирующей проверки `fail` остаётся `fail`, а под `--strict` (так запускает CI)
 её `warn` тоже становится `fail`. `infra` — сбой окружения (сеть, сервер не стартовал, нет
 toolchain, дрейф снимка не закреплённого MCP-сервера) — не блокирует никогда: код выхода 2.
 Статусы — константа `STATUS` в `scripts/plugin_test/model.py`, меняются только коммитом.
@@ -54,6 +55,8 @@ toolchain, дрейф снимка не закреплённого MCP-серв�
 | `cli-flags` | подкоманды и `--флаги` в bash-блоках есть в снимке `--help` (opt-in) | ci |
 | `api-paths` | метод и путь curl-рецептов есть в OpenAPI-спецификации (opt-in) | ci |
 | `unit` | собственные тесты плагина из `[[unit]]` | ci |
+| `eval-files` | `skills/<s>/evals/evals.json` и `triggers.json` в формате skill-creator; родной кейс в `tests/plugins/<p>/evals/<case>/` имеет `graders/` | ci |
+| `eval-coverage` | у каждого skill, который вызывает модель, есть `triggers.json` с ≥ 5 «должен» и ≥ 5 «не должен» (advisory до конца наполнения) | ci |
 
 ## `plugin-test.toml`
 
@@ -120,3 +123,22 @@ python3 scripts/plugin_test.py --mode server --env-file <workspace>/.env \
 ```
 
 Значения из env-файла в снимке заменяются на `${ИМЯ}`; scrub-check после записи обязателен.
+
+## Кейсы L2
+
+Источник — файлы формата skill-creator рядом со skill; они едут вместе с плагином, правка = новая версия.
+
+```
+plugins/<p>/skills/<s>/evals/
+  evals.json      # кейсы качества (skill-creator): {skill_name, evals: [{id, prompt, expected_output, files, expectations}]}
+  triggers.json   # срабатывание: [{"query": "…", "should_trigger": true}, …]
+tests/plugins/<p>/evals/<case>/   # редко: родной кейс claude plugin eval (prompt.md + graders/*.md)
+```
+
+- `evals.json`: `id` — число или строка из латиницы, цифр и `_ . -`, уникальный; `prompt` непустой;
+  ожидания — `expectations` (строки) **или** `assertions` (объекты с `text`); без них судят по
+  `expected_output`. Кейс с непустым `files` в L2 не идёт.
+- `triggers.json`: ровно ключи `query` и `should_trigger`; ≥ 5 `true` и ≥ 5 `false`, всего ≤ 20;
+  `false` — «почти, но не то»: соседний skill, общие слова, задача соседнего плагина. Skill с
+  `disable-model-invocation: true` набора не требует, а `should_trigger: true` для него — ошибка.
+- Наборы пишет `/plugin-creator:evals` (методика `skill-creator`).

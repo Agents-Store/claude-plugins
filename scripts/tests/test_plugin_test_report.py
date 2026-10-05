@@ -203,6 +203,10 @@ class StatusPolicyTest(unittest.TestCase):
         from plugin_test.model import CHECK_IDS, STATUS
         self.assertEqual(set(STATUS), set(CHECK_IDS))
 
+    def test_l2_file_checks(self):
+        from plugin_test.model import STATUS
+        self.assertEqual((STATUS["eval-files"], STATUS["eval-coverage"]), (BLOCKING, ADVISORY))
+
 
 if __name__ == "__main__":
     unittest.main()

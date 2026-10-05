@@ -14,6 +14,7 @@ CI, SERVER = "ci", "server"
 CHECK_IDS = (
     "manifest", "skill-links", "skill-snippets", "skill-budget", "mcp-names",
     "mcp-list", "hook-fixtures", "cli-flags", "api-paths", "unit",
+    "eval-files", "eval-coverage",
 )
 
 # Статус внедрения (spec §6). advisory: fail понижается до warn. blocking: fail
@@ -34,6 +35,8 @@ STATUS = {
     "cli-flags": BLOCKING,
     "api-paths": BLOCKING,
     "unit": BLOCKING,
+    "eval-files": BLOCKING,       # формат кейсов L2 — с первого дня (spec очереди 2 §4.1)
+    "eval-coverage": ADVISORY,    # blocking после наполнения наборов срабатывания (Task 17)
 }
 
 CHECK_TIMEOUT = 120      # потолок одного subprocess проверки, секунды
