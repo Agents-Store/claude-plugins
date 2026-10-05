@@ -61,6 +61,96 @@ class EvalgenTest(unittest.TestCase):
         dotted = re.compile(evalgen.input_match("a.b", "x"))
         self.assertFalse(dotted.search('{"skill":"aXb:x"}'))
 
+    def test_input_match_with_alias_commands(self):
+        pat = re.compile(evalgen.input_match("p-dev", "explain-code", ("explain", "walk.through")))
+        for ok in ('{"skill":"p-dev:explain-code"}', '{"skill": "explain"}', '{"skill":"p-dev:explain"}',
+                   '{"skill" : "p-dev:walk.through"}'):
+            self.assertTrue(pat.search(ok), ok)
+        for bad in ('{"skill":"other:explain"}', '{"skill":"p-dev:explain-more"}', '{"skill":"p-dev:walkXthrough"}',
+                    '{"skill":"p-dev:code"}', '{"skill":"p-dev:explain:x"}', '{"skill":"xp-dev:explain"}'):
+            self.assertFalse(pat.search(bad), bad)
+        plain = re.compile(evalgen.input_match("p-dev", "explain-code"))
+        self.assertTrue(plain.search('{"skill":"p-dev:explain-code"}'))
+        self.assertFalse(plain.search('{"skill":"p-dev:explain"}'))     # без alias команда — не срабатывание
+        self.assertEqual(evalgen.input_match("p-dev", "s"), evalgen.input_match("p-dev", "s", ()))
+
+    def test_skill_routes(self):
+        src = os.path.join(self.tmp, "routes")
+        for skill in ("api", "api-reference", "deep-research", "lonely"):
+            os.makedirs(os.path.join(src, "skills", skill))
+            with open(os.path.join(src, "skills", skill, "SKILL.md"), "w") as fh:
+                fh.write("x")
+        os.makedirs(os.path.join(src, "skills", "no-skill-md"))
+        commands = {
+            "explain": "Read `${CLAUDE_PLUGIN_ROOT}/skills/api-reference/SKILL.md` first.\n",
+            "review": "Use the p-dev:deep-research skill.\n",
+            "zeta": "skills/api/ and also /p-dev:deep-research.\n",
+            "alpha": "see skills/api-reference/references/x.md and `p-dev:api`.\n",
+            "deep-research": "this command repeats skills/deep-research/ — its own namesake.\n",
+            "longer": "only p-dev:api-reference, p-dev:deep-researcher and skills/api-reference-v2/.\n",
+            "foreign": "other-dev:api, xp-dev:lonely, myskills/lonely/, skills/no-skill-md/ and skills/ghost/.\n",
+            "plain": "no routing here at all\n",
+        }
+        os.makedirs(os.path.join(src, "commands"))
+        for name, text in commands.items():
+            with open(os.path.join(src, "commands", name + ".md"), "w", encoding="utf-8") as fh:
+                fh.write(text)
+        with open(os.path.join(src, "commands", "notes.txt"), "w") as fh:
+            fh.write("skills/lonely/ p-dev:lonely\n")
+        routes = evalgen.skill_routes(src, "p-dev")
+        self.assertEqual(routes, {"api": ["alpha", "zeta"],
+                                  "api-reference": ["alpha", "explain", "longer"],
+                                  "deep-research": ["review", "zeta"]})
+        self.assertEqual(evalgen.skill_routes(src, "p-dev"), routes)              # детерминировано
+        self.assertEqual(list(routes), sorted(routes))
+
+    def test_skill_routes_without_commands_or_skills(self):
+        src = os.path.join(self.tmp, "bare")
+        os.makedirs(os.path.join(src, "skills", "a"))
+        with open(os.path.join(src, "skills", "a", "SKILL.md"), "w") as fh:
+            fh.write("x")
+        self.assertEqual(evalgen.skill_routes(src, "p-dev"), {})
+        self.assertEqual(evalgen.skill_routes(os.path.join(self.tmp, "absent"), "p-dev"), {})
+
+    def test_trigger_graders_accept_routed_commands(self):
+        queries = [TriggerQuery("web", "explain this", True), TriggerQuery("web", "unrelated", False),
+                   TriggerQuery("other", "something", True)]
+        evalgen.write_triggers(self.copy, evalgen.TRIGGER_DIR, "p-dev", queries, routes={"web": ["explain"]})
+        root = os.path.join(self.copy, evalgen.TRIGGER_DIR)
+        pos, _ = parse(os.path.join(root, evalgen.trigger_name("web", "explain this"), "graders", "fired.md"))
+        neg, _ = parse(os.path.join(root, evalgen.trigger_name("web", "unrelated"), "graders", "fired.md"))
+        none, _ = parse(os.path.join(root, evalgen.trigger_name("other", "something"), "graders", "fired.md"))
+        self.assertEqual(pos["input_match"], evalgen.input_match("p-dev", "web", ("explain",)))
+        self.assertEqual(neg["input_match"], pos["input_match"])
+        self.assertEqual((pos["min"], "max" in pos), (1, False))
+        self.assertEqual((neg["min"], neg["max"]), (0, 0))        # сработавшая команда — провал «не должен срабатывать»
+        self.assertTrue(re.search(neg["input_match"], '{"skill":"p-dev:explain"}'))
+        self.assertFalse(re.search(neg["input_match"], '{"skill":"other-dev:explain"}'))
+        self.assertEqual(none["input_match"], evalgen.input_match("p-dev", "other"))     # у другого skill alias нет
+
+    def test_routes_default_changes_nothing(self):
+        q = [TriggerQuery("web", "a", True), TriggerQuery("web", "b", False)]
+        c = [QualityCase("web", "1", "p", ("c",), "e", False)]
+        roots = []
+        for name, kw in (("one", {}), ("two", {"routes": None}), ("three", {"routes": {}})):
+            copy = os.path.join(self.tmp, name)
+            os.makedirs(copy)
+            evalgen.write_triggers(copy, evalgen.TRIGGER_DIR, "p-dev", q, **kw)
+            evalgen.write_quality(copy, "p-dev", c, {"web": True}, {}, **kw)
+            roots.append(tree(copy))
+        self.assertEqual(roots[0], roots[1])
+        self.assertEqual(roots[0], roots[2])
+
+    def test_quality_fired_indicator_accepts_routed_commands(self):
+        cases = [QualityCase("web", "1", "how", ("c",), "", False), QualityCase("ref", "1", "show", ("c",), "", False)]
+        evalgen.write_quality(self.copy, "p-dev", cases, {"web": True, "ref": False}, {},
+                              routes={"web": ["explain"], "ref": ["status"]})
+        root = os.path.join(self.copy, evalgen.QUALITY_DIR)
+        fired, _ = parse(os.path.join(root, "q-web-1", "graders", "fired.md"))
+        self.assertEqual(fired["input_match"], evalgen.input_match("p-dev", "web", ("explain",)))
+        self.assertEqual(fired["arm"], "with-only")
+        self.assertFalse(os.path.exists(os.path.join(root, "q-ref-1", "graders", "fired.md")))
+
     def test_trigger_tree(self):
         queries = [TriggerQuery("web", "grab https://example.com", True), TriggerQuery("web", "parse my html", False)]
         cases = evalgen.write_triggers(self.copy, evalgen.TRIGGER_DIR, "p-dev", queries)
@@ -186,6 +276,81 @@ class EvalgenTest(unittest.TestCase):
         dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest"))
         self.assertEqual(sorted(tree(dest)), [os.path.join(".claude-plugin", "plugin.json"),
                                               os.path.join("skills", "a", "SKILL.md")])
+
+    def make_plugin(self, manifest_text, name="src"):
+        src = os.path.join(self.tmp, name)
+        path = os.path.join(src, ".claude-plugin", "plugin.json")
+        os.makedirs(os.path.dirname(path))
+        with open(path, "w", encoding="utf-8", newline="") as fh:
+            fh.write(manifest_text)
+        os.makedirs(os.path.join(src, "skills", "a"))
+        with open(os.path.join(src, "skills", "a", "SKILL.md"), "w") as fh:
+            fh.write("x")
+        return src
+
+    def manifest_of(self, root):
+        with open(os.path.join(root, ".claude-plugin", "plugin.json"), "rb") as fh:
+            return fh.read()
+
+    def test_copy_plugin_drops_dependencies_from_the_copy_only(self):
+        original = json.dumps({"name": "p-dev", "version": "1.0.0", "dependencies": ["web-search-dev"],
+                               "author": {"name": "Ж"}}, ensure_ascii=False)
+        src = self.make_plugin(original)
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest"))
+        self.assertEqual(json.loads(self.manifest_of(dest)), {"name": "p-dev", "version": "1.0.0", "author": {"name": "Ж"}})
+        self.assertEqual(self.manifest_of(src), original.encode("utf-8"))      # источник не тронут
+        text = self.manifest_of(dest).decode("utf-8")
+        self.assertIn('\n  "name"', text)                                      # indent=2
+        self.assertIn("Ж", text)                                               # не \\u-эскейпы
+
+    def test_copy_plugin_keeps_manifest_without_dependencies_byte_identical(self):
+        odd = '{ "name":"p-dev",\r\n\t"version" : "1.0.0" }\r\n'
+        src = self.make_plugin(odd)
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest"))
+        self.assertEqual(self.manifest_of(dest), odd.encode("utf-8"))
+
+    def test_copy_plugin_leaves_unreadable_manifest_alone(self):
+        for bad in ("{ not json", "[1, 2]", '"dependencies"', ""):
+            with self.subTest(bad=bad):
+                src = self.make_plugin(bad, name="bad")
+                dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-bad"))
+                self.assertEqual(self.manifest_of(dest), bad.encode("utf-8"))
+                shutil.rmtree(src)
+                shutil.rmtree(dest)
+
+    def test_copy_plugin_does_not_write_through_a_manifest_symlink(self):
+        real = os.path.join(self.tmp, "shared.json")
+        original = json.dumps({"name": "p-dev", "dependencies": ["x"]})
+        with open(real, "w", encoding="utf-8") as fh:
+            fh.write(original)
+        src = os.path.join(self.tmp, "linked")
+        os.makedirs(os.path.join(src, ".claude-plugin"))
+        os.symlink(real, os.path.join(src, ".claude-plugin", "plugin.json"))
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-link"))
+        with open(real, encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), original)
+        self.assertFalse(os.path.islink(os.path.join(dest, ".claude-plugin", "plugin.json")))
+        self.assertEqual(json.loads(self.manifest_of(dest)), {"name": "p-dev"})
+
+    def test_copy_plugin_leaves_manifest_outside_the_copy_alone(self):
+        outside = os.path.join(self.tmp, "outside")
+        os.makedirs(outside)
+        original = json.dumps({"name": "p-dev", "dependencies": ["x"]})
+        with open(os.path.join(outside, "plugin.json"), "w", encoding="utf-8") as fh:
+            fh.write(original)
+        src = os.path.join(self.tmp, "dirlink")
+        os.makedirs(src)
+        os.symlink(outside, os.path.join(src, ".claude-plugin"))
+        evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-dirlink"))
+        with open(os.path.join(outside, "plugin.json"), encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), original)
+
+    def test_copy_plugin_without_manifest_is_fine(self):
+        src = os.path.join(self.tmp, "nomanifest")
+        os.makedirs(os.path.join(src, "skills", "a"))
+        dest = evalgen.copy_plugin(src, os.path.join(self.tmp, "dest-nm"))
+        self.assertTrue(os.path.isdir(os.path.join(dest, "skills", "a")))
+        self.assertFalse(os.path.exists(os.path.join(dest, ".claude-plugin")))
 
 
 if __name__ == "__main__":

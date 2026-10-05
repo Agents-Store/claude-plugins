@@ -39,6 +39,7 @@ class Sources:
     triggers: list = field(default_factory=list)   # evalsrc.TriggerQuery
     quality: list = field(default_factory=list)    # evalsrc.QualityCase
     native: list = field(default_factory=list)     # имена родных кейсов
+    routes: dict = field(default_factory=dict)     # skill → команды плагина, ведущие к нему (evalgen.skill_routes)
 
 
 def _sources(plugin, skip):
@@ -123,6 +124,7 @@ def run(plugin, ctx, manifest):
         ctx.l2_stop = reason
         return [_infra(plugin, "%s: %s" % (L2_NOT_RUN, reason), fix="claude auth login под пользователем сервиса"),
                 _stopped(plugin, reason)]
+    src.routes = evalgen.skill_routes(plugin.dir, plugin.name)     # раз на плагин: команда, ведущая к skill, = срабатывание
     repo_name = os.path.basename(os.path.abspath(plugin.repo))
     past = history.scores(ctx.state_dir, repo_name, plugin.name, model=evalrun.MODEL)
     entries, out = [], []
@@ -171,7 +173,7 @@ def _call(plugin, ctx, label, claude, copy, eval_dir, out_dir, env, **kw):
 
 
 def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
-    cases = evalgen.write_triggers(copy, evalgen.TRIGGER_DIR, plugin.name, src.triggers)
+    cases = evalgen.write_triggers(copy, evalgen.TRIGGER_DIR, plugin.name, src.triggers, routes=src.routes)
     res, out = _call(plugin, ctx, "срабатывание", claude, copy, evalgen.TRIGGER_DIR, os.path.join(tmp, "out-trigger"),
                      env, ablation="none", runs=1)
     if res is None:
@@ -188,7 +190,8 @@ def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
     failed = sorted(n for n, s in first.items() if s < 1.0)
     again = {}
     if failed and not ctx.l2_stop:
-        evalgen.write_triggers(copy, evalgen.RERUN_DIR, plugin.name, src.triggers, only=set(failed))
+        evalgen.write_triggers(copy, evalgen.RERUN_DIR, plugin.name, src.triggers, only=set(failed),
+                               routes=src.routes)
         res2, more = _call(plugin, ctx, "повтор срабатывания", claude, copy, evalgen.RERUN_DIR,
                            os.path.join(tmp, "out-rerun"), env, ablation="none", runs=CONFIRM_RUNS)
         out += more
@@ -217,7 +220,7 @@ def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
 def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
     invocable = {name: s.invocable for name, s in src.skills.items()}
     meta = evalgen.write_quality(copy, plugin.name, src.quality, invocable, _mocks(plugin),
-                                 evalsrc.native_dir(plugin), tuple(src.native))
+                                 evalsrc.native_dir(plugin), tuple(src.native), routes=src.routes)
     if not meta:
         return []
     res, out = _call(plugin, ctx, "качество", claude, copy, evalgen.QUALITY_DIR, os.path.join(tmp, "out-quality"),

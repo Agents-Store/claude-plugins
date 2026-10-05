@@ -6,7 +6,8 @@ STUB_PLAN — JSON-массив шагов, по одному на вызов `p
 У прогона в result ключ "trace": [rate_limit_info, …] — заглушка создаёт <tmp>/claude-eval-*/out/trace.jsonl
 с этими событиями и подставляет tracePath, как настоящий CLI с --keep-temp.
 STUB_AUTH — что печатать на `auth status --json` ("SLEEP" — зависнуть). STUB_LOG — журнал вызовов:
-argv, имена переменных окружения и, для `plugin eval`, файлы дерева --eval-dir.
+argv, имена переменных окружения, значение ENABLE_CLAUDEAI_MCP_SERVERS (не секрет) и, для `plugin eval`,
+файлы дерева --eval-dir и текст его graders/fired.md (по ним тесты видят, что получил claude).
 """
 import json
 import os
@@ -42,11 +43,17 @@ def materialize_traces(result):
 
 
 def main(argv):
-    entry = {"argv": argv, "env": sorted(k for k in os.environ if not k.startswith("STUB_"))}
+    entry = {"argv": argv, "env": sorted(k for k in os.environ if not k.startswith("STUB_")),
+             "claudeai_mcp": os.environ.get("ENABLE_CLAUDEAI_MCP_SERVERS")}
     if argv[:2] == ["plugin", "eval"] and "--eval-dir" in argv:
         root = os.path.join(argv[2], argv[argv.index("--eval-dir") + 1])
         entry["files"] = sorted(os.path.relpath(os.path.join(d, f), root)
                                 for d, _, names in os.walk(root) for f in names)
+        entry["fired"] = {}
+        for rel in entry["files"]:
+            if os.path.basename(rel) == "fired.md":
+                with open(os.path.join(root, rel), encoding="utf-8") as fh:
+                    entry["fired"][rel] = fh.read()
     log(entry)
     if argv[:2] == ["auth", "status"]:
         auth = os.environ.get("STUB_AUTH", DEFAULT_AUTH)

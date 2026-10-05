@@ -1,8 +1,11 @@
 """Запуск `claude plugin eval` за счёт подписки и разбор результата (spec очереди 2 §6.3, §6.4, §3a).
 
 Окружение — только allowlist: ANTHROPIC_API_KEY важнее входа по подписке, и CLI передаёт большинство
-ANTHROPIC_* в прогон. Признаки лимита — события rate_limit_event в трейсах (--keep-temp); каталоги
-<tmp>/claude-eval-* удаляются сразу после чтения, только по точному шаблону.
+ANTHROPIC_* в прогон. К allowlist всегда добавляется ENABLE_CLAUDEAI_MCP_SERVERS=false: коннекторы аккаунта
+claude.ai иначе грузятся в прогон и перехватывают единственный ход срабатывания. Признаки лимита — события
+rate_limit_event в трейсах (--keep-temp); каталоги <tmp>/claude-eval-* удаляются сразу после чтения, только по
+точному шаблону. Пороги остановки по окнам подписки — по умолчанию 0.9 и 0.8; волны и ручные прогоны
+переопределяют их переменными PLUGIN_TEST_L2_FIVE_HOUR_STOP и PLUGIN_TEST_L2_SEVEN_DAY_STOP.
 Вывод `claude auth status` несёт email и организацию — он не печатается и не пишется никуда.
 """
 from __future__ import annotations
@@ -25,6 +28,8 @@ JUDGE_MODEL = "claude-haiku-4-5-20251001"
 CONCURRENCY = 4
 FIVE_HOUR_STOP = 0.9     # окно 5 часов: дальше L2 съест дневную работу
 SEVEN_DAY_STOP = 0.8     # неделя: запас для дневной работы владельца
+FIVE_HOUR_VAR = "PLUGIN_TEST_L2_FIVE_HOUR_STOP"    # свои пороги волн и ручных прогонов; ночной прогон их не ставит
+SEVEN_DAY_VAR = "PLUGIN_TEST_L2_SEVEN_DAY_STOP"
 AUTH_TIMEOUT = 60
 KEEP_ENV = ("PATH", "HOME", "LANG", "USER", "LOGNAME", "TMPDIR")
 OK_STATUSES = {"allowed", "allowed_warning"}
@@ -51,7 +56,32 @@ class RunResult:
 def environment():
     env = {k: os.environ[k] for k in KEEP_ENV if k in os.environ}
     env.setdefault("LANG", "C.UTF-8")
+    env["ENABLE_CLAUDEAI_MCP_SERVERS"] = "false"     # значение родителя не берётся никогда
     return env
+
+
+def _stop_threshold(var, default):
+    """Порог из переменной окружения самого runner-а: число из (0, 1]; иначе default и строка в журнал
+    (имя переменной, не значение). 1.0 — останавливаться только по настоящему лимиту."""
+    raw = os.environ.get(var)
+    if raw is None:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        value = math.nan
+    if 0.0 < value <= 1.0:
+        return value
+    _debug("%s: нужно число из (0, 1], взят порог по умолчанию %s" % (var, default))
+    return default
+
+
+def five_hour_stop():
+    return _stop_threshold(FIVE_HOUR_VAR, FIVE_HOUR_STOP)
+
+
+def seven_day_stop():
+    return _stop_threshold(SEVEN_DAY_VAR, SEVEN_DAY_STOP)
 
 
 def preflight(claude, env):
@@ -217,9 +247,9 @@ def _verdict(data, returncode, usage, status, overage):
         return "прогон неполный (partialReason=%s)" % _ident(reason, "не указана"), True
     if overage:
         return "подписка ушла в overage — сверх подписки L2 не платит", False
-    if usage["five_hour"] >= FIVE_HOUR_STOP:
+    if usage["five_hour"] >= five_hour_stop():
         return "окно 5 часов занято на %d%%" % round(usage["five_hour"] * 100), False
-    if usage["seven_day"] >= SEVEN_DAY_STOP:
+    if usage["seven_day"] >= seven_day_stop():
         return "недельный лимит занят на %d%% — запас для дневной работы" % round(usage["seven_day"] * 100), False
     return "", False
 

@@ -4,6 +4,8 @@
   evals-trigger/  срабатывание: 1 прогон, 1 ход, только Skill, без моков — моки уводят модель в ToolSearch
   evals-quality/  качество: 3 прогона в каждом плече, Read/Grep/Glob/Skill, моки MCP из снимков L1
   evals-rerun/    повтор проваленных кейсов срабатывания
+Из plugin.json копии убран ключ dependencies: с ним плагин в песочнице не грузится. Команда плагина, которая
+ведёт к skill (skill_routes), засчитывается как срабатывание этого skill.
 Генерация детерминирована: одинаковый вход — байт-в-байт одинаковое дерево. Frontmatter — только
 ключи, которые знает claude plugin eval (неизвестный ключ — ошибка загрузки); строки — JSON, он валидный YAML.
 """
@@ -14,6 +16,8 @@ import json
 import os
 import re
 import shutil
+
+from . import evalsrc
 
 TRIGGER_DIR = "evals-trigger"
 QUALITY_DIR = "evals-quality"
@@ -43,13 +47,65 @@ def _js(text):
     return RE_JS_SPECIAL.sub(lambda m: "\\" + m.group(0), text)
 
 
-def input_match(plugin_name, skill):
-    """Регулярка JavaScript по JSON-входу Skill: {"skill":"<плагин>:<skill>"} или {"skill":"<skill>"}."""
-    return r'"skill"\s*:\s*"(?:%s:)?%s"' % (_js(plugin_name), _js(skill))
+def input_match(plugin_name, skill, aliases=()):
+    """Регулярка JavaScript по JSON-входу Skill: {"skill":"<плагин>:<skill>"} или {"skill":"<skill>"}.
+    aliases — команды плагина, которые ведут к этому skill: модель часто зовёт команду вместо skill,
+    и это то же срабатывание. Якорение прежнее: чужой плагин и более длинное имя не подходят."""
+    names = "|".join(_js(n) for n in (skill, *aliases))
+    return r'"skill"\s*:\s*"(?:%s:)?(?:%s)"' % (_js(plugin_name), names)
+
+
+def skill_routes(plugin_dir, plugin_name):
+    """{skill: [команды]} — какие commands/*.md плагина ведут к skill. Команда (имя — stem файла) ведёт к skill,
+    если её текст называет его как skills/<skill>/ или <плагин>:<skill> с границами токена: skill `api`
+    не находится в `skills/api-reference/` и `p-dev:api-reference`. Skill не ведёт сам к себе;
+    списки отсортированы, у skill без команд ключа нет."""
+    commands = os.path.join(plugin_dir, "commands")
+    if not os.path.isdir(commands):
+        return {}
+    skills = [s.name for s in evalsrc.skills(plugin_dir)]
+    routes = {}
+    for entry in sorted(os.listdir(commands)):
+        command, ext = os.path.splitext(entry)
+        if ext != ".md" or not os.path.isfile(os.path.join(commands, entry)):
+            continue
+        with open(os.path.join(commands, entry), encoding="utf-8", errors="replace") as fh:
+            text = fh.read()
+        for skill in skills:
+            if skill != command and _names_skill(text, plugin_name, skill):
+                routes.setdefault(skill, []).append(command)
+    return {skill: sorted(routes[skill]) for skill in sorted(routes)}
+
+
+def _names_skill(text, plugin_name, skill):
+    start, end = r"(?<![A-Za-z0-9_.-])", r"(?![A-Za-z0-9_-])"
+    return bool(re.search(start + r"skills/" + re.escape(skill) + "/", text)
+                or re.search(start + re.escape(plugin_name) + ":" + re.escape(skill) + end, text))
+
+
+def _strip_dependencies(dest):
+    """Убрать "dependencies" из plugin.json КОПИИ: плагин с зависимостями в песочнице eval не грузится
+    (зависимости там некому поставить). Файл без ключа, нечитаемый или лежащий вне копии не трогается;
+    ссылка заменяется обычным файлом — запись сквозь неё изменила бы источник."""
+    path = os.path.join(dest, ".claude-plugin", "plugin.json")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError, RecursionError):
+        return
+    if not isinstance(data, dict) or "dependencies" not in data:
+        return
+    if not (os.path.realpath(os.path.dirname(path)) + os.sep).startswith(os.path.realpath(dest) + os.sep):
+        return
+    del data["dependencies"]
+    if os.path.islink(path):
+        os.remove(path)
+    _write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
 def copy_plugin(plugin_dir, dest):
     shutil.copytree(plugin_dir, dest, symlinks=True, ignore=shutil.ignore_patterns(".git", *GENERATED))
+    _strip_dependencies(dest)
     return dest
 
 
@@ -74,8 +130,10 @@ def _write(path, text):
         fh.write(text)
 
 
-def write_triggers(copy_dir, eval_dir, plugin_name, queries, only=None):
-    """Кейсы срабатывания в <копия>/<eval_dir>/; only — подмножество имён (повтор). → {имя: запрос}."""
+def write_triggers(copy_dir, eval_dir, plugin_name, queries, only=None, routes=None):
+    """Кейсы срабатывания в <копия>/<eval_dir>/; only — подмножество имён (повтор); routes — skill_routes
+    (команда, ведущая к skill, засчитывается как его срабатывание). → {имя: запрос}."""
+    routes = routes or {}
     root = os.path.join(copy_dir, eval_dir)
     out = {}
     for q in queries:
@@ -89,14 +147,17 @@ def write_triggers(copy_dir, eval_dir, plugin_name, queries, only=None):
             q.query))
         bounds = [("min", 1)] if q.should_trigger else [("min", 0), ("max", 0)]
         _write(os.path.join(case, "graders", "fired.md"), _doc(
-            [("type", "tool_used"), ("tool", "Skill"), ("input_match", input_match(plugin_name, q.skill))]
+            [("type", "tool_used"), ("tool", "Skill"),
+             ("input_match", input_match(plugin_name, q.skill, routes.get(q.skill, [])))]
             + bounds + [("arm", "both")]))
     os.makedirs(root, exist_ok=True)
     return out
 
 
-def write_quality(copy_dir, plugin_name, cases, invocable, mocks, native_root="", native_names=()):
-    """Кейсы качества, моки MCP и родной набор в <копия>/evals-quality/. → {имя: {kind, skill, id}}."""
+def write_quality(copy_dir, plugin_name, cases, invocable, mocks, native_root="", native_names=(), routes=None):
+    """Кейсы качества, моки MCP и родной набор в <копия>/evals-quality/. → {имя: {kind, skill, id}}.
+    routes — skill_routes: индикатор fired.md засчитывает и команду, ведущую к skill."""
+    routes = routes or {}
     root = os.path.join(copy_dir, QUALITY_DIR)
     out = {}
     for c in cases:
@@ -123,8 +184,8 @@ def write_quality(copy_dir, plugin_name, cases, invocable, mocks, native_root=""
                 "FAIL if it misses the outcome or contradicts it." % c.expected_output))
         if can_call:
             _write(os.path.join(case, "graders", "fired.md"), _doc(
-                [("type", "tool_used"), ("tool", "Skill"), ("input_match", input_match(plugin_name, c.skill)),
-                 ("arm", "with-only")]))
+                [("type", "tool_used"), ("tool", "Skill"),
+                 ("input_match", input_match(plugin_name, c.skill, routes.get(c.skill, []))), ("arm", "with-only")]))
     for server in sorted(mocks):
         names = _tool_names(mocks[server])
         if not names:

@@ -37,7 +37,20 @@ class EvalrunTest(unittest.TestCase):
                 "ANTHROPIC_AUTH_TOKEN": "t", "CLAUDE_CODE_USE_BEDROCK": "1", "FOO": "bar", "USER": "x"}
         with mock.patch.dict(os.environ, fake, clear=True):
             env = evalrun.environment()
-        self.assertEqual(env, {"PATH": "/usr/bin", "HOME": "/tmp/test-home", "USER": "x", "LANG": "C.UTF-8"})
+        self.assertEqual(env, {"PATH": "/usr/bin", "HOME": "/tmp/test-home", "USER": "x", "LANG": "C.UTF-8",
+                               "ENABLE_CLAUDEAI_MCP_SERVERS": "false"})
+
+    def test_environment_always_disables_claudeai_connectors(self):
+        for parent in ({}, {"ENABLE_CLAUDEAI_MCP_SERVERS": "true"}, {"ENABLE_CLAUDEAI_MCP_SERVERS": ""}):
+            with self.subTest(parent=parent):
+                with mock.patch.dict(os.environ, dict(parent, PATH="/usr/bin", HOME="/tmp/test-home"), clear=True):
+                    self.assertEqual(evalrun.environment()["ENABLE_CLAUDEAI_MCP_SERVERS"], "false")
+
+    def test_child_gets_claudeai_connectors_off_even_if_parent_has_them_on(self):
+        with mock.patch.dict(os.environ, {"ENABLE_CLAUDEAI_MCP_SERVERS": "true"}):
+            res, calls = self.run_stub([{"result": eval_result(eval_case("q-a-1", 1.0))}])
+        self.assertEqual(calls[-1]["claudeai_mcp"], "false")
+        self.assertIn("ENABLE_CLAUDEAI_MCP_SERVERS", calls[-1]["env"])
 
     def test_preflight_ok(self):
         claude, _ = stub_claude(self.repo.root, [])
@@ -197,6 +210,76 @@ class EvalrunTest(unittest.TestCase):
                     self.assertIn("5 часов", res.stop)
                 else:
                     self.assertEqual((res.stop, res.usage["five_hour"]), ("", 0.0))
+
+    def hot(self, five=0.0, seven=0.0):
+        win = {"five_hour": {"utilization": five}, "seven_day": {"utilization": seven}}
+        return eval_result(eval_case("q", 1.0, runs=[
+            {"score": 1.0, "error": None, "trace": [{"status": "allowed", "unifiedWindows": win}]}]))
+
+    def stop_with(self, env, five=0.0, seven=0.0):
+        """(res, stderr): прогон при переменных порогов env у самого runner-а."""
+        path = os.path.join(self.repo.root, "stub", "plan.json.n")
+        if os.path.exists(path):
+            os.remove(path)
+        with mock.patch.dict(os.environ, env):
+            return self.run_stub_stderr([{"result": self.hot(five, seven)}])
+
+    def test_thresholds_default_without_overrides(self):
+        clean = {k: v for k, v in os.environ.items() if not k.startswith("PLUGIN_TEST_L2_")}
+        with mock.patch.dict(os.environ, clean, clear=True):
+            self.assertEqual((evalrun.five_hour_stop(), evalrun.seven_day_stop()), (0.9, 0.8))
+        res, err = self.stop_with({}, five=0.9)
+        self.assertIn("5 часов", res.stop)
+        self.assertEqual(err, "")
+
+    def test_thresholds_can_be_raised_by_runner_env(self):
+        env = {"PLUGIN_TEST_L2_FIVE_HOUR_STOP": "0.97", "PLUGIN_TEST_L2_SEVEN_DAY_STOP": "1.0"}
+        res, err = self.stop_with(env, five=0.95, seven=0.99)
+        self.assertEqual((res.stop, res.invalid, err), ("", False, ""))
+        res, _ = self.stop_with(env, five=0.97)
+        self.assertIn("5 часов", res.stop)
+        res, _ = self.stop_with(env, seven=1.0)
+        self.assertIn("недельный", res.stop)
+
+    def test_thresholds_can_be_lowered_by_runner_env(self):
+        res, _ = self.stop_with({"PLUGIN_TEST_L2_FIVE_HOUR_STOP": "0.5"}, five=0.5)
+        self.assertIn("5 часов", res.stop)
+        res, _ = self.stop_with({"PLUGIN_TEST_L2_SEVEN_DAY_STOP": "0.3"}, seven=0.3)
+        self.assertIn("недельный", res.stop)
+
+    def test_threshold_one_still_stops_on_the_real_limit(self):
+        env = {"PLUGIN_TEST_L2_FIVE_HOUR_STOP": "1.0", "PLUGIN_TEST_L2_SEVEN_DAY_STOP": "1.0"}
+        win = {"five_hour": {"utilization": 0.99}, "seven_day": {"utilization": 0.99}}
+        for bad, text in ((dict(status="rejected"), "status=rejected"), (dict(isUsingOverage=True), "overage")):
+            with self.subTest(text=text):
+                path = os.path.join(self.repo.root, "stub", "plan.json.n")
+                if os.path.exists(path):
+                    os.remove(path)
+                trace = dict({"status": "allowed", "unifiedWindows": win}, **bad)
+                with mock.patch.dict(os.environ, env):
+                    res, _ = self.run_stub([{"result": eval_result(eval_case("q", 1.0, runs=[
+                        {"score": 1.0, "error": None, "trace": [trace]}]))}])
+                self.assertIn(text, res.stop)
+
+    def test_invalid_threshold_falls_back_to_default_with_a_note(self):
+        for bad in ("", "abc", "0", "-0.5", "1.5", "nan", "inf", "0.9x"):
+            with self.subTest(bad=bad):
+                res, err = self.stop_with({"PLUGIN_TEST_L2_FIVE_HOUR_STOP": bad}, five=0.95)
+                self.assertIn("5 часов", res.stop)          # осталось 0.9
+                self.assertIn("[evalrun]", err)
+                self.assertIn("PLUGIN_TEST_L2_FIVE_HOUR_STOP", err)
+                self.assertEqual(len(err.strip().splitlines()), 1)
+        res, err = self.stop_with({"PLUGIN_TEST_L2_FIVE_HOUR_STOP": "SENTINEL-VALUE"}, five=0.95)
+        self.assertNotIn("SENTINEL-VALUE", err)                  # в журнал идёт имя переменной, не её значение
+        res, err = self.stop_with({"PLUGIN_TEST_L2_SEVEN_DAY_STOP": "oops"}, seven=0.85)
+        self.assertIn("недельный", res.stop)
+        self.assertIn("PLUGIN_TEST_L2_SEVEN_DAY_STOP", err)
+
+    def test_thresholds_are_read_at_verdict_time(self):
+        with mock.patch.dict(os.environ, {"PLUGIN_TEST_L2_FIVE_HOUR_STOP": "0.95"}):
+            self.assertEqual(evalrun.five_hour_stop(), 0.95)
+        with mock.patch.dict(os.environ, {"PLUGIN_TEST_L2_FIVE_HOUR_STOP": "0.5"}):
+            self.assertEqual(evalrun.five_hour_stop(), 0.5)
 
     def test_quiet_usage_keeps_going(self):
         res, _ = self.run_stub([{"result": eval_result(eval_case("q", 1.0, runs=[

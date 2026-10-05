@@ -35,8 +35,10 @@ class BehaviorTest(unittest.TestCase):
         self.addCleanup(self.repo.cleanup)
         self.state = os.path.join(self.repo.root, "state")
 
-    def add_plugin(self, name="b-dev", queries=((YES, True), (NO, False)), quality=None, mcp=None):
+    def add_plugin(self, name="b-dev", queries=((YES, True), (NO, False)), quality=None, mcp=None, commands=None):
         files = {"skills/web/SKILL.md": SKILL % "web"}
+        for command, text in (commands or {}).items():
+            files["commands/%s.md" % command] = text
         if queries:
             files["skills/web/evals/triggers.json"] = json.dumps([{"query": q, "should_trigger": t} for q, t in queries])
         if quality:
@@ -94,6 +96,35 @@ class BehaviorTest(unittest.TestCase):
         rows = self.hist()
         self.assertEqual(sorted(r["case"] for r in rows), sorted([T(YES), T(NO)]))
         self.assertTrue(all(r["ok"] and r["plugin"] == "b-dev" and r["model"] == "claude-sonnet-5-5" for r in rows))
+
+    def test_command_routing_to_a_skill_counts_as_the_skill(self):
+        self.add_plugin(quality=QUALITY, commands={"explain": "Read `${CLAUDE_PLUGIN_ROOT}/skills/web/SKILL.md` first.\n",
+                                                   "unrelated": "does its own thing\n"})
+        first = eval_result(eval_case(T(YES), 0.0), eval_case(T(NO), 1.0))
+        rerun = eval_result(eval_case(T(YES), 1.0, runs=[{"score": 1.0, "error": None}, {"score": 1.0, "error": None}]))
+        quality = eval_result(eval_case("q-web-1", 1.0, delta=0.5))
+        with mock.patch.object(evalgen, "skill_routes", wraps=evalgen.skill_routes) as routes:
+            got, evals, _, _ = self.check([{"result": first}, {"result": rerun}, {"result": quality}])
+        self.assertEqual(routes.call_count, 1)                       # раз на плагин, не на каждый вызов claude
+        self.assertEqual(routes.call_args.args[1], "b-dev")
+        want = evalgen.input_match("b-dev", "web", ("explain",))
+        by_dir = {}
+        for call in evals:
+            argv = call["argv"]
+            by_dir[argv[argv.index("--eval-dir") + 1]] = call["fired"]
+        self.assertEqual(sorted(by_dir), [evalgen.QUALITY_DIR, evalgen.RERUN_DIR, evalgen.TRIGGER_DIR])
+        for eval_dir, fired in by_dir.items():
+            self.assertTrue(fired, eval_dir)
+            for rel, text in fired.items():
+                self.assertIn(json.dumps(want)[1:-1], text, (eval_dir, rel))    # input_match в YAML — JSON-строка
+                self.assertNotIn("unrelated", text)
+
+    def test_plugin_without_commands_keeps_plain_graders(self):
+        self.add_plugin()
+        _, evals, _, _ = self.check([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))}])
+        want = evalgen.input_match("b-dev", "web")
+        self.assertEqual(len(evals[0]["fired"]), 2)
+        self.assertTrue(all(json.dumps(want)[1:-1] in text for text in evals[0]["fired"].values()))
 
     def test_confirmed_misfire(self):
         self.add_plugin()
