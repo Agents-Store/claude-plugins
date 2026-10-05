@@ -148,6 +148,9 @@ make_http_fixture() {
 {"type":"user","timestamp":"2026-10-04T12:00:14.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c5","content":"HTTP/1.1 201 Created"}]}}
 {"type":"assistant","timestamp":"2026-10-04T12:00:15.000Z","message":{"id":"h12","content":[{"type":"tool_use","id":"c6","name":"Bash","input":{"command":"git clone https://github.com/octo/demo && echo hi"}}]}}
 {"type":"user","timestamp":"2026-10-04T12:00:15.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c6","content":"Cloning"}]}}
+{"type":"attachment","timestamp":"2026-10-04T12:00:20.000Z","attachment":{"type":"deferred_tools_delta","failedMcpServers":[{"name":"cms","errorCode":"502","error":"bad gateway"}]}}
+{"type":"attachment","timestamp":"2026-10-04T12:00:21.000Z","attachment":{"type":"deferred_tools_delta","failedMcpServers":[{"name":"cms","errorCode":"502","error":"bad gateway"}]}}
+{"type":"attachment","timestamp":"2026-10-04T12:00:22.000Z","attachment":{"type":"deferred_tools_delta","failedMcpServers":[{"name":"cms","errorCode":"502","error":"bad gateway"}]}}
 JSONL
 }
 
@@ -275,6 +278,11 @@ print(int(h.parse_curl('curl -k -XPUT -H \"X-A: b\" -u me:pw --url https://h.tes
 assert_eq "1" "$(py "
 import doctor_http as h
 print(int(h.parse_curl('curl --version') is None and h.parse_curl('curl \$BASE/x')['url']=='\$BASE/x'))")" "parse_curl: без URL — None; \$VAR-URL принят"
+
+assert_eq "1" "$(hq '[.http.lines[]|select(.source=="mcp-connect" and .host=="cms")]|length')" "упавший MCP — одна строка, не три"
+assert_contains "502" "$(hq '.http.lines[]|select(.source=="mcp-connect")|.codes|keys[]')" "errorCode в строке"
+assert_eq "1 true" "$(hq '.http.lines[]|select(.source=="mcp-connect" and .host=="cms")|"\(.count) \(.has_error)"')" "mcp-connect: count 1, has_error"
+assert_contains "cms" "$(SESSION="$SID4" doctor)" "упавший MCP виден в коротком дайджесте"
 
 # ═══ end of sections ═════════════════════════════════════════════════════════
 printf '\n  итого: %d ✓, %d ✗\n' "$PASS" "$FAIL"

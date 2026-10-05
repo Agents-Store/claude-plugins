@@ -506,7 +506,7 @@ def requests_from_event(event):
 
 def _is_error(code, source):
     code = str(code)
-    return (source == "api" or code in ("err", "error") or code.startswith("curl:")
+    return (source in ("api", "mcp-connect") or code in ("err", "error") or code.startswith("curl:")
             or (code.isdigit() and int(code) >= 400))
 
 
@@ -549,9 +549,30 @@ def build_lines(events):
     return list(grouped.values()), reqs
 
 
+def mcp_connect_requests(events):
+    """One request per distinct (server, errorCode). failedMcpServers repeats in every deferred_tools_delta,
+    so the same broken server arrives many times; the first occurrence (its ts and actor) is kept."""
+    seen = {}
+    for ev in events or []:
+        if not isinstance(ev, dict) or ev.get("kind") != "mcp_connect":
+            continue
+        name = redact(str(ev.get("name") or "")) or "?"
+        code = str(ev.get("error_code") or "") or "?"
+        if (name, code) not in seen:
+            seen[(name, code)] = {"ts": ev.get("ts"), "actor": ev.get("actor") or "main", "source": "mcp-connect",
+                                  "method": "", "host": name, "path": "", "code": code}
+    return list(seen.values())
+
+
 @collector("http")
 def collect_http(ctx):
-    lines, reqs = build_lines((session_events(ctx) or {}).get("events") or [])
+    events = (session_events(ctx) or {}).get("events") or []
+    lines, reqs = build_lines(events)
+    connects = mcp_connect_requests(events)
+    for req in connects:
+        lines.append({"source": "mcp-connect", "method": "", "host": req["host"], "path": "", "count": 1,
+                      "codes": {req["code"]: 1}, "has_error": True})
+    reqs = sorted(reqs + connects, key=lambda r: r["ts"] if isinstance(r.get("ts"), (int, float)) else 0)
     rows = [{"ts": r["ts"], "actor": r["actor"], "source": r["source"], "method": r["method"],
              "host": r["host"], "path": r["path"], "code": r["code"]} for r in reqs[:MAX_REQUESTS]]
     return {"lines": lines, "requests": rows, "total": len(reqs)}
