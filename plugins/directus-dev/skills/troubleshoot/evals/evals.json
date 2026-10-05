@@ -17,15 +17,15 @@
     },
     {
       "id": 18,
-      "prompt": "My Directus flow operations aren't executing even though the flow is active",
-      "expected_output": "Check flow.operation, resolve/reject chains, condition syntax, request format",
+      "prompt": "My Directus flow operations aren't executing even though the flow is active. It is an event hook on items.update of `orders` with a condition operation followed by a request operation; the flow's logs stay empty. What do I check?",
+      "expected_output": "The answer tells to check flow.operation, the resolve/reject chains, the condition syntax and the request format",
       "files": [],
       "expectations": [
-        "Checks flow.operation field points to first operation UUID",
-        "Checks resolve/reject chains between operations",
-        "Warns about condition filter syntax (nested objects, not dot notation)",
-        "Mentions request body must be stringified JSON",
-        "Mentions request headers must be array of {header, value} objects"
+        "The answer tells to check that the flow's operation field points to the UUID of the first operation",
+        "The answer tells to check the resolve and reject chains between the operations",
+        "The answer warns that the condition filter uses nested objects, not dot notation",
+        "The answer says the request body must be stringified JSON",
+        "The answer says the request headers must be an array of {header, value} objects"
       ]
     }
   ]
