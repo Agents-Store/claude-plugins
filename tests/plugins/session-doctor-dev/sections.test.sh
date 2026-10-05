@@ -29,13 +29,16 @@ trap 'rm -rf "$T"' EXIT
 SID="aaaaaaaa-1111-2222-3333-444444444444"
 SID2="bbbbbbbb-1111-2222-3333-444444444444"
 SID3="cccccccc-1111-2222-3333-444444444444"
+SID4="dddddddd-1111-2222-3333-444444444444"
 PROJ="$T/projects/demo"
 CFG="$T/home/.claude-test"
 SLUG="$(printf '%s' "$PROJ" | sed 's/[^A-Za-z0-9]/-/g')"
 TR="$CFG/projects/$SLUG/$SID.jsonl"
 TR2="$CFG/projects/$SLUG/$SID2.jsonl"
 TR3="$CFG/projects/$SLUG/$SID3.jsonl"
+TR4="$CFG/projects/$SLUG/$SID4.jsonl"
 TOKB="ghp_""$(printf 'B%.0s' {1..36})"        # secret inside a Bash stdout, runtime-built
+TOKH="ghp_""$(printf 'H%.0s' {1..36})"        # secret in a request URL / userinfo, runtime-built
 TOKA="ghp_""$(printf 'A%.0s' {1..36})"        # assembled at runtime, never a literal credential
 
 # ── фикстуры ────────────────────────────────────────────────────────────
@@ -114,9 +117,44 @@ JSONL
   printf '{"agentType":"reviewer","description":"Review"}\n' > "$sub.meta.json"
 }
 
+# Профиль HTTP: curl с кодом и без, WebFetch 404/err, MCP 401, цепочка с git/npm, curl-ошибка, gh, python, api_error с ретраями.
+make_http_fixture() {
+  cat > "$TR4" <<JSONL
+{"type":"user","sessionId":"$SID4","cwd":"$PROJ","timestamp":"2026-10-04T12:00:00.000Z","message":{"role":"user","content":"go"}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:01.000Z","message":{"id":"h1","content":[{"type":"tool_use","id":"c1","name":"Bash","input":{"command":"curl -s -w '%{http_code}' -o /dev/null https://api.example.test/v1/x"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:01.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c1","content":"200"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:02.000Z","message":{"id":"h2","content":[{"type":"tool_use","id":"c2","name":"Bash","input":{"command":"curl https://api.example.test/v1/y"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:02.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c2","content":"{\"ok\":true,\"n\":404}"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:03.000Z","message":{"id":"h3","content":[{"type":"tool_use","id":"w1","name":"WebFetch","input":{"url":"https://docs.example.test/page"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:03.500Z","toolUseResult":{"code":404,"url":"https://docs.example.test/page"},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"w1","content":"Not found"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:04.000Z","message":{"id":"h4","content":[{"type":"tool_use","id":"m1","name":"mcp__gh__get","input":{}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:04.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"m1","is_error":true,"content":"Request failed with status code 401"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:05.000Z","message":{"id":"h5","content":[{"type":"tool_use","id":"c3","name":"Bash","input":{"command":"git push && npm install && curl -sI https://api.example.test/v1/items/12345 | head -1"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:05.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c3","content":"HTTP/2 503"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:06.000Z","message":{"id":"h6","content":[{"type":"tool_use","id":"c4","name":"Bash","input":{"command":"curl -s https://nowhere.invalid/x"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:06.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c4","content":"curl: (6) Could not resolve host: nowhere.invalid"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:07.000Z","message":{"id":"h7","content":[{"type":"tool_use","id":"s1","name":"WebSearch","input":{"query":"something"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:07.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"s1","content":"results"}]}}
+{"type":"system","subtype":"api_error","timestamp":"2026-10-04T12:00:08.000Z","retryAttempt":1,"error":{"status":529,"message":"overloaded"}}
+{"type":"system","subtype":"api_error","timestamp":"2026-10-04T12:00:09.000Z","retryAttempt":2,"error":{"status":529,"message":"overloaded"}}
+{"type":"system","subtype":"api_error","timestamp":"2026-10-04T12:00:10.000Z","retryAttempt":3,"error":{"status":529,"message":"overloaded"}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:11.000Z","message":{"id":"h8","content":[{"type":"tool_use","id":"g1","name":"Bash","input":{"command":"gh api repos/octo/demo/pulls/7"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:11.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"g1","content":"gh: Not Found (HTTP 404)"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:12.000Z","message":{"id":"h9","content":[{"type":"tool_use","id":"p1","name":"Bash","input":{"command":"python3 -c \"import requests; requests.post('https://api.example.test/v1/z', json={})\""}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:12.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"p1","content":"done"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:13.000Z","message":{"id":"h10","content":[{"type":"tool_use","id":"w2","name":"WebFetch","input":{"url":"https://flaky.example.test/a"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:13.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"w2","is_error":true,"content":"fetch failed: ECONNRESET"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:14.000Z","message":{"id":"h11","content":[{"type":"tool_use","id":"c5","name":"Bash","input":{"command":"curl -s -X POST -u admin:$TOKH -H 'Authorization: Bearer $TOKH' 'https://admin:$TOKH@secure.example.test/v1/users/550e8400-e29b-41d4-a716-446655440000?api_key=$TOKH' -d '{\"a\":1}'"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:14.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c5","content":"HTTP/1.1 201 Created"}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:15.000Z","message":{"id":"h12","content":[{"type":"tool_use","id":"c6","name":"Bash","input":{"command":"git clone https://github.com/octo/demo && echo hi"}}]}}
+{"type":"user","timestamp":"2026-10-04T12:00:15.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c6","content":"Cloning"}]}}
+JSONL
+}
+
 make_events_fixture
 make_garbage_fixture
 make_skills_fixture
+make_http_fixture
 
 doctor() {
   env -i HOME="$T/home" PATH="$PATH" PYTHONIOENCODING=utf-8 \
@@ -201,6 +239,42 @@ assert_contains "plugin-dev:create-plugin" "$TABLE" "таблица содерж
 assert_missing "foo" "$TABLE" "цитата не попала в таблицу"
 assert_eq "0" "$(printf '%s\n' "$TABLE" | awk 'NR>1 && $1=="model"' | wc -l | tr -d ' ')" "встроенная /model не попала в таблицу"
 assert_eq "0" "$(printf '%s' "$J" | jq '.errors|map(select(startswith("skills_invoked_v2")))|length')" "коллектор skills_invoked_v2 не упал"
+
+# ═══ section: http ═══════════════════════════════════════════════════════════
+echo "▸ doctor_http"
+J="$(SESSION="$SID4" doctor --json)"
+hq() { printf '%s' "$J" | jq -r "$1"; }
+assert_contains "200" "$(hq '.http.lines[]|select(.source=="curl")|.codes|keys[]')" "curl 200 распознан (-w %{http_code})"
+assert_eq "?" "$(hq '.http.lines[]|select(.path=="/v1/y")|.codes|keys[]')" "curl с JSON-телом без кода — ?"
+assert_contains "404" "$(hq '.http.lines[]|select(.source=="WebFetch")|.codes|keys[]')" "WebFetch 404"
+assert_contains "401" "$(hq '.http.lines[]|select(.source=="mcp")|.codes|keys[]')" "MCP 401 из текста"
+assert_eq "gh get" "$(hq '.http.lines[]|select(.source=="mcp")|"\(.host) \(.path)"')" "MCP: host — сервер, path — инструмент"
+assert_eq "503 1" "$(hq '.http.lines[]|select(.path=="/v1/items/:id")|"\(.codes|keys[0]) \(.count)"')" "git/npm не запросы; HTTP/2 503; числовой id -> :id"
+assert_eq "HEAD" "$(hq '.http.lines[]|select(.path=="/v1/items/:id")|.method')" "curl -I — HEAD"
+assert_eq "curl:6" "$(hq '.http.lines[]|select(.host=="nowhere.invalid")|.codes|keys[0]')" "сетевая ошибка curl — curl:N, не HTTP-код"
+assert_eq "true" "$(hq '.http.lines[]|select(.host=="nowhere.invalid")|.has_error')" "curl:N — has_error"
+assert_eq "false" "$(hq '.http.lines[]|select(.path=="/v1/x")|.has_error')" "200 — не ошибка"
+assert_eq "ok" "$(hq '.http.lines[]|select(.source=="WebSearch")|.codes|keys[0]')" "WebSearch ok"
+assert_eq "1 3" "$(hq '.http.lines[]|select(.source=="api")|"\(.count) \(.retries)"')" "ретраи api_error схлопнуты в одну строку"
+assert_eq "529" "$(hq '.http.lines[]|select(.source=="api")|.codes|keys[0]')" "api: код из status"
+assert_eq "404 api.github.com /repos/octo/demo/pulls/:id" "$(hq '.http.lines[]|select(.source=="gh")|"\(.codes|keys[0]) \(.host) \(.path)"')" "gh api: путь и код из (HTTP 404)"
+assert_eq "POST" "$(hq '.http.lines[]|select(.source=="python")|.method')" "python requests.post найден в -c"
+assert_eq "err" "$(hq '.http.lines[]|select(.host=="flaky.example.test")|.codes|keys[0]')" "WebFetch ECONNRESET — err"
+assert_eq "201 POST secure.example.test /v1/users/:id" "$(hq '.http.lines[]|select(.host=="secure.example.test")|"\(.codes|keys[0]) \(.method) \(.host) \(.path)"')" "userinfo и query убраны, uuid -> :id, -d даёт POST"
+assert_eq "0" "$(hq '[.http.lines[]|select(.host=="github.com")]|length')" "git clone не запрос"
+assert_missing "$TOKH" "$(hq '.http')" "токен из URL/-u/-H не попал в .http (raw input живёт только в .events)"
+DIG="$(SESSION="$SID4" doctor)"
+FULL="$(SESSION="$SID4" doctor --full)"
+assert_contains "HTTP REQUESTS" "$DIG" "раздел HTTP REQUESTS в дайджесте"
+assert_contains "api.example.test/v1/x" "$FULL" "full: запросы по времени"
+assert_missing "$TOKH" "$DIG$FULL" "токен не попал в дайджест и full"
+assert_eq "0" "$(printf '%s' "$J" | jq '.errors|map(select(startswith("http")))|length')" "коллектор http не упал"
+assert_eq "1" "$(py "
+import doctor_http as h
+print(int(h.parse_curl('curl -k -XPUT -H \"X-A: b\" -u me:pw --url https://h.test/p')=={'method':'PUT','url':'https://h.test/p','headers':{'x-a':'b'},'user':'me:pw','insecure':True}))")" "parse_curl: короткие флаги, --url, заголовки в нижнем регистре"
+assert_eq "1" "$(py "
+import doctor_http as h
+print(int(h.parse_curl('curl --version') is None and h.parse_curl('curl \$BASE/x')['url']=='\$BASE/x'))")" "parse_curl: без URL — None; \$VAR-URL принят"
 
 # ═══ end of sections ═════════════════════════════════════════════════════════
 printf '\n  итого: %d ✓, %d ✗\n' "$PASS" "$FAIL"
