@@ -57,8 +57,11 @@ def secret_name(name):
 
 
 def remember_secrets(*sources):
-    """Learn secret values — by variable name, or by a value that looks like a credential."""
-    values = set()
+    """Learn secret values — by variable name, or by a value that looks like a credential.
+
+    Additive: a later call (a collector that found a literal token in a command) never forgets what
+    an earlier one learned, so the final scrub() of the whole output erases them all."""
+    values = set(_KNOWN_SECRETS)
     for source in sources:
         for name, value in (source or {}).items():
             value = value[0] if isinstance(value, tuple) else value

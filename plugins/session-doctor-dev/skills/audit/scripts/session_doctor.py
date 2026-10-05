@@ -27,6 +27,7 @@ import doctor_areas  # noqa: E402,F401  (registers every collector, check and se
 import doctor_events  # noqa: E402,F401
 import doctor_skills  # noqa: E402,F401
 import doctor_http  # noqa: E402,F401
+import doctor_tokens  # noqa: E402,F401
 
 
 def _cwd():

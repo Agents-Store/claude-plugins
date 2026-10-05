@@ -30,6 +30,7 @@ SID="aaaaaaaa-1111-2222-3333-444444444444"
 SID2="bbbbbbbb-1111-2222-3333-444444444444"
 SID3="cccccccc-1111-2222-3333-444444444444"
 SID4="dddddddd-1111-2222-3333-444444444444"
+SID5="eeeeeeee-1111-2222-3333-444444444444"
 PROJ="$T/projects/demo"
 CFG="$T/home/.claude-test"
 SLUG="$(printf '%s' "$PROJ" | sed 's/[^A-Za-z0-9]/-/g')"
@@ -37,9 +38,14 @@ TR="$CFG/projects/$SLUG/$SID.jsonl"
 TR2="$CFG/projects/$SLUG/$SID2.jsonl"
 TR3="$CFG/projects/$SLUG/$SID3.jsonl"
 TR4="$CFG/projects/$SLUG/$SID4.jsonl"
+TR5="$CFG/projects/$SLUG/$SID5.jsonl"
 TOKB="ghp_""$(printf 'B%.0s' {1..36})"        # secret inside a Bash stdout, runtime-built
 TOKH="ghp_""$(printf 'H%.0s' {1..36})"        # secret in a request URL / userinfo, runtime-built
 TOKA="ghp_""$(printf 'A%.0s' {1..36})"        # assembled at runtime, never a literal credential
+TOKREJ="ey""J""$(printf 'r%.0s' {1..14})"".""$(printf 'e%.0s' {1..14})"".""$(printf 'j%.0s' {1..10})"   # JWT-shaped, rejected (401)
+TOKOK="okkey_""$(printf 'K%.0s' {1..24})"     # accepted (200), sent as x-api-key
+TOKVAR="cmsval_""$(printf 'V%.0s' {1..20})"   # lives only in the fixture settings env as CMS_TOKEN
+TOKW="webonly_""$(printf 'W%.0s' {1..20})"    # query secret in a WebFetch url only: scrubbed, never a row
 
 # ── фикстуры ────────────────────────────────────────────────────────────
 make_events_fixture() {
@@ -154,10 +160,29 @@ make_http_fixture() {
 JSONL
 }
 
+# Профиль токенов: 401, 200, $VAR из settings env, $VAR без значения, WebFetch с секретом в query.
+make_tokens_fixture() {
+  printf '{"env":{"CMS_TOKEN":"%s"}}\n' "$TOKVAR" > "$CFG/settings.json"
+  cat > "$TR5" <<JSONL
+{"type":"user","sessionId":"$SID5","cwd":"$PROJ","timestamp":"2026-10-04T13:00:00.000Z","message":{"role":"user","content":"go"}}
+{"type":"assistant","timestamp":"2026-10-04T13:00:01.000Z","message":{"id":"k1","content":[{"type":"tool_use","id":"a1","name":"Bash","input":{"command":"curl -s -i -H \"Authorization: Bearer $TOKREJ\" https://rej.example.test/v1/items"}}]}}
+{"type":"user","timestamp":"2026-10-04T13:00:01.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a1","content":"HTTP/1.1 401 Unauthorized"}]}}
+{"type":"assistant","timestamp":"2026-10-04T13:00:02.000Z","message":{"id":"k2","content":[{"type":"tool_use","id":"a2","name":"Bash","input":{"command":"curl -s -i -H \"x-api-key: $TOKOK\" https://ok.example.test/v1/ping"}}]}}
+{"type":"user","timestamp":"2026-10-04T13:00:02.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a2","content":"HTTP/2 200"}]}}
+{"type":"assistant","timestamp":"2026-10-04T13:00:03.000Z","message":{"id":"k3","content":[{"type":"tool_use","id":"a3","name":"Bash","input":{"command":"curl -s -H \"Authorization: Bearer \$CMS_TOKEN\" https://cms.example.test/items"}}]}}
+{"type":"user","timestamp":"2026-10-04T13:00:03.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a3","content":"{\"data\":[]}"}]}}
+{"type":"assistant","timestamp":"2026-10-04T13:00:04.000Z","message":{"id":"k4","content":[{"type":"tool_use","id":"a4","name":"Bash","input":{"command":"curl -s -H \"X-Directus-Token: \$GONE_TOKEN\" https://gone.example.test/z"}}]}}
+{"type":"user","timestamp":"2026-10-04T13:00:04.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a4","content":"{}"}]}}
+{"type":"assistant","timestamp":"2026-10-04T13:00:05.000Z","message":{"id":"k5","content":[{"type":"tool_use","id":"a5","name":"WebFetch","input":{"url":"https://web.example.test/p?access_token=$TOKW"}}]}}
+{"type":"user","timestamp":"2026-10-04T13:00:05.500Z","toolUseResult":{"code":200,"url":"https://web.example.test/p"},"message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"a5","content":"ok"}]}}
+JSONL
+}
+
 make_events_fixture
 make_garbage_fixture
 make_skills_fixture
 make_http_fixture
+make_tokens_fixture
 
 doctor() {
   env -i HOME="$T/home" PATH="$PATH" PYTHONIOENCODING=utf-8 \
@@ -283,6 +308,44 @@ assert_eq "1" "$(hq '[.http.lines[]|select(.source=="mcp-connect" and .host=="cm
 assert_contains "502" "$(hq '.http.lines[]|select(.source=="mcp-connect")|.codes|keys[]')" "errorCode в строке"
 assert_eq "1 true" "$(hq '.http.lines[]|select(.source=="mcp-connect" and .host=="cms")|"\(.count) \(.has_error)"')" "mcp-connect: count 1, has_error"
 assert_contains "cms" "$(SESSION="$SID4" doctor)" "упавший MCP виден в коротком дайджесте"
+
+# ═══ section: tokens ═════════════════════════════════════════════════════════
+echo "▸ doctor_tokens"
+J="$(SESSION="$SID5" doctor --json)"
+tk() { printf '%s' "$J" | jq -r "$1"; }
+ids_of() { printf '%s' "$1" | jq -r '.findings[].id'; }
+assert_contains "❌" "$(tk '.tokens.tokens[]|select(.codes["401"])|.verdict')" "токен с 401 — не принят"
+assert_contains "TOKEN_REJECTED" "$(ids_of "$J")" "находка TOKEN_REJECTED"
+assert_eq "high" "$(tk '.findings[]|select(.id=="TOKEN_REJECTED")|.severity')" "TOKEN_REJECTED — high"
+assert_contains "✅" "$(tk '.tokens.tokens[]|select(.codes["200"])|.verdict')" "токен с 200 — принимался"
+assert_contains "CMS_TOKEN" "$(tk '.tokens.tokens[].var')" "токен из \$VAR опознан по имени переменной"
+assert_eq "yes" "$([ "$(tk '.tokens.tokens[]|select(.var=="CMS_TOKEN")|.fp|length')" = "8" ] && echo yes || echo no)" "\$VAR из settings env разрешён: fp из 8 hex"
+assert_contains "кода про токен нет" "$(tk '.tokens.tokens[]|select(.var=="CMS_TOKEN")|.verdict')" "разрешённый токен без кода — кода про токен нет"
+assert_eq "bearer-jwt x-api-key" "$(tk '[.tokens.tokens[]|select(.var==null and .fp!=null)|.kind]|sort|join(" ")')" "kind по форме значения"
+assert_eq "gone.example.test null" "$(tk '.tokens.tokens[]|select(.var=="GONE_TOKEN")|"\(.hosts[0]) \(.fp)"')" "неразрешённый \$VAR: имя есть, fp null"
+assert_contains "не проверить" "$(tk '.tokens.tokens[]|select(.var=="GONE_TOKEN")|.verdict')" "неразрешённый \$VAR без кода — не проверить по сессии"
+assert_eq "0" "$(tk '[.tokens.tokens[]|select(.fp==null and .var==null)]|length')" "без значения и без имени — не строка"
+assert_eq "0" "$(tk '[.tokens.tokens[]|select(.hosts|index("web.example.test"))]|length')" "токен только в WebFetch — не строка"
+assert_eq "4" "$(tk '.tokens.tokens|length')" "ровно четыре токена: 401, 200, CMS_TOKEN, GONE_TOKEN"
+assert_contains "TOKEN_UNVERIFIED" "$(ids_of "$J")" "находка TOKEN_UNVERIFIED для токенов без кода"
+assert_eq "info" "$(tk '.findings[]|select(.id=="TOKEN_UNVERIFIED")|.severity')" "TOKEN_UNVERIFIED — info"
+# the big one: no value, anywhere (--json includes the raw tool input)
+assert_missing "$TOKREJ" "$J" "значение отклонённого токена не напечатано (--json)"
+assert_missing "$TOKOK" "$J" "значение рабочего токена не напечатано (--json)"
+assert_missing "$TOKVAR" "$J" "значение токена из settings env не напечатано (--json)"
+assert_missing "$TOKW" "$J" "секрет из query WebFetch стёрт из --json"
+DIG="$(SESSION="$SID5" doctor)"
+FULL="$(SESSION="$SID5" doctor --full)"
+assert_contains "TOKENS" "$DIG" "раздел TOKENS в дайджесте"
+assert_contains "❌ не принят" "$DIG" "дайджест: строка с вердиктом ❌"
+assert_missing "$TOKREJ" "$DIG$FULL" "значение отклонённого токена не в дайджесте и full"
+assert_missing "$TOKOK" "$DIG$FULL" "значение рабочего токена не в дайджесте и full"
+assert_missing "$TOKVAR" "$DIG$FULL" "значение токена из settings env не в дайджесте и full"
+assert_eq "0" "$(printf '%s' "$J" | jq '.errors|map(select(startswith("tokens")))|length')" "коллектор tokens не упал"
+assert_eq "0" "$(py "
+import doctor_tokens as t
+print(sum(1 for m in ('urllib.request','socket','http.client') if m in __import__('sys').modules))")" "doctor_tokens не тянет сетевые модули"
+assert_eq "0" "$(find "$SCRIPTS" -name __pycache__ | wc -l | tr -d ' ')" "__pycache__ не создан"
 
 # ═══ end of sections ═════════════════════════════════════════════════════════
 printf '\n  итого: %d ✓, %d ✗\n' "$PASS" "$FAIL"
