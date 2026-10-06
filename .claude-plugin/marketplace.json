@@ -1049,6 +1049,26 @@
         "reconcile"
       ],
       "category": "development"
+    },
+    {
+      "name": "session-doctor-dev",
+      "source": "./plugins/session-doctor-dev",
+      "description": "Read-only audit of a Claude Code session: where it runs, what context it loaded, which model and effort it used, the skills it invoked, every HTTP request with its status code, and the status of each API token seen in the session — with concrete fixes.",
+      "version": "0.1.0",
+      "author": {
+        "name": "AGENTS.STORE"
+      },
+      "keywords": [
+        "session",
+        "audit",
+        "diagnostics",
+        "debug",
+        "http",
+        "tokens",
+        "skills",
+        "observability"
+      ],
+      "category": "development"
     }
   ]
 }

@@ -78,6 +78,8 @@ UPSTREAM_ABS_PREFIXES = (
     "/etc/machine-id",
     "/var/lib/dbus/machine-id",
     "/etc/timezone",
+    "/etc/claude-code",       # Claude Code's documented managed-settings dir (Linux)
+    "/Library/Application Support/ClaudeCode",  # Claude Code's managed-settings dir (macOS)
 )
 
 # First segment of something that looks like a filesystem path rather than a

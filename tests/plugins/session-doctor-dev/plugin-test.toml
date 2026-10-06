@@ -1,0 +1,10 @@
+# session-doctor-dev: чистые python-модули, без MCP и CLI. Только собственные тесты.
+[[unit]]
+name = "session-doctor port test"
+run = "bash tests/plugins/session-doctor-dev/session-doctor.test.sh"
+cwd = "."                      # от корня репозитория (пустой cwd = каталог плагина)
+needs = ["python3", "jq", "git"]
+timeout = 300
+
+[budget]
+always_on_tokens = 3000
