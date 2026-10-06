@@ -1,6 +1,6 @@
 ---
 name: sdk-patterns
-description: This skill should be used when the user asks about "grammY Bot class", "grammY Context object", "ctx.reply", "ctx.api", "send a message in grammY", "use grammY in code", or needs idiomatic grammY code patterns for everyday bot operations.
+description: Everyday grammY (Telegram bot framework) code patterns for TypeScript or JavaScript. Covers creating a Bot, reading the Context (ctx.from, ctx.chat, ctx.me, ctx.match), handlers with bot.command, bot.hears and bot.on, replying with ctx.reply versus calling ctx.api or bot.api directly, editing and deleting messages, bot.init, and typing a custom Context with plugin flavors. Use for how-do-I-write-this questions in grammY code. For deployment use deployment-hosting, for sessions use sessions.
 ---
 
 # grammY — SDK Patterns

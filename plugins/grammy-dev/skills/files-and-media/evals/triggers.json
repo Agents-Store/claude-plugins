@@ -1,0 +1,18 @@
+[
+  {"query": "I want my grammY bot to send the same welcome video to every new user without uploading it each time. How do I get the file_id on the first send, where do I keep it, and what happens if the file_id stops working?", "should_trigger": true},
+  {"query": "How do I download a photo a user sent to my grammY bot and save it to disk? I want the largest size, using getFile.", "should_trigger": true},
+  {"query": "I want to send an album of 5 photos as one media group with a caption only on the first photo, from local files in ./assets", "should_trigger": true},
+  {"query": "grammy: how do I reuse the file_id so I don't re-upload the same welcome.jpg to Telegram on every /start?", "should_trigger": true},
+  {"query": "How do I send a voice message (ogg/opus) from a stream, and also receive voice notes from users and download them for transcription?", "should_trigger": true},
+  {"query": "Как скачать документ, который пользователь прислал grammY-боту, если файл больше 20 МБ? Нужен getFile и локальный Bot API сервер?", "should_trigger": true},
+  {"query": "Нужно отправить пользователю видео из файла на диске и круглое видеосообщение (video note) в grammY. Покажи через InputFile.", "should_trigger": true},
+  {"query": "My grammY bot sends 12 MB photos by URL and Telegram rejects them, and a user's 60 MB video cannot be downloaded with getFile. What are the size limits for sending by URL, by upload and for downloading, and what are my options for the large files?", "should_trigger": true},
+  {"query": "Run a handler only for edited channel posts that have a caption, with filter queries and the right type narrowing", "should_trigger": false},
+  {"query": "Upload files from an Express app to S3 using multer and presigned URLs", "should_trigger": false},
+  {"query": "How do I send an image as an attachment in a discord.js embed?", "should_trigger": false},
+  {"query": "Add an inline keyboard to my grammY bot with a Like and a Dislike button that update a counter", "should_trigger": false},
+  {"query": "Write a grammY handler that rate limits users to 3 messages per 10 seconds", "should_trigger": false},
+  {"query": "Convert a user's HEIC photo to JPEG with sharp in Node.js and return the buffer", "should_trigger": false},
+  {"query": "Sell a digital file through my grammY bot with Telegram Stars: send the invoice and approve the pre-checkout query", "should_trigger": false},
+  {"query": "How do I attach files to an email with nodemailer and send it through SMTP?", "should_trigger": false}
+]

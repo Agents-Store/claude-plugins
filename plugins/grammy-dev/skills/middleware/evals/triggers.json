@@ -1,0 +1,18 @@
+[
+  {"query": "Between session() and my handlers I need a billing check in my grammY bot. If the user's plan has expired I want to reply once and stop, otherwise continue to the handlers. Which constructs allow that, and does the position relative to session matter?", "should_trigger": true},
+  {"query": "Explain the order in which grammY middleware runs when I have two bot.use calls and a command handler, and why my logger prints after the reply", "should_trigger": true},
+  {"query": "How do I split a big grammY bot into separate Composer modules (admin, payments, onboarding) and mount the admin one only for admin users?", "should_trigger": true},
+  {"query": "What is the difference between bot.use, bot.fork, bot.lazy and bot.drop in grammY, and when would I pick each one?", "should_trigger": true},
+  {"query": "Explain how middleware ordering works in grammY with this chain: a logger, session, an auth check and my command handlers. What happens to the handlers if the auth middleware returns without calling next()?", "should_trigger": true},
+  {"query": "Как написать в grammY свой middleware, который достаёт пользователя из базы, кладёт в ctx.user и передаёт управление дальше через next()?", "should_trigger": true},
+  {"query": "Как в grammY разнести обработчики по отдельным файлам через Composer и подключить их в нужном порядке?", "should_trigger": true},
+  {"query": "Show me how to write a custom grammY middleware that rejects updates from users who are not in the ADMIN_IDS list, and how to apply it to only a group of commands instead of the whole bot.", "should_trigger": true},
+  {"query": "Write an Express middleware that checks a JWT and rejects the request with 401", "should_trigger": false},
+  {"query": "Write a Next.js middleware.ts that redirects unauthenticated users to /login", "should_trigger": false},
+  {"query": "How do I persist ctx.session in Redis in grammY?", "should_trigger": false},
+  {"query": "Add the auto-retry transformer to the grammY API client", "should_trigger": false},
+  {"query": "Catch and log every unhandled error in my grammY bot, distinguishing GrammyError from HttpError", "should_trigger": false},
+  {"query": "Write a filter query so my grammY handler runs only for photo captions", "should_trigger": false},
+  {"query": "How does koa-compose work internally to build the onion model for Koa?", "should_trigger": false},
+  {"query": "How do I define a multi-step form in grammY with the conversations plugin?", "should_trigger": false}
+]
