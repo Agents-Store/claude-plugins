@@ -1,15 +1,6 @@
 ---
 name: competitor-analysis
-description: >
-  Use this skill to run competitor SEO research on DataForSEO Labs data (domain_rank_overview,
-  competitors_domain, serp_competitors, ranked_keywords, relevant_pages, subdomains, domain_intersection,
-  page_intersection). Always use it when a request names a domain, page or search query and asks who competes or
-  ranks, or how sites compare in organic search. That covers: finding a site's organic competitors; listing the
-  domains that hold the top 10 for a query, in any language or country; comparing domains on organic keywords,
-  estimated traffic, traffic value and trend; a site's top pages or subdomains by organic traffic; and keyword
-  gaps, overlaps and content gaps against a competitor. The user does not need to mention DataForSEO. Skip it
-  for keyword ideation or search-volume research, backlink audits, scraping or summarizing page content,
-  sitemaps and robots files, and DataForSEO API or tool errors.
+description: Use for competitor SEO research with DataForSEO Labs data - who competes for the same organic keywords, who ranks in the top 10 for a query, how domains compare on organic traffic, keywords and trend, a competitor's top pages, and keyword or domain gaps. Not for keyword ideation (keyword-research), backlink audits (backlink-audit) or page audits (site-audit).
 ---
 
 # Competitor Analysis Workflows
