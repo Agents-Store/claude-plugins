@@ -28,7 +28,7 @@
     },
     {
       "id": 25,
-      "prompt": "My MCP client sends every Directus tool definition to the model and runs out of context. Can Directus reduce that?",
+      "prompt": "Use the mcp-tools skill. My MCP client sends every Directus tool definition to the model and runs out of context. Can Directus reduce that?",
       "expected_output": "registry mode via ?tool_mode=registry with search, execute, schema",
       "files": [],
       "expectations": [

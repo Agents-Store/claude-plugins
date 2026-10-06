@@ -18,7 +18,7 @@
     },
     {
       "id": 10,
-      "prompt": "How do I reference data from the trigger in a Directus flow operation?",
+      "prompt": "Use the flow-automation skill. How do I reference data from the trigger in a Directus flow operation?",
       "expected_output": "Data chain variables: $trigger, payload, keys, operation_key references",
       "files": [],
       "expectations": [
@@ -43,7 +43,7 @@
     },
     {
       "id": 29,
-      "prompt": "Set up a Directus flow that tells my Next.js site to refresh its cache when a post is published, and keep the shared secret out of the URL.",
+      "prompt": "Use the flow-automation skill. Set up a Directus flow that tells my Next.js site to refresh its cache when a post is published, and keep the shared secret out of the URL.",
       "expected_output": "Event flow with a request operation, secret in a header via $env and FLOWS_ENV_ALLOW_LIST",
       "files": [],
       "expectations": [
@@ -56,7 +56,7 @@
     },
     {
       "id": 30,
-      "prompt": "When an article is created or its body edited in Directus, my worker should process it. The worker writes ai_summary back into the same article and now the flow fires in a loop. Set up the flow so it sends the item ids to the worker and does not re-fire on the worker's own write.",
+      "prompt": "Use the flow-automation skill. When an article is created or its body edited in Directus, my worker should process it. The worker writes ai_summary back into the same article and now the flow fires in a loop. Set up the flow so it sends the item ids to the worker and does not re-fire on the worker's own write.",
       "expected_output": "Event flow with a request operation sending event, collection and keys; a condition with filter rules on $trigger.payload that the write-back does not satisfy; the secret in a header",
       "files": [],
       "expectations": [

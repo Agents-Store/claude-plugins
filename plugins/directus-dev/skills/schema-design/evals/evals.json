@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 5,
-      "prompt": "I want to build a blog CMS in Directus. What collections do I need and in what order should I create them?",
+      "prompt": "Use the schema-design skill. I want to build a blog CMS in Directus. What collections do I need and in what order should I create them?",
       "expected_output": "Blog collections with creation order, system fields, display templates",
       "files": [],
       "expectations": [

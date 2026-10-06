@@ -55,7 +55,7 @@
     },
     {
       "id": 28,
-      "prompt": "My Next.js health check does directus.request(readItems('directus_collections')) and fails. What should I call instead?",
+      "prompt": "Use the sdk-patterns skill. My Next.js health check does directus.request(readItems('directus_collections')) and fails. What should I call instead?",
       "expected_output": "System collections use typed commands; readItems refuses directus_* collections",
       "files": [],
       "expectations": [

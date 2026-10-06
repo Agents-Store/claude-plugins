@@ -16,7 +16,7 @@
     },
     {
       "id": 4,
-      "prompt": "How do I batch create 50 products in Directus? I have them in a list and want to insert them all",
+      "prompt": "Use the item-operations skill. How do I batch create 50 products in Directus? I have them in a list and want to insert them all",
       "expected_output": "Data must be an array, batch in groups of 10-25, read schema first",
       "files": [],
       "expectations": [

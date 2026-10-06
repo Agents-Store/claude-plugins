@@ -17,7 +17,7 @@
     },
     {
       "id": 8,
-      "prompt": "What field type should I use for a featured image on my posts collection?",
+      "prompt": "Use the field-relations skill. What field type should I use for a featured image on my posts collection?",
       "expected_output": "UUID type, file-image interface, special:[file], relation to directus_files",
       "files": [],
       "expectations": [

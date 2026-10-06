@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 17,
-      "prompt": "I'm getting 403 Forbidden when trying to create items via MCP in Directus. How do I fix this?",
+      "prompt": "Use the troubleshoot skill. I'm getting 403 Forbidden when trying to create items via MCP in Directus. How do I fix this?",
       "expected_output": "Policy permissions, system collection permissions, MCP user permission table",
       "files": [],
       "expectations": [
@@ -17,7 +17,7 @@
     },
     {
       "id": 18,
-      "prompt": "My Directus flow operations aren't executing even though the flow is active. It is an event hook on items.update of `orders` with a condition operation followed by a request operation; the flow's logs stay empty. What do I check?",
+      "prompt": "Use the troubleshoot skill. My Directus flow operations aren't executing even though the flow is active. It is an event hook on items.update of `orders` with a condition operation followed by a request operation; the flow's logs stay empty. What do I check?",
       "expected_output": "The answer tells to check flow.operation, the resolve/reject chains, the condition syntax and the request format",
       "files": [],
       "expectations": [
