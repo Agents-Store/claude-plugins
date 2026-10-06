@@ -37,7 +37,7 @@ Then, in order and without skipping:
    writing a line of spec. Reading a codebase into a spec by browsing it is how a
    subsystem goes unmentioned — the enumerator lists every candidate the declared stack's
    conventions produce, and says out loud when a convention matched nothing.
-1. **`spec-authoring`** — produce or complete `macstack.json`. In **design** mode start
+1. **`macstack-dev:spec-authoring`** — produce or complete `macstack.json`. In **design** mode start
    at B0, the interview: six questions asked through AskUserQuestion, in result-first
    order, recommendation first. The order is the method — the chain reads Goal ← Result
    ← Process ← Task ← Workflow ← Software, so software is decided last or it is decided
