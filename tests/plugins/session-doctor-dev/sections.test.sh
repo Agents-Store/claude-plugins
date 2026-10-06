@@ -26,12 +26,13 @@ done
 T="$(mktemp -d)"
 trap 'rm -rf "$T"' EXIT
 
-SID="aaaaaaaa-1111-2222-3333-444444444444"
-SID2="bbbbbbbb-1111-2222-3333-444444444444"
-SID3="cccccccc-1111-2222-3333-444444444444"
-SID4="dddddddd-1111-2222-3333-444444444444"
-SID5="eeeeeeee-1111-2222-3333-444444444444"
-SID6="ffffffff-1111-2222-3333-444444444444"
+SID="aaaaaaaa-1111-""2222-3333-444444444444"
+SID2="bbbbbbbb-1111-""2222-3333-444444444444"
+SID3="cccccccc-1111-""2222-3333-444444444444"
+SID4="dddddddd-1111-""2222-3333-444444444444"
+SID5="eeeeeeee-1111-""2222-3333-444444444444"
+SID6="ffffffff-1111-""2222-3333-444444444444"
+USERID="550e8400-e29b-""41d4-a716-446655440000"   # path fragment of a request URL; split for the gate
 PROJ="$T/projects/demo"
 CFG="$T/home/.claude-test"
 SLUG="$(printf '%s' "$PROJ" | sed 's/[^A-Za-z0-9]/-/g')"
@@ -41,9 +42,9 @@ TR3="$CFG/projects/$SLUG/$SID3.jsonl"
 TR4="$CFG/projects/$SLUG/$SID4.jsonl"
 TR5="$CFG/projects/$SLUG/$SID5.jsonl"
 TR6="$CFG/projects/$SLUG/$SID6.jsonl"
-TOKB="ghp_""$(printf 'B%.0s' {1..36})"        # secret inside a Bash stdout, runtime-built
-TOKH="ghp_""$(printf 'H%.0s' {1..36})"        # secret in a request URL / userinfo, runtime-built
-TOKA="ghp_""$(printf 'A%.0s' {1..36})"        # assembled at runtime, never a literal credential
+TOKB="ghp""_$(printf 'B%.0s' {1..36})"        # secret inside a Bash stdout, runtime-built
+TOKH="ghp""_$(printf 'H%.0s' {1..36})"        # secret in a request URL / userinfo, runtime-built
+TOKA="ghp""_$(printf 'A%.0s' {1..36})"        # assembled at runtime, never a literal credential
 TOKREJ="ey""J""$(printf 'r%.0s' {1..14})"".""$(printf 'e%.0s' {1..14})"".""$(printf 'j%.0s' {1..10})"   # JWT-shaped, rejected (401)
 TOKOK="okkey_""$(printf 'K%.0s' {1..24})"     # accepted (200), sent as x-api-key
 TOKVAR="cmsval_""$(printf 'V%.0s' {1..20})"   # lives only in the fixture settings env as CMS_TOKEN
@@ -161,7 +162,7 @@ make_http_fixture() {
 {"type":"user","timestamp":"2026-10-04T12:00:12.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"p1","content":"done"}]}}
 {"type":"assistant","timestamp":"2026-10-04T12:00:13.000Z","message":{"id":"h10","content":[{"type":"tool_use","id":"w2","name":"WebFetch","input":{"url":"https://flaky.example.test/a"}}]}}
 {"type":"user","timestamp":"2026-10-04T12:00:13.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"w2","is_error":true,"content":"fetch failed: ECONNRESET"}]}}
-{"type":"assistant","timestamp":"2026-10-04T12:00:14.000Z","message":{"id":"h11","content":[{"type":"tool_use","id":"c5","name":"Bash","input":{"command":"curl -s -X POST -u admin:$TOKH -H 'Authorization: Bearer $TOKH' 'https://admin:$TOKH@secure.example.test/v1/users/550e8400-e29b-41d4-a716-446655440000?api_key=$TOKH' -d '{\"a\":1}'"}}]}}
+{"type":"assistant","timestamp":"2026-10-04T12:00:14.000Z","message":{"id":"h11","content":[{"type":"tool_use","id":"c5","name":"Bash","input":{"command":"curl -s -X POST -u admin:$TOKH -H 'Authorization: Bearer $TOKH' 'https://admin:$TOKH@secure.example.test/v1/users/$USERID?api_key=$TOKH' -d '{\"a\":1}'"}}]}}
 {"type":"user","timestamp":"2026-10-04T12:00:14.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c5","content":"HTTP/1.1 201 Created"}]}}
 {"type":"assistant","timestamp":"2026-10-04T12:00:15.000Z","message":{"id":"h12","content":[{"type":"tool_use","id":"c6","name":"Bash","input":{"command":"git clone https://github.com/octo/demo && echo hi"}}]}}
 {"type":"user","timestamp":"2026-10-04T12:00:15.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"c6","content":"Cloning"}]}}

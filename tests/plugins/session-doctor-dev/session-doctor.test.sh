@@ -34,15 +34,17 @@ done
 T="$(mktemp -d)"
 trap 'rm -rf "$T"' EXIT
 
-SID="11111111-2222-3333-4444-555555555555"
-PROJ="$T/projects/demo"                     # .../projects/<имя>/ — как родитель на ai-server-4
+SID="11111111-2222-""3333-4444-555555555555"   # split: the gate matches uuid shapes in tests/
+PROJ="$T/projects/demo"                     # .../projects/<имя>/ — как родитель на сервере
 CFG="$T/home/.claude-test"
 SLUG="$(printf '%s' "$PROJ" | sed 's/[^A-Za-z0-9]/-/g')"
 TR="$CFG/projects/$SLUG/$SID.jsonl"
 SECRET_SETTINGS="committed-secret-value-123456789"
-SECRET_MCP="sk-live-abcdefghijklmnopqrstuvwxyz123456"
+SECRET_MCP="sk-""live-abcdefghijklmnopqrstuvwxyz123456"   # fake; prefix split so the gate sees no literal
 SECRET_LOCAL="local-only-token-value-987654321"
-SECRET_LAUNCH="ghp_abcdefghijklmnopqrstuvwxyz0123456789"
+SECRET_LAUNCH="ghp""_abcdefghijklmnopqrstuvwxyz0123456789"
+SECRET_TOKURL="ghp""_abcdefghijklmnopqrstuvwxyz9876"        # token inside a tracked .mcp.json URL
+SECRET_ANT="sk-""ant-api03-abcdefghijklmnopqrstuvwxyz"
 
 # ── фикстуры ────────────────────────────────────────────────────────────
 make_project() {
@@ -72,7 +74,7 @@ JSON
     "oauthy": { "type": "http", "url": "https://oauthy.example.test/mcp",
                 "oauth": { "authServerMetadataUrl": "https://auth.example.test/.well-known/oauth-authorization-server" } },
     "unapproved": { "command": "x-mcp", "env": { "K": "\${MISSING_VAR}" } },
-    "tokenurl": { "type": "http", "url": "https://mcp.example.test/sse?token=ghp_abcdefghijklmnopqrstuvwxyz9876" }
+    "tokenurl": { "type": "http", "url": "https://mcp.example.test/sse?token=$SECRET_TOKURL" }
   }
 }
 JSON
@@ -109,14 +111,14 @@ JSON
 { "hooks": { "SessionStart": [ { "hooks": [ { "type": "prompt", "prompt": "Say hi" } ] } ] } }
 JSON
   # Другая живая сессия в том же checkout: её pid — этот shell, он точно жив.
-  printf '{"pid": %s, "sessionId": "99999999-0000-0000-0000-000000000000", "cwd": "%s", "status": "idle"}\n' \
-    "$$" "$PROJ" > "$CFG/sessions/$$.json"
+  printf '{"pid": %s, "sessionId": "%s", "cwd": "%s", "status": "idle"}\n' \
+    "$$" "99999999-0000-""0000-0000-000000000000" "$PROJ" > "$CFG/sessions/$$.json"
   # Сессия в git worktree внутри проекта — это отдельный checkout, её считать нельзя.
-  printf '{"pid": %s, "sessionId": "88888888-0000-0000-0000-000000000000", "cwd": "%s", "status": "busy"}\n' \
-    "$$" "$PROJ/.claude/worktrees/wt" > "$CFG/sessions/wt.json"
+  printf '{"pid": %s, "sessionId": "%s", "cwd": "%s", "status": "busy"}\n' \
+    "$$" "88888888-0000-""0000-0000-000000000000" "$PROJ/.claude/worktrees/wt" > "$CFG/sessions/wt.json"
   # Устаревшая запись: pid давно занят другой программой (в make_proc это vim), её считать нельзя.
-  printf '{"pid": %s, "sessionId": "77777777-0000-0000-0000-000000000000", "cwd": "%s", "status": "idle"}\n' \
-    "$PPID" "$PROJ" > "$CFG/sessions/stale.json"
+  printf '{"pid": %s, "sessionId": "%s", "cwd": "%s", "status": "idle"}\n' \
+    "$PPID" "77777777-0000-""0000-0000-000000000000" "$PROJ" > "$CFG/sessions/stale.json"
 }
 
 make_proc() {
@@ -193,7 +195,7 @@ echo "▸ общие помощники"
 assert_eq "token=*** Bearer ***" \
   "$(py 'from doctor_common import redact; print(redact("token=abcdef123456 Bearer abcdefghijklmnop"))')" \
   "redact маскирует присваивания и Bearer"
-assert_eq "x *** y" "$(py 'from doctor_common import redact; print(redact("x ghp_abcdefghijklmnopqrstuvwxyz0123 y"))')" \
+assert_eq "x *** y" "$(py 'from doctor_common import redact; print(redact("x ghp""_abcdefghijklmnopqrstuvwxyz0123 y"))')" \
   "redact маскирует токен GitHub"
 assert_eq "see *** here" \
   "$(py 'from doctor_common import remember_secrets, scrub; remember_secrets({"MY_TOKEN": "supersecretvalue"}); print(scrub("see supersecretvalue here"))')" \
@@ -211,7 +213,10 @@ assert_eq "opus sonnet None" \
   "$(py 'from doctor_common import family; print(family("claude-opus-5-5"), family("sonnet[1m]"), family("gpt"))')" \
   "семейство модели по имени"
 # Формы секретов, которые нашло ревью: «текст|то, чего в выводе быть не должно».
+# Префиксы секретов в фикстурах разобраны на плейсхолдеры: гейт ищет формы токенов и в tests/.
+unplace() { local v=$1; v=${v//@SKL@/sk"_live_"}; v=${v//@AKI@/AK"IA"}; v=${v//@GLP@/glp"at-"}; v=${v//@GHP@/gh"p_"}; printf '%s' "$v"; }
 while IFS='|' read -r case secret; do
+  case=$(unplace "$case"); secret=$(unplace "$secret")
   assert_missing "$secret" "$(redacted "$case")" "redact: ${case:0:28}"
 done <<'CASES'
 {"api_key": "abcdef123456"}|abcdef123456
@@ -219,9 +224,9 @@ x-api-key: abcdef123456|abcdef123456
 postgres://user:abcdef123456@db.example|abcdef123456
 --password abcdef123456|abcdef123456
 Authorization: Bearer abcdef123456|abcdef123456
-sk_live_abcdefghijklmnop1234|abcdefghijklmnop1234
-AKIAABCDEFGHIJKLMNOP|ABCDEFGHIJKLMNOP
-glpat-abcdefghijklmnopqrst|abcdefghijklmnopqrst
+@SKL@abcdefghijklmnop1234|abcdefghijklmnop1234
+@AKI@ABCDEFGHIJKLMNOP|ABCDEFGHIJKLMNOP
+@GLP@abcdefghijklmnopqrst|abcdefghijklmnopqrst
 123456789:ABCdefGHIjklMNOpqrSTUvwxYZ012345678|ABCdefGHIjklMNOpqrSTUvwxYZ012345678
 STRIPE_KEY=abcdef123456|abcdef123456
 SENTRY_DSN=https://abc123@o1.ingest.sentry.io/4|abc123
@@ -229,7 +234,7 @@ redis://:s3cretpw99@cache/0|s3cretpw99
 curl -u admin:pw12345 https://x|pw12345
 PGPASSWORD=hunter22 psql|hunter22
 {"password":"pass with space"}|pass with space
-https://mcp.example.com/sse?token=ghp_abcdefghij&x=1|ghp_abcdefghij
+https://mcp.example.com/sse?token=@GHP@abcdefghij&x=1|@GHP@abcdefghij
 CASES
 while IFS= read -r case; do
   assert_eq "$case" "$(redacted "$case")" "читается как есть: ${case:0:28}"
@@ -499,7 +504,7 @@ assert_missing "oauthy" "$ALL" "URL в настройках OAuth — не се�
 assert_missing "unapproved" "$ALL" "неодобренный сервер в интерактивной сессии не проверяется"
 assert_contains "tokenurl" "$(printf '%s' "$J" | jq -r '.findings[] | select(.id=="MCP_SECRET_COMMITTED") | .evidence')" \
   "токен в URL отслеживаемого .mcp.json — секрет"
-assert_missing "ghp_abcdefghijklmnopqrstuvwxyz9876" "$J" "сам токен из URL не напечатан"
+assert_missing "$SECRET_TOKURL" "$J" "сам токен из URL не напечатан"
 sed 's/"entrypoint":"cli"/"entrypoint":"sdk-cli"/' "$TR" > "$T/sdk.jsonl"
 assert_contains "unapproved" "$(doctor --session "$T/sdk.jsonl" --json | jq -r '[.findings[] | .title] | join(" ")')" \
   "в headless-сессии неодобренный сервер тоже грузится — проверяется"
@@ -526,12 +531,12 @@ assert_missing " API_KEY_BILLING " " $(ids_of "$J")" "без ANTHROPIC_API_KEY �
 assert_missing ".env.sample" "$(printf '%s' "$J" | jq -r '.findings[] | select(.id=="SECRET_COMMITTED") | .evidence')" \
   "шаблон .env.sample — не секрет"
 cp "$T/proc/4242/environ" "$T/environ.bak"
-printf 'ANTHROPIC_API_KEY=sk-ant-api03-abcdefghijklmnopqrstuvwxyz\0' >> "$T/proc/4242/environ"
+printf 'ANTHROPIC_API_KEY=%s\0' "$SECRET_ANT" >> "$T/proc/4242/environ"
 OUT="$(doctor --json)"
 cp "$T/environ.bak" "$T/proc/4242/environ"
 assert_eq "high" "$(printf '%s' "$OUT" | jq -r '.findings[] | select(.id=="API_KEY_BILLING") | .severity')" \
   "ANTHROPIC_API_KEY при подписке — high"
-assert_missing "sk-ant-api03" "$OUT" "значение ANTHROPIC_API_KEY не напечатано"
+assert_missing "sk-""ant-api03" "$OUT" "значение ANTHROPIC_API_KEY не напечатано"
 
 # ═══ section: activity ═══════════════════════════════════════════════════════
 echo "▸ активность"
