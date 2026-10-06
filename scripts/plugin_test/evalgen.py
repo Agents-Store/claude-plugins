@@ -4,8 +4,9 @@
   evals-trigger/  срабатывание: 1 прогон, 1 ход, только Skill, без моков — моки уводят модель в ToolSearch
   evals-quality/  качество: 3 прогона в каждом плече, Read/Grep/Glob/Skill, моки MCP из снимков L1
   evals-rerun/    повтор проваленных кейсов срабатывания
-Из plugin.json копии убран ключ dependencies: с ним плагин в песочнице не грузится. Копия для прогонов
-срабатывания — ещё и без agents/ (copy_plugin drop_agents). Команда плагина, которая ведёт к skill (skill_routes), засчитывается как срабатывание этого skill.
+Из plugin.json копии убран ключ dependencies: с ним плагин в песочнице не грузится. Копия L2 — ещё и без
+agents/ (copy_plugin drop_agents): L2 меряет skills, агент плагина забирает ход у Skill и портит ответ.
+Команда плагина, которая ведёт к skill (skill_routes), засчитывается как срабатывание этого skill.
 Генерация детерминирована: одинаковый вход — байт-в-байт одинаковое дерево. Frontmatter — только
 ключи, которые знает claude plugin eval (неизвестный ключ — ошибка загрузки); строки — JSON, он валидный YAML.
 """
@@ -122,7 +123,8 @@ def _remove_agents(dest):
 def copy_plugin(plugin_dir, dest, drop_agents=False):
     """Временная копия плагина для eval. В ней нет GENERATED-деревьев, .git и ключа dependencies в plugin.json:
     с ним плагин в песочнице не грузится. drop_agents — без agents/ и без ключа agents: агенты плагина
-    предлагаются модели через Agent и забирают единственный ход срабатывания у Skill (прогоны срабатывания)."""
+    предлагаются модели через Agent, забирают единственный ход срабатывания у Skill и портят ответы качества
+    (L2 меряет skills); behavior всегда копирует с drop_agents=True."""
     shutil.copytree(plugin_dir, dest, symlinks=True, ignore=shutil.ignore_patterns(".git", *GENERATED))
     _strip_manifest_keys(dest, ("dependencies", "agents") if drop_agents else ("dependencies",))
     if drop_agents:
