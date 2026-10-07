@@ -1,0 +1,17 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Bash",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "bw list items --search github"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "json": {
+      "hookSpecificOutput.permissionDecision": "ask"
+    }
+  }
+}

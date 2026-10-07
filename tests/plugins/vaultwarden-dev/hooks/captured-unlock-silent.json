@@ -1,0 +1,15 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Bash",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "export BW_SESSION=\"$(bw unlock --passwordenv BW_PASSWORD --raw)\""
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdout_empty": true
+  }
+}

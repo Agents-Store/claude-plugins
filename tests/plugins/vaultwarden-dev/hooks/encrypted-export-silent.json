@@ -1,0 +1,15 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Bash",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "bw export --format encrypted_json --password \"$EXPORT_PW\" --output vault.enc.json"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdout_empty": true
+  }
+}
