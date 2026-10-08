@@ -1,0 +1,18 @@
+[
+  {"query": "The native n8n MCP server answers Unauthorized since I rotated the instance API key, while the external server still works. Walk me through the diagnostic steps", "should_trigger": true},
+  {"query": "n8n-mcp-external keeps failing to connect with 'connection refused' in the MCP log. I run n8n self-hosted on a non-default port.", "should_trigger": true},
+  {"query": "I get 401 Unauthorized calling the n8n API with my key from a script - what are the common authentication mistakes?", "should_trigger": true},
+  {"query": "The AI Agent node in my n8n workflow shows a connection type error when I wire the chat model sub-node. How do I fix the wiring?", "should_trigger": true},
+  {"query": "n8n_health_check fails and the external MCP server says it cannot reach the n8n API. What should I check first?", "should_trigger": true},
+  {"query": "A workflow I created through the MCP has a connection error: the connections object refers to a source node that does not exist. How do I fix the definition?", "should_trigger": true},
+  {"query": "Нативный MCP-сервер n8n возвращает 401, а внешний работает. Как продиагностировать подключение?", "should_trigger": true},
+  {"query": "n8n перестал работать после обновления: workflow падают при выполнении, в executions красные записи. С чего начать отладку?", "should_trigger": true},
+  {"query": "Debug why my Zapier zap stops after the filter step even though the filter passes", "should_trigger": false},
+  {"query": "Debug 'Error: spawn ENOENT' when Claude Code launches my Playwright MCP server", "should_trigger": false},
+  {"query": "Fix the 401 I get from the Jira REST API when using an API token with basic auth", "should_trigger": false},
+  {"query": "Verify that my n8n MCP setup is fine - just check the connection and the env vars", "should_trigger": false},
+  {"query": "Export all n8n workflows through the CLI into one JSON file per workflow", "should_trigger": false},
+  {"query": "Write an n8n expression that formats the current date as YYYY-MM-DD in Berlin time using DateTime", "should_trigger": false},
+  {"query": "My Make.com scenario execution fails with 'Module not found' after I renamed the app connection", "should_trigger": false},
+  {"query": "Write a JavaScript Code node that flattens nested arrays and drops duplicate ids", "should_trigger": false}
+]
