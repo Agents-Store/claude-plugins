@@ -8,6 +8,8 @@ allowed-tools: [Read, Write, Bash, Skill]
 
 Add a field to an existing table. Choose any of the 35 supported types — see the **field-management** skill and `api-reference/references/field-types.md` for per-type payloads. Type-specific settings go inside `options`.
 
+The field types, create payloads and update rules are written down in `${CLAUDE_PLUGIN_ROOT}/skills/field-management/SKILL.md`; read it before the first step.
+
 ## Steps
 
 1. Resolve the target table ID — `mcp__plugin_nocodb-dev_nocodb__getTablesList` if a name was passed, or prompt.

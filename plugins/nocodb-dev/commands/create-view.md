@@ -8,6 +8,8 @@ allowed-tools: [Read, Write, Bash, Skill]
 
 Create a new view on an existing table. Each view type has different prerequisites — see the **view-management** skill.
 
+The view types, their prerequisites and create payloads are written down in `${CLAUDE_PLUGIN_ROOT}/skills/view-management/SKILL.md`; read it before the first step.
+
 ## Steps
 
 1. Resolve the target table ID.

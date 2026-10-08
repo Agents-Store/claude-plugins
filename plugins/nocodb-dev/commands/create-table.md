@@ -8,6 +8,8 @@ allowed-tools: [Read, Write, Bash, Skill]
 
 Create a new table in a NocoDB base. Prompt for any missing details (base, title, initial fields).
 
+The table payloads, the display field and the pre-flight checklist are written down in `${CLAUDE_PLUGIN_ROOT}/skills/table-management/SKILL.md`; read it before the first step.
+
 ## Steps
 
 1. Resolve the base ID from the user's input. The MCP server is pinned to one base — `mcp__plugin_nocodb-dev_nocodb__getBaseInfo` shows it. For another base, list workspaces and bases with `GET ${NOCODB_URL}/api/v3/meta/workspaces` and `…/workspaces/{workspaceId}/bases`, or prompt.

@@ -8,6 +8,8 @@ allowed-tools: [Read, Write, Bash, Skill]
 
 Configure a HookV3 webhook on a table — fire on insert / update / delete, optionally scoped to specific fields on update, dispatch to URL / Email / a messaging service / Script.
 
+The HookV3 anatomy, notification types and the pre-flight checklist are written down in `${CLAUDE_PLUGIN_ROOT}/skills/webhooks/SKILL.md`; read it before the first step.
+
 ## Steps
 
 1. Resolve the target table ID via `mcp__plugin_nocodb-dev_nocodb__getTablesList`.

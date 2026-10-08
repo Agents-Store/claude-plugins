@@ -1,0 +1,18 @@
+[
+  {"query": "Add a NocoDB webhook (HookV3) on the Bugs table that posts to a Slack channel when a record is inserted", "should_trigger": true},
+  {"query": "I want an email notification sent when a record in the Orders table is updated, scoped to the Status field only — set up the hook in NocoDB", "should_trigger": true},
+  {"query": "trigger an n8n workflow on update of the Customers table in NocoDB: URL notification with a POST body", "should_trigger": true},
+  {"query": "List all the webhooks on the Tasks table in NocoDB and delete the one named 'old-sync'", "should_trigger": true},
+  {"query": "Настрой в NocoDB вебхук, который отправляет сообщение в Telegram при создании записи в таблице Заявки", "should_trigger": true},
+  {"query": "Как в NocoDB создать hook через Meta API: триггеры, поля, тип уведомления URL и проверка работы?", "should_trigger": true},
+  {"query": "update an existing NocoDB hook so it also fires on delete and test it with a sample payload", "should_trigger": true},
+  {"query": "set up a NocoDB hook with the Script notification type that runs on insert", "should_trigger": true},
+  {"query": "Configure a Mailgun inbound route that forwards parsed emails to my API endpoint", "should_trigger": false},
+  {"query": "Create a Slack Incoming Webhook and send a message with curl", "should_trigger": false},
+  {"query": "Set up a GitHub webhook for push events that triggers a Jenkins build", "should_trigger": false},
+  {"query": "Configure a Stripe webhook endpoint in Next.js and verify the signature", "should_trigger": false},
+  {"query": "Create a Directus Flow that triggers on item create and calls a URL", "should_trigger": false},
+  {"query": "List the executions of a NocoDB workflow from the last hour", "should_trigger": false},
+  {"query": "Create a Trello butler automation that sends an email when a card moves to Done", "should_trigger": false},
+  {"query": "Create a NocoDB table called Events with a Title field", "should_trigger": false}
+]
