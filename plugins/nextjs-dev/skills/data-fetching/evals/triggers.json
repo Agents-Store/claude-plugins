@@ -1,0 +1,18 @@
+[
+  {"query": "app/users/[id]/page.tsx in my Next.js 16 app awaits getUser(id) and then getOrders(id) one after the other, and getRecommendations(id) takes 2 seconds. Restructure it so user and orders load in parallel and recommendations stream in behind a Suspense boundary", "should_trigger": true},
+  {"query": "How does the 'use cache' directive work in Next.js 16 with cacheLife and cacheTag? I want product lists cached for an hour and revalidated when an admin edits a product", "should_trigger": true},
+  {"query": "My Server Action updatePost in app/posts/actions.ts saves to the database and redirects to /posts/[slug], but /posts (the list) and the home page still show the old title until a hard refresh. Fix it: which of revalidatePath, revalidateTag, updateTag or refresh belongs in the action, with the fetch tags set where the data is loaded?", "should_trigger": true},
+  {"query": "My Next.js 16 blog pages at app/blog/[slug]/page.tsx are fully static from build time. Make them regenerate in the background at most every 10 minutes, and explain how you express that if I turned Cache Components on", "should_trigger": true},
+  {"query": "В app/tasks/page.tsx у меня список задач и форма, которая через Server Action addTask сохраняет новую задачу. Сейчас список обновляется только после ответа сервера. Сделай оптимистичное добавление, чтобы задача появлялась сразу, и откатывалась при ошибке", "should_trigger": true},
+  {"query": "Объясни кэширование данных в Next.js App Router: request memoization, fetch cache и разница между статикой и динамикой", "should_trigger": true},
+  {"query": "Our Next.js 16 marketing pages load content from a headless CMS through fetch('https://cms.example.com/api/pages/' + slug). Editors want a publish to show up within seconds without a redeploy, and the CMS can call a webhook. Set up the revalidation: tags on the fetch, the webhook route handler and what it calls", "should_trigger": true},
+  {"query": "app/dashboard/page.tsx in my Next.js app does const stats = await getStats(); const feed = await getFeed(); const alerts = await getAlerts() and takes 1.8 seconds, although none depends on the other. Show the restructured server component so they run concurrently and the slowest one does not block the page", "should_trigger": true},
+  {"query": "Build the signup form in Next.js with useActionState, useFormStatus and Zod errors shown under each field", "should_trigger": false},
+  {"query": "Design a Route Handler for a public REST endpoint with CORS and versioning", "should_trigger": false},
+  {"query": "Set up TanStack Query in a React SPA with optimistic updates and cache invalidation on mutation", "should_trigger": false},
+  {"query": "Fetch data in Nuxt 3 with useAsyncData and server routes", "should_trigger": false},
+  {"query": "Use SWR with a revalidateOnFocus strategy in a Create React App project", "should_trigger": false},
+  {"query": "Why does my Next.js page show stale data after deploying to Vercel? It's an error I can't reproduce locally", "should_trigger": false},
+  {"query": "Write SQL for a paginated query with a keyset cursor in Postgres", "should_trigger": false},
+  {"query": "Configure Apollo Client cache policies for a GraphQL list with fetchMore", "should_trigger": false}
+]

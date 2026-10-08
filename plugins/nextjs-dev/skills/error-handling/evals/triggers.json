@@ -1,0 +1,18 @@
+[
+  {"query": "Add error handling to my Next.js App Router app: an error.tsx for the dashboard segment with a retry button and a global-error.tsx for the root layout", "should_trigger": true},
+  {"query": "In app/products/[slug]/page.tsx my getProduct(slug) returns null for unknown slugs and the page crashes with 'Cannot read properties of null'. Add notFound() there and write a custom app/products/not-found.tsx with a link back to the catalogue", "should_trigger": true},
+  {"query": "My Server Action createInvoice in app/invoices/actions.ts throws new Error('Customer not found') when the customer id is wrong, which blows up to error.tsx. Change it to return the expected errors as values and show the form component reading them with useActionState", "should_trigger": true},
+  {"query": "My dashboard at app/dashboard/page.tsx fetches slowly and blank-screens for two seconds. Add a skeleton while it loads and show me how loading.tsx and an error.tsx in the same segment relate to each other (which wraps which, and what happens when the fetch throws)", "should_trigger": true},
+  {"query": "Как в Next.js обработать ошибку в одном компоненте, не ломая всю страницу? Слышал про catchError", "should_trigger": true},
+  {"query": "Покажи, как сделать error boundary на уровне маршрута в App Router и как вложенные error.tsx поднимают ошибку вверх", "should_trigger": true},
+  {"query": "event handler errors in a Next.js client component aren't caught by error.tsx - how should I handle them?", "should_trigger": true},
+  {"query": "Design a fallback UI and error recovery with reset() for failed data fetches in a Next.js layout", "should_trigger": true},
+  {"query": "My Next.js app shows 'Text content does not match server-rendered HTML', how do I debug this hydration problem?", "should_trigger": false},
+  {"query": "Set up Sentry for a Next.js app with source maps and release tracking", "should_trigger": false},
+  {"query": "Write a global exception filter in NestJS that maps domain errors to HTTP status codes", "should_trigger": false},
+  {"query": "Implement an ErrorBoundary class component in a plain React SPA with Vite", "should_trigger": false},
+  {"query": "Validate a Server Action form with zod and show field errors inline", "should_trigger": false},
+  {"query": "Retry failed fetches with exponential backoff in a Node.js script using p-retry", "should_trigger": false},
+  {"query": "Add structured logging with pino to a Next.js route handler", "should_trigger": false},
+  {"query": "Create a 404 page and a 500 page in Express with a custom error middleware", "should_trigger": false}
+]

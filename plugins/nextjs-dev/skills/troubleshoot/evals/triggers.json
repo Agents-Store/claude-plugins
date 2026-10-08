@@ -1,0 +1,18 @@
+[
+  {"query": "Hydration failed on /orders in my Next.js app: 'Text content does not match server-rendered HTML'. The row renders new Date(order.createdAt).toLocaleString() in a server component shared with a client table, and the server runs in UTC while users are in Berlin. Find the cause and fix it", "should_trigger": true},
+  {"query": "next build fails: 'You're importing a component that needs useState. This React Hook only works in a Client Component' pointing at components/Counter.tsx imported from app/page.tsx, but I did put 'use client' at the top of app/page.tsx. What is wrong with the placement?", "should_trigger": true},
+  {"query": "next build passes locally but deployment fails with 'Module not found' - how do I diagnose Next.js deployment issues?", "should_trigger": true},
+  {"query": "My Next.js page throws 'Invalid src prop (https://cdn.example.com/img/a.jpg) on next/image, hostname cdn.example.com is not configured under images in your next.config.js'. Show the next.config.ts change for the CDN and for one more host with a path restriction", "should_trigger": true},
+  {"query": "Страница Next.js не работает после обновления: ошибки сборки и 'Dynamic server usage'. Как диагностировать?", "should_trigger": true},
+  {"query": "Почему в Next.js ошибка гидратации появляется только в production? Помоги отладить", "should_trigger": true},
+  {"query": "After enabling cacheComponents in my Next.js 16 next.config.ts the build fails with 'Uncached data was accessed outside of <Suspense>' on app/dashboard/page.tsx, which awaits a database call and reads cookies(). What does it mean and how do I fix it?", "should_trigger": true},
+  {"query": "next dev on my Next.js 16 repo takes 40 s to compile /dashboard, and next build prints a first-load JS of 900 kB on that route. Walk me through the diagnosis with commands: what to check first, how to look at the compile trace and the bundle", "should_trigger": true},
+  {"query": "Set up error.tsx and global-error.tsx for graceful error handling in my Next.js app", "should_trigger": false},
+  {"query": "Verify my Next.js project is set up correctly before I start developing", "should_trigger": false},
+  {"query": "Python ImportError: cannot import name from partially initialized module in my Flask app", "should_trigger": false},
+  {"query": "Docker build fails with 'no space left on device' on my CI runner", "should_trigger": false},
+  {"query": "PostgreSQL connection refused when my Next.js container starts before the database is ready - fix the compose ordering", "should_trigger": false},
+  {"query": "Vite dev server fails with 'Failed to resolve import' for an alias in tsconfig", "should_trigger": false},
+  {"query": "Debug my React Native app crashing on startup with a red screen on Android", "should_trigger": false},
+  {"query": "npm install fails with ERESOLVE for peer dependencies of eslint plugins", "should_trigger": false}
+]

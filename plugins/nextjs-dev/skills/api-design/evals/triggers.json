@@ -1,0 +1,18 @@
+[
+  {"query": "My Next.js 16 repo has app/api/orders/route.ts with an empty POST. Orders come as {customerId: string, items: [{sku: string, qty: number}]} and I use zod everywhere else. Fill in the handler: validate the body, return 400 with field errors, 404 for an unknown customer, 201 with the created order", "should_trigger": true},
+  {"query": "Our checkout form in app/(shop)/checkout/page.tsx posts through a Server Action, and now the iOS app team wants to create the same order from their client. Do we expose a second Route Handler under app/api/orders, or can they call the action? The order logic lives in lib/orders.ts", "should_trigger": true},
+  {"query": "Implement Server-Sent Events in a Next.js route handler that streams build progress to the browser", "should_trigger": true},
+  {"query": "Add app/api/webhooks/stripe/route.ts to my Next.js App Router project. It must verify the Stripe-Signature header against the raw request body with STRIPE_WEBHOOK_SECRET, handle checkout.session.completed by calling markOrderPaid(sessionId) from lib/orders.ts, and answer 200 fast", "should_trigger": true},
+  {"query": "Как в Next.js сделать версионирование API (/api/v1, /api/v2) с Route Handlers и общим кодом валидации?", "should_trigger": true},
+  {"query": "В проекте на Next.js 16 нужен app/api/reports/[id]/export/route.ts: берёт заказы из db.order.findMany({ where: { reportId } }), собирает CSV в UTF-8 с BOM и отдаёт как скачиваемый файл report-<id>.csv. Покажи handler", "should_trigger": true},
+  {"query": "The partner portal at https://partner.example.com calls GET and POST on app/api/catalog/route.ts in my Next.js app, and the browser blocks it with a CORS error on the preflight. Add the OPTIONS handler and the headers so only that origin is allowed", "should_trigger": true},
+  {"query": "app/api/products/route.ts returns all 40,000 products with Response.json(await db.product.findMany()) and it is slow. Make the GET cacheable with revalidation every 5 minutes and stream the list as NDJSON instead of building one huge array", "should_trigger": true},
+  {"query": "Write the Zod schema and Server Action for a signup form with useActionState and field errors", "should_trigger": false},
+  {"query": "Add authentication to my Next.js app with Auth.js and protect the dashboard routes", "should_trigger": false},
+  {"query": "Design a REST API in Express with versioning, pagination and OpenAPI docs", "should_trigger": false},
+  {"query": "Write a NestJS controller with DTO validation using class-validator and a global exception filter", "should_trigger": false},
+  {"query": "Explain how fetch caching and revalidateTag work for a Server Component that loads products", "should_trigger": false},
+  {"query": "Set up CSP headers and CSRF protection for my Next.js production deploy", "should_trigger": false},
+  {"query": "Build a GraphQL API with Apollo Server and expose it from a Next.js route handler", "should_trigger": false},
+  {"query": "Write a FastAPI endpoint that streams a response with Server-Sent Events", "should_trigger": false}
+]

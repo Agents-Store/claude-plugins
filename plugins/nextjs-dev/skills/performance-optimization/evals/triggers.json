@@ -1,0 +1,18 @@
+[
+  {"query": "PageSpeed says the LCP on my Next.js landing page is 4.2 s, and the LCP element is the hero image <img src='/hero.jpg'> in app/page.tsx (2400x1350 px, shown at 1200 px wide on desktop). Replace it with next/image configured correctly and say what else to check", "should_trigger": true},
+  {"query": "In my Next.js 16 app/layout.tsx I load Inter through a <link> to fonts.googleapis.com and see layout shift. Switch to next/font, expose it as a CSS variable and use it from Tailwind (font-sans) in tailwind.config", "should_trigger": true},
+  {"query": "The build output of my Next.js app shows the /dashboard route at 480 kB first-load JS. package.json has moment, lodash, @mui/icons-material and recharts. Tell me how to find what is heavy (the analyzer commands) and what to replace or lazy load, in order of payoff", "should_trigger": true},
+  {"query": "My Next.js dashboard page imports a 300 kB charting library in a client component that sits below the fold. Convert it to load lazily only on the client with next/dynamic, with a skeleton placeholder, and say when this is not worth doing", "should_trigger": true},
+  {"query": "Как улучшить Core Web Vitals в Next.js: LCP, INP и CLS — с чего начать и что измерять?", "should_trigger": true},
+  {"query": "На странице каталога в Next.js INP около 450 мс: при клике на фильтр интерфейс замирает, потому что клиентский компонент ProductGrid перерисовывает 2000 карточек, а ещё грузятся два сторонних скрипта аналитики. Что оптимизировать и в каком порядке?", "should_trigger": true},
+  {"query": "My Next.js 16 app has a lot of hand-written useMemo and useCallback in client components. Should I turn on the React Compiler, how do I enable it in next.config.ts, and what do I do with the existing memo hooks?", "should_trigger": true},
+  {"query": "My Next.js app/layout.tsx has raw <script> tags for Google Analytics, a Crisp chat widget and a Hotjar snippet, and they delay interaction. Move them to next/script with the right loading strategy for each and say which can be lazyOnload", "should_trigger": true},
+  {"query": "How do I cache data with 'use cache' and revalidate it by tag in Next.js 16?", "should_trigger": false},
+  {"query": "Configure a Dockerfile for Next.js with standalone output to shrink the image", "should_trigger": false},
+  {"query": "Optimize a slow Postgres query with EXPLAIN ANALYZE and a composite index", "should_trigger": false},
+  {"query": "Make my WordPress site faster with a page cache plugin and a CDN", "should_trigger": false},
+  {"query": "Reduce the cold start time of an AWS Lambda function written in Node.js", "should_trigger": false},
+  {"query": "Fix Next.js hydration mismatch for a locale-dependent date", "should_trigger": false},
+  {"query": "Improve the performance of a React Native FlatList with thousands of items", "should_trigger": false},
+  {"query": "Set up Lighthouse CI in GitHub Actions to fail the build on regressions", "should_trigger": false}
+]

@@ -1,0 +1,18 @@
+[
+  {"query": "Harden my Next.js 16 app for production: security headers, a nonce-based Content Security Policy and a production security checklist", "should_trigger": true},
+  {"query": "How do I make sure server secrets never leak to the client in Next.js - NEXT_PUBLIC_ rules, the server-only package and environment poisoning?", "should_trigger": true},
+  {"query": "Implement CSRF protection and input validation in my Next.js Server Actions that change account settings", "should_trigger": true},
+  {"query": "My login endpoint app/api/login/route.ts accepts any number of attempts. Add rate limiting: 5 attempts per minute per IP and per email, with Redis (Upstash) as the counter store, returning 429 with Retry-After. Show the helper and the handler", "should_trigger": true},
+  {"query": "Как защитить приложение Next.js от XSS и настроить Content Security Policy? Покажи заголовки в next.config", "should_trigger": true},
+  {"query": "В Next.js приложении app/api/* должен принимать запросы из браузера только с https://app.example.com. Сейчас в route.ts стоит Access-Control-Allow-Origin: *. Как правильно настроить CORS для всех Route Handlers, включая preflight, и как проверять Origin?", "should_trigger": true},
+  {"query": "In my Next.js 16 app every page and Server Action queries Prisma directly and checks the user role in different ways. Introduce a data access layer in lib/dal.ts so authorization happens in one place, with server-only protection, and show how app/admin/users/page.tsx would use it", "should_trigger": true},
+  {"query": "We run Next.js 15.1.3 in production behind a CDN. Check what critical security advisories apply to that version, which patched versions we need, and what else (middleware bypass, server actions) we must verify after upgrading", "should_trigger": true},
+  {"query": "Add login with sessions and role-based access control to my Next.js app", "should_trigger": false},
+  {"query": "Review my Python Flask app for SQL injection and insecure cookie settings", "should_trigger": false},
+  {"query": "Configure WAF rules in Cloudflare to block bots and SQL injection attempts", "should_trigger": false},
+  {"query": "Set up TLS certificates with Let's Encrypt and automatic renewal on nginx", "should_trigger": false},
+  {"query": "Run a penetration test checklist for a React Native mobile app", "should_trigger": false},
+  {"query": "Write a Content-Security-Policy for a static WordPress site using a plugin", "should_trigger": false},
+  {"query": "Handle Stripe webhook signature verification in a Next.js route handler", "should_trigger": false},
+  {"query": "Scan my Node.js dependencies for known vulnerabilities in CI with npm audit and Snyk", "should_trigger": false}
+]

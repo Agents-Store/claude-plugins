@@ -1,0 +1,18 @@
+[
+  {"query": "My Next.js app currently has everything in app/ with one root layout. I need a marketing site (/, /pricing, /blog) with a public header and an admin area (/admin/users, /admin/billing) with a sidebar and no public header. Restructure app/ into route groups with two separate root layouts and tell me which files move where", "should_trigger": true},
+  {"query": "In my Next.js 16 gallery at app/photos/page.tsx each thumbnail links to /photos/[id]. I want the photo to open in a modal over the gallery when clicked, but be a normal full page on refresh or when the link is shared. Create the files for the parallel slot and the intercepting route, including default.tsx", "should_trigger": true},
+  {"query": "Set up a dashboard with @analytics and @team parallel route slots in Next.js and handle the default.tsx for unmatched slots", "should_trigger": true},
+  {"query": "Create app/blog/[slug]/page.tsx for my Next.js 16 blog. Posts come from getPost(slug) and getAllSlugs() in lib/posts.ts. Pre-render every slug with generateStaticParams, set the title and description per post with generateMetadata, and return a 404 for unknown slugs", "should_trigger": true},
+  {"query": "В проекте на Next.js 16 лежит старый middleware.ts: он редиректит неавторизованных с /dashboard/* на /login и переписывает /old-docs/* на /docs/*. Перенеси это в proxy.ts, укажи matcher и что поменялось по сравнению с middleware", "should_trigger": true},
+  {"query": "Вот моя папка: app/layout.tsx, app/template.tsx, app/dashboard/layout.tsx, app/dashboard/loading.tsx, app/dashboard/page.tsx, app/dashboard/settings/page.tsx. Как они вкладываются друг в друга при переходе с /dashboard на /dashboard/settings и что из этого перерисовывается, а что сохраняет состояние?", "should_trigger": true},
+  {"query": "Our Next.js app/layout.tsx is missing something: the build says 'Missing <html> and <body> tags in the root layout'. What must the root layout contain, and in app/dashboard/layout.tsx I keep a search input in the sidebar, will its text survive navigating between /dashboard/a and /dashboard/b?", "should_trigger": true},
+  {"query": "For app/docs/[...slug]/page.tsx in my Next.js 16 app (docs pages like /docs/guides/install), write generateMetadata that sets title from the page front matter, a canonical URL under https://example.com, and OpenGraph tags with a per-page image, and tell me what to put in app/sitemap.ts", "should_trigger": true},
+  {"query": "How should I organize folders like features, lib and components in a big Next.js codebase? Naming and barrel exports", "should_trigger": false},
+  {"query": "Should this component be a Server Component or a Client Component? It uses useState and fetches data", "should_trigger": false},
+  {"query": "Set up routing in React Router v7 with nested layouts and loaders", "should_trigger": false},
+  {"query": "Write a file-based routing setup in Nuxt 3 with a dynamic [id].vue page and a layout", "should_trigger": false},
+  {"query": "Implement SvelteKit routes with +layout.svelte and +page.server.ts load functions", "should_trigger": false},
+  {"query": "My Next.js app shows a hydration error on a page with a date, what causes it?", "should_trigger": false},
+  {"query": "Add role-based route protection in Next.js with a login page and session cookies", "should_trigger": false},
+  {"query": "Next.js build fails with 'Dynamic server usage' on a route that reads headers()", "should_trigger": false}
+]

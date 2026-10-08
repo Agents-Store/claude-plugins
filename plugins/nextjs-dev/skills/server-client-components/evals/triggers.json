@@ -1,0 +1,18 @@
+[
+  {"query": "ProductList.tsx in my Next.js app fetches products with await db.product.findMany() and renders cards, and each card has an 'Add to cart' button that updates a cart count with useState. Should this be one component or several, and where does the 'use client' go? Show the split", "should_trigger": true},
+  {"query": "I get 'You're importing a component that needs useState' in the App Router. How do I fix the 'use client' boundary without making the whole page client-side?", "should_trigger": true},
+  {"query": "I have a client component Modal.tsx (uses useState for open/close) and I want its body to be a server component UserDetails that does await getUser(id). Importing it inside Modal gives an error. Show the right composition so the server component renders inside the modal", "should_trigger": true},
+  {"query": "My Next.js app/layout.tsx must wrap everything in a ThemeProvider and an AuthProvider that use useContext, and I'm afraid the whole tree becomes client-side. Where do I put the providers and how do I keep the layout and pages as server components?", "should_trigger": true},
+  {"query": "В Next.js у меня серверный компонент Page получает user из БД (Date createdAt, Map permissions, класс UserModel) и передаёт его в клиентский компонент Profile. Получаю ошибку про сериализацию. Что можно передавать через границу, а что нельзя, и как исправить?", "should_trigger": true},
+  {"query": "В Next.js 16 импортирую react-slick (Slider) в app/page.tsx и получаю 'You're importing a component that needs useState... add use client'. Сторонний пакет без директивы. Как обернуть его, чтобы остальная страница осталась серверной?", "should_trigger": true},
+  {"query": "lib/db.ts in my Next.js app creates a Prisma client with DATABASE_URL, and last week someone imported it from a client component and almost shipped credentials. How do I make the build fail if server-only modules (db client, secrets) are imported from client code?", "should_trigger": true},
+  {"query": "What is the decision matrix for server versus client components in Next.js 16 and how do I minimize client boundaries?", "should_trigger": true},
+  {"query": "Write a Server Action form with useActionState and Zod validation in Next.js", "should_trigger": false},
+  {"query": "Explain React Server Components internals: the flight format and how streaming works under the hood", "should_trigger": false},
+  {"query": "Convert my class components to hooks in a legacy React 16 app", "should_trigger": false},
+  {"query": "Set up server-side rendering for a Vue app with Nuxt and hydration", "should_trigger": false},
+  {"query": "Optimize bundle size by lazy loading a heavy client component with next/dynamic", "should_trigger": false},
+  {"query": "Fix 'Text content does not match server-rendered HTML' coming from a Date in my Next.js page", "should_trigger": false},
+  {"query": "Implement data fetching with Suspense and parallel requests in a Next.js Server Component", "should_trigger": false},
+  {"query": "Build a context provider with useReducer in a React Native app", "should_trigger": false}
+]

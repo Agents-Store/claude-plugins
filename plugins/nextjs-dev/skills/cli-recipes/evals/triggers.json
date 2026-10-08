@@ -1,0 +1,18 @@
+[
+  {"query": "What's the command to create a new Next.js project with TypeScript, Tailwind and the App Router, using pnpm and Turbopack?", "should_trigger": true},
+  {"query": "How do I run next dev on port 4000 with Turbopack and open the browser automatically? And how do I analyze the bundle after next build?", "should_trigger": true},
+  {"query": "I just ran next build on my Next.js 16 app and want to smoke-test the production server locally on port 4000, bound to localhost only, with NODE_ENV production and my .env.production values. Give me the exact commands and env vars", "should_trigger": true},
+  {"query": "My Next.js app is on 15.3 with App Router and I want to move to 16. List the codemod commands to run in order (async request APIs, middleware to proxy, and so on) with the exact npx invocations and what each one rewrites", "should_trigger": true},
+  {"query": "У меня Next.js 16 в монорепозитории apps/web. Нужно: отключить телеметрию Next.js на этой машине и в CI, запустить next build с анализом размера бандла и открыть отчёт. Какие команды и переменные окружения использовать?", "should_trigger": true},
+  {"query": "Покажи все основные команды Next.js CLI: dev, build, start, lint, typegen — что делает каждая?", "should_trigger": true},
+  {"query": "My package.json for a Next.js 16 + TypeScript app only has dev and build. Add the scripts a team would expect: dev with Turbopack, build, start, lint, type-check, and one that runs lint and types together for CI. Show the final scripts block", "should_trigger": true},
+  {"query": "CI for my Next.js 16 repo should fail on lint errors and TypeScript errors before next build runs. Which exact commands do I put in the pipeline, given that next lint was changed in recent versions, and how do I run only the type check locally?", "should_trigger": true},
+  {"query": "Write a multi-stage Dockerfile for Next.js with standalone output and a docker compose file with Postgres", "should_trigger": false},
+  {"query": "Verify that my Next.js project is configured correctly and ready for development", "should_trigger": false},
+  {"query": "Create a new Vite + React app with pnpm create vite and add Tailwind", "should_trigger": false},
+  {"query": "Use the Angular CLI to generate a component and a service in a standalone project", "should_trigger": false},
+  {"query": "Run Django management commands to migrate the database and create a superuser", "should_trigger": false},
+  {"query": "Set up ESLint with the flat config for TypeScript in a Node.js library", "should_trigger": false},
+  {"query": "Explain how Turbopack differs from webpack in terms of architecture and incremental builds", "should_trigger": false},
+  {"query": "My Next.js build crashes with 'JavaScript heap out of memory', debug it", "should_trigger": false}
+]
