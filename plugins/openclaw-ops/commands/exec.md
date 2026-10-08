@@ -12,7 +12,7 @@ record of what class of operation ran. Everything goes through `ocexec.py` — t
 
 Parse `<selector> -- <openclaw args…> [--json] [--timeout <s>]` from "$ARGUMENTS"; everything after `--`
 reaches the CLI verbatim. The contract — modes, standing bans, risk classes, output and exit codes, the
-zero-retry set — is `fleet-model/references/exec-contract.md`. Load it before the first call.
+zero-retry set — is `${CLAUDE_PLUGIN_ROOT}/skills/fleet-model/references/exec-contract.md`. Load it before the first call.
 
 ## 1. Show the resolved call first
 ```bash

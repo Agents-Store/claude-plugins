@@ -7,7 +7,7 @@ allowed-tools: ["Bash", "Read", "Skill"]
 # Shared skills and plugins — sync
 
 Parse `[selector] [--adopt-duplicates] [--restart] [--yes]` from "$ARGUMENTS". Scripts live in
-`${CLAUDE_PLUGIN_ROOT}/scripts/` and are named bare below. Load `shared-assets` first — it owns the load order,
+`${CLAUDE_PLUGIN_ROOT}/scripts/` and are named bare below. Load `${CLAUDE_PLUGIN_ROOT}/skills/shared-assets/SKILL.md` first — it owns the load order,
 the shadow trap, the install policy, ownership and the four verification levels. Mutation: plan first, `--yes` later.
 
 ## Process
