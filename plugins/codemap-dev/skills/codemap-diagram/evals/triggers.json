@@ -1,7 +1,7 @@
 [
   {"query": "I just joined the team and need to understand how our Flask + SQLAlchemy app fits together. Can you draw an architecture diagram of the whole project - app factory, blueprints, the Postgres database and the external payment API?", "should_trigger": true},
   {"query": "create an ERD for the database in this repo, the models are in app/models/. I want primary and foreign keys and the cardinality on the relationships", "should_trigger": true},
-  {"query": "show me the login flow as a sequence diagram: from the POST /auth/login route through the service layer to the user table and back to the session cookie", "should_trigger": true},
+  {"query": "I need a diagram of how our modules depend on each other for the onboarding doc. Imports: server.js imports routes/orders.js and routes/users.js; both routes import services/pricing.js; pricing.js imports models/order.js and config/db.js; models/order.js imports config/db.js", "should_trigger": true},
   {"query": "Draw a dependency graph of the modules under src/ so I can see which packages import which, I suspect there are circular imports", "should_trigger": true},
   {"query": "Нарисуй диаграмму архитектуры нашего проекта: какие сервисы есть, как они общаются между собой и где лежат данные", "should_trigger": true},
   {"query": "Сделай ER-диаграмму для схемы базы данных этого приложения, с типами колонок и связями между таблицами", "should_trigger": true},

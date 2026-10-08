@@ -34,7 +34,7 @@
       "expectations": [
         "Each finding names the file it concerns, app/auth.py or app/utils.py",
         "The answer flags the plain-text password comparison user.password == password as CRITICAL and recommends hashing, for example check_password_hash",
-        "The answer flags the hardcoded SECRET_KEY as CRITICAL and recommends an environment variable or secret manager",
+        "The answer flags the hardcoded SECRET_KEY as a problem and recommends an environment variable or secret manager",
         "Critical issues come before warnings and suggestions",
         "The answer suggests a clearer name than f or x in app/utils.py and explains why naming matters",
         "Each finding includes a short explanation of the underlying concept for a learner"

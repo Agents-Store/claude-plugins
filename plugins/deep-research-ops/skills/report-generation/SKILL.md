@@ -1,14 +1,6 @@
 ---
 name: report-generation
-description: >
-  Use this skill to produce a finished research deliverable from findings the user already has, using one of
-  three fixed formats: Executive Summary, Deep Research Report, or Comparison Table. Apply it whenever the user
-  pastes or mentions notes, data points, URLs or sources and asks to format, write up, or build them into a
-  summary, report, or side-by-side comparison with citations (e.g. pricing/features columns, key findings with
-  sources, recommendations). Also use it when they ask which report template or format fits their research type
-  or depth (news, market, competitive analysis). It supplies the required structure: Methodology section, source
-  list, confidence levels, gaps. Works in any language. Skip it for conducting the research or searching,
-  choosing search providers, postmortems, slide decks, or generic writing unrelated to research findings.
+description: Use to turn research findings the user already has into a finished report in one of three formats - Executive Summary, Deep Research Report or Comparison Table - with cited sources, a Methodology section, confidence levels and gaps, or to choose the template that fits a research type or depth. Not for doing the research itself (deep-research, search-strategies) or reading pages (content-extraction).
 ---
 
 # Report Generation
