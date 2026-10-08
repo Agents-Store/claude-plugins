@@ -1,0 +1,18 @@
+[
+  {"query": "Add dark mode to my shadcn/ui Next.js app with next-themes and a theme toggle in the navbar", "should_trigger": true},
+  {"query": "Customize the shadcn colors to our brand: primary is #0E7C66. Convert to OKLCH and map it into the CSS variables", "should_trigger": true},
+  {"query": "install a shadcn studio theme in my project and apply it", "should_trigger": true},
+  {"query": "My shadcn Next.js app uses the default system font. Change the body font to Inter and code blocks to JetBrains Mono using next/font in app/layout.tsx, wire both into the shadcn CSS variables and Tailwind so font-sans and font-mono pick them up", "should_trigger": true},
+  {"query": "Настрой тёмную тему для shadcn: CSS-переменные, провайдер next-themes и переключатель", "should_trigger": true},
+  {"query": "Хочу фирменную цветовую схему для shadcn/ui - как задать цвета в OKLCH и проверить на компонентах?", "should_trigger": true},
+  {"query": "use the shadcn theme generator output in my globals.css and wire up the dark variant in the tailwind config", "should_trigger": true},
+  {"query": "my shadcn app needs a custom brand theme with light and dark variants, where do the CSS variables go?", "should_trigger": true},
+  {"query": "My shadcn CSS variables are not applied - the components render without any colors", "should_trigger": false},
+  {"query": "Add dark mode to my Material UI app with createTheme and ThemeProvider", "should_trigger": false},
+  {"query": "Design an accessible color palette for my brand and give me the hex values with contrast ratios", "should_trigger": false},
+  {"query": "Set up Tailwind CSS v4 @theme tokens in a plain React app without any component library", "should_trigger": false},
+  {"query": "Initialize shadcn in my project", "should_trigger": false},
+  {"query": "Add Google Analytics to my Next.js layout", "should_trigger": false},
+  {"query": "Optimize web font loading in Next.js to avoid layout shift", "should_trigger": false},
+  {"query": "Customize the Bootstrap 5 theme with Sass variables and custom colors", "should_trigger": false}
+]

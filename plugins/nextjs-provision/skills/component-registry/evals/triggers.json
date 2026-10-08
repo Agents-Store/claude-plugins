@@ -1,0 +1,18 @@
+[
+  {"query": "My Next.js project already has components.json from shadcn init. I need a confirmation dialog on the delete button in app/projects/page.tsx and a row actions dropdown menu. Install the Button, Dialog and Dropdown Menu components in one command and show the code wiring them together", "should_trigger": true},
+  {"query": "On app/pricing/page.tsx I wrapped a shadcn <Button> in next/link <Link href='/signup'> and React warns about a nested anchor / invalid DOM. Show the right way to render the Button as a link with asChild, and the same for an external link", "should_trigger": true},
+  {"query": "list the shadcn studio blocks available for a pricing section and install one of them", "should_trigger": true},
+  {"query": "app/reports/page.tsx needs a date range picker (from/to, two months visible, disabled future dates) using shadcn components, formatting the chosen range with date-fns in the button label. Which components do I install and show me the composed component", "should_trigger": true},
+  {"query": "Добавь в проект компонент shadcn card и покажи, как правильно использовать его вместе с Button", "should_trigger": true},
+  {"query": "В проекте на Next.js с shadcn/ui мне нужна страница регистрации: поля имя, email, пароль, чекбокс согласия, валидация и кнопка. Какие компоненты shadcn (и блоки) для этого ставить и какой командой? Покажи итоговый код формы", "should_trigger": true},
+  {"query": "Before I install the shadcn sidebar block into my repo I want a dry run: what files would change without writing anything, and afterwards how my installed components/ui/button.tsx differs from the registry version. Give me the exact shadcn CLI commands", "should_trigger": true},
+  {"query": "find a form block in shadcn studio and add it to my signup page", "should_trigger": true},
+  {"query": "Search the shadcn directory for animated components from magicui and aceternity", "should_trigger": false},
+  {"query": "Initialize shadcn/ui in my existing Next.js app and configure the studio registries", "should_trigger": false},
+  {"query": "Switch my shadcn app to a dark theme with our brand colors", "should_trigger": false},
+  {"query": "Add a Material UI DataGrid with column sorting to my React app", "should_trigger": false},
+  {"query": "Install Chakra UI and wrap my Next.js app in the ChakraProvider", "should_trigger": false},
+  {"query": "npx shadcn add button fails with 'No Tailwind CSS configuration found'", "should_trigger": false},
+  {"query": "Write a Next.js server action that validates a form with zod and revalidates the page", "should_trigger": false},
+  {"query": "Write a headless combobox from scratch with React hooks and ARIA roles, no component library", "should_trigger": false}
+]

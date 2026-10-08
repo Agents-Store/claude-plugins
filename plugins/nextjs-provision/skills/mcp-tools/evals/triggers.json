@@ -1,0 +1,18 @@
+[
+  {"query": "Set up the official shadcn MCP server for Claude Code in this project so the agent can search and install components", "should_trigger": true},
+  {"query": "I use Cursor in a Next.js project that already has shadcn. Give me the .cursor/mcp.json for the official shadcn MCP server, and how I verify it works by searching for a button component", "should_trigger": true},
+  {"query": "run shadcn mcp init for VS Code and Codex - which files does it write?", "should_trigger": true},
+  {"query": "What tools does the shadcn MCP server expose and in which order should the agent call them to add a component?", "should_trigger": true},
+  {"query": "Подключи shadcn MCP к Claude Code и покажи, как с его помощью искать и ставить компоненты", "should_trigger": true},
+  {"query": "В проекте на Next.js с shadcn я работаю в opencode. Покажи конфиг opencode.json для официального MCP-сервера shadcn и как проверить, что он видит реестры из components.json", "should_trigger": true},
+  {"query": "Is the community shadcn-ui-mcp-server (Jpisnice) still the right choice, or should I use the official one?", "should_trigger": true},
+  {"query": "Use the shadcn MCP tools to find a calendar component in a couple of registries and install it into this Next.js project, then confirm the files it added. Tell me which MCP tools you call, in order", "should_trigger": true},
+  {"query": "Search the community registries for a calendar component with the shadcn CLI, no MCP involved", "should_trigger": false},
+  {"query": "Install the shadcn button component with the CLI", "should_trigger": false},
+  {"query": "Set up the Playwright MCP server for Claude Code", "should_trigger": false},
+  {"query": "Set up the Figma MCP server so Claude can read my design file", "should_trigger": false},
+  {"query": "Set up the context7 MCP server to pull library docs into my agent", "should_trigger": false},
+  {"query": "Build an MCP server in TypeScript that exposes my component library", "should_trigger": false},
+  {"query": "Configure the GitHub MCP server in Cursor with a personal access token", "should_trigger": false},
+  {"query": "Set up ESLint flat config and Prettier for my Next.js project", "should_trigger": false}
+]
