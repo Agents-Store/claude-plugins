@@ -6,7 +6,7 @@
   {"query": "What are the prerequisites for Payload v3 - Node range, pnpm, and a database - and how do I initialise it in an existing Next.js app?", "should_trigger": true},
   {"query": "Как создать проект Payload v3 через create-payload-app неинтерактивно, чтобы не зависнуть на вопросе про coding agent? Какие флаги указать?", "should_trigger": true},
   {"query": "Установи PayloadCMS в мой существующий Next.js проект и покажи минимальный payload.config.ts", "should_trigger": true},
-  {"query": "What do PAYLOAD_SECRET and DATABASE_URI look like for MongoDB, Postgres and SQLite in a fresh Payload project, and how do I generate the secret with openssl?", "should_trigger": true},
+  {"query": "How long should PAYLOAD_SECRET be in a new Payload project, how do I generate it with openssl, and what is the DATABASE_URI format for SQLite?", "should_trigger": true},
   {"query": "Deploy Payload to production on Vercel with Postgres", "should_trigger": false},
   {"query": "Create a migration after changing a Payload collection", "should_trigger": false},
   {"query": "Initialize a new Strapi project with the CLI and SQLite", "should_trigger": false},
