@@ -5,7 +5,7 @@
   {"query": "Scaffold a new stack template called project-nocodb-trigger: data layer NocoDB, logic layer Trigger.dev, interface Next.js. Which parent do I clone and what goes in stack.json?", "should_trigger": true},
   {"query": "Fork project-template for a Supabase plus n8n stack and look for matching plugins in the plugin repos before finishing", "should_trigger": true},
   {"query": "Создай новый шаблон проекта уровня 1 для стека supabase-n8n на основе project-template: спроси слои, придумай имя и склонируй родителя", "should_trigger": true},
-  {"query": "Хочу сделать клиентский проект acme-website из шаблона demo-directus-nextjs. Как называется шаблон, что менять в stack.json и CLAUDE.md?", "should_trigger": true},
+  {"query": "Создай клиентский проект уровня 2 для клиента globex на основе шаблона project-directus-nextjs: подбери имя, склонируй родителя и заполни stack.json", "should_trigger": true},
   {"query": "Make a new project template from the universal base, validate it at the end and do the initial commit", "should_trigger": true},
   {"query": "Compare my project with its parent template and pull the new files from the parent", "should_trigger": false},
   {"query": "Validate my project template: check stack.json, required files and that .mcp.json holds only references", "should_trigger": false},
