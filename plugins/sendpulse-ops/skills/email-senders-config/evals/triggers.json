@@ -1,0 +1,18 @@
+[
+  {"query": "Add a new sender address to SendPulse, trigger the verification email and tell me when it's active", "should_trigger": true},
+  {"query": "Show my SendPulse account balance and list the senders and email tags I've configured", "should_trigger": true},
+  {"query": "Add these addresses to the SendPulse blacklist and check whether another address is already blocked", "should_trigger": true},
+  {"query": "Look up the delivery details and statistics of an email address in SendPulse and delete it globally", "should_trigger": true},
+  {"query": "Create an email tag in SendPulse and assign it to a list of addresses, then remove the tag from one of them", "should_trigger": true},
+  {"query": "Проверь баланс аккаунта SendPulse и покажи подтверждённых отправителей", "should_trigger": true},
+  {"query": "Добавь адрес в чёрный список SendPulse и назначь тег нескольким email", "should_trigger": true},
+  {"query": "Remove a sender from my SendPulse email configuration and check which tags are assigned to a phone number", "should_trigger": true},
+  {"query": "Send a transactional email through SendPulse SMTP with a template", "should_trigger": false},
+  {"query": "List recent bounces from the SMTP service", "should_trigger": false},
+  {"query": "Create an email campaign and schedule it", "should_trigger": false},
+  {"query": "How do I set up SPF, DKIM and DMARC for a new domain?", "should_trigger": false},
+  {"query": "Configure Postmark sender signatures for a new domain", "should_trigger": false},
+  {"query": "Check my Stripe account balance", "should_trigger": false},
+  {"query": "Add a subscriber to an addressbook", "should_trigger": false},
+  {"query": "Block a number in my phone's spam filter", "should_trigger": false}
+]
