@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "The checkout API feels slow on the orders table. Using the PostgreSQL MCP server, find out whether a missing index is the cause and which existing indexes are never used.",
+      "prompt": "The checkout API feels slow on the orders table. Which PostgreSQL MCP server tools would you call, with which arguments and in which order, to find out whether a missing index is the cause and which existing indexes are never used?",
       "expected_output": "Uses list_table_stats for the orders table and reads idx_scan_ratio_percent, get_query_plan for the slow query (without executing it), list_indexes with only_unused for unused indexes; no write statements.",
       "files": [],
       "expectations": [
@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "Drop the obsolete column legacy_code from products over MCP and make NocoDB show the change.",
+      "prompt": "I want to drop the obsolete column legacy_code from the products table over the PostgreSQL MCP server and make NocoDB show the change. What exactly do you do, step by step, including the SQL you would send?",
       "expected_output": "Asks for confirmation of the exact column and a backup first (see modify-schema), runs one ALTER TABLE ... DROP COLUMN statement per execute_sql call, then reminds to run Meta Sync in NocoDB / refresh the data source in NocoBase.",
       "files": [],
       "expectations": [

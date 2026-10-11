@@ -1,5 +1,5 @@
 [
-  {"query": "Use the PostgreSQL MCP server to run a SELECT against my database and show me the execution plan with get_query_plan", "should_trigger": true},
+  {"query": "Which of the 29 tools of the PostgreSQL MCP server inspect replication, and what must I run before get_column_cardinality gives useful numbers?", "should_trigger": true},
   {"query": "Which MCP tools can I use to find unused or invalid indexes, locks, long-running transactions and bloated tables in Postgres?", "should_trigger": true},
   {"query": "What tools does the 29-tool PostgreSQL MCP server expose for schema inspection and monitoring? Give me the reference", "should_trigger": true},
   {"query": "Check the database status over MCP - overview, table stats, active queries and query stats - and tell me what looks wrong", "should_trigger": true},
