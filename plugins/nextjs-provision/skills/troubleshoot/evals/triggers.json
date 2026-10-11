@@ -5,7 +5,7 @@
   {"query": "После npx shadcn add card в проекте на Next.js падает сборка: Cannot find module '@/lib/utils' - cn() не найден. components.json на месте, alias @/* есть в tsconfig. С чего начать диагностику?", "should_trigger": true},
   {"query": "shadcn studio registry error 401 when I install a premium block", "should_trigger": true},
   {"query": "Peer dependency conflict (ERESOLVE) when installing shadcn components with React 19", "should_trigger": true},
-  {"query": "After adding the shadcn dark mode toggle with next-themes I get 'Hydration failed' and a flash of the wrong theme, and in app/dashboard/layout.tsx I got ‘useState only works in Client Components’ from the ThemeProvider. Fix the provider setup in app/layout.tsx", "should_trigger": true},
+  {"query": "Module not found: Can't resolve 'cn' after `npx shadcn@latest init` on CLI 4.21, lib/utils.ts re-exports cn. What do I install, and how do I migrate an old clsx and tailwind-merge helper?", "should_trigger": true},
   {"query": "Ошибка при установке shadcn-компонента: components.json не найден, tailwind не работает. С чего начать диагностику?", "should_trigger": true},
   {"query": "Set up shadcn/ui from scratch in a new Next.js project", "should_trigger": false},
   {"query": "npm ERESOLVE unable to resolve dependency tree when installing react-query v5 next to React 17", "should_trigger": false},

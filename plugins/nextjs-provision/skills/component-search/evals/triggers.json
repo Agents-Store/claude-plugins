@@ -5,7 +5,7 @@
   {"query": "Find UI blocks for a landing page in the community registries beyond shadcn studio and add those registries to components.json", "should_trigger": true},
   {"query": "Найди в реестрах shadcn компонент date picker с выбором диапазона и установи его", "should_trigger": true},
   {"query": "Какие есть сообщественные реестры shadcn, чтобы найти анимированные компоненты для лендинга?", "should_trigger": true},
-  {"query": "Take my components.json and add all registries from the official shadcn directory (ui.shadcn.com/r/registries.json) to it, skipping unavailable or hidden ones, then prove one namespaced registry works by installing one component from it", "should_trigger": true},
+  {"query": "The shadcn MCP only finds items from registries listed in my components.json. How do I populate components.json from the official directory while skipping registries whose health.status is unavailable or that are hidden?", "should_trigger": true},
   {"query": "search for shadcn components for a kanban board - I heard there is something in the community registries", "should_trigger": true},
   {"query": "Install the official shadcn Button and Card components", "should_trigger": false},
   {"query": "Set up the shadcn MCP server for Claude Code", "should_trigger": false},
