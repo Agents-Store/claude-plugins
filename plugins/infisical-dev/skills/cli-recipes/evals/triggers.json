@@ -5,7 +5,7 @@
   {"query": "Create folders /backend and /frontend in the dev environment and list the secrets per folder from the command line", "should_trigger": true},
   {"query": "How do I restart my dev server automatically whenever a secret changes in Infisical? I think it is infisical run with --watch.", "should_trigger": true},
   {"query": "Мы переезжаем с .env на Infisical. Скрипт запуска dev-сервера сейчас делает source .env && npm run dev. Чем заменить его одной командой infisical, которая подставит секреты окружения dev из папки /api и перезапустит сервер при изменении секрета?", "should_trigger": true},
-  {"query": "Как выгрузить секреты из Infisical в .env и получить значение одного секрета в переменную shell внутри скрипта?", "should_trigger": true},
+  {"query": "Какие флаги infisical run позволяют подмешать сразу две папки (/common и /web), включить подпапки и что победит, если ключ есть в обеих?", "should_trigger": true},
   {"query": "Get a lease for a dynamic secret with the Infisical CLI: a short-lived Postgres user for a migration job", "should_trigger": true},
   {"query": "Authenticate the Infisical CLI in a GitLab pipeline with a machine identity and universal auth", "should_trigger": false},
   {"query": "Install Infisical with Homebrew and point it at my self-hosted instance", "should_trigger": false},
