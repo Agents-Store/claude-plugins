@@ -1,15 +1,6 @@
 ---
 name: codemap-explain
-description: >
-  Use this skill whenever the user wants to understand existing code in their project, in any language,
-  including non-English requests. Typical situations: they are new to a codebase or stack and want orientation
-  (entry point, where things live, a tour); they want a walkthrough of a file, function, module or class; they
-  ask how a request, call chain or data flow runs through the system, for example from client to database; they
-  ask why something is built the way it is, such as a design decision, a pattern, a library's role, or why two
-  files are separate; or they are puzzled by specific constructs and say "I don't get why". Choose this over
-  answering ad hoc whenever the answer depends on reading the user's actual code and teaching it clearly. Do not
-  use it for code review or bug hunting, writing or changing code or tests, generating diagrams or files, or
-  generic programming concept questions not tied to their code.
+description: Use when the user wants existing code explained to them as a learner - what a file, function or module does, how a request or data flows through the project, why it was built that way, or a tour of a codebase. Prefer it to an ad-hoc answer whenever the user is learning the code, because it gives a structured step-by-step explanation (context, data flow, details, pitfalls) pitched at the user's level, also for pasted code. Not for code review (codemap-review) or diagrams (codemap-diagram).
 ---
 
 # Code Explanation for Beginners

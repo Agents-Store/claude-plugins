@@ -6,6 +6,9 @@ fail — подтверждённый промах, ниже порога, ре�
 раскладывает раздел L2, а l2plan переносит плагины с L2_NOT_RUN на следующую ночь.
 В отчёт не попадает текст ответов модели и вывод CLI — только имена кейсов, запросы из репозитория, оценки
 и фиксированные классификации сбоев; сырая деталь идёт одной строкой в stderr (журнал ночного прогона).
+Волны и ручные прогоны могут удешевить повтор переменными окружения runner-а (читаются на каждый плагин, не при
+импорте; ночной прогон их не ставит): PLUGIN_TEST_L2_SKILLS — только эти skills плагина, без родных кейсов;
+PLUGIN_TEST_L2_QUICK=1 — качество в один прогон без плеча «без плагина» (нет дельты, регресса и записи в историю).
 """
 from __future__ import annotations
 
@@ -28,6 +31,8 @@ CONFIRM_RUNS = 2          # повтор проваленного кейса с�
 QUERY_SHOWN = 120
 GRACE_AFTER_DEADLINE = 2700   # вызов, начатый до конца окна, может идти ещё 45 минут — юнит убьют в 08:00
 MIN_CALL_TIMEOUT = 300
+SKILLS_VAR = "PLUGIN_TEST_L2_SKILLS"   # волны: только эти skills плагина (имена через запятую); ночной прогон не ставит
+QUICK_VAR = "PLUGIN_TEST_L2_QUICK"     # волны: быстрый режим качества — 1 прогон без плеча «без плагина»; только значение 1
 FIX_TRIGGER = "уточни description skill (run_loop skill-creator) или замени запрос: /plugin-creator:evals"
 FIX_QUALITY = "разбор: /plugin-creator:test, слой behavior; свой порог — [behavior.case] с причиной"
 FIX_INFRA = "сбой окружения L2 — журнал ночного прогона; плагин уйдёт в перенос на следующую ночь"
@@ -42,20 +47,36 @@ class Sources:
     routes: dict = field(default_factory=dict)     # skill → команды плагина, ведущие к нему (evalgen.skill_routes)
 
 
-def _sources(plugin, skip):
+def _skill_filter():
+    """Имена из PLUGIN_TEST_L2_SKILLS: через запятую, пробелы по краям и пустые элементы отброшены, повторы тоже."""
+    names = (name.strip() for name in os.environ.get(SKILLS_VAR, "").split(","))
+    return list(dict.fromkeys(name for name in names if name))
+
+
+def _quick():
+    """Быстрый режим качества — только значение «1»: «true», «0», пробел вокруг — выключено."""
+    return os.environ.get(QUICK_VAR) == "1"
+
+
+def _sources(plugin, skip, only=()):
     """Источники кейсов без снятых [skip] "behavior": маска — путь от каталога плагина (как runner.skipped_by),
-    у родного кейса — его имя в дереве n-<имя>. Снятый файл не доходит до генерации и до вызова claude."""
+    у родного кейса — его имя в дереве n-<имя>. Снятый файл не доходит до генерации и до вызова claude.
+    only — фильтр волн (_skill_filter): кейсы только этих skills и никаких родных кейсов; src.skills остаётся полным —
+    по нему видно, какие имена фильтра плагину неизвестны."""
     def skipped(rel):
         return any(fnmatch.fnmatch(rel, g) for g in skip)
 
     src = Sources()
     for skill in evalsrc.skills(plugin.dir):
         src.skills[skill.name] = skill
+        if only and skill.name not in only:
+            continue
         if os.path.isfile(skill.triggers_path) and not skipped(os.path.relpath(skill.triggers_path, plugin.dir)):
             src.triggers += evalsrc.load_triggers(skill)[0]
         if os.path.isfile(skill.evals_path) and not skipped(os.path.relpath(skill.evals_path, plugin.dir)):
             src.quality += [c for c in evalsrc.load_quality(skill)[0] if not c.has_files]
-    src.native = [n for n in evalsrc.native_cases(plugin)[0] if not skipped(evalgen.native_name(n))]
+    if not only:
+        src.native = [n for n in evalsrc.native_cases(plugin)[0] if not skipped(evalgen.native_name(n))]
     return src
 
 
@@ -108,7 +129,15 @@ def _mocks(plugin):
 def run(plugin, ctx, manifest):
     if ctx.mode != SERVER:
         return []
-    src = _sources(plugin, manifest.skip.get(CHECK, []))
+    only = _skill_filter()
+    src = _sources(plugin, manifest.skip.get(CHECK, []), only)
+    if only:
+        known = [name for name in only if name in src.skills]
+        if not known:      # плагин вне фильтра: не «не прогнан» — на следующую ночь его не переносить
+            _debug("%s: %s — нет skill плагина в фильтре" % (plugin.name, SKILLS_VAR))
+            return []
+        if len(known) < len(only):
+            _debug("%s: %s — неизвестные: %s" % (plugin.name, SKILLS_VAR, ", ".join(n for n in only if n not in known)))
     if not (src.triggers or src.quality or src.native):
         return []
     if ctx.l2_stop:
@@ -220,13 +249,17 @@ def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
 
 
 def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
+    quick = _quick()
     invocable = {name: s.invocable for name, s in src.skills.items()}
     meta = evalgen.write_quality(copy, plugin.name, src.quality, invocable, _mocks(plugin),
-                                 evalsrc.native_dir(plugin), tuple(src.native), routes=src.routes)
+                                 evalsrc.native_dir(plugin), tuple(src.native), routes=src.routes,
+                                 **({"runs": 1} if quick else {}))
     if not meta:
         return []
+    if quick:    # один прогон, без плеча «без плагина»: дельты нет, а прошлые медианы (3 прогона с/без) несравнимы
+        _debug("%s: быстрый режим качества (1 прогон, без сравнения)" % plugin.name)
     res, out = _call(plugin, ctx, "качество", claude, copy, evalgen.QUALITY_DIR, os.path.join(tmp, "out-quality"),
-                     env, ablation="with-without")
+                     env, **({"ablation": "none", "runs": 1} if quick else {"ablation": "with-without"}))
     if res is None:
         return out
     got = evalrun.cases(res.data)
@@ -249,14 +282,15 @@ def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
         if any(r.get("skippedPaidGraders") for r in runs):
             out.append(_infra(plugin, "%s: %s — судья пропущен, оценка несравнима" % (L2_FAILED, name), file))
             continue
-        score, delta = entry["score"], entry["delta"]
+        score, delta = entry["score"], None if quick else entry["delta"]
         threshold = manifest.threshold_for(name)
         previous = past.get(name, [])
-        entries.append({"case": name, "score": score, "delta": delta, "runs": len(runs), "ok": True})
+        if not quick:      # оценка одного прогона в историю не идёт: следующие медианы считаются по полным
+            entries.append({"case": name, "score": score, "delta": delta, "runs": len(runs), "ok": True})
         if score < threshold:
             out.append(Finding(plugin.name, CHECK, FAIL, "%s: %s — %.2f < %.2f" % (L2_BELOW, name, score, threshold),
                                file, 0, FIX_QUALITY))
-        median = history.regressed(previous, score)
+        median = None if quick else history.regressed(previous, score)
         if median is not None:
             out.append(Finding(plugin.name, CHECK, FAIL, "%s: %s — %.2f, медиана последних %d — %.2f"
                                % (L2_REGRESS, name, score, len(previous[-history.WINDOW:]), median),
