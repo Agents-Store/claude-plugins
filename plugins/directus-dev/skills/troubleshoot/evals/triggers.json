@@ -1,5 +1,5 @@
 [
-  {"query": "Directus returns 403 FORBIDDEN for /assets/<id>. I use next/image with src=https://cms.example.com/assets/<id>: images show up when I'm logged in to the admin in the same browser, but anonymous visitors get a broken image and the network tab says 403. What's going on and what should I change?", "should_trigger": true},
+  {"query": "On Directus 12.4.1 without a license I gave the Public policy read access to directus_files, but only for the 'Public' folder with a filter, and saving the permission fails with 403 RESOURCE_RESTRICTED. What does that error mean and what are my options for serving public images?", "should_trigger": true},
   {"query": "my Directus MCP won't connect - the client says /mcp not found or '403 MCP must be enabled'. what do I check?", "should_trigger": true},
   {"query": "Getting 422 'Invalid payload' when creating items through the REST API on a collection with a required field and a relation. How do I read the error and fix it?", "should_trigger": true},
   {"query": "I'm creating a field on a collection and Directus says 'Field already exists', even though I can't see it in the UI. How do I diagnose?", "should_trigger": true},

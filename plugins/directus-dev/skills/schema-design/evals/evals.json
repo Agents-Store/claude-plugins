@@ -16,7 +16,7 @@
     },
     {
       "id": 6,
-      "prompt": "What's the difference between schema: {} and schema: null when creating a Directus collection?",
+      "prompt": "Use the schema-design skill. What's the difference between schema: {} and schema: null when creating a Directus collection?",
       "expected_output": "schema:{} = real table, schema:null = folder-only UI grouping",
       "files": [],
       "expectations": [

@@ -10,7 +10,7 @@
   {"query": "Build a Next.js route handler that receives a webhook from a CMS and verifies its HMAC signature", "should_trigger": false},
   {"query": "Create a Zapier-style automation that sends a Slack message when a row is added to a Google Sheet", "should_trigger": false},
   {"query": "Build an n8n workflow that listens for a webhook and writes the payload to Postgres", "should_trigger": false},
-  {"query": "How do I filter items by a date range with _between in the Directus REST API?", "should_trigger": false},
+  {"query": "How do I add a many-to-one relation from orders to customers in the Directus data model?", "should_trigger": false},
   {"query": "Write a custom Directus extension in TypeScript that registers a hook on items.create", "should_trigger": false},
   {"query": "My non-admin users get 403 on /flows in Directus. Which permissions do they need?", "should_trigger": false},
   {"query": "Schedule a cron job on my Linux server that backs up the Directus Postgres database every night", "should_trigger": false},

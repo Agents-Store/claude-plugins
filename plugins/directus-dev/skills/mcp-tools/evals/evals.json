@@ -11,12 +11,12 @@
         "Mentions system-prompt tool as first call",
         "Explains the unified action-based CRUD pattern",
         "Mentions schema tool for discovery",
-        "Includes trigger-flow as a tool"
+        "The answer includes trigger-flow as a tool"
       ]
     },
     {
       "id": 2,
-      "prompt": "I'm calling the Directus items tool but getting 'action is required' error. What am I doing wrong?",
+      "prompt": "Use the mcp-tools skill. I'm calling the Directus items tool but getting 'action is required' error. What am I doing wrong?",
       "expected_output": "Explains the unified action pattern and that every Directus MCP tool requires an action parameter",
       "files": [],
       "expectations": [

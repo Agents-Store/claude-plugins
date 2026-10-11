@@ -3,15 +3,15 @@
   "evals": [
     {
       "id": 3,
-      "prompt": "I need to read all published posts from my Directus with their author names, sorted by newest first, limit 10",
+      "prompt": "Use the item-operations skill. I need to read all published posts from my Directus with their author names, sorted by newest first, limit 10",
       "expected_output": "Exact JSON for items tool with action:read, filter, dot notation fields, sort, limit",
       "files": [],
       "expectations": [
-        "Uses action: read",
-        "Uses dot notation for author name (e.g. author.first_name or author.name)",
-        "Includes filter for status _eq published",
+        "The answer uses action: read",
+        "The answer uses dot notation for author name (e.g. author.first_name or author.name)",
+        "The answer includes filter for status _eq published",
         "Sorts by -date_created (descending)",
-        "Sets limit to 10"
+        "The answer sets limit to 10"
       ]
     },
     {

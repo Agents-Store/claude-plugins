@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 11,
-      "prompt": "I need to import product images from URLs into Directus and organize them in a folder. The images are https://example.com/img/chair-01.jpg, https://example.com/img/chair-02.jpg and https://example.com/img/table-01.jpg; put them in a new folder called 'Products' and give each file a title. Show me the exact Directus MCP tool calls.",
+      "prompt": "Use the file-management skill. I need to import product images from URLs into Directus and organize them in a folder. The images are https://example.com/img/chair-01.jpg, https://example.com/img/chair-02.jpg and https://example.com/img/table-01.jpg; put them in a new folder called 'Products' and give each file a title. Show me the exact Directus MCP tool calls.",
       "expected_output": "The answer creates the folder first, then imports the files with url and metadata including the folder UUID",
       "files": [],
       "expectations": [
@@ -16,7 +16,7 @@
     },
     {
       "id": 12,
-      "prompt": "How do I get the actual content of an image file from Directus for AI analysis?",
+      "prompt": "Use the file-management skill. How do I get the actual content of an image file from Directus for AI analysis?",
       "expected_output": "Assets tool returns base64 content with mimeType",
       "files": [],
       "expectations": [
