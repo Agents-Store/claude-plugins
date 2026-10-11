@@ -3,7 +3,7 @@
   {"query": "set up dokploy: where do I get an API key, and how do I check that my DOKPLOY_URL is right?", "should_trigger": true},
   {"query": "I enabled dokploy-dev yesterday. Where do I get an API key, where do DOKPLOY_URL and DOKPLOY_API_KEY go so the plugin picks them up, and how do I check that everything is connected?", "should_trigger": true},
   {"query": "Test that @dokploy/cli is installed and authenticated, and that the REST API answers 200 with my key.", "should_trigger": true},
-  {"query": "How do I reduce the number of exposed Dokploy MCP tools with a preset so the context isn't flooded? I'm still doing the initial setup.", "should_trigger": true},
+  {"query": "I'm setting up the dokploy-dev plugin on a new laptop: where do I get an API key, how do I set DOKPLOY_URL, how do I limit the exposed MCP tools with DOKPLOY_TOOL_PRESET, and how do I confirm that the connection works?", "should_trigger": true},
   {"query": "verify dokploy connection from this machine before I start deploying anything", "should_trigger": true},
   {"query": "Проверь, что Dokploy настроен: MCP подключён, CLI установлен, API отвечает. Где взять API-ключ?", "should_trigger": true},
   {"query": "Только что подключил плагин dokploy-dev, как проверить, что всё работает?", "should_trigger": true},

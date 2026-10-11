@@ -6,6 +6,8 @@ allowed-tools: [Read, Bash, Skill, Agent]
 
 # Add Domain
 
+Follow the `mcp-patterns` skill (`${CLAUDE_PLUGIN_ROOT}/skills/mcp-patterns/SKILL.md`) for the domain-create parameters and the domain usage notes; read it before the first call.
+
 Add a custom domain to a Dokploy application with optional HTTPS.
 
 ## Arguments
