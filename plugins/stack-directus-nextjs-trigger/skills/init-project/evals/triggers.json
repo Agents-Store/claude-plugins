@@ -1,0 +1,17 @@
+[
+  {"query": "Starting a new Directus 12, Next.js 16 and Trigger.dev project. Which versions must line up and which env vars go where?", "should_trigger": true},
+  {"query": "Which Trigger.dev token do I need for the MCP server and deploy, and which one for tasks.trigger() in Next.js? TRIGGER_ACCESS_TOKEN or TRIGGER_SECRET_KEY?", "should_trigger": true},
+  {"query": "Why must @trigger.dev/sdk, react-hooks and the trigger.dev CLI be the same version as the server in this stack?", "should_trigger": true},
+  {"query": "How do I generate DIRECTUS_WEBHOOK_SECRET and why should it not equal REVALIDATION_SECRET?", "should_trigger": true},
+  {"query": "Set up the three-service stack from scratch and verify the connections: Directus ping, the MCP schema tool and Trigger.dev", "should_trigger": true},
+  {"query": "Как инициализировать стек Directus, Next.js и Trigger.dev: какие переменные заполнить и откуда взять TRIGGER_PROJECT_REF?", "should_trigger": true},
+  {"query": "Создаю проект с фоновыми задачами на Directus и Next.js. Какие зависимости ставить и почему trigger.dev кладут в devDependencies?", "should_trigger": true},
+  {"query": "what goes into NEXT_PUBLIC_TRIGGER_API_URL and can it ever contain a key?", "should_trigger": true},
+  {"query": "Install and configure a self-hosted Trigger.dev server with Docker", "should_trigger": false},
+  {"query": "Init Trigger.dev in my existing Next.js project with the CLI and create the first task", "should_trigger": false},
+  {"query": "Create a Directus Docker Compose file with a pinned image, Postgres and Redis", "should_trigger": false},
+  {"query": "Set up the Composable Stack with NocoDB, n8n and NocoBase env vars", "should_trigger": false},
+  {"query": "Which auth path fits Directus, NextAuth or Better Auth?", "should_trigger": false},
+  {"query": "Set up a monorepo with pnpm workspaces and Turborepo for a Next.js app", "should_trigger": false},
+  {"query": "Write a feature that renders Directus products and a background import", "should_trigger": false}
+]
