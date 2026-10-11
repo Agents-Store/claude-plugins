@@ -8,6 +8,8 @@ argument-hint: [--stats]
 
 List all connected chatbots with their channels, and optionally show statistics.
 
+Method and rules: the `sendpulse-ops:chatbot-management` skill.
+
 ## Arguments
 Format: `[--stats]`
 - --stats: Include subscriber count and engagement stats for each bot (optional)
