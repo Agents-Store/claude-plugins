@@ -3,7 +3,7 @@
   {"query": "I keep getting 'I don't have access to Plane tools' even though the Plane MCP is connected. How do I discover the tools?", "should_trigger": true},
   {"query": "What is the difference between the resource tools of Plane MCP 0.3+ (workitem with an action parameter) and the older per-operation tools like create_work_item?", "should_trigger": true},
   {"query": "List all my Plane projects and show the current cycle for each", "should_trigger": true},
-  {"query": "Show me the work items assigned to me in Plane", "should_trigger": true},
+  {"query": "The Plane MCP shows as connected but I cannot see any plane tools in this session, only deferred tool names. Find the Plane tools first and tell me which tool surface this server exposes before we do anything", "should_trigger": true},
   {"query": "Our Plane instance is connected through a custom proxy so the tool names look different. How should the agent find them?", "should_trigger": true},
   {"query": "Покажи мои задачи в Plane — сначала найди, какие инструменты Plane доступны в этой сессии", "should_trigger": true},
   {"query": "Plane подключён как коннектор, но инструменты не видны. Как их обнаружить и что делать со старым MCP до версии 0.3.0?", "should_trigger": true},

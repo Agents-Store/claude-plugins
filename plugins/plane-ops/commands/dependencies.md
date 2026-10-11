@@ -7,6 +7,8 @@ argument-hint: <project> [--cycle <current|next|name>]
 
 Inspect work item relations to find active blockers, blocking chains, and risk items.
 
+Method and rules: the `plane-ops:work-items` skill.
+
 ## Arguments
 
 Format: `<project> [--cycle <current|next|name>] [--item <id>]`

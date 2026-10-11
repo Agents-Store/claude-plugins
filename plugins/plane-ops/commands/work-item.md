@@ -5,7 +5,7 @@ argument-hint: <action> <project> [args...]
 
 # Work Item
 
-Create, update, or inspect a single work item in Plane. Delegates all tool resolution to the `connector-bootstrap` skill and all field rules to the `work-items` skill.
+Create, update, or inspect a single work item in Plane. Delegates all tool resolution to the `connector-bootstrap` skill and all field rules to the `plane-ops:work-items` skill.
 
 ## Arguments
 

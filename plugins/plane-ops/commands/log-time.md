@@ -7,6 +7,8 @@ argument-hint: <project> <item> <duration> [description]
 
 Create a work log entry against a Plane work item. Time is stored as **integer minutes** in the API — convert human input.
 
+Method and rules: the `plane-ops:work-items` skill.
+
 ## Arguments
 
 Format: `<project> <item> <duration> [description]`

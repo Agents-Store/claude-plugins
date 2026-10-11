@@ -7,6 +7,8 @@ argument-hint: <project> [--cycle <current|name>]
 
 Compute a burndown view for a sprint: ideal line, actual points remaining, and projected end state.
 
+Method and rules: the `plane-ops:velocity-metrics` skill.
+
 ## Arguments
 
 Format: `<project> [--cycle <current|name>]`

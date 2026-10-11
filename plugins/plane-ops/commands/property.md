@@ -36,7 +36,7 @@ Parse from `"$ARGUMENTS"`.
 - **Use a label when**: data is freeform tagging, optional, no values needed (`needs-design`, `flaky`).
 - **Use a work item type when**: the workflow itself differs (Bug vs Spike).
 
-Three buckets, three tools — don't mix. See `labels-states-properties` skill.
+Three buckets, three tools — don't mix. See `plane-ops:labels-states-properties` skill.
 
 ## Examples
 
