@@ -1,0 +1,18 @@
+[
+  {"query": "How do I read Payload data in a Next.js 15 App Router server component with getPayload, and how do I type the result with generated types?", "should_trigger": true},
+  {"query": "Set up draft mode and live preview between Payload and my Next.js frontend, so editors see unpublished changes", "should_trigger": true},
+  {"query": "Payload afterChange hook should revalidate my ISR page by slug when a post is published. Show revalidatePath and revalidateTag usage", "should_trigger": true},
+  {"query": "What's the project layout created by create-payload-app in Next.js - the (frontend) and (payload) route groups, and where does the admin live?", "should_trigger": true},
+  {"query": "Call a Payload Local API mutation from a Next.js server action, and authenticate the user from headers", "should_trigger": true},
+  {"query": "Which Next.js versions does @payloadcms/next 3.90 support? I get a peer dependency error on next 15.5", "should_trigger": true},
+  {"query": "Как на Next.js получить текущего пользователя Payload в route handler и закрыть API-роут от анонимов?", "should_trigger": true},
+  {"query": "Нужно сделать статическую генерацию страниц по slug из Payload с ISR. Как организовать generateStaticParams и ревалидацию?", "should_trigger": true},
+  {"query": "Write a Payload where query with nested relationship filters and OR conditions", "should_trigger": false},
+  {"query": "Deploy a Payload app with Docker", "should_trigger": false},
+  {"query": "Next.js App Router caching: explain fetch cache, unstable_cache and revalidateTag", "should_trigger": false},
+  {"query": "Build a Next.js app with Directus as the headless backend", "should_trigger": false},
+  {"query": "Set up NextAuth in Next.js with Postgres adapter", "should_trigger": false},
+  {"query": "How do I add a global header to a Payload site?", "should_trigger": false},
+  {"query": "Next.js middleware for locale redirects", "should_trigger": false},
+  {"query": "Why do I get 'Cannot find module payload' after install?", "should_trigger": false}
+]
