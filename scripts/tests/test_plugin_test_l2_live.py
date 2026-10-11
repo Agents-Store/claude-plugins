@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plugin_test_fixtures import FIXTURES  # noqa: E402
 
 from plugin_test import cli, evalgen, evalrun, history  # noqa: E402
+from plugin_test.checks import behavior  # noqa: E402
 
 LIVE = os.environ.get("PLUGIN_TEST_L2_LIVE") == "1"
 SMOKE = os.path.join(FIXTURES, "l2_smoke")
@@ -44,6 +45,8 @@ class L2LiveSmokeTest(unittest.TestCase):
         for patch in (mock.patch.dict(os.environ, {"TMPDIR": private}), mock.patch.object(tempfile, "tempdir", private)):
             patch.start()
             self.addCleanup(patch.stop)
+        for var in (behavior.SKILLS_VAR, behavior.QUICK_VAR):    # smoke меряет полный режим: дельту и оба плеча
+            os.environ.pop(var, None)                              # (os.environ восстановит patch.dict выше)
         cleaned = []
         real_root = evalrun._temp_root
 

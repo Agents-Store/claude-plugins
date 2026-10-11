@@ -3,6 +3,7 @@
 Всё пишется во временную копию плагина, в каталоги рядом с его skills/ (--eval-dir):
   evals-trigger/  срабатывание: 1 прогон, 1 ход, только Skill, без моков — моки уводят модель в ToolSearch
   evals-quality/  качество: 3 прогона в каждом плече, Read/Grep/Glob/Skill, моки MCP из снимков L1
+                  (быстрый режим волн — runs=1 и одно плечо, это решает behavior)
   evals-rerun/    повтор проваленных кейсов срабатывания
 Из plugin.json копии убран ключ dependencies: с ним плагин в песочнице не грузится. Копия L2 — ещё и без
 agents/ (copy_plugin drop_agents): L2 меряет skills, агент плагина забирает ход у Skill и портит ответ.
@@ -177,9 +178,11 @@ def write_triggers(copy_dir, eval_dir, plugin_name, queries, only=None, routes=N
     return out
 
 
-def write_quality(copy_dir, plugin_name, cases, invocable, mocks, native_root="", native_names=(), routes=None):
+def write_quality(copy_dir, plugin_name, cases, invocable, mocks, native_root="", native_names=(), routes=None,
+                  runs=QUALITY_RUNS):
     """Кейсы качества, моки MCP и родной набор в <копия>/evals-quality/. → {имя: {kind, skill, id}}.
-    routes — skill_routes: индикатор fired.md засчитывает и команду, ведущую к skill."""
+    routes — skill_routes: индикатор fired.md засчитывает и команду, ведущую к skill.
+    runs — прогонов на кейс качества (быстрый режим волн: 1); родные кейсы копируются как есть."""
     routes = routes or {}
     root = os.path.join(copy_dir, QUALITY_DIR)
     out = {}
@@ -192,7 +195,7 @@ def write_quality(copy_dir, plugin_name, cases, invocable, mocks, native_root=""
         can_call = invocable.get(c.skill, True)
         prompt = c.prompt if can_call else "/%s:%s %s" % (plugin_name, c.skill, c.prompt)
         _write(os.path.join(case, "prompt.md"), _doc(
-            [("tags", ["quality", "skill:%s" % c.skill]), ("runs", QUALITY_RUNS), ("allowed_tools", QUALITY_TOOLS)],
+            [("tags", ["quality", "skill:%s" % c.skill]), ("runs", runs), ("allowed_tools", QUALITY_TOOLS)],
             prompt))
         if c.criteria:
             for i, criterion in enumerate(c.criteria, 1):

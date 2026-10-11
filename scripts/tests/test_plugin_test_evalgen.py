@@ -221,6 +221,17 @@ class EvalgenTest(unittest.TestCase):
         self.assertEqual(front["tags"], ["trigger", "skill:web"])
         self.assertEqual(body, query + "\n")
 
+    def test_quality_runs_default_and_override(self):
+        cases = [QualityCase("web", "1", "how to scrape", ("c",), "", False)]
+        for i, (kw, want) in enumerate((({}, evalgen.QUALITY_RUNS), ({"runs": 1}, 1), ({"runs": 3}, 3))):
+            with self.subTest(kw=kw):
+                copy = os.path.join(self.tmp, "runs-%d" % i)
+                os.makedirs(copy)
+                evalgen.write_quality(copy, "p-dev", cases, {"web": True}, {}, **kw)
+                front, _ = parse(os.path.join(copy, evalgen.QUALITY_DIR, "q-web-1", "prompt.md"))
+                self.assertEqual(front["runs"], want)
+        self.assertEqual(evalgen.QUALITY_RUNS, 3)
+
     def test_quality_tree_invocable(self):
         cases = [QualityCase("web", "1", "how to scrape", ("uses map", "uses scrape"), "x", False),
                  QualityCase("web", "2", "compare", (), "the expected outcome", False)]
