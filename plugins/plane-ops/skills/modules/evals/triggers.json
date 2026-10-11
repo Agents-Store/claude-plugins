@@ -1,0 +1,18 @@
+[
+  {"query": "Create a Plane module 'Checkout redesign', add the related work items and show how far along it is across the next sprints", "should_trigger": true},
+  {"query": "How do modules differ from cycles in Plane and when should I group work by module instead of by sprint?", "should_trigger": true},
+  {"query": "Report the progress of the module 'Search' with the number of done and open work items and its lead", "should_trigger": true},
+  {"query": "Move several work items into an existing module in Plane and set the module's start and target dates", "should_trigger": true},
+  {"query": "List all modules of the project and tell me which ones are stuck at 0% progress", "should_trigger": true},
+  {"query": "Создай модуль в Plane для фичи «Личный кабинет» и добавь в него задачи", "should_trigger": true},
+  {"query": "Покажи прогресс по модулю в Plane и чем модули отличаются от циклов", "should_trigger": true},
+  {"query": "Track the workstream 'Payments migration' that spans several sprints - should that be a module and how do I set it up?", "should_trigger": true},
+  {"query": "Create a new cycle (sprint) for next week", "should_trigger": false},
+  {"query": "Create an epic 'Platform v2' and put it under an initiative", "should_trigger": false},
+  {"query": "Create a Node.js module that exports a helper function", "should_trigger": false},
+  {"query": "Explain Python modules vs packages", "should_trigger": false},
+  {"query": "Break the epic into smaller stories", "should_trigger": false},
+  {"query": "Show me the burndown for the current cycle", "should_trigger": false},
+  {"query": "Add a work item to the current sprint", "should_trigger": false},
+  {"query": "Create a Terraform module for a VPC", "should_trigger": false}
+]

@@ -1,0 +1,18 @@
+[
+  {"query": "Which Plane tools do I have available in this session? Check how they are named before doing anything else", "should_trigger": true},
+  {"query": "I keep getting 'I don't have access to Plane tools' even though the Plane MCP is connected. How do I discover the tools?", "should_trigger": true},
+  {"query": "What is the difference between the resource tools of Plane MCP 0.3+ (workitem with an action parameter) and the older per-operation tools like create_work_item?", "should_trigger": true},
+  {"query": "List all my Plane projects and show the current cycle for each", "should_trigger": true},
+  {"query": "Show me the work items assigned to me in Plane", "should_trigger": true},
+  {"query": "Our Plane instance is connected through a custom proxy so the tool names look different. How should the agent find them?", "should_trigger": true},
+  {"query": "Покажи мои задачи в Plane — сначала найди, какие инструменты Plane доступны в этой сессии", "should_trigger": true},
+  {"query": "Plane подключён как коннектор, но инструменты не видны. Как их обнаружить и что делать со старым MCP до версии 0.3.0?", "should_trigger": true},
+  {"query": "Create a new issue in Jira for the login bug", "should_trigger": false},
+  {"query": "List my Linear issues for this cycle", "should_trigger": false},
+  {"query": "How do I self-host Plane with docker compose and configure SMTP?", "should_trigger": false},
+  {"query": "Show my GitHub issues assigned to me", "should_trigger": false},
+  {"query": "Write a Python script that reads Trello cards through the API", "should_trigger": false},
+  {"query": "Which MCP servers are configured in my Claude Code project?", "should_trigger": false},
+  {"query": "Set up an Asana project for a marketing campaign", "should_trigger": false},
+  {"query": "Explain the difference between Scrum sprints and Kanban flow", "should_trigger": false}
+]

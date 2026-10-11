@@ -1,0 +1,18 @@
+[
+  {"query": "Groom my Plane backlog: find items without estimates or descriptions, stale items older than 90 days, and propose priorities with MoSCoW", "should_trigger": true},
+  {"query": "Assess the health of our Plane backlog - how many items are ready, how deep is the backlog in sprints, how many are stale?", "should_trigger": true},
+  {"query": "Score the top 15 backlog items in Plane with WSJF and a value-effort matrix and tell me which to pull into the next sprint", "should_trigger": true},
+  {"query": "Our backlog has 300 items and nobody trusts it. How should we clean it up and keep it healthy going forward?", "should_trigger": true},
+  {"query": "Run a backlog refinement session: list unrefined items and ask me about priority and size for each", "should_trigger": true},
+  {"query": "Прогрумь бэклог проекта в Plane: найди устаревшие задачи без оценки и предложи приоритеты по MoSCoW", "should_trigger": true},
+  {"query": "Оцени здоровье бэклога в Plane и покажи, сколько задач готово к спринту", "should_trigger": true},
+  {"query": "Which backlog items have the best value-to-effort ratio? Build a value-effort analysis for the Plane project 'Web'", "should_trigger": true},
+  {"query": "Plan the next sprint and calculate capacity", "should_trigger": false},
+  {"query": "Break down the epic 'Payments' into user stories", "should_trigger": false},
+  {"query": "Triage the intake queue and accept the valid bug reports", "should_trigger": false},
+  {"query": "Create a work item 'Fix login redirect' and assign it to Anna", "should_trigger": false},
+  {"query": "Estimate these three tickets with story points", "should_trigger": false},
+  {"query": "Explain what the MoSCoW method is in general", "should_trigger": false},
+  {"query": "Prioritize my personal to-do list for today", "should_trigger": false},
+  {"query": "Show the burndown for the current cycle", "should_trigger": false}
+]

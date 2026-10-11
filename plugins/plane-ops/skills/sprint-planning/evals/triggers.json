@@ -1,0 +1,18 @@
+[
+  {"query": "Plan the next sprint in Plane: calculate capacity for our 5 developers with 2 on holiday, propose a sprint goal and pick items from the backlog", "should_trigger": true},
+  {"query": "Create a new cycle in Plane for Oct 13 to Oct 24 and add the top-priority ready work items that fit our capacity", "should_trigger": true},
+  {"query": "What's our capacity for the next sprint given an average velocity of 32 points and a 15% buffer, and which backlog items should I select?", "should_trigger": true},
+  {"query": "Help me set a clear sprint goal and select work items, making sure the commitment stays within capacity", "should_trigger": true},
+  {"query": "Run sprint planning: check carry-over from the previous cycle, calculate capacity and propose the sprint scope", "should_trigger": true},
+  {"query": "Спланируй следующий спринт в Plane: посчитай ёмкость, предложи цель и подбери задачи", "should_trigger": true},
+  {"query": "Создай цикл в Plane и добавь в него задачи из бэклога так, чтобы не превысить ёмкость команды", "should_trigger": true},
+  {"query": "How many story points can we commit to next sprint if two people are out for three days?", "should_trigger": true},
+  {"query": "Review and close the current sprint and run the retro", "should_trigger": false},
+  {"query": "Estimate the backlog items with story points", "should_trigger": false},
+  {"query": "Groom the backlog and check its health", "should_trigger": false},
+  {"query": "Calculate velocity for the past six sprints", "should_trigger": false},
+  {"query": "Plan a vacation schedule for the team", "should_trigger": false},
+  {"query": "Plan a Scrum sprint in Azure DevOps", "should_trigger": false},
+  {"query": "Build a Gantt chart for a construction project", "should_trigger": false},
+  {"query": "Create a roadmap for the next quarter in Plane", "should_trigger": false}
+]

@@ -1,0 +1,18 @@
+[
+  {"query": "Set up a brand new Plane project for a Scrum team: states, labels, work item types, custom properties and cycles/modules enabled", "should_trigger": true},
+  {"query": "Configure my existing Plane project for Agile workflows - which features should I switch on and which states and labels should exist?", "should_trigger": true},
+  {"query": "Create the standard Agile states (backlog, todo, in progress, in review, done, cancelled) and baseline labels in a new Plane project", "should_trigger": true},
+  {"query": "I just created the project 'Mobile app' in Plane. Make it Agile-ready with sensible defaults and tell me what you changed", "should_trigger": true},
+  {"query": "Enable cycles, modules, pages and intake for a Plane project and set the estimate system to Fibonacci", "should_trigger": true},
+  {"query": "Настрой новый проект в Plane под Agile: состояния, метки, типы задач и свойства", "should_trigger": true},
+  {"query": "Подготовь существующий проект Plane к работе по Scrum и включи нужные функции", "should_trigger": true},
+  {"query": "Bootstrap a Plane project for a Kanban support team with WIP limits and intake enabled", "should_trigger": true},
+  {"query": "Design a label taxonomy and decide between labels and properties", "should_trigger": false},
+  {"query": "Create a work item in the project", "should_trigger": false},
+  {"query": "Set up a new GitHub repository with branch protection", "should_trigger": false},
+  {"query": "Initialize a Jira Scrum project with a board", "should_trigger": false},
+  {"query": "Create a Next.js project with TypeScript", "should_trigger": false},
+  {"query": "Start a Trello board for the marketing team", "should_trigger": false},
+  {"query": "Invite members to the Plane workspace and set their roles", "should_trigger": false},
+  {"query": "Plan the first sprint", "should_trigger": false}
+]

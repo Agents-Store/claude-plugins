@@ -1,0 +1,18 @@
+[
+  {"query": "Create an epic 'Customer portal' in Plane and group it with the epic 'Billing v2' under a 2026 initiative. What's the difference between the three concepts and when do I use which?", "should_trigger": true},
+  {"query": "Track the progress of the release milestone 'v2.0 GA' in Plane across several modules and sprints", "should_trigger": true},
+  {"query": "Build a roadmap from our Plane epics and initiatives for the next two quarters", "should_trigger": true},
+  {"query": "Report progress on a long-running goal that spans multiple sprints and modules: should this be an initiative or an epic?", "should_trigger": true},
+  {"query": "Add a milestone with a target date to the project and attach the relevant work items to it", "should_trigger": true},
+  {"query": "Создай эпик в Plane, объедини несколько эпиков в инициативу и покажи прогресс по ним", "should_trigger": true},
+  {"query": "Чем в Plane отличаются эпик, инициатива и milestone и как построить роадмап на квартал?", "should_trigger": true},
+  {"query": "Report the status of the initiative 'Mobile launch' with progress per epic", "should_trigger": true},
+  {"query": "Break the epic into smaller user stories using INVEST criteria", "should_trigger": false},
+  {"query": "Group work items by feature area into a module", "should_trigger": false},
+  {"query": "Plan the next sprint with a sprint goal", "should_trigger": false},
+  {"query": "Create a roadmap slide deck for the board meeting", "should_trigger": false},
+  {"query": "Create a GitHub milestone for release 1.4", "should_trigger": false},
+  {"query": "What is an epic in Jira and how does it differ from a story?", "should_trigger": false},
+  {"query": "Create a work item 'Update docs'", "should_trigger": false},
+  {"query": "Show the burndown chart for the cycle", "should_trigger": false}
+]

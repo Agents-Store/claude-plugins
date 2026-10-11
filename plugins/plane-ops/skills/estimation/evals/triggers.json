@@ -1,0 +1,18 @@
+[
+  {"query": "Estimate the work items in my Plane backlog using Fibonacci story points. Start with the five biggest ones and explain the relative sizing", "should_trigger": true},
+  {"query": "Facilitate a planning poker session for this ticket: 'Migrate user avatars to object storage' - ask the team's questions and propose a point value", "should_trigger": true},
+  {"query": "When should we use t-shirt sizes instead of story points, and how do I convert between them for Plane estimates?", "should_trigger": true},
+  {"query": "Set estimates on these work items in Plane: use a reference story as the baseline and compare each one relative to it", "should_trigger": true},
+  {"query": "Our estimates are always off by 2x. How do we recalibrate relative estimation using past work items?", "should_trigger": true},
+  {"query": "Оцени задачи спринта в story points по шкале Фибоначчи и предложи, где нужен planning poker", "should_trigger": true},
+  {"query": "Помоги провести сессию оценки в Plane: возьми задачи без оценки и предложи эталонную историю", "should_trigger": true},
+  {"query": "What's the maximum story point size we should allow before a ticket has to be split?", "should_trigger": true},
+  {"query": "What are the formulas for sprint capacity, velocity and focus factor?", "should_trigger": false},
+  {"query": "Break this epic down into stories with INVEST", "should_trigger": false},
+  {"query": "Plan the sprint using our capacity", "should_trigger": false},
+  {"query": "Calculate the average time logged per story point over the last sprints", "should_trigger": false},
+  {"query": "Estimate the cost of AWS hosting for 10,000 users", "should_trigger": false},
+  {"query": "Give me a quote for building a website: hours and price", "should_trigger": false},
+  {"query": "Estimate how long my marathon training will take", "should_trigger": false},
+  {"query": "Create a Plane work item with an estimate of 5", "should_trigger": false}
+]

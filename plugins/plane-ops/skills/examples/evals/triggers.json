@@ -1,0 +1,18 @@
+[
+  {"query": "Show me an end-to-end example of running a sprint with Plane: setup, planning, daily standup, review and retro, with the actual tool calls", "should_trigger": true},
+  {"query": "Give me tool call patterns for Plane agile workflows I can reuse, e.g. creating a cycle and adding work items to it", "should_trigger": true},
+  {"query": "I want a complete worked scenario of triaging intake and turning items into work items with the Plane tools", "should_trigger": true},
+  {"query": "Are there reference implementations for sprint planning with Plane MCP? Show a full scenario from capacity to cycle creation", "should_trigger": true},
+  {"query": "Show a scenario reference for publishing a sprint report as a Plane page after closing a sprint", "should_trigger": true},
+  {"query": "Покажи сквозной пример работы со спринтом в Plane с реальными вызовами инструментов", "should_trigger": true},
+  {"query": "Нужны готовые примеры вызовов Plane MCP для планирования спринта и ретроспективы", "should_trigger": true},
+  {"query": "Walk me through a full example scenario of a project's first sprint in Plane from project setup to sprint close", "should_trigger": true},
+  {"query": "What are the exact parameters of the cycle tool for creating a cycle?", "should_trigger": false},
+  {"query": "Run the daily standup for my team", "should_trigger": false},
+  {"query": "Show an example of Scrum in practice at a big company", "should_trigger": false},
+  {"query": "Give me a complete example of a Jira Scrum board setup", "should_trigger": false},
+  {"query": "Show example GitHub Actions workflow for deploying to Vercel", "should_trigger": false},
+  {"query": "Write sample user stories for an online shop", "should_trigger": false},
+  {"query": "Create a retrospective template in Miro", "should_trigger": false},
+  {"query": "Give me an example MCP tool call in TypeScript", "should_trigger": false}
+]

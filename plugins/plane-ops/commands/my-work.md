@@ -1,6 +1,6 @@
 ---
 description: List Plane work items assigned to the current user
-argument-hint: [--project name] [--state name] [--cycle current|next|all] [--limit n]
+argument-hint: "[--project name] [--state name] [--cycle current|next|all] [--limit n]"
 ---
 
 # My Work
