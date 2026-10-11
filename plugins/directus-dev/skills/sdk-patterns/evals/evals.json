@@ -55,7 +55,7 @@
     },
     {
       "id": 28,
-      "prompt": "Use the sdk-patterns skill. My Next.js health check does directus.request(readItems('directus_collections')) and fails. What should I call instead?",
+      "prompt": "Use the sdk-patterns skill. My Next.js health check does directus.request(readItems('directus_collections')) and fails. Why does it fail, what should I call instead for the collections and for a plain connection check, and which typed commands exist for other system collections such as users, roles, policies and files?",
       "expected_output": "System collections use typed commands; readItems refuses directus_* collections",
       "files": [],
       "expectations": [

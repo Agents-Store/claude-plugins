@@ -1,6 +1,6 @@
 ---
 description: List files in Directus with optional folder or type filter
-argument-hint: [--folder <name>] [--type <mime-prefix>]
+argument-hint: "[--folder <name>] [--type <mime-prefix>]"
 ---
 
 # List Files

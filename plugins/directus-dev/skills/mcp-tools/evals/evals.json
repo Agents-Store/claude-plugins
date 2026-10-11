@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "What MCP tools does Directus expose? I just connected it and want to know what I can do with it",
+      "prompt": "Use the mcp-tools skill. What MCP tools does Directus expose? I just connected it and want to know what I can do with it. List every tool by name with one line each, and tell me which call to make first.",
       "expected_output": "Lists all 12 MCP tools with their action patterns and the query system",
       "files": [],
       "expectations": [
