@@ -2,7 +2,7 @@
   {"query": "Explain the order in which grammY middleware runs when I have two bot.use calls and a command handler, and why my logger prints after the reply", "should_trigger": true},
   {"query": "I registered my grammY auth middleware with bot.use after bot.command(\"start\", …) and it never runs for /start. What is the rule for registration order between bot.use and the handlers, and what changes if I move it above them?", "should_trigger": true},
   {"query": "Explain how middleware ordering works in grammY with this chain: a logger, session, an auth check and my command handlers. What happens to the handlers if the auth middleware returns without calling next()?", "should_trigger": true},
-  {"query": "В Composer grammY есть методы drop, filter и lazy. Чем bot.drop отличается от bot.filter и когда нужен bot.lazy? Хочу пропускать все апдейты из каналов и строить middleware по данным апдейта.", "should_trigger": true},
+  {"query": "Нужно, чтобы бот на grammY писал метрики по каждому апдейту параллельно и не задерживал ответ пользователю. Какой метод Composer для этого подходит и что произойдёт с порядком следующих middleware?", "should_trigger": true},
   {"query": "Как в grammY разнести обработчики по отдельным файлам через Composer и подключить их в нужном порядке?", "should_trigger": true},
   {"query": "Write an Express middleware that checks a JWT and rejects the request with 401", "should_trigger": false},
   {"query": "Write a Next.js middleware.ts that redirects unauthenticated users to /login", "should_trigger": false},
