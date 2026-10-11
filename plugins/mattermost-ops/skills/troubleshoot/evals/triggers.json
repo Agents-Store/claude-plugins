@@ -5,7 +5,7 @@
   {"query": "Our Mattermost PAT worked yesterday and today everything returns 401. It was created in July with an expiry I don't remember. How do I find out?", "should_trigger": true},
   {"query": "Since the upgrade to Mattermost v12 my bot posts show my own name instead of 'Deploy Bot'. We set override_username in props. No error is returned.", "should_trigger": true},
   {"query": "Getting 429 Too Many Requests from Mattermost in a loop that adds 400 users to a channel - how should I back off?", "should_trigger": true},
-  {"query": "POST /api/v4/channels/direct c телом {\"user_ids\": [\"u1id\", \"u2id\"]} возвращает 400 «Invalid or missing channel_ids in request body». Мне нужно создать личный чат между двумя пользователями Mattermost. Как правильно собрать запрос?", "should_trigger": true},
+  {"query": "В Mattermost API у участников канала поле last_viewed_at приходит как -1 (дата 1969-12-31). Это баг? Изменится ли это в v12?", "should_trigger": true},
   {"query": "Mattermost API: логин возвращает 200, а токена в теле ответа нет. Куда он делся?", "should_trigger": true},
   {"query": "Slack API returns 429 rate_limited with a Retry-After header inside my bot loop, how do I handle it", "should_trigger": false},
   {"query": "Walk me through logging in to Mattermost with curl and saving the session token for later calls", "should_trigger": false},
