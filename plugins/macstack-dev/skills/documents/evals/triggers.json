@@ -1,5 +1,4 @@
 [
-  {"query": "Create the macstack folder for this project: client/, generated/, inbox/ and history/. Set up the project documents standard.", "should_trigger": true},
   {"query": "Where do user cases live in this project, and what is the id format for a case, a screen and a trigger?", "should_trigger": true},
   {"query": "Repair the macstack folder: there is a stray file in client/ and OPEN-QUESTIONS.md is missing", "should_trigger": true},
   {"query": "Our client documents live in docs/ as v2 files with yaml blocks and tables (requirements.md, screens.md, workflows.md). Migrate them into the macstack/ folder standard: the new layout, the headings-and-bullets shape, and every existing id kept stable.", "should_trigger": true},

@@ -1,6 +1,6 @@
 ---
 description: Create or repair a project's macstack/ folder and macstack.json — from nothing (a six-question interview), from an existing macstack.json, from an existing codebase, or by migrating an older layout
-argument-hint: [project path | business request | (empty = design from scratch) | --migrate]
+argument-hint: '[project path | business request | (empty = design from scratch) | --migrate]'
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, Skill, WebFetch]
 ---
 

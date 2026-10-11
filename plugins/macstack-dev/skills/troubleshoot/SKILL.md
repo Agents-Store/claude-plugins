@@ -1,6 +1,6 @@
 ---
 name: troubleshoot
-description: This skill should be used when the user reports "macstack lint fails", "prototype does not resolve", "env keys missing", "scaffold broke my files", "cross-stack reference does not work", or any macstack-dev skill errors out. Diagnoses the common failure modes of the macstack.json toolchain.
+description: Diagnoses failures of the macstack-dev toolchain. Covers lint errors, prototypes that do not resolve or clone, Infisical profile and missing env-key problems, scaffold runs that overwrite files or leave placeholders unresolved, macstack/ folder faults (duplicate macstack.json, stripped anchors, homoglyph ids, unreadable client files) and plugin discovery failures. Use when a macstack-dev step errors out and the cause is unknown. To run the validation use lint; for new client material use intake.
 ---
 
 # Troubleshoot macstack-dev
