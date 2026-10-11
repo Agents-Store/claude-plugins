@@ -1,6 +1,6 @@
 ---
 description: Test a running app's frontend — navigate pages, check UI, find errors, generate report
-argument-hint: [url] — e.g. localhost:3000, http://localhost:8080/admin
+argument-hint: "[url] — e.g. localhost:3000, http://localhost:8080/admin"
 allowed-tools: [Read, Grep, Glob, Write, Bash, Agent, Skill]
 ---
 
