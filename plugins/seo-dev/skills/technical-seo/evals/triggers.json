@@ -1,0 +1,18 @@
+[
+  {"query": "How do I set up hreflang for English, German and Ukrainian in the Next.js App Router, and what mistakes make Google ignore it?", "should_trigger": true},
+  {"query": "When should I use noindex versus a canonical tag versus robots.txt disallow in a Next.js site, for example for filtered category pages?", "should_trigger": true},
+  {"query": "Set up permanent 301 redirects for moved pages in Next.js (next.config.js and middleware) without creating redirect chains", "should_trigger": true},
+  {"query": "What security headers should my Next.js site send (HSTS, CSP, X-Content-Type-Options) and do they matter for SEO?", "should_trigger": true},
+  {"query": "Check crawlability and indexability issues of a Next.js site: JavaScript rendering, soft 404s, trailing slashes, mobile-first indexing", "should_trigger": true},
+  {"query": "Как настроить hreflang и canonical для сайта на нескольких языках в Next.js?", "should_trigger": true},
+  {"query": "Как сделать 301-редиректы в Next.js и избежать цепочек редиректов? И что с noindex для страниц фильтров?", "should_trigger": true},
+  {"query": "Which URL structure is better for SEO: subdirectories, subdomains or ccTLDs for international Next.js sites?", "should_trigger": true},
+  {"query": "Write alt text and headings for my product page", "should_trigger": false},
+  {"query": "Generate robots.ts and sitemap.ts", "should_trigger": false},
+  {"query": "My LCP is bad - how do I fix it?", "should_trigger": false},
+  {"query": "How do I configure nginx redirects from http to https?", "should_trigger": false},
+  {"query": "Set up Cloudflare page rules for redirecting old URLs", "should_trigger": false},
+  {"query": "Next.js middleware to protect routes with authentication", "should_trigger": false},
+  {"query": "Add Article JSON-LD to blog posts", "should_trigger": false},
+  {"query": "Why is my page not indexed in Google?", "should_trigger": false}
+]
