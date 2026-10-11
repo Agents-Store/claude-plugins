@@ -1,7 +1,7 @@
 ---
 description: Generate a Non-Disclosure Agreement (NDA) — PDF
 allowed-tools: ["Bash", "Read", "Write"]
-argument-hint: [--type <mutual|unilateral>] [--party1 <name>] [--party2 <name>]
+argument-hint: "[--type <mutual|unilateral>] [--party1 <name>] [--party2 <name>]"
 ---
 
 # Generate NDA

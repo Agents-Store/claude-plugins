@@ -1,5 +1,5 @@
 [
-  {"query": "What font pairing and sizes should I use for a professional invoice PDF? Heading, body and table text.", "should_trigger": true},
+  {"query": "Our invoices from the document generator look cramped. Which font pairing, size hierarchy, margins and spacing grid do the formatting standards define for a business PDF, and what do they say about table text and the header and footer?", "should_trigger": true},
   {"query": "What margins and line spacing does the plugin use for contracts versus reports? I want my DOCX to match.", "should_trigger": true},
   {"query": "Which color palette is used for each document type, and how does the 60-30-10 rule apply to a proposal?", "should_trigger": true},
   {"query": "The PDFs from the document generator have no page numbers and the company name is missing on every page. What should the PDF header and footer contain, in which font size and color, and where do the page numbers go?", "should_trigger": true},
