@@ -1,11 +1,11 @@
 [
   {"query": "Build a contact form in Next.js 16 with a Server Action, useActionState for the result and field-level Zod validation errors", "should_trigger": true},
-  {"query": "My Next.js signup form in app/signup/form.tsx uses a Server Action and users double-click the Sign up button, creating two accounts. Add a pending state with useFormStatus, disable the button while it submits and prevent the double submit. Show the button component and the form", "should_trigger": true},
+  {"query": "My zod schema uses z.string().email() and errorMap and TypeScript says they are deprecated. What is the zod v4 way inside a Next.js Server Action that validates a signup FormData?", "should_trigger": true},
   {"query": "Add optimistic UI with useOptimistic when the user adds a todo through a Server Action form in Next.js", "should_trigger": true},
   {"query": "Implement file upload in a Next.js form via Server Action: size limit, mime type check and where to store the file", "should_trigger": true},
   {"query": "Как в Next.js сделать форму с Server Action и валидацией через Zod, чтобы она работала без JavaScript (progressive enhancement)?", "should_trigger": true},
   {"query": "У меня в Next.js форма обратной связи на Server Action: если zod нашёл ошибку в поле email, после отправки все введённые поля очищаются. Поменяй app/contact/form.tsx и action так, чтобы значения сохранялись через useActionState, а ошибки показывались под полями", "should_trigger": true},
-  {"query": "My app/search/page.tsx has a plain <form action='/search'> with a q input, which does a full page load. Replace it with the Next.js <Form> component so it navigates client-side with ?q= and prefetches the loading UI, and show how the results page reads the query", "should_trigger": true},
+  {"query": "Server Action в Next.js: после успешного сохранения я вызываю redirect() внутри try/catch, и редиректа не происходит, ошибок нет. В чём дело и как исправить?", "should_trigger": true},
   {"query": "progressive enhancement for forms in Next.js: what works before hydration, and what are the common pitfalls with Server Action forms?", "should_trigger": true},
   {"query": "Write a Route Handler for a JSON API that validates the body and returns 422 with details", "should_trigger": false},
   {"query": "Style a form with shadcn Field, Input and Button components and a date picker", "should_trigger": false},

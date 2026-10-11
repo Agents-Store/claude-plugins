@@ -6,7 +6,7 @@
   {"query": "Как тестировать Server Components и Server Actions в Next.js? Какие инструменты и как организовать файлы тестов?", "should_trigger": true},
   {"query": "Настрой Playwright для Next.js: конфиг, запуск dev-сервера перед тестами и пример теста формы", "should_trigger": true},
   {"query": "set up CI to run Vitest unit tests and Playwright e2e tests for a Next.js app and organize the test files", "should_trigger": true},
-  {"query": "After upgrading my Next.js app to 16.3 I want a Playwright regression test proving that navigating from /products to /products/42 shows the loading UI instantly (instant navigation) and doesn't wait for the data fetch. Write the test and the config bits it needs", "should_trigger": true},
+  {"query": "What is the `instant()` helper from @next/playwright in Next.js 16.3 and how do I use it in a Playwright test for both client navigation and initial load with a baseURL?", "should_trigger": true},
   {"query": "Write Jest tests for a Node.js Express controller with supertest", "should_trigger": false},
   {"query": "Set up Cypress component testing for a Vue 3 app", "should_trigger": false},
   {"query": "Test a Django view with pytest-django and factory_boy", "should_trigger": false},

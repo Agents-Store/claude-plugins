@@ -1,7 +1,7 @@
 [
   {"query": "Add email and password login to my Next.js 16 App Router app with stateless JWT sessions in cookies and a signup Server Action", "should_trigger": true},
   {"query": "How do I protect /dashboard routes in Next.js with a proxy auth guard and still re-check the session inside Server Components and Server Actions?", "should_trigger": true},
-  {"query": "We are starting a new Next.js 16 app on Postgres. Requirements: Google login plus email and password, admin/editor/viewer roles, and we do not want to be stuck if the library changes. Better Auth, Auth.js v5 or NextAuth v4 - pick one and justify it against these requirements", "should_trigger": true},
+  {"query": "Directus backend, Next.js 16 frontend: I need NextAuth v4 with a credentials login against the Directus token API, refresh of the access token, types/next-auth.d.ts, SessionProvider and a proxy.ts guard using getToken instead of middleware.ts. What is the working setup?", "should_trigger": true},
   {"query": "Implement role-based access control in Next.js: admin, editor, viewer. Where do I enforce it - proxy, layout or the data layer?", "should_trigger": true},
   {"query": "Как в Next.js сделать авторизацию через NextAuth: страница логина, защищённые маршруты и сессия в Server Components?", "should_trigger": true},
   {"query": "Нужно защитить Server Actions и Route Handlers в Next.js от неавторизованных вызовов. Покажи паттерн проверки сессии", "should_trigger": true},

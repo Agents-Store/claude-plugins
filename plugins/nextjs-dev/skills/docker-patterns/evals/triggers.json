@@ -1,8 +1,8 @@
 [
   {"query": "Dockerize my Next.js 16 app: multi-stage Dockerfile with standalone output, non-root user, and a .dockerignore", "should_trigger": true},
   {"query": "Write a docker-compose.yml for Next.js development with hot reload and a Postgres service plus a production variant", "should_trigger": true},
-  {"query": "My Next.js 16 Dockerfile builds fine, but NEXT_PUBLIC_API_URL is undefined in the browser in the container, while DATABASE_URL (server only) works at runtime. How do I pass the public variable at build time with build args without putting DATABASE_URL into the image layers? Show the Dockerfile and compose changes", "should_trigger": true},
-  {"query": "My docker-compose.yml runs a Next.js 16 standalone container 'web' and a 'worker' that calls it on startup and fails because web isn't ready yet. Add a health check endpoint at app/api/health/route.ts and the compose healthcheck plus depends_on condition so worker waits", "should_trigger": true},
+  {"query": "My Next.js standalone image starts but isn't reachable from outside the container (it only says Ready on localhost:3000). Which env var does standalone server.js need, and which folders must the runner stage copy from the builder?", "should_trigger": true},
+  {"query": "I want one docker-compose.yml with a dev service (hot reload, bind mount) and a production standalone service side by side for Next.js, both talking to a Directus and a Postgres container on the same network.", "should_trigger": true},
   {"query": "Как собрать Docker-образ для Next.js с output standalone, чтобы он был маленьким? Нужен Dockerfile", "should_trigger": true},
   {"query": "Нужен docker compose для Next.js, который ходит в Directus и PostgreSQL в той же сети. Покажи конфиг", "should_trigger": true},
   {"query": "my next.js docker image is 1.8GB, how do I shrink it with the standalone output and a slim runtime stage?", "should_trigger": true},
