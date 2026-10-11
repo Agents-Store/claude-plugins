@@ -1,6 +1,6 @@
 [
   {"query": "Explain the order in which grammY middleware runs when I have two bot.use calls and a command handler, and why my logger prints after the reply", "should_trigger": true},
-  {"query": "Write the authorization middleware for a grammY bot that keeps a Set of BANNED_USER_IDS and does not call next() for them, and show what the position of that bot.use call changes for the handlers registered before and after it.", "should_trigger": true},
+  {"query": "I registered my grammY auth middleware with bot.use after bot.command(\"start\", …) and it never runs for /start. What is the rule for registration order between bot.use and the handlers, and what changes if I move it above them?", "should_trigger": true},
   {"query": "Explain how middleware ordering works in grammY with this chain: a logger, session, an auth check and my command handlers. What happens to the handlers if the auth middleware returns without calling next()?", "should_trigger": true},
   {"query": "Как написать в grammY свой middleware, который достаёт пользователя из базы, кладёт в ctx.user и передаёт управление дальше через next()?", "should_trigger": true},
   {"query": "Как в grammY разнести обработчики по отдельным файлам через Composer и подключить их в нужном порядке?", "should_trigger": true},
