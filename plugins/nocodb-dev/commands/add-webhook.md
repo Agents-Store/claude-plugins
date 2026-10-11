@@ -1,6 +1,6 @@
 ---
 description: Configure a NocoDB webhook (HookV3) on a table
-argument-hint: [table-name-or-id] [event] [destination]
+argument-hint: "[table-name-or-id] [event] [destination]"
 allowed-tools: [Read, Write, Bash, Skill]
 ---
 

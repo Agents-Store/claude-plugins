@@ -1,6 +1,6 @@
 ---
 description: Create a Grid / Form / Gallery / Kanban / Calendar / Map / Gantt / Timeline / List view
-argument-hint: [table-name-or-id] [view-type] [view-title]
+argument-hint: "[table-name-or-id] [view-type] [view-title]"
 allowed-tools: [Read, Write, Bash, Skill]
 ---
 

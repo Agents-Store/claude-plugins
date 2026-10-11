@@ -1,6 +1,6 @@
 ---
 description: Set up a Link between two NocoDB tables, optionally with a Lookup
-argument-hint: [from-table] [to-table] [cardinality]
+argument-hint: "[from-table] [to-table] [cardinality]"
 allowed-tools: [Read, Write, Bash, Skill]
 ---
 

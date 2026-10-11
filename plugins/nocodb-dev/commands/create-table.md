@@ -1,6 +1,6 @@
 ---
 description: Create a new NocoDB table with optional initial fields
-argument-hint: [base-name-or-id] [table-title]
+argument-hint: "[base-name-or-id] [table-title]"
 allowed-tools: [Read, Write, Bash, Skill]
 ---
 
