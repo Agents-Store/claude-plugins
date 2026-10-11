@@ -1,0 +1,18 @@
+[
+  {"query": "My server died and I have restic snapshots in R2. Walk me through rebuilding: install restic, restore the data, replay the database dumps and bring the Docker services back up", "should_trigger": true},
+  {"query": "How do I restore only one directory or one file from an old restic snapshot instead of the whole backup?", "should_trigger": true},
+  {"query": "Recover a Postgres database in a Docker container from a restic backup that contains pg_dump files", "should_trigger": true},
+  {"query": "How do I do a partial restore with restic restore --include and --target, and how do I find the right snapshot id first?", "should_trigger": true},
+  {"query": "Plan a full restic restore onto a fresh VPS: what order do I restore volumes, compose files and databases?", "should_trigger": true},
+  {"query": "Сервер умер, бэкапы в restic на R2. Как восстановить данные Docker и базы данных на новом сервере?", "should_trigger": true},
+  {"query": "Как восстановить один файл из снапшота restic и как найти нужный снапшот по дате?", "should_trigger": true},
+  {"query": "Which restic commands let me mount a snapshot as a filesystem to browse and copy files out during a recovery?", "should_trigger": true},
+  {"query": "Verify that my restic backup works before enabling the schedule: run check and a test restore", "should_trigger": false},
+  {"query": "Set up monitoring that alerts me if a restic backup stops running", "should_trigger": false},
+  {"query": "Create the restic repository and password on R2", "should_trigger": false},
+  {"query": "Restore a Git repository from GitHub after accidentally deleting a branch", "should_trigger": false},
+  {"query": "How do I restore a PostgreSQL database from a pg_dump file?", "should_trigger": false},
+  {"query": "Recover deleted files from an ext4 disk with testdisk", "should_trigger": false},
+  {"query": "Write the daily backup script with retention", "should_trigger": false},
+  {"query": "restic restore fails with 'wrong password or no key found'", "should_trigger": false}
+]
