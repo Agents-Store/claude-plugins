@@ -2,7 +2,7 @@
   {"query": "Running npx shadcn add button in my fresh Next.js 16 project fails with 'No Tailwind CSS configuration found at /app' (Tailwind v4, src/app layout, components.json exists). Find the cause and fix it", "should_trigger": true},
   {"query": "My shadcn components render without any styling, the CSS variables don't seem to be applied. I'm on Tailwind v4", "should_trigger": true},
   {"query": "components.json error: 'Invalid configuration found' after I moved everything into a src/ directory", "should_trigger": true},
-  {"query": "Cannot find module '@/lib/utils' - cn() not found when importing a shadcn component", "should_trigger": true},
+  {"query": "После npx shadcn add card в проекте на Next.js падает сборка: Cannot find module '@/lib/utils' - cn() не найден. components.json на месте, alias @/* есть в tsconfig. С чего начать диагностику?", "should_trigger": true},
   {"query": "shadcn studio registry error 401 when I install a premium block", "should_trigger": true},
   {"query": "Peer dependency conflict (ERESOLVE) when installing shadcn components with React 19", "should_trigger": true},
   {"query": "After adding the shadcn dark mode toggle with next-themes I get 'Hydration failed' and a flash of the wrong theme, and in app/dashboard/layout.tsx I got ‘useState only works in Client Components’ from the ThemeProvider. Fix the provider setup in app/layout.tsx", "should_trigger": true},
