@@ -2,7 +2,7 @@
   {"query": "What are all the where operators in Payload (equals, in, like, contains, near...) and how do I combine AND and OR with nested relationship properties?", "should_trigger": true},
   {"query": "payload.find with depth and populate: how do I limit which fields come back for a populated relationship, and what does select do?", "should_trigger": true},
   {"query": "How do I paginate and sort results with the Payload Local API and what do totalDocs, hasNextPage and limit: 0 mean?", "should_trigger": true},
-  {"query": "Query Payload through REST with qs-stringified where clauses from the browser. What's the exact URL format for filtering by a relationship id?", "should_trigger": true},
+  {"query": "Payload REST API query string: how do I filter by status and author id with where[status][equals] using qs-esm stringify from the browser, with depth, limit and sort?", "should_trigger": true},
   {"query": "Write a GraphQL query for a Payload collection with where, limit and a relationship field", "should_trigger": true},
   {"query": "Как через Local API Payload найти документы по связанному полю и отсортировать по дате? Нужен where с вложенным путём", "should_trigger": true},
   {"query": "Как получить черновики и конкретную локаль через payload.find? Параметры draft и locale", "should_trigger": true},

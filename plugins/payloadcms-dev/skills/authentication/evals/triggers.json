@@ -6,7 +6,7 @@
   {"query": "How do I log users in by username instead of email in Payload, and can I turn off the local strategy entirely?", "should_trigger": true},
   {"query": "Как в Payload обновить JWT через refresh и что такое saveToJWT? Нужно положить роль пользователя в токен", "should_trigger": true},
   {"query": "Нужно защитить роуты Next.js, которые используют Payload auth. Как проверить пользователя в server component и в route handler?", "should_trigger": true},
-  {"query": "What are tokenExpiration, maxLoginAttempts and lockTime in the Payload auth config, and what do they default to?", "should_trigger": true},
+  {"query": "Harden login for my Payload users auth collection: lock accounts after 5 failed attempts for 10 minutes, shorten the session to 2 hours and drop the token from API responses so only the cookie is used. Which auth options do I set?", "should_trigger": true},
   {"query": "Write an access function so only the author can update their posts in Payload", "should_trigger": false},
   {"query": "Create an upload collection in Payload with image sizes and focal point", "should_trigger": false},
   {"query": "How do I implement JWT refresh tokens in an Express API?", "should_trigger": false},

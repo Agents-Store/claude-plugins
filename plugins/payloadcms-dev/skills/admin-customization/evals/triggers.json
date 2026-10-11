@@ -6,7 +6,7 @@
   {"query": "How does document locking work in the Payload admin panel and how do I turn it off for one collection?", "should_trigger": true},
   {"query": "Как в Payload v3 подменить стандартный компонент списка документов своим и зачем нужен importMap?", "should_trigger": true},
   {"query": "Нужно добавить свой виджет на дашборд админки Payload и кнопку в навигацию. С чего начать?", "should_trigger": true},
-  {"query": "I get 'Could not resolve component' after adding a custom component path in my Payload config. What's the right path format?", "should_trigger": true},
+  {"query": "I'm adding a custom React server component to the Payload admin panel by string path in the config. What's the path format for a named export, and why must the importMap be regenerated afterwards?", "should_trigger": true},
   {"query": "How do I enable live preview for a Payload collection?", "should_trigger": false},
   {"query": "Create a Payload plugin that adds a field to every collection", "should_trigger": false},
   {"query": "Style a React admin dashboard with Tailwind and shadcn/ui tables", "should_trigger": false},
