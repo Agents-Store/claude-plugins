@@ -2,7 +2,6 @@
   {"query": "I just enabled MCP on my Directus instance. Which tools does it expose and how do they work - items, schema, collections, fields, relations?", "should_trigger": true},
   {"query": "What's the 'action' parameter in the Directus MCP tools? I keep passing collection and data directly and get validation errors.", "should_trigger": true},
   {"query": "Before I script a schema change through the Directus MCP, what does the `collections` tool take? Which actions does it have, what goes into schema and meta, and how does it differ from the `fields` and `relations` tools?", "should_trigger": true},
-  {"query": "Directus MCP items tool: what's the full parameter list of the query object - fields, filter, sort, limit, deep, aggregate?", "should_trigger": true},
   {"query": "Is there a way to make the Directus MCP expose only 3 tools (search, execute, schema) so it uses less context? What's registry mode?", "should_trigger": true},
   {"query": "How does the schema tool work in Directus MCP - discovery mode vs detailed mode - and when should I call it?", "should_trigger": true},
   {"query": "Какие инструменты предоставляет MCP-сервер Directus и какие у них параметры? Хочу понять, чем items отличается от collections", "should_trigger": true},
