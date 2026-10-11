@@ -1,10 +1,10 @@
 [
   {"query": "The native n8n MCP server answers Unauthorized since I rotated the instance API key, while the external server still works. Walk me through the diagnostic steps", "should_trigger": true},
   {"query": "n8n-mcp-external keeps failing to connect with 'connection refused' in the MCP log. I run n8n self-hosted on a non-default port.", "should_trigger": true},
-  {"query": "I get 401 Unauthorized calling the n8n API with my key from a script - what are the common authentication mistakes?", "should_trigger": true},
-  {"query": "The AI Agent node in my n8n workflow shows a connection type error when I wire the chat model sub-node. How do I fix the wiring?", "should_trigger": true},
+  {"query": "On n8n 2.x the API says my workflow could not be activated with PUBLISH_FORBIDDEN when I use a member's key. What does it mean and how do I fix it?", "should_trigger": true},
+  {"query": "n8n при старте пишет «No encryption key found», а раньше всё работало. Что это и как правильно задать N8N_ENCRYPTION_KEY, чтобы не потерять credentials?", "should_trigger": true},
   {"query": "n8n_health_check fails and the external MCP server says it cannot reach the n8n API. What should I check first?", "should_trigger": true},
-  {"query": "A workflow I created through the MCP has a connection error: the connections object refers to a source node that does not exist. How do I fix the definition?", "should_trigger": true},
+  {"query": "My self-hosted n8n keeps logging SQLITE_BUSY during parallel executions. What is the cause and what is the production fix?", "should_trigger": true},
   {"query": "Нативный MCP-сервер n8n возвращает 401, а внешний работает. Как продиагностировать подключение?", "should_trigger": true},
   {"query": "n8n перестал работать после обновления: workflow падают при выполнении, в executions красные записи. С чего начать отладку?", "should_trigger": true},
   {"query": "Debug why my Zapier zap stops after the filter step even though the filter passes", "should_trigger": false},
