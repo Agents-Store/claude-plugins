@@ -6,7 +6,7 @@
   {"query": "Нужны постоянные поручения для агента OpenClaw: еженедельный отчёт, который он делает сам по расписанию", "should_trigger": true},
   {"query": "Как оформить автономную программу для агента: что делать, как проверять результат и когда отчитываться?", "should_trigger": true},
   {"query": "what are standing orders in OpenClaw and how do they differ from heartbeat checks?", "should_trigger": true},
-  {"query": "automate a daily inbox triage so the agent does it by itself without asking each time", "should_trigger": true},
+  {"query": "Set up an OpenClaw standing order so the agent triages my inbox every morning on its own, executes the cleanup, verifies it and reports the result, without me asking each time.", "should_trigger": true},
   {"query": "Reduce the heartbeat token costs and set quiet hours", "should_trigger": false},
   {"query": "Add a group chat rule to the agent's AGENTS.md", "should_trigger": false},
   {"query": "Schedule a nightly pg_dump with cron and rotate the backups", "should_trigger": false},
