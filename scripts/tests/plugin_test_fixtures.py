@@ -140,11 +140,12 @@ def eval_result(*cases, partial=False, reason=None):
 
 
 def isolate_l2_env(testcase):
-    """Тесты L2 не зависят от порогов, которые оператор задал в окружении runner-а (волны, ручные прогоны):
-    переменные порогов снимаются на время теста, окружение восстанавливается по его окончании."""
+    """Тесты L2 не зависят от того, что оператор задал в окружении runner-а (волны, ручные прогоны): переменные порогов,
+    фильтра skills и быстрого режима снимаются на время теста, окружение восстанавливается по его окончании."""
     from plugin_test import evalrun
+    from plugin_test.checks import behavior
     patcher = mock.patch.dict(os.environ)
     patcher.start()
     testcase.addCleanup(patcher.stop)
-    for var in (evalrun.FIVE_HOUR_VAR, evalrun.SEVEN_DAY_VAR):
+    for var in (evalrun.FIVE_HOUR_VAR, evalrun.SEVEN_DAY_VAR, behavior.SKILLS_VAR, behavior.QUICK_VAR):
         os.environ.pop(var, None)
