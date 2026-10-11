@@ -9,7 +9,7 @@
   {"query": "Как написать макрос Jinja2 для повторяющихся полей формы и пользовательский фильтр для дат?", "should_trigger": true},
   {"query": "jinja2.exceptions.TemplateNotFound: dashboard.html even though the file exists", "should_trigger": false},
   {"query": "Create CRUD routes for clients in a Flask blueprint", "should_trigger": false},
-  {"query": "Add a CSRF token hidden field to every Flask-WTF form", "should_trigger": false},
+  {"query": "Set up CSRFProtect in my Flask application factory and exempt the JSON API blueprint from it", "should_trigger": false},
   {"query": "Write a Handlebars template with partials and a custom helper", "should_trigger": false},
   {"query": "How do I write a custom template tag in Django?", "should_trigger": false},
   {"query": "Build a React component with conditional rendering and list keys", "should_trigger": false},

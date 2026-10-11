@@ -3,7 +3,7 @@
   {"query": "Validate my Flask project structure: I have app.py, routes/, models.py and templates/. Does it follow the recommended patterns?", "should_trigger": true},
   {"query": "audit my flask config: I have SECRET_KEY = os.environ.get('SECRET_KEY', 'dev') in config.py - is that okay?", "should_trigger": true},
   {"query": "check whether my Flask project has CSRF protection wired up and all blueprints registered in create_app", "should_trigger": true},
-  {"query": "Review my Flask project's requirements.txt against what the app imports - is anything missing?", "should_trigger": true},
+  {"query": "I inherited a Flask project and want to be sure it is set up properly before I add features. requirements.txt lists Flask, Flask-SQLAlchemy and Flask-Login, and the app imports flask_migrate and flask_wtf as well. Check the dependencies and the rest of the project setup against the recommended pattern.", "should_trigger": true},
   {"query": "I inherited a Flask codebase. Verify the project setup before I start adding features", "should_trigger": true},
   {"query": "Проверь, правильно ли настроен мой Flask-проект: фабрика приложения, blueprints, конфигурация, CSRF", "should_trigger": true},
   {"query": "В config.py у меня захардкожен SECRET_KEY. Это нормально? Проверь настройки проекта на типичные ошибки", "should_trigger": true},
