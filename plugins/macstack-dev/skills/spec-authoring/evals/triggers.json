@@ -9,7 +9,7 @@
   {"query": "Create the macstack.json for this existing repo: it has a docker-compose.yml with postgres and directus, a .mcp.json and an .env.example. Audit them, map what you find into software, connections and resource accesses, and ask me only about the business goals you cannot derive.", "should_trigger": true},
   {"query": "Validate macstack.json against the schema", "should_trigger": false},
   {"query": "Reconcile macstack.json with the documents the client corrected", "should_trigger": false},
-  {"query": "Write a business requirements document for a booking platform", "should_trigger": false},
+  {"query": "Draw a BPMN diagram for our order approval process", "should_trigger": false},
   {"query": "Design a Postgres database schema for an online school", "should_trigger": false},
   {"query": "Draw the architecture diagram of an e-commerce system", "should_trigger": false},
   {"query": "Create the project working files from macstack.json", "should_trigger": false},

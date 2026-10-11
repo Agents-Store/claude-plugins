@@ -1,6 +1,6 @@
 [
   {"query": "Build the review package for the client from the six documents: one HTML page they can read and answer, which I will send by email.", "should_trigger": true},
-  {"query": "Generate today's handoff file for the client and tell me whether it can be emailed to them as it is or whether it is an artifact body that must be published first.", "should_trigger": true},
+  {"query": "I built the review package with the --artifact flag. Can I send that file to the client as it is, how do I publish it, and how do I record the URL that comes back in the ledger?", "should_trigger": true},
   {"query": "Give the client something to comment on: publish the documents as an artifact and record the URL in the ledger.", "should_trigger": true},
   {"query": "I need to hand off only the user cases and the UX-UI sections to the client and skip the handbook. How do I split the package?", "should_trigger": true},
   {"query": "Show the client what changed since they last read the documents, with each statement marked with its history", "should_trigger": true},
