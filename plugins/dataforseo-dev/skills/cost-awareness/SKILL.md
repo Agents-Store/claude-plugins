@@ -1,6 +1,6 @@
 ---
 name: cost-awareness
-description: This skill should be used when the user asks about "DataForSEO cost", "DataForSEO pricing", "how much will this cost", "DataForSEO budget", "credits", "billing", or wants to keep DataForSEO spending under control. The task skills (keyword-research, competitor-analysis, backlink-audit, site-audit, ai-optimization) and mcp-patterns hand over to it before their first paid call, so it is not the entry point for a task.
+description: This skill should be used as the budget gate that follows the task skill and precedes the first paid DataForSEO api_request of a task, and when the user asks about "DataForSEO cost", "DataForSEO pricing", "how much will this cost", "DataForSEO budget", "credits", "billing", or wants to keep DataForSEO spending under control.
 ---
 
 # Cost awareness

@@ -1,6 +1,6 @@
 ---
 description: Generate a specific diagram — architecture, flow, db, sequence, deps
-argument-hint: <type> [scope] — types: architecture, flow <feature>, db, sequence <endpoint>, deps <module>
+argument-hint: "<type> [scope] — types: architecture, flow <feature>, db, sequence <endpoint>, deps <module>"
 allowed-tools: [Read, Grep, Glob, Write, Bash, Agent, Skill]
 ---
 

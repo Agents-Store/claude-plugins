@@ -28,7 +28,7 @@
     },
     {
       "id": 3,
-      "prompt": "Use the codemap-review skill. Review PR #42 and explain the issues for a junior developer, inline please. I can't give you gh access here, so this is the diff:\n\ndiff --git a/app/auth.py b/app/auth.py\n--- a/app/auth.py\n+++ b/app/auth.py\n@@ -10,3 +10,8 @@ def login(email, password):\n+    user = User.query.filter_by(email=email).first()\n+    if user and user.password == password:\n+        return user\n+    SECRET_KEY = 'example-not-a-real-key'\n+    return None\ndiff --git a/app/utils.py b/app/utils.py\n--- a/app/utils.py\n+++ b/app/utils.py\n@@ -1,0 +1,6 @@\n+def f(x):\n+    r = []\n+    for i in x:\n+        if i is not None:\n+            r.append(i * 2)\n+    return r",
+      "prompt": "Use the codemap-review skill. Review PR #42 and explain the issues for a junior developer, inline please. I can't give you gh access here, so this is the diff:\n\ndiff --git a/app/auth.py b/app/auth.py\n--- a/app/auth.py\n+++ b/app/auth.py\n@@ -10,3 +10,8 @@ def login(email, password):\n+    user = User.query.filter_by(email=email).first()\n+    if user and user.password == password:\n+        return user\n+    SECRET_KEY = 'prod-session-signing-secret'\n+    return None\ndiff --git a/app/utils.py b/app/utils.py\n--- a/app/utils.py\n+++ b/app/utils.py\n@@ -1,0 +1,6 @@\n+def f(x):\n+    r = []\n+    for i in x:\n+        if i is not None:\n+            r.append(i * 2)\n+    return r",
       "expected_output": "PR diff review grouped by file, critical issues first, each with a learner-friendly explanation",
       "files": [],
       "expectations": [

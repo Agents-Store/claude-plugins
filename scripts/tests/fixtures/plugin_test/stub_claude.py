@@ -7,8 +7,8 @@ STUB_PLAN — JSON-массив шагов, по одному на вызов `p
 с этими событиями и подставляет tracePath, как настоящий CLI с --keep-temp.
 STUB_AUTH — что печатать на `auth status --json` ("SLEEP" — зависнуть). STUB_LOG — журнал вызовов:
 argv, имена переменных окружения, значение ENABLE_CLAUDEAI_MCP_SERVERS (не секрет) и, для `plugin eval`,
-файлы дерева --eval-dir и текст его graders/fired.md, весь список файлов копии плагина (copy_files) и текст
-её plugin.json (manifest): по ним тесты видят, что именно получил claude.
+файлы дерева --eval-dir, текст его graders/fired.md и prompt.md кейсов (prompts), весь список файлов копии плагина
+(copy_files) и текст её plugin.json (manifest): по ним тесты видят, что именно получил claude.
 """
 import json
 import os
@@ -56,11 +56,12 @@ def main(argv):
         if os.path.isfile(manifest):
             with open(manifest, encoding="utf-8") as fh:
                 entry["manifest"] = fh.read()
-        entry["fired"] = {}
+        entry["fired"], entry["prompts"] = {}, {}
         for rel in entry["files"]:
-            if os.path.basename(rel) == "fired.md":
+            key = {"fired.md": "fired", "prompt.md": "prompts"}.get(os.path.basename(rel))
+            if key:
                 with open(os.path.join(root, rel), encoding="utf-8") as fh:
-                    entry["fired"][rel] = fh.read()
+                    entry[key][rel] = fh.read()
     log(entry)
     if argv[:2] == ["auth", "status"]:
         auth = os.environ.get("STUB_AUTH", DEFAULT_AUTH)

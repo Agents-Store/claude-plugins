@@ -25,8 +25,17 @@ QUALITY = [{"id": 1, "prompt": "how to do it", "expected_output": "e", "files": 
 REJECTED = {"status": "rejected", "unifiedWindows": {"five_hour": {"utilization": 1.0}}}
 
 
+API_YES, API_NO = "call the endpoint for me", "tell me a joke"
+QUALITY_API = [{"id": 1, "prompt": "how to call it", "expected_output": "e", "files": [], "expectations": ["says how"]}]
+SKILLS_LINE = "[behavior] b-dev: %s — %s\n"
+
+
 def T(query):
     return evalgen.trigger_name("web", query)
+
+
+def TA(query):
+    return evalgen.trigger_name("api", query)
 
 
 class BehaviorTest(unittest.TestCase):
@@ -455,6 +464,175 @@ class BehaviorTest(unittest.TestCase):
         _, evals, _, _ = self.check([{"result": both}], name="b-dev")
         self.assertEqual([dict(zip(c["argv"], c["argv"][1:]))["--eval-dir"] for c in evals], ["evals-quality"])
         self.assertTrue({"n-smoke", "q-web-1"} <= {f.split(os.sep)[0] for f in evals[0]["files"]})
+
+
+    # --- волны: фильтр skills (PLUGIN_TEST_L2_SKILLS) и быстрый режим качества (PLUGIN_TEST_L2_QUICK) ---
+
+    def add_two_skills(self):
+        """web и api, у каждого срабатывание и качество; плюс родной кейс smoke."""
+        self.add_plugin(quality=QUALITY, files={
+            "skills/api/SKILL.md": SKILL % "api",
+            "skills/api/evals/triggers.json": json.dumps([{"query": API_YES, "should_trigger": True},
+                                                          {"query": API_NO, "should_trigger": False}]),
+            "skills/api/evals/evals.json": json.dumps({"skill_name": "api", "evals": QUALITY_API})})
+        self.repo.tests("b-dev", {"evals/smoke/prompt.md": "p", "evals/smoke/graders/g.md": "g"})
+
+    def api_plan(self):
+        return [{"result": eval_result(eval_case(TA(API_YES), 1.0), eval_case(TA(API_NO), 1.0))},
+                {"result": eval_result(eval_case("q-api-1", 1.0, delta=0.5))}]
+
+    def tops(self, call):
+        return {f.split(os.sep)[0] for f in call["files"]}
+
+    def test_skill_filter_keeps_only_the_named_skill_and_drops_native_cases(self):
+        self.add_two_skills()
+        with mock.patch.dict(os.environ, {behavior.SKILLS_VAR: " api ,, "}):
+            (got, evals, _, _), err = self.err_check(self.api_plan())
+        self.assertEqual(got, [])
+        self.assertEqual(err, "")
+        calls = self.by_eval_dir(evals)
+        self.assertEqual(sorted(calls), [evalgen.QUALITY_DIR, evalgen.TRIGGER_DIR])
+        self.assertEqual(self.tops(calls[evalgen.TRIGGER_DIR]), {TA(API_YES), TA(API_NO)})
+        self.assertEqual(self.tops(calls[evalgen.QUALITY_DIR]), {"q-api-1"})     # ни q-web-1, ни n-smoke
+        self.assertEqual(sorted(r["case"] for r in self.hist()), sorted([TA(API_YES), TA(API_NO), "q-api-1"]))
+
+    def test_skill_filter_accepts_several_names(self):
+        self.add_two_skills()
+        both = [{"result": eval_result(*[eval_case(n, 1.0) for n in (T(YES), T(NO), TA(API_YES), TA(API_NO))])},
+                {"result": eval_result(eval_case("q-web-1", 1.0, delta=0.5), eval_case("q-api-1", 1.0, delta=0.5))}]
+        with mock.patch.dict(os.environ, {behavior.SKILLS_VAR: "api,web"}):
+            (got, evals, _, _), err = self.err_check(both)
+        self.assertEqual((got, err), ([], ""))
+        calls = self.by_eval_dir(evals)
+        self.assertEqual(len(self.tops(calls[evalgen.TRIGGER_DIR])), 4)
+        self.assertEqual(self.tops(calls[evalgen.QUALITY_DIR]), {"q-web-1", "q-api-1"})
+
+    def test_skill_filter_unset_or_empty_changes_nothing(self):
+        for value in (None, "", " , ,"):
+            with self.subTest(value=value):
+                self.add_two_skills()
+                env = {} if value is None else {behavior.SKILLS_VAR: value}
+                every = [{"result": eval_result(*[eval_case(n, 1.0) for n in (T(YES), T(NO), TA(API_YES), TA(API_NO))])},
+                         {"result": eval_result(eval_case("q-web-1", 1.0, delta=0.5), eval_case("q-api-1", 1.0, delta=0.5),
+                                                eval_case("n-smoke", 1.0, delta=0.5))}]
+                with mock.patch.dict(os.environ, env):
+                    (got, evals, _, _), err = self.err_check(every)
+                self.assertEqual((got, err), ([], ""))
+                calls = self.by_eval_dir(evals)
+                self.assertEqual(len(self.tops(calls[evalgen.TRIGGER_DIR])), 4)
+                self.assertEqual(self.tops(calls[evalgen.QUALITY_DIR]), {"q-web-1", "q-api-1", "n-smoke"})
+
+    def test_skill_filter_without_a_skill_of_the_plugin_runs_nothing(self):
+        self.add_two_skills()
+        with mock.patch.dict(os.environ, {behavior.SKILLS_VAR: "nope, zzz"}):
+            (got, evals, calls, ctx), err = self.err_check(self.api_plan())
+        self.assertEqual((got, calls), ([], []))                # ни проверки входа, ни вызова claude, ни переноса на ночь
+        self.assertEqual(err, SKILLS_LINE % (behavior.SKILLS_VAR, "нет skill плагина в фильтре"))
+        self.assertEqual(self.hist(), [])
+        stopped = self.ctx()
+        stopped.l2_stop = "лимит"
+        with mock.patch.dict(os.environ, {behavior.SKILLS_VAR: "nope"}):
+            got, _, calls, _ = self.check([], ctx=stopped)
+        self.assertEqual((got, calls), ([], []))                # вне фильтра плагин не «не прогнан» и на ночь не переносится
+
+    def test_skill_filter_names_the_unknown_ones_when_another_matched(self):
+        self.add_two_skills()
+        with mock.patch.dict(os.environ, {behavior.SKILLS_VAR: "api, nope ,web, zzz"}):
+            (got, evals, _, _), err = self.err_check(self.api_plan())
+        self.assertEqual(err, SKILLS_LINE % (behavior.SKILLS_VAR, "неизвестные: nope, zzz"))
+        self.assertTrue(evals)                                  # known ones ran
+
+    def test_skill_filter_named_plugin_still_carries_over_on_stop(self):
+        self.add_two_skills()
+        ctx = self.ctx()
+        ctx.l2_stop = "лимит"
+        with mock.patch.dict(os.environ, {behavior.SKILLS_VAR: "api"}):
+            got, _, calls, _ = self.check([], ctx=ctx)
+        self.assertEqual([f.level for f in got], [INFRA])        # плагин в фильтре — остановка по-прежнему переносит его
+        self.assertTrue(got[0].message.startswith(L2_NOT_RUN))
+        self.assertEqual(calls, [])
+        got, _, calls, _ = self.check(self.api_plan())           # переменной нет — полный прогон
+        self.assertGreater(len(calls), 2)
+
+    def test_quick_mode_quality_is_one_run_without_the_without_arm(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        with mock.patch.dict(os.environ, {behavior.QUICK_VAR: "1"}):
+            (got, evals, _, _), err = self.err_check([{"result": eval_result(eval_case("q-web-1", 1.0))}])
+        self.assertEqual(got, [])
+        argv = evals[0]["argv"]
+        pairs = dict(zip(argv, argv[1:]))
+        self.assertEqual((pairs["--eval-dir"], pairs["--ablation"], pairs["--runs"]), ("evals-quality", "none", "1"))
+        prompt = evals[0]["prompts"][os.path.join("q-web-1", "prompt.md")]
+        self.assertIn("\nruns: 1\n", prompt)
+        self.assertNotIn("runs: 3", prompt)
+        self.assertEqual(err, "[behavior] b-dev: быстрый режим качества (1 прогон, без сравнения)\n")
+
+    def test_quick_mode_leaves_the_trigger_tree_alone(self):
+        self.add_plugin(quality=QUALITY)
+        first = eval_result(eval_case(T(YES), 0.0), eval_case(T(NO), 1.0))
+        rerun = eval_result(eval_case(T(YES), 1.0, runs=[{"score": 1.0, "error": None}, {"score": 1.0, "error": None}]))
+        with mock.patch.dict(os.environ, {behavior.QUICK_VAR: "1"}):
+            _, evals, _, _ = self.check([{"result": first}, {"result": rerun},
+                                         {"result": eval_result(eval_case("q-web-1", 1.0))}])
+        calls = {c["argv"][c["argv"].index("--eval-dir") + 1]: c for c in evals}
+        for eval_dir, runs in ((evalgen.TRIGGER_DIR, "1"), (evalgen.RERUN_DIR, "2")):
+            argv = calls[eval_dir]["argv"]
+            pairs = dict(zip(argv, argv[1:]))
+            self.assertEqual((pairs["--ablation"], pairs["--runs"]), ("none", runs), eval_dir)
+        for rel, text in calls[evalgen.TRIGGER_DIR]["prompts"].items():
+            self.assertIn("\nruns: 1\n", text, rel)
+
+    def test_quick_mode_has_no_unhelpful_no_regress_but_keeps_below(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        self.repo.tests("b-dev", {"plugin-test.toml": "[behavior]\nthreshold = 0.6\n"})
+        repo_name = os.path.basename(self.repo.root)
+        history.append(self.state, [{"repo": repo_name, "plugin": "b-dev", "case": "q-web-1", "score": 1.0, "ok": True,
+                                     "model": evalrun.MODEL} for _ in range(4)])
+        with mock.patch.dict(os.environ, {behavior.QUICK_VAR: "1"}):
+            # 0.7 при медиане 1.0 — регресс в обычном режиме; дельта <= 0 — «не помогает» в обычном
+            got, _, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", 0.7, delta=-0.3))}])
+            self.assertEqual(got, [])
+            got, _, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", 0.5))}])
+        self.assertEqual([(f.level, f.message.split(":")[0]) for f in got], [(FAIL, L2_BELOW)])
+        self.assertEqual(got[0].message, "%s: q-web-1 — 0.50 < 0.60" % L2_BELOW)
+        got, _, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", 0.7, delta=0.3))}])
+        self.assertEqual([f.message.split(":")[0] for f in got], [L2_REGRESS])    # без quick регресс на месте
+
+    def test_quick_mode_writes_trigger_history_but_no_quality_history(self):
+        self.add_plugin(quality=QUALITY)
+        with mock.patch.dict(os.environ, {behavior.QUICK_VAR: "1"}):
+            got, _, _, _ = self.check([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))},
+                                       {"result": eval_result(eval_case("q-web-1", 1.0))}])
+        self.assertEqual(got, [])
+        self.assertEqual(sorted(r["case"] for r in self.hist()), sorted([T(YES), T(NO)]))
+
+    def test_quick_mode_only_the_exact_value_one(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        for value in ("true", "0", "", "11", " 1", "yes", "on"):
+            with self.subTest(value=value):
+                with mock.patch.dict(os.environ, {behavior.QUICK_VAR: value}):
+                    (got, evals, _, _), err = self.err_check(
+                        [{"result": eval_result(eval_case("q-web-1", 1.0, delta=0.5))}])
+                argv = evals[0]["argv"]
+                pairs = dict(zip(argv, argv[1:]))
+                self.assertEqual(pairs["--ablation"], "with-without")
+                self.assertNotIn("--runs", argv)
+                self.assertIn("\nruns: 3\n", evals[0]["prompts"][os.path.join("q-web-1", "prompt.md")])
+                self.assertEqual(err, "")
+        self.assertEqual(len(self.hist()), 7)          # обычный режим писал историю качества каждый раз
+
+    def test_filter_and_quick_together(self):
+        self.add_two_skills()
+        env = {behavior.SKILLS_VAR: "api", behavior.QUICK_VAR: "1"}
+        with mock.patch.dict(os.environ, env):
+            (got, evals, _, _), err = self.err_check([self.api_plan()[0],
+                                                      {"result": eval_result(eval_case("q-api-1", 1.0))}])
+        self.assertEqual(got, [])
+        calls = self.by_eval_dir(evals)
+        self.assertEqual(self.tops(calls[evalgen.QUALITY_DIR]), {"q-api-1"})
+        argv = calls[evalgen.QUALITY_DIR]["argv"]
+        self.assertEqual(dict(zip(argv, argv[1:]))["--ablation"], "none")
+        self.assertEqual(sorted(r["case"] for r in self.hist()), sorted([TA(API_YES), TA(API_NO)]))
 
 
 if __name__ == "__main__":
