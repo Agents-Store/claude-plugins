@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I created a PostgreSQL schema with ENUM types for status fields, ARRAY columns for tags, and UUID primary keys. Now NocoDB can't properly read some of these. What did I do wrong and how do I fix it?",
+      "prompt": "I created a PostgreSQL schema with ENUM types for status fields, ARRAY columns for tags, and UUID primary keys. Now NocoDB can't properly read some of these (I'm on NocoDB 2026.04.5, and NocoBase reads the same database too). What did I do wrong, how do I fix it, and what else in the schema should I verify?",
       "expected_output": "Explains each type per platform rather than calling them wrong: native ENUM is read by NocoDB 2026.04.5 or later as SingleSelect but is not in NocoBase's documented mapping (safe default text); ARRAY is read by NocoBase and not mapped by NocoDB (safe default json); UUID primary keys are accepted but serial/bigserial is the recommended default. Asks for or checks the NocoDB version, offers ALTER TABLE migration SQL if the user wants the safe defaults, and references the verification checklist.",
       "files": [],
       "assertions": [

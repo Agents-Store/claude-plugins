@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "I need to completely remove a many-to-many relationship between products and tags in my PostgreSQL database. The junction table is nc_m2m_products_tags. What's the safe order of operations?",
+      "prompt": "I need to completely remove a many-to-many relationship between products and tags in my PostgreSQL database. The junction table is nc_m2m_products_tags and it has two foreign key constraints, fk_products_tags_1 and fk_products_tags_2. Give me the SQL in the safe order of operations.",
       "expected_output": "Drop FK constraints first (both fk_products_tags_1 and fk_products_tags_2), then DROP TABLE. Shows the correct teardown order.",
       "files": [],
       "assertions": [

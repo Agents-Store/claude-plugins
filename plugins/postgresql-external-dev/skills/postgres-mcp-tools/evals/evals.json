@@ -7,10 +7,10 @@
       "expected_output": "Uses list_table_stats for the orders table and reads idx_scan_ratio_percent, get_query_plan for the slow query (without executing it), list_indexes with only_unused for unused indexes; no write statements.",
       "files": [],
       "expectations": [
-        "Calls list_table_stats with table_name orders and reads the index-scan ratio",
-        "Calls get_query_plan (which does not execute the statement) rather than running the query for timing",
-        "Calls list_indexes with only_unused true to find indexes that were never used",
-        "Does not run DDL or DML through execute_sql during diagnosis"
+        "The answer says to check the orders table with list_table_stats and read its index-scan ratio (idx_scan_ratio_percent) to spot a missing index",
+        "The answer uses get_query_plan for the slow query and says it shows the plan without executing the statement",
+        "The answer uses list_indexes with only_unused set to true to find indexes that were never used",
+        "The answer proposes no DDL or DML statements during the diagnosis"
       ]
     },
     {
@@ -20,7 +20,7 @@
       "files": [],
       "expectations": [
         "Asks the user to confirm the exact object and recommends a backup before the DROP",
-        "Sends exactly one SQL statement per execute_sql call",
+        "The answer shows the drop as a single ALTER TABLE products DROP COLUMN legacy_code statement for one execute_sql call, not several statements in one call",
         "Tells the user to run Meta Sync (NocoDB) or refresh the data source (NocoBase) afterwards"
       ]
     }

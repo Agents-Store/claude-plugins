@@ -8,7 +8,7 @@
   {"query": "Нужна готовая схема БД для CRM на PostgreSQL, которую можно подключить к NocoBase. Дай целиком", "should_trigger": true},
   {"query": "Give me a sample schema for a CMS with pages, media and menus, and explain which parts matter for NocoDB compatibility", "should_trigger": true},
   {"query": "Which PostgreSQL type should I use for email columns in NocoDB?", "should_trigger": false},
-  {"query": "How do I add a foreign key with ON DELETE CASCADE between two existing tables?", "should_trigger": false},
+  {"query": "Rename the column status to state in my orders table and refresh NocoDB", "should_trigger": false},
   {"query": "NocoDB doesn't show my new column after an ALTER TABLE", "should_trigger": false},
   {"query": "Show me an example Django models.py for an e-commerce site", "should_trigger": false},
   {"query": "Give me a complete MongoDB schema design for a blog", "should_trigger": false},

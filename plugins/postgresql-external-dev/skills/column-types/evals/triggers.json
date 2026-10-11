@@ -5,7 +5,7 @@
   {"query": "What's the best PostgreSQL type for a rating or a status select that works in both NocoDB and NocoBase without custom types?", "should_trigger": true},
   {"query": "Which date and time types should I use (timestamptz vs timestamp vs date) so NocoDB shows the right time zone?", "should_trigger": true},
   {"query": "Какой тип колонки в PostgreSQL выбрать для телефона, e-mail и ссылки, чтобы он нормально отображался и в NocoDB, и в NocoBase?", "should_trigger": true},
-  {"query": "Чем заменить ENUM в PostgreSQL, если NocoDB не распознаёт его как выпадающий список? Нужна совместимость с NocoBase", "should_trigger": true},
+  {"query": "Какой тип колонки выбрать в PostgreSQL для JSON-данных, UUID и массивов, чтобы NocoDB и NocoBase корректно их показывали?", "should_trigger": true},
   {"query": "Boolean columns in Postgres for NocoDB checkbox fields: bool vs smallint, and what default should I set?", "should_trigger": true},
   {"query": "Create a table 'customers' with a UUID primary key for NocoDB and NocoBase", "should_trigger": false},
   {"query": "Add a foreign key and an index on the FK between orders and customers", "should_trigger": false},

@@ -9,7 +9,7 @@
   {"query": "Что изменилось в PostgREST 16 и как это влияет на заголовок Prefer при массовых запросах?", "should_trigger": true},
   {"query": "Run an arbitrary SQL query through the PostgreSQL MCP execute_sql tool", "should_trigger": false},
   {"query": "Use the NocoDB REST API to list records of a table with filters", "should_trigger": false},
-  {"query": "Write a Hasura GraphQL query with filters and ordering", "should_trigger": false},
+  {"query": "Write a Prisma findMany query with filters and ordering for a Postgres table", "should_trigger": false},
   {"query": "Create a Postgres table with a UUID primary key for NocoDB", "should_trigger": false},
   {"query": "How do I build a REST API on top of PostgreSQL using Express and node-postgres?", "should_trigger": false},
   {"query": "Supabase client: select with eq filter and upsert", "should_trigger": false},
