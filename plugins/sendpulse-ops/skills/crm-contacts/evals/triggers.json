@@ -5,7 +5,7 @@
   {"query": "Which SendPulse MCP tools find a CRM contact by email and list the deals associated with that contact, and what input does each tool take?", "should_trigger": true},
   {"query": "List all contacts in my SendPulse CRM and search for those from the company 'Globex'", "should_trigger": true},
   {"query": "Как через SendPulse MCP создать CRM-контакт с несколькими emails и телефонами и добавить к нему комментарий? Нужны имена инструментов и входные поля", "should_trigger": true},
-  {"query": "Создай в CRM SendPulse контакт для нового лида и добавь комментарий о первом звонке", "should_trigger": true},
+  {"query": "Какой инструмент SendPulse MCP обновляет поля CRM-контакта и какой возвращает список его сделок? Нужны имена инструментов и входные поля", "should_trigger": true},
   {"query": "Show the full record of a CRM contact in SendPulse and review the history of comments", "should_trigger": true},
   {"query": "Send a direct message to a SendPulse chatbot contact in Telegram", "should_trigger": false},
   {"query": "Create a deal and move it between pipeline stages", "should_trigger": false},
