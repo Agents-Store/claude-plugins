@@ -8,7 +8,7 @@
   {"query": "filter records in NocoDB between two numbers - I heard ranges always need two bounds", "should_trigger": true},
   {"query": "find records matching a partial name in NocoDB and show the filter and the sort for it", "should_trigger": true},
   {"query": "Build a sales-by-region report with aggregation from the NocoDB Orders table", "should_trigger": false},
-  {"query": "My NocoDB filter returns nothing and I get a 422 error, debug it", "should_trigger": false},
+  {"query": "My NocoDB MCP calls time out on a table with 200,000 rows even for simple reads. What are the performance options and when do I escalate?", "should_trigger": false},
   {"query": "Write a SQL WHERE clause that filters orders from the last 7 days and sorts by amount", "should_trigger": false},
   {"query": "How do I filter a pandas DataFrame by date range and multiple conditions?", "should_trigger": false},
   {"query": "Filter rows in a Google Sheet with the FILTER function and multiple conditions", "should_trigger": false},
