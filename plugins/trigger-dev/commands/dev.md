@@ -1,10 +1,12 @@
 ---
 description: Start the Trigger.dev dev server
-argument-hint: [--profile <name>]
+argument-hint: "[--profile <name>]"
 allowed-tools: [Bash]
 ---
 
 # Start Dev Server
+
+Method and rules: the `trigger-dev:cli-recipes` skill.
 
 1. Verify `trigger.config.ts` exists in the project
 2. Build the dev command:

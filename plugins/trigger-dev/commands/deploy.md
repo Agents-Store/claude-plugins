@@ -1,10 +1,12 @@
 ---
 description: Deploy Trigger.dev tasks to an environment
-argument-hint: [staging|prod] [--profile <name>]
+argument-hint: "[staging|prod] [--profile <name>]"
 allowed-tools: [Bash]
 ---
 
 # Deploy Tasks
+
+Method and rules: the `trigger-dev:deployment` skill.
 
 1. Determine target environment from arguments (default: prod; `production` is accepted and means `prod`)
 2. Verify `trigger.config.ts` exists

@@ -1,0 +1,17 @@
+[
+  {"query": "I want to add Trigger.dev to my existing Node project and connect it to my self-hosted instance. Which commands do I run: login, init, config?", "should_trigger": true},
+  {"query": "How do I verify that the Trigger.dev CLI is authenticated and the MCP connection works? A checklist please", "should_trigger": true},
+  {"query": "Which environment variables do I need for the dev, staging and prod keys, and which one does the SDK actually read?", "should_trigger": true},
+  {"query": "How do I init Trigger.dev non-interactively in CI or from an agent? It refuses to run without a TTY", "should_trigger": true},
+  {"query": "How do I configure the MCP server read-only for an agent? The installer rejects --readonly", "should_trigger": true},
+  {"query": "Which runtime values does trigger init accept and what is the default?", "should_trigger": true},
+  {"query": "Как подключить Trigger.dev к проекту и своему серверу: установка SDK, вход через -a и init?", "should_trigger": true},
+  {"query": "Как создать первую задачу Trigger.dev и запустить dev-сервер? Нужен пошаговый сетап", "should_trigger": true},
+  {"query": "Deploy tasks to prod with CI", "should_trigger": false},
+  {"query": "Set up Sentry in my Node project", "should_trigger": false},
+  {"query": "Install Temporal and write my first workflow", "should_trigger": false},
+  {"query": "Initialize a Prisma project with migrations", "should_trigger": false},
+  {"query": "Debug runs stuck in QUEUED on a self-hosted instance", "should_trigger": false},
+  {"query": "Write the retry config for a task", "should_trigger": false},
+  {"query": "Install BullMQ and connect to Redis", "should_trigger": false}
+]

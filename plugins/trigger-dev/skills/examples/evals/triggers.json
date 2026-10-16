@@ -1,0 +1,17 @@
+[
+  {"query": "Show me a complete webhook-processing example on Trigger.dev with a queue and retries", "should_trigger": true},
+  {"query": "Do you have an end-to-end AI pipeline example for Trigger.dev with chaining, tools and streaming?", "should_trigger": true},
+  {"query": "Give me the cron data sync scenario on Trigger.dev with batch processing", "should_trigger": true},
+  {"query": "What do the common MCP tool call patterns look like for triggering and monitoring a task, a TRQL analysis and a prompt hotfix?", "should_trigger": true},
+  {"query": "Where are the Trigger.dev scenario walkthroughs and the quick reference patterns for a health check and a profile switch?", "should_trigger": true},
+  {"query": "Покажи готовый пример задачи Trigger.dev для обработки вебхуков", "should_trigger": true},
+  {"query": "Дай примеры типовых вызовов MCP-инструментов Trigger.dev: запуск, мониторинг, отладка упавшего запуска", "should_trigger": true},
+  {"query": "trigger.dev workflow templates: I want a reference implementation for a scheduled sync", "should_trigger": true},
+  {"query": "Write a task with retries and a queue", "should_trigger": false},
+  {"query": "List all 41 MCP tools and their parameters", "should_trigger": false},
+  {"query": "Show me examples of Express webhooks with signature verification", "should_trigger": false},
+  {"query": "Show me a cron job example with node-cron", "should_trigger": false},
+  {"query": "Give examples of GitHub Actions matrix builds", "should_trigger": false},
+  {"query": "Walk me through the Trigger.dev deployment flow", "should_trigger": false},
+  {"query": "Give examples of OpenAI function calling in TypeScript", "should_trigger": false}
+]
