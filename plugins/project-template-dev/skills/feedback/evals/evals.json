@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I'm working in acme-website (a Level 2 client project based on project-directus-nextjs) and I just realized that the .env.example in the parent template is missing VERCEL_TOKEN and VERCEL_ORG_ID. Every Directus+Next.js project needs these for deployment. Can you push this fix up to the Level 1 template? In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "I'm working in acme-website (a Level 2 client project based on project-directus-nextjs) and I just realized that the .env.example in the parent template is missing VERCEL_TOKEN and VERCEL_ORG_ID. Every Directus+Next.js project needs these for deployment. Can you push this fix up to the Level 1 template? In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The feedback skill reads stack.json to find the parent (project-directus-nextjs), locates it at $PROJECT_TEMPLATES_DIR, adds VERCEL_TOKEN and VERCEL_ORG_ID to its .env.example under a Vercel section, records the change in LEARNINGS.md with source attribution to acme-website, and commits.",
       "files": [],
       "expectations": [
@@ -18,7 +18,7 @@
     },
     {
       "id": 2,
-      "prompt": "We keep running into the same issue across all our projects — people accidentally run git push --force to main and it wrecks everyone's branches. This isn't specific to any stack, it should be a universal safety rule in the base template. Add it to project-template's safety rules. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "We keep running into the same issue across all our projects — people accidentally run git push --force to main and it wrecks everyone's branches. This isn't specific to any stack, it should be a universal safety rule in the base template. Add it to project-template's safety rules. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The feedback skill identifies this as a Level 0 (universal) improvement. It navigates to project-template (not a Level 1 template), creates or updates .claude/rules/safety.md with a rule about never force-pushing to main, records in LEARNINGS.md, and commits.",
       "files": [],
       "expectations": [
@@ -33,7 +33,7 @@
     },
     {
       "id": 3,
-      "prompt": "I just spent an hour figuring out that shadcn v4 components use @base-ui/react instead of Radix, and the asChild prop doesn't exist anymore — you have to use render instead. This gotcha should definitely be in the Level 1 template's CLAUDE.md so nobody else wastes time on it. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "I just spent an hour figuring out that shadcn v4 components use @base-ui/react instead of Radix, and the asChild prop doesn't exist anymore — you have to use render instead. This gotcha should definitely be in the Level 1 template's CLAUDE.md so nobody else wastes time on it. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The feedback skill identifies this as stack-specific (Level 1, project-directus-nextjs). It locates the parent template, adds the shadcn v4 gotcha to the CLAUDE.md Gotchas section, records in LEARNINGS.md, and commits.",
       "files": [],
       "expectations": [
@@ -47,7 +47,7 @@
     },
     {
       "id": 8,
-      "prompt": "I need to add a new skill to the project-template base. It should be called 'code-review-checklist' and guide developers through a structured code review process before creating PRs. This is useful for every project regardless of stack. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "I need to add a new skill to the project-template base. It should be called 'code-review-checklist' and guide developers through a structured code review process before creating PRs. This is useful for every project regardless of stack. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The feedback skill identifies this as a Level 0 improvement (universal skill), locates project-template, creates .claude/skills/code-review-checklist/SKILL.md with proper frontmatter and structured code review steps, records in LEARNINGS.md, and commits.",
       "files": [],
       "expectations": [
@@ -61,7 +61,7 @@
     },
     {
       "id": 11,
-      "prompt": "I'm in a Level 2 project (acme-website, parent is project-directus-nextjs) and I want to add a 'new-api-route' skill that scaffolds Next.js API routes with Directus data fetching. This is specific to the Directus+Next.js stack. Push it to the Level 1 template. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "I'm in a Level 2 project (acme-website, parent is project-directus-nextjs) and I want to add a 'new-api-route' skill that scaffolds Next.js API routes with Directus data fetching. This is specific to the Directus+Next.js stack. Push it to the Level 1 template. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The feedback skill routes this to Level 1 (project-directus-nextjs), creates the new-api-route skill with proper SKILL.md frontmatter and Next.js + Directus-specific content, records in LEARNINGS.md, and commits.",
       "files": [],
       "expectations": [

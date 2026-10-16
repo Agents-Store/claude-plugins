@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 6,
-      "prompt": "Can you validate the project-directus-nextjs template? I want to make sure it follows all our Level 1 conventions before I fork it for a new client. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "Can you validate the project-directus-nextjs template? I want to make sure it follows all our Level 1 conventions before I fork it for a new client. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The validate skill reads stack.json, confirms level=1, checks all required files (core skills, workflow skills, agents, rules, docs), validates CLAUDE.md quality (under 100 lines, no placeholders, Tech Stack filled), checks consistency between stack.json and CLAUDE.md, runs security checks, and produces a detailed validation report.",
       "files": [],
       "expectations": [

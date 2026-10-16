@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 4,
-      "prompt": "Use the create skill. I want to create a new Level 1 template for projects using Supabase as the data layer and Nuxt as the frontend. We'll also use Trigger.dev for background jobs. Call it project-supabase-nuxt. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "Use the create skill. I want to create a new Level 1 template for projects using Supabase as the data layer and Nuxt as the frontend. We'll also use Trigger.dev for background jobs. Call it project-supabase-nuxt. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The create skill clones project-template into a new project-supabase-nuxt directory, fills stack.json with level=1 and the correct layers/plugins, customizes CLAUDE.md with the tech stack, updates .env.example with Supabase and Trigger.dev vars, searches for matching Agents Store plugins, validates the result, and makes an initial commit.",
       "files": [],
       "expectations": [
@@ -19,7 +19,7 @@
     },
     {
       "id": 5,
-      "prompt": "Use the create skill. Create a Level 2 client project for Widgets Inc from the project-directus-nextjs template. It's a corporate website with a blog and team directory. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "Use the create skill. Create a Level 2 client project for Widgets Inc from the project-directus-nextjs template. It's a corporate website with a blog and team directory. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The create skill clones project-directus-nextjs into widgets-inc-website, sets stack.json to level=2 with parent=project-directus-nextjs, prompts for real credentials and resource IDs, and customizes CLAUDE.md with the client project name and description.",
       "files": [],
       "expectations": [
@@ -33,7 +33,7 @@
     },
     {
       "id": 12,
-      "prompt": "Use the create skill. Create a Level 1.5 demo template from project-directus-nextjs. It should be called demo-directus-nextjs and include sample blog posts, a team directory page, and seed data scripts. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "Use the create skill. Create a Level 1.5 demo template from project-directus-nextjs. It should be called demo-directus-nextjs and include sample blog posts, a team directory page, and seed data scripts. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The create skill clones project-directus-nextjs into demo-directus-nextjs, sets stack.json to level=1.5, inherits all Level 1 content, and sets up the demo-specific structure with sample data scaffolding.",
       "files": [],
       "expectations": [

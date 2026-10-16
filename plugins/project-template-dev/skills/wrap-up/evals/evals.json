@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 7,
-      "prompt": "I just finished a long session in demo-directus-nextjs. I added a deploy.sh for Vercel, fixed the Docker hot-reload by adding a volume mount, and created a useDirectus composable. I think some of this should go into the parent template. Can you help me sort it out? In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
+      "prompt": "I just finished a long session in demo-directus-nextjs. I added a deploy.sh for Vercel, fixed the Docker hot-reload by adding a volume mount, and created a useDirectus composable. I think some of this should go into the parent template. Can you help me sort it out? In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The wrap-up skill reviews the session, categorizes each improvement (deploy.sh → Level 1, Docker fix → Level 1, useDirectus composable → project-only), presents the categorized findings, asks whether to apply/issue/record, and applies the chosen action.",
       "files": [],
       "expectations": [
