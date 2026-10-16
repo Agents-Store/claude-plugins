@@ -6,7 +6,7 @@
   {"query": "PageSpeed Insights says 'Reduce unused JavaScript' and 'Properly size images' for my Next.js site. What do I change?", "should_trigger": true},
   {"query": "Как улучшить Core Web Vitals на Next.js: LCP, INP, CLS - с чего начать и какие пороги считаются хорошими?", "should_trigger": true},
   {"query": "Сайт на Next.js медленно грузится на мобильных. Как оптимизировать шрифты, изображения и ленивую загрузку?", "should_trigger": true},
-  {"query": "Which Core Web Vitals thresholds count as good, needs improvement and poor, and how do I measure them with field data?", "should_trigger": true},
+  {"query": "Give me the quick wins checklist for Core Web Vitals in my Next.js App Router project: LCP image priority, next/font, image dimensions, ISR revalidation and the measurement tools", "should_trigger": true},
   {"query": "Add structured data for products in Next.js", "should_trigger": false},
   {"query": "Why is Google not indexing my pages?", "should_trigger": false},
   {"query": "Optimize PostgreSQL queries for a slow dashboard", "should_trigger": false},
