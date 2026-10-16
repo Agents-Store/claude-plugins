@@ -6,7 +6,6 @@
   {"query": "How do I send a voice message (ogg/opus) from a stream, and also receive voice notes from users and download them for transcription?", "should_trigger": true},
   {"query": "Бот на grammY должен отправлять по URL фото на 12 МБ и принимать от пользователей видео на 45 МБ. Какие лимиты по размеру у отправки по URL, у загрузки и у getFile, и что делать с файлами больше 20 МБ?", "should_trigger": true},
   {"query": "Нужно отправить пользователю видео из файла на диске и круглое видеосообщение (video note) в grammY. Покажи через InputFile.", "should_trigger": true},
-  {"query": "Users send my grammY bot many documents and I want each one saved to a temp folder with a single call instead of building the api.telegram.org file URL myself. Which official plugin adds file.download() and getUrl(), and how do I wire it into the Context type and the API config?", "should_trigger": true},
   {"query": "Run a grammY handler only when a user edits a text message in a private chat and compare the new text with the one I stored", "should_trigger": false},
   {"query": "Upload files from an Express app to S3 using multer and presigned URLs", "should_trigger": false},
   {"query": "How do I send an image as an attachment in a discord.js embed?", "should_trigger": false},
