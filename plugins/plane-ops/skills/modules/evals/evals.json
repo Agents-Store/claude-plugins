@@ -3,48 +3,48 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Create a module 'Billing v2' in project TaskFlow, led by Alice, targeting June 30 2026.",
+      "prompt": "Use the modules skill. Create a module 'Billing v2' in project TaskFlow, led by Alice, targeting June 30 2026. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Resolves project and lead UUIDs, calls module(action=create) with status='planned'.",
       "files": [],
       "expectations": [
-        "Consults connector-bootstrap",
-        "Resolves project_id and lead UUID",
-        "Calls module(action=create) with name, lead, target_date, status=planned",
-        "Offers to populate the module with backlog items"
+        "The answer says to consult connector-bootstrap",
+        "The answer says to resolve project_id and lead UUID",
+        "The answer says to call module(action=create) with name, lead, target_date, status=planned",
+        "The answer offers to populate the module with backlog items"
       ]
     },
     {
       "id": 2,
-      "prompt": "Should I use a module or a cycle for tracking the Stripe migration (spans 3 sprints)?",
+      "prompt": "Use the modules skill. Should I use a module or a cycle for tracking the Stripe migration (spans 3 sprints)? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Recommends a module because scope is >1 sprint, cites the module-vs-cycle decision table.",
       "files": [],
       "expectations": [
-        "Chooses module (not cycle) for multi-sprint scope",
-        "Cites the decision criteria from the modules skill",
-        "Notes that items can live in both a module and a cycle simultaneously"
+        "The answer says to choose module (not cycle) for multi-sprint scope",
+        "The answer cites the decision criteria from the modules skill",
+        "The answer notes that items can live in both a module and a cycle simultaneously"
       ]
     },
     {
       "id": 3,
-      "prompt": "Show me the progress of the 'Billing v2' module.",
+      "prompt": "Use the modules skill. Show me the progress of the 'Billing v2' module. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Lists module items, groups by state, reports completion_rate and active blockers.",
       "files": [],
       "expectations": [
-        "Calls module(action=list_workitems), or workitem(action=count, pql='module = \"<id>\"', group_by=state__group) for the state-group totals",
-        "Groups items by state group and sums points",
-        "Reports completion_rate (completed_points / total_points)",
-        "Surfaces active blockers"
+        "The answer says to call module(action=list_workitems), or workitem(action=count, pql='module = \"<id>\"', group_by=state__group) for the state-group totals",
+        "The answer says to group items by state group and sums points",
+        "The answer gives completion_rate computed as completed_points / total_points",
+        "The answer surfaces active blockers"
       ]
     },
     {
       "id": 4,
-      "prompt": "The 'Onboarding revamp' module hasn't moved in 2 sprints. What should I do?",
+      "prompt": "Use the modules skill. The 'Onboarding revamp' module hasn't moved in 2 sprints. What should I do? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Recommends explicitly pausing or archiving the module per the lifecycle rules; do not leave it 'in progress'.",
       "files": [],
       "expectations": [
-        "Cites the modules lifecycle rule (pause if stalled 2 sprints)",
-        "Recommends module(action=update, status=paused) or module(action=archive)",
-        "Suggests a retrospective to understand the stall before resuming"
+        "The answer cites the modules lifecycle rule (pause if stalled 2 sprints)",
+        "The answer recommends module(action=update, status=paused) or module(action=archive)",
+        "The answer suggests a retrospective to understand the stall before resuming"
       ]
     }
   ]

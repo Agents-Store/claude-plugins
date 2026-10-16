@@ -3,52 +3,52 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Generate today's standup dashboard for TaskFlow Sprint 12. It's day 3 of 5. Show sprint-level burn, per-person status, and flag anything at risk.",
+      "prompt": "Use the daily-standup skill. Generate today's standup dashboard for TaskFlow Sprint 12. It's day 3 of 5. Show sprint-level burn, per-person status, and flag anything at risk. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Team-level dashboard: points done/total, items by state, WIP status, pace vs needed pace. Per-person section with DONE/DOING/NEXT/BLOCKED. Attention section listing stalled, blocked, and not-started items.",
       "files": [],
       "expectations": [
-        "Fetches the active cycle via cycle(action=list, status=current) and resolves day X of Y from its dates",
-        "Groups items by assignee AND separately by state group (workitem(action=count, pql='cycle = \"<id>\"', group_by=state__group) gives the state-group totals in one call)",
-        "Computes WIP and compares to a limit",
-        "Computes pace (points/day) and what's needed to finish",
-        "Has an explicit [!] Attention section flagging at-risk items",
-        "Renders the dashboard format from the skill, not free-form prose"
+        "The answer says to fetch the active cycle via cycle(action=list, status=current) and resolves day X of Y from its dates",
+        "The answer says to group items by assignee AND separately by state group (workitem(action=count, pql='cycle = \"<id>\"', group_by=state__group) gives the state-group totals in one call)",
+        "The answer computes WIP and compares to a limit",
+        "The answer computes pace (points/day) and what's needed to finish",
+        "The answer has an explicit [!] Attention section flagging at-risk items",
+        "The answer renders the dashboard format from the skill, not free-form prose"
       ]
     },
     {
       "id": 2,
-      "prompt": "Give me a per-person standup breakdown for the Billing team's active sprint. Show each member's DONE, DOING, NEXT, and BLOCKED.",
+      "prompt": "Use the daily-standup skill. Give me a per-person standup breakdown for the Billing team's active sprint. Show each member's DONE, DOING, NEXT, and BLOCKED. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "For each team member, a labeled list of items with state, points, and any blocker notes.",
       "files": [],
       "expectations": [
-        "Fetches project members with member(action=list_project) and cycle work items with cycle(action=list_workitems)",
-        "Groups items by assignee",
-        "Uses the [DONE]/[DOING]/[NEXT]/[BLOCKED] labels from the skill format",
-        "Flags items in 'In Progress' without activity for >2 days as stalled, e.g. with pql='stateGroup = \"started\" AND updatedAt < daysAgo(2)', and confirms with workitem_activity before calling one stalled"
+        "The answer says to fetch project members with member(action=list_project) and cycle work items with cycle(action=list_workitems)",
+        "The answer says to group items by assignee",
+        "The answer uses the [DONE]/[DOING]/[NEXT]/[BLOCKED] labels from the skill format",
+        "The answer flags items in 'In Progress' without activity for >2 days as stalled, e.g. with pql='stateGroup = \"started\" AND updatedAt < daysAgo(2)', and confirms with workitem_activity before calling one stalled"
       ]
     },
     {
       "id": 3,
-      "prompt": "MP-47 'OAuth setup' has been in progress for 3 days with no activity and is blocked by MP-45 which is still unstarted. Surface this as a standup issue.",
+      "prompt": "Use the daily-standup skill. MP-47 'OAuth setup' has been in progress for 3 days with no activity and is blocked by MP-45 which is still unstarted. Surface this as a standup issue. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Identifies MP-47 as both stalled AND blocked; names the blocker, the owner, and suggests action.",
       "files": [],
       "expectations": [
-        "Detects the stalled signal (>2 days no activity)",
-        "Detects the blocked_by relation to MP-45",
-        "Escalates because the blocker itself is unstarted — double risk",
-        "Suggests a concrete action (DM the owner, unblock MP-45, or reassign)"
+        "The answer detects the stalled signal (>2 days no activity)",
+        "The answer detects the blocked_by relation to MP-45",
+        "The answer says to escalate because the blocker itself is unstarted — double risk",
+        "The answer suggests a concrete action (DM the owner, unblock MP-45, or reassign)"
       ]
     },
     {
       "id": 4,
-      "prompt": "We're an async remote team across 5 timezones. How should we run standup and where do we publish the update?",
+      "prompt": "Use the daily-standup skill. We're an async remote team across 5 timezones. How should we run standup and where do we publish the update? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Recommends async cadence 3x/week, publish as a Plane project page per day.",
       "files": [],
       "expectations": [
-        "Recommends 3x/week async over daily sync",
-        "Suggests publishing to Plane via page(action=create, project_id, name, description_html)",
-        "Uses 'Standup — YYYY-MM-DD' naming so history stays browsable",
-        "References the page-formatting gotchas from examples skill"
+        "The answer recommends 3x/week async over daily sync",
+        "The answer suggests publishing to Plane via page(action=create, project_id, name, description_html)",
+        "The answer uses 'Standup — YYYY-MM-DD' naming so history stays browsable",
+        "The answer references the page-formatting gotchas from examples skill"
       ]
     }
   ]

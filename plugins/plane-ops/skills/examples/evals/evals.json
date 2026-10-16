@@ -3,52 +3,52 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I have a new feature request 'Two-factor authentication' to add to TaskFlow. Create it with acceptance criteria, estimate 5 points, label it type/feature + area/auth, and drop it into the current cycle 'Sprint 15'. Show me the exact MCP tool calls.",
+      "prompt": "Use the examples skill. I have a new feature request 'Two-factor authentication' to add to TaskFlow. Create it with acceptance criteria, estimate 5 points, label it type/feature + area/auth, and drop it into the current cycle 'Sprint 15'. Show me the exact MCP tool calls. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Sequence of concrete tool calls with exact parameter names: project(action=list) → label(action=list) → cycle(action=list) → workitem(action=create) (with point, labels, description_html containing Given/When/Then AC) → cycle(action=manage_workitems) (with add_ids array).",
       "files": [],
       "expectations": [
-        "Lists labels before creating (to resolve label names → IDs)",
-        "Uses description_html with Given/When/Then format, not raw text",
-        "Passes point=5 and labels as an array of label UUIDs (the workitem tool's fixed parameter name)",
-        "Uses cycle(action=manage_workitems) with add_ids (an array of work item UUIDs)",
-        "Resolves cycle by name from cycle(action=list) (not assumed)",
-        "References tool-patterns.md for exact parameter formats"
+        "The answer lists labels before creating (to resolve label names → IDs)",
+        "The answer uses description_html with Given/When/Then format, not raw text",
+        "The answer says to pass point=5 and labels as an array of label UUIDs (the workitem tool's fixed parameter name)",
+        "The answer uses cycle(action=manage_workitems) with add_ids (an array of work item UUIDs)",
+        "The answer says to resolve cycle by name from cycle(action=list) (not assumed)",
+        "The answer references tool-patterns.md for exact parameter formats"
       ]
     },
     {
       "id": 2,
-      "prompt": "Walk me through the full sprint lifecycle from planning to close in Plane. Read the sprint-lifecycle scenario reference and show me the tool calls at each phase.",
+      "prompt": "Use the examples skill. Walk me through the full sprint lifecycle from planning to close in Plane. Read the sprint-lifecycle scenario reference and show me the tool calls at each phase. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Opens references/scenarios/sprint-lifecycle.md, extracts each phase (planning, execution, standup, close, retro), and lists the concrete MCP tool calls from the scenario.",
       "files": [],
       "expectations": [
-        "Explicitly reads references/scenarios/sprint-lifecycle.md (not just SKILL.md)",
-        "Names all key phases: planning, execution, standup, close, retro",
-        "Shows concrete tool calls (cycle(action=list, status=completed), cycle(action=create), cycle(action=manage_workitems), etc.), not just prose",
-        "Links to dedicated skills (sprint-planning, daily-standup, sprint-review-retro) for deep-dives"
+        "The answer explicitly reads references/scenarios/sprint-lifecycle.md (not just SKILL.md)",
+        "The answer names all key phases: planning, execution, standup, close, retro",
+        "The answer shows concrete tool calls (cycle(action=list, status=completed), cycle(action=create), cycle(action=manage_workitems), etc.), not just prose",
+        "The answer says to link to dedicated skills (sprint-planning, daily-standup, sprint-review-retro) for deep-dives"
       ]
     },
     {
       "id": 3,
-      "prompt": "I need to publish a sprint report as a Plane page but last time my bullet list rendered broken. What's the correct HTML format?",
+      "prompt": "Use the examples skill. I need to publish a sprint report as a Plane page but last time my bullet list rendered broken. What's the correct HTML format? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Points to page-formatting.md, explains the list gotchas (nested list must start with text, no empty li, no data-checked).",
       "files": [],
       "expectations": [
-        "Routes to the page-formatting.md reference",
-        "Explicitly names the 'li must start with text not nested list' gotcha",
-        "Warns against data-checked attributes (stripped by Plane)",
-        "Warns against empty <li></li> elements"
+        "The answer routes to the page-formatting.md reference",
+        "The answer explicitly names the 'li must start with text not nested list' gotcha",
+        "The answer warns against data-checked attributes (stripped by Plane)",
+        "The answer warns against empty <li></li> elements"
       ]
     },
     {
       "id": 4,
-      "prompt": "What's a realistic workflow for linking a PR to a work item and moving it to review?",
+      "prompt": "Use the examples skill. What's a realistic workflow for linking a PR to a work item and moving it to review? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Sequence using /link add → /work-item update state → /comment → /assign, from everyday-commands.md.",
       "files": [],
       "expectations": [
-        "Routes to everyday-commands.md",
-        "Shows the full 4-step command sequence",
-        "Mentions that PR linking enables release notes generation",
-        "Uses the new command shortcuts (/link, /comment, /assign) not raw MCP"
+        "The answer routes to everyday-commands.md",
+        "The answer shows the full 4-step command sequence",
+        "The answer mentions that PR linking enables release notes generation",
+        "The answer uses the new command shortcuts (/link, /comment, /assign) not raw MCP"
       ]
     }
   ]
