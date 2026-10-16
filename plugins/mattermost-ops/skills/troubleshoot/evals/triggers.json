@@ -1,6 +1,5 @@
 [
   {"query": "My script gets 403 from Mattermost on GET /api/v4/config although the token is valid. Account is a team admin. What's wrong?", "should_trigger": true},
-  {"query": "Mattermost returns 404 'Unable to find the existing team' when I POST /teams/engineering/channels - what am I doing wrong?", "should_trigger": true},
   {"query": "I'm listing users with GET /api/v4/users?per_page=200 and keep getting fewer rows than the System Console shows. Where do the rows go?", "should_trigger": true},
   {"query": "Our Mattermost PAT worked yesterday and today everything returns 401. It was created in July with an expiry I don't remember. How do I find out?", "should_trigger": true},
   {"query": "Since the upgrade to Mattermost v12 my bot posts show my own name instead of 'Deploy Bot'. We set override_username in props. No error is returned.", "should_trigger": true},
