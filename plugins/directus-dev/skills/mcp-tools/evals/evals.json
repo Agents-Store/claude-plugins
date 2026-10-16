@@ -7,7 +7,7 @@
       "expected_output": "Lists all 12 MCP tools with their action patterns and the query system",
       "files": [],
       "expectations": [
-        "Lists all 12 MCP tools by name",
+        "The answer names the tools system-prompt, schema, collections, fields, relations, items, files, assets, folders, flows, operations and trigger-flow",
         "Mentions system-prompt tool as first call",
         "Explains the unified action-based CRUD pattern",
         "Mentions schema tool for discovery",
