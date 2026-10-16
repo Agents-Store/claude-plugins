@@ -1,6 +1,6 @@
 ---
 description: Close the loop after work — bring the client documents, the spec and the generated documents up to what the code now does, move task statuses to what the audit found, journal the work and curate the changelog
-argument-hint: [--after M11-T9 | --release M11 | --dry | (empty = every task finished since the last work entry)]
+argument-hint: '[--after M11-T9 | --release M11 | --dry | (empty = every task finished since the last work entry)]'
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, Skill, AskUserQuestion]
 ---
 
