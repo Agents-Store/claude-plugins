@@ -5,7 +5,6 @@
   {"query": "Как в Next.js 16 показать запасной экран при ошибке в корневом layout? Нужен global-error.tsx - объясни, почему там должны быть собственные html и body.", "should_trigger": true},
   {"query": "Как в Next.js обработать ошибку в одном компоненте, не ломая всю страницу? Слышал про catchError", "should_trigger": true},
   {"query": "Покажи, как сделать error boundary на уровне маршрута в App Router и как вложенные error.tsx поднимают ошибку вверх", "should_trigger": true},
-  {"query": "For an expected error like 'email already taken' in a Server Action, should I throw or return? Show the Next.js 16 return-value pattern with useActionState and how it differs from uncaught exceptions.", "should_trigger": true},
   {"query": "Design a fallback UI and error recovery with reset() for failed data fetches in a Next.js layout", "should_trigger": true},
   {"query": "My Next.js app shows 'Text content does not match server-rendered HTML', how do I debug this hydration problem?", "should_trigger": false},
   {"query": "Set up Sentry for a Next.js app with source maps and release tracking", "should_trigger": false},

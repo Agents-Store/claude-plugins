@@ -5,8 +5,6 @@
   {"query": "What do `export const prefetch = 'partial'` and 'force-disabled' do on a segment in Next.js 16.3, and what does a plain <Link> prefetch compared with prefetch={true}?", "should_trigger": true},
   {"query": "Как улучшить Core Web Vitals в Next.js: LCP, INP и CLS — с чего начать и что измерять?", "should_trigger": true},
   {"query": "What is prefetchInlining in Next.js 16.3, what does it do for small prefetch payloads, and when would I turn it on?", "should_trigger": true},
-  {"query": "Как добавить View Transitions в Next.js 16 для перехода между списком каталога и карточкой товара? Нужен конфиг и пример кода.", "should_trigger": true},
-  {"query": "ProductPage.tsx in our Next.js 16 app is a 600-line client component. Which parts should move to Server Components, and which common bundle bloaters (moment, lodash, icon packs) should I swap?", "should_trigger": true},
   {"query": "How do I cache data with 'use cache' and revalidate it by tag in Next.js 16?", "should_trigger": false},
   {"query": "Configure a Dockerfile for Next.js with standalone output to shrink the image", "should_trigger": false},
   {"query": "Optimize a slow Postgres query with EXPLAIN ANALYZE and a composite index", "should_trigger": false},

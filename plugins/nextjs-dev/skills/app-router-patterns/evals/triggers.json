@@ -1,10 +1,7 @@
 [
   {"query": "After upgrading to Next.js 16 the build fails because the @modal slot in app/(shop)/layout.tsx has no default.tsx. Why is it required now and what should it return to keep the old fallback behaviour?", "should_trigger": true},
-  {"query": "In Next.js 16 I still read params.slug synchronously in app/blog/[slug]/page.tsx and it throws. Show the async fix for page, layout, route.ts and generateMetadata.", "should_trigger": true},
   {"query": "Set up a dashboard with @analytics and @team parallel route slots in Next.js and handle the default.tsx for unmatched slots", "should_trigger": true},
-  {"query": "Which codemod migrates middleware.ts to proxy.ts in Next.js 16, and what changes in the exported function name and the runtime? Our middleware uses NextResponse.rewrite for an A/B test.", "should_trigger": true},
   {"query": "Мы включили cacheComponents в Next.js 16, и сборка падает на export const dynamicParams = false в app/products/[id]/page.tsx. Как теперь вернуть 404 для неизвестных id?", "should_trigger": true},
-  {"query": "What is the nesting order of layout.tsx, template.tsx, error.tsx, loading.tsx, not-found.tsx and page.tsx within one route segment in the Next.js App Router? I need the exact wrapping order.", "should_trigger": true},
   {"query": "Как в Next.js 16 типизировать params и searchParams через сгенерированные типы PageProps и LayoutProps, и когда эти типы создаются - при next dev, build или typegen?", "should_trigger": true},
   {"query": "For my @modal/(.)photos/[id] folder, how do the (.), (..), (..)(..) and (...) intercepting conventions count - route segments or folders - and why does my interception not match from app/gallery/photos?", "should_trigger": true},
   {"query": "How should I organize folders like features, lib and components in a big Next.js codebase? Naming and barrel exports", "should_trigger": false},

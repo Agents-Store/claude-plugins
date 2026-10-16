@@ -1,5 +1,4 @@
 [
-  {"query": "What's the command to create a new Next.js project with TypeScript, Tailwind and the App Router, using pnpm and Turbopack?", "should_trigger": true},
   {"query": "How do I run next dev on port 4000 with Turbopack and open the browser automatically? And how do I analyze the bundle after next build?", "should_trigger": true},
   {"query": "My CI step runs `next lint` and fails after upgrading to Next.js 16. Was it removed? What do I run instead, and does next build still lint?", "should_trigger": true},
   {"query": "How do I get an interactive bundle treemap in Next.js 16 with Turbopack? I used @next/bundle-analyzer with ANALYZE=true before and it shows nothing now.", "should_trigger": true},

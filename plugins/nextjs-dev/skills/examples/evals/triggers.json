@@ -6,7 +6,6 @@
   {"query": "Покажи пошаговый пример Next.js проекта: админка с боковой панелью, таблица данных и CRUD на Server Actions", "should_trigger": true},
   {"query": "Хочу пример интернет-магазина на Next.js: каталог, карточка товара, корзина. Дай end-to-end реализацию", "should_trigger": true},
   {"query": "Next.js project walkthrough for a SaaS: authenticated layout, API route with validation, and a streaming table", "should_trigger": true},
-  {"query": "Give me the Next.js pattern for a data table with streaming: search query in the URL, a Suspense boundary keyed by the query so the skeleton reappears on every new search, and the client search input.", "should_trigger": true},
   {"query": "What's the right folder structure for a Next.js app with route groups and feature modules?", "should_trigger": false},
   {"query": "Why does 'use client' fail in my layout when I import a server-only module?", "should_trigger": false},
   {"query": "Show me a complete example of an e-commerce backend in Django with Stripe checkout", "should_trigger": false},

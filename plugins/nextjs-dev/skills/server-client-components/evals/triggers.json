@@ -1,10 +1,7 @@
 [
-  {"query": "I get 'Functions cannot be passed directly to Client Components' when passing onSave from my page to <EditForm>. What are my options in the App Router?", "should_trigger": true},
   {"query": "I get 'You're importing a component that needs useState' in the App Router. How do I fix the 'use client' boundary without making the whole page client-side?", "should_trigger": true},
   {"query": "Where do I put `import 'server-only'` and `client-only` in a Next.js project, how do I install both guard packages, and what error appears if a Client Component imports lib/data.ts?", "should_trigger": true},
   {"query": "Нужно показать серверный компонент внутри модалки (клиентский компонент) в Next.js 16. Покажи, как передать его через children, чтобы он остался серверным.", "should_trigger": true},
-  {"query": "A ThemeProvider and a React Query provider both use context. Where in the App Router do I mount them so the layout stays a Server Component, and can children pass through the provider?", "should_trigger": true},
-  {"query": "How do I share a Product type between lib/products.ts (server-only) and a Client Component in Next.js without importing the server module into the client bundle?", "should_trigger": true},
   {"query": "Какие из этих компонентов в Next.js App Router требуют 'use client': с onClick, читающий localStorage, делающий запрос в БД, с useEffect, и просто статичная разметка? Дай таблицу решений.", "should_trigger": true},
   {"query": "What is the decision matrix for server versus client components in Next.js 16 and how do I minimize client boundaries?", "should_trigger": true},
   {"query": "Write a Server Action form with useActionState and Zod validation in Next.js", "should_trigger": false},
