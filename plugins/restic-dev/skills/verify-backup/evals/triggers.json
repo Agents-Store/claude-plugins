@@ -6,7 +6,7 @@
   {"query": "Validate the backups I just set up: first run, snapshots, integrity check, test restore, then enable the systemd timer", "should_trigger": true},
   {"query": "Как проверить, что бэкап restic рабочий: запустить первый бэкап, посмотреть снапшоты, выполнить check и тестовое восстановление?", "should_trigger": true},
   {"query": "Перед включением расписания хочу проверить восстановление из restic. Что именно сделать пошагово?", "should_trigger": true},
-  {"query": "How do I test-restore a database dump from a restic snapshot to confirm the dump is not empty?", "should_trigger": true},
+  {"query": "Do a dry run of the first restic backup on a new server with the files-from list, then run it for real and show the new snapshot with restic snapshots and restic stats latest", "should_trigger": true},
   {"query": "Set up monitoring so I get alerted when backups stop", "should_trigger": false},
   {"query": "A full disaster-recovery rebuild of a dead server from restic", "should_trigger": false},
   {"query": "Write the daily restic backup script", "should_trigger": false},
