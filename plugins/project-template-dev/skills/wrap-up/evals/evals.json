@@ -3,17 +3,17 @@
   "evals": [
     {
       "id": 7,
-      "prompt": "I just finished a long session in demo-directus-nextjs. I added a deploy.sh for Vercel, fixed the Docker hot-reload by adding a volume mount, and created a useDirectus composable. I think some of this should go into the parent template. Can you help me sort it out?",
+      "prompt": "I just finished a long session in demo-directus-nextjs. I added a deploy.sh for Vercel, fixed the Docker hot-reload by adding a volume mount, and created a useDirectus composable. I think some of this should go into the parent template. Can you help me sort it out? In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
       "expected_output": "The wrap-up skill reviews the session, categorizes each improvement (deploy.sh → Level 1, Docker fix → Level 1, useDirectus composable → project-only), presents the categorized findings, asks whether to apply/issue/record, and applies the chosen action.",
       "files": [],
       "expectations": [
-        "Identifies deploy.sh as a Level 1 improvement (stack-specific, generic to all Directus+Next.js)",
-        "Identifies Docker hot-reload fix as a Level 1 improvement (stack-specific config)",
-        "Identifies useDirectus composable as project-only (demo-specific, not generic enough)",
-        "Does NOT push the useDirectus composable to the parent template",
-        "Presents categorized findings to the user before taking action",
-        "Offers multiple options: apply to parent, create GitHub Issue, record in LEARNINGS.md, or skip",
-        "If applying, delegates to the feedback skill for each improvement"
+        "The answer identifies deploy.sh as a Level 1 improvement (stack-specific, generic to all Directus+Next.js)",
+        "The answer identifies Docker hot-reload fix as a Level 1 improvement (stack-specific config)",
+        "The answer identifies useDirectus composable as project-only (demo-specific, not generic enough)",
+        "The answer does NOT push the useDirectus composable to the parent template",
+        "The answer presents categorized findings to the user before taking action",
+        "The answer offers multiple options: apply to parent, create GitHub Issue, record in LEARNINGS.md, or skip",
+        "If applying, the answer says to delegate to the feedback skill for each improvement"
       ]
     }
   ]

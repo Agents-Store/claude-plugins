@@ -3,18 +3,18 @@
   "evals": [
     {
       "id": 6,
-      "prompt": "Can you validate the project-directus-nextjs template? I want to make sure it follows all our Level 1 conventions before I fork it for a new client.",
+      "prompt": "Can you validate the project-directus-nextjs template? I want to make sure it follows all our Level 1 conventions before I fork it for a new client. In this session you have no shell and no template repositories, only file reading and a text answer: say which commands you would run, which files you would create or edit with their key contents, and what you would check.",
       "expected_output": "The validate skill reads stack.json, confirms level=1, checks all required files (core skills, workflow skills, agents, rules, docs), validates CLAUDE.md quality (under 100 lines, no placeholders, Tech Stack filled), checks consistency between stack.json and CLAUDE.md, runs security checks, and produces a detailed validation report.",
       "files": [],
       "expectations": [
-        "Reads stack.json and correctly identifies the template as Level 1",
-        "Checks for all core required files (brainstorming, planning, tdd, debugging, verification skills)",
-        "Checks for core workflow skills (init-stack, commit, pr, plan-feature, code-review-project, sync)",
-        "Verifies CLAUDE.md has filled Tech Stack section (not placeholder text)",
-        "Checks that CLAUDE.md Installed Plugins matches stack.json plugins",
-        "Verifies .env.example has stack-specific variables",
-        "Checks security (.env is gitignored; the committed .mcp.json holds only ${VAR} references)",
-        "Produces a structured validation report with pass/fail per category"
+        "The answer says to read stack.json and correctly identifies the template as Level 1",
+        "The answer says to check for all core required files (brainstorming, planning, tdd, debugging, verification skills)",
+        "The answer says to check for core workflow skills (init-stack, commit, pr, plan-feature, code-review-project, sync)",
+        "The answer says to verify CLAUDE.md has filled Tech Stack section (not placeholder text)",
+        "The answer says to check that CLAUDE.md Installed Plugins matches stack.json plugins",
+        "The answer says to verify .env.example has stack-specific variables",
+        "The answer says to check security (.env is gitignored; the committed .mcp.json holds only ${VAR} references)",
+        "The answer produces a structured validation report with pass/fail per category"
       ]
     }
   ]
