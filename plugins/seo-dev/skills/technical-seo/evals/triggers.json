@@ -1,8 +1,8 @@
 [
   {"query": "How do I set up hreflang for English, German and Ukrainian in the Next.js App Router, and what mistakes make Google ignore it?", "should_trigger": true},
-  {"query": "Set up redirects in next.config.ts for the moved /blog URLs without redirect chains, and check that my pages stay under the Googlebot fetch limit of 2 MB", "should_trigger": true},
+  {"query": "Add the security headers from the technical SEO checklist and the permanent redirects and rewrites to my next.config.ts, and say how they differ for crawlers", "should_trigger": true},
   {"query": "Set up permanent 301 redirects for moved pages in Next.js (next.config.js and middleware) without creating redirect chains", "should_trigger": true},
-  {"query": "What security headers should my Next.js site send (HSTS, CSP, X-Content-Type-Options) and do they matter for SEO?", "should_trigger": true},
+  {"query": "Add pagination handling and URL-structure rules for filtered category pages in my Next.js app, with the indexability checklist and canonical rules", "should_trigger": true},
   {"query": "Check crawlability and indexability issues of a Next.js site: JavaScript rendering, soft 404s, trailing slashes, mobile-first indexing", "should_trigger": true},
   {"query": "Как настроить hreflang и canonical для сайта на нескольких языках в Next.js?", "should_trigger": true},
   {"query": "Как сделать 301-редиректы в Next.js и избежать цепочек редиректов? И что с noindex для страниц фильтров?", "should_trigger": true},

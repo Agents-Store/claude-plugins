@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 2,
-      "prompt": "Use the structured-data skill. Add structured data to my blog posts with Article schema and breadcrumbs In this session you have no project files and no shell, only file reading and a text answer: say what you would check and change in a Next.js App Router project, with the code you would write.",
+      "prompt": "Use the structured-data skill. Add structured data to my blog posts with Article schema and breadcrumbs In this session you have no project files and no shell, and nobody to ask. Do not ask questions: assume a typical Next.js App Router project and answer in text with concrete findings, what you would check, the fixes and the code you would write.",
       "expected_output": "Creates JSON-LD components with Article and BreadcrumbList schemas, type-safe with schema-dts",
       "files": [],
       "expectations": [
