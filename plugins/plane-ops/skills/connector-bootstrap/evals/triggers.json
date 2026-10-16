@@ -1,7 +1,7 @@
 [
   {"query": "Which Plane tools do I have available in this session? Check how they are named before doing anything else", "should_trigger": true},
   {"query": "I keep getting 'I don't have access to Plane tools' even though the Plane MCP is connected. How do I discover the tools?", "should_trigger": true},
-  {"query": "What is the difference between the resource tools of Plane MCP 0.3+ (workitem with an action parameter) and the older per-operation tools like create_work_item?", "should_trigger": true},
+  {"query": "Translate the legacy per-operation Plane tool create_work_item into the resource tool call of Plane MCP 0.3 and later, using the fallback translation table", "should_trigger": true},
   {"query": "Plane tools do not show up in my Claude Code session although the connector is added. How does the agent discover the deferred Plane tools with ToolSearch, and what changes for servers older than 0.3.0 that expose one tool per operation?", "should_trigger": true},
   {"query": "The Plane MCP shows as connected but I cannot see any plane tools in this session, only deferred tool names. Find the Plane tools first and tell me which tool surface this server exposes before we do anything", "should_trigger": true},
   {"query": "Our Plane instance is connected through a custom proxy so the tool names look different. How should the agent find them?", "should_trigger": true},
