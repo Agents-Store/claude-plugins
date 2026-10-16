@@ -5,7 +5,7 @@
   {"query": "No module named psycopg2 when I start my Flask app with a postgresql:// URI, although I installed psycopg 3. What is wrong?", "should_trigger": true},
   {"query": "LegacyAPIWarning: The Query.get() method is considered legacy. Where do I change it and what replaces it?", "should_trigger": true},
   {"query": "Ошибка «This Session's transaction has been rolled back due to a previous exception during flush». Как её диагностировать и исправить?", "should_trigger": true},
-  {"query": "Мои страницы стали медленными после добавления связей: подозреваю N+1. Как это обнаружить в SQLAlchemy?", "should_trigger": true},
+  {"query": "Страница со списком заказов делает сотни запросов к базе. Покажи, как обнаружить N+1 в SQLAlchemy и исправить это через selectinload", "should_trigger": true},
   {"query": "sqlalchemy.exc.OperationalError: (psycopg.OperationalError) connection refused on port 5432 only inside Docker. How do I diagnose it?", "should_trigger": true},
   {"query": "Convert my Model.query code to select() 2.0 style", "should_trigger": false},
   {"query": "Define a many-to-many relationship in SQLAlchemy", "should_trigger": false},
