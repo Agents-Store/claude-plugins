@@ -1,0 +1,17 @@
+[
+  {"query": "Extract the name, price and rating of every product on these 3 shop pages into JSON with a schema, then I will import it into my catalog", "should_trigger": true},
+  {"query": "Crawl docs.example.com for a content migration with a conservative limit and only the paths under /guides", "should_trigger": true},
+  {"query": "The product list is behind a login. How do I scrape it with a live browser session and then continue on the same page?", "should_trigger": true},
+  {"query": "Build me a reusable scraper script I can run on a schedule that saves articles into my database", "should_trigger": true},
+  {"query": "How do I read 12 known URLs efficiently and only get the part that answers one question?", "should_trigger": true},
+  {"query": "I do not know the URLs. Collect pricing from several competitor sites into structured JSON", "should_trigger": true},
+  {"query": "Нужно выгрузить данные о товарах с сайта-донора в мой каталог: найти страницы, извлечь поля по схеме и импортировать", "should_trigger": true},
+  {"query": "Как скрейпить страницы на JavaScript, которые подгружают контент динамически? Нужен waitFor и markdown", "should_trigger": true},
+  {"query": "Which tool is best for taking screenshots of pages?", "should_trigger": false},
+  {"query": "Find stock photos for my site", "should_trigger": false},
+  {"query": "Fix BeautifulSoup AttributeError NoneType on find()", "should_trigger": false},
+  {"query": "Show Firecrawl SDK TypeScript usage for scrape", "should_trigger": false},
+  {"query": "Firecrawl crawl returns 402. What now?", "should_trigger": false},
+  {"query": "Build a REST API with FastAPI that returns product listings from my database", "should_trigger": false},
+  {"query": "Write a regex to extract emails from a text file", "should_trigger": false}
+]
