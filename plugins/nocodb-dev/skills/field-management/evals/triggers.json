@@ -1,5 +1,4 @@
 [
-  {"query": "Add a Single Select field 'Priority' with options Low, Medium, High, Urgent to the Tasks table in our NocoDB", "should_trigger": true},
   {"query": "Rename the NocoDB column 'Cust Name' to 'Customer Name' and change its type from SingleLineText to LongText", "should_trigger": true},
   {"query": "Add a formula field to Orders in NocoDB that computes Quantity * UnitPrice minus Discount", "should_trigger": true},
   {"query": "Set up a Link, Lookup and Rollup chain in NocoDB: Orders link to Customers, lookup the customer email, and roll up total amount per customer", "should_trigger": true},

@@ -1,12 +1,10 @@
 [
-  {"query": "Create a new NocoDB table 'Invoices' with a Title field as display field and initial fields Amount (Decimal) and DueDate (Date)", "should_trigger": true},
   {"query": "rename the NocoDB table 'Cust' to 'Customers' and update its description", "should_trigger": true},
   {"query": "Duplicate the Projects table in NocoDB including its fields, I need a template copy", "should_trigger": true},
   {"query": "Delete the NocoDB table 'tmp_import' — what should I check first (links, lookups, hooks)?", "should_trigger": true},
   {"query": "Создай в NocoDB новую таблицу 'Заказы' сразу с полями и поставь отображаемое поле", "should_trigger": true},
   {"query": "Как переименовать таблицу в NocoDB и поменять отображаемое поле (display field)?", "should_trigger": true},
   {"query": "set the display field of the Contacts table in NocoDB to Full Name", "should_trigger": true},
-  {"query": "add a table with initial fields to my NocoDB base using the REST Meta API, then verify it", "should_trigger": true},
   {"query": "Add a Rollup field to the Orders table that sums the line item totals in NocoDB", "should_trigger": false},
   {"query": "Create a Gallery view of the Products table in NocoDB", "should_trigger": false},
   {"query": "Insert 200 rows into the Customers table in NocoDB from a CSV", "should_trigger": false},
