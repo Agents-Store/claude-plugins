@@ -1,6 +1,6 @@
 [
-  {"query": "Create a SendPulse email addressbook 'Webinar October' and add these 50 subscribers with the variables name and city", "should_trigger": true},
-  {"query": "Remove a subscriber from my SendPulse addressbook and unsubscribe another one, and tell me the difference", "should_trigger": true},
+  {"query": "Which SendPulse MCP tools add subscribers with custom variables to an addressbook, update the variables of one subscriber and find subscribers by variable value?", "should_trigger": true},
+  {"query": "What is the difference between email_addressbooks_emails_delete and email_addressbooks_emails_unsubscribe in SendPulse, and which one should I use to stop mailing someone?", "should_trigger": true},
   {"query": "Calculate how much it will cost to send a campaign to my addressbook 'Customers' in SendPulse", "should_trigger": true},
   {"query": "Find subscribers in a SendPulse addressbook whose variable 'plan' is 'pro' to segment a list", "should_trigger": true},
   {"query": "Update the phone number and variables of an existing subscriber in a SendPulse mailing list and show the total subscriber count", "should_trigger": true},

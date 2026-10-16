@@ -1,8 +1,8 @@
 [
-  {"query": "Add a new sender address to SendPulse, trigger the verification email and tell me when it's active", "should_trigger": true},
+  {"query": "Walk me through adding a new SendPulse email sender: which tools create the sender, send the verification code and activate it with the code?", "should_trigger": true},
   {"query": "Show my SendPulse account balance and list the senders and email tags I've configured", "should_trigger": true},
-  {"query": "Add these addresses to the SendPulse blacklist and check whether another address is already blocked", "should_trigger": true},
-  {"query": "Look up the delivery details and statistics of an email address in SendPulse and delete it globally", "should_trigger": true},
+  {"query": "Which SendPulse MCP tools list, add and remove blacklisted emails, and which ones assign tags to phone numbers?", "should_trigger": true},
+  {"query": "Which SendPulse tools return the statistics of a single email address and delete that address from all mailing lists?", "should_trigger": true},
   {"query": "Create an email tag in SendPulse and assign it to a list of addresses, then remove the tag from one of them", "should_trigger": true},
   {"query": "Проверь баланс аккаунта SendPulse и покажи подтверждённых отправителей", "should_trigger": true},
   {"query": "Добавь адрес в чёрный список SendPulse и назначь тег нескольким email", "should_trigger": true},

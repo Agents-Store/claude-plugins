@@ -3,7 +3,7 @@
   {"query": "List recent bounces in SendPulse SMTP and show the bounce count, then tell me which addresses I should stop emailing", "should_trigger": true},
   {"query": "Check whether an email address is on the SendPulse SMTP unsubscribe list and re-subscribe it", "should_trigger": true},
   {"query": "Show the sent email details and total sent count for my SendPulse SMTP account, and my dedicated IPs and sender domains", "should_trigger": true},
-  {"query": "Add an address to the SMTP unsubscribe list in SendPulse and remove another one from it", "should_trigger": true},
+  {"query": "Which SendPulse SMTP tools check whether an address is unsubscribed, add it to the unsubscribe list, remove it and re-subscribe it?", "should_trigger": true},
   {"query": "Отправь транзакционное письмо через SMTP SendPulse и проверь статус доставки", "should_trigger": true},
   {"query": "Покажи недавние отскоки (bounces) в SendPulse SMTP и список отписавшихся адресов", "should_trigger": true},
   {"query": "How do I configure SendPulse SMTP infrastructure - sender domains and dedicated IPs - before sending password reset emails?", "should_trigger": true},
