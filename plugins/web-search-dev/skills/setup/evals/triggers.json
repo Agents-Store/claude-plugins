@@ -1,9 +1,9 @@
 [
   {"query": "Check which of my web search services are working: Firecrawl, Exa, Jina, Perplexity and Context7. Run one light call each and give me a status table", "should_trigger": true},
   {"query": "Is Jina working? I think read_url works without a key but search fails", "should_trigger": true},
-  {"query": "How do I test the Context7 connection? Which parameters does resolve-library-id need?", "should_trigger": true},
-  {"query": "Which services need an API key and which work keyless, and what can I do with only Firecrawl available?", "should_trigger": true},
-  {"query": "How do I verify the Pexels and Unsplash keys without printing them?", "should_trigger": true},
+  {"query": "Verify the Context7 MCP in this session: which two calls do I run, which parameters does resolve-library-id need, and what should the status line say?", "should_trigger": true},
+  {"query": "Run the availability check of the web search services and report in a table what works without a key and what I can do with only Firecrawl available", "should_trigger": true},
+  {"query": "Check whether PEXELS_API_KEY and UNSPLASH_ACCESS_KEY work using curl status codes only and never echoing the keys", "should_trigger": true},
   {"query": "Check the Perplexity MCP. The ask tools take messages, not query. How do I test it properly?", "should_trigger": true},
   {"query": "Проверь, какие сервисы веб-поиска у меня подключены и работают: нужна таблица статусов", "should_trigger": true},
   {"query": "Как проверить подключение Firecrawl и что делать, если npx не находит команду?", "should_trigger": true},

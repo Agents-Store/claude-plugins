@@ -3,9 +3,16 @@
   "evals": [
     {
       "id": 9,
-      "prompt": "Show me a complete example of building a content pipeline that discovers articles from tech blogs, extracts their content, classifies them by topic, and imports them into a CMS.",
+      "prompt": "Show me a complete example of building a content pipeline that discovers articles from tech blogs, extracts their content, classifies them by topic, and imports them into a CMS. Describe the stages with the tools and their parameters; do not run anything.",
       "expected_output": "Should reference the content-pipeline scenario from examples/references/scenarios/. Should show the full multi-service pipeline: discover sources (Exa) → map URLs (Firecrawl) → batch read (Jina) → extract structured data (Firecrawl) → classify (model or schema enum) → deduplicate (Jina) → import to CMS.",
-      "files": []
+      "files": [],
+      "expectations": [
+        "Discovers the sources with a search tool such as web_search_exa",
+        "Maps each source site with firecrawl_map before reading pages",
+        "Reads the articles in batches with read_url and says it takes up to 5 URLs per call",
+        "Extracts structured data with firecrawl_scrape using the json format with jsonOptions that hold a prompt and a schema",
+        "Covers classifying the articles (model or a schema enum) and importing them into the CMS"
+      ]
     }
   ]
 }
