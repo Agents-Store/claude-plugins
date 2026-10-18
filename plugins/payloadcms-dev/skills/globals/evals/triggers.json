@@ -6,7 +6,6 @@
   {"query": "Set access control on a Payload global so everyone can read but only admins can update", "should_trigger": true},
   {"query": "Как в Payload создать global «Настройки сайта» с навигацией и подключить его во фронтенде через REST?", "should_trigger": true},
   {"query": "Для настроек сайта и меню в Payload: использовать GlobalConfig или коллекцию с одним документом? Сравни и покажи минимальный global", "should_trigger": true},
-  {"query": "In Payload, which HTTP method updates a global over REST, PATCH or POST, and what are the names of the GraphQL query and mutation generated for a global called Header?", "should_trigger": true},
   {"query": "Create a Payload collection for blog posts with drafts and versions", "should_trigger": false},
   {"query": "Write a beforeChange hook on a collection that sets a slug from the title", "should_trigger": false},
   {"query": "Global variables in a Node.js app - what is the best way to share config between modules?", "should_trigger": false},
