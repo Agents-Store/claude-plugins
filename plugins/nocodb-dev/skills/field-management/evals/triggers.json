@@ -2,7 +2,7 @@
   {"query": "Rename the NocoDB column 'Cust Name' to 'Customer Name' and change its type from SingleLineText to LongText", "should_trigger": true},
   {"query": "Add a formula field to Orders in NocoDB that computes Quantity * UnitPrice minus Discount", "should_trigger": true},
   {"query": "Set up a Link, Lookup and Rollup chain in NocoDB: Orders link to Customers, lookup the customer email, and roll up total amount per customer", "should_trigger": true},
-  {"query": "Добавь в таблицу Клиенты в NocoDB поле-вложение 'Договор' и числовое поле 'Скидка, %'", "should_trigger": true},
+  {"query": "Настрой в NocoDB цепочку Link, Lookup и Rollup: заказы привязаны к клиентам, нужно подтянуть email клиента и посчитать сумму заказов по каждому клиенту", "should_trigger": true},
   {"query": "Как в NocoDB удалить колонку и не сломать формулы и lookup, которые на неё ссылаются?", "should_trigger": true},
   {"query": "add a new select option 'On hold' to the Status field in NocoDB without touching the existing records", "should_trigger": true},
   {"query": "Create a Barcode field and a Button field on the Inventory table in NocoDB", "should_trigger": true},
