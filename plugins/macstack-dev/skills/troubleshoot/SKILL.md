@@ -1,6 +1,6 @@
 ---
 name: troubleshoot
-description: Diagnoses failures of the macstack-dev toolchain. Covers lint errors, prototypes that do not resolve or clone, Infisical profile and missing env-key problems, scaffold runs that overwrite files or leave placeholders unresolved, macstack/ folder faults (duplicate macstack.json, stripped anchors, homoglyph ids, unreadable client files) and plugin discovery failures. Use when a macstack-dev step errors out and the cause is unknown. To run the validation use lint; for new client material use intake.
+description: Diagnoses failures of the macstack-dev toolchain. Covers lint errors, prototypes that do not resolve or clone, Infisical profile and missing or wiped env keys, scaffold runs that overwrite files, contradict the architecture or leave env references unresolved, macstack/ folder faults (duplicate macstack.json, stripped anchors, homoglyph ids, unreadable client files) and plugin discovery failures. To run the validation use lint; for new client material use intake.
 ---
 
 # Troubleshoot macstack-dev
