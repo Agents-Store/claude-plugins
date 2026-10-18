@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "I want to drop the obsolete column legacy_code from the products table over the PostgreSQL MCP server and make NocoDB show the change. What exactly do you do, step by step, including the SQL you would send?",
+      "prompt": "Use the postgres-mcp-tools skill. I want to drop the obsolete column legacy_code from the products table over the PostgreSQL MCP server and make NocoDB show the change. What exactly do you do, step by step, including the SQL you would send?",
       "expected_output": "Asks for confirmation of the exact column and a backup first (see modify-schema), runs one ALTER TABLE ... DROP COLUMN statement per execute_sql call, then reminds to run Meta Sync in NocoDB / refresh the data source in NocoBase.",
       "files": [],
       "expectations": [

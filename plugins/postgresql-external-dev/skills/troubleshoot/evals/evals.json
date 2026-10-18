@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "Before I connect my PostgreSQL database to NocoBase as an external source, what should I check? Give me a validation checklist.",
+      "prompt": "Use the troubleshoot skill. Before I connect my PostgreSQL database to NocoBase as an external source, what should I check? Give me a validation checklist.",
       "expected_output": "The verification checklist covering: serial PK (or a deliberate tested alternative), a primary key on every table, FK type matching, ON DELETE NO ACTION, indexes on FKs, UNIQUE for 1:1, composite PK for M2M, default types (ARRAY/ENUM/geometric only when deliberate), no INHERITS, json by default with jsonb only where needed, text for selects, snake_case naming, the NocoBase commercial plugin license, and Meta Sync / refresh after the last change.",
       "files": [],
       "assertions": [

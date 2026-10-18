@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I'm building a product catalog in PostgreSQL that connects to NocoDB. I need columns for: product name, price, discount percentage, whether it's active, a rating (1-5 stars), and some JSON metadata. What SQL types should I use for each?",
+      "prompt": "Use the column-types skill. I'm building a product catalog in PostgreSQL that connects to NocoDB. I need columns for: product name, price, discount percentage, whether it's active, a rating (1-5 stars), and some JSON metadata. What SQL types should I use for each?",
       "expected_output": "product name: text, price: decimal(10,2), discount: double precision, is_active: bool, rating: smallint, metadata: json (jsonb only as an option for GIN indexes or operators). No ENUM.",
       "files": [],
       "assertions": [

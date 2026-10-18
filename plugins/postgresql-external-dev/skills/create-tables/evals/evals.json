@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "What primary key type should I use for my PostgreSQL tables if I'm connecting this database to NocoBase and NocoDB as an external data source? We expect millions of records. Show me the CREATE TABLE for an events table and say how each platform treats the key type.",
+      "prompt": "Use the create-tables skill. What primary key type should I use for my PostgreSQL tables if I'm connecting this database to NocoBase and NocoDB as an external data source? We expect millions of records. Show me the CREATE TABLE for an events table and say how each platform treats the key type.",
       "expected_output": "Recommends bigserial for large tables. Explains that both serial and bigserial work with NocoDB and NocoBase. Shows the CREATE TABLE template with bigserial. Mentions that NocoBase maps serial to integer and bigserial to bigInt.",
       "files": [],
       "assertions": [
