@@ -1,8 +1,8 @@
 [
   {"query": "Add a receipts section: users upload a file, OCR runs in the background and the page shows the result. Give me the recipe covering Directus, Next.js and Trigger.dev", "should_trigger": true},
-  {"query": "How do I decide whether a new feature needs a Trigger.dev task or can stay inline in a Server Action?", "should_trigger": true},
+  {"query": "New receipts feature: upload, OCR, categorization and a list page. Using this stack's recipe, which parts become a Trigger.dev task and which stay inline in the Server Action? Give me the signal table and the steps", "should_trigger": true},
   {"query": "Build an end-to-end feature with async processing across the three services. What are the steps in order?", "should_trigger": true},
-  {"query": "Which places do I update when I add a new Directus collection that a task writes to: the Flow list, the allow-list, the types, the task stub?", "should_trigger": true},
+  {"query": "Add the reports collection that a Trigger.dev task writes to and a page lists. Give me the recipe from the stack's full-feature template including how the task's writes reach revalidation", "should_trigger": true},
   {"query": "Create a page backed by Directus with a background job that sends a notification email, and verify it end to end", "should_trigger": true},
   {"query": "Нужен рецепт новой функции: коллекция в Directus, страница в Next.js и задача Trigger.dev, которая считает отчёт. В каком порядке делать?", "should_trigger": true},
   {"query": "Как проверить новую фичу целиком: типы компилируются, страница рендерится, задача завершается со статусом done?", "should_trigger": true},
