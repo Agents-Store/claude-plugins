@@ -8,7 +8,7 @@
   {"query": "Before I script against Outline, explain the global request conventions: POST-only RPC style, response envelope, pagination with limit and offset, rate limits", "should_trigger": true},
   {"query": "I have a scoped Outline API key - how do scopes work and how do I verify what the key may do?", "should_trigger": true},
   {"query": "My Outline call returns 403 Forbidden on webhookSubscriptions.create although auth.info works", "should_trigger": false},
-  {"query": "Create a new Outline document called 'Welcome' in the Handbook collection", "should_trigger": false},
+  {"query": "Which keyboard shortcuts does the Outline editor have for inserting tables and callout blocks", "should_trigger": false},
   {"query": "Show me an example scenario of onboarding users into Outline groups", "should_trigger": false},
   {"query": "How do I set up Confluence Cloud API tokens for a script?", "should_trigger": false},
   {"query": "Set up a Notion integration token and share a page with it", "should_trigger": false},
