@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 4,
-      "prompt": "Use the performance skill. Optimize my Next.js site for Core Web Vitals. LCP is 4.2s, CLS is 0.23 In this session you have no project files and no shell, and nobody to ask. Do not ask questions: assume a typical Next.js App Router project and answer in text with concrete findings, what you would check, the fixes and the code you would write.",
+      "prompt": "Use the performance skill. Optimize my Next.js site for Core Web Vitals. LCP is 4.2s, CLS is 0.23. Go through images, fonts, layout shifts and content that loads late, and name the metrics you rely on. In this session you have no project files and no shell, and nobody to ask. Do not ask questions: assume a typical Next.js App Router project and answer in text with concrete findings, what you would check, the fixes and the code you would write.",
       "expected_output": "Identifies specific LCP and CLS issues and implements targeted fixes",
       "files": [],
       "expectations": [
