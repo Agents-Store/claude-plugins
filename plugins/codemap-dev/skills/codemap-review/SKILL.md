@@ -1,6 +1,6 @@
 ---
 name: codemap-review
-description: Use when a developer asks for feedback on their own code - "review this", "is this code okay", "what's wrong with this code", "check my work", "what can I improve" - for a pasted snippet, a file, a diff or a pull request. Returns findings ranked by severity, each with why it matters and a fix, plus what is done well. Prefer it to an ad-hoc review when the user is learning. Not for explaining how code works (codemap-explain) or testing a running app (frontend-test).
+description: Use when a developer asks for feedback on code they wrote - to review it, check their work, say what is wrong with it or what to improve - whether it is a pasted snippet, a file, a diff or a pull request. Returns findings ranked by severity, each with why it matters and a fix, plus what is done well, pitched for learners. Not for explaining how code works (codemap-explain) or testing a running app (frontend-test).
 ---
 
 # Code Review for Beginners

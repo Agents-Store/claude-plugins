@@ -6,6 +6,8 @@ allowed-tools: [Read, Bash, Skill, Agent]
 
 # Create Application
 
+Follow the `mcp-patterns` skill (`${CLAUDE_PLUGIN_ROOT}/skills/mcp-patterns/SKILL.md`) for the application tool parameters and usage notes; read it before the first call.
+
 Create a new application in an existing Dokploy project.
 
 ## Arguments

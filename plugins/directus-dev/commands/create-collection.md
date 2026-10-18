@@ -5,6 +5,8 @@ argument-hint: <name> [--fields <field1:type,field2:type>] [--icon <icon>]
 
 # Create Collection
 
+Follow the `schema-design` skill (`${CLAUDE_PLUGIN_ROOT}/skills/schema-design/SKILL.md`) for the creation order, system fields and primary key rules; read it before the first call.
+
 ## Arguments
 
 - `name` (required) — Collection name (snake_case recommended)

@@ -1,6 +1,6 @@
 ---
 name: codemap-explain
-description: Use when the user wants existing code explained to them as a learner - what a file, function or module does, how a request or data flows through the project, why it was built that way, or a tour of a codebase. Prefer it to an ad-hoc answer whenever the user is learning the code, because it gives a structured step-by-step explanation (context, data flow, details, pitfalls) pitched at the user's level, also for pasted code. Not for code review (codemap-review) or diagrams (codemap-diagram).
+description: Use when the user wants existing code explained as a learner - what a file, function or module does, how a request or data flows through the project, why it was built that way, or a tour of a codebase. Gives a structured step-by-step explanation (context, data flow, details, pitfalls) pitched at the user's level, preferred to an ad-hoc answer when the user is learning the code. Not for code review (codemap-review) or diagrams (codemap-diagram).
 ---
 
 # Code Explanation for Beginners
