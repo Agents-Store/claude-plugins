@@ -5,7 +5,7 @@
   {"query": "The dokploy MCP says tools not found - my agent can't see any dokploy tools anymore", "should_trigger": true},
   {"query": "dokploy api returns 401 even though the key is correct. What are the known causes?", "should_trigger": true},
   {"query": "How do I open the Traefik dashboard in Dokploy to see why my router isn't matching?", "should_trigger": true},
-  {"query": "В Dokploy домен не открывается, сертификат Let's Encrypt не выпускается. Какие типичные причины?", "should_trigger": true},
+  {"query": "В Dokploy я добавил домен с HTTPS сразу после смены A-записи, и браузер ругается на сертификат. Что делать и сколько ждать?", "should_trigger": true},
   {"query": "Приложение в Dokploy не подключается к базе: connection refused. Что проверить?", "should_trigger": true},
   {"query": "My deploy failed with a build error. Walk me through the full recovery", "should_trigger": false},
   {"query": "Read the logs of every service in my compose stack on Dokploy", "should_trigger": false},
