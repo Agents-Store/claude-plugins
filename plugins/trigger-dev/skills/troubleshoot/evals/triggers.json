@@ -1,10 +1,10 @@
 [
   {"query": "My Trigger.dev runs are stuck in QUEUED on self-hosted after I restarted the host. What should I check?", "should_trigger": true},
   {"query": "Runs end with the CRASHED status. What are the likely causes and the fix?", "should_trigger": true},
-  {"query": "The run status is EXPIRED. What does it mean and where do I raise the TTL?", "should_trigger": true},
+  {"query": "Runs show the EXPIRED status on my Trigger.dev queue. Explain the cause and where I raise the ttl at trigger, task and global level", "should_trigger": true},
   {"query": "My runs show PENDING_VERSION. What is wrong?", "should_trigger": true},
-  {"query": "The dashboard returns 502 on my self-hosted instance. How do I diagnose it?", "should_trigger": true},
-  {"query": "I get unknown option --readonly when I run install-mcp. What is wrong?", "should_trigger": true},
+  {"query": "My self-hosted Trigger.dev dashboard returns 502 after a host reboot and runs sit in QUEUED. Which services do I check first, the webapp, the supervisor, the worker token?", "should_trigger": true},
+  {"query": "trigger.dev install-mcp with --client claude-code and --readonly prints error unknown option --readonly. What is the fix?", "should_trigger": true},
   {"query": "Деплой Trigger.dev падает с ошибкой denied requested access to the resource is denied. Что делать?", "should_trigger": true},
   {"query": "Задачи на своём сервере все в статусе CRASHED, подозреваю нехватку памяти у supervisor. Как проверить?", "should_trigger": true},
   {"query": "Why does my cron schedule not fire?", "should_trigger": false},

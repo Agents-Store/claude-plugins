@@ -1,6 +1,6 @@
 [
   {"query": "I have a streamText route in Next.js for my chat UI and I want to move it onto Trigger.dev as a durable chat.agent. What do I change on the server and on the client?", "should_trigger": true},
-  {"query": "How do I mint a chat access token safely? mintChatAccessToken(chatId) is a public Server Action and anyone with a chat id could read the conversation", "should_trigger": true},
+  {"query": "Review my chat.agent frontend: it calls mintChatAccessToken(chatId) from a Server Action with no ownership check. What breaks, how do I record the owner on the Session metadata, and which chat ids should I use?", "should_trigger": true},
   {"query": "What are the version requirements for chat agents and sessions on my self-hosted server, and what changed in 4.6?", "should_trigger": true},
   {"query": "The stop button in my Trigger.dev chat updates the UI but the model keeps generating. What is missing in the agent?", "should_trigger": true},
   {"query": "Where do I initialise chat.local in a chat.agent, onChatStart or onBoot, and why do continuation runs skip it?", "should_trigger": true},
