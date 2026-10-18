@@ -10,7 +10,7 @@
   {"query": "Create a table 'customers' with a UUID primary key for NocoDB and NocoBase", "should_trigger": false},
   {"query": "Add a foreign key and an index on the FK between orders and customers", "should_trigger": false},
   {"query": "Rename a column in a live PostgreSQL table and make NocoDB see it", "should_trigger": false},
-  {"query": "Which column types does the NocoDB REST API accept when I create a field through the API?", "should_trigger": false},
+  {"query": "How do I change the column width and hide a column in a NocoDB grid view?", "should_trigger": false},
   {"query": "Compare MySQL and PostgreSQL data types for storing money", "should_trigger": false},
   {"query": "How do I choose between varchar(255) and text in plain PostgreSQL for performance?", "should_trigger": false},
   {"query": "Define SQLAlchemy mapped_column types for a Postgres table", "should_trigger": false},

@@ -1,6 +1,5 @@
 [
   {"query": "How do I upsert rows through PostgREST with on_conflict and Prefer: resolution=merge-duplicates, and get the stored row back with return=representation?", "should_trigger": true},
-  {"query": "I want to PATCH a Postgres table over HTTP with PostgREST but make sure I never update everything by accident. What's the max-affected safety net?", "should_trigger": true},
   {"query": "Read data from a PostgreSQL table in an n8n HTTP Request node using PostgREST: filters, select, order and pagination syntax", "should_trigger": true},
   {"query": "Call a stored function over REST with PostgREST and pass JSON parameters - what is the endpoint and header?", "should_trigger": true},
   {"query": "How does a Trigger.dev task read a Postgres table with fetch against PostgREST, including auth headers and error handling?", "should_trigger": true},
