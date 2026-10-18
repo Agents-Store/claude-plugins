@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the sprint-planning skill. Plan Sprint 16 for TaskFlow. 1-week sprint starting Monday. Team: 3 devs, one of them (Bob) is part-time 50%. Our last 3 sprints completed 18, 22, 20 points. Set a sprint goal, calculate capacity, pick items from backlog, create the cycle. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the sprint-planning skill. Plan Sprint 16 for TaskFlow. 1-week sprint starting Monday. Team: 3 devs, one of them (Bob) is part-time 50%. Our last 3 sprints completed 18, 22, 20 points. Set a sprint goal, calculate capacity, pick items from backlog, create the cycle. Candidates from the backlog: PROJ-201 (5 points, has acceptance criteria), PROJ-202 (3, has acceptance criteria), PROJ-203 (8, has acceptance criteria), PROJ-204 (13, no acceptance criteria), PROJ-205 (2, blocked by PROJ-204). Walk each candidate through the readiness checklist, and show the create-cycle call and how the items are added and checked. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Full planning ceremony: velocity avg 20 × 0.85 ≈ 17 → adjusted for Bob's 50% (team has 2.5 FTE not 3, so ~14-15 capacity), sprint goal in the 'users can X so that Y' format, item selection honoring DoR, cycle(action=create) call with owned_by, cycle(action=manage_workitems) with add_ids.",
       "files": [],
       "expectations": [
@@ -31,7 +31,7 @@
     },
     {
       "id": 3,
-      "prompt": "Use the sprint-planning skill. I'm planning Sprint 1 for a brand new team. Nobody has ever worked together. Help me set capacity. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the sprint-planning skill. I'm planning Sprint 1 for a brand new team. Nobody has ever worked together. Help me set capacity. The team has 5 people, the sprint is 2 weeks and nobody has PTO. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "No velocity history → uses days-based formula with focus factor, then applies first-sprint 60% reduction for learning curve.",
       "files": [],
       "expectations": [

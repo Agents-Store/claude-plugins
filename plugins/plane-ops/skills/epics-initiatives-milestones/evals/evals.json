@@ -38,7 +38,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the epics-initiatives-milestones skill. The 'Multi-tenant support' epic has 90 remaining points and the team velocity is 30 per sprint. When will it likely finish? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the epics-initiatives-milestones skill. The 'Multi-tenant support' epic has 90 remaining points and the team velocity is 30 per sprint. When will it likely finish? Sprints are 2 weeks and today is Monday, October 5. State what the forecast assumes and when to re-check it. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Forecasts 3 sprints remaining based on velocity and flags any risk buffer.",
       "files": [],
       "expectations": [
@@ -50,7 +50,7 @@
     },
     {
       "id": 5,
-      "prompt": "Use the epics-initiatives-milestones skill. Create the epic 'Multi-tenant support' in TaskFlow and attach it to the 'International expansion Q3' initiative, then list all epics in the project. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the epics-initiatives-milestones skill. Create the epic 'Multi-tenant support' in TaskFlow and attach it to the 'International expansion Q3' initiative, then list all epics in the project. Also say how its child stories get attached to the epic and how you read the link back. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Epic created as a work item of type Epic (no epic tool), listed with a type filter, linked to the initiative through manage_workitems.",
       "expectations": [
         "The answer does not look for or call any dedicated epic tool (create, list or link an epic); says there are no epic tools",
@@ -63,7 +63,7 @@
     },
     {
       "id": 6,
-      "prompt": "Use the epics-initiatives-milestones skill. How far along is the Multi-tenant epic (PROJ-5)? Give me counts per state and the points done. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the epics-initiatives-milestones skill. How far along is the Multi-tenant epic (PROJ-5)? Give me counts per state and the points done. Show the calls, then compute the completion rate from this listing: PROJ-6 (5 points, done), PROJ-7 (3 points, done), PROJ-8 (8 points, in progress), PROJ-9 (5 points, not started). In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "One count call grouped by state group for the children of PROJ-5, plus a listing for the point sums.",
       "expectations": [
         "The answer says to count children with workitem(action=count, pql='childOf(\"PROJ-5\")', group_by=state__group)",

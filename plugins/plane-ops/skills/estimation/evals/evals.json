@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the estimation skill. Estimate these 5 backlog items for TaskFlow using Fibonacci, compare each to our 3-point reference story 'Login with email': (1) Add CAPTCHA to signup, (2) Migrate the entire checkout flow to Stripe Elements, (3) Fix typo in footer, (4) Build admin export-to-CSV with filters, (5) Research: should we use Pusher or Ably for realtime? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the estimation skill. Estimate these 5 backlog items for TaskFlow using Fibonacci, compare each to our 3-point reference story 'Login with email': (1) Add CAPTCHA to signup, (2) Migrate the entire checkout flow to Stripe Elements, (3) Fix typo in footer, (4) Build admin export-to-CSV with filters, (5) Research: should we use Pusher or Ably for realtime? Say which items need splitting or a different treatment, and why. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Per-item estimate with Fibonacci value, rationale comparing to the 3-point reference, complexity factors named. Item (2) flagged for decomposition (>8). Item (5) suggested as a spike with timebox.",
       "files": [],
       "expectations": [
@@ -40,7 +40,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the estimation skill. Our team is new and doesn't have reference stories yet. Should we use Fibonacci or t-shirt sizes for our first sprint? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the estimation skill. Our team is new and doesn't have reference stories yet. Should we use Fibonacci or t-shirt sizes for our first sprint? Say how to move to the other scale later and what to avoid when estimating. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Recommends t-shirt sizing for initial backlog triage, Fibonacci once references are established.",
       "files": [],
       "expectations": [

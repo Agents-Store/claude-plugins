@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the velocity-metrics skill. Give me a Sprint Health dashboard for TaskFlow's active sprint right now. I want burndown status, velocity context, WIP, blockers, and a completion forecast. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the velocity-metrics skill. Give me a Sprint Health dashboard for TaskFlow's active sprint right now. I want burndown status, velocity context, WIP, blockers, and a completion forecast. The calls return: Sprint 12, day 3 of 5, 40 points planned and 22 completed; the last three completed sprints delivered 28, 31 and 30 points; the team has 5 people and 4 items in progress; MP-47 is blocked by MP-45. Render the dashboard. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Combined dashboard: burndown (day X of Y, actual vs ideal), velocity trend across last 5 sprints with confidence tier, WIP current vs limit, blocker count, projected completion points. Concrete recommendations at the bottom.",
       "files": [],
       "expectations": [
@@ -44,7 +44,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the velocity-metrics skill. Last sprint: 'Upload avatar' was estimated 2 points, team logged 6 hours. 'Change email' was estimated 5 points, team logged 5 hours. Team baseline is 1.8 hrs/pt. Any issues? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the velocity-metrics skill. Last sprint: 'Upload avatar' was estimated 2 points, team logged 6 hours. 'Change email' was estimated 5 points, team logged 5 hours. Team baseline is 1.8 hrs/pt. Any issues? Say what pattern you see and what to do with it at the next estimation session. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Avatar is ratio 3.0 (> 1.8 × 1.5) → UNDERESTIMATED. Email is ratio 1.0 (< 1.8 × 0.5 = 0.9? No, 1.0 > 0.9) → borderline, not overestimated. Pattern: file-handling tasks underestimated.",
       "files": [],
       "expectations": [
@@ -57,7 +57,7 @@
     },
     {
       "id": 5,
-      "prompt": "Use the velocity-metrics skill. How many work items did TaskFlow finish in each of the last 4 sprints, and how many are in progress right now? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the velocity-metrics skill. How many work items did TaskFlow finish in each of the last 4 sprints, and how many are in progress right now? Show the calls and how you turn the counts into sprint names, and say whether this gives velocity in points. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Throughput per completed sprint from one workitem(action=count) call grouped by cycle_id, and current WIP from a second count on the started state group; cycle ids mapped to sprint names.",
       "expectations": [
         "The answer says to count finished items per sprint with workitem(action=count, pql='cycle IN completedCycles() AND stateGroup = \"completed\"', group_by=cycle_id) rather than listing every item of every sprint",

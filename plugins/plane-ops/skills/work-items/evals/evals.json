@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the work-items skill. Create a work item in project TaskFlow: 'Fix login 500 on Safari', high priority, 3 points, assigned to Alice, labeled 'bug'. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the work-items skill. Create a work item in project TaskFlow: 'Fix login 500 on Safari', high priority, 3 points, assigned to Alice, labeled 'bug'. Start with how you find the tools, show every call including how names become ids, and the description you write. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Resolves project_id, state UUID, assignee UUID, label UUID, then calls workitem(action=create) with description_html including acceptance criteria.",
       "files": [],
       "expectations": [
@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "Use the work-items skill. Mark PROJ-148 as blocked by PROJ-140. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the work-items skill. Mark PROJ-148 as blocked by PROJ-140. Show the calls in order and how you check the result. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Resolves both item UUIDs and calls workitem_relation(action=create) with relation_type blocked_by.",
       "files": [],
       "expectations": [
@@ -38,7 +38,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the work-items skill. Find all work items in TaskFlow that mention 'webhook' in title or description. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the work-items skill. Find all work items in TaskFlow that mention 'webhook' in title or description. Show the exact call or calls, how results are limited to TaskFlow, which part of an item the search covers, and how the results are presented. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Calls workitem(action=search, query='webhook') (workspace-scoped) and filters results to the TaskFlow project client-side, or lists the project with a pql text filter.",
       "files": [],
       "expectations": [
@@ -62,7 +62,7 @@
     },
     {
       "id": 6,
-      "prompt": "Use the work-items skill. Show me every urgent or high priority item assigned to me in TaskFlow that is still open, and how many items each person has in progress. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the work-items skill. Show me every urgent or high priority item assigned to me in TaskFlow that is still open, and how many items each person has in progress. Show each call with its filter, say how you stay within the filter limits and look up the filter syntax, and how you page through long results. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "PQL-filtered workitem list with assignee = currentUser(), plus a count grouped by assignee; no client-side filtering of a full listing.",
       "expectations": [
         "The answer says to filter server-side: workitem(action=list, project_id, pql='assignee = currentUser() AND priority IN (\"urgent\",\"high\") AND stateGroup IN openStates()') or equivalent",

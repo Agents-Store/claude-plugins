@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the intake-triage skill. Triage the intake queue for TaskFlow. I want to see what's waiting. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the intake-triage skill. Triage the intake queue for TaskFlow. I want to see what's waiting. Start with how you find the Plane tools. The list returns three items: 'Export button does nothing' (9 days old), 'Add dark mode please' (6 days old, one customer), 'App crashes on login for all users' (1 day old, reported by three customers). Give the triage summary. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Lists intake items sorted by age, proposes a decision (accept/defer/reject) for each using the routing rules.",
       "files": [],
       "expectations": [
@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "Use the intake-triage skill. The intake has a report 'App crashes on login for all users'. What's the decision? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the intake-triage skill. The intake has a report 'App crashes on login for all users'. What's the decision? Show the exact calls with parameters, who gets the item, and what the work item records about where the report came from. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Accept + escalate, create an urgent work item, assign on-call.",
       "files": [],
       "expectations": [
@@ -27,7 +27,7 @@
     },
     {
       "id": 3,
-      "prompt": "Use the intake-triage skill. The intake has 'Add dark mode please' from one customer. What's the decision? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the intake-triage skill. The intake has 'Add dark mode please' from one customer. What's the decision? Show the exact call with its parameters and what you record for the reporter. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Defer with rationale, revisit next grooming.",
       "files": [],
       "expectations": [
@@ -38,7 +38,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the intake-triage skill. Intake has 'Login returns 500 on Safari' but PROJ-148 already tracks this exact issue. What do I do? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the intake-triage skill. Intake has 'Login returns 500 on Safari' but PROJ-148 already tracks this exact issue. What do I do? Show the exact calls and say what happens to the intake entry afterwards. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Reject as duplicate, link the existing PROJ-148 in the rejection comment so the reporter feels heard.",
       "files": [],
       "expectations": [

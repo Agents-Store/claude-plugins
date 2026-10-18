@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the task-decomposition skill. Decompose epic 'Multi-tenant support' (currently 21 points) for TaskFlow. Must include data isolation, per-tenant billing, per-tenant branding, admin tenant switcher. Break into stories that fit in a 2-week sprint. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the task-decomposition skill. Decompose epic 'Multi-tenant support' (currently 21 points) for TaskFlow. Must include data isolation, per-tenant billing, per-tenant branding, admin tenant switcher. Break into stories that fit in a 2-week sprint. List each story with its points and acceptance criteria, and show the create call that attaches it to the epic. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "4-6 vertical stories each ≤8 points, created in Plane with parent set to the epic, total ≈21, each with user story format + acceptance criteria. Uses Split by Business Rule or Split by Workflow Step pattern.",
       "files": [],
       "expectations": [
@@ -42,7 +42,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the task-decomposition skill. Validate this user story against INVEST: 'As a support agent, I want to flag tickets, so that I can follow up later' — 21 points, no acceptance criteria, depends on a new tags system being built first. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the task-decomposition skill. Validate this user story against INVEST: 'As a support agent, I want to flag tickets, so that I can follow up later' — 21 points, no acceptance criteria, depends on a new tags system being built first. Go through every INVEST criterion with a PASS or FAIL verdict and say what to do about each failure. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Fails Small (21 pts), Testable (no AC), and Independent (blocked by tags system). Specific remediation for each.",
       "files": [],
       "expectations": [

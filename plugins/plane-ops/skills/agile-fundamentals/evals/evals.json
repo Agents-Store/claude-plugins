@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the agile-fundamentals skill. What is the capacity of a 4-person team for a 2-week sprint with no velocity history?",
+      "prompt": "Use the agile-fundamentals skill. What is the capacity of a 4-person team for a 2-week sprint with no velocity history? Everyone is available on all 10 working days, with no PTO or holidays.",
       "expected_output": "Applies the canonical formula: 4 * 10 * 0.7 * 0.85 = 23.8 points, and cites the focus factor 0.7 and 15% buffer.",
       "files": [],
       "expectations": [

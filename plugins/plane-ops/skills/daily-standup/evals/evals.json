@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the daily-standup skill. Generate today's standup dashboard for TaskFlow Sprint 12. It's day 3 of 5. Show sprint-level burn, per-person status, and flag anything at risk. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the daily-standup skill. Generate today's standup dashboard for TaskFlow Sprint 12. It's day 3 of 5. Show sprint-level burn, per-person status, and flag anything at risk. The calls return: Sprint 12 runs Monday to Friday and today is Wednesday (day 3 of 5); 40 points planned, 22 completed; 10 items of which 5 are done, 3 in progress, 1 not started and 1 blocked. By assignee: Alice has 4 items (2 done, 1 in progress, 1 not started), Bob has 3 (1 done, 1 in progress, 1 blocked by Bob's own in-progress item), Carol has 3 (2 done, 1 in progress). Render the dashboard. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Team-level dashboard: points done/total, items by state, WIP status, pace vs needed pace. Per-person section with DONE/DOING/NEXT/BLOCKED. Attention section listing stalled, blocked, and not-started items.",
       "files": [],
       "expectations": [
@@ -17,7 +17,7 @@
     },
     {
       "id": 2,
-      "prompt": "Use the daily-standup skill. Give me a per-person standup breakdown for the Billing team's active sprint. Show each member's DONE, DOING, NEXT, and BLOCKED. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the daily-standup skill. Give me a per-person standup breakdown for the Billing team's active sprint. Show each member's DONE, DOING, NEXT, and BLOCKED. Show the calls that fetch the data, how you find items that sit in progress without moving, and how you confirm that before naming one stalled. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "For each team member, a labeled list of items with state, points, and any blocker notes.",
       "files": [],
       "expectations": [
@@ -41,7 +41,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the daily-standup skill. We're an async remote team across 5 timezones. How should we run standup and where do we publish the update? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the daily-standup skill. We're an async remote team across 5 timezones. How should we run standup and where do we publish the update? Give the cadence you recommend, the exact call that publishes the update with the page name you use so history stays browsable, and where the rules for formatting the page body come from. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Recommends async cadence 3x/week, publish as a Plane project page per day.",
       "files": [],
       "expectations": [

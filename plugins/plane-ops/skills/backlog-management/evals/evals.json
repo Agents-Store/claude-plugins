@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the backlog-management skill. Our TaskFlow project backlog has 67 items. Run a health check — I need concrete numbers on what's ready vs what needs work, and a prioritized list of what to fix first. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the backlog-management skill. Our TaskFlow project backlog has 67 items. Run a health check — I need concrete numbers on what's ready vs what needs work, and a prioritized list of what to fix first. The calls return: 67 open backlog items in total, 14 with nobody assigned, 21 with priority none; the listing shows 18 items without points, 11 with an empty description and 6 above 8 points; 29 items have points, a priority and a description. Show the calls, the six numbers and the score. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Full health report: total items, unestimated count, no-priority count, no-assignee count, oversized items, missing descriptions, health score %, status tier (Healthy/Good/Needs Work/Unhealthy), and a prioritized remediation plan.",
       "files": [],
       "expectations": [
@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "Use the backlog-management skill. Prioritize these three backlog items with WSJF: (a) 'Add SSO login' — big revenue unlock for enterprise deal due next month, 8 points; (b) 'Fix typo on pricing page' — 1 point, no deadline; (c) 'Migrate logging to new provider' — 5 points, reduces outage risk, no hard deadline. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the backlog-management skill. Prioritize these three backlog items with WSJF: (a) 'Add SSO login' — big revenue unlock for enterprise deal due next month, 8 points; (b) 'Fix typo on pricing page' — 1 point, no deadline; (c) 'Migrate logging to new provider' — 5 points, reduces outage risk, no hard deadline. Score each factor from 1 to 10 yourself, show the ranked table and say which Plane priority each item gets. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Calculates WSJF for each item using BV + TC + RR / Job Size, ranks them, suggests Plane priority values.",
       "files": [],
       "expectations": [
@@ -28,7 +28,7 @@
     },
     {
       "id": 3,
-      "prompt": "Use the backlog-management skill. Classify this backlog for Q2 release using MoSCoW: payment processing, user profile edit, dark mode, export to CSV, audit log, social login, keyboard shortcuts, welcome email. Release deadline is firm. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the backlog-management skill. Classify this backlog for Q2 release using MoSCoW: payment processing, user profile edit, dark mode, export to CSV, audit log, social login, keyboard shortcuts, welcome email. Release deadline is firm. Give a one-line rationale per item and check the result against the share of capacity the skill recommends for each category. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Each item classified as Must/Should/Could/Won't with rationale, target distribution ~60/20/20.",
       "files": [],
       "expectations": [
@@ -40,7 +40,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the backlog-management skill. Our backlog has 120 items, health score 42%. Help me groom it — I have 2 hours. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the backlog-management skill. Our backlog has 120 items, health score 42%. Help me groom it — I have 2 hours. Give me a time-boxed plan for the 2 hours, say what to do with items nobody has touched for a long time, how I will know it worked, and which other skills help with which step. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Full grooming workflow: top-down review, split oversized, estimate unestimated, archive stale, re-check health after.",
       "files": [],
       "expectations": [
@@ -53,7 +53,7 @@
     },
     {
       "id": 5,
-      "prompt": "Use the backlog-management skill. Which backlog items in TaskFlow have gone stale and have nobody assigned? Don't pull the whole backlog into the conversation. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the backlog-management skill. Which backlog items in TaskFlow have gone stale and have nobody assigned? Don't pull the whole backlog into the conversation. Also tell me what to do with the stale ones, and how to find the items that have no estimate or no description. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Server-side PQL filter on the backlog state groups, hasNoAssignee() and updatedAt < daysAgo(n), counted first and listed second; stale items proposed for cancel-then-archive, never silently deleted.",
       "expectations": [
         "The answer says to filter server-side with pql on workitem(action=list) or workitem(action=count), e.g. stateGroup IN (\"backlog\",\"unstarted\") AND hasNoAssignee() AND updatedAt < daysAgo(42), instead of listing everything and filtering client-side",

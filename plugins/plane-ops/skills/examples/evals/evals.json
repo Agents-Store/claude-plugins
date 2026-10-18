@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the examples skill. I have a new feature request 'Two-factor authentication' to add to TaskFlow. Create it with acceptance criteria, estimate 5 points, label it type/feature + area/auth, and drop it into the current cycle 'Sprint 15'. Show me the exact MCP tool calls. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the examples skill. I have a new feature request 'Two-factor authentication' to add to TaskFlow. Create it with acceptance criteria, estimate 5 points, label it type/feature + area/auth, and drop it into the current cycle 'Sprint 15'. Show me the exact MCP tool calls. Say how each name (labels, cycle) becomes an id, and which reference file of the examples skill gives the exact parameter formats. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Sequence of concrete tool calls with exact parameter names: project(action=list) → label(action=list) → cycle(action=list) → workitem(action=create) (with point, labels, description_html containing Given/When/Then AC) → cycle(action=manage_workitems) (with add_ids array).",
       "files": [],
       "expectations": [
@@ -41,14 +41,14 @@
     },
     {
       "id": 4,
-      "prompt": "Use the examples skill. What's a realistic workflow for linking a PR to a work item and moving it to review? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the examples skill. What's a realistic workflow for linking a PR to a work item and moving it to review? Show the day-to-day plugin commands in order, and say what the link gives us later. In this session you have no Plane tools and no shell, only file reading and a text answer: describe what you would run, in what order, and what you would check.",
       "expected_output": "Sequence using /link add → /work-item update state → /comment → /assign, from everyday-commands.md.",
       "files": [],
       "expectations": [
         "The answer routes to everyday-commands.md",
         "The answer shows the full 4-step command sequence",
         "The answer mentions that PR linking enables release notes generation",
-        "The answer uses the new command shortcuts (/link, /comment, /assign) not raw MCP"
+        "The answer names the plugin commands (/link, /comment, /assign) for these steps"
       ]
     }
   ]
