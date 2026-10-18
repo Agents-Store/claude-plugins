@@ -1,5 +1,4 @@
 [
-  {"query": "Where do I set req.user as the author in Payload - beforeChange on create only? Show the hook with the operation check", "should_trigger": true},
   {"query": "My Payload afterChange hook updates the same document and now loops forever. How do I prevent the loop with context?", "should_trigger": true},
   {"query": "How do I make a Payload hook that creates a related document atomic with the transaction - why do I need to pass req into nested operations?", "should_trigger": true},
   {"query": "Revalidate the Next.js cache from a Payload afterChange hook, but skip it during imports using context flags", "should_trigger": true},
