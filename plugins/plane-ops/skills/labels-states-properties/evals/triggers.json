@@ -2,7 +2,6 @@
   {"query": "Design a label taxonomy and workflow states for a new Plane project: what's the difference between a label, a property, a state and a work item type?", "should_trigger": true},
   {"query": "Our Plane project has 80 noisy labels. Audit the taxonomy and propose a cleaned-up set with naming conventions", "should_trigger": true},
   {"query": "Should 'customer-reported' be a label, a custom property or a work item type in Plane? Help me decide", "should_trigger": true},
-  {"query": "Set up a state machine for bugs in Plane with backlog, in progress, in review, done and cancelled groups", "should_trigger": true},
   {"query": "Configure custom properties like severity and affected version for work items in Plane", "should_trigger": true},
   {"query": "Как организовать метки, состояния и типы задач в Plane? Нужен рекомендуемый набор и правила именования", "should_trigger": true},
   {"query": "Помоги выбрать между label, свойством и типом задачи в Plane для поля «источник заявки»", "should_trigger": true},

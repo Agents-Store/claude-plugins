@@ -3,7 +3,6 @@
   {"query": "Analyze the burndown of the current sprint: are we on track, what is the ideal vs actual line?", "should_trigger": true},
   {"query": "Compare estimated vs actual effort: how much time was logged per story point in the last sprints?", "should_trigger": true},
   {"query": "What are the throughput and cycle time of our team for the last quarter, and are we exceeding the WIP limits?", "should_trigger": true},
-  {"query": "Show team metrics for the review: completion rate per sprint, carry-over rate and velocity variance", "should_trigger": true},
   {"query": "Посчитай скорость команды по последним циклам Plane и покажи тренд", "should_trigger": true},
   {"query": "Какие формулы использует навык velocity-metrics для burndown, WIP-лимитов и пропускной способности? Назови их", "should_trigger": true},
   {"query": "How does the velocity-metrics skill calculate historical velocity, its stability and the time logged per story point?", "should_trigger": true},

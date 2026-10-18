@@ -1,7 +1,7 @@
 [
-  {"query": "Prepare my daily standup from Plane: what did I complete yesterday, what am I working on today and what is blocked?", "should_trigger": true},
+  {"query": "In the Plane standup, how many days without a change before an in-progress item counts as stalled, and how do I confirm that before naming it in front of the team?", "should_trigger": true},
   {"query": "Generate an async standup report for the whole team from the current cycle in Plane, highlighting blockers and items that did not move", "should_trigger": true},
-  {"query": "What PQL queries does the Plane daily standup use to find what was completed yesterday, what is in progress and what is blocked?", "should_trigger": true},
+  {"query": "Как в Plane оформить стендап-отчёт по каждому участнику: какие метки статусов использовать и как назвать страницу, чтобы история не терялась?", "should_trigger": true},
   {"query": "Run the standup with me: summarize progress per team member from Plane and list the questions to ask", "should_trigger": true},
   {"query": "Составь асинхронный стендап-отчёт для команды из текущего цикла Plane", "should_trigger": true},
   {"query": "How do I run an async standup for a remote team in Plane, and what cadence does the skill recommend?", "should_trigger": true},

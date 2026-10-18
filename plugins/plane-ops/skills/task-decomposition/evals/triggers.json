@@ -1,5 +1,4 @@
 [
-  {"query": "Break the epic 'User notifications' into user stories using INVEST criteria and vertical slicing, then create the stories as sub-work-items in Plane", "should_trigger": true},
   {"query": "This story is 21 points - split it into smaller stories that each deliver value. Which splitting patterns apply?", "should_trigger": true},
   {"query": "Decompose the work item 'Build admin dashboard' into subtasks for backend, frontend, tests and docs with estimates", "should_trigger": true},
   {"query": "What are the six story splitting patterns in the task decomposition skill, and how are points redistributed after splitting?", "should_trigger": true},

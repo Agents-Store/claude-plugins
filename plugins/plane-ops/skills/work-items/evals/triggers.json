@@ -1,7 +1,7 @@
 [
   {"query": "What does the description template for a new Plane work item look like, and why must labels and assignees be passed as UUID arrays?", "should_trigger": true},
   {"query": "How do I log time on a Plane work item: which call, in what unit is the duration, and what must be enabled on the project first?", "should_trigger": true},
-  {"query": "Bulk update: move these ten work items to the next cycle and set their priority to medium", "should_trigger": true},
+  {"query": "I want to comment on a Plane work item with a link to the PR: which parameter holds the HTML, and how do I read the comment back?", "should_trigger": true},
   {"query": "Какие поля нужны для создания work item в Plane - project_id, name, state, priority, labels, assignees - и как оформить описание в HTML с критериями приёмки?", "should_trigger": true},
   {"query": "Как в Plane искать задачи через PQL: по человекочитаемому идентификатору, полнотекстовым поиском и фильтрами? Покажи примеры", "should_trigger": true},
   {"query": "Break this epic into stories", "should_trigger": false},
