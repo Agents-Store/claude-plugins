@@ -7,7 +7,7 @@
   {"query": "Создай в магазине Teleshop атрибут «Цвет» с типом color и флагом вариантов, затем добавь значения", "should_trigger": true},
   {"query": "Как настроить атрибуты для магазина электроники: объём памяти как вариант, RAM как справочный?", "should_trigger": true},
   {"query": "list all attributes in my Teleshop store sorted by name and show the values of Color", "should_trigger": true},
-  {"query": "Assign the Color attribute to a product in my store", "should_trigger": false},
+  {"query": "Add a size chart image to the product page of my Shopify store", "should_trigger": false},
   {"query": "Create a new product category Smartphones under Electronics", "should_trigger": false},
   {"query": "Add custom fields to WooCommerce products", "should_trigger": false},
   {"query": "Design a database schema for product variants with attributes in Postgres", "should_trigger": false},

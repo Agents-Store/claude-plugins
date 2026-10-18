@@ -2,7 +2,7 @@
   {"query": "Show me a complete store setup scenario for Teleshop from scratch: categories, attributes, products, webhooks", "should_trigger": true},
   {"query": "Give me end-to-end examples of Teleshop order processing from created to completed", "should_trigger": true},
   {"query": "I need the exact parameter formats for the Teleshop MCP tool calls. Where are the tool call patterns?", "should_trigger": true},
-  {"query": "Which tools exist in the Teleshop plugin per group, and how many are there?", "should_trigger": true},
+  {"query": "I am new to the Teleshop plugin. Give me the quick reference of all its MCP tools grouped by area (products, orders, categories, attributes, customers, import, webhooks, addons) and a worked store-setup scenario", "should_trigger": true},
   {"query": "Show multi-step workflow examples that combine several Teleshop tools", "should_trigger": true},
   {"query": "Покажи полный сценарий настройки магазина Teleshop с нуля", "should_trigger": true},
   {"query": "Дай примеры вызовов инструментов Teleshop для обработки заказа от создания до завершения", "should_trigger": true},

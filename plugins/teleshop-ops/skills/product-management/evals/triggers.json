@@ -2,7 +2,7 @@
   {"query": "Create a product in my Teleshop store: SKU TSH-M-BLK, title Black T-Shirt M, price 29, quantity 40, in category 12", "should_trigger": true},
   {"query": "Raise the prices of all products in the Shoes category by 10 percent", "should_trigger": true},
   {"query": "Set a discount price on product 301. Is there a rule about how it compares with the regular price?", "should_trigger": true},
-  {"query": "Replace the images of product 88 with these image ids", "should_trigger": true},
+  {"query": "Product 88 has the wrong photos. Replace its images with image ids 501, 502 and 503 and fix its color and size attributes", "should_trigger": true},
   {"query": "Delete products 101, 102 and 103 in one call", "should_trigger": true},
   {"query": "Добавь в магазин Teleshop новый товар с артикулом, описанием и ценой и включи контроль остатков", "should_trigger": true},
   {"query": "Как настроить вариантный товар в Teleshop: родитель и дочерние размеры?", "should_trigger": true},

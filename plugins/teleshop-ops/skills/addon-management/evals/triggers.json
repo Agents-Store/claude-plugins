@@ -13,5 +13,5 @@
   {"query": "Set up a Shopify app that syncs inventory every hour", "should_trigger": false},
   {"query": "Import 300 products from a JSON file into my Teleshop store", "should_trigger": false},
   {"query": "Trigger a GitHub Actions workflow manually with workflow_dispatch", "should_trigger": false},
-  {"query": "Enable Telegram Stars payments for digital goods in my store", "should_trigger": false}
+  {"query": "Turn on the free shipping promo banner in my Shopify store", "should_trigger": false}
 ]
