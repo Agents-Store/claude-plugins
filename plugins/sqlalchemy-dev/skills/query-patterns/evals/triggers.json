@@ -5,7 +5,6 @@
   {"query": "How do I write an aggregate query with group_by, func.count and having, and then join it back to the parent table?", "should_trigger": true},
   {"query": "Bulk insert and update thousands of rows in SQLAlchemy 2.0 efficiently - insert().values, bulk update, session.execute?", "should_trigger": true},
   {"query": "Нужно ограничить все запросы текущим пользователем (owner-scoped queries) в Flask-SQLAlchemy. Как это сделать аккуратно?", "should_trigger": true},
-  {"query": "Как в SQLAlchemy написать подзапрос и использовать его в where через in_ или exists?", "should_trigger": true},
   {"query": "What changed in SQLAlchemy 2.1 query behaviour and how do I upgrade queries that used the legacy Query API?", "should_trigger": true},
   {"query": "Define a SQLAlchemy model with Mapped columns and a unique constraint", "should_trigger": false},
   {"query": "IntegrityError: duplicate key value violates unique constraint - how do I handle it?", "should_trigger": false},
