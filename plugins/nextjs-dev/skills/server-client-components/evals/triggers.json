@@ -1,7 +1,7 @@
 [
   {"query": "I get 'You're importing a component that needs useState' in the App Router. How do I fix the 'use client' boundary without making the whole page client-side?", "should_trigger": true},
   {"query": "Where do I put `import 'server-only'` and `client-only` in a Next.js project, how do I install both guard packages, and what error appears if a Client Component imports lib/data.ts?", "should_trigger": true},
-  {"query": "Нужно показать серверный компонент внутри модалки (клиентский компонент) в Next.js 16. Покажи, как передать его через children, чтобы он остался серверным.", "should_trigger": true},
+  {"query": "Где в Next.js ставить import 'server-only', как установить пакеты server-only и client-only и какая ошибка появится, если Client Component импортирует lib/data.ts?", "should_trigger": true},
   {"query": "В App Router получаю ошибку \"You're importing a component that needs useState\". Как поправить границу 'use client', не делая всю страницу клиентской?", "should_trigger": true},
   {"query": "What is the decision matrix for server versus client components in Next.js 16 and how do I minimize client boundaries?", "should_trigger": true},
   {"query": "Write a Server Action form with useActionState and Zod validation in Next.js", "should_trigger": false},
