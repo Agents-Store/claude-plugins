@@ -2,7 +2,7 @@
   {"query": "In our stack a Trigger.dev task needs to upsert about 300 rows into Postgres every run. Should it call PostgREST, the NocoDB MCP or the PostgreSQL MCP? I would rather not install a DB driver in the task", "should_trigger": true},
   {"query": "n8n workflow needs to look up a customer by email in our database. What is the right way to read the DB from an n8n HTTP Request node in this stack, and where does the token live?", "should_trigger": true},
   {"query": "NocoDB MCP or PostgreSQL MCP for building a report with three JOINs and a window function over order_items?", "should_trigger": true},
-  {"query": "I want a mass PATCH from n8n that sets status to archived for a list of ids coming from a webhook. How do I make PostgREST refuse it if the filter accidentally matches the whole table?", "should_trigger": true},
+  {"query": "My n8n workflow builds a PATCH on the orders table from webhook input and once touched half the table when the id list came in empty. In our stack, how do I make the server refuse a write that affects more rows than expected?", "should_trigger": true},
   {"query": "Which data path do I use for simple record CRUD from Claude with pagination and views, and which one for EXPLAIN plans and vacuum stats?", "should_trigger": true},
   {"query": "Как в нашем стеке лучше читать и писать данные: через NocoDB MCP, PostgreSQL MCP или PostgREST? Нужна таблица: кто вызывает и для чего", "should_trigger": true},
   {"query": "У меня массовое обновление 20 тысяч строк по условию из другой таблицы - через что это делать в стеке, через MCP или REST?", "should_trigger": true},

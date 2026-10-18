@@ -7,7 +7,7 @@
   {"query": "Хочу запускать повторяющуюся задачу раз в час - синхронизацию заказов с внешним сервисом. Что лучше в нашем стеке: расписание в n8n или cron в Trigger.dev, и куда складывать упавшие задания?", "should_trigger": true},
   {"query": "What do we do with jobs that fail after all retries in the stack? I want a dead letter table and a status field on the NocoDB table that kicks off the job", "should_trigger": true},
   {"query": "Design the error handling for a webhook-triggered background job: which values should the job_status field go through and who alerts on critical failures?", "should_trigger": true},
-  {"query": "Write a Trigger.dev task with batchTriggerAndWait that fans out over 200 record ids using a queue with concurrencyLimit 5", "should_trigger": false},
+  {"query": "How do I build an n8n workflow that merges the results of two HTTP Request nodes before writing a row into Google Sheets?", "should_trigger": false},
   {"query": "How do I configure the n8n HTTP Request node to retry three times with a 2 second wait between attempts?", "should_trigger": false},
   {"query": "Add a NocoDB webhook that calls an n8n workflow when a record in the orders table is updated", "should_trigger": false},
   {"query": "Which path should n8n use to read the database: NocoDB MCP, PostgreSQL MCP or PostgREST?", "should_trigger": false},

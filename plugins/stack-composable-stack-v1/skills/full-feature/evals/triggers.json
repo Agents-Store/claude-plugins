@@ -12,6 +12,6 @@
   {"query": "Write a Trigger.dev task that retries three times and records the final failure in onFailure", "should_trigger": false},
   {"query": "Choose between PostgREST and the PostgreSQL MCP for batch updates from an n8n workflow", "should_trigger": false},
   {"query": "How do I trigger an n8n workflow from a NocoBase button?", "should_trigger": false},
-  {"query": "Build a full feature for a Next.js and Directus app: collection, permissions, page and server action", "should_trigger": false},
+  {"query": "Plan the sprint for building the checkout feature: split the work into frontend, backend and QA tickets with estimates", "should_trigger": false},
   {"query": "Write a release checklist for a new mobile app feature", "should_trigger": false}
 ]

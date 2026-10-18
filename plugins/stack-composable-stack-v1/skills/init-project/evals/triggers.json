@@ -3,7 +3,7 @@
   {"query": "Which env variables does the stack need for Trigger.dev, n8n, NocoDB and PostgREST? I have the example env file but I am not sure which token is which", "should_trigger": true},
   {"query": "n8n native MCP returns 403 right after setup. Where do I generate the MCP token and which variable does it go into?", "should_trigger": true},
   {"query": "How do I verify that all MCP services of the stack respond? Give me the checks in order, starting from NocoDB", "should_trigger": true},
-  {"query": "NocoDB MCP says 401 though the REST API token works fine. What is different about the MCP token?", "should_trigger": true},
+  {"query": "I am filling the .env of the Composable Stack. I have NOCODB_TOKEN from the REST API. What goes into NOCODB_MCP_URL and NOCODB_MCP_TOKEN, and how do I test that the MCP answers?", "should_trigger": true},
   {"query": "Как настроить окружение Composable Stack с нуля: переменные, подключение MCP-серверов и проверка, что всё отвечает?", "should_trigger": true},
   {"query": "Подключил стек, но Trigger.dev не отвечает по таймауту. Что проверить в переменных окружения?", "should_trigger": true},
   {"query": "need to pull the secrets from Infisical into .env and settings.local.json for the stack project, what is the command and what gets written where?", "should_trigger": true},
