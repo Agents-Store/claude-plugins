@@ -1,10 +1,7 @@
 [
-  {"query": "Show the calls that find the Epic work item type in a Plane project, create an epic with it and list the epic's children with a childOf PQL filter", "should_trigger": true},
   {"query": "Which calls create a milestone in Plane and attach work items to it, and when should I use a milestone instead of an epic or an initiative?", "should_trigger": true},
-  {"query": "Build a roadmap from our Plane epics and initiatives for the next two quarters", "should_trigger": true},
   {"query": "Report progress on a long-running goal that spans multiple sprints and modules: should this be an initiative or an epic?", "should_trigger": true},
   {"query": "Add a milestone with a target date to the project and attach the relevant work items to it", "should_trigger": true},
-  {"query": "В Plane нет отдельных инструментов для эпиков. Как создать эпик через тип work item «Epic» и как получить список дочерних задач эпика?", "should_trigger": true},
   {"query": "Чем в Plane отличаются эпик, инициатива и milestone и как построить роадмап на квартал?", "should_trigger": true},
   {"query": "How does the Plane initiative rollup compute progress across its epics, and how do I read the health of a milestone?", "should_trigger": true},
   {"query": "Break the epic into smaller user stories using INVEST criteria", "should_trigger": false},

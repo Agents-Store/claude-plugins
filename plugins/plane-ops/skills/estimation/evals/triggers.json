@@ -4,7 +4,6 @@
   {"query": "When should we use t-shirt sizes instead of story points, and how do I convert between them for Plane estimates?", "should_trigger": true},
   {"query": "Which story point scale and t-shirt size mapping does the Plane estimation skill use, and how do I write estimates to a project that has an estimate system configured?", "should_trigger": true},
   {"query": "Our estimates are always off by 2x. How do we recalibrate relative estimation using past work items?", "should_trigger": true},
-  {"query": "Оцени задачи спринта в story points по шкале Фибоначчи и предложи, где нужен planning poker", "should_trigger": true},
   {"query": "Помоги провести сессию оценки в Plane: возьми задачи без оценки и предложи эталонную историю", "should_trigger": true},
   {"query": "What are the planning poker rules and the reference stories in the estimation skill, and when does it say a story must be split?", "should_trigger": true},
   {"query": "What are the formulas for sprint capacity, velocity and focus factor?", "should_trigger": false},

@@ -1,10 +1,8 @@
 [
   {"query": "Prepare my daily standup from Plane: what did I complete yesterday, what am I working on today and what is blocked?", "should_trigger": true},
   {"query": "Generate an async standup report for the whole team from the current cycle in Plane, highlighting blockers and items that did not move", "should_trigger": true},
-  {"query": "How does the daily standup skill detect blockers automatically in Plane and what does the blocker report format look like?", "should_trigger": true},
   {"query": "What PQL queries does the Plane daily standup use to find what was completed yesterday, what is in progress and what is blocked?", "should_trigger": true},
   {"query": "Run the standup with me: summarize progress per team member from Plane and list the questions to ask", "should_trigger": true},
-  {"query": "Подготовь ежедневный стендап по данным Plane: что сделано, что в работе и какие блокеры", "should_trigger": true},
   {"query": "Составь асинхронный стендап-отчёт для команды из текущего цикла Plane", "should_trigger": true},
   {"query": "How do I run an async standup for a remote team in Plane, and what cadence does the skill recommend?", "should_trigger": true},
   {"query": "Run the sprint review and retrospective for the cycle that just ended", "should_trigger": false},

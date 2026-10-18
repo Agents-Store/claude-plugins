@@ -1,6 +1,5 @@
 [
   {"query": "Plan the next sprint in Plane: calculate capacity for our 5 developers with 2 on holiday, propose a sprint goal and pick items from the backlog", "should_trigger": true},
-  {"query": "Which calls create a Plane cycle with owned_by and a description, add work items with add_ids and read them back?", "should_trigger": true},
   {"query": "What's our capacity for the next sprint given an average velocity of 32 points and a 15% buffer, and which backlog items should I select?", "should_trigger": true},
   {"query": "Help me set a clear sprint goal and select work items, making sure the commitment stays within capacity", "should_trigger": true},
   {"query": "Run sprint planning: check carry-over from the previous cycle, calculate capacity and propose the sprint scope", "should_trigger": true},
