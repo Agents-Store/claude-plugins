@@ -1,9 +1,9 @@
 [
-  {"query": "Our invoices from the document generator look cramped. Which font pairing, size hierarchy, margins and spacing grid do the formatting standards define for a business PDF, and what do they say about table text and the header and footer?", "should_trigger": true},
+  {"query": "I'm putting together a 20-page client proposal as a Word file with the document generator. Which fonts should the headings and the body text use, and what point sizes for the title, the headings and the body, so every proposal we send looks the same?", "should_trigger": true},
   {"query": "What margins and line spacing does the plugin use for contracts versus reports? I want my DOCX to match.", "should_trigger": true},
   {"query": "Which color palette is used for each document type, and how does the 60-30-10 rule apply to a proposal?", "should_trigger": true},
   {"query": "The PDFs from the document generator have no page numbers and the company name is missing on every page. What should the PDF header and footer contain, in which font size and color, and where do the page numbers go?", "should_trigger": true},
-  {"query": "I want every PDF from the document generator to follow one design system. Which font pairing, size hierarchy, margins and spacing grid do the formatting standards define, and how do they differ between an invoice and a contract?", "should_trigger": true},
+  {"query": "The invoice PDF we sent a customer has a pale blue box behind every section and colored cells all over the table, and it looks like a web page instead of a business document. How should the table and the section blocks be styled?", "should_trigger": true},
   {"query": "What's the spacing grid and which formatting anti-patterns should I avoid in business documents?", "should_trigger": true},
   {"query": "Какие шрифты, размеры и отступы применять в коммерческом предложении, чтобы оно выглядело профессионально?", "should_trigger": true},
   {"query": "Какие стандарты оформления приняты для PDF-документов этого плагина: шрифты и их размеры, поля, межстрочный интервал, колонтитулы с номерами страниц и палитра для отчёта?", "should_trigger": true},
