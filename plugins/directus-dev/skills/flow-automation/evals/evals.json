@@ -56,7 +56,7 @@
     },
     {
       "id": 30,
-      "prompt": "Use the flow-automation skill. When an article is created or its body edited in Directus, my worker should process it. The worker writes ai_summary back into the same article and now the flow fires in a loop. Set up the flow so it sends the item ids to the worker and does not re-fire on the worker's own write.",
+      "prompt": "Use the flow-automation skill. When an article is created or its body edited in Directus, my worker should process it. The worker writes ai_summary back into the same article and now the flow fires in a loop. Set up the flow so it sends the item ids to the worker and does not re-fire on the worker's own write. Also tell me how to authenticate the request to the worker (my first idea was an HMAC computed in a Run Script operation) and what the receiving endpoint must do on its side.",
       "expected_output": "Event flow with a request operation sending event, collection and keys; a condition with filter rules on $trigger.payload that the write-back does not satisfy; the secret in a header",
       "files": [],
       "expectations": [
