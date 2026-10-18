@@ -4,7 +4,7 @@
   {"query": "What is the first call I should run to make sure my Outline key is valid, and what should a good response look like?", "should_trigger": true},
   {"query": "Does OUTLINE_API_URL have to include /api? I keep getting weird 404s when I append it myself", "should_trigger": true},
   {"query": "Настрой доступ к Outline по API-ключу: куда положить ключ, какой базовый URL нужен для облака и для self-hosted, и как проверить, что всё работает", "should_trigger": true},
-  {"query": "Как в Outline создать персональный API-ключ и как его правильно передавать в заголовке? Хочу пользоваться им из curl", "should_trigger": true},
+  {"query": "Объясни глобальные соглашения Outline API: все методы - POST с JSON-телом, формат ответа с полем data, пагинация limit и offset, лимиты запросов", "should_trigger": true},
   {"query": "Before I script against Outline, explain the global request conventions: POST-only RPC style, response envelope, pagination with limit and offset, rate limits", "should_trigger": true},
   {"query": "I have a scoped Outline API key - how do scopes work and how do I verify what the key may do?", "should_trigger": true},
   {"query": "My Outline call returns 403 Forbidden on webhookSubscriptions.create although auth.info works", "should_trigger": false},
