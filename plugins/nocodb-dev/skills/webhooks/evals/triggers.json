@@ -1,5 +1,4 @@
 [
-  {"query": "I want an email notification sent when a record in the Orders table is updated, scoped to the Status field only — set up the hook in NocoDB", "should_trigger": true},
   {"query": "List all the webhooks on the Tasks table in NocoDB and delete the one named 'old-sync'", "should_trigger": true},
   {"query": "Нужен hook в NocoDB: при обновлении записи в таблице Заказы отправлять письмо, но только если изменилось поле Статус", "should_trigger": true},
   {"query": "Как в NocoDB создать hook через Meta API: триггеры, поля, тип уведомления URL и проверка работы?", "should_trigger": true},
