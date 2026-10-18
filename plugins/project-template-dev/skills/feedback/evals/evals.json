@@ -33,7 +33,7 @@
     },
     {
       "id": 3,
-      "prompt": "I just spent an hour figuring out that shadcn v4 components use @base-ui/react instead of Radix, and the asChild prop doesn't exist anymore — you have to use render instead. This gotcha should definitely be in the Level 1 template's CLAUDE.md so nobody else wastes time on it. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
+      "prompt": "I just spent an hour figuring out that shadcn v4 components use @base-ui/react instead of Radix, and the asChild prop doesn't exist anymore — you have to use render instead. I'm in acme-website, a Level 2 client project. This gotcha should definitely be in the Level 1 template's CLAUDE.md so nobody else wastes time on it. Say how you find that template, where the gotcha goes and what it says, how the change is recorded and how it is committed. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
       "expected_output": "The feedback skill identifies this as stack-specific (Level 1, project-directus-nextjs). It locates the parent template, adds the shadcn v4 gotcha to the CLAUDE.md Gotchas section, records in LEARNINGS.md, and commits.",
       "files": [],
       "expectations": [
