@@ -1,10 +1,6 @@
 ---
 name: jinja2-patterns
-description: >
-  Use when the user asks about "Jinja2 templates", "Flask templates",
-  "template inheritance", "Jinja2 macros", "Jinja2 filters",
-  "Flask render_template", "base template", "template blocks",
-  or needs patterns for Jinja2 template engine in Flask.
+description: Jinja2 template patterns for Flask, covering base layouts with template inheritance and blocks, reusable macros for form fields, custom filters registered in the app factory, url_for static links (also inside blueprints), loops and conditionals, flash messages, CSRF tokens in forms and render_template. Use it for any task that writes, fixes or explains the template side of a Flask app, in any language. For routes and blueprint structure use app-patterns.
 ---
 
 # Jinja2 Template Patterns

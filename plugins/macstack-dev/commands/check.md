@@ -1,6 +1,6 @@
 ---
 description: Validate the spec and the documents, report where the project stands and what to run next, or audit the implementation against the documents
-argument-hint: [--docs | --code | --new | (empty = spec + documents + dashboard)]
+argument-hint: '[--docs | --code | --new | (empty = spec + documents + dashboard)]'
 allowed-tools: [Read, Bash, Glob, Grep, Skill]
 ---
 

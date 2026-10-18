@@ -1,6 +1,6 @@
 ---
 name: item-operations
-description: Item CRUD operations — create, read, update, delete items, filtering, sorting, deep queries, aggregation, batch operations. This skill should be used when the user asks to create, read, update, or delete items, filter or search data, query with relations, aggregate values, or perform batch operations in Directus.
+description: Read, query and write records (items) in a Directus collection through the items tool, the API or MCP, including filters and sorting, deep queries across relations, aggregation with groupBy, pagination, batch create, and update or delete by keys or by query. Use it for any how-to about the data in a Directus collection, in any language. For flows use flow-automation; for collection and field design use schema-design.
 ---
 
 # Item Operations

@@ -6,7 +6,7 @@
   {"query": "Как через MCP-сервер DataForSEO узнать нужный эндпоинт для задачи 'позиции сайта по списку запросов' и собрать тело запроса для api_request?", "should_trigger": true},
   {"query": "Объясни, как работает цикл docs_search -> api_request у DataForSEO и как найти location_code для города Казань", "should_trigger": true},
   {"query": "list the sections of the DataForSEO docs and tell me where Merchant and App Data live, then show the request shape for a live endpoint", "should_trigger": true},
-  {"query": "the body for a live endpoint has to be an array with exactly one task object, right? show me a correct api_request for backlinks summary", "should_trigger": true},
+  {"query": "Which of the DataForSEO MCP tools are free and which one is billed, and in what order do docs_list_sections, docs_index, docs_search and api_request go for an endpoint I have not used yet?", "should_trigger": true},
   {"query": "Give me 100 keyword ideas for trail running shoes with search volumes", "should_trigger": false},
   {"query": "Is my DataForSEO MCP server connected and working? Run a check", "should_trigger": false},
   {"query": "DataForSEO returns 'tool not found' for dataforseo_labs_google_keyword_ideas", "should_trigger": false},
