@@ -3,7 +3,7 @@
   {"query": "How do I cache Directus reads in Next.js 16 and let a Flow expire them? rest() will not take a cache option", "should_trigger": true},
   {"query": "Passing cache no-store to rest() gives TS2353. How do I control caching per request instead?", "should_trigger": true},
   {"query": "My Directus price field comes back as a string in the Next.js page. How should I type decimal fields in types/directus.ts?", "should_trigger": true},
-  {"query": "Why should the server token belong to a dedicated Directus user with a narrow policy instead of the administrator?", "should_trigger": true},
+  {"query": "Our Next.js server uses an administrator static token for Directus. Tell me how the boundary should look: who holds which token, what a Server Action must check before it writes, and why the token user needs a narrow policy", "should_trigger": true},
   {"query": "A post query expands the author relation. Which cache tags does it need so that editing an author refreshes the page?", "should_trigger": true},
   {"query": "Как отдавать файлы Directus в Next.js, если не все файлы публичные? Нужен прокси-маршрут, который отдаёт только одну папку", "should_trigger": true},
   {"query": "Хочу показать записи коллекции Directus в Server Component и подтянуть типы из схемы. Как организовать теги кеша и типы, чтобы tsc ловил переименование поля?", "should_trigger": true},
