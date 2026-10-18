@@ -1,7 +1,7 @@
 [
   {"query": "I am building a Teams message extension search command. Which route handles the typed query, and what do the result cards and the preview cards look like?", "should_trigger": true},
   {"query": "How do I make link unfurling work for my domain in Teams? Pasted links do nothing", "should_trigger": true},
-  {"query": "My action command with fetchTask true never shows its form. I wrote a dialog.open handler", "should_trigger": true},
+  {"query": "My Teams message extension action command has fetchTask true and I wrote a dialog.open handler, but the form never opens. Which route name do I need and what does the response envelope look like?", "should_trigger": true},
   {"query": "How do I read the selected message in a message action command? What are the messagePayload fields?", "should_trigger": true},
   {"query": "What does a message extension settings page need, and where do I store the setting?", "should_trigger": true},
   {"query": "What goes into composeExtensions commands in the manifest for a search command with a parameter?", "should_trigger": true},

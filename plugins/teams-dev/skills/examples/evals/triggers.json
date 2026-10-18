@@ -6,7 +6,7 @@
   {"query": "Do you have a full example of a message extension search command with preview cards and the manifest command?", "should_trigger": true},
   {"query": "Which end-to-end Teams scenarios can I follow so that I start from the closest one?", "should_trigger": true},
   {"query": "Покажи сквозной пример бота для Teams: от создания проекта до проверки в клиенте", "should_trigger": true},
-  {"query": "Дай полный пример поискового расширения сообщений для Teams с командой в манифесте", "should_trigger": true},
+  {"query": "Покажи готовый сквозной сценарий поиска по сообщениям в Teams: проект, команда в манифесте, обработчик message.ext.query с карточками предпросмотра и проверка в клиенте", "should_trigger": true},
   {"query": "Add a typing indicator to my Teams bot handler", "should_trigger": false},
   {"query": "Explain the Teams SDK App class and its options", "should_trigger": false},
   {"query": "Show a complete example of a Slack bot with Bolt and slash commands", "should_trigger": false},
