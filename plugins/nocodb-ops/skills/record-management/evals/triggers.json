@@ -4,7 +4,7 @@
   {"query": "find the NocoDB record for the customer with email anna@example.com and change her phone number", "should_trigger": true},
   {"query": "How many records in the Orders table are overdue? Count the ones where DueDate is before today", "should_trigger": true},
   {"query": "Удали в NocoDB все тестовые записи из таблицы Заявки, у которых Название начинается с 'test' (сначала покажи их)", "should_trigger": true},
-  {"query": "Создай в NocoDB пять записей в таблице Задачи из этого списка и проверь, что они появились", "should_trigger": true},
+  {"query": "Переведи в NocoDB все задачи Марии из статуса Open в In Progress", "should_trigger": true},
   {"query": "deduplicate the Contacts table in NocoDB by email: keep the newest record and delete the older duplicates", "should_trigger": true},
   {"query": "restore the records I deleted by mistake from the NocoDB table Invoices", "should_trigger": true},
   {"query": "Add a new Single Select field to the Tasks table in NocoDB", "should_trigger": false},
