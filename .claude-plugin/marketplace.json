@@ -300,7 +300,7 @@
       "name": "stack-directus-nextjs-trigger",
       "source": "./plugins/stack-directus-nextjs-trigger",
       "description": "Directus + Next.js + Trigger.dev architecture plugin. How Directus (content, files, access), a Next.js App Router frontend and self-hosted Trigger.dev (durable and scheduled work) fit together: who holds which token, how the cache is invalidated, how a Directus change reaches a task and the result reaches the page, who owns the session, and a production checklist. Tool knowledge comes from its dependencies.",
-      "version": "3.0.2",
+      "version": "3.0.3",
       "author": {
         "name": "AGENTS.STORE"
       },
