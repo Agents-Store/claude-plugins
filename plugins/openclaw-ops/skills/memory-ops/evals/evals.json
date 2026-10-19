@@ -67,10 +67,10 @@
       "expected_output": "No: provider, model and chunking are part of the index identity, so any change pauses vector search and requires an explicit reindex; the model id itself is read from this instance's catalogue rather than recalled.",
       "files": [],
       "expectations": [
-        "The answer states that a model change forces an explicit reindex and there is no in-place migration",
-        "The answer says the reindex costs provider spend and load",
+        "The answer says a model change needs an explicit reindex",
+        "The answer says there is no in-place migration",
         "The answer says a subscription session does not cover embeddings",
-        "The answer does not name a specific embedding model"
+        "The answer says vector search pauses until a reindex"
       ]
     }
   ]

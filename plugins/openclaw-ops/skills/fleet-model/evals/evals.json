@@ -51,13 +51,13 @@
     },
     {
       "id": 5,
-      "prompt": "Use the fleet-model skill. The container is running and the healthcheck is green, so instance beta is fine, right? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the fleet-model skill. The container is running and the healthcheck is green, so instance beta is fine, right? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "No: green means the HTTP server is alive, not that work is happening. Introduces the degraded state and hands off to diagnostics for the liveness split.",
       "files": [],
       "expectations": [
         "The answer separates health from liveness",
-        "The answer names degraded as the state for a green container with a dead subsystem",
-        "The answer suggests log age, schedule fire times and the credential check rather than another HTTP probe"
+        "The answer mentions /openclaw-ops:status",
+        "The answer says to read HEALTH and LIVENESS as separate verdicts"
       ]
     },
     {
