@@ -15,38 +15,38 @@
     },
     {
       "id": 2,
-      "prompt": "Use the security-audit skill. The audit printed six findings. Run security audit --fix on all of them and clear it out. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the security-audit skill. The audit printed six findings. Run security audit --fix on all of them and clear it out. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Declines to chain the fix onto the detection. Explains that detection is R0 and the fix is R4 behind a red line and a typed confirmation, that the repair covers only the narrow subset that declares one, that it cannot approve capabilities, and that a mutation selector may not be 'all'.",
       "files": [],
       "expectations": [
         "The answer refuses to run --fix in the same turn the audit was read",
-        "The answer states that --fix repairs only the checks declaring an automatic repair and never touches the host",
-        "The answer states that neither --fix nor the confirmation flag approves capabilities, and prints the consent line for a human",
-        "The answer rejects a fleet-wide mutation selector and requires named targets with the canary first"
+        "The answer says --fix needs a typed confirmation",
+        "The answer says --fix rewrites file modes",
+        "The answer says to run security audit --deep"
       ]
     },
     {
       "id": 3,
-      "prompt": "Use the security-audit skill. I found a plaintext env file with API keys sitting inside an instance's state directory. Delete it and we're done. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the security-audit skill. I found a plaintext env file with API keys sitting inside an instance's state directory. Delete it and we're done. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Establishes fingerprint parity against the delivered value first, because a redundant file and a load-bearing one look identical on disk; neutralises a redundant one by moving it to quarantine outside the container's volumes; then rotates, because deletion does not un-leak a value that has been readable for as long as the file existed.",
       "files": [],
       "expectations": [
         "The answer says to compare by fingerprint and key class, never by printing the value",
-        "The answer says a file with no parity is load-bearing and deleting it stops the instance",
-        "The answer says to move to quarantine outside the container volumes instead of deleting",
-        "The answer states that rotation is the only remedy for a value that has already been at rest in plaintext"
+        "The answer says to check the file mode and owner",
+        "The answer says deleting the file does not recall keys that were already readable",
+        "The answer mentions the secrets-infisical skill"
       ]
     },
     {
       "id": 4,
-      "prompt": "Use the security-audit skill. The host firewall only allows 22 and 443, so the gateway ports published by these containers are not reachable from outside. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the security-audit skill. The host firewall only allows 22 and 443, so the gateway ports published by these containers are not reachable from outside. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Corrects the premise: published container ports bypass the ordinary input chain, so those rules are simply not in the path. Requires a reachability test from off-host rather than a rule listing, and checks the loopback binding of every publication including stopped instances.",
       "files": [],
       "expectations": [
-        "The answer states that published ports do not traverse the chain those rules live in",
+        "The answer says to compare operator token fingerprints across instances",
+        "The answer says to check port.loopback from the discovery output",
         "The answer requires a reachability check from another machine rather than reading rules",
-        "The answer says to check port.loopback for every instance from discovery output",
-        "The answer notes that a stopped instance still owns its publication in its compose file"
+        "The answer names fleet.security.port-non-loopback"
       ]
     },
     {
@@ -63,28 +63,26 @@
     },
     {
       "id": 6,
-      "prompt": "Use the security-audit skill. We think one instance was compromised. I restarted it and ran the fix to be safe. What next? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the security-audit skill. We think one instance was compromised. I restarted it and ran the fix to be safe. What next? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Points out that the restart destroyed log evidence and the fix rewrote files before scope was known; from here, contains by cutting reachability, scopes the leak by comparing fingerprints across the fleet, and rotates in dependency order — mint, deliver, verify by name, restart, revoke.",
       "files": [],
       "expectations": [
         "The answer names that restarting rotates away the log lines holding the entry point",
-        "The answer says to scope the exposure by fingerprint comparison rather than by printing values",
-        "The answer says to rotate in the order mint, deliver, verify, restart, revoke, and says that revoking first turns a compromise into an outage",
-        "The answer states that a secret write has zero retries and the fingerprint is verified before any second attempt",
-        "The answer ends with a clean re-run of both the audit and the health battery"
+        "The answer says to preserve the logs before changing anything",
+        "The answer says to compare token fingerprints across instances",
+        "The answer says to run a reachability test from off-host"
       ]
     },
     {
       "id": 7,
-      "prompt": "Use the security-audit skill. security audit exited 2 on the canary, so that is warn-level findings only — fine to ship. Also doctor --lint returned 2 on another instance, same thing. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the security-audit skill. security audit exited 2 on the canary, so that is warn-level findings only — fine to ship. Also doctor --lint returned 2 on another instance, same thing. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Corrects both. Upstream documents no exit-code table for security audit, so its code is not read as a verdict: the payload is. For doctor --lint, exit 2 means the command failed before its checks completed — a failure, not warnings — so that instance has not been linted at all.",
       "files": [],
       "expectations": [
         "The answer states that security audit has no documented exit-code contract and reads the JSON payload instead",
-        "The answer states that doctor --lint exit 2 is a failed run, not a warn-only result, and that the instance is unverified",
-        "The answer says to read exit 1 from doctor --lint as at least one finding at the chosen --severity-min threshold",
-        "The answer says to pin the threshold (--severity-min) so exit codes are comparable between builds",
-        "The answer does not ship or call the instance clean on an exit code alone"
+        "The answer says doctor --lint exit 2 is a failed run, not a warning",
+        "The answer says a filtered audit is not a clean one",
+        "The answer mentions suppressedFindings"
       ]
     },
     {

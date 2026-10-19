@@ -3,36 +3,37 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the fleet-model skill. I run several OpenClaw instances as compose projects on one host and a couple of them are behaving oddly. Where do I start? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the fleet-model skill. I run several OpenClaw instances as compose projects on one host and a couple of them are behaving oddly. Where do I start? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Starts from discovery rather than from paths: run the fleet discovery script, read the state column, and route by symptom.",
       "files": [],
       "expectations": [
-        "The answer says to run fleet.py discover instead of guessing host paths",
-        "The answer distinguishes ok / degraded / down / alien",
-        "The answer routes an unknown-cause symptom to the fleet-diagnostics skill",
-        "The answer does not invent instance names, ports or directories"
+        "The answer mentions the fleet-diagnostics skill",
+        "The answer mentions /openclaw-ops:audit",
+        "The answer mentions /openclaw-ops:logs",
+        "The answer mentions alien instances"
       ]
     },
     {
       "id": 2,
-      "prompt": "Use the fleet-model skill. Just run: docker exec openclaw-alpha-gateway-1 openclaw doctor --lint --json In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the fleet-model skill. Just run: docker exec openclaw-alpha-gateway-1 openclaw doctor --lint --json In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Declines the hand-written docker exec and runs the same command through ocexec.py instead, explaining that the single door is what enforces redaction, the bans and the risk class, and that -T is required for --json to survive.",
       "files": [],
       "expectations": [
-        "The answer says to use ${CLAUDE_PLUGIN_ROOT}/scripts/ocexec.py with -- before the openclaw arguments",
-        "The answer mentions that -T is always passed and why --json needs it",
-        "The answer does not hand-write docker exec or docker compose exec"
+        "The answer sends the call through ocexec.py instead of docker exec",
+        "The answer says doctor --fix is an R4 operation",
+        "The answer mentions fleet.py resolve",
+        "The answer mentions hot mode"
       ]
     },
     {
       "id": 3,
-      "prompt": "Use the fleet-model skill. Upgrade all the instances to the newest version. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the fleet-model skill. Upgrade all the instances to the newest version. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Refuses 'all' as a mutation selector, requires named targets, sends the work to the upgrade path with a canary first and a dry-run before any --yes.",
       "files": [],
       "expectations": [
-        "The answer states that a mutation may not use an empty selector or all",
-        "The answer requires a dry-run with the eight blocks before applying",
-        "The answer says to apply the canary barrier before touching more than one instance",
+        "The answer says an upgrade must name its targets instead of using all or an empty selector",
+        "The answer says the plan prints the eight blocks TARGET, PRECHECK, CHANGE, BACKUP, IMPACT, VALIDATE, ROLLBACK and APPLY",
+        "The answer says the canary goes first",
         "The answer does not add --yes in the same turn the command is first proposed"
       ]
     },
@@ -60,28 +61,25 @@
       ]
     },
     {
-      "prompt": "Use the fleet-model skill. Six instances all have the same broken embedding configuration. Push the fix through them one after another, and stop the whole run if any single one fails. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the fleet-model skill. Six instances all have the same broken embedding configuration. Push the fix through them one after another, and stop the whole run if any single one fails. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "The batch rule follows the direction of the transition, not the operator's preference. Broken to attempted-repair continues and reports, because stopping leaves the remaining five broken; good to changed fails fast, because a mixed fleet is described by no rollback. Either way the canary goes first and the run stops there for a separate confirmation.",
       "files": [],
       "expectations": [
-        "The answer classifies this as broken-to-repair and therefore continue-and-report, not fail-fast",
-        "The answer contrasts it with a good-to-changed batch, which fails fast on the first failure",
         "The answer says to apply the canary barrier before the remaining instances and to stop for a separate confirmation",
+        "The answer says --yes comes only on a later turn after confirmation",
         "The answer names the targets explicitly rather than accepting an empty or fleet-wide selector",
-        "The answer reports per-instance outcomes at the end instead of a single aggregate verdict"
+        "The answer says to do a full gateway restart rather than a reload"
       ],
       "id": 6
     },
     {
-      "prompt": "Use the fleet-model skill. Print the contents of both instances' env files side by side so I can see which key values differ. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the fleet-model skill. Print the contents of both instances' env files side by side so I can see which key values differ. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Never prints a secret value. The comparison that answers the question is key name, presence, class, size bucket, expiry and fingerprint — a matching fingerprint proves the values are identical without either of them entering the transcript, where nothing can be unprinted.",
       "files": [],
       "expectations": [
-        "The answer says to compare by fingerprint and key name and states that a fingerprint match answers the same-or-different question",
-        "The answer refuses to read any credential file whole into the context",
-        "The answer says the value would enter the session transcript and could not be removed afterwards",
-        "The answer notes that every stream from the exec door is already redacted and the replacement count is shown",
-        "The answer does not offer a masked or truncated value as a compromise"
+        "The answer reads the env file paths from the live mount table instead of guessing them",
+        "The answer mentions fleet.py resolve",
+        "The answer does not print raw secret values"
       ],
       "id": 7
     }

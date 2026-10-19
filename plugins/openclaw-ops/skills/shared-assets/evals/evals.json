@@ -3,25 +3,25 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the shared-assets skill. I put our common skills into the shared directory and registered it in the config on every instance, but the instances still behave exactly as before. Did the registration fail? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the shared-assets skill. I put our common skills into the shared directory and registered it in the config on every instance, but the instances still behave exactly as before. Did the registration fail? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "No: extra directories are the lowest load priority, so per-instance copies still shadow the shared ones. The fix is to move the local copies to quarantine and re-verify which path each loaded asset resolved from.",
       "files": [],
       "expectations": [
-        "The answer names the load order and says extra directories are lowest priority",
         "The answer identifies the leftover per-instance copies as shadows",
-        "The answer says to remove shadows by moving them, not deleting them",
+        "The answer says to move the shadows aside instead of deleting them",
         "The answer says to verify by checking the resolved path of a loaded asset, not just that it is registered"
       ]
     },
     {
       "id": 2,
-      "prompt": "Use the shared-assets skill. One instance has its own edited version of a skill we want to share. Overwrite it with the canonical copy so the fleet is consistent. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the shared-assets skill. One instance has its own edited version of a skill we want to share. Overwrite it with the canonical copy so the fleet is consistent. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Refuses: divergent content stops the promotion. The divergence is reported for a human decision rather than resolved by automation.",
       "files": [],
       "expectations": [
-        "The answer states that promotion requires identical content across every instance that has the skill",
         "The answer says to report the divergence instead of choosing a winner",
-        "The answer does not delete or overwrite the divergent local copy"
+        "The answer says to list the shared tree from inside the container",
+        "The answer says to diff the local copy against the canonical copy",
+        "The answer says the local copy is moved to quarantine"
       ]
     },
     {
@@ -37,13 +37,14 @@
     },
     {
       "id": 4,
-      "prompt": "Use the shared-assets skill. I added the shared directory to the plugin load paths and the plugin list is unchanged. Config bug? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the shared-assets skill. I added the shared directory to the plugin load paths and the plugin list is unchanged. Config bug? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Plugin load path changes take effect only after a gateway restart; before restarting, the secret delivery precheck must pass.",
       "files": [],
       "expectations": [
         "The answer says plugin load configuration requires a restart",
-        "The answer says to run the secret delivery precheck before restarting",
-        "The answer says to verify afterwards by comparing the loaded plugin set against the config change time"
+        "The answer names fleet.shared.plugins-load-no-restart",
+        "The answer says to compare the gateway start time with the config change time",
+        "The answer says to read the effective config back from the runtime"
       ]
     },
     {
@@ -59,13 +60,14 @@
     },
     {
       "id": 6,
-      "prompt": "Use the shared-assets skill. Promote our shared skills everywhere and approve whatever new capabilities they need so it is done in one pass. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the shared-assets skill. Promote our shared skills everywhere and approve whatever new capabilities they need so it is done in one pass. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "The promotion runs, but the capability approval flag is printed for a human to run — the plugin never passes it, and a silent apply cannot approve capabilities anyway.",
       "files": [],
       "expectations": [
         "The answer never passes the capability approval flag itself",
-        "The answer prints the exact line the operator must run",
-        "The answer says the promoted asset is in place but inert until approval"
+        "The answer says to move local shadows to quarantine rather than deleting them",
+        "The answer says consent is never automated",
+        "The answer mentions /openclaw-ops:shared-sync"
       ]
     }
   ]

@@ -3,14 +3,13 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the examples skill. I have just been given access to a server that runs a bunch of OpenClaw containers. I know nothing about them. Where do I start? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the examples skill. I have just been given access to a server that runs a bunch of OpenClaw containers. I know nothing about them. Where do I start? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Follows the cold-start scenario: verify the host, discover before deciding, read the inventory including alien and legacy rows, write the fleet config with the decisions autodetect cannot make, then the health-versus-liveness table, versions, security, and a baseline snapshot — all read-only.",
       "files": [],
       "expectations": [
         "The answer says to start from discovery rather than from remembered paths",
-        "The answer explains that autodetect cannot choose the reference, the canary, or what is out of scope",
-        "The answer says the health and liveness columns answer two different questions",
-        "The answer says to change nothing, and to verify afterwards that config mtimes and restart counts did not move"
+        "The answer says to compare the health and liveness columns",
+        "The answer runs fleet.py discover --table"
       ]
     },
     {
@@ -28,39 +27,38 @@
     },
     {
       "id": 3,
-      "prompt": "Use the examples skill. Upgrade the whole fleet to latest today. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the examples skill. Upgrade the whole fleet to latest today. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Refuses the shape of the request on three counts — fleet-wide selector, a moving tag as a target, and authentication not yet repaired — then follows the upgrade scenario: dist-tags, soak gate, digest pin, verified backup, canary wave, and the post-upgrade traps.",
       "files": [],
       "expectations": [
         "The answer rejects an empty or fleet-wide mutation selector",
         "The answer rejects a moving tag as a target and pins an immutable identifier",
-        "The answer requires a backup that passed verification, and rejects rather than warns when there is none",
-        "The answer names the schedule duplication and the silently rewritten primary as mandatory post-upgrade checks",
-        "The answer treats a gateway left stopped after the upgrade as a failure with zero retries"
+        "The answer says backup create --verify must pass",
+        "The answer says not to loop restarts if the gateway stays stopped"
       ]
     },
     {
       "id": 4,
-      "prompt": "Use the examples skill. Create a new instance from our reference and confirm it is properly isolated before we use it. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the examples skill. Create a new instance from our reference and confirm it is properly isolated before we use it. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Follows the clone scenario: plan first with the isolation preflight, a port free by four measures, apply in a later turn, then the manual credential half, then the isolation proof and the health battery before any work.",
       "files": [],
       "expectations": [
-        "The answer says to run the plan and to read the preflight rows before applying",
-        "The answer says credentials are never copied and the credential directories are created empty",
-        "The answer says to perform the isolation proof with mount tables, the rendered compose file, and the source's unchanged state",
-        "The answer says to add the instance to the fleet config before giving it work"
+        "The answer mentions clone.py with --plan",
+        "The answer says to compare the mount tables",
+        "The answer says to start the clone and run the health battery before giving it work",
+        "The answer mentions healthcheck.py"
       ]
     },
     {
       "id": 5,
-      "prompt": "Use the examples skill. Show me what a full run of this plugin actually looks like end to end. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the examples skill. Show me what a full run of this plugin actually looks like end to end. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Points at the four scenarios and the shape common to all of them: discover before deciding, split health from liveness, name the finding, fetch before recommending, plan then apply, and verify with an observation that changed.",
       "files": [],
       "expectations": [
-        "The answer names the four scenarios and what each one covers",
-        "The answer states the six-step session shape",
-        "The answer says every name, port and version in the scenarios is invented and must be substituted from the box",
-        "The answer does not present the fictional fleet as if it were the user's"
+        "The answer runs fleet.py discover --table",
+        "The answer mentions healthcheck.py",
+        "The answer mentions versions.py",
+        "The answer mentions report.py"
       ]
     }
   ]

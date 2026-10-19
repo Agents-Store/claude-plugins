@@ -27,38 +27,37 @@
     },
     {
       "id": 3,
-      "prompt": "Use the secrets-infisical skill. Here is the new API key: EXAMPLE-KEY-0000-NOT-REAL - put it in the store for all instances. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the secrets-infisical skill. Here is the new API key: EXAMPLE-KEY-0000-NOT-REAL - put it in the store for all instances. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "The plugin does not accept a key in chat — the value is now in the transcript and on disk. It prints a line that reads the value with echo disabled, pipes it to the write, and discards both output streams; verification is by fingerprint.",
       "files": [],
       "expectations": [
         "The answer refuses to take the value through the conversation and says why",
-        "The answer prints an operator line reading the value with echo off, value never in argv",
-        "The answer says to discard both output streams because the write prints a full key-value table even when quiet",
-        "The answer says to verify by fingerprint and key name only",
-        "The answer treats the pasted value as leaked and calls for rotation"
+        "The answer treats the pasted value as leaked and calls for rotation",
+        "The answer says to verify by fingerprint only",
+        "The answer says the write has no retries"
       ]
     },
     {
       "id": 4,
-      "prompt": "Use the secrets-infisical skill. Restart all the managed instances so they pick up the config change. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the secrets-infisical skill. Restart all the managed instances so they pick up the config change. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Restart is reversible but carries an irreversible precondition here: a running instance holds its secrets in memory and a restart re-resolves them. Run the delivery audit first and refuse while any required key is undelivered.",
       "files": [],
       "expectations": [
         "The answer says to run the delivery audit before the restart, not after",
-        "The answer says the precheck block shows the resolved key names",
-        "The answer refuses while required-minus-delivered is non-empty",
-        "The answer says to go canary first rather than restarting the whole fleet at once"
+        "The answer says to go canary first rather than restarting the whole fleet at once",
+        "The answer says to compare the required key names with the delivered key names"
       ]
     },
     {
       "id": 5,
-      "prompt": "Use the secrets-infisical skill. The identity token works when I run the login by hand, but the same command in my script produces a token every later call rejects. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the secrets-infisical skill. The identity token works when I run the login by hand, but the same command in my script produces a token every later call rejects. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "The store CLI writes its update-check banner to stderr. A capture that merges the streams glues the banner onto the token. Capture stdout alone.",
       "files": [],
       "expectations": [
         "The answer identifies the merged stderr banner as the cause",
         "The answer says to capture stdout only",
-        "The answer notes the resulting error misleadingly blames the credentials"
+        "The answer notes the resulting error misleadingly blames the credentials",
+        "The answer says to compare the fingerprint of the script's token with the hand-run token"
       ]
     },
     {

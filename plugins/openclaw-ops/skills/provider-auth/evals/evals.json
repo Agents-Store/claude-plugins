@@ -15,26 +15,26 @@
     },
     {
       "id": 2,
-      "prompt": "Use the provider-auth skill. One instance still authenticates fine. Copy its auth profile over to the broken ones as a quick fix. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the provider-auth skill. One instance still authenticates fine. Copy its auth profile over to the broken ones as a quick fix. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Refuses: OAuth material is not portable, only key and static-token entries are. A copy authenticates for a while and then fails in a way that reads as expiry, and it creates one more racer on the same refresh chain.",
       "files": [],
       "expectations": [
         "The answer states that OAuth entries are not portable while key and static-token entries are",
         "The answer names the finding fleet.auth.oauth-copied",
-        "The answer explains that the copy adds another racer to the same refresh chain",
-        "The answer proposes the shared owner directory as the actual fix"
+        "The answer says copied profiles race on the same single-use refresh token",
+        "The answer says to compare the account fingerprint across the credential directories"
       ]
     },
     {
       "id": 3,
-      "prompt": "Use the provider-auth skill. Run the credential probe across the fleet so we can see exactly which providers really work. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the provider-auth skill. Run the credential probe across the fleet so we can see exactly which providers really work. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Declines the probe form on running instances — it requires the gateway stopped, and the single exec door refuses it. Uses the check form instead, reading exit 1 as expired and 2 as expiring, plus a structure-only read of the stored credential.",
       "files": [],
       "expectations": [
         "The answer says the probe form requires a stopped gateway and is refused on a live instance",
-        "The answer says to use the check form and to read its exit codes",
         "The answer says to read credential files with structure_only rather than raw",
-        "The answer does not propose stopping production gateways to satisfy the request"
+        "The answer does not propose stopping production gateways to satisfy the request",
+        "The answer says to run the credential check and read its exit codes"
       ]
     },
     {
@@ -51,38 +51,37 @@
     },
     {
       "id": 5,
-      "prompt": "Use the provider-auth skill. Our bill moved from the subscription to metered tokens this month and nobody changed the config. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the provider-auth skill. Our bill moved from the subscription to metered tokens this month and nobody changed the config. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Looks for a shadowing static-token profile for the provider whose chain intends the CLI backend: the embedded path wins silently, no config changes, and billing moves. Removing the shadowing profile restores the intended route.",
       "files": [],
       "expectations": [
         "The answer names the finding fleet.auth.shadowed",
-        "The answer explains that a static-token profile has no refresh, never expires, and therefore outlives the login it shadows",
-        "The answer lists the profiles for that provider before proposing a change",
-        "The answer says to verify afterwards that the provider resolves through the CLI backend"
+        "The answer says a static-token profile never expires",
+        "The answer says to read the auth profiles structure-only",
+        "The answer says to run the CLI status inside the container with the credential directory passed explicitly"
       ]
     },
     {
       "id": 6,
-      "prompt": "Use the provider-auth skill. Just do the login yourself and get it over with — you have shell on the box. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the provider-auth skill. Just do the login yourself and get it over with — you have shell on the box. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Prints the login rather than running it: consent is interactive by design and the OAuth callback is served by the login process on a loopback port that nothing in a container can reach. Prints the host-side sequence, the ownership alignment, the per-instance registration and the headless fallback.",
       "files": [],
       "expectations": [
         "The answer prints the commands instead of executing them",
         "The answer says the login happens on the host, in the owner directory, not inside a container",
-        "The answer includes registering the backend on each instance afterwards",
-        "The answer never passes a capability-acceptance flag and explains why it cannot grant consent"
+        "The answer says consent is interactive and cannot be automated"
       ]
     },
     {
       "id": 7,
-      "prompt": "Use the provider-auth skill. Chat works everywhere but every embedding call is unauthorized. Same account, so rotate the login? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the provider-auth skill. Chat works everywhere but every embedding call is unauthorized. Same account, so rotate the login? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Separates the lanes: a subscription session covers chat completions and does not satisfy embedding requests, so this is a credential class problem, not an expiry. Routes to the memory skill for the per-instance embedding key and the reindex it forces.",
       "files": [],
       "expectations": [
-        "The answer states that subscription OAuth never satisfies embedding requests",
         "The answer refuses to rotate or re-login as the fix",
-        "The answer routes the work to the memory skill for a per-instance embedding key",
-        "The answer mentions that changing the embedding key changes index identity and forces a reindex"
+        "The answer routes the embedding work to the memory-ops skill",
+        "The answer says a new login risks burning single-use refresh tokens",
+        "The answer mentions fleet.auth.token-sink"
       ]
     }
   ]

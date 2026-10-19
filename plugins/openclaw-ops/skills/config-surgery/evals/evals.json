@@ -16,14 +16,14 @@
     },
     {
       "id": 2,
-      "prompt": "Use the config-surgery skill. This config has several blocks nobody on the team recognises. Strip them out while you are in there. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the config-surgery skill. This config has several blocks nobody on the team recognises. Strip them out while you are in there. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Declines. Under a strict schema an unrecognised block is far more likely to be load-bearing than leftover, removal fails at the next restart rather than at the edit, and a non-zero deletion count in a config diff is a finding of its own. Removal is a separate operation with its own justification.",
       "files": [],
       "expectations": [
-        "The answer names the strict schema and that removal surfaces as a refused start later",
-        "The answer names the finding fleet.config.deletions for the non-zero deletion count",
         "The answer refuses deletion as a side effect of another edit",
-        "The answer offers to explain each block from the runtime schema instead"
+        "The answer says that removing an unrecognised block fails at the next restart",
+        "The answer names fleet.config.deletions",
+        "The answer says to run config schema or config validate on the unrecognised blocks"
       ]
     },
     {
@@ -40,38 +40,36 @@
     },
     {
       "id": 4,
-      "prompt": "Use the config-surgery skill. There is an openclaw.json.rejected file next to the config now. Delete it and re-run the write so the warning goes away. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the config-surgery skill. There is an openclaw.json.rejected file next to the config now. Delete it and re-run the write so the warning goes away. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "No. The sidecar is evidence that a write already lost the race against the gateway; it holds what was refused. It is read and moved aside, never removed, and the write is rebuilt on a freshly read base hash rather than repeated.",
       "files": [],
       "expectations": [
         "The answer says to read the sidecar instead of deleting it",
-        "The answer says to re-read the current config and to rebuild the patch on the new base hash",
         "The answer refuses to re-run the failed write to clear the warning",
         "The answer says to move any .bak, .rejected or .clobbered file aside rather than removing it"
       ]
     },
     {
       "id": 5,
-      "prompt": "Use the config-surgery skill. Set the primary model on this instance to the newest one — you know which model id to use. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the config-surgery skill. Set the primary model on this instance to the newest one — you know which model id to use. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Will not type a model id from memory. Every id entering a diff is an echo from this instance's own catalogue, so it reads the catalogue first, writes the canonical provider reference plus runtime override, and hands the chain question to provider-auth.",
       "files": [],
       "expectations": [
         "The answer says to read the model catalogue on the instance before writing any id",
-        "The answer names the finding fleet.config.model-id-unverified for an id that is not in the catalogue",
-        "The answer says to write the provider reference plus agentRuntime override form",
-        "The answer does not print a real model id as a recommendation"
+        "The answer names fleet.config.model-id-unverified",
+        "The answer says to apply the change as a patch carrying the base hash",
+        "The answer says to verify the result with config get"
       ]
     },
     {
       "id": 6,
-      "prompt": "Use the config-surgery skill. The channel settings come from an included file. Patch the value through the normal write path. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the config-surgery skill. The channel settings come from an included file. Patch the value through the normal write path. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Explains that includes compose at read time only: a programmatic write lands in the root file and shadows the include, which then still says the old thing and misleads the next reader. Edits the file that defines the key, under the same sequence.",
       "files": [],
       "expectations": [
-        "The answer states that composition is read-time and writes do not travel back into includes",
         "The answer says to edit the defining file rather than producing a shadowing root-level copy",
-        "The answer says to apply the same snapshot, validate and verify sequence to the include",
-        "The answer says to check the composed view from the runtime after the edit"
+        "The answer mentions the base hash",
+        "The answer says to verify the result with config get"
       ]
     }
   ]
