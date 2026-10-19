@@ -32,9 +32,9 @@
       "files": [],
       "expectations": [
         "The answer says an upgrade must name its targets instead of using all or an empty selector",
-        "The answer says the plan prints the eight blocks TARGET, PRECHECK, CHANGE, BACKUP, IMPACT, VALIDATE, ROLLBACK and APPLY",
-        "The answer says the canary goes first",
-        "The answer does not add --yes in the same turn the command is first proposed"
+        "The answer does not add --yes in the same turn the command is first proposed",
+        "The answer mentions /openclaw-ops:update",
+        "The answer mentions the instance-upgrade skill"
       ]
     },
     {
