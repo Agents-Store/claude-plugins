@@ -7,11 +7,11 @@
       "expected_output": "Should call the Pexels REST API (GET /v1/search with orientation=landscape, GET /v1/videos/search for videos) using ${PEXELS_API_KEY}. May also suggest Unsplash GET /search/photos as an alternative, and if it does, must mention the Unsplash API requirements (hotlink photo.urls, call download_location, attribution with utm parameters). Should mention image sizes (src.large for hero) and licensing/attribution info.",
       "files": [],
       "expectations": [
-        "Searches Pexels photos with GET /v1/search and orientation=landscape",
-        "Searches background videos with GET /v1/videos/search, not the old /videos/ path",
-        "Sends the Pexels key in the Authorization header without a Bearer prefix",
-        "Recommends a src size such as large for hero images",
-        "Mentions the Pexels attribution requirement (link to Pexels and photographer credit); if Unsplash is suggested it also mentions hotlinking, the download_location call and utm attribution"
+        "The answer searches Pexels photos with GET /v1/search and orientation=landscape",
+        "The answer searches background videos with GET /v1/videos/search",
+        "The answer sends the Pexels key in the Authorization header without a Bearer prefix",
+        "The answer recommends a src size such as large for hero images",
+        "The answer mentions the Pexels attribution requirement, a link to Pexels and the photographer credit"
       ]
     }
   ]

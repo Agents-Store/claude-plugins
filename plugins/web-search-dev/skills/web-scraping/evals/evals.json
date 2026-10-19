@@ -7,11 +7,11 @@
       "expected_output": "Should recommend firecrawl_map to discover URLs, then firecrawl_scrape with formats [\"json\"] and jsonOptions {prompt, schema} for structured extraction (one call per URL), or firecrawl_agent for unknown URLs. Should mention waitFor for JS-rendered pages. Should cover the full pipeline: discover URLs → filter → extract structured data → transform.",
       "files": [],
       "expectations": [
-        "Discovers the product URLs first with firecrawl_map",
-        "Extracts with firecrawl_scrape using formats json and jsonOptions that hold a prompt and a schema",
-        "Mentions waitFor (or JS rendering) for the client-side rendered pages",
-        "Says one scrape call per URL, or firecrawl_agent when the URLs are not known",
-        "Covers filtering the URLs and transforming the data into the target model"
+        "The answer discovers the product URLs with firecrawl_map",
+        "The answer extracts the fields with firecrawl_scrape using the json format and jsonOptions",
+        "The answer says to use waitFor for the client-rendered pages",
+        "The answer says to run one scrape call per URL",
+        "The answer mentions firecrawl_agent for the case that the URLs are not known"
       ]
     }
   ]

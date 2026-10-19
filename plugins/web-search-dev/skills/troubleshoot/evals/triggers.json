@@ -1,9 +1,9 @@
 [
   {"query": "Firecrawl scrape keeps returning SCRAPE_ALL_ENGINES_FAILED for a JS-heavy page. What should I try?", "should_trigger": true},
-  {"query": "perplexity_ask and perplexity_reason return messages must be an array while perplexity_search works with query. Show me the correct call shapes", "should_trigger": true},
+  {"query": "Exa search returns 429 after a burst of requests from my script. What should I do?", "should_trigger": true},
   {"query": "Jina read_url returns empty markdown for a React site. What is the fallback?", "should_trigger": true},
-  {"query": "The Context7 MCP will not start: ERR_MODULE_NOT_FOUND for the MCP SDK server file. Clear the broken npx cache and reconnect", "should_trigger": true},
-  {"query": "Pexels returns 401 with an Authorization Bearer header and Unsplash returns 403 after a few hours. What are the correct headers for both, and the rate-limit windows?", "should_trigger": true},
+  {"query": "Firecrawl crawl returns 402. What now?", "should_trigger": true},
+  {"query": "My web search MCP servers show as failed after a restart. How do I diagnose which one is broken?", "should_trigger": true},
   {"query": "My Jina batch parallel read tool says tool not found since last month. What changed?", "should_trigger": true},
   {"query": "Exa возвращает 422 Validation Error при поиске. Что проверить в параметрах?", "should_trigger": true},
   {"query": "Ошибка 429 у Jina при чтении страниц: какие лимиты без ключа и что делать?", "should_trigger": true},
