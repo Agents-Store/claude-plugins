@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "Use the estimation skill. Estimate this story: 'As a user I can reset my password via email link. Must work on mobile. Must rate-limit to prevent abuse. Must handle expired/already-used links gracefully.' Compare against our reference story 'Login with email' = 3 points. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the estimation skill. Estimate this story: 'As a user I can reset my password via email link. Must work on mobile. Must rate-limit to prevent abuse. Must handle expired/already-used links gracefully.' Compare against our reference story 'Login with email' = 3 points. Answer in text; everything you need is in this message.",
       "expected_output": "Suggests 5 or 8 points with rationale referencing multiple components (FE + API + email service + security), compared to the reference.",
       "files": [],
       "expectations": [
@@ -40,13 +40,13 @@
     },
     {
       "id": 4,
-      "prompt": "Use the estimation skill. Our team is new and doesn't have reference stories yet. Should we use Fibonacci or t-shirt sizes for our first sprint? Say how to move to the other scale later and what to avoid when estimating. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the estimation skill. Our team is new and has no reference stories yet. When should we use t-shirt sizes and when Fibonacci for our first sprints, how do the two convert, what do we set up after the first sprint, and what do we avoid when estimating?",
       "expected_output": "Recommends t-shirt sizing for initial backlog triage, Fibonacci once references are established.",
       "files": [],
       "expectations": [
-        "The answer recommends starting with t-shirt sizing (XS/S/M/L/XL/XXL)",
-        "The answer explains that relative sizing is easier without anchors",
-        "The answer suggests establishing 1-3 reference stories after the first sprint for Fibonacci calibration",
+        "The answer says t-shirt sizing suits roadmap planning, initial backlog triage and quick group sessions, and Fibonacci suits sprint planning, velocity tracking and capacity",
+        "The answer gives the t-shirt to points conversion (for example M = 3, L = 5, XL = 8)",
+        "The answer suggests establishing 1-3 reference stories (a completed, well-understood item such as 'Login with email' = 3) for Fibonacci calibration",
         "The answer warns against estimating in hours (anti-pattern from skill)"
       ]
     }

@@ -1,5 +1,4 @@
 [
-  {"query": "Which Plane tools do I have available in this session? Check how they are named before doing anything else", "should_trigger": true},
   {"query": "I keep getting 'I don't have access to Plane tools' even though the Plane MCP is connected. How do I discover the tools?", "should_trigger": true},
   {"query": "Translate the legacy per-operation Plane tool create_work_item into the resource tool call of Plane MCP 0.3 and later, using the fallback translation table", "should_trigger": true},
   {"query": "Plane tools do not show up in my Claude Code session although the connector is added. How does the agent discover the deferred Plane tools with ToolSearch, and what changes for servers older than 0.3.0 that expose one tool per operation?", "should_trigger": true},

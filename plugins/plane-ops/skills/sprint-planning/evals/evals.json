@@ -31,7 +31,7 @@
     },
     {
       "id": 3,
-      "prompt": "Use the sprint-planning skill. I'm planning Sprint 1 for a brand new team. Nobody has ever worked together. Help me set capacity. The team has 5 people, the sprint is 2 weeks and nobody has PTO. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the sprint-planning skill. I'm planning Sprint 1 for a brand new team. Nobody has ever worked together. Help me set capacity. The team has 5 people, the sprint is 2 weeks and nobody has PTO. Answer in text; everything you need is in this message.",
       "expected_output": "No velocity history → uses days-based formula with focus factor, then applies first-sprint 60% reduction for learning curve.",
       "files": [],
       "expectations": [
@@ -43,7 +43,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the sprint-planning skill. I want to add PROJ-148 'Complete checkout rewrite' — 13 story points — to next sprint. Our capacity is 30 points. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the sprint-planning skill. I want to add PROJ-148 'Complete checkout rewrite' — 13 story points — to next sprint. Our capacity is 30 points. Answer in text; everything you need is in this message.",
       "expected_output": "Rejects — 13 > 8, item must be decomposed first via task-decomposition skill before entering sprint.",
       "files": [],
       "expectations": [

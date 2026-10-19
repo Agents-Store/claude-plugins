@@ -4,7 +4,6 @@
   {"query": "Help me set a clear sprint goal and select work items, making sure the commitment stays within capacity", "should_trigger": true},
   {"query": "Run sprint planning: check carry-over from the previous cycle, calculate capacity and propose the sprint scope", "should_trigger": true},
   {"query": "Спланируй следующий спринт в Plane: посчитай ёмкость, предложи цель и подбери задачи", "should_trigger": true},
-  {"query": "Создай цикл в Plane и добавь в него задачи из бэклога так, чтобы не превысить ёмкость команды", "should_trigger": true},
   {"query": "What are the sprint planning capacity formulas, how does the skill treat part-time members and holidays, and what Definition of Ready check applies to the selected items?", "should_trigger": true},
   {"query": "Review and close the current sprint and run the retro", "should_trigger": false},
   {"query": "Estimate the backlog items with story points", "should_trigger": false},

@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "Use the pages-publishing skill. Create a retrospective page for the sprint we just closed. Include previous action items status. Previous action items: 'Review PRs within 4 hours' (done), 'Set up staging deploy' (in progress), 'Write the runbook' (carried over). Say which template you use and how you look for the previous retro, and show the page body. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the pages-publishing skill. Create a retrospective page for the sprint we just closed. Include previous action items status. Previous action items: 'Review PRs within 4 hours' (done), 'Set up staging deploy' (in progress), 'Write the runbook' (carried over). Say which template you use and how you look for the previous retro, and show the page body. Answer in text; everything you need is in this message.",
       "expected_output": "Uses the retro template, fetches previous retro page, renders both previous action item statuses and new action items.",
       "files": [],
       "expectations": [
@@ -75,7 +75,7 @@
     },
     {
       "id": 7,
-      "prompt": "Use the pages-publishing skill. Create a retro page with nested action items: under 'Process improvements' list 3 sub-items, under 'Tooling' list 2 sub-items. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the pages-publishing skill. Create a retro page with nested action items: under 'Process improvements' list 3 sub-items, under 'Tooling' list 2 sub-items. Answer in text; everything you need is in this message.",
       "expected_output": "Every parent <li> starts with leading text BEFORE the nested <ul>, never with a nested list as the first child.",
       "files": [],
       "expectations": [
@@ -87,7 +87,7 @@
     },
     {
       "id": 8,
-      "prompt": "Use the pages-publishing skill. Render retro action items with three statuses: done, in progress, not started. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the pages-publishing skill. Render retro action items with three statuses: done, in progress, not started. Answer in text; everything you need is in this message.",
       "expected_output": "Uses Unicode status markers (✅ ⏳ ⬜) as leading characters in <li>, NOT data-checked attribute.",
       "files": [],
       "expectations": [

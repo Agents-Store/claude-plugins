@@ -44,7 +44,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the sprint-review-retro skill. Our last 4 sprints completed at 65%, 68%, 72%, 60%. Retro action items rarely get done. What should the retro facilitator focus on? Say what the numbers mean, what to change about the next commitment, and how the retro should handle action items. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the sprint-review-retro skill. Our last 4 sprints completed at 65%, 68%, 72%, 60%. Retro action items rarely get done. What should the retro facilitator focus on? Say what the numbers mean, what to change about the next commitment, and how the retro should handle action items. Answer in text; everything you need is in this message.",
       "expected_output": "Diagnoses completion rate as WARNING (<70% consistently), action items as WARNING. Suggests reducing commitment by 20% and limiting retro to ONE action item to improve follow-through.",
       "files": [],
       "expectations": [

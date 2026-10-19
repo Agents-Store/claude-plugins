@@ -39,7 +39,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the labels-states-properties skill. Should I create a custom work item type for Spikes or just use a label type/spike? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the labels-states-properties skill. Should I create a custom work item type for Spikes or just use a label type/spike? Answer in text; everything you need is in this message.",
       "expected_output": "Use a work item type — Spikes have different fields (timebox), different velocity treatment (no points), and different default state.",
       "files": [],
       "expectations": [

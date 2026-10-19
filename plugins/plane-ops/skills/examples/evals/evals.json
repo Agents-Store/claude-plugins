@@ -29,7 +29,7 @@
     },
     {
       "id": 3,
-      "prompt": "Use the examples skill. I need to publish a sprint report as a Plane page but last time my bullet list rendered broken. What's the correct HTML format? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the examples skill. I need to publish a sprint report as a Plane page but last time my bullet list rendered broken. What's the correct HTML format? Answer in text; everything you need is in this message.",
       "expected_output": "Points to page-formatting.md, explains the list gotchas (nested list must start with text, no empty li, no data-checked).",
       "files": [],
       "expectations": [
@@ -41,7 +41,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the examples skill. What's a realistic workflow for linking a PR to a work item and moving it to review? Show the day-to-day plugin commands in order, and say what the link gives us later. In this session you have no Plane tools and no shell, only file reading and a text answer: describe what you would run, in what order, and what you would check.",
+      "prompt": "Use the examples skill. What's a realistic workflow for linking a PR to a work item and moving it to review? Show the day-to-day plugin commands in order, and say what the link gives us later. Answer in text; everything you need is in this message.",
       "expected_output": "Sequence using /link add → /work-item update state → /comment → /assign, from everyday-commands.md.",
       "files": [],
       "expectations": [

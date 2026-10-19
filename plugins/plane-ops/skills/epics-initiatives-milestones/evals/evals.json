@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the epics-initiatives-milestones skill. I need to track the 'Multi-tenant support' work. It's 2 months of work, one tech lead, no fixed release date. Epic, module, milestone, or initiative? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the epics-initiatives-milestones skill. I need to track the 'Multi-tenant support' work. It's 2 months of work, one tech lead, no fixed release date. Epic, module, milestone, or initiative? Answer in text; everything you need is in this message.",
       "expected_output": "Recommends an epic, cites the decision table.",
       "files": [],
       "expectations": [
@@ -14,7 +14,7 @@
     },
     {
       "id": 2,
-      "prompt": "Use the epics-initiatives-milestones skill. Report the health of the 'v2.0 Public Beta' milestone. Remaining 18 points, weekly velocity 6, target date in 2 weeks. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the epics-initiatives-milestones skill. Report the health of the 'v2.0 Public Beta' milestone. Remaining 18 points, weekly velocity 6, target date in 2 weeks. Answer in text; everything you need is in this message.",
       "expected_output": "Computes ETA=3 weeks, classifies as Red, recommends replanning.",
       "files": [],
       "expectations": [
@@ -38,7 +38,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the epics-initiatives-milestones skill. The 'Multi-tenant support' epic has 90 remaining points and the team velocity is 30 per sprint. When will it likely finish? Sprints are 2 weeks and today is Monday, October 5. State what the forecast assumes and when to re-check it. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the epics-initiatives-milestones skill. The 'Multi-tenant support' epic has 90 remaining points and the team velocity is 30 per sprint. When will it likely finish? Sprints are 2 weeks and today is Monday, October 5. State what the forecast assumes and when to re-check it. Answer in text; everything you need is in this message.",
       "expected_output": "Forecasts 3 sprints remaining based on velocity and flags any risk buffer.",
       "files": [],
       "expectations": [

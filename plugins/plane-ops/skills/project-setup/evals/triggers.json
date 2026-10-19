@@ -1,11 +1,9 @@
 [
   {"query": "Configure my existing Plane project for Agile workflows - which features should I switch on and which states and labels should exist?", "should_trigger": true},
-  {"query": "Create the standard Agile states (backlog, todo, in progress, in review, done, cancelled) and baseline labels in a new Plane project", "should_trigger": true},
   {"query": "What is on the project setup verification checklist in Plane after states, labels, work item types and properties are created?", "should_trigger": true},
   {"query": "Which options of project(action=update_features) enable cycles, modules, epics, pages and views in Plane, and in which step of the setup workflow are they enabled?", "should_trigger": true},
   {"query": "Настрой новый проект в Plane под Agile: состояния, метки, типы задач и свойства", "should_trigger": true},
   {"query": "Чем отличаются шаблоны настройки проекта Plane для команды из 1-3 человек и для команды из 4-7 человек: состояния, метки, типы, функции?", "should_trigger": true},
-  {"query": "Bootstrap a Plane project for a Kanban support team with WIP limits and intake enabled", "should_trigger": true},
   {"query": "Design a label taxonomy and decide between labels and properties", "should_trigger": false},
   {"query": "Create a work item in the project", "should_trigger": false},
   {"query": "Set up a new GitHub repository with branch protection", "should_trigger": false},

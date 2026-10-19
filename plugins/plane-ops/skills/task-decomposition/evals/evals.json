@@ -42,7 +42,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the task-decomposition skill. Validate this user story against INVEST: 'As a support agent, I want to flag tickets, so that I can follow up later' — 21 points, no acceptance criteria, depends on a new tags system being built first. Go through every INVEST criterion with a PASS or FAIL verdict and say what to do about each failure. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the task-decomposition skill. Validate this user story against INVEST: 'As a support agent, I want to flag tickets, so that I can follow up later' — 21 points, no acceptance criteria, depends on a new tags system being built first. Go through every INVEST criterion with a PASS or FAIL verdict and say what to do about each failure. Answer in text; everything you need is in this message.",
       "expected_output": "Fails Small (21 pts), Testable (no AC), and Independent (blocked by tags system). Specific remediation for each.",
       "files": [],
       "expectations": [

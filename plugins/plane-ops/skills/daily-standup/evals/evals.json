@@ -29,7 +29,7 @@
     },
     {
       "id": 3,
-      "prompt": "Use the daily-standup skill. MP-47 'OAuth setup' has been in progress for 3 days with no activity and is blocked by MP-45 which is still unstarted. Surface this as a standup issue. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the daily-standup skill. MP-47 'OAuth setup' has been in progress for 3 days with no activity and is blocked by MP-45 which is still unstarted. Surface this as a standup issue. Answer in text; everything you need is in this message.",
       "expected_output": "Identifies MP-47 as both stalled AND blocked; names the blocker, the owner, and suggests action.",
       "files": [],
       "expectations": [

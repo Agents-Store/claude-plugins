@@ -37,7 +37,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use the agile-fundamentals skill. Is this work item ready for sprint planning? Title: 'Improve checkout'. Description: empty. Points: not set. Assignee: none.",
+      "prompt": "Use the agile-fundamentals skill. Is this work item ready for sprint planning? Title: 'Improve checkout'. Description: empty. Points: not set. Assignee: none. Answer in text; everything you need is in this message.",
       "expected_output": "Fails Definition of Ready on multiple criteria (no description/AC, no estimate, no assignee). Lists which DoR criteria fail.",
       "files": [],
       "expectations": [
