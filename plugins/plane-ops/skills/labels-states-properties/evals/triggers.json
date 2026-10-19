@@ -8,7 +8,7 @@
   {"query": "In Plane, when should I use a label, a custom property, a work item type or a state? Give me the decision rules and the recommended state set for a Kanban team", "should_trigger": true},
   {"query": "Log 30 minutes of work on work item WEB-42", "should_trigger": false},
   {"query": "Set up a new Agile-ready project including cycles and modules", "should_trigger": false},
-  {"query": "Create the work item type 'Bug' via the API", "should_trigger": false},
+  {"query": "Change the state of PROJ-12 to In Review and assign it to Alice", "should_trigger": false},
   {"query": "How do I design tags for a blog taxonomy in WordPress?", "should_trigger": false},
   {"query": "Define a Git branching strategy for releases", "should_trigger": false},
   {"query": "Design a Postgres enum for task status", "should_trigger": false},

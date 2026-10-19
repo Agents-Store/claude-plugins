@@ -1,5 +1,4 @@
 [
-  {"query": "Set up a brand new Plane project for a Scrum team: states, labels, work item types, custom properties and cycles/modules enabled", "should_trigger": true},
   {"query": "Configure my existing Plane project for Agile workflows - which features should I switch on and which states and labels should exist?", "should_trigger": true},
   {"query": "Create the standard Agile states (backlog, todo, in progress, in review, done, cancelled) and baseline labels in a new Plane project", "should_trigger": true},
   {"query": "What is on the project setup verification checklist in Plane after states, labels, work item types and properties are created?", "should_trigger": true},

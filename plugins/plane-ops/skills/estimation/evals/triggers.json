@@ -3,8 +3,6 @@
   {"query": "Facilitate a planning poker session for this ticket: 'Migrate user avatars to object storage' - ask the team's questions and propose a point value", "should_trigger": true},
   {"query": "When should we use t-shirt sizes instead of story points, and how do I convert between them for Plane estimates?", "should_trigger": true},
   {"query": "Which story point scale and t-shirt size mapping does the Plane estimation skill use, and how do I write estimates to a project that has an estimate system configured?", "should_trigger": true},
-  {"query": "Alice voted 2, Bob voted 8 and Carol voted 13 in planning poker on a Plane work item. Who explains first, and when do we re-vote or split the item?", "should_trigger": true},
-  {"query": "У нас новая команда без эталонных историй. Что взять для первого спринта в Plane: числа Фибоначчи или размеры футболок, и когда переходить на баллы?", "should_trigger": true},
   {"query": "What are the planning poker rules and the reference stories in the estimation skill, and when does it say a story must be split?", "should_trigger": true},
   {"query": "What are the formulas for sprint capacity, velocity and focus factor?", "should_trigger": false},
   {"query": "Break this epic down into stories with INVEST", "should_trigger": false},
