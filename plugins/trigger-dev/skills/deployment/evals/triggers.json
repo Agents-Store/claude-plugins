@@ -4,7 +4,7 @@
   {"query": "How do I avoid version skew between my web app and the Trigger.dev tasks so runs use the deployment built for the same commit? I heard about --external-id", "should_trigger": true},
   {"query": "Preview what a Trigger.dev deploy to staging would do without deploying, deploy a build without promoting it, and make a preview branch deploy. Which flags, and which key prefix does staging use?", "should_trigger": true},
   {"query": "After a deploy, tasks run but fail with undefined URLs. How do I set runtime env vars on self-hosted and verify the deployment?", "should_trigger": true},
-  {"query": "My self-hosted Trigger.dev deploy pushes to our registry. Check the credentials with curl against /v2/, tell me what a 401 versus a 404 means, and show how to docker login non-interactively in CI", "should_trigger": true},
+  {"query": "I deployed a Trigger.dev build with --skip-promotion. How do I make that version active later?", "should_trigger": true},
   {"query": "Как выкатить задачи Trigger.dev на прод и на staging, и что проверять после деплоя?", "should_trigger": true},
   {"query": "Как настроить CI/CD для Trigger.dev на своём сервере: какие секреты GitHub Actions нужны и где закрепить версию CLI?", "should_trigger": true},
   {"query": "Write the trigger.config.ts with Prisma and FFmpeg extensions", "should_trigger": false},

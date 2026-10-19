@@ -1,9 +1,9 @@
 [
   {"query": "I want to add Trigger.dev to my existing Node project and connect it to my self-hosted instance. Which commands do I run: login, init, config?", "should_trigger": true},
   {"query": "How do I verify that the Trigger.dev CLI is authenticated and the MCP connection works? A checklist please", "should_trigger": true},
-  {"query": "Wire the Trigger.dev keys TRIGGER_DEV_SECRET_KEY, TRIGGER_STAGE_SECRET_KEY and TRIGGER_PROD_SECRET_KEY. Which variable does the SDK actually read, and how do I point it at the key of the target environment?", "should_trigger": true},
+  {"query": "Configure the dev, staging and production environments for my Trigger.dev project and tell me how the CLI picks which one it targets", "should_trigger": true},
   {"query": "Add Trigger.dev to my repo and connect it to our self-hosted server for the first time: install the SDK, log in with -a, init, the config file keys, run dev, and the verification checklist", "should_trigger": true},
-  {"query": "Install the Trigger.dev MCP server for Claude Code in user scope pinned to one project and make it read-only for a production-facing agent", "should_trigger": true},
+  {"query": "Set up Trigger.dev in my pnpm monorepo: the app package is apps/web and we host Trigger.dev ourselves", "should_trigger": true},
   {"query": "Initialize Trigger.dev non-interactively with the runtime pinned to node-22 and my project ref. Which init flags do I need (-y, -p, -r, --no-browser)?", "should_trigger": true},
   {"query": "Как подключить Trigger.dev к проекту и своему серверу: установка SDK, вход через -a и init?", "should_trigger": true},
   {"query": "Как создать первую задачу Trigger.dev и запустить dev-сервер? Нужен пошаговый сетап", "should_trigger": true},

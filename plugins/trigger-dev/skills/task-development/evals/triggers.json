@@ -1,7 +1,7 @@
 [
   {"query": "Write a Trigger.dev task that processes an uploaded CSV, retries 3 times with exponential backoff and limits concurrency to 2 through a queue", "should_trigger": true},
   {"query": "Why can't I use Promise.all with triggerAndWait in a task? What should I use for fan-out, and how do I check result.ok?", "should_trigger": true},
-  {"query": "The deploy of my Trigger.dev project fails with Missing credentials for OPENAI_API_KEY at the build step, and the client is created at the top of the task file. Fix it", "should_trigger": true},
+  {"query": "Create a background job in Trigger.dev that generates a PDF report and uses debouncing so rapid repeated requests collapse into one run", "should_trigger": true},
   {"query": "How do I update progress metadata from a task, and what is the size limit?", "should_trigger": true},
   {"query": "Run one heavy video task on a 4 vCPU and 8 GB machine for a single trigger only, and tell me the default preset for everything else. List the presets and the trigger option", "should_trigger": true},
   {"query": "On our self-hosted Trigger.dev a task that does wait.for one hour keeps its concurrency slot and starves the queue. Are there checkpoints, and how do I restructure it?", "should_trigger": true},

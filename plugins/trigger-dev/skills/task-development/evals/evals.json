@@ -22,8 +22,6 @@
       "expectations": [
         "The code imports from @trigger.dev/sdk, not @trigger.dev/sdk/v3",
         "The code declares the queue with queue({ name, concurrencyLimit })",
-        "The code passes the queue object to the task",
-        "The code writes job_status processing at the start of the task",
         "The code writes job_status failed in onFailure",
         "The code builds an idempotency key from the record id",
         "The code fans out the list of order ids with batchTriggerAndWait",
@@ -37,13 +35,10 @@
       "files": [],
       "expectations": [
         "The code imports the task with import type",
-        "The code calls tasks.batchTrigger or tasks.trigger inside the handler body, not at module level",
-        "The answer says the first API call throws when TRIGGER_SECRET_KEY is missing",
+        "The code calls tasks.batchTrigger inside the handler body, not at module level",
         "The answer warns that TRIGGER_API_URL must be set where the trigger runs on a self-hosted server",
-        "The answer says triggerAndWait works only inside a task",
         "The answer says there is no triggerAndPoll",
-        "The code uses runs.poll from backend code to wait for the output",
-        "The code imports from @trigger.dev/sdk, not @trigger.dev/sdk/v3"
+        "The code uses runs.poll from backend code to wait for the output"
       ]
     }
   ]

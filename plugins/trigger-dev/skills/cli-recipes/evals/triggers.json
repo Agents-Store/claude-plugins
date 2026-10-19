@@ -1,5 +1,5 @@
 [
-  {"query": "CI step: deploy my tasks to staging on our self-hosted Trigger.dev at a custom API URL using the pinned trigger.dev devDependency. Which flags do I need (--env, -a, --env-file, --dry-run), and what does production get coerced to?", "should_trigger": true},
+  {"query": "I use Trigger.dev dev branches from the CLI. How do I start the dev server on a branch and archive the branch when I am done?", "should_trigger": true},
   {"query": "How do I install the Trigger.dev MCP server for Cursor and Claude Code only, locked to one project and in dev-only mode?", "should_trigger": true},
   {"query": "Push my local .env variables to the production environment of my self-hosted Trigger.dev from the terminal with the CLI env command, then list them", "should_trigger": true},
   {"query": "I manage a cloud and a self-hosted instance. How do I log in with profiles and switch between them?", "should_trigger": true},

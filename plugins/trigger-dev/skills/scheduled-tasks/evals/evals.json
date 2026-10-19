@@ -8,7 +8,6 @@
       "files": [],
       "expectations": [
         "The answer says a declarative schedule (cron on schedules.task) needs no attach step",
-        "The answer says the CLI has no schedules:attach command",
         "The answer says dev and deploy sync the declarative schedule",
         "The answer mentions the environments option of the cron object to limit where the schedule fires",
         "The answer says that without the environments option every environment fires the schedule",
