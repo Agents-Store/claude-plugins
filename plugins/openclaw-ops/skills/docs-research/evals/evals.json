@@ -20,7 +20,8 @@
       "expectations": [
         "The answer says to use versions.py rather than re-deriving the answer by hand",
         "The answer explains that the trailing channel is also published as a non-prerelease and lags by about a month",
-        "The answer mentions the trailing channel"
+        "The answer mentions the trailing channel",
+        "The answer says correction releases carry a hyphen suffix"
       ]
     },
     {
@@ -49,14 +50,13 @@
     },
     {
       "id": 5,
-      "prompt": "Use the docs-research skill. The docs command on our oldest instance describes a flag that the documentation site does not mention any more. Which one is wrong? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the docs-research skill. The docs command on our oldest instance describes a flag that the documentation site does not mention any more. Which one is wrong? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Neither is wrong: they answer different questions, and the divergence is itself the finding. The in-box answer describes what that build supports; the site describes the current recommendation. Both go into the report, and the age of the instance is the explanation.",
       "files": [],
       "expectations": [
-        "The answer states that the two sources answer different questions and are not interchangeable",
-        "The answer records the divergence as a finding rather than picking a winner",
-        "The answer attributes the difference to the instance running behind, and checks the version drift",
-        "The answer says to keep both the observation and the citation in the report"
+        "The answer says the instance and the documentation site can disagree",
+        "The answer says to report a finding if the instance and the site disagree",
+        "The answer says the instance is running behind"
       ]
     }
   ]

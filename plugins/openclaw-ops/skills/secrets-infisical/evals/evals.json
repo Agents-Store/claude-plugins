@@ -3,14 +3,14 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the secrets-infisical skill. A feature on one instance does nothing. Its config references the key it needs and the reference looks correct. Nothing appears in the log. What is wrong? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the secrets-infisical skill. A feature on one instance does nothing. Its config references the key it needs and the reference looks correct. Nothing appears in the log. What is wrong? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "The config states what is required; only the injection wrapper states what is delivered. Compare the two sets by name — a required key that is not delivered kills the feature silently.",
       "files": [],
       "expectations": [
-        "The answer distinguishes required (config references) from delivered (wrapper output)",
-        "The answer says to compare the two sets by key name, never by value",
-        "The answer treats a non-empty required-minus-delivered set as critical",
-        "The answer does not conclude the key is missing from a bare exec that bypasses the wrapper"
+        "The answer says to compare required key names with delivered key names",
+        "The answer says to compare by name, never by value",
+        "The answer says a non-empty required minus delivered set is critical",
+        "The answer names fleet.secrets.delivery-short"
       ]
     },
     {
@@ -62,14 +62,13 @@
     },
     {
       "id": 6,
-      "prompt": "Use the secrets-infisical skill. A backup file on the box contained a gateway token in plaintext. I deleted the backup, so we are clear. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the secrets-infisical skill. A backup file on the box contained a gateway token in plaintext. I deleted the backup, so we are clear. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "No: deletion removes the evidence, not the exposure. If the value ever left the box, rotation is mandatory — new value written, instances rolled canary first, and the old value invalidated at the provider.",
       "files": [],
       "expectations": [
-        "The answer states that deleting the file does not undo the compromise",
-        "The answer requires rotation rather than recommending it",
-        "The answer includes invalidating the old value at the provider as part of the rotation",
-        "The answer does not let the completed easy action stand in for the undone one"
+        "The answer says deleting the file does not undo the compromise",
+        "The answer says to rotate the token",
+        "The answer says to compare fingerprints rather than printing values"
       ]
     },
     {

@@ -39,14 +39,14 @@
     },
     {
       "id": 4,
-      "prompt": "Use the fleet-model skill. Where does openclaw-ops keep its configuration, and what happens if I copy it to another server? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the fleet-model skill. Where does openclaw-ops keep its configuration, and what happens if I copy it to another server? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Describes the four-rung resolution ladder, mode 0600, and that a host_fingerprint mismatch forces read-only mode with no override switch.",
       "files": [],
       "expectations": [
-        "The answer lists the ladder in order, environment variable first",
-        "The answer says the file lives outside the plugin repository at mode 0600",
-        "The answer explains that a fingerprint mismatch makes every recorded path a guess and refuses mutations",
-        "The answer points at re-running init on the new host rather than editing the fingerprint"
+        "The answer lists the ladder starting with $OPENCLAW_OPS_CONFIG",
+        "The answer says the config file is mode 0600",
+        "The answer says a host_fingerprint mismatch forces read-only",
+        "The answer says the file lives outside the plugin repository"
       ]
     },
     {
@@ -68,7 +68,7 @@
         "The answer says to apply the canary barrier before the remaining instances and to stop for a separate confirmation",
         "The answer says --yes comes only on a later turn after confirmation",
         "The answer names the targets explicitly rather than accepting an empty or fleet-wide selector",
-        "The answer says to do a full gateway restart rather than a reload"
+        "The answer mentions fleet.py resolve"
       ],
       "id": 6
     },

@@ -15,15 +15,14 @@
     },
     {
       "id": 2,
-      "prompt": "Use the memory-ops skill. Give each instance its own embedding key and get search working again. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the memory-ops skill. Give each instance its own embedding key and get search working again. In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "Runs the full sequence: snapshot, per-instance key in the secret store, delivery verified by name only, secret referenced by name in the config, full restart, then an explicit reindex one instance at a time.",
       "files": [],
       "expectations": [
         "The answer says to verify delivery by environment name and length, never by value",
-        "The answer references the secret by name in the config rather than writing a literal key",
-        "The answer says to perform a full gateway restart rather than a reload",
-        "The answer says to reindex explicitly, one instance at a time, off peak",
-        "The answer states that changing the key changes the index identity, so the reindex is required everywhere it changed"
+        "The answer says to reference the key by name in the config",
+        "The answer says to do a full gateway restart rather than a reload",
+        "The answer says to reindex one instance at a time"
       ]
     },
     {

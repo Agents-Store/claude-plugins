@@ -44,6 +44,7 @@
       "expectations": [
         "The answer names fleet.memory.embeddings-unauthorized",
         "The answer says a subscription OAuth session does not cover embeddings, which need an API key",
+        "The answer mentions the memory-ops skill",
         "The answer names fleet.secrets.delivery-short"
       ]
     },

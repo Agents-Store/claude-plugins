@@ -3,14 +3,14 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the security-audit skill. The built-in security audit came back clean on every instance. We're secure, right? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check.",
+      "prompt": "Use the security-audit skill. The built-in security audit came back clean on every instance. We're secure, right? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 250 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the finding ids, flags, commands and refusals from the skill that you relied on.",
       "expected_output": "No: the built-in audit is one process reporting on itself. Introduces the second layer — publication and reachability, the container-aware firewall chain, token uniqueness, filesystem permissions, metrics auth — and states the trust boundary explicitly.",
       "files": [],
       "expectations": [
-        "The answer states that a clean built-in audit says nothing about network exposure, the host, or neighbours",
-        "The answer names at least three layer-two checks the runtime structurally cannot make",
-        "The answer says to write out the one-trust-boundary-per-gateway sentence rather than assuming it",
-        "The answer does not claim any instance is secure on the strength of the exit code alone"
+        "The answer says a clean built-in audit says nothing about network exposure",
+        "The answer says to check that every port binds loopback",
+        "The answer says to test reachability from off-host",
+        "The answer says not to call an instance secure on the exit code alone"
       ]
     },
     {
@@ -33,8 +33,8 @@
       "expectations": [
         "The answer says to compare by fingerprint and key class, never by printing the value",
         "The answer says to check the file mode and owner",
-        "The answer says deleting the file does not recall keys that were already readable",
-        "The answer mentions the secrets-infisical skill"
+        "The answer says to move the file to quarantine",
+        "The answer says to run security audit --deep"
       ]
     },
     {

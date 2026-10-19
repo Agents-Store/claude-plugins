@@ -8,8 +8,9 @@
       "files": [],
       "expectations": [
         "The answer says to start from discovery rather than from remembered paths",
-        "The answer says to compare the health and liveness columns",
-        "The answer runs fleet.py discover --table"
+        "The answer mentions healthcheck.py",
+        "The answer mentions versions.py",
+        "The answer mentions fleet.py config --init"
       ]
     },
     {

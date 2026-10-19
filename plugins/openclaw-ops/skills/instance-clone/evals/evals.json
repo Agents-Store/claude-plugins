@@ -68,7 +68,7 @@
         "The answer says to compare mount tables of clone and source",
         "The answer says to grep the rendered compose file for the source's name",
         "The answer says to run clone.py with --plan and not --apply",
-        "The answer says the credential directories should be empty"
+        "The answer says the embedding key should differ per instance"
       ]
     }
   ]
