@@ -1,6 +1,6 @@
 ---
 description: Take in anything the client sends — a document, a returned review package, or a correction typed straight into this chat — and merge it through delta → ruling → apply
-argument-hint: [file in inbox/ | what to change, in your own words | (empty = whatever is unprocessed)]
+argument-hint: '[file in inbox/ | what to change, in your own words | (empty = whatever is unprocessed)]'
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, Skill]
 ---
 

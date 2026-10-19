@@ -1,6 +1,6 @@
 ---
 name: troubleshoot
-description: This skill should be used when a Jira or Confluence REST API call fails or behaves unexpectedly - "returns 401 / 403 / 404 / 400 / 409 / 429", "API token not working or expired", "JQL search returns 400 unbounded", "ADF error", "page won't update or version conflict", "wrong base URL", or any Atlassian error response. Maps symptoms to causes and fixes. Not for ordinary Jira or Confluence calls (jira-operations, confluence-operations).
+description: Use when a Jira or Confluence Cloud REST call fails or behaves unexpectedly - 401 or 403 with a token that looks right (expired, or scoped and sent to the site URL), 404 from a wrong base path or a missing /wiki prefix, 400 from plain-text ADF or an unbounded JQL (only ORDER BY), 409 version conflicts on page updates, 429 rate limits, Agile or v1-only endpoints missing in v2. Not for first-time credentials (setup) or ordinary calls that work (jira-operations, confluence-operations).
 ---
 
 # Atlassian Troubleshooting

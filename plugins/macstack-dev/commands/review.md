@@ -1,6 +1,6 @@
 ---
 description: Give the client the documents to read and answer — a self-contained HTML file, a published page, or both — and take their answers back
-argument-hint: [--read | --artifact | --only <sections> | --skip <sections> | (empty = the whole package)]
+argument-hint: '[--read | --artifact | --only <sections> | --skip <sections> | (empty = the whole package)]'
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, Skill, Artifact]
 ---
 
