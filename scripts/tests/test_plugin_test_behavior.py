@@ -215,6 +215,18 @@ class BehaviorTest(unittest.TestCase):
         self.assertEqual((pairs["--eval-dir"], pairs["--ablation"]), ("evals-quality", "with-without"))
         self.assertNotIn("--runs", argv)
 
+    def test_score_within_float_noise_of_threshold_is_not_below(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        for score in (0.7999999999999999, 0.8 - 1e-12):    # среднее трёх оценок в двоичной арифметике
+            got, _, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", score, delta=0.2))}])
+            self.assertEqual(got, [], score)
+
+    def test_score_below_threshold_by_more_than_noise_is_below(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        for score in (0.79, 0.8 - 1e-8):
+            got, _, _, _ = self.check([{"result": eval_result(eval_case("q-web-1", score, delta=0.2))}])
+            self.assertEqual([(f.level, f.message.split(":")[0]) for f in got], [(FAIL, L2_BELOW)], score)
+
     def test_case_threshold_from_manifest(self):
         self.add_plugin(queries=(), quality=QUALITY)
         self.repo.tests("b-dev", {"plugin-test.toml": '[behavior.case."q-web-1"]\nthreshold = 0.4  # судья строг\n'})

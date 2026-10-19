@@ -19,6 +19,13 @@ def trig(pos, neg):
                       + [{"query": "no %d" % i, "should_trigger": False} for i in range(neg)])
 
 
+def trig_ru(ru, en, neg):
+    """ru запросов «должен» с кириллицей, en — без неё, neg — «не должен» (кириллица у них не в счёт)."""
+    return json.dumps([{"query": "сделай %d" % i, "should_trigger": True} for i in range(ru)]
+                      + [{"query": "do it %d" % i, "should_trigger": True} for i in range(en)]
+                      + [{"query": "не то %d" % i, "should_trigger": False} for i in range(neg)])
+
+
 class EvalFilesTest(unittest.TestCase):
     def setUp(self):
         self.repo = Repo()
@@ -56,6 +63,41 @@ class EvalFilesTest(unittest.TestCase):
         self.repo.tests("p-dev", {"evals/c1/prompt.md": "hi\n"})
         got = run_check(eval_files, self.repo.root, "p-dev")
         self.assertEqual([(f.level, f.file) for f in got], [(FAIL, "tests/plugins/p-dev/evals/c1")])
+
+    def ru_findings(self, triggers, skill=SKILL):
+        self.repo.plugin("p-dev", files={"skills/a/SKILL.md": skill % "a", "skills/a/evals/triggers.json": triggers})
+        return run_check(eval_files, self.repo.root, "p-dev")
+
+    def test_no_russian_positives_warns_with_the_count(self):   # русские «не должен» не в счёт
+        got = self.ru_findings(trig_ru(0, 5, 5))
+        self.assertEqual([(f.level, f.file) for f in got], [(WARN, "plugins/p-dev/skills/a/evals/triggers.json")])
+        self.assertEqual(got[0].message, "запросов «должен» по-русски: 0 — нужно не меньше 2")
+        self.assertEqual(got[0].fix, "добавь русский запрос «должен» (правило наборов, /plugin-creator:evals)")
+
+    def test_one_russian_positive_warns_with_the_count(self):
+        got = self.ru_findings(trig_ru(1, 4, 5))
+        self.assertEqual([f.level for f in got], [WARN])
+        self.assertEqual(got[0].message, "запросов «должен» по-русски: 1 — нужно не меньше 2")
+
+    def test_two_russian_positives_is_enough(self):
+        self.assertEqual(self.ru_findings(trig_ru(2, 3, 5)), [])
+
+    def test_yo_counts_as_cyrillic(self):
+        triggers = json.dumps([{"query": "ёлка", "should_trigger": True}, {"query": "Ёж", "should_trigger": True},
+                               {"query": "no", "should_trigger": False}])
+        self.assertEqual(self.ru_findings(triggers), [])
+
+    def test_set_without_positives_does_not_warn(self):
+        triggers = json.dumps([{"query": "не то", "should_trigger": False}])
+        self.assertEqual(self.ru_findings(triggers), [])
+
+    def test_skill_without_model_invocation_does_not_warn(self):
+        self.assertEqual(self.ru_findings(trig(0, 5), skill=DMI), [])
+
+    def test_set_with_load_errors_gets_only_the_load_fail(self):
+        broken = json.dumps([{"query": "yes", "should_trigger": True}, {"query": "x"}])
+        got = self.ru_findings(broken)
+        self.assertEqual([f.level for f in got], [FAIL])
 
 
 class EvalCoverageTest(unittest.TestCase):
