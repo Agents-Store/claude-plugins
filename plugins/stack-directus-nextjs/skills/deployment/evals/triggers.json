@@ -4,7 +4,7 @@
   {"query": "Give me the production checklist for going live with Directus 12 and Next.js 16: tokens, CORS, images, license tier, backups", "should_trigger": true},
   {"query": "How do I run Directus locally for a Next.js dev server so CORS and Live Preview accept localhost:3000, and how do I know it is up?", "should_trigger": true},
   {"query": "Editors change an author in Directus but pages that embed that author stay stale. Our revalidation Flow lists only posts. Which collections must the Flow, the allow-list of /api/revalidate and the tagged reads agree on?", "should_trigger": true},
-  {"query": "The Docker healthcheck of our Directus 12 container calls /server/health and gets 403. Which URL should the compose healthcheck and my local check use, and what does it answer?", "should_trigger": true},
+  {"query": "Which Directus variable lets my Next.js dev server on localhost:3000 pass CORS and Live Preview in the local Docker setup?", "should_trigger": true},
   {"query": "Как сделать так, чтобы после публикации в Directus страница в Next.js обновлялась сама? Нужна цепочка от сохранения до новой страницы", "should_trigger": true},
   {"query": "Перед выкаткой в прод: что проверить в Directus и в Next.js, чтобы токен был не админский, а CORS и images.remotePatterns были настроены верно?", "should_trigger": true},
   {"query": "Deploy my Next.js app to Vercel and add the environment variables with the CLI", "should_trigger": false},
