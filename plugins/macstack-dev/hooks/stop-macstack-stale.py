@@ -18,8 +18,10 @@
 """
 import json
 import os
+import re
 import subprocess
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import macstack_freshness                                       # noqa: E402
@@ -38,6 +40,29 @@ def quiet(reason=''):
     if os.environ.get('MACSTACK_HOOK_DEBUG'):
         sys.stderr.write('macstack-hook: молчу (%s)\n' % (reason or 'нечего сказать'))
     sys.exit(0)
+
+
+def reminded_marker(session_id):
+    """Файл-отметка «в этой сессии уже напоминал». Без id сессии отметки нет."""
+    if not session_id or not re.match(r'^[A-Za-z0-9_-]+$', session_id):
+        return None
+    base = os.environ.get('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache')
+    return os.path.join(base, 'macstack-dev', 'stop-reminded', session_id)
+
+
+def mark_reminded(marker):
+    """Ставит отметку и убирает отметки старше двух недель. Любая ошибка — молча."""
+    try:
+        d = os.path.dirname(marker)
+        os.makedirs(d, exist_ok=True)
+        open(marker, 'w').close()
+        old = time.time() - 14 * 86400
+        for name in os.listdir(d):
+            f = os.path.join(d, name)
+            if os.path.getmtime(f) < old:
+                os.remove(f)
+    except OSError:
+        pass
 
 
 def run(args, cwd):
@@ -82,6 +107,11 @@ def main():
     # Повторный заход того же хука — вторая подсказка про то же самое лишняя.
     if payload.get('stop_hook_active'):
         quiet('уже сработал в этом ходе')
+    # Раз за сессию: напоминание, повторённое на каждом ходу, перестают читать, и в
+    # параллельных сессиях с вечно грязным деревом оно шло почти на каждом ходу.
+    marker = reminded_marker(payload.get('session_id'))
+    if marker and os.path.exists(marker):
+        quiet('в этой сессии уже напоминал')
 
     cwd = payload.get('cwd') or os.getcwd()
     root = find_root(cwd)
@@ -134,6 +164,8 @@ def main():
         stale_line = None
     if stale_line:
         msg += '\n' + stale_line
+    if marker:
+        mark_reminded(marker)
     json.dump({'hookSpecificOutput': {'hookEventName': 'Stop',
                                       'additionalContext': msg}},
               sys.stdout, ensure_ascii=False)
