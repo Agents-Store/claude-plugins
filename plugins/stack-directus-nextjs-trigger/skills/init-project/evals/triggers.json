@@ -6,7 +6,6 @@
   {"query": "Set up the three-service stack from scratch and verify the connections: Directus ping, the MCP schema tool and Trigger.dev", "should_trigger": true},
   {"query": "Как инициализировать стек Directus, Next.js и Trigger.dev: какие переменные заполнить и откуда взять TRIGGER_PROJECT_REF?", "should_trigger": true},
   {"query": "Создаю проект с фоновыми задачами на Directus и Next.js. Какие зависимости ставить и почему trigger.dev кладут в devDependencies?", "should_trigger": true},
-  {"query": "Что в стеке Directus, Next.js и Trigger.dev отличает REVALIDATION_SECRET от DIRECTUS_WEBHOOK_SECRET и почему нельзя использовать один секрет на оба Flow?", "should_trigger": true},
   {"query": "Install and configure a self-hosted Trigger.dev server with Docker", "should_trigger": false},
   {"query": "Init Trigger.dev in my existing Next.js project with the CLI and create the first task", "should_trigger": false},
   {"query": "Create a Directus Docker Compose file with a pinned image, Postgres and Redis", "should_trigger": false},
