@@ -6,7 +6,7 @@
   {"query": "I do not have any API keys. How can I still find web images for design inspiration without filling my context with base64?", "should_trigger": true},
   {"query": "What are the rate limits for Pexels and Unsplash, and how should I cache the responses?", "should_trigger": true},
   {"query": "Найди стоковые фото для главной страницы сайта кофейни и подскажи, как правильно указать авторов", "should_trigger": true},
-  {"query": "Как получить через API случайное фото Unsplash для hero-блока и что обязательно сделать после выбора?", "should_trigger": true},
+  {"query": "Нужны короткие видео для фона лендинга с Pexels через API: какой эндпоинт, какой заголовок авторизации и что указать в атрибуции?", "should_trigger": true},
   {"query": "Generate an image of a mountain with an AI image model", "should_trigger": false},
   {"query": "Optimize PNG images in my build with sharp", "should_trigger": false},
   {"query": "Resize images on upload with a Lambda function", "should_trigger": false},

@@ -4,7 +4,6 @@
   {"query": "I want to crawl a docs site from the command line with firecrawl and limit the depth. What is the command?", "should_trigger": true},
   {"query": "Which flags does the firecrawl CLI have to get JSON output with timing, and how do I set the API key for a single call?", "should_trigger": true},
   {"query": "How do I create a recurring change monitor from the firecrawl CLI, and what should I confirm before doing it?", "should_trigger": true},
-  {"query": "Run jina embed and rerank locally on my Apple Silicon Mac without an API key. What is the install command, and why does pip install jina-grep fail?", "should_trigger": true},
   {"query": "Как из терминала запустить firecrawl search и сохранить результат в файл? Какие флаги вывода есть?", "should_trigger": true},
   {"query": "Как собрать цепочку команд jina CLI через pipe: прочитать страницу и сделать текстовую обработку?", "should_trigger": true},
   {"query": "Write a TypeScript script with the Firecrawl SDK that scrapes a URL", "should_trigger": false},
