@@ -31,6 +31,7 @@ CONFIRM_RUNS = 2          # повтор проваленного кейса с�
 QUERY_SHOWN = 120
 GRACE_AFTER_DEADLINE = 2700   # вызов, начатый до конца окна, может идти ещё 45 минут — юнит убьют в 08:00
 MIN_CALL_TIMEOUT = 300
+EPS = 1e-9                 # допуск сравнения оценок: среднее трёх 0.8 бывает 0.7999999999999999
 SKILLS_VAR = "PLUGIN_TEST_L2_SKILLS"   # волны: только эти skills плагина (имена через запятую); ночной прогон не ставит
 QUICK_VAR = "PLUGIN_TEST_L2_QUICK"     # волны: быстрый режим качества — 1 прогон без плеча «без плагина»; только значение 1
 FIX_TRIGGER = "уточни description skill (run_loop skill-creator) или замени запрос: /plugin-creator:evals"
@@ -287,7 +288,7 @@ def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
         previous = past.get(name, [])
         if not quick:      # оценка одного прогона в историю не идёт: следующие медианы считаются по полным
             entries.append({"case": name, "score": score, "delta": delta, "runs": len(runs), "ok": True})
-        if score < threshold:
+        if score < threshold - EPS:
             out.append(Finding(plugin.name, CHECK, FAIL, "%s: %s — %.2f < %.2f" % (L2_BELOW, name, score, threshold),
                                file, 0, FIX_QUALITY))
         median = None if quick else history.regressed(previous, score)

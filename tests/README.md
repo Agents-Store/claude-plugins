@@ -147,6 +147,7 @@ tests/plugins/<p>/evals/<case>/   # редко: родной кейс claude plu
 - `triggers.json`: ровно ключи `query` и `should_trigger`; ≥ 5 `true` и ≥ 5 `false`, всего ≤ 20;
   `false` — «почти, но не то»: соседний skill, общие слова, задача соседнего плагина. Skill с
   `disable-model-invocation: true` набора не требует, а `should_trigger: true` для него — ошибка.
+  Не меньше 2 из `true` — по-русски (с кириллицей); меньше — `warn` «запросов «должен» по-русски: N» (под `--strict` — `fail`), для skill без вызова моделью предупреждения нет.
 - Наборы пишет `/plugin-creator:evals` (методика `skill-creator`).
 
 ### Прогон L2
