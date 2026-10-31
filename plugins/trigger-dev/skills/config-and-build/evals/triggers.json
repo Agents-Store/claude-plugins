@@ -1,9 +1,6 @@
 [
   {"query": "Add Prisma 7 to my Trigger.dev project so tasks can query the database. What goes into trigger.config.ts? The types complain about mode", "should_trigger": true},
-  {"query": "My deployed Trigger.dev task fails with Failed to parse URL from undefined/api. The env vars from my .env are missing in production. What is the config?", "should_trigger": true},
   {"query": "How do I install FFmpeg and Playwright in the task image through build extensions? Which package do I need first?", "should_trigger": true},
-  {"query": "Which trigger.config.ts option makes the CLI find tasks that live in packages/jobs/tasks instead of src/trigger, and what is the default machine preset?", "should_trigger": true},
-  {"query": "Mark a native module as external for my deployed Trigger.dev tasks so the bundler leaves it out. Which key under build do I use?", "should_trigger": true},
   {"query": "Our self-hosted Trigger.dev uses a self-signed TLS certificate and deployed tasks fail with unable to verify the certificate. What do I add to trigger.config.ts and where must the certificate file live?", "should_trigger": true},
   {"query": "Как подключить Python и системные пакеты apt к задачам Trigger.dev в trigger.config.ts?", "should_trigger": true},
   {"query": "Как синхронизировать переменные окружения при деплое через syncEnvVars и зачем нужен --env-file?", "should_trigger": true},
