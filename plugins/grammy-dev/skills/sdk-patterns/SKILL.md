@@ -1,6 +1,6 @@
 ---
 name: sdk-patterns
-description: Everyday grammY (Telegram bot framework) code patterns for TypeScript or JavaScript. Covers creating a Bot, reading the Context (ctx.from, ctx.chat, ctx.me, ctx.match), handlers with bot.command, bot.hears and bot.on, replying with ctx.reply versus calling ctx.api or bot.api directly, editing and deleting messages, bot.init, and typing a custom Context with plugin flavors. Use for how-do-I-write-this questions in grammY code. For deployment use deployment-hosting, for sessions use sessions.
+description: grammY (Telegram bot framework) code patterns - creating a Bot, reading the Context (ctx.from, ctx.chat), handlers with bot.command, bot.hears and bot.on, ctx.reply versus ctx.api or bot.api for other chats and scheduled posts, editing and deleting messages, bot.init, and typing a custom Context with plugin flavors (session). Use for how-do-I-write-this questions in grammY code. For filter queries use filter-queries, for keyboards commands-and-keyboards, for session storage sessions.
 ---
 
 # grammY — SDK Patterns

@@ -1,6 +1,6 @@
 ---
 name: jinja2-patterns
-description: Jinja2 template patterns for Flask, covering base layouts with template inheritance and blocks, reusable macros for form fields, custom filters registered in the app factory, url_for static links (also inside blueprints), loops and conditionals, flash messages, CSRF tokens in forms and render_template. Use it for any task that writes, fixes or explains the template side of a Flask app, in any language. For routes and blueprint structure use app-patterns.
+description: Jinja2 template patterns for Flask - base layouts with template inheritance and blocks, reusable macros for form fields, custom filters, url_for static links, loops and conditionals, flash messages and CSRF tokens in forms. Use it for any task that writes or explains the template side of a Flask app, in any language. For routes and blueprint structure use app-patterns; for a template that errors or is not found use troubleshoot.
 ---
 
 # Jinja2 Template Patterns

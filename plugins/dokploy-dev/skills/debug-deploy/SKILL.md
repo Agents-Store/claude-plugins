@@ -1,6 +1,6 @@
 ---
 name: debug-deploy
-description: End-to-end recovery of a failed or misbehaving Dokploy deployment, covering failed or errored builds, deployments stuck in running or queued, a redeploy marked done while the old version is still served, crash-looping containers (for example exit code 137), 502 and 504 after a deploy, safe rollback, and verifying the fix. Use it for any Dokploy deploy that is not working, in any language. For one known symptom use troubleshoot; for reading logs only use read-logs.
+description: End-to-end recovery of a failed or misbehaving Dokploy deployment, covering failed or errored builds, deployments stuck in running or queued, a redeploy marked done while the old version is still served, crash-looping containers, 502 and 504 after a deploy, safe rollback, and verifying the fix. Use it for any Dokploy deploy that is not working, in any language. For one known symptom use troubleshoot; for reading logs only use read-logs.
 ---
 
 # Debug a Failed Dokploy Deployment

@@ -1,6 +1,6 @@
 ---
 name: troubleshoot
-description: Symptom-to-cause lookup for an app, domain, database or proxy running on Dokploy, covering a domain that does not resolve, an HTTPS certificate error, 502 or 404 from Traefik while the container runs, the Traefik dashboard, connection refused between containers and which internal hostname to use, Docker networks, and Dokploy MCP or API errors such as missing tools or 401. Not for a failed-deploy walkthrough (debug-deploy), for reading logs (read-logs) or for servers without Dokploy.
+description: Symptom-to-cause lookup for an app, domain, database or proxy on Dokploy - a domain that does not open or resolve, an SSL certificate error on a new domain, 502 or 404 from Traefik while the container runs (Traefik dashboard), connection refused between containers (internal hostname), a known deploy or compose error such as a registry pull or port conflict, Dokploy MCP or API errors such as missing tools or 401. Not for a full failed-deploy walkthrough (debug-deploy) or reading logs (read-logs).
 ---
 
 # Dokploy Troubleshooting Reference
