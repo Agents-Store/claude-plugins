@@ -553,10 +553,19 @@ class EvalrunTest(unittest.TestCase):
     def test_stored_window_with_unknown_reset_stops_while_the_snapshot_is_young(self):
         hour, day = 3600, 86400
         for window, age, stops in (("five_hour", 5 * hour - 1, True), ("five_hour", 5 * hour, False),
-                                   ("seven_day", 7 * day - 1, True), ("seven_day", 7 * day, False)):
+                                   ("seven_day", day - 1, True), ("seven_day", day, False)):
             with self.subTest(window=window, age=age):
                 self.put_usage({window: {"utilization": 0.99, "at": self.NOW - age}})
                 self.assertEqual(bool(self.stored_stop()[0]), stops)
+
+    def test_stored_window_ignores_impossible_stamps(self):
+        hour, day = 3600, 86400
+        for window, seen in (("five_hour", {"at": self.NOW + 60}), ("seven_day", {"at": self.NOW + 60}),
+                             ("five_hour", {"resets_at": self.NOW + 5 * hour + 60, "at": self.NOW}),
+                             ("seven_day", {"resets_at": self.NOW + 7 * day + 60, "at": self.NOW})):
+            with self.subTest(window=window, seen=seen):
+                self.put_usage({window: dict(seen, utilization=0.99)})
+                self.assertEqual(self.stored_stop()[0], "")
 
     def test_stored_snapshot_uses_the_same_thresholds_and_overrides_as_a_call(self):
         self.put_usage({"seven_day": {"utilization": 0.85, "resets_at": self.NOW + 60, "at": self.NOW},

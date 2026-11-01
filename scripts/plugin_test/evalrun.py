@@ -44,8 +44,11 @@ RESULT = "aggregate-result.json"
 RE_IDENT = re.compile(r"[A-Za-z0-9_.-]{1,40}")
 MAX_UTILIZATION = 100.0
 USAGE_FILE = "l2-usage.json"
-# Сброс окна неизвестен: снимок моложе окна — окно то же, и порог всё ещё про него
-WINDOW_AGE = {"five_hour": 5 * 3600, "seven_day": 7 * 86400}
+# Длина окна: сброс дальше неё — снимок испорчен, ему не верим
+WINDOW_LEN = {"five_hour": 5 * 3600, "seven_day": 7 * 86400}
+# Сброс неизвестен: снимку верим, пока он моложе этого срока. Неделя — сутки, не 7: пока снимок держит остановку,
+# его никто не обновляет, а одна пропущенная ночь дешевле недели без ротации
+WINDOW_AGE = {"five_hour": 5 * 3600, "seven_day": 24 * 3600}
 RESET_KEYS = ("resetsAt", "resets_at", "resetAt", "reset_at")
 MILLISECONDS = 1e11          # unix-время больше этого — миллисекунды (в секундах это год 5138)
 # Ожидаемый обрыв прогона срабатывания: max_turns: 1, грейдер к этому моменту уже видел вызов Skill. Узко — только эта форма.
@@ -360,11 +363,14 @@ def save_usage(state_dir, result, now=None):
 
 
 def _window_open(seen, window, now):
-    """Окно снимка ещё то же: сброс впереди; сброс неизвестен — снимок моложе окна (5 часов, 7 суток)."""
+    """Окно снимка ещё то же: сброс впереди (не дальше длины окна); сброс неизвестен — снимок моложе срока
+    (5 часов, сутки). Снимок из будущего или со сбросом дальше длины окна испорчен — не держит."""
+    at = seen.get("at")
+    if isinstance(at, (int, float)) and not isinstance(at, bool) and math.isfinite(at) and at > now:
+        return False
     reset = _reset_time(seen.get("resets_at"))
     if reset is not None:
-        return reset > now
-    at = seen.get("at")
+        return now < reset <= now + WINDOW_LEN[window]
     if isinstance(at, bool) or not isinstance(at, (int, float)) or not math.isfinite(at):
         return False
     return now - at < WINDOW_AGE[window]
