@@ -19,9 +19,10 @@
       "files": [],
       "expectations": [
         "The answer says to use versions.py rather than re-deriving the answer by hand",
-        "The answer explains that the trailing channel is also published as a non-prerelease and lags by about a month",
-        "The answer mentions the trailing channel",
-        "The answer says correction releases carry a hyphen suffix"
+        "The answer says the trailing channel is also published as a non-prerelease",
+        "The answer says the trailing channel lags the main line by about a month",
+        "The answer says correction releases carry a hyphen suffix",
+        "The answer says the registry dist-tags show where a channel points right now"
       ]
     },
     {
@@ -54,9 +55,11 @@
       "expected_output": "Neither is wrong: they answer different questions, and the divergence is itself the finding. The in-box answer describes what that build supports; the site describes the current recommendation. Both go into the report, and the age of the instance is the explanation.",
       "files": [],
       "expectations": [
-        "The answer says the instance and the documentation site can disagree",
-        "The answer says to report a finding if the instance and the site disagree",
-        "The answer says the instance is running behind"
+        "The answer says to run the instance's own docs command through ocexec.py",
+        "The answer says the documentation site cannot tell whether this instance supports the flag",
+        "The answer says the divergence is a finding to record, not an obstacle",
+        "The answer says both observations go in the report",
+        "The answer says to quote the URL of the page in the finding"
       ]
     }
   ]

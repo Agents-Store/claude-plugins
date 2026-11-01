@@ -8,8 +8,9 @@
       "files": [],
       "expectations": [
         "The answer says to start from discovery rather than from remembered paths",
+        "The answer says the first run is read-only and uses no --yes",
+        "The answer says health and liveness are read as separate columns and their disagreement is the finding",
         "The answer mentions healthcheck.py",
-        "The answer mentions versions.py",
         "The answer mentions fleet.py config --init"
       ]
     },
@@ -56,10 +57,11 @@
       "expected_output": "Points at the four scenarios and the shape common to all of them: discover before deciding, split health from liveness, name the finding, fetch before recommending, plan then apply, and verify with an observation that changed.",
       "files": [],
       "expectations": [
-        "The answer runs fleet.py discover --table",
+        "The answer starts with fleet.py discover --table before any other step",
         "The answer mentions healthcheck.py",
         "The answer mentions versions.py",
-        "The answer mentions report.py"
+        "The answer mentions report.py",
+        "The answer says no --yes is used in the first run"
       ]
     }
   ]

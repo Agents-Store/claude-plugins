@@ -7,10 +7,11 @@
       "expected_output": "Starts from discovery rather than from paths: run the fleet discovery script, read the state column, and route by symptom.",
       "files": [],
       "expectations": [
-        "The answer mentions the fleet-diagnostics skill",
+        "The answer sends an instance whose cause is unknown to the fleet-diagnostics skill first",
         "The answer mentions /openclaw-ops:audit",
-        "The answer mentions /openclaw-ops:logs",
-        "The answer mentions alien instances"
+        "The answer says every CLI call goes through ocexec.py instead of a hand-written docker exec",
+        "The answer says to take paths from the live mount table rather than from memory",
+        "The answer says alien instances are listed but every mutation on them is refused"
       ]
     },
     {

@@ -45,8 +45,9 @@
       "expectations": [
         "The answer refuses to delete tables, rows or the database file or its sidecars by hand, because the file also holds sessions and transcripts",
         "The answer names memory reset --agent",
-        "The answer names memory forget with --dry-run first as the way to remove memory derived from selected sessions",
-        "The answer mentions doctor --session-sqlite compact"
+        "The answer says memory forget deletes immediately with no prompt, so --dry-run comes first",
+        "The answer mentions doctor --session-sqlite compact",
+        "The answer says memory reset does not shrink the file"
       ]
     },
     {

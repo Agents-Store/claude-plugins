@@ -31,10 +31,11 @@
       "expected_output": "Establishes fingerprint parity against the delivered value first, because a redundant file and a load-bearing one look identical on disk; neutralises a redundant one by moving it to quarantine outside the container's volumes; then rotates, because deletion does not un-leak a value that has been readable for as long as the file existed.",
       "files": [],
       "expectations": [
+        "The answer refuses to treat deleting the file as the whole fix",
         "The answer says to check the file mode and owner",
         "The answer says to run security audit --deep",
-        "The answer mentions the secrets-infisical skill",
-        "The answer mentions fleet.security.state-perms"
+        "The answer hands the exposed credential to the secrets-infisical skill",
+        "The answer names fleet.security.state-perms"
       ]
     },
     {

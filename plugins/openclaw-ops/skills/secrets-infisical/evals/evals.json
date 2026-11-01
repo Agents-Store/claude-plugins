@@ -66,7 +66,8 @@
       "expected_output": "No: deletion removes the evidence, not the exposure. If the value ever left the box, rotation is mandatory — new value written, instances rolled canary first, and the old value invalidated at the provider.",
       "files": [],
       "expectations": [
-        "The answer says deleting the file does not undo the compromise",
+        "The answer names fleet.secrets.leaked-in-backup",
+        "The answer calls the finding critical",
         "The answer says to rotate the token",
         "The answer says to compare fingerprints rather than printing values"
       ]
