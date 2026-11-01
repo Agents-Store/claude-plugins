@@ -3,18 +3,15 @@
   "evals": [
     {
       "id": 6,
-      "prompt": "Can you validate the project-directus-nextjs template? I want to make sure it follows all our Level 1 conventions before I fork it for a new client. You cannot open files in this session, so go through the validation steps against this description as if you had read the files. What I can see in the template: stack.json (level 1, parent project-template, stack directus-nextjs, plugins.technology directus-dev and nextjs-dev), AGENTS.md, CLAUDE.md that starts with @AGENTS.md, README.md, .env.example, a tracked .mcp.json, .gitignore, .claude/settings.json, .claude/settings.local.json.example, .claude/skills/{brainstorming,planning,tdd,debugging,verification,project-config,init-stack,commit,pr,plan-feature,code-review-project,sync,new-page}/SKILL.md, .claude/agents/code-reviewer.md, .claude/rules/{safety,search-before-building,project-conventions}.md and docs/{architecture,code-style,api-conventions}.md. The Tech Stack section of CLAUDE.md still reads '[e.g., NocoDB, Supabase, Directus]' and its Installed Plugins section is empty; .env.example has only commented-out example lines. Give me the validation report. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step.",
-      "expected_output": "The validate skill reads stack.json, confirms level=1, checks all required files (core skills, workflow skills, agents, rules, docs), validates CLAUDE.md quality (under 100 lines, no placeholders, Tech Stack filled), checks consistency between stack.json and CLAUDE.md, runs security checks, and produces a detailed validation report.",
+      "prompt": "Can you validate the project-directus-nextjs template? I want to make sure it follows all our Level 1 conventions before I fork it for a new client. In this session nothing is installed: there is no shell and the template directory is empty, so there is no stack.json and no other file. Do not ask questions; answer in text with what you do at each step.",
+      "expected_output": "Guard behavior of the validate skill: stack.json is missing, so it is a critical error and the validation stops.",
       "files": [],
       "expectations": [
-        "The answer says to read stack.json and correctly identifies the template as Level 1",
-        "The answer says to check for all core required files (brainstorming, planning, tdd, debugging, verification skills)",
-        "The answer says to check for core workflow skills (init-stack, commit, pr, plan-feature, code-review-project, sync)",
-        "The answer says to verify CLAUDE.md has filled Tech Stack section (not placeholder text)",
-        "The answer says to check that CLAUDE.md Installed Plugins matches stack.json plugins",
-        "The answer says to verify .env.example has stack-specific variables",
-        "The answer says to check security (.env is gitignored; the committed .mcp.json holds only ${VAR} references)",
-        "The answer produces a structured validation report with pass/fail per category"
+        "The answer reads stack.json first to determine the template level",
+        "The answer reports that stack.json is missing",
+        "The answer flags the missing stack.json as a critical error",
+        "The answer stops after that error and runs no further checks",
+        "The answer says the template level cannot be determined without stack.json"
       ]
     }
   ]

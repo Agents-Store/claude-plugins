@@ -7,14 +7,12 @@
       "expected_output": "The create skill clones project-template into a new project-supabase-nuxt directory, fills stack.json with level=1 and the correct layers/plugins, customizes CLAUDE.md with the tech stack, updates .env.example with Supabase and Trigger.dev vars, searches for matching Agents Store plugins, validates the result, and makes an initial commit.",
       "files": [],
       "expectations": [
-        "The answer says to clone project-template (Level 0) as the parent, not another Level 1 template",
-        "The answer says to create a new directory named project-supabase-nuxt",
-        "The answer says to fill stack.json with level=1, parent='project-template', stack='supabase-nuxt'",
-        "The answer says to populate stack.json layers: data=['supabase'], logic=['nuxt', 'trigger-dev'], interface=['nuxt']",
-        "The answer says to customize CLAUDE.md with Supabase + Nuxt tech stack details",
-        "The answer says to update .env.example with Supabase variables (SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY)",
-        "The answer searches plugin directories for matching technology plugins",
-        "The answer initializes a new git repo and makes an initial commit"
+        "The answer clones project-template (Level 0) as the parent",
+        "The answer sets stack.json to level 1 with parent project-template",
+        "The answer lists nuxt in both the logic and the interface layer of stack.json",
+        "The answer lists trigger-dev in the logic layer of stack.json",
+        "The answer searches both $PLUGINS_PUBLIC_SOURCE_DIR and $PLUGINS_PRIVATE_SOURCE_DIR for plugins that match each technology",
+        "The answer makes the initial commit with the message feat: scaffold project-supabase-nuxt from project-template"
       ]
     },
     {
@@ -37,12 +35,11 @@
       "expected_output": "The create skill clones project-directus-nextjs into demo-directus-nextjs, sets stack.json to level=1.5, inherits all Level 1 content, and sets up the demo-specific structure with sample data scaffolding.",
       "files": [],
       "expectations": [
-        "The answer says to clone from project-directus-nextjs (Level 1), not project-template (Level 0)",
-        "The answer says to create demo-directus-nextjs directory with demo- prefix",
-        "The answer says to set stack.json level to 1.5 with parent='project-directus-nextjs'",
-        "The answer inherits all stack, layers, and plugins from the Level 1 parent",
-        "The answer says to mention or scaffolds seed data scripts",
-        "The answer says to mention sample content structure (blog posts, team directory)",
+        "The answer clones project-directus-nextjs as the parent and not project-template",
+        "The answer names the new template demo-directus-nextjs",
+        "The answer sets stack.json to level 1.5 with parent project-directus-nextjs",
+        "The answer adds sample data and seed scripts",
+        "The answer adds demo commands for seeding and resetting the demo data",
         "The answer makes an initial commit"
       ]
     }

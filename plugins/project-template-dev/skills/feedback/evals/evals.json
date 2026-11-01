@@ -65,13 +65,12 @@
       "expected_output": "The feedback skill routes this to Level 1 (project-directus-nextjs), creates the new-api-route skill with proper SKILL.md frontmatter and Next.js + Directus-specific content, records in LEARNINGS.md, and commits.",
       "files": [],
       "expectations": [
-        "The answer routes to Level 1 (project-directus-nextjs), not Level 0, since this is stack-specific",
-        "The answer says to read stack.json from acme-website to resolve the parent",
-        "The answer says to create .claude/skills/new-api-route/SKILL.md in project-directus-nextjs",
-        "The answer's skill's SKILL.md includes Next.js API route patterns with Directus SDK usage",
-        "The answer has proper YAML frontmatter with name and description including trigger phrases",
-        "The answer says to record in project-directus-nextjs's LEARNINGS.md with source attribution",
-        "The answer uses feat() commit convention since this is a new skill addition"
+        "The answer routes the change to Level 1 (project-directus-nextjs) and not to Level 0, because it is specific to this stack",
+        "The answer reads stack.json of acme-website to resolve the parent",
+        "The answer checks whether the parent template already has a new-api-route skill before it edits",
+        "The answer creates .claude/skills/new-api-route/SKILL.md in the parent template",
+        "The answer gives the SKILL.md frontmatter with a name and a description that holds trigger phrases",
+        "The answer appends an entry to LEARNINGS.md with a Source line that names acme-website"
       ]
     }
   ]
