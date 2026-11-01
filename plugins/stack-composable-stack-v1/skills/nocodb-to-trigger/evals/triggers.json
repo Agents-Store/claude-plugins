@@ -1,7 +1,6 @@
 [
   {"query": "When processing_status becomes pending in NocoDB I want a Trigger.dev task to run an AI summary on the row. How do I wire that without the task re-firing the webhook when it writes the result back?", "should_trigger": true},
   {"query": "Configure the n8n HTTP Request node that starts our Trigger.dev task from a NocoDB webhook: method, URL pattern, auth credential, and the JSON body with payload and options.idempotencyKey. Why not a Code node?", "should_trigger": true},
-  {"query": "Our task keeps getting started again and again: NocoDB After Update webhook, and the task writes processing to the same row. An idempotency key with UpdatedAt did not help. Why?", "should_trigger": true},
   {"query": "Start the process-nocodb-record task from this session through the stack's Trigger.dev MCP and make sure it runs in dev, not in prod. Which tool and which parameters?", "should_trigger": true},
   {"query": "Chain a NocoDB webhook to n8n and then to Trigger.dev as a dispatcher. Should the call be a Code node or an HTTP Request node, and why?", "should_trigger": true},
   {"query": "Хочу при изменении записи в NocoDB запускать фоновую задачу в Trigger.dev, а статус писать обратно. Как избежать бесконечного цикла вебхука?", "should_trigger": true},

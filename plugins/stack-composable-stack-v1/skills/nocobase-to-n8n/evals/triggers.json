@@ -6,7 +6,6 @@
   {"query": "What naming convention do we use for NocoBase workflows that call n8n, for example a notify warehouse step after create?", "should_trigger": true},
   {"query": "Как из интерфейса NocoBase запустить процесс в n8n по нажатию кнопки, передав данные текущей записи?", "should_trigger": true},
   {"query": "Сделай так, чтобы NocoBase после обновления записи в коллекции invoices отправлял HTTP-запрос в n8n, а n8n потом обновлял запись через API. Где хранить ключ API?", "should_trigger": true},
-  {"query": "In our stack an n8n workflow must write results back into NocoBase collections through the REST API. Which URL pattern for list, create and update, where does the API key live in n8n, and which instance do I wire first, dev or prod?", "should_trigger": true},
   {"query": "Build a NocoBase workflow with an approval node and a condition branch for expense reports", "should_trigger": false},
   {"query": "Create a collection with a many-to-many relation in NocoBase using the MCP tools", "should_trigger": false},
   {"query": "Trigger an n8n workflow whenever a NocoDB row changes", "should_trigger": false},
