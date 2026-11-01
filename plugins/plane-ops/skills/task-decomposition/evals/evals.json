@@ -7,12 +7,12 @@
       "expected_output": "4-6 vertical stories each ≤8 points, created in Plane with parent set to the epic, total ≈21, each with user story format + acceptance criteria. Uses Split by Business Rule or Split by Workflow Step pattern.",
       "files": [],
       "expectations": [
-        "The answer uses Split by Business Rule or Split by Workflow Step, NOT horizontal slicing by layer",
-        "The answer says to create 4-6 child stories, each ≤ 8 points",
-        "In the answer each child is independently deliverable (a tenant admin could use one without the others)",
-        "In the answer the child points sum to ~21 (preservation rule)",
-        "The answer uses User Story template with Given/When/Then acceptance criteria in description_html",
-        "The answer says to call workitem(action=create) with the parent field set to the epic's work item ID (the epic is itself a workitem of type Epic, found with workitem_type(action=resolve, name=\"Epic\"))"
+        "The answer splits the epic vertically and not by architecture layer",
+        "The answer keeps every story at 8 points or less",
+        "The answer makes the story points add up to about 21",
+        "The answer writes the acceptance criteria as Given/when/then lines in description_html",
+        "The answer creates each story with workitem(action=create, parent=<epic work item id>)",
+        "The answer verifies the split with workitem(action=list, pql='childOf(\"<epic identifier>\")')"
       ]
     },
     {

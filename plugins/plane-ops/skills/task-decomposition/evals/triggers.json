@@ -1,7 +1,7 @@
 [
   {"query": "This story is 21 points - split it into smaller stories that each deliver value. Which splitting patterns apply?", "should_trigger": true},
   {"query": "Decompose the work item 'Build admin dashboard' into subtasks for backend, frontend, tests and docs with estimates", "should_trigger": true},
-  {"query": "What are the six story splitting patterns in the task decomposition skill, and how are points redistributed after splitting?", "should_trigger": true},
+  {"query": "What are the standard ways to split a 13-point story - by workflow step, business rule, data variation, CRUD - and how should the points of the pieces add up afterwards?", "should_trigger": true},
   {"query": "Run the INVEST validation workflow on this story: 'Build the whole reporting module', 21 points, no acceptance criteria, blocked by the tags system", "should_trigger": true},
   {"query": "Разбей эпик «Личный кабинет клиента» на истории и подзадачи по INVEST", "should_trigger": true},
   {"query": "Как создать иерархию эпик, история, подзадача в Plane при декомпозиции и как распределяются очки после разбиения?", "should_trigger": true},

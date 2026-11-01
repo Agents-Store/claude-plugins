@@ -39,14 +39,16 @@
     },
     {
       "id": 4,
-      "prompt": "Use the pages-publishing skill. Publish a Q2 roadmap page showing Now / Next / Later / Parked. Use this data: Payments v2 is in the current sprint; SSO is planned for the next sprint; the Mobile app module has no dates yet; Legacy cleanup was put on hold on purpose. Say where each kind of data comes from and show the page body and the create call. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
-      "expected_output": "Uses the roadmap template, aggregates cycles/modules/epics/milestones into the four buckets, calls page(action=create).",
+      "prompt": "Use the pages-publishing skill. Publish a Q2 roadmap page showing Now / Next / Later / Parked. Use this data: Payments v2 is in the current sprint; SSO is planned for the next sprint; the Mobile app module has no dates yet; Legacy cleanup was put on hold on purpose. Show the page body and the create call. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "expected_output": "Roadmap page from the roadmap template: Now, Next, Later and Parked headings with one item each, published with page(action=create).",
       "files": [],
       "expectations": [
-        "The answer uses the roadmap HTML template from references/templates/roadmap.html",
-        "The answer classifies items into Now / Next / Later / Parked buckets correctly",
-        "The answer says to pull data from cycle(action=list), module(action=list), an epic listing through workitem(action=list, pql='type = \"<epic-type-id>\"') (there is no epic tool), milestone(action=list)",
-        "The answer says to call page(action=create) with the rendered HTML"
+        "The answer puts Payments v2 under the heading Now (this sprint)",
+        "The answer puts SSO under the heading Next (next sprint)",
+        "The answer puts the Mobile app module under the heading Later (this quarter)",
+        "The answer puts Legacy cleanup under the heading Parked",
+        "The answer opens the page body with an h1 that reads Roadmap — Q2",
+        "The answer publishes the page with page(action=create, project_id, name, description_html)"
       ]
     },
     {
@@ -126,11 +128,12 @@
       "prompt": "Use the pages-publishing skill. Publish the release notes for v2.0 using what we tracked in Plane releases. Customer-facing. Show the calls in order, including how you find the release and its items and what you do with the existing changelog. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Finds the release with the release tool, reads its work items and existing changelog, groups items into the Release Notes template, publishes a page and stores the notes in the release changelog.",
       "expectations": [
-        "The answer says to find the release with release(action=list) (and release_tag for the version string) instead of asking the user to list what shipped",
-        "The answer says to read the shipped items with release(action=list_workitems, release_id) following next_cursor, and the current changelog with release(action=get_changelog) before overwriting it",
-        "The answer uses the release-notes HTML template, grouped by Highlights, New Features, Improvements, Bug Fixes, Breaking Changes, and omits internal work for a customer audience",
-        "The answer says to publish with page(action=create) and stores the notes with release(action=update_changelog, release_id, description_html)",
-        "The answer does not use a create_release_notes or per-operation legacy tool name"
+        "The answer finds the release with release(action=list)",
+        "The answer reads the shipped items with release(action=list_workitems, release_id) and follows next_cursor",
+        "The answer reads the current changelog with release(action=get_changelog) before it overwrites it",
+        "The answer groups the notes under the headings Highlights, New Features, Improvements, Bug Fixes and Breaking Changes",
+        "The answer publishes the page with page(action=create, project_id, name, description_html)",
+        "The answer stores the notes with release(action=update_changelog, release_id, description_html)"
       ],
       "files": []
     }

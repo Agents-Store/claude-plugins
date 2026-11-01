@@ -5,6 +5,7 @@
   {"query": "Score these three backlog items with WSJF in Plane - business value, time criticality, risk reduction and job size - rank them, and tell me which labels to use for MoSCoW", "should_trigger": true},
   {"query": "Какие PQL-фильтры использовать в Plane, чтобы вытащить из бэклога неоценённые, устаревшие и готовые к спринту задачи? Нужны конкретные запросы", "should_trigger": true},
   {"query": "Explain how the Plane backlog health check scores a backlog and how to interpret the health score, then give me the grooming workflow step by step", "should_trigger": true},
+  {"query": "Как приоритизировать бэклог в Plane по MoSCoW: какое значение priority ставить для Must, Should, Could и Won't Have и какая доля ёмкости спринта приходится на каждую категорию?", "should_trigger": true},
   {"query": "Plan the next sprint and calculate capacity", "should_trigger": false},
   {"query": "Break down the epic 'Payments' into user stories", "should_trigger": false},
   {"query": "Triage the intake queue and accept the valid bug reports", "should_trigger": false},

@@ -3,7 +3,7 @@
   {"query": "How do I build release notes from Plane releases with the release notes template, and which HTML formatting rules apply to Plane pages?", "should_trigger": true},
   {"query": "Create a decision log (ADR) page in Plane for the choice of PostgreSQL over MongoDB, with context, options, decision and consequences", "should_trigger": true},
   {"query": "Which calls update, archive and delete a Plane page, and how do I publish a sprint report page end to end?", "should_trigger": true},
-  {"query": "Which page templates does the pages-publishing skill provide - sprint report, retrospective, release notes, roadmap, meeting notes, ADR, spec, runbook - and which one fits what?", "should_trigger": true},
+  {"query": "Which Plane page templates are there for a sprint report, retro, release notes, roadmap, meeting notes, ADR, spec or runbook, and which one fits which document?", "should_trigger": true},
   {"query": "Опубликуй отчёт по спринту как страницу в Plane с метриками и итогами", "should_trigger": true},
   {"query": "Почему в страницах Plane пропадают чекбоксы data-checked и как правильно оформлять списки в HTML? Назови известные ловушки", "should_trigger": true},
   {"query": "Why does my HTML page content look broken in the Plane editor and which HTML elements are safe to use in Plane pages?", "should_trigger": true},

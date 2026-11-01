@@ -7,10 +7,12 @@
       "expected_output": "Resolves project and lead UUIDs, calls module(action=create) with status='planned'.",
       "files": [],
       "expectations": [
-        "The answer says to consult connector-bootstrap",
-        "The answer says to resolve project_id and lead UUID",
-        "The answer says to call module(action=create) with name, lead, target_date, status=planned",
-        "The answer offers to populate the module with backlog items"
+        "The answer resolves the project with project(action=list)",
+        "The answer finds Alice's user id with member(action=list_project, project_id=<id>)",
+        "The answer creates the module with module(action=create, project_id, name=\"Billing v2\", ...)",
+        "The answer sets lead=<Alice's user uuid> and target_date=2026-06-30 in the create call",
+        "The answer sets status=\"planned\" in the create call",
+        "The answer offers module(action=manage_workitems, module_id, add_ids=[...]) as the next step"
       ]
     },
     {
@@ -30,10 +32,11 @@
       "expected_output": "Lists module items, groups by state, reports completion_rate and active blockers.",
       "files": [],
       "expectations": [
-        "The answer says to call module(action=list_workitems), or workitem(action=count, pql='module = \"<id>\"', group_by=state__group) for the state-group totals",
-        "The answer says to group items by state group and sums points",
-        "The answer gives completion_rate computed as completed_points / total_points",
-        "The answer surfaces active blockers"
+        "The answer counts the items per state group with workitem(action=count, project_id, pql='module = \"<module_id>\"', group_by=state__group)",
+        "The answer lists the items with their points through module(action=list_workitems)",
+        "The answer computes the completion rate as 13 of 21 points, about 62%",
+        "The answer finds blockers with workitem_relation(action=list) for the open items",
+        "The answer names BILL-4 as blocked by BILL-3"
       ]
     },
     {

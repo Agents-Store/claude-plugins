@@ -3,13 +3,16 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the epics-initiatives-milestones skill. I need to track the 'Multi-tenant support' work. It's 2 months of work, one tech lead, no fixed release date. Epic, module, milestone, or initiative? Answer in text; everything you need is in this message.",
-      "expected_output": "Recommends an epic, cites the decision table.",
+      "prompt": "Use the epics-initiatives-milestones skill. I need to track the 'Multi-tenant support' work in project TaskFlow. It's 2 months of work, one tech lead, no fixed release date. Epic, module, milestone, or initiative? Then show me the calls that create it. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "expected_output": "Recommends an epic from the decision table and creates it as a work item of type Epic.",
       "files": [],
       "expectations": [
-        "The answer says to choose epic (1–3 months, single tech lead, no fixed date)",
-        "The answer explains why not a module, milestone, or initiative",
-        "The answer references the canonical decision table"
+        "The answer recommends an epic",
+        "The answer says an epic covers 1-3 months of work",
+        "The answer says a milestone is a fixed date, which this work does not have",
+        "The answer says an initiative is a cross-project goal of 1-2 quarters",
+        "The answer resolves the Epic type with workitem_type(action=resolve, project_id, name=\"Epic\")",
+        "The answer creates it with workitem(action=create, ..., type_id=<epic-type-id>)"
       ]
     },
     {
@@ -50,14 +53,15 @@
     },
     {
       "id": 5,
-      "prompt": "Use the epics-initiatives-milestones skill. Create the epic 'Multi-tenant support' in TaskFlow and attach it to the 'International expansion Q3' initiative, then list all epics in the project. Also say how its child stories get attached to the epic and how you read the link back. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "prompt": "Use the epics-initiatives-milestones skill. Create the epic 'Multi-tenant support' in TaskFlow and attach it to the 'International expansion Q3' initiative, then list all epics in the project. Also say how its child stories get attached to the epic. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Epic created as a work item of type Epic (no epic tool), listed with a type filter, linked to the initiative through manage_workitems.",
       "expectations": [
-        "The answer does not look for or call any dedicated epic tool (create, list or link an epic); says there are no epic tools",
-        "The answer says to resolve the type with workitem_type(action=resolve, project_id, name=\"Epic\") and creates the epic with workitem(action=create, type_id=<id>)",
+        "The answer says an epic is a work item whose type is named Epic",
+        "The answer resolves the type with workitem_type(action=resolve, project_id, name=\"Epic\")",
+        "The answer creates the epic with workitem(action=create, ..., type_id=<epic-type-id>)",
         "The answer lists epics with workitem(action=list, project_id, pql='type = \"<epic-type-id>\"')",
-        "The answer says to link the epic with initiative(action=manage_workitems, initiative_id, add_ids=[<epic work item id>]) and reads it back with initiative(action=list_workitems)",
-        "The answer says to set children through the parent field of the child work item, not on the epic"
+        "The answer links the epic with initiative(action=manage_workitems, initiative_id, add_ids=[<epic work item id>])",
+        "The answer sets the children through the parent field of the child work item"
       ],
       "files": []
     },

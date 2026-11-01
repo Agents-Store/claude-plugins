@@ -7,13 +7,12 @@
       "expected_output": "Combined dashboard: burndown (day X of Y, actual vs ideal), velocity trend across last 5 sprints with confidence tier, WIP current vs limit, blocker count, projected completion points. Concrete recommendations at the bottom.",
       "files": [],
       "expectations": [
-        "The answer says to read the active sprint with cycle(action=list, status=current) and the trend with cycle(action=list, status=completed) (plus archived=true for archived sprints)",
-        "The answer computes ideal_remaining = total × (remaining_days / sprint_days) correctly",
-        "The answer categorizes velocity confidence based on sample size (LOW/MODERATE/HIGH)",
-        "The answer says to count current WIP with workitem(action=count, pql='stateGroup = \"started\"') instead of listing every item, calculates the WIP limit from team size and compares",
-        "The answer produces a completion forecast (pts projected by end_date at current pace)",
-        "The answer outputs the SPRINT HEALTH dashboard layout from the skill, not prose",
-        "The answer gives 2-3 concrete recommendations, not vague advice"
+        "The answer reads the active sprint with cycle(action=list, status=current)",
+        "The answer has the dashboard heading SPRINT HEALTH: Sprint 12",
+        "The answer shows 55% done and 60% elapsed",
+        "The answer shows the WIP as 4/7",
+        "The answer labels the velocity MODERATE CONFIDENCE because only three sprints are known",
+        "The answer has a Recommendations section with numbered items"
       ]
     },
     {
@@ -60,11 +59,12 @@
       "prompt": "Use the velocity-metrics skill. How many work items did TaskFlow finish in each of the last 4 sprints, and how many are in progress right now? Show the calls and how you turn the counts into sprint names, and say whether this gives velocity in points. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Throughput per completed sprint from one workitem(action=count) call grouped by cycle_id, and current WIP from a second count on the started state group; cycle ids mapped to sprint names.",
       "expectations": [
-        "The answer says to count finished items per sprint with workitem(action=count, pql='cycle IN completedCycles() AND stateGroup = \"completed\"', group_by=cycle_id) rather than listing every item of every sprint",
-        "The answer says to map the cycle ids in grouped_counts to sprint names with cycle(action=list, status=completed)",
-        "The answer says to count current WIP with workitem(action=count, pql='stateGroup = \"started\"') and reads total_count",
-        "The answer does not call a count action 'story points': says count returns items and that velocity in points needs the point field of listed items",
-        "The answer uses stateGroup (not state__group) in the PQL filter; state__group appears only as a group_by key if at all"
+        "The answer counts the finished items per sprint with workitem(action=count, ..., group_by=cycle_id)",
+        "The answer uses pql='cycle IN completedCycles() AND stateGroup = \"completed\"' in that count",
+        "The answer maps the cycle ids to sprint names with cycle(action=list, status=completed)",
+        "The answer counts the current WIP with workitem(action=count, pql='stateGroup = \"started\"')",
+        "The answer says count returns items and not story points",
+        "The answer filters with stateGroup and not with state__group"
       ],
       "files": []
     }

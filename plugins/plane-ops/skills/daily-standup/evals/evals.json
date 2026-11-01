@@ -7,24 +7,26 @@
       "expected_output": "Team-level dashboard: points done/total, items by state, WIP status, pace vs needed pace. Per-person section with DONE/DOING/NEXT/BLOCKED. Attention section listing stalled, blocked, and not-started items.",
       "files": [],
       "expectations": [
-        "The answer says to fetch the active cycle via cycle(action=list, status=current) and resolves day X of Y from its dates",
-        "The answer says to group items by assignee AND separately by state group (workitem(action=count, pql='cycle = \"<id>\"', group_by=state__group) gives the state-group totals in one call)",
-        "The answer computes WIP and compares to a limit",
-        "The answer computes pace (points/day) and what's needed to finish",
-        "The answer has an explicit [!] Attention section flagging at-risk items",
-        "The answer renders the dashboard format from the skill, not free-form prose"
+        "The answer finds the active sprint with cycle(action=list, status=current)",
+        "The answer gets the state-group totals with workitem(action=count, pql='cycle = \"<cycle_id>\"', group_by=state__group)",
+        "The answer reports 22/40 points completed (55%)",
+        "The answer has a Pace line that gives the points per day and the points per day needed",
+        "The answer contains a section headed [!] Attention",
+        "The answer lists Bob's blocked item in that [!] Attention section"
       ]
     },
     {
       "id": 2,
-      "prompt": "Use the daily-standup skill. Give me a per-person standup breakdown for the Billing team's active sprint. Show each member's DONE, DOING, NEXT, and BLOCKED. Show the calls that fetch the data, how you find items that sit in progress without moving, and how you confirm that before naming one stalled. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
-      "expected_output": "For each team member, a labeled list of items with state, points, and any blocker notes.",
+      "prompt": "Use the daily-standup skill. Give me a per-person standup breakdown for the Billing team's active sprint. The listing shows: Dana has 3 items (2 done, 1 in progress, unchanged for 4 days); Eli has 2 (1 in progress, 1 not started); Fay has 1 item, blocked by Eli's in-progress item. Is Dana's long-running item really stalled? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "expected_output": "Per-person breakdown with DONE/DOING/NEXT/BLOCKED labels; the stalled candidate is found by the PQL filter and confirmed with workitem_activity before it is called stalled.",
       "files": [],
       "expectations": [
-        "The answer says to fetch project members with member(action=list_project) and cycle work items with cycle(action=list_workitems)",
-        "The answer says to group items by assignee",
-        "The answer uses the [DONE]/[DOING]/[NEXT]/[BLOCKED] labels from the skill format",
-        "The answer flags items in 'In Progress' without activity for >2 days as stalled, e.g. with pql='stateGroup = \"started\" AND updatedAt < daysAgo(2)', and confirms with workitem_activity before calling one stalled"
+        "The answer gets the team roster with member(action=list_project)",
+        "The answer gets the sprint items with cycle(action=list_workitems)",
+        "The answer labels each person's items with [DONE], [DOING], [NEXT] and [BLOCKED]",
+        "The answer finds stalled items with pql='stateGroup = \"started\" AND updatedAt < daysAgo(2)'",
+        "The answer confirms with workitem_activity(action=list) before calling Dana's item stalled",
+        "The answer finds Fay's blocker with workitem_relation(action=list)"
       ]
     },
     {

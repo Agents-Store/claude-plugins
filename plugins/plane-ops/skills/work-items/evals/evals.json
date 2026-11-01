@@ -3,14 +3,16 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the work-items skill. Create a work item in project TaskFlow: 'Fix login 500 on Safari', high priority, 3 points, assigned to Alice, labeled 'bug'. Start with how you find the tools, show every call including how names become ids, and the description you write. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
-      "expected_output": "Resolves project_id, state UUID, assignee UUID, label UUID, then calls workitem(action=create) with description_html including acceptance criteria.",
+      "prompt": "Use the work-items skill. Create a work item in project TaskFlow: 'Fix login 500 on Safari', high priority, 3 points, assigned to Alice, labeled 'bug'. Show every call including how names become ids, and the description you write. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "expected_output": "project(action=list), member(action=list_project), label(action=list), then workitem(action=create) with description_html, priority, point, assignees and labels.",
       "files": [],
       "expectations": [
-        "The answer says to consult connector-bootstrap before probing tools",
-        "The answer says to call project(action=list), state(action=list), label(action=list), member(action=list_project) to resolve UUIDs",
-        "The answer says to generate an HTML description with an Acceptance Criteria section",
-        "The answer says to set priority=high, point=3, assignees=[<uuid>] and labels=[<uuid>] with the fixed parameter names of the workitem tool"
+        "The answer finds the project with project(action=list)",
+        "The answer resolves Alice's user id with member(action=list_project, project_id=<id>)",
+        "The answer resolves the label bug to its id with label(action=list, project_id=<id>)",
+        "The answer writes description_html with an Acceptance Criteria heading",
+        "The answer sets priority=\"high\" and point=3 in the workitem(action=create) call",
+        "The answer sets assignees=[<Alice's uuid>] and labels=[<bug label uuid>] in the workitem(action=create) call"
       ]
     },
     {
@@ -19,9 +21,12 @@
       "expected_output": "Resolves both item UUIDs and calls workitem_relation(action=create) with relation_type blocked_by.",
       "files": [],
       "expectations": [
-        "The answer uses workitem(action=retrieve_by_identifier, workitem_identifier=\"PROJ-148\") (one full identifier string) to resolve both items",
-        "The answer says to call workitem_relation(action=create, workitem_ids=[<PROJ-140 uuid>], relation_type=blocked_by) on PROJ-148",
-        "The answer says to confirm the dependency by reading the relation back after creating it"
+        "The answer resolves PROJ-148 with workitem(action=retrieve_by_identifier, workitem_identifier=\"PROJ-148\")",
+        "The answer resolves PROJ-140 with workitem(action=retrieve_by_identifier, workitem_identifier=\"PROJ-140\")",
+        "The answer calls workitem_relation(action=create) with workitem_id=<PROJ-148 uuid>",
+        "The answer passes relation_type=\"blocked_by\"",
+        "The answer passes workitem_ids=[<PROJ-140 uuid>]",
+        "The answer reads the relation back with workitem_relation(action=list)"
       ]
     },
     {
@@ -38,14 +43,15 @@
     },
     {
       "id": 4,
-      "prompt": "Use the work-items skill. Find all work items in TaskFlow that mention 'webhook' in title or description. Show the exact call or calls, how results are limited to TaskFlow, which part of an item the search covers, and how the results are presented. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
-      "expected_output": "Calls workitem(action=search, query='webhook') (workspace-scoped) and filters results to the TaskFlow project client-side, or lists the project with a pql text filter.",
+      "prompt": "Use the work-items skill. Find all work items in TaskFlow that mention 'webhook'. Show the exact call or calls and how results are limited to TaskFlow. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "expected_output": "workitem(action=search, query) as a workspace-wide search filtered to TaskFlow, or the project-scoped pql title filter.",
       "files": [],
       "expectations": [
-        "The answer says to resolve project_id via project(action=list) (for filtering the results to the project)",
-        "The answer says to call workitem(action=search, query='webhook') (parameter name is 'query', not 'q') or workitem(action=list, project_id, pql='text ~ \"webhook\"') (text searches title and description)",
-        "The answer recognizes search is workspace-scoped (no project_id) and filters results to the TaskFlow project, or uses the project-scoped pql list; notes that pql title ~ matches titles only while text ~ matches title and description (the prompt asks for both)",
-        "The answer presents results as a table with identifier, title, state, assignee"
+        "The answer calls workitem(action=search, query=\"webhook\")",
+        "The answer says the search is workspace-scoped and has no project_id",
+        "The answer filters the search results to the TaskFlow project client-side",
+        "The answer offers the server-side filter workitem(action=list, project_id, pql='title ~ \"webhook\"')",
+        "The answer resolves the project_id of TaskFlow with project(action=list)"
       ]
     },
     {
@@ -65,11 +71,12 @@
       "prompt": "Use the work-items skill. Show me every urgent or high priority item assigned to me in TaskFlow that is still open, and how many items each person has in progress. Show each call with its filter, say how you stay within the filter limits and look up the filter syntax, and how you page through long results. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "PQL-filtered workitem list with assignee = currentUser(), plus a count grouped by assignee; no client-side filtering of a full listing.",
       "expectations": [
-        "The answer says to filter server-side: workitem(action=list, project_id, pql='assignee = currentUser() AND priority IN (\"urgent\",\"high\") AND stateGroup IN openStates()') or equivalent",
-        "The answer says to count per person with workitem(action=count, project_id, pql='stateGroup = \"started\"', group_by=assignees__id)",
-        "The answer uses stateGroup in the filter, and state__group only as a group_by key if at all",
-        "The answer says to keep the query within 5 conditions and mentions get_pql_reference for the full syntax",
-        "The answer says to follow next_cursor when the first page is not the last"
+        "The answer lists with workitem(action=list, project_id, pql=...) instead of filtering a full listing client-side",
+        "The answer has assignee = currentUser() in the pql",
+        "The answer has priority IN (\"urgent\",\"high\") in the pql",
+        "The answer counts the in-progress items per person with workitem(action=count, pql='stateGroup = \"started\"', group_by=assignees__id)",
+        "The answer calls get_pql_reference to look up the filter syntax",
+        "The answer follows next_cursor when the first page is not the last"
       ],
       "files": []
     },

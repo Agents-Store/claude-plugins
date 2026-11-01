@@ -56,11 +56,12 @@
       "prompt": "Use the backlog-management skill. Which backlog items in TaskFlow have gone stale and have nobody assigned? Don't pull the whole backlog into the conversation. Also tell me what to do with the stale ones, and how to find the items that have no estimate or no description. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
       "expected_output": "Server-side PQL filter on the backlog state groups, hasNoAssignee() and updatedAt < daysAgo(n), counted first and listed second; stale items proposed for cancel-then-archive, never silently deleted.",
       "expectations": [
-        "The answer says to filter server-side with pql on workitem(action=list) or workitem(action=count), e.g. stateGroup IN (\"backlog\",\"unstarted\") AND hasNoAssignee() AND updatedAt < daysAgo(42), instead of listing everything and filtering client-side",
-        "The answer says to count first with workitem(action=count) and reads total_count before listing",
-        "The answer says to keep the query at 5 conditions or fewer and consults get_pql_reference for anything beyond the documented examples",
-        "The answer proposes cancelling and then archiving (workitem(action=archive) needs a completed or cancelled item) rather than deleting, and asks before any delete",
-        "The answer says that unestimated or no-description items cannot be filtered by PQL and are read from the point and description_stripped fields of the listed items"
+        "The answer passes a pql filter to workitem(action=list) instead of filtering client-side",
+        "The answer uses hasNoAssignee() in the pql filter",
+        "The answer uses updatedAt < daysAgo(42) in the pql filter",
+        "The answer counts first with workitem(action=count) and reads total_count before listing",
+        "The answer cancels the stale items and then archives them with workitem(action=archive)",
+        "The answer reads the point and description_stripped fields of the listed items to find unestimated or no-description items"
       ],
       "files": []
     }

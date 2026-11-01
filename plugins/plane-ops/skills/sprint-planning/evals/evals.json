@@ -7,13 +7,12 @@
       "expected_output": "Full planning ceremony: velocity avg 20 × 0.85 ≈ 17 → adjusted for Bob's 50% (team has 2.5 FTE not 3, so ~14-15 capacity), sprint goal in the 'users can X so that Y' format, item selection honoring DoR, cycle(action=create) call with owned_by, cycle(action=manage_workitems) with add_ids.",
       "files": [],
       "expectations": [
-        "The answer prefers velocity-based capacity (has 3+ sprints history, given by the user) over days-based, and does not re-derive it from the tracker",
-        "The answer calculates average velocity (20) and applies 15% buffer (×0.85)",
-        "The answer says to adjust capacity for Bob's part-time status (not ignoring it)",
-        "The answer says to write a sprint goal in the 'By end of sprint, [users] can [capability] so that [value]' format",
-        "The answer says to validate each selected item against DoR (estimated, ≤8 points, has AC, no unresolved blockers)",
-        "The answer says to create the cycle via cycle(action=create) with owned_by and description (the goal)",
-        "The answer says to add items via cycle(action=manage_workitems) with add_ids (an array of work item UUIDs), then reads them back with cycle(action=list_workitems)"
+        "The answer computes the capacity as 20 × 0.85 = 17 points before the part-time adjustment",
+        "The answer reduces the capacity for Bob's 50% part-time",
+        "The answer flags PROJ-204 for decomposition because it is above 8 points",
+        "The answer writes the sprint goal as By end of this sprint, [users] can [capability] so that [value]",
+        "The answer creates the cycle with cycle(action=create, ..., owned_by=<current user id>, description=<sprint goal>)",
+        "The answer adds the items with cycle(action=manage_workitems, add_ids=[...])"
       ]
     },
     {
@@ -35,10 +34,11 @@
       "expected_output": "No velocity history → uses days-based formula with focus factor, then applies first-sprint 60% reduction for learning curve.",
       "files": [],
       "expectations": [
-        "The answer detects no velocity history available",
-        "The answer uses days-based formula: team_size × sprint_days × 0.7 × 0.85",
-        "The answer says to apply the additional first-sprint reduction to 60% of calculated capacity",
-        "The answer warns that Sprint 1 commitment is low-confidence and should be re-calibrated after"
+        "The answer says there is no velocity history, so it uses the days-based formula",
+        "The answer computes 50 available person-days from 5 people times 10 days",
+        "The answer applies the 0.7 focus factor to get 35 effective days",
+        "The answer applies the 15% buffer (× 0.85) to get about 30 points",
+        "The answer applies the first-sprint reduction to 60% and lands on about 18 points"
       ]
     },
     {

@@ -19,10 +19,12 @@
       "expected_output": "Quarterly taxonomy audit: drop labels with <3 uses, introduce prefixed namespaces, merge near-duplicates.",
       "files": [],
       "expectations": [
-        "The answer recommends prefixed namespaces (type/, area/, priority/, status/)",
-        "The answer suggests dropping low-use labels and measures the use of every label in one call with workitem(action=count, group_by=labels__id) after label(action=list)",
-        "The answer mentions quarterly audit cadence",
-        "The answer provides concrete consolidation examples"
+        "The answer lists the catalogue with label(action=list)",
+        "The answer measures the use of every label with workitem(action=count, project_id, group_by=labels__id)",
+        "The answer drops the labels with fewer than 3 uses",
+        "The answer renames the labels into prefixed namespaces, for example type/bug",
+        "The answer merges bug, Bug, bugs and bugfix into one label",
+        "The answer repeats the audit every quarter"
       ]
     },
     {

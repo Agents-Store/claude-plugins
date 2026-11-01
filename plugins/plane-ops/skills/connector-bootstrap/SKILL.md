@@ -30,7 +30,7 @@ Symptoms this skill prevents:
 
 ## Mandatory Bootstrap Protocol
 
-Execute these steps **before** answering any Plane-related user request.
+Execute these steps before the first Plane call of a session, while the tool names are not known yet, and always before you say that Plane tools are missing or unavailable.
 
 ### Step 1 - Probe with ToolSearch
 

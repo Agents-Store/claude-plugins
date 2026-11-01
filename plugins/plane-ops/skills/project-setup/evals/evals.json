@@ -3,15 +3,16 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use the project-setup skill. Describe the audit procedure for checking a Plane project's Agile readiness. What tool calls would you run, what would you compare against, and how would you structure the gap analysis report? I want a runbook, not the actual audit. Include the baseline you compare against, the shape of the gap table, the create call for each kind of gap, and the check that catches wrong burndown numbers. In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
-      "expected_output": "A step-by-step audit procedure listing the inspection tools, the reference template to compare against, the gap-table structure, and the remediation pattern for each gap type.",
+      "prompt": "Use the project-setup skill. I just configured a new Plane project with your setup workflow and want to be sure nothing is missing before the first sprint. What do you check, with which calls, and what result do you expect from each? In this session you have no Plane tools and no shell, only file reading and a text answer: say which Plane MCP calls you would make (resource(action=..., ...) with their parameters), in what order, and what you would check, and show the result you would give me.",
+      "expected_output": "The four verification calls of the setup checklist with the expected result of each.",
       "files": [],
       "expectations": [
-        "The answer lists the 4 inspection calls: state(action=list), label(action=list), project(action=get_features), workitem_type(action=list)",
-        "The answer names the Standard Template as the comparison baseline (6 states, all label groups, cycles+modules+epics+pages+views, Story/Task/Bug/Spike types)",
-        "The answer describes output as a gap table with columns like 'what exists / what's missing / fix', not prose",
-        "For each gap type the answer shows the exact create call pattern with parameters from the skill (state(action=create), label(action=create), project(action=update_features), workitem_type(action=resolve))",
-        "The answer explicitly mentions verifying state group membership (not just names) to catch burndown bugs"
+        "The answer checks the states with state(action=list, project_id=<id>)",
+        "The answer expects 4-6 states in the correct groups",
+        "The answer checks the labels with label(action=list, project_id=<id>)",
+        "The answer checks the types with workitem_type(action=list, project_id=<id>)",
+        "The answer expects at least the types Story, Task and Bug",
+        "The answer checks the features with project(action=get_features, project_id=<id>)"
       ]
     },
     {
@@ -34,10 +35,11 @@
       "files": [],
       "expectations": [
         "The answer uses the Standard Template",
-        "The answer says to create 6 states including In Review and Cancelled",
-        "The answer says to create all 4 work item types (Story, Task, Bug, Spike) with workitem_type(action=resolve) and enables the workitem_types feature",
-        "The answer says to enable modules, epics, views features in addition to cycles/pages",
-        "The answer says to create Business Value (DECIMAL) and Risk Level (OPTION) custom properties on Story type with workitem_property(action=create, workitem_type_id, ...)"
+        "The answer creates the six states Backlog, Todo, In Progress, In Review, Done and Cancelled",
+        "The answer creates the types Story, Task, Bug and Spike with workitem_type(action=resolve)",
+        "The answer enables modules, epics and views with project(action=update_features)",
+        "The answer creates Business Value as a DECIMAL property with workitem_property(action=create, workitem_type_id, ...)",
+        "The answer creates Risk Level as an OPTION property with workitem_property(action=create, workitem_type_id, ...)"
       ]
     },
     {
