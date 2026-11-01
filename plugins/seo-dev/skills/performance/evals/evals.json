@@ -7,13 +7,12 @@
       "expected_output": "Identifies specific LCP and CLS issues and implements targeted fixes",
       "files": [],
       "expectations": [
-        "The answer says to check that the LCP image has loading=\"eager\" and fetchPriority=\"high\" (or preload in Next.js 16 when one LCP image fits every viewport) and a sizes attribute; does not recommend the deprecated priority prop on Next.js 16",
-        "The answer says to verify next/image is used instead of native img tags",
-        "The answer says to check for AVIF/WebP format configuration in next.config",
-        "The answer says to verify next/font usage (no external font requests causing CLS)",
-        "The answer says to check all images have explicit width/height or fill prop",
-        "The answer says to look for dynamic content injection above fold causing CLS",
-        "The answer does NOT reference FID (replaced by INP in 2024)"
+        "The answer sets loading=\"eager\" and fetchPriority=\"high\" on the LCP image",
+        "The answer adds a sizes attribute to the LCP image",
+        "The answer configures AVIF and WebP in images.formats of next.config",
+        "The answer uses next/font to self-host the fonts",
+        "The answer gives every image explicit width and height or the fill prop",
+        "The answer names INP as the interactivity metric next to LCP and CLS"
       ]
     }
   ]
