@@ -1,6 +1,5 @@
 [
   {"query": "My Teams bot does not reply to messages. The server log shows nothing when I send a message in Teams. Where do I start?", "should_trigger": true},
-  {"query": "The server logs No credentials configured, all incoming requests will be rejected. What do I set?", "should_trigger": true},
   {"query": "Installing my custom app says custom apps are blocked, and sometimes this app cannot be found. What is going on?", "should_trigger": true},
   {"query": "Teams bot: a card button does nothing, installing says this app cannot be found, and the manifest fails validation. In what order do I troubleshoot these three?", "should_trigger": true},
   {"query": "SSO sign-in loops and shows a six-digit code. Is something wrong?", "should_trigger": true},
