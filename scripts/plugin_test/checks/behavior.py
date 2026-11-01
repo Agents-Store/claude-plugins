@@ -9,6 +9,10 @@ fail — подтверждённый промах, ниже порога, ре�
 Волны и ручные прогоны могут удешевить повтор переменными окружения runner-а (читаются на каждый плагин, не при
 импорте; ночной прогон их не ставит): PLUGIN_TEST_L2_SKILLS — только эти skills плагина, без родных кейсов;
 PLUGIN_TEST_L2_QUICK=1 — качество в один прогон без плеча «без плагина» (нет дельты, регресса и записи в историю).
+Ошибка отдельного прогона (API, сеть, 5xx — не лимит) вердиктом не становится: такой прогон не судится, а кейс без
+чистых прогонов и вызов, где ошибка у большинства, дают одну infra «L2 сбой» (ожидаемый обрыв прогона срабатывания
+по max_turns: 1 ошибкой не считается — evalrun.run_error). Прошлый снимок подписки (<state-dir>/l2-usage.json,
+пишет _call) не даёт начать плагин, если порог уже превышен, а окно не сбросилось.
 """
 from __future__ import annotations
 
@@ -104,6 +108,10 @@ def _runs_phrase(n):
     return "все %d %s" % (n, word)
 
 
+def _mean(values):
+    return sum(values) / len(values) if values else None
+
+
 def _short(text):
     flat = " ".join(text.split())
     return flat if len(flat) <= QUERY_SHOWN else flat[:QUERY_SHOWN - 1] + "…"
@@ -145,6 +153,10 @@ def run(plugin, ctx, manifest):
         return [_infra(plugin, "%s: %s" % (L2_NOT_RUN, ctx.l2_stop))]
     if ctx.deadline and time.time() >= ctx.deadline:
         return [_infra(plugin, "%s: окно ночи закончилось" % L2_NOT_RUN)]
+    reason = evalrun.stored_stop(ctx.state_dir)
+    if reason:     # порог проверяется только после вызова, а прошлая ночь уже увидела занятое окно: ни auth status, ни eval
+        ctx.l2_stop = reason
+        return [_infra(plugin, "%s: %s" % (L2_NOT_RUN, reason)), _stopped(plugin, reason)]
     claude = shutil.which("claude")
     if not claude:
         return [_infra(plugin, "%s: нет CLI claude" % L2_FAILED, fix="npm install -g @anthropic-ai/claude-code")]
@@ -196,12 +208,34 @@ def _call(plugin, ctx, label, claude, copy, eval_dir, out_dir, env, **kw):
         if ctx.deadline and time.time() >= ctx.deadline:
             return None, [_infra(plugin, "%s: окно ночи закончилось во время прогона (%s)" % (L2_NOT_RUN, label))]
         return None, [_infra(plugin, "%s: %s: %s" % (L2_FAILED, label, exc))]
+    evalrun.save_usage(ctx.state_dir, res)      # и у недействительного вызова: лимит в трейсе — самое важное для следующего
     found = [_infra(plugin, "%s: %s: %s" % (L2_FAILED, label, p)) for p in res.problems]
     if res.stop:
         ctx.l2_stop = res.stop
     if res.invalid:
         return None, found + [_infra(plugin, "%s: %s (%s)" % (L2_NOT_RUN, res.stop, label))]
     return res, found
+
+
+def _first_error(entries, turn_cap_ok):
+    """Текст первой ошибки прогонов — только в журнал (stderr), не в находку."""
+    for entry in entries:
+        for r in entry["with"]:
+            if evalrun.run_error(r, turn_cap_ok):
+                return str(r.get("error"))
+    return ""
+
+
+def _mostly_errored(plugin, label, entries, turn_cap_ok=False):
+    """Находка, если больше половины прогонов вызова с ошибкой (не лимит — его ловит evalrun): API лёг, оценки этого
+    вызова не судим вовсе. Ровно половина — вызов в силе, ошибочные прогоны отсеиваются по одному. Иначе None."""
+    runs = [r for e in entries for r in e["with"]]
+    bad = sum(1 for r in runs if evalrun.run_error(r, turn_cap_ok))
+    if not runs or bad * 2 <= len(runs):
+        return None
+    _debug("%s: %s: %d из %d прогонов с ошибкой: %s" % (plugin.name, label, bad, len(runs),
+                                                        _first_error(entries, turn_cap_ok)[:120]))
+    return _infra(plugin, "%s: %s: более половины прогонов с ошибкой" % (L2_FAILED, label))
 
 
 def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
@@ -211,37 +245,57 @@ def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
     if res is None:
         return out
     got = evalrun.cases(res.data)
-    first = {}
+    outage = _mostly_errored(plugin, "срабатывание", [got[n] for n in cases if n in got], turn_cap_ok=True)
+    if outage:
+        return out + [outage]
+    first = {}      # кейс → оценка чистого первого прогона; None — прогон с ошибкой, его не судим
     for name in sorted(cases):
-        scores = evalrun.run_scores(got[name]) if name in got else []
+        scores = evalrun.clean_scores(got[name], turn_cap_ok=True) if name in got else []
         if scores:
             first[name] = scores[0]
+        elif name in got and evalrun.error_runs(got[name], turn_cap_ok=True):
+            first[name] = None
+            _debug("%s: %s: прогон с ошибкой: %s" % (plugin.name, name, _first_error([got[name]], True)[:120]))
         else:
             out.append(_infra(plugin, "%s: кейс %s без оценки" % (L2_FAILED, name),
                               plugin.rel(src.skills[cases[name].skill].triggers_path)))
-    failed = sorted(n for n, s in first.items() if s < 1.0)
-    again = {}
-    if failed and not ctx.l2_stop:
-        evalgen.write_triggers(copy, evalgen.RERUN_DIR, plugin.name, src.triggers, only=set(failed),
+    pending = sorted(n for n, s in first.items() if s is None or s < 1.0)    # провал и прогон с ошибкой — на повтор
+    again = {}      # кейс → оценки чистых прогонов повтора; нет ключа — повтора не было
+    if pending and not ctx.l2_stop:
+        evalgen.write_triggers(copy, evalgen.RERUN_DIR, plugin.name, src.triggers, only=set(pending),
                                routes=src.routes)
         res2, more = _call(plugin, ctx, "повтор срабатывания", claude, copy, evalgen.RERUN_DIR,
                            os.path.join(tmp, "out-rerun"), env, ablation="none", runs=CONFIRM_RUNS)
         out += more
         if res2 is not None:
             got2 = evalrun.cases(res2.data)
-            again = {n: evalrun.run_scores(got2[n]) for n in failed if n in got2}
+            outage = _mostly_errored(plugin, "повтор срабатывания", [got2[n] for n in pending if n in got2],
+                                     turn_cap_ok=True)
+            if outage:
+                out.append(outage)
+            else:
+                again = {n: evalrun.clean_scores(got2[n], turn_cap_ok=True) for n in pending
+                         if n in got2 and got2[n]["with"]}
     for name in sorted(first):
         q = cases[name]
         file = plugin.rel(src.skills[q.skill].triggers_path)
-        if first[name] >= 1.0:
+        if first[name] is not None and first[name] >= 1.0:
             entries.append({"case": name, "score": 1.0, "delta": None, "runs": 1, "ok": True})
             continue
-        if not again.get(name):
+        if name not in again:
             out.append(_infra(plugin, "%s: %s не перепроверен" % (L2_NOT_RUN, name), file))
             continue
-        runs = [first[name]] + again[name]
+        runs = ([] if first[name] is None else [first[name]]) + again[name]
+        if not runs:       # ни первый прогон, ни повтор не дали чистой оценки: не вердикт, а сбой окружения
+            out.append(_infra(plugin, "%s: %s — прогон с ошибкой" % (L2_FAILED, name), file))
+            continue
         misses = sum(1 for s in runs if s < 1.0)
+        if misses and len(runs) < 2:      # единственный чистый прогон — промах без подтверждения
+            out.append(_infra(plugin, "%s: %s не перепроверен" % (L2_NOT_RUN, name), file))
+            continue
         entries.append({"case": name, "score": 1 - misses / len(runs), "delta": None, "runs": len(runs), "ok": True})
+        if not misses:
+            continue
         text = "%s «%s» — ожидалось: %s; промах в %d из %d" % (
             q.skill, _short(q.query), "сработать" if q.should_trigger else "не срабатывать", misses, len(runs))
         level, prefix = (FAIL, L2_MISFIRE) if misses >= 2 else (INFO, L2_FLAKY)
@@ -271,23 +325,41 @@ def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
         else:
             file = plugin.rel(os.path.join(evalsrc.native_dir(plugin), m["id"]))
         entry = got.get(name)
-        if entry is None or entry["score"] is None:
+        if entry is None:
             out.append(_infra(plugin, "%s: кейс %s без оценки" % (L2_FAILED, name), file))
             continue
         runs = entry["with"]
-        errors = [r.get("error") for r in runs if isinstance(r.get("error"), str)]
-        if runs and len(errors) == len(runs):
-            _debug("%s: %s" % (name, errors[0][:120]))
+        errors = evalrun.error_runs(entry)
+        if runs and errors == len(runs):
+            _debug("%s: %s" % (name, _first_error([entry], False)[:120]))
             out.append(_infra(plugin, "%s: %s — %s с ошибкой" % (L2_FAILED, name, _runs_phrase(len(runs))), file))
             continue
-        if any(r.get("skippedPaidGraders") for r in runs):
+        good = evalrun.clean_runs(entry)
+        if errors:
+            _debug("%s: %s: %d из %d прогонов с ошибкой: %s" % (plugin.name, name, errors, len(runs),
+                                                                _first_error([entry], False)[:120]))
+            if not quick and len(good) < 2:     # из чистых прогонов оценку не собрать: не вердикт, а сбой окружения
+                out.append(_infra(plugin, "%s: %s — чистых прогонов меньше двух из %d" % (L2_FAILED, name, len(runs)),
+                                  file))
+                continue
+        if any(r.get("skippedPaidGraders") for r in good):
             out.append(_infra(plugin, "%s: %s — судья пропущен, оценка несравнима" % (L2_FAILED, name), file))
             continue
-        score, delta = entry["score"], None if quick else entry["delta"]
+        # оценка и дельта считаются по чистым прогонам, если ошибка была в любом плече: агрегат CLI считает её нулём
+        score = _mean(evalrun.clean_scores(entry)) if errors else entry["score"]
+        if score is None:
+            out.append(_infra(plugin, "%s: кейс %s без оценки" % (L2_FAILED, name), file))
+            continue
+        delta = entry["delta"]
+        if quick:
+            delta = None
+        elif errors or evalrun.error_runs(entry, "without"):
+            bare = _mean(evalrun.clean_scores(entry, "without"))
+            delta = None if bare is None else score - bare
         threshold = manifest.threshold_for(name)
         previous = past.get(name, [])
         if not quick:      # оценка одного прогона в историю не идёт: следующие медианы считаются по полным
-            entries.append({"case": name, "score": score, "delta": delta, "runs": len(runs), "ok": True})
+            entries.append({"case": name, "score": score, "delta": delta, "runs": len(good), "ok": True})
         if score < threshold - EPS:
             out.append(Finding(plugin.name, CHECK, FAIL, "%s: %s — %.2f < %.2f" % (L2_BELOW, name, score, threshold),
                                file, 0, FIX_QUALITY))

@@ -374,6 +374,222 @@ class EvalrunTest(unittest.TestCase):
         self.assertEqual(evalrun.run_scores(got["t-x"]), [1.0, 0.0])
         self.assertEqual((got["broken"]["score"], evalrun.run_scores(got["broken"])), (None, []))
 
+    # --- ошибки прогонов: что считается ошибкой, а что — ожидаемым обрывом срабатывания ---
+
+    CAP = "exit 1: Reached maximum number of turns (1)"
+
+    def test_run_error_classifies_per_run(self):
+        for clean in ({}, {"error": None}, {"error": ""}, {"error": False}):
+            self.assertFalse(evalrun.run_error(clean), clean)
+        for failed in ({"error": "API Error: 500"}, {"error": {"message": "boom"}}, {"error": True}):
+            self.assertTrue(evalrun.run_error(failed), failed)
+            self.assertTrue(evalrun.run_error(failed, turn_cap_ok=True), failed)
+
+    def test_turn_cap_of_trigger_runs_is_expected_only_in_its_pinned_form(self):
+        self.assertFalse(evalrun.run_error({"error": self.CAP}, turn_cap_ok=True))
+        self.assertFalse(evalrun.run_error({"error": "  %s\n" % self.CAP}, turn_cap_ok=True))
+        self.assertTrue(evalrun.run_error({"error": self.CAP}))              # в кейсах качества max_turns нет
+        for other in ("exit 1: Reached maximum number of turns (2)", "exit 1: Reached maximum number of turns (10)",
+                      "exit 1: Reached maximum number of turns", "exit 2: Reached maximum number of turns (1)",
+                      self.CAP + ": API Error: 500", "API Error: 500 " + self.CAP, "Reached maximum number of turns (1)"):
+            self.assertTrue(evalrun.run_error({"error": other}, turn_cap_ok=True), other)
+
+    def test_clean_runs_scores_and_error_count(self):
+        runs = [{"score": 1.0, "error": None}, {"score": 0.0, "error": "API Error: 500"},
+                {"score": 0.0, "error": self.CAP}, {"error": None}, {"score": True, "error": None}]
+        entry = evalrun.cases(eval_result(eval_case("t", 0.5, runs=runs, without=[{"score": 0.4, "error": "e"}])))["t"]
+        self.assertEqual(evalrun.clean_scores(entry), [1.0])                  # без счёта и булев score — не оценки
+        self.assertEqual(evalrun.clean_scores(entry, turn_cap_ok=True), [1.0, 0.0])
+        self.assertEqual((evalrun.error_runs(entry), evalrun.error_runs(entry, turn_cap_ok=True)), (2, 1))
+        self.assertEqual(evalrun.clean_scores(entry, "without"), [])
+        self.assertEqual(evalrun.error_runs(entry, "without"), 1)
+        self.assertEqual(len(evalrun.clean_runs(entry)), 3)
+
+    # --- снимок подписки: что разбирается из трейса и сохраняется между ночами ---
+
+    def snapshot_of(self, *infos):
+        path = os.path.join(self.repo.root, "stub", "plan.json.n")
+        if os.path.exists(path):
+            os.remove(path)
+        res, _ = self.run_stub([{"result": eval_result(eval_case("q", 1.0, runs=[
+            {"score": 1.0, "error": None, "trace": list(infos)}]))}])
+        return res.snapshot
+
+    def test_snapshot_carries_windows_status_and_reset_times(self):
+        info = {"status": "allowed", "isUsingOverage": False,
+                "unifiedWindows": {"five_hour": {"utilization": 0.4, "resetsAt": 1900000000},
+                                   "seven_day": {"utilization": 0.55}},
+                "resetsAt": 1800000000, "rateLimitType": "seven_day"}
+        self.assertEqual(self.snapshot_of(info), {
+            "status": "allowed", "overage": False,
+            "windows": {"five_hour": {"utilization": 0.4, "resets_at": 1900000000.0},
+                        "seven_day": {"utilization": 0.55, "resets_at": 1800000000.0}}})
+
+    def test_snapshot_without_rate_limit_events_has_no_windows(self):
+        self.assertEqual(self.snapshot_of(), {"status": "", "overage": False, "windows": {}})
+
+    def test_snapshot_keeps_the_highest_utilization_and_latest_reset_of_the_call(self):
+        low = {"status": "allowed", "unifiedWindows": {"five_hour": {"utilization": 0.3, "resetsAt": 2000000000}}}
+        high = {"status": "allowed", "unifiedWindows": {"five_hour": {"utilization": 0.6, "resetsAt": 1900000000}}}
+        self.assertEqual(self.snapshot_of(low, high)["windows"], {"five_hour": {"utilization": 0.6,
+                                                                             "resets_at": 2000000000.0}})
+
+    def test_snapshot_status_is_the_limit_status_when_there_was_one(self):
+        rejected = dict(OK, status="rejected", isUsingOverage=True)
+        snap = self.snapshot_of(OK, rejected)
+        self.assertEqual((snap["status"], snap["overage"]), ("rejected", True))
+        with contextlib.redirect_stderr(io.StringIO()):     # текст статуса уходит в журнал, не в снимок
+            self.assertEqual(self.snapshot_of(dict(OK, status="SENTINEL tail words"))["status"], "не указан")
+
+    def test_reset_time_formats(self):
+        for raw, want in ((1900000000, 1900000000.0), (1900000000.5, 1900000000.5), (1900000000000, 1900000000.0),
+                          ("2030-03-17T17:46:40Z", 1900000000.0), ("2030-03-17T17:46:40", 1900000000.0),
+                          ("2030-03-17T19:46:40+02:00", 1900000000.0)):
+            self.assertEqual(evalrun._reset_time(raw), want, raw)
+        for junk in (None, True, False, 0, -5, float("nan"), float("inf"), "soon", "", [1900000000], {"at": 1}):
+            self.assertIsNone(evalrun._reset_time(junk), junk)
+
+    def test_window_reset_aliases_and_foreign_top_level_reset(self):
+        for key in ("resetsAt", "resets_at", "resetAt", "reset_at"):
+            info = {"status": "allowed", "unifiedWindows": {"seven_day": {"utilization": 0.5, key: 1900000000}}}
+            self.assertEqual(self.snapshot_of(info)["windows"]["seven_day"]["resets_at"], 1900000000.0, key)
+        # сброс верхнего уровня относится к окну rateLimitType; чужому окну он не приписывается
+        info = {"status": "allowed", "resetsAt": 1900000000, "rateLimitType": "five_hour",
+                "unifiedWindows": {"seven_day": {"utilization": 0.5}}}
+        self.assertNotIn("resets_at", self.snapshot_of(info)["windows"]["seven_day"])
+
+    def usage_path(self):
+        return os.path.join(self.repo.root, "state", evalrun.USAGE_FILE)
+
+    def result_with(self, windows, status="allowed", overage=False):
+        return evalrun.RunResult(data={}, returncode=0, snapshot={"status": status, "overage": overage,
+                                                                    "windows": windows})
+
+    def stored(self):
+        with open(self.usage_path(), encoding="utf-8") as fh:
+            return json.load(fh)
+
+    def test_save_usage_writes_the_snapshot_atomically_and_creates_the_state_dir(self):
+        state = os.path.join(self.repo.root, "state")
+        evalrun.save_usage(state, self.result_with({"five_hour": {"utilization": 0.4, "resets_at": 1900000000.0}}),
+                           now=1700000000.0)
+        self.assertEqual(self.stored(), {"status": "allowed", "overage": False,
+                                         "five_hour": {"utilization": 0.4, "resets_at": 1900000000.0, "at": 1700000000.0}})
+        self.assertEqual(os.listdir(state), [evalrun.USAGE_FILE])               # временный файл не остался
+
+    def test_save_usage_replaces_the_window_it_saw_and_keeps_the_other(self):
+        state = os.path.join(self.repo.root, "state")
+        evalrun.save_usage(state, self.result_with({"five_hour": {"utilization": 0.9, "resets_at": 1900000000.0},
+                                                    "seven_day": {"utilization": 0.5}}), now=1700000000.0)
+        evalrun.save_usage(state, self.result_with({"five_hour": {"utilization": 0.1}}), now=1700005000.0)
+        data = self.stored()
+        self.assertEqual(data["five_hour"], {"utilization": 0.1, "at": 1700005000.0})    # прежний сброс не тянется
+        self.assertEqual(data["seven_day"], {"utilization": 0.5, "at": 1700000000.0})
+
+    def test_save_usage_skips_empty_snapshots_and_missing_state_dir(self):
+        state = os.path.join(self.repo.root, "state")
+        evalrun.save_usage(state, self.result_with({}))
+        self.assertFalse(os.path.exists(state))
+        evalrun.save_usage("", self.result_with({"five_hour": {"utilization": 0.4}}))
+        evalrun.save_usage(state, evalrun.RunResult(data={}, returncode=0))
+        self.assertFalse(os.path.exists(state))
+
+    def test_save_usage_replaces_a_corrupt_file(self):
+        state = os.path.join(self.repo.root, "state")
+        os.makedirs(state)
+        with open(self.usage_path(), "w") as fh:
+            fh.write("{not json")
+        evalrun.save_usage(state, self.result_with({"seven_day": {"utilization": 0.7}}), now=1700000000.0)
+        self.assertEqual(self.stored()["seven_day"], {"utilization": 0.7, "at": 1700000000.0})
+        with open(self.usage_path(), "w") as fh:
+            json.dump(["not", "a", "dict"], fh)
+        evalrun.save_usage(state, self.result_with({"seven_day": {"utilization": 0.2}}), now=1700000000.0)
+        self.assertEqual(self.stored()["seven_day"]["utilization"], 0.2)
+
+    def test_save_usage_failure_is_a_log_line_not_an_exception(self):
+        blocker = os.path.join(self.repo.root, "state")
+        with open(blocker, "w") as fh:
+            fh.write("x")
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            evalrun.save_usage(blocker, self.result_with({"five_hour": {"utilization": 0.4}}))
+        self.assertEqual(len(err.getvalue().strip().splitlines()), 1)
+        self.assertIn("[evalrun]", err.getvalue())
+        state = os.path.join(self.repo.root, "state2")
+        os.makedirs(state)
+        with mock.patch.object(evalrun.json, "dump", side_effect=OSError("disk full")), \
+                contextlib.redirect_stderr(io.StringIO()):
+            evalrun.save_usage(state, self.result_with({"five_hour": {"utilization": 0.4}}))
+        self.assertEqual(os.listdir(state), [])                                 # временный файл убран
+
+    # --- остановка по сохранённому снимку: порог из прошлого прогона, пока окно не сбросилось ---
+
+    NOW = 1700000000.0
+    WEEK = "недельный лимит занят на 85% — запас для дневной работы"
+
+    def put_usage(self, data):
+        os.makedirs(os.path.dirname(self.usage_path()), exist_ok=True)
+        with open(self.usage_path(), "w", encoding="utf-8") as fh:
+            json.dump(data, fh)
+
+    def stored_stop(self, env=None):
+        err = io.StringIO()
+        with mock.patch.dict(os.environ, env or {}), contextlib.redirect_stderr(err):
+            reason = evalrun.stored_stop(os.path.join(self.repo.root, "state"), now=self.NOW)
+        return reason, err.getvalue()
+
+    def test_stored_week_over_the_stop_with_a_future_reset_stops(self):
+        self.put_usage({"seven_day": {"utilization": 0.85, "resets_at": self.NOW + 3600, "at": self.NOW - 60}})
+        reason, err = self.stored_stop()
+        self.assertEqual(reason, self.WEEK)                          # тот же текст, что у остановки по порогу
+        self.assertEqual(len(err.strip().splitlines()), 1)
+        self.assertIn("[evalrun]", err)
+
+    def test_stored_window_that_has_reset_does_not_stop(self):
+        self.put_usage({"seven_day": {"utilization": 0.85, "resets_at": self.NOW - 1, "at": self.NOW - 3600},
+                        "five_hour": {"utilization": 0.99, "resets_at": self.NOW, "at": self.NOW - 3600}})
+        self.assertEqual(self.stored_stop(), ("", ""))
+
+    def test_stored_window_with_unknown_reset_stops_while_the_snapshot_is_young(self):
+        hour, day = 3600, 86400
+        for window, age, stops in (("five_hour", 5 * hour - 1, True), ("five_hour", 5 * hour, False),
+                                   ("seven_day", 7 * day - 1, True), ("seven_day", 7 * day, False)):
+            with self.subTest(window=window, age=age):
+                self.put_usage({window: {"utilization": 0.99, "at": self.NOW - age}})
+                self.assertEqual(bool(self.stored_stop()[0]), stops)
+
+    def test_stored_snapshot_uses_the_same_thresholds_and_overrides_as_a_call(self):
+        self.put_usage({"seven_day": {"utilization": 0.85, "resets_at": self.NOW + 60, "at": self.NOW},
+                        "five_hour": {"utilization": 0.9, "resets_at": self.NOW + 60, "at": self.NOW}})
+        self.assertIn("5 часов", self.stored_stop()[0])              # 0.9 ≥ 0.9, окно 5 часов первым, как в _verdict
+        self.put_usage({"seven_day": {"utilization": 0.79, "resets_at": self.NOW + 60, "at": self.NOW}})
+        self.assertEqual(self.stored_stop()[0], "")
+        self.put_usage({"seven_day": {"utilization": 0.85, "resets_at": self.NOW + 60, "at": self.NOW}})
+        self.assertEqual(self.stored_stop({"PLUGIN_TEST_L2_SEVEN_DAY_STOP": "1.0"}), ("", ""))   # волна: без порога
+        self.assertEqual(self.stored_stop({"PLUGIN_TEST_L2_SEVEN_DAY_STOP": "0.85"})[0], self.WEEK)
+        self.assertEqual(self.stored_stop({"PLUGIN_TEST_L2_SEVEN_DAY_STOP": "0.9"}), ("", ""))
+
+    def test_stored_five_hour_over_but_reset_week_over_reports_the_week(self):
+        self.put_usage({"five_hour": {"utilization": 0.95, "resets_at": self.NOW - 5, "at": self.NOW - 600},
+                        "seven_day": {"utilization": 0.85, "resets_at": self.NOW + 5, "at": self.NOW - 600}})
+        self.assertEqual(self.stored_stop()[0], self.WEEK)
+
+    def test_missing_corrupt_and_malformed_snapshots_never_stop(self):
+        self.assertEqual(self.stored_stop(), ("", ""))                                # файла нет
+        self.assertEqual(evalrun.stored_stop("", now=self.NOW), "")                   # история не ведётся
+        for raw in ("{not json", "[]", "null", "5", ""):
+            with self.subTest(raw=raw):
+                os.makedirs(os.path.dirname(self.usage_path()), exist_ok=True)
+                with open(self.usage_path(), "w") as fh:
+                    fh.write(raw)
+                self.assertEqual(self.stored_stop(), ("", ""))
+        for window in ({"utilization": "high", "at": self.NOW}, {"utilization": True, "at": self.NOW},
+                       {"utilization": float("nan"), "at": self.NOW}, {"utilization": 0.99, "at": "yesterday"},
+                       {"utilization": 0.99}, {"utilization": 0.99, "resets_at": "soon"}, "0.99", None, 5):
+            with self.subTest(window=window):
+                self.put_usage({"seven_day": window, "five_hour": window})
+                self.assertEqual(self.stored_stop(), ("", ""))
+
 
 if __name__ == "__main__":
     unittest.main()
