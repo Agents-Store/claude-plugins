@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I have a Next.js route handler that calls streamText for a chat UI. Move it to a durable Trigger.dev chat agent on a self-hosted server that is on version 4.4.4.",
+      "prompt": "Use the ai-chat-agents skill. I have a Next.js route handler that calls streamText for a chat UI. Move it to a durable Trigger.dev chat agent. Our self-hosted server is on version 4.4.4. Write the migrated code in full, then say what else I have to do.",
       "expected_output": "Should define chat.agent with the streamText taken from the run argument, the two server actions, useTriggerChatTransport, and warn that chat agents and sessions need server 4.5.0 or newer",
       "files": [],
       "expectations": [

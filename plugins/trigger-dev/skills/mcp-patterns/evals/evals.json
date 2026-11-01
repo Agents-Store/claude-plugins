@@ -22,7 +22,7 @@
       "expectations": [
         "The answer puts --readonly in the args of the trigger.dev mcp server command",
         "The answer says --readonly is not an option of install-mcp",
-        "The answer says --readonly hides 15 write tools",
+        "The answer says --readonly hides the write tools server-side so the model never sees them",
         "The answer says start_dev_server is not hidden by --readonly",
         "The answer mentions --dev-only to restrict the server to the dev environment"
       ]
