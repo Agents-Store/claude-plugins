@@ -34,8 +34,8 @@ python3 scripts/plugin_test.py --plugin <name> --verbose   # печатать и
 
 ## Статусы
 
-Все проверки блокирующие (`blocking`), кроме `skill-budget` (навсегда), `eval-coverage` (до конца
-наполнения наборов) и `behavior` (до решения владельца после калибровки L2): у них `fail` понижается до `warn`.
+Все проверки блокирующие (`blocking`), кроме `skill-budget` (навсегда) и `behavior` (до решения
+владельца после калибровки L2): у них `fail` понижается до `warn`.
 У блокирующей проверки `fail` остаётся `fail`, а под `--strict` (так запускает CI)
 её `warn` тоже становится `fail`. `infra` — сбой окружения (сеть, сервер не стартовал, нет
 toolchain, дрейф снимка не закреплённого MCP-сервера) — не блокирует никогда: код выхода 2.
@@ -56,7 +56,7 @@ toolchain, дрейф снимка не закреплённого MCP-серв�
 | `api-paths` | метод и путь curl-рецептов есть в OpenAPI-спецификации (opt-in) | ci |
 | `unit` | собственные тесты плагина из `[[unit]]` | ci |
 | `eval-files` | `skills/<s>/evals/evals.json` и `triggers.json` в формате skill-creator; родной кейс в `tests/plugins/<p>/evals/<case>/` имеет `graders/` | ci |
-| `eval-coverage` | у каждого skill, который вызывает модель, есть `triggers.json` с ≥ 5 «должен» и ≥ 5 «не должен» (advisory до конца наполнения) | ci |
+| `eval-coverage` | у каждого skill, который вызывает модель, есть `triggers.json` с ≥ 5 «должен» и ≥ 5 «не должен» | ci |
 
 ## `plugin-test.toml`
 

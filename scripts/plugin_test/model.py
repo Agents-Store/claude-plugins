@@ -36,7 +36,7 @@ STATUS = {
     "api-paths": BLOCKING,
     "unit": BLOCKING,
     "eval-files": BLOCKING,       # формат кейсов L2 — с первого дня (spec очереди 2 §4.1)
-    "eval-coverage": ADVISORY,    # blocking после наполнения наборов срабатывания (Task 17)
+    "eval-coverage": BLOCKING,    # наборы срабатывания у всех наших skill (наполнение — Tasks 12–16 очереди 2)
     "behavior": ADVISORY,         # L2 зовёт модель; blocking — решением владельца после калибровки (spec очереди 2 §9)
 }
 

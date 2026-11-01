@@ -8,7 +8,7 @@ from plugin_test_fixtures import Repo, context, load_plugin, run_check  # noqa: 
 
 from plugin_test import runner  # noqa: E402
 from plugin_test.checks import REGISTRY, eval_coverage, eval_files  # noqa: E402
-from plugin_test.model import BLOCKING, ADVISORY, FAIL, STATUS, WARN  # noqa: E402
+from plugin_test.model import BLOCKING, FAIL, STATUS, WARN  # noqa: E402
 
 SKILL = "---\nname: %s\ndescription: d\n---\n"
 DMI = "---\nname: %s\ndescription: d\ndisable-model-invocation: true\n---\n"
@@ -34,7 +34,7 @@ class EvalFilesTest(unittest.TestCase):
     def test_registered_and_status(self):
         self.assertIs(REGISTRY["eval-files"], eval_files.run)
         self.assertIs(REGISTRY["eval-coverage"], eval_coverage.run)
-        self.assertEqual((STATUS["eval-files"], STATUS["eval-coverage"]), (BLOCKING, ADVISORY))
+        self.assertEqual((STATUS["eval-files"], STATUS["eval-coverage"]), (BLOCKING, BLOCKING))
 
     def test_no_evals_no_findings(self):
         self.repo.plugin("p-dev", files={"skills/a/SKILL.md": SKILL % "a"})
