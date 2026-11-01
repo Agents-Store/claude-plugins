@@ -3,7 +3,6 @@
   {"query": "Find current docs for Prisma findMany with relation filters. I want version-accurate answers, not blog posts", "should_trigger": true},
   {"query": "How do I look up the Tailwind v4 config docs while coding? Which tool should be tried first for a known library?", "should_trigger": true},
   {"query": "Find the current docs for the Vue 3 defineModel macro", "should_trigger": true},
-  {"query": "Search the official docs of an unfamiliar library across several sites, scoped to its domain", "should_trigger": true},
   {"query": "Look up the API reference for the Stripe Node SDK paymentIntents.create and summarise the required parameters from the current docs", "should_trigger": true},
   {"query": "Найди актуальную документацию по React 19 use() и подскажи, какой инструмент искать первым для известной библиотеки", "should_trigger": true},
   {"query": "Как искать документацию к фреймворку при отладке ошибки: Context7, Perplexity или Exa, и в каком порядке?", "should_trigger": true},
