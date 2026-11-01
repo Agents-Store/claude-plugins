@@ -25,6 +25,9 @@ QUALITY = [{"id": 1, "prompt": "how to do it", "expected_output": "e", "files": 
 REJECTED = {"status": "rejected", "unifiedWindows": {"five_hour": {"utilization": 1.0}}}
 
 
+YES2, NO2 = "also need the other thing done", "tell me another story"
+CAP = "exit 1: Reached maximum number of turns (1)"
+OUTAGE = "API Error: 500 SENTINEL_OUTAGE"
 API_YES, API_NO = "call the endpoint for me", "tell me a joke"
 QUALITY_API = [{"id": 1, "prompt": "how to call it", "expected_output": "e", "files": [], "expectations": ["says how"]}]
 SKILLS_LINE = "[behavior] b-dev: %s — %s\n"
@@ -36,6 +39,14 @@ def T(query):
 
 def TA(query):
     return evalgen.trigger_name("api", query)
+
+
+def clean(score):
+    return {"score": score, "error": None}
+
+
+def failed_run(error=OUTAGE):
+    return {"score": 0.0, "error": error}
 
 
 class BehaviorTest(unittest.TestCase):
@@ -645,6 +656,314 @@ class BehaviorTest(unittest.TestCase):
         argv = calls[evalgen.QUALITY_DIR]["argv"]
         self.assertEqual(dict(zip(argv, argv[1:]))["--ablation"], "none")
         self.assertEqual(sorted(r["case"] for r in self.hist()), sorted([TA(API_YES), TA(API_NO)]))
+
+    # --- ошибка отдельного прогона, не лимит, не становится вердиктом ---
+
+    def quiet(self, plan, **kw):
+        """check() без журнала в stderr — для тестов, которые читают находки, а не журнал."""
+        return self.err_check(plan, **kw)[0]
+
+    def hist_by_case(self):
+        return {r["case"]: r for r in self.hist()}
+
+    def test_outage_shaped_trigger_call_is_one_infra_and_no_misfire(self):
+        self.add_plugin(queries=((YES, True), (YES2, True), (NO, False)))
+        first = eval_result(eval_case(T(YES), 0.0, runs=[failed_run()]), eval_case(T(YES2), 0.0, runs=[failed_run()]),
+                            eval_case(T(NO), 1.0))
+        (got, evals, _, ctx), err = self.err_check([{"result": first}])
+        self.assertEqual([(f.level, f.message) for f in got],
+                         [(INFRA, "%s: срабатывание: более половины прогонов с ошибкой" % L2_FAILED)])
+        self.assertEqual(len(evals), 1)                    # повтор не нужен: оценкам этого вызова не верить
+        self.assertEqual(self.hist(), [])
+        self.assertEqual(ctx.l2_stop, "")                  # это не лимит: следующий плагин ночи идёт как обычно
+        self.assertIn("SENTINEL_OUTAGE", err)
+        self.assert_no_text(got, "SENTINEL_OUTAGE")
+
+    def test_errored_trigger_case_without_a_clean_run_is_infra_not_a_misfire(self):
+        self.add_plugin(queries=((YES, True), (YES2, True), (NO, False), (NO2, False)))
+        first = eval_result(eval_case(T(YES), 0.0, runs=[failed_run()]), eval_case(T(YES2), 0.0),
+                            eval_case(T(NO), 1.0), eval_case(T(NO2), 1.0))
+        rerun = eval_result(eval_case(T(YES), 0.0, runs=[failed_run(), failed_run()]),     # 2 из 4 — ровно половина
+                            eval_case(T(YES2), 0.0, runs=[clean(0.0), clean(0.0)]))
+        (got, evals, _, _), err = self.err_check([{"result": first}, {"result": rerun}])
+        file = "plugins/b-dev/skills/web/evals/triggers.json"
+        self.assertEqual(sorted((f.level, f.message.split(" — ")[0].split(":")[0], f.file) for f in got),
+                         sorted([(FAIL, L2_MISFIRE, file), (INFRA, L2_FAILED, file)]))
+        self.assertIn("%s: %s — прогон с ошибкой" % (L2_FAILED, T(YES)), [f.message for f in got])
+        self.assertEqual({f.split(os.sep)[0] for f in evals[1]["files"]}, {T(YES), T(YES2)})   # с ошибкой — на повтор
+        self.assertEqual(sorted(self.hist_by_case()), sorted([T(YES2), T(NO), T(NO2)]))       # а в историю — не попал
+        self.assert_no_text(got, "SENTINEL_OUTAGE")
+
+    def test_rerun_call_where_every_run_errored_is_invalid_as_a_whole(self):
+        self.add_plugin(queries=((YES, True), (NO, False), (NO2, False)))
+        first = eval_result(eval_case(T(YES), 0.0, runs=[failed_run()]), eval_case(T(NO), 1.0), eval_case(T(NO2), 1.0))
+        rerun = eval_result(eval_case(T(YES), 0.0, runs=[failed_run(), failed_run()]))
+        got, _, _, _ = self.quiet([{"result": first}, {"result": rerun}])
+        self.assertEqual(sorted(f.message for f in got), sorted([
+            "%s: повтор срабатывания: более половины прогонов с ошибкой" % L2_FAILED,
+            "%s: %s не перепроверен" % (L2_NOT_RUN, T(YES))]))        # без вердикта и без «прогон с ошибкой» по кейсу
+
+    def test_errored_first_run_is_judged_on_the_clean_reruns(self):
+        self.add_plugin()      # YES, NO: один прогон с ошибкой из двух — ровно половина, вызов в силе
+        cases = (([clean(1.0), clean(1.0)], None, 1.0, 2), ([failed_run(), clean(1.0)], None, 1.0, 1),
+                 ([clean(0.0), clean(0.0)], (FAIL, L2_MISFIRE, "2 из 2"), 0.0, 2),
+                 ([clean(0.0), clean(1.0)], (INFO, L2_FLAKY, "1 из 2"), 0.5, 2),
+                 ([failed_run(), clean(0.0)], (INFRA, L2_NOT_RUN, "не перепроверен"), None, 0))
+        for reruns, finding, score, runs in cases:
+            with self.subTest(reruns=reruns):
+                shutil.rmtree(self.state, ignore_errors=True)
+                first = eval_result(eval_case(T(YES), 0.0, runs=[failed_run()]), eval_case(T(NO), 1.0))
+                got, evals, _, _ = self.quiet([{"result": first}, {"result": eval_result(
+                    eval_case(T(YES), 0.5, runs=reruns))}])
+                self.assertEqual(len(evals), 2)
+                if finding is None:
+                    self.assertEqual(got, [])
+                else:
+                    self.assertEqual([(f.level, f.message.split(":")[0]) for f in got], [finding[:2]])
+                    self.assertIn(finding[2], got[0].message)
+                row = self.hist_by_case().get(T(YES))
+                self.assertEqual(None if row is None else (row["score"], row["runs"]), None if score is None else (score, runs))
+
+    def test_turn_cap_error_alone_does_not_make_a_run_errored(self):
+        self.add_plugin()
+        first = eval_result(eval_case(T(YES), 1.0, runs=[{"score": 1.0, "error": CAP}]),
+                            eval_case(T(NO), 1.0, runs=[{"score": 1.0, "error": CAP}]))
+        got, evals, _, _ = self.quiet([{"result": first}])
+        self.assertEqual((got, len(evals)), ([], 1))
+        self.assertEqual({r["case"]: (r["score"], r["runs"]) for r in self.hist()}, {T(YES): (1.0, 1), T(NO): (1.0, 1)})
+        # промах с тем же обрывом — настоящий промах: 3 из 3, а не «прогон с ошибкой»
+        first = eval_result(eval_case(T(YES), 0.0, runs=[{"score": 0.0, "error": CAP}]), eval_case(T(NO), 1.0))
+        rerun = eval_result(eval_case(T(YES), 0.0, runs=[{"score": 0.0, "error": CAP}, {"score": 0.0, "error": CAP}]))
+        got, _, _, _ = self.quiet([{"result": first}, {"result": rerun}])
+        self.assertEqual([(f.level, f.message.split(":")[0]) for f in got], [(FAIL, L2_MISFIRE)])
+        self.assertIn("3 из 3", got[0].message)
+
+    def test_a_turn_cap_of_another_size_is_an_error_not_a_miss(self):
+        self.add_plugin()
+        odd = "exit 1: Reached maximum number of turns (3)"
+        first = eval_result(eval_case(T(YES), 0.0, runs=[failed_run(odd)]), eval_case(T(NO), 1.0))
+        rerun = eval_result(eval_case(T(YES), 1.0, runs=[clean(1.0), clean(1.0)]))
+        got, _, _, _ = self.quiet([{"result": first}, {"result": rerun}])
+        self.assertEqual(got, [])
+
+    def test_more_than_half_of_the_rerun_call_errored_judges_none_of_it(self):
+        self.add_plugin(queries=((YES, True), (YES2, True), (NO, False)))
+        first = eval_result(eval_case(T(YES), 0.0), eval_case(T(YES2), 0.0), eval_case(T(NO), 1.0))
+        rerun = eval_result(eval_case(T(YES), 0.0, runs=[failed_run(), failed_run()]),
+                            eval_case(T(YES2), 0.0, runs=[failed_run(), clean(0.0)]))
+        got, evals, _, _ = self.quiet([{"result": first}, {"result": rerun}])     # 3 из 4 прогонов с ошибкой
+        self.assertEqual(len(evals), 2)
+        self.assertEqual(sorted((f.level, f.message) for f in got), sorted([
+            (INFRA, "%s: повтор срабатывания: более половины прогонов с ошибкой" % L2_FAILED),
+            (INFRA, "%s: %s не перепроверен" % (L2_NOT_RUN, T(YES))),
+            (INFRA, "%s: %s не перепроверен" % (L2_NOT_RUN, T(YES2)))]))
+        self.assertEqual(sorted(self.hist_by_case()), [T(NO)])
+
+    def test_exactly_half_errored_call_is_still_judged(self):
+        self.add_plugin(queries=((YES, True), (YES2, True)))
+        first = eval_result(eval_case(T(YES), 0.0), eval_case(T(YES2), 1.0))
+        rerun = eval_result(eval_case(T(YES), 0.0, runs=[failed_run(), clean(0.0)]))     # 1 из 2: не больше половины
+        got, _, _, _ = self.quiet([{"result": first}, {"result": rerun}])
+        self.assertEqual([(f.level, f.message.split(":")[0]) for f in got], [(FAIL, L2_MISFIRE)])
+        self.assertIn("2 из 2", got[0].message)
+
+    def quality_case(self, with_runs, without_runs=None, score=0.0, delta=0.5):
+        return eval_result(eval_case("q-web-1", score, delta=delta, runs=with_runs, without=without_runs))
+
+    def test_quality_one_errored_run_of_three_is_scored_from_the_other_two(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        result = self.quality_case([clean(1.0), clean(1.0), failed_run()], [clean(0.6)] * 3, score=2 / 3, delta=0.1)
+        (got, _, _, _), err = self.err_check([{"result": result}])
+        self.assertEqual(got, [])                                  # 2/3 из агрегата CLI дало бы «ниже порога»
+        row = self.hist_by_case()["q-web-1"]
+        self.assertEqual((row["score"], row["runs"]), (1.0, 2))
+        self.assertAlmostEqual(row["delta"], 0.4)                  # с плагином 1.0 против 0.6 без, не 0.1 из агрегата
+
+    def test_quality_score_and_delta_come_from_clean_runs_in_both_arms(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        result = self.quality_case([clean(1.0), clean(0.5), failed_run()], [clean(0.9)] * 3, score=0.5, delta=0.3)
+        got, _, _, _ = self.quiet([{"result": result}])
+        self.assertEqual(sorted((f.level, f.message) for f in got), sorted([
+            (FAIL, "%s: q-web-1 — 0.75 < 0.80" % L2_BELOW),
+            (INFO, "%s: q-web-1 — с плагином 0.75, без 0.90" % L2_UNHELPFUL)]))
+        shutil.rmtree(self.state)
+        result = self.quality_case([clean(1.0)] * 3, [clean(0.4), clean(0.4), failed_run()], score=1.0, delta=-0.1)
+        got, _, _, _ = self.quiet([{"result": result}])
+        self.assertEqual(got, [])                                  # без плагина 0.4, дельта 0.6: «не помогает» нет
+        self.assertAlmostEqual(self.hist_by_case()["q-web-1"]["delta"], 0.6)
+
+    def test_quality_delta_needs_clean_runs_in_both_arms(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        result = self.quality_case([clean(1.0)] * 3, [failed_run()] * 3, score=1.0, delta=-0.5)
+        got, _, _, _ = self.quiet([{"result": result}])
+        self.assertEqual(got, [])
+        row = self.hist_by_case()["q-web-1"]
+        self.assertEqual((row["score"], row["delta"], row["runs"]), (1.0, None, 3))
+
+    def test_quality_with_fewer_than_two_clean_runs_is_infra_not_a_verdict(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        result = self.quality_case([clean(1.0), failed_run(), failed_run()], [clean(0.5)] * 3, score=1 / 3, delta=-0.2)
+        (got, _, _, _), err = self.err_check([{"result": result}])
+        self.assertEqual([(f.level, f.message, f.file) for f in got],
+                         [(INFRA, "%s: q-web-1 — чистых прогонов меньше двух из 3" % L2_FAILED,
+                           "plugins/b-dev/skills/web/evals/evals.json")])
+        self.assertEqual(self.hist(), [])
+        self.assertIn("SENTINEL_OUTAGE", err)
+        self.assert_no_text(got, "SENTINEL_OUTAGE")
+
+    def test_quality_all_runs_errored_keeps_its_own_message(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        got, _, _, _ = self.quiet([{"result": self.quality_case([failed_run()] * 3, [clean(0.5)] * 3)}])
+        self.assertEqual([f.message for f in got], ["%s: q-web-1 — все 3 прогона с ошибкой" % L2_FAILED])
+        with mock.patch.dict(os.environ, {behavior.QUICK_VAR: "1"}):
+            got, _, _, _ = self.quiet([{"result": self.quality_case([failed_run()])}])
+        self.assertEqual([f.message for f in got], ["%s: q-web-1 — единственный прогон с ошибкой" % L2_FAILED])
+
+    def test_quality_errored_run_does_not_hide_a_skipped_judge_of_the_clean_ones(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        skipped = dict(clean(1.0), skippedPaidGraders=True)
+        errored = dict(failed_run(), skippedPaidGraders=True)
+        got, _, _, _ = self.quiet([{"result": self.quality_case([clean(1.0), clean(1.0), errored], [clean(0.5)] * 3,
+                                                                score=1.0)}])
+        self.assertEqual(got, [])                                  # судья пропущен у прогона с ошибкой — это ошибка, не несравнимость
+        got, _, _, _ = self.quiet([{"result": self.quality_case([clean(1.0), clean(1.0), skipped], [clean(0.5)] * 3,
+                                                                score=1.0)}])
+        self.assertEqual([f.message for f in got], ["%s: q-web-1 — судья пропущен, оценка несравнима" % L2_FAILED])
+
+    def test_quality_case_with_one_configured_run_is_not_too_few(self):
+        self.add_plugin(queries=(), quality=QUALITY)    # родной кейс с runs: 1 — один чистый прогон не ошибка
+        got, _, _, _ = self.quiet([{"result": self.quality_case([clean(1.0)], [clean(0.5)], score=1.0, delta=0.5)}])
+        self.assertEqual(got, [])
+        self.assertEqual(self.hist_by_case()["q-web-1"]["runs"], 1)
+
+    # --- сохранённая загрузка подписки: l2-usage.json между вызовами и ночами ---
+
+    def usage_path(self):
+        return os.path.join(self.state, evalrun.USAGE_FILE)
+
+    def put_usage(self, data, raw=None):
+        os.makedirs(self.state, exist_ok=True)
+        with open(self.usage_path(), "w", encoding="utf-8") as fh:
+            fh.write(raw if raw is not None else json.dumps(data))
+
+    def usage(self):
+        with open(self.usage_path(), encoding="utf-8") as fh:
+            return json.load(fh)
+
+    WEEK_85 = "недельный лимит занят на 85% — запас для дневной работы"
+
+    def test_stored_week_over_the_stop_starts_no_call(self):
+        self.add_plugin("a-dev")
+        self.add_plugin("b-dev")
+        now = time.time()
+        self.put_usage({"status": "allowed", "overage": False,
+                        "seven_day": {"utilization": 0.85, "resets_at": now + 3600, "at": now - 600}})
+        ctx = self.ctx()
+        (got, evals, calls, ctx), err = self.err_check([{"result": eval_result()}], name="a-dev", ctx=ctx)
+        self.assertEqual(calls, [])                                # ни `auth status`, ни `plugin eval`
+        self.assertEqual([(f.level, f.message) for f in got],
+                         [(INFRA, "%s: %s" % (L2_NOT_RUN, self.WEEK_85)), (INFO, "%s: %s" % (L2_STOPPED, self.WEEK_85))])
+        self.assertEqual(ctx.l2_stop, self.WEEK_85)
+        self.assertEqual(self.hist(), [])
+        self.assertIn("[evalrun]", err)
+        got_b, _, calls_b, _ = self.quiet([{"result": eval_result()}], name="b-dev", ctx=ctx)
+        self.assertEqual(([(f.level, f.message.split(":")[0]) for f in got_b], calls_b), ([(INFRA, L2_NOT_RUN)], []))
+
+    def test_stored_week_whose_reset_has_passed_runs_the_plugin(self):
+        self.add_plugin()
+        now = time.time()
+        self.put_usage({"seven_day": {"utilization": 0.85, "resets_at": now - 5, "at": now - 86400}})
+        got, evals, calls, ctx = self.quiet([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))}])
+        self.assertEqual((got, len(evals), ctx.l2_stop), ([], 1, ""))
+
+    def test_stored_snapshot_with_unknown_reset_stops_only_while_young(self):
+        self.add_plugin()
+        now = time.time()
+        self.put_usage({"five_hour": {"utilization": 0.95, "at": now - 3600}})
+        got, _, calls, _ = self.quiet([])
+        self.assertEqual((len(got), calls), (2, []))
+        self.put_usage({"five_hour": {"utilization": 0.95, "at": now - 6 * 3600}})      # окно 5 часов давно другое
+        got, evals, _, _ = self.quiet([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))}])
+        self.assertEqual((got, len(evals)), ([], 1))
+
+    def test_corrupt_or_foreign_usage_file_runs_the_plugin(self):
+        self.add_plugin()
+        for raw in ("{not json", "[1, 2]", "", "\u0000\u0000"):
+            with self.subTest(raw=raw):
+                self.put_usage(None, raw=raw)
+                got, evals, _, _ = self.quiet([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))}])
+                self.assertEqual((got, len(evals)), ([], 1))
+
+    def test_wave_threshold_override_applies_to_the_stored_snapshot(self):
+        self.add_plugin()
+        now = time.time()
+        self.put_usage({"seven_day": {"utilization": 0.85, "resets_at": now + 3600, "at": now}})
+        with mock.patch.dict(os.environ, {evalrun.SEVEN_DAY_VAR: "1.0"}):
+            got, evals, _, _ = self.quiet([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))}])
+        self.assertEqual((got, len(evals)), ([], 1))
+
+    def test_stored_stop_is_not_consulted_for_a_plugin_that_would_not_run_anyway(self):
+        self.add_plugin(queries=())
+        now = time.time()
+        self.put_usage({"seven_day": {"utilization": 0.99, "resets_at": now + 3600, "at": now}})
+        got, _, calls, ctx = self.quiet([])
+        self.assertEqual((got, calls, ctx.l2_stop), ([], [], ""))      # нет кейсов — не «не прогнан» и не остановка
+
+    def test_snapshot_is_written_after_each_call(self):
+        self.add_plugin()
+        now = time.time()
+        info = {"status": "allowed", "unifiedWindows": {"five_hour": {"utilization": 0.4, "resetsAt": now + 7200},
+                                                         "seven_day": {"utilization": 0.55, "resetsAt": now + 86400}}}
+        first = eval_result(eval_case(T(YES), 0.0, runs=[dict(clean(0.0), trace=[info])]), eval_case(T(NO), 1.0))
+        later = dict(info, unifiedWindows={"five_hour": {"utilization": 0.5, "resetsAt": now + 7200}})
+        rerun = eval_result(eval_case(T(YES), 1.0, runs=[dict(clean(1.0), trace=[later]), clean(1.0)]))
+        got, evals, _, _ = self.quiet([{"result": first}, {"result": rerun}])
+        self.assertEqual(len(evals), 2)
+        data = self.usage()
+        self.assertEqual((data["status"], data["overage"]), ("allowed", False))
+        self.assertEqual(data["five_hour"]["utilization"], 0.5)             # последний вызов перекрыл окно, которое видел
+        self.assertAlmostEqual(data["five_hour"]["resets_at"], now + 7200, places=3)
+        self.assertEqual(data["seven_day"]["utilization"], 0.55)            # окно, которого он не видел, осталось
+        self.assertAlmostEqual(data["seven_day"]["at"], time.time(), delta=60)
+
+    def test_snapshot_is_written_when_the_call_ended_on_a_limit(self):
+        self.add_plugin()
+        first = eval_result(eval_case(T(YES), 0.0, runs=[dict(clean(0.0), trace=[REJECTED])]), eval_case(T(NO), 1.0))
+        got, _, _, ctx = self.quiet([{"result": first}])
+        self.assertIn("rejected", ctx.l2_stop)
+        data = self.usage()
+        self.assertEqual((data["status"], data["five_hour"]["utilization"]), ("rejected", 1.0))
+
+    def test_no_rate_limit_events_leave_the_stored_snapshot_alone(self):
+        self.add_plugin()
+        now = time.time()
+        stored = {"status": "allowed", "overage": False,
+                  "seven_day": {"utilization": 0.5, "resets_at": now + 3600, "at": now - 30}}
+        self.put_usage(stored)
+        self.quiet([{"result": eval_result(eval_case(T(YES), 1.0), eval_case(T(NO), 1.0))}])
+        self.assertEqual(self.usage(), stored)
+
+    def test_corrupt_usage_file_is_replaced_by_the_next_snapshot(self):
+        self.add_plugin()
+        self.put_usage(None, raw="{not json")
+        hot = {"status": "allowed", "unifiedWindows": {"seven_day": {"utilization": 0.3}}}
+        self.quiet([{"result": eval_result(eval_case(T(YES), 1.0, runs=[dict(clean(1.0), trace=[hot])]),
+                                           eval_case(T(NO), 1.0))}])
+        self.assertEqual(self.usage()["seven_day"]["utilization"], 0.3)
+
+    def test_unwritable_state_dir_does_not_cost_the_findings_or_add_one(self):
+        self.add_plugin()
+        blocker = os.path.join(self.repo.root, "state-is-a-file")
+        with open(blocker, "w") as fh:
+            fh.write("x")
+        ctx = self.ctx()
+        ctx.state_dir = blocker
+        hot = {"status": "allowed", "unifiedWindows": {"five_hour": {"utilization": 0.95}}}
+        res = eval_result(eval_case(T(YES), 1.0, runs=[dict(clean(1.0), trace=[hot])]), eval_case(T(NO), 1.0))
+        (got, _, _, _), err = self.err_check([{"result": res}], ctx=ctx)
+        self.assertEqual(sorted((f.level, f.message.split(":")[0]) for f in got),
+                         sorted([(INFO, L2_STOPPED), (INFRA, L2_FAILED)]))      # остановка и «история не записана», как раньше
+        self.assertIn("[evalrun]", err)
 
 
 if __name__ == "__main__":
