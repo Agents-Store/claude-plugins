@@ -1,7 +1,6 @@
 [
   {"query": "Starting a new project with Directus 12 and Next.js 16. What do I set up first: versions, .env.local, SDK, client, and how do I verify the connection?", "should_trigger": true},
   {"query": "Which variables does .env.local need for the Directus Next.js stack, and why are DIRECTUS_URL and DIRECTUS_TOKEN already there as references?", "should_trigger": true},
-  {"query": "Setting up Directus 12 and Next.js 16 in a fresh repo, npm install of the Directus SDK complains about engines on our Node 20 CI. Which exact versions of Node, the SDK and Next.js does this stack require?", "should_trigger": true},
   {"query": "How do I verify that the Directus MCP and the SDK token work from the Next.js project? Is there a temporary check route?", "should_trigger": true},
   {"query": "I am filling .env.local for the Directus and Next.js starter. How do I create the user and policy behind DIRECTUS_ADMIN_TOKEN, and which of these variables may carry the NEXT_PUBLIC_ prefix?", "should_trigger": true},
   {"query": "Как инициализировать проект Directus и Next.js: версии, переменные окружения, зависимости, клиент и проверка подключения?", "should_trigger": true},
