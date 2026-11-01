@@ -1,10 +1,12 @@
 ---
 description: Create a new Trigger.dev task file
-argument-hint: <task-name> [--type basic|schema|cron|agent]
+argument-hint: "<task-name> [--type basic|schema|cron|agent]"
 allowed-tools: [Read, Write, Edit]
 ---
 
 # Create Task
+
+Method and rules: the `trigger-dev:task-development` skill.
 
 1. Parse arguments:
    - `task-name` (required): kebab-case task identifier

@@ -1,12 +1,14 @@
 ---
 description: Import a full catalog of categories and products from JSON data
 allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__import_catalog", "mcp__plugin_teleshop-ops_teleshop__list_categories", "mcp__plugin_teleshop-ops_teleshop__list_products"]
-argument-hint: <json-data-or-description> [--mode merge|replace]
+argument-hint: "<json-data-or-description> [--mode merge|replace]"
 ---
 
 # Import Catalog
 
 Import categories and products into the store from structured JSON data.
+
+Method and rules: the `teleshop-ops:catalog-import` skill.
 
 ## Arguments
 Format: `<json-data-or-description> [--mode merge|replace]`

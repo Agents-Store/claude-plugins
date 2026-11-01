@@ -1,10 +1,12 @@
 ---
 description: Initialize Trigger.dev in the current project
-argument-hint: [--api-url <url>] [--project-ref <ref>]
+argument-hint: "[--api-url <url>] [--project-ref <ref>]"
 allowed-tools: [Read, Write, Edit, Bash]
 ---
 
 # Initialize Trigger.dev
+
+Method and rules: the `trigger-dev:setup` skill.
 
 The CLI has no self-hosted switch of its own. A self-hosted instance is selected with `--api-url` (`-a`), and this command takes the same flag.
 

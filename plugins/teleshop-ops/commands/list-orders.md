@@ -1,12 +1,14 @@
 ---
 description: List orders with optional status, payment type, and search filters
 allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__list_orders"]
-argument-hint: [--status <status>] [--payment <type>] [--search <query>]
+argument-hint: "[--status <status>] [--payment <type>] [--search <query>]"
 ---
 
 # List Orders
 
 List orders from the Teleshop store with optional filters.
+
+Method and rules: the `teleshop-ops:order-management` skill.
 
 ## Arguments
 Format: `[--status <status>] [--payment <type>] [--search <query>]`
