@@ -8,7 +8,7 @@
   {"query": "count by category: how many products per Category in NocoDB, and the inventory counts per warehouse", "should_trigger": true},
   {"query": "build a dashboard-style summary from NocoDB data: counts per status, top 10 customers by revenue and the most recent activity", "should_trigger": true},
   {"query": "Build a Tableau dashboard with a bar chart of revenue by region from a CSV extract", "should_trigger": false},
-  {"query": "Create a Kanban view grouped by Status in NocoDB", "should_trigger": false},
+  {"query": "Export the Orders table from NocoDB to a CSV file", "should_trigger": false},
   {"query": "Add a new record to the Orders table", "should_trigger": false},
   {"query": "Build a Grafana dashboard that shows orders per day from Postgres", "should_trigger": false},
   {"query": "Create a pivot table in Excel summarizing sales by region and month", "should_trigger": false},
