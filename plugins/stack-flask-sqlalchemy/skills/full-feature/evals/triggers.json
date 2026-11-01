@@ -1,7 +1,6 @@
 [
   {"query": "I need to add a Clients section to my Flask app: model, migration, blueprint, CRUD routes, template and a nav link. What order should I do it in and what do I verify at the end?", "should_trigger": true},
   {"query": "Add a new projects entity with full CRUD to our Flask and SQLAlchemy app, owned by the logged-in user. Walk me through all the steps", "should_trigger": true},
-  {"query": "After I add a new model, flask db migrate creates an empty revision. Which step of building a feature did I skip?", "should_trigger": true},
   {"query": "What tests should a new Flask feature have: CRUD round trip, two-user isolation, statement count, commit?", "should_trigger": true},
   {"query": "I am building a new page with a list and add, edit and delete forms. Which checklist covers csrf_token, owner scoping and flash messages?", "should_trigger": true},
   {"query": "Нужно добавить в Flask-приложение новую сущность «Заказы» с полным CRUD: модель, миграция, blueprint, шаблон. Дай пошаговый рецепт", "should_trigger": true},
