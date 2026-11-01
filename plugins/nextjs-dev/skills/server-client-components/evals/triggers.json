@@ -1,8 +1,8 @@
 [
-  {"query": "I get 'You're importing a component that needs useState' in the App Router. How do I fix the 'use client' boundary without making the whole page client-side?", "should_trigger": true},
+  {"query": "Where do I put next-themes and SessionProvider in the App Router so only {children} is wrapped and the layout stays a Server Component, and does Better Auth need a provider too?", "should_trigger": true},
   {"query": "Where do I put `import 'server-only'` and `client-only` in a Next.js project, how do I install both guard packages, and what error appears if a Client Component imports lib/data.ts?", "should_trigger": true},
   {"query": "Где в Next.js ставить import 'server-only', как установить пакеты server-only и client-only и какая ошибка появится, если Client Component импортирует lib/data.ts?", "should_trigger": true},
-  {"query": "В App Router получаю ошибку \"You're importing a component that needs useState\". Как поправить границу 'use client', не делая всю страницу клиентской?", "should_trigger": true},
+  {"query": "Сторонний компонент-карусель без 'use client' ломается в Server Component. Нужно ли заворачивать его в свой файл-обёртку и как потом подключить?", "should_trigger": true},
   {"query": "What is the decision matrix for server versus client components in Next.js 16 and how do I minimize client boundaries?", "should_trigger": true},
   {"query": "Write a Server Action form with useActionState and Zod validation in Next.js", "should_trigger": false},
   {"query": "Explain React Server Components internals: the flight format and how streaming works under the hood", "should_trigger": false},

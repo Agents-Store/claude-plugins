@@ -6,7 +6,7 @@
   {"query": "Как защитить приложение Next.js от XSS и настроить Content Security Policy? Покажи заголовки в next.config", "should_trigger": true},
   {"query": "Do I have to add the CSP nonce to every script myself in Next.js 16 when I generate it in proxy.ts? Which scripts get the nonce automatically, including loading and template files, and where is it still manual?", "should_trigger": true},
   {"query": "Как в Next.js 16 настроить Content-Security-Policy с nonce через proxy.ts, какие заголовки безопасности добавить в next.config и что проверить в чек-листе перед продакшеном?", "should_trigger": true},
-  {"query": "How do Server Actions in Next.js protect against CSRF, and when do I need serverActions.allowedOrigins behind a reverse proxy?", "should_trigger": true},
+  {"query": "Which of my Next.js 16 mutations need a manual Origin-versus-host CSRF check, and which already get built-in protection: Server Actions or state-changing Route Handlers?", "should_trigger": true},
   {"query": "Add login with sessions and role-based access control to my Next.js app", "should_trigger": false},
   {"query": "Review my Python Flask app for SQL injection and insecure cookie settings", "should_trigger": false},
   {"query": "Configure WAF rules in Cloudflare to block bots and SQL injection attempts", "should_trigger": false},
