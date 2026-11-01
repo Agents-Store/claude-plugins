@@ -1,0 +1,17 @@
+{
+  "description": "vaultwarden-dev: ask before a Bash command prints decrypted Bitwarden/Vaultwarden secrets into the conversation.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/bw_guard.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

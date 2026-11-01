@@ -1,0 +1,7 @@
+# The PreToolUse guard decides which Bash commands ask before printing vault
+# secrets, so its pattern table is tested as code (black-box, via subprocess).
+[[unit]]
+name = "vaultwarden-dev bw_guard unittest"
+run = "python3 -W error::ResourceWarning -m unittest discover -s . -p 'test_*.py' -v"
+cwd = "tests/plugins/vaultwarden-dev"
+needs = ["python3"]

@@ -1241,3 +1241,23 @@ journal, что и `intake`, — сменился только источник 
 - **ARCHITECTURE.md пишет у воркфлоу только `location`**, `source` (rev 15) — нет; не трогал.
 - **`run-tests.sh` плагина в CI не запускается** (в `scrub.yml` его нет); добавлено только задание-страж.
 - Копии схемы в соседних репозиториях экосистемы по-прежнему не синхронизированы этим изменением (см. запись 2026-08-09).
+
+## 2026-10-11 — render: shell tests invisible to coverage; `master` bullet under several masters
+
+- **Problem 1**: on a project whose tests are bash suites, `scan_tests` found nothing —
+  `TEST_EXT` listed only JS/TS/Python/Ruby, and `TEST_TITLE` only `it()`/`test()`. 12.11
+  reported every case as unverified, and no scenario test written in shell could change
+  that.
+- **Fix**: `*.test.sh`, `*_test.sh`, `*.spec.sh` and `*.bats` are test files; their title
+  is the first quoted argument of a call at line start (`ok "C-04 …"`) or bats'
+  `@test "…"`. A line without a case id still counts nothing (COVERS filters it).
+  Documented under 12.11 in `rules-group-12.md`; tests in `tests/test_render_coverage.py`.
+- **Root cause**: the convention was lifted from one JS project and never generalised.
+- **Note**: 12.11 itself stays right — a case still needs a scenario test under `e2e/`
+  or `scenario`; the fix only makes such a test visible when it is written in shell.
+- **Problem 2**: with more than one entity master, `render_architecture` grouped the
+  entities under `**master:** …` AND gave each a `- **master:**` bullet. The label is not
+  declared in `doc-contracts.json`, so 12.31 fired once per entity on a generated file
+  nobody may edit.
+- **Fix**: the per-entity bullet is gone; the group heading already says the master.
+- **Severity**: medium — both produced lint errors the project could not fix itself.

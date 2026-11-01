@@ -155,7 +155,8 @@ A hard gate is more reliable right up until the first trivial edit it blocks, af
 which people route around it and it catches nobody.
 
 It stays quiet whenever it is not sure: no git, no `macstack/`, a clean tree, a lock
-file, `macstack/` already touched, or a second pass over the same turn. A hook that
+file, `macstack/` already touched, a second pass over the same turn, or a session it has
+already reminded once — it speaks at most once per session. A hook that
 speaks out of turn trains you to ignore it — and then it fails on the one occasion it
 was needed.
 
