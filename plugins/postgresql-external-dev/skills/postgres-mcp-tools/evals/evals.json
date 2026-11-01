@@ -19,9 +19,12 @@
       "expected_output": "Asks for confirmation of the exact column and a backup first (see modify-schema), runs one ALTER TABLE ... DROP COLUMN statement per execute_sql call, then reminds to run Meta Sync in NocoDB / refresh the data source in NocoBase.",
       "files": [],
       "expectations": [
-        "Asks the user to confirm the exact object and recommends a backup before the DROP",
-        "The answer shows the drop as a single ALTER TABLE products DROP COLUMN legacy_code statement for one execute_sql call, not several statements in one call",
-        "Tells the user to run Meta Sync (NocoDB) or refresh the data source (NocoBase) afterwards"
+        "The answer asks the user to confirm the exact column before the DROP",
+        "The answer recommends a backup before the DROP",
+        "The answer sends ALTER TABLE products DROP COLUMN legacy_code as the sql of one execute_sql call",
+        "The answer sends one SQL statement per execute_sql call",
+        "The answer tells the user to run Meta Sync in NocoDB afterwards",
+        "The answer tells the user to refresh the data source in NocoBase afterwards"
       ]
     }
   ]
