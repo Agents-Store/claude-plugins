@@ -184,8 +184,8 @@
         "additionalProperties": false,
         "properties": {
           "num": {
-            "default": 30,
-            "maximum": 100,
+            "default": 10,
+            "maximum": 10,
             "minimum": 1,
             "type": "integer"
           },
@@ -235,7 +235,7 @@
           },
           "num": {
             "default": 10,
-            "maximum": 30,
+            "maximum": 10,
             "minimum": 1,
             "type": "integer"
           },
@@ -305,8 +305,8 @@
         "additionalProperties": false,
         "properties": {
           "num": {
-            "default": 30,
-            "maximum": 100,
+            "default": 10,
+            "maximum": 10,
             "minimum": 1,
             "type": "integer"
           },
@@ -355,8 +355,8 @@
             "type": "string"
           },
           "num": {
-            "default": 30,
-            "maximum": 100,
+            "default": 10,
+            "maximum": 10,
             "minimum": 1,
             "type": "integer"
           },
