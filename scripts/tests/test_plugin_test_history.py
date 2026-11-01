@@ -85,6 +85,11 @@ class HistoryTest(unittest.TestCase):
         self.assertEqual(history.regressed([0, 0, 0, 0, 1, 1, 1, 1], 0.7), 1.0)
         self.assertEqual(history.regressed([0.9, 0.9], 0.65), 0.9)
 
+    def test_regressed_drop_within_float_noise_of_the_limit_is_an_exact_limit(self):
+        self.assertEqual(history.regressed([1, 1, 1, 1], 0.75), 1.0)                 # ровно 0.25 — регресс
+        self.assertEqual(history.regressed([1, 1, 1, 1], 0.75 + 1e-12), 1.0)          # 0.25 - 1e-12 — то же самое
+        self.assertIsNone(history.regressed([1, 1, 1, 1], 0.75 + 1e-8))               # заметно меньше лимита — нет
+
 
 if __name__ == "__main__":
     unittest.main()
