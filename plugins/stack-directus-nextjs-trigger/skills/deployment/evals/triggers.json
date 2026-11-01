@@ -1,5 +1,4 @@
 [
-  {"query": "Locally my Trigger.dev task gets DIRECTUS_URL as the literal text ${NEXT_PUBLIC_DIRECTUS_URL} and fails with Failed to parse URL. How do I run trigger dev with the right env file?", "should_trigger": true},
   {"query": "Which environment variables does each place need in the Directus, Next.js and Trigger.dev stack: the Next.js host, the Directus container, the Trigger.dev environment and CI?", "should_trigger": true},
   {"query": "We deploy the Next.js app and the tasks separately. How do I avoid version skew when the app starts sending a new payload field?", "should_trigger": true},
   {"query": "Give me the production checklist for Directus, Next.js and Trigger.dev together, including alerts for failed runs and schedules that must not run in staging", "should_trigger": true},

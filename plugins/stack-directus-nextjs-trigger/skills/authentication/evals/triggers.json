@@ -1,7 +1,6 @@
 [
   {"query": "A user clicks Generate report in our Next.js app and the Trigger.dev task then needs to write to Directus as that user. Should I pass their access token in the task payload?", "should_trigger": true},
   {"query": "NextAuth with Credentials against Directus, or Better Auth, for a new Next.js 16 site on Directus? Who ends up owning the session?", "should_trigger": true},
-  {"query": "In our Directus, Next.js and Trigger.dev project NextAuth credentials login throws a fetch to undefined/auth/login. NEXT_PUBLIC_DIRECTUS_URL is set but DIRECTUS_URL is not. What are the exact alias lines for .env.local?", "should_trigger": true},
   {"query": "My Server Action checks that the user is signed in and then writes with the service token. Isn't that dangerous? How do I let Directus apply the user's own policies?", "should_trigger": true},
   {"query": "Why does a user's Directus access token die inside a long Trigger.dev task, and what should the task use instead?", "should_trigger": true},
   {"query": "Как выбрать способ авторизации для Directus и Next.js, если задачи Trigger.dev должны работать от имени пользователя?", "should_trigger": true},
