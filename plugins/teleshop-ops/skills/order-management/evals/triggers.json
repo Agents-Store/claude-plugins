@@ -10,7 +10,7 @@
   {"query": "Find the customer by Telegram username and show their email and phone number", "should_trigger": false},
   {"query": "Create a webhook that notifies my server when an order is completed", "should_trigger": false},
   {"query": "Track a Nova Poshta parcel by its number on their website", "should_trigger": false},
-  {"query": "Refund a Stripe payment for an order", "should_trigger": false},
+  {"query": "Create a Stripe checkout session for a subscription in my Node app", "should_trigger": false},
   {"query": "Write a Python script that parses an orders CSV and sums by status", "should_trigger": false},
   {"query": "Update the price of a product in the store", "should_trigger": false},
   {"query": "Cancel my Amazon order", "should_trigger": false}
