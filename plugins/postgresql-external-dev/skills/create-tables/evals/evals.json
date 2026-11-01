@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "What primary key type should I use for my PostgreSQL tables if I'm connecting this database to NocoBase as an external data source? We expect millions of records.",
+      "prompt": "Use the create-tables skill. What primary key type should I use for my PostgreSQL tables if I'm connecting this database to NocoBase and NocoDB as an external data source? We expect millions of records. Show me the CREATE TABLE for an events table and say how each platform treats the key type.",
       "expected_output": "Recommends bigserial for large tables. Explains that both serial and bigserial work with NocoDB and NocoBase. Shows the CREATE TABLE template with bigserial. Mentions that NocoBase maps serial to integer and bigserial to bigInt.",
       "files": [],
       "assertions": [
@@ -39,7 +39,7 @@
     },
     {
       "id": 4,
-      "prompt": "Our existing tables use UUID primary keys with gen_random_uuid() defaults. Do we have to convert them to serial before connecting NocoDB and NocoBase?",
+      "prompt": "Our existing tables use UUID primary keys with gen_random_uuid() defaults, and two legacy tables have no primary key at all. Do we have to convert anything to serial before connecting NocoDB and NocoBase, and what should we watch out for?",
       "expected_output": "No — not required. NocoDB keeps an existing external primary key as is and NocoBase maps uuid. serial/bigserial stays the recommended default for new tables. Warns to test inserts from the NocoDB Grid view because of an open bug report for keys with a function default, and notes that tables without any primary key can only be read and added to in NocoDB and need a Record unique key in NocoBase.",
       "files": [],
       "assertions": [

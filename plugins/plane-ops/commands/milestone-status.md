@@ -18,7 +18,7 @@ Parse from `"$ARGUMENTS"`. If no milestone is specified, list all active milesto
 1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `project`, `milestone`, `cycle` and `workitem`.
 2. **Resolve project and milestone** — `project(action=list)`, then `milestone(action=list, project_id)`.
 3. **Load milestone items** — `milestone(action=list_workitems, project_id, milestone_id)` (follow `next_cursor`); state totals in one call: `workitem(action=count, project_id, pql='milestone = "<milestone_id>"', group_by=state__group)`. Points come from the listed items (counts are of items).
-4. **Compute metrics** — follow the reporting section of `epics-initiatives-milestones`:
+4. **Compute metrics** — follow the reporting section of `plane-ops:epics-initiatives-milestones`:
    - `total_points`, `completed_points`, `remaining_points`
    - Weekly velocity from recent cycles (see `velocity-metrics` skill)
    - ETA: `remaining_points / weekly_velocity`

@@ -28,7 +28,7 @@ Parse from `"$ARGUMENTS"`. Default horizon: 12 weeks.
    - **Next** — in the next planned sprint or starting within 2 weeks
    - **Later** — within the horizon but not yet scheduled
    - **Parked** — explicitly deprioritized or blocked indefinitely
-5. **Compute progress** for each module/epic — completion percentage, blockers, risk (see `epics-initiatives-milestones`).
+5. **Compute progress** for each module/epic — completion percentage, blockers, risk (see `plane-ops:epics-initiatives-milestones`).
 6. **Render** as a markdown table grouped by horizon bucket, or offer to publish as a Plane page via `/publish-report roadmap`.
 
 ## Example

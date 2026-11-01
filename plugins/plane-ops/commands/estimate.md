@@ -34,7 +34,7 @@ Parse from "$ARGUMENTS".
    ```
    workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted")', fields="id,name,point,estimate_point,priority", per_page=100)
    ```
-   Filter: items where point is null or 0 (PQL has no estimate field; follow `next_cursor`). If the project has an estimate system (`project_estimate(action=retrieve, project_id)`), estimates are written as `estimate_point` ids from `project_estimate(action=list_points, project_id, estimate_id)` — see the `estimation` skill.
+   Filter: items where point is null or 0 (PQL has no estimate field; follow `next_cursor`). If the project has an estimate system (`project_estimate(action=retrieve, project_id)`), estimates are written as `estimate_point` ids from `project_estimate(action=list_points, project_id, estimate_id)` — see the `plane-ops:estimation` skill.
 
 3. **Find reference stories (for calibration):**
    Look for completed items with known point values to anchor estimates.

@@ -8,6 +8,8 @@ argument-hint: <to-email> <subject> <body>
 
 Send a transactional email via SMTP with delivery checks.
 
+Method and rules: the `sendpulse-ops:smtp-transactional` skill.
+
 ## Arguments
 Format: `<to-email> <subject> <body>`
 - to-email: Recipient email address

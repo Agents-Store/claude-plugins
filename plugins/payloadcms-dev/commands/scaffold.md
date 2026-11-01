@@ -8,6 +8,8 @@ allowed-tools: [Bash, Read, Write, Edit, AskUserQuestion, Skill]
 
 Bootstrap a new PayloadCMS v3 project from zero. Wraps the official `create-payload-app` scaffolder with the recommended Next.js App Router defaults and walks the user through every decision before running it — passing every choice as a flag so the run never stops on an interactive prompt.
 
+Method and rules: the `payloadcms-dev:setup` skill.
+
 ## Step 1 — Collect Inputs
 
 Use `AskUserQuestion` to gather (skip any the user already supplied as `$ARGUMENTS`):

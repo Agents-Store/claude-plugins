@@ -7,6 +7,8 @@ argument-hint: <project> <name> --start <YYYY-MM-DD> --end <YYYY-MM-DD>
 
 Quickly create a new sprint cycle with specified dates.
 
+Method and rules: the `plane-ops:sprint-planning` skill.
+
 ## Arguments
 Format: `<project> <name> --start <YYYY-MM-DD> --end <YYYY-MM-DD>`
 - project: Project name or identifier (required)

@@ -8,6 +8,8 @@ argument-hint: <contact-id> <message>
 
 Send a direct message to a chatbot contact. Auto-detects the correct channel.
 
+Method and rules: the `sendpulse-ops:chatbot-contacts-messaging` skill.
+
 ## Arguments
 Format: `<contact-id> <message>`
 - contact-id: The chatbot contact ID

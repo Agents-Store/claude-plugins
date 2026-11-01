@@ -7,6 +7,8 @@ argument-hint: <project> <items...> <changes...>
 
 Apply identical field changes to a list of work items. Plane has no bulk-edit action for arbitrary fields — this command loops `workitem(action=update)` (and the merge actions `manage_assignee` / `manage_label`) and reports per-item success/failure; cycle, module and milestone moves go through one `manage_workitems` call each.
 
+Method and rules: the `plane-ops:work-items` skill.
+
 ## Arguments
 
 Format: `<project> <items...> <changes...>`

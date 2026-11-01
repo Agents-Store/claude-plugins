@@ -28,7 +28,7 @@ Parse from `"$ARGUMENTS"`. Default limit: top 20 items by priority.
    - Unestimated → run `estimation` skill flow
    - Too large (> 8 points) → run `task-decomposition` skill
    - Stale (not updated > 30 days; `workitem(action=list, project_id, pql='stateGroup IN ("backlog","unstarted") AND updatedAt < daysAgo(30)')`) → flag for cancel-then-archive or re-confirm relevance
-6. **Reprioritize** — use `backlog-management` (MoSCoW) or run `/wsjf-prioritize` if numeric scoring is needed.
+6. **Reprioritize** — use `plane-ops:backlog-management` (MoSCoW) or run `/wsjf-prioritize` if numeric scoring is needed.
 7. **Present grooming summary** — what was refined, estimated, decomposed, archived.
 
 ## Example

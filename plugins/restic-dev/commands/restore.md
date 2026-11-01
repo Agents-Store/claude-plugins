@@ -12,7 +12,7 @@ Parse `[--what <path>] [--snapshot <id|latest>] [--target <dir>]` from "$ARGUMEN
 
 ## Process
 
-Follow the `disaster-recovery` skill. For a full server rebuild, hand off to the `restic-backup-engineer` agent.
+Follow the `restic-dev:disaster-recovery` skill. For a full server rebuild, hand off to the `restic-backup-engineer` agent.
 
 1. **Confirm access** — `set -a; . /root/.restic/r2.env; set +a` then `restic snapshots`. If the repo can't be read (no password / keys), stop and explain that recovery is impossible without them.
 2. **Locate** — `restic ls <snapshot>` / `restic find <pattern>` to confirm what will be restored.

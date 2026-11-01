@@ -35,7 +35,7 @@ Parse from `"$ARGUMENTS"`.
 **Platform team:** Feature, Bug, Incident, Runbook, RFC
 **Support team:** Ticket, Bug, Question, Escalation
 
-Don't go beyond 6 types — taxonomy fatigue is real. See `labels-states-properties` skill for guidance on type vs label vs property.
+Don't go beyond 6 types — taxonomy fatigue is real. See `plane-ops:labels-states-properties` skill for guidance on type vs label vs property.
 
 ## Examples
 
