@@ -1,12 +1,14 @@
 ---
 description: List store customers with optional search
 allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__list_customers"]
-argument-hint: [--search <query>]
+argument-hint: "[--search <query>]"
 ---
 
 # List Customers
 
 List customers of the Teleshop store.
+
+Method and rules: the `teleshop-ops:customer-management` skill.
 
 ## Arguments
 Format: `[--search <query>]`

@@ -8,6 +8,8 @@ argument-hint: <channel> <bot-id> [message]
 
 Send a chatbot campaign to all subscribers on a specific channel.
 
+Method and rules: the `sendpulse-ops:chatbot-management` skill.
+
 ## Arguments
 Format: `<channel> <bot-id> [message]`
 - channel: telegram, whatsapp, instagram, messenger, viber, or tiktok

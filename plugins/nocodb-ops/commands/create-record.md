@@ -1,12 +1,14 @@
 ---
 description: Create a new record in a NocoDB table
-allowed-tools: ["mcp__plugin_nocodb-ops_nocodb__createRecords", "mcp__plugin_nocodb-ops_nocodb__getTablesList", "mcp__plugin_nocodb-ops_nocodb__getTableSchema"]
+allowed-tools: ["Read", "mcp__plugin_nocodb-ops_nocodb__createRecords", "mcp__plugin_nocodb-ops_nocodb__getTablesList", "mcp__plugin_nocodb-ops_nocodb__getTableSchema"]
 argument-hint: <table-name> <field=value pairs>
 ---
 
 # Create Record
 
 Create a new record in a NocoDB table.
+
+The record payloads, batch rules and verification are written down in `${CLAUDE_PLUGIN_ROOT}/skills/record-management/SKILL.md`; read it before the first step.
 
 ## Arguments
 

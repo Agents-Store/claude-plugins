@@ -5,7 +5,7 @@ argument-hint: <action> [args...]
 
 # Initiative
 
-Initiatives are the highest-level planning unit in Plane — they group multiple epics across multiple projects under a single strategic theme. See the `epics-initiatives-milestones` skill for the conceptual model.
+Initiatives are the highest-level planning unit in Plane — they group multiple epics across multiple projects under a single strategic theme. See the `plane-ops:epics-initiatives-milestones` skill for the conceptual model.
 
 ## Arguments
 

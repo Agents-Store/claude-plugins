@@ -5,6 +5,8 @@ argument-hint:
 
 # List Flows
 
+Follow the `flow-automation` skill (`${CLAUDE_PLUGIN_ROOT}/skills/flow-automation/SKILL.md`) for how flows, triggers and operations work; read it before the first call.
+
 ## Process
 
 1. Call `flows` tool with:

@@ -21,3 +21,6 @@ timeout = 900
                     "skills/vercel-connect/SKILL.md", "skills/vercel-firewall/SKILL.md"]
 "skill-budget" = ["skills/flags-sdk/SKILL.md", "skills/vercel-functions/SKILL.md", "skills/vercel-storage/SKILL.md",
                   "skills/workflow/SKILL.md"]
+
+# L2: все skills — vendored; наборы срабатывания — отдельной задачей после калибровки (spec очереди 2 §1).
+"eval-coverage" = ["skills/*"]

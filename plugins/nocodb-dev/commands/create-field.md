@@ -1,12 +1,14 @@
 ---
 description: Add a field of any of the 35 supported types to a NocoDB table
-argument-hint: [table-name-or-id] [field-title] [field-type]
+argument-hint: "[table-name-or-id] [field-title] [field-type]"
 allowed-tools: [Read, Write, Bash, Skill]
 ---
 
 # Create NocoDB Field
 
 Add a field to an existing table. Choose any of the 35 supported types — see the **field-management** skill and `api-reference/references/field-types.md` for per-type payloads. Type-specific settings go inside `options`.
+
+The field types, create payloads and update rules are written down in `${CLAUDE_PLUGIN_ROOT}/skills/field-management/SKILL.md`; read it before the first step.
 
 ## Steps
 

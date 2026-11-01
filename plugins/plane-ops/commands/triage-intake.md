@@ -18,7 +18,7 @@ Parse from `"$ARGUMENTS"`. Default limit is 20 items.
 1. **Bootstrap connector** — consult `connector-bootstrap`. Probe for the Plane resource tools `intake`, `project` and `workitem` (the project needs the `intakes` feature).
 2. **Resolve project** — `project(action=list)` → `project_id`.
 3. **Load intake queue** — `intake(action=list, project_id)` (follow `next_cursor`). Sort by age (oldest first).
-4. **Triage each item** — follow the `intake-triage` skill. For each item ask the user (or classify automatically using the routing rules):
+4. **Triage each item** — follow the `plane-ops:intake-triage` skill. For each item ask the user (or classify automatically using the routing rules):
    - **Accept** → `intake(action=update, project_id, workitem_id=<the item's issue id>, status=1)`; per Plane's triage model the item becomes a regular backlog work item (the tool description does not say so — confirm on your instance), then complete it with `workitem(action=update, ...)`
    - **Accept + escalate** → `status=1`, then `workitem(action=update, ..., priority="urgent"|"high", assignees=[<on-call>])`
    - **Defer** → `intake(action=update, ..., status=0, snoozed_till=<revisit date as an ISO 8601 timestamp>)` (the tool description gives no format — confirm on your instance) plus a rationale comment (`workitem_comment(action=create)`)

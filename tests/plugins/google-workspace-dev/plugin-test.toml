@@ -4,3 +4,6 @@
 [skip]
 "skill-links" = ["SKILLS_INDEX.md", "skills/gws-*", "skills/persona-*", "skills/recipe-*"]
 "skill-snippets" = ["skills/gws-*", "skills/persona-*", "skills/recipe-*"]
+
+# L2: наборы срабатывания vendored skills — отдельной задачей после калибровки (spec очереди 2 §1).
+"eval-coverage" = ["skills/gws-*", "skills/persona-*", "skills/recipe-*"]

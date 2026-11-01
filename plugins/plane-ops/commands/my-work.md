@@ -1,11 +1,13 @@
 ---
 description: List Plane work items assigned to the current user
-argument-hint: [--project name] [--state name] [--cycle current|next|all] [--limit n]
+argument-hint: "[--project name] [--state name] [--cycle current|next|all] [--limit n]"
 ---
 
 # My Work
 
 Show open work items assigned to the current user across all projects, or filtered.
+
+Method and rules: the `plane-ops:work-items` skill.
 
 ## Arguments
 

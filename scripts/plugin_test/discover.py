@@ -113,10 +113,12 @@ def _plugin_dir_of(path):
     return None
 
 
-def changed(repo, base, plugins):
-    """Изменённые плагины плюс все, кто зависит от них (до неподвижной точки)."""
+def changed(repo, base, plugins, triggers=ALL_PLUGINS_TRIGGERS):
+    """Изменённые плагины плюс все, кто зависит от них (до неподвижной точки).
+
+    triggers — префиксы путей, правка которых перепроверяет все плагины; L2 передаёт () (l2plan)."""
     paths = changed_paths(repo, base)
-    if any(p.startswith(t) for p in paths for t in ALL_PLUGINS_TRIGGERS):
+    if any(p.startswith(t) for p in paths for t in triggers):
         return list(plugins)
     by_dir = {p.dirname: p for p in plugins}
     names = {by_dir[d].name for d in map(_plugin_dir_of, paths) if d in by_dir}

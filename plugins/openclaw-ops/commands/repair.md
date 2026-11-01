@@ -14,7 +14,7 @@ documentation citation — first, and a fix second.
 
 ## Process
 
-1. **Resolve the id to a row** — `Skill` `fleet-diagnostics`, then `references/findings-catalog.md`. Id
+1. **Resolve the id to a row** — `Skill` `fleet-diagnostics`, then `${CLAUDE_PLUGIN_ROOT}/skills/fleet-diagnostics/references/findings-catalog.md`. Id
    forms: `fleet.*` catalog ids · upstream `checkId`s (`fs.*`, `gateway.*`, `tools.exec.*`, `plugins.*`,
    `security.exposure.*`) verbatim from the live `--json` · `<instance>/<check-id>`. **No row → stop.**
 

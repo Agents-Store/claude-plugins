@@ -7,6 +7,8 @@ argument-hint: <project>
 
 Display a dashboard of the current sprint — progress, burndown, WIP, and at-risk items.
 
+Method and rules: the `plane-ops:velocity-metrics` and `plane-ops:daily-standup` skills.
+
 ## Arguments
 Format: `<project>`
 - project: Project name or identifier (required)

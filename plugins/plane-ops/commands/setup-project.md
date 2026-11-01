@@ -7,6 +7,8 @@ argument-hint: <project-name> [--template lean|standard]
 
 Configure a new or existing Plane project with Agile-optimized states, labels, work item types, and features.
 
+Method and rules: the `plane-ops:project-setup` skill.
+
 ## Arguments
 Format: `<project-name> [--template lean|standard]`
 - project-name: Name of the project (required)

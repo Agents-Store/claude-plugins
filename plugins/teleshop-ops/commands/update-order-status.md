@@ -1,12 +1,14 @@
 ---
 description: Update the status of an order (created, processing, shipped, completed, etc.)
 allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__get_order", "mcp__plugin_teleshop-ops_teleshop__update_order_status"]
-argument-hint: <order-id> <status>
+argument-hint: "<order-id> <status>"
 ---
 
 # Update Order Status
 
 Change the status of an order in the Teleshop store.
+
+Method and rules: the `teleshop-ops:order-management` skill.
 
 ## Arguments
 Format: `<order-id> <status>`

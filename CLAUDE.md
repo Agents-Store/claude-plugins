@@ -254,7 +254,7 @@ Such a leak is answered by **revoking the value at its source** (rotate the toke
 endpoint, move the host), never by editing a file. A green gate means "nothing new is leaving", not
 "nothing has left".
 
-## Тесты плагинов (L1 «Контракт»)
+## Тесты плагинов (L1 «Контракт», L2 «Поведение»)
 
 `python3 scripts/plugin_test.py --plugin <name>` сверяет плагин со снимками реальности:
 ссылки и сниппеты skills, имена MCP-инструментов (`tests/plugins/<p>/snapshots/mcp/`),
@@ -263,6 +263,13 @@ CI (`plugin-test.yml`) гоняет его на каждом PR; ночью он
 на сервере владельца и пишет провалы в issue «Nightly plugin tests». Данные тестов — в
 `tests/plugins/<p>/`, вне плагина; формат — `tests/README.md`. Исключение — только
 `[skip]` в манифесте с комментарием-причиной.
+
+L2 — `python3 scripts/plugin_test.py --plugin <name> --check behavior --mode server`: skills идут через
+`claude plugin eval` за счёт подписки. Срабатывание проверяется по `skills/<s>/evals/triggers.json`, качество — по
+`evals.json` (формат skill-creator; наборы пишет `/plugin-creator:evals`). L2 запускается только на сервере
+и только по явному флагу; ночью — только при `PLUGIN_TEST_L2=1` (по умолчанию выключен), после L1: новый
+плагин не начинается после 07:00 UTC (`PLUGIN_TEST_L2_UNTIL`), идущий вызов может закончиться на 45 минут позже.
+Формат держит L1-проверка `eval-files`, покрытие — `eval-coverage`. Правка этих файлов — новая версия плагина.
 
 ## Patterns Worth Knowing
 

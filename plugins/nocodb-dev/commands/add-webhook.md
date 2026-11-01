@@ -1,12 +1,14 @@
 ---
 description: Configure a NocoDB webhook (HookV3) on a table
-argument-hint: [table-name-or-id] [event] [destination]
+argument-hint: "[table-name-or-id] [event] [destination]"
 allowed-tools: [Read, Write, Bash, Skill]
 ---
 
 # Add Webhook
 
 Configure a HookV3 webhook on a table — fire on insert / update / delete, optionally scoped to specific fields on update, dispatch to URL / Email / a messaging service / Script.
+
+The HookV3 anatomy, notification types and the pre-flight checklist are written down in `${CLAUDE_PLUGIN_ROOT}/skills/webhooks/SKILL.md`; read it before the first step.
 
 ## Steps
 

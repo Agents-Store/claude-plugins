@@ -1,12 +1,14 @@
 ---
 description: Create a new webhook for event notifications
 allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__get_webhook_events", "mcp__plugin_teleshop-ops_teleshop__create_webhook", "mcp__plugin_teleshop-ops_teleshop__get_webhook_secret", "mcp__plugin_teleshop-ops_teleshop__test_webhook"]
-argument-hint: <url> [<event>]
+argument-hint: "<url> [<event>]"
 ---
 
 # Create Webhook
 
 Create a new webhook endpoint for receiving store event notifications.
+
+Method and rules: the `teleshop-ops:webhook-management` skill.
 
 ## Arguments
 Format: `<url> [<event>]`

@@ -7,6 +7,8 @@ argument-hint: <action> <project> [args...]
 
 Operate on cycles (sprints) beyond create/plan/close. For sprint planning use `/plan-sprint` and `/create-sprint`; for status use `/sprint-status`; for closing use `/close-sprint`.
 
+Method and rules: the `plane-ops:sprint-planning` skill.
+
 ## Arguments
 
 Format: `<action> <project> [args...]`

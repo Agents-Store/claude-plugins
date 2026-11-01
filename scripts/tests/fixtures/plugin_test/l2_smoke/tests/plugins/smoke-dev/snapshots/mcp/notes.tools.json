@@ -1,0 +1,2 @@
+{"tools": [{"name": "save_note", "description": "Save a text note.",
+            "inputSchema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}}]}

@@ -5,7 +5,7 @@ argument-hint: <action> [scope] [project] [args...]
 
 # Page
 
-Manage Plane Pages — long-form documents attached to a project or to the workspace. Delegates rendering rules to the `pages-publishing` skill and tool resolution to `connector-bootstrap`.
+Manage Plane Pages — long-form documents attached to a project or to the workspace. Delegates rendering rules to the `plane-ops:pages-publishing` skill and tool resolution to `connector-bootstrap`.
 
 ## Arguments
 

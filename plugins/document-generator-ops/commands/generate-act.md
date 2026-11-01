@@ -6,6 +6,8 @@ argument-hint: <title> [--format <pdf|docx>]
 
 # Generate Act of Completed Works
 
+Follow the `document-rules` skill (`${CLAUDE_PLUGIN_ROOT}/skills/document-rules/SKILL.md`) and the `document-generator` skill (`${CLAUDE_PLUGIN_ROOT}/skills/document-generator/SKILL.md`): the first holds the mandatory rules, the second the generation process. Read both before Step 1.
+
 Generate a professional Act of Completed Works with a services table, totals, and two-party signature blocks. Supports any language for all data values (company names, service descriptions, labels). The document language is determined by the `language` field in the input data.
 
 ## Arguments

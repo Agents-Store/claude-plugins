@@ -42,7 +42,7 @@ Plane groups are fixed: `backlog`, `unstarted`, `started`, `completed`, `cancell
 | completed | Done |
 | cancelled | Cancelled, Won't Fix |
 
-See `labels-states-properties` skill for variant sets (Kanban, support, research).
+See `plane-ops:labels-states-properties` skill for variant sets (Kanban, support, research).
 
 ## Examples
 

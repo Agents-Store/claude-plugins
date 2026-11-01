@@ -8,7 +8,7 @@ allowed-tools: ["Bash", "Read", "Skill"]
 
 Read-only, always: no mutation, no restart, and never `models status --probe`, which needs a stopped
 gateway and is a mutation wearing the word status. Parse `[selector] [--deep] [--json]` from
-"$ARGUMENTS"; an empty selector means every managed instance. Selector grammar lives in `fleet-model`.
+"$ARGUMENTS"; an empty selector means every managed instance. Selector grammar lives in `${CLAUDE_PLUGIN_ROOT}/skills/fleet-model/SKILL.md`.
 
 ## Fast path — seconds, the one you run daily
 ```bash

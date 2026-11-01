@@ -17,7 +17,7 @@ works under is `agents/openclaw-fleet-auditor.md`.
 ## Process
 
 1. **Load the model** — `Skill` `fleet-model` for the selector grammar and the four states, then
-   `fleet-diagnostics` for the catalog that every finding must resolve to.
+   `${CLAUDE_PLUGIN_ROOT}/skills/fleet-diagnostics/SKILL.md` for the catalog that every finding must resolve to.
 
 2. **Resolve the target set** (reads may use `all`):
    ```bash

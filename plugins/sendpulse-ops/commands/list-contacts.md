@@ -8,6 +8,8 @@ argument-hint: [--limit <number>]
 
 List CRM contacts with optional limit.
 
+Method and rules: the `sendpulse-ops:crm-contacts` skill.
+
 ## Arguments
 Format: `[--limit <number>]`
 - --limit: Number of contacts to return (default: 50)

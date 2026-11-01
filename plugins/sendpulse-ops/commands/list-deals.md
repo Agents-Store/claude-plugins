@@ -1,12 +1,14 @@
 ---
 description: List CRM deals with optional pipeline filter
 allowed-tools: mcp__plugin_sendpulse-ops_sendpulse__crm_deals_list, mcp__plugin_sendpulse-ops_sendpulse__crm_pipelines_list
-argument-hint: [--pipeline <id>] [--limit <number>]
+argument-hint: "[--pipeline <id>] [--limit <number>]"
 ---
 
 # List Deals
 
 List CRM deals, optionally filtered by pipeline.
+
+Method and rules: the `sendpulse-ops:crm-deals-pipelines` skill.
 
 ## Arguments
 Format: `[--pipeline <id>] [--limit <number>]`

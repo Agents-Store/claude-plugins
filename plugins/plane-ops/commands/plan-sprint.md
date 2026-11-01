@@ -7,6 +7,8 @@ argument-hint: <project> [--duration <days>] [--goal <sprint goal>]
 
 Run a complete sprint planning ceremony — capacity calculation, backlog selection, and sprint creation.
 
+Method and rules: the `plane-ops:sprint-planning` skill.
+
 ## Arguments
 Format: `<project> [--duration <days>] [--goal <sprint goal>]`
 - project: Project name or identifier (required)

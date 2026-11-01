@@ -5,6 +5,8 @@ argument-hint: <flow-name-or-id> <collection> [--keys <id1,id2>] [--data <json>]
 
 # Trigger Flow
 
+Follow the `flow-automation` skill (`${CLAUDE_PLUGIN_ROOT}/skills/flow-automation/SKILL.md`) for how flows, triggers and operations work; read it before the first call.
+
 ## Arguments
 
 - `flow-name-or-id` (required) — Flow name (partial match) or UUID

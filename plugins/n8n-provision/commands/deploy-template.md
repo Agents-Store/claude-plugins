@@ -8,6 +8,8 @@ argument-hint: <template-id> [--name <custom-name>] [--no-auto-fix] [--keep-vers
 
 Deploy an official n8n template to the connected n8n instance. The workflow arrives as an unpublished draft.
 
+The pre-import checklist, the import paths, credential handling and the publish safety protocol are written down in `${CLAUDE_PLUGIN_ROOT}/skills/single-workflow-import/SKILL.md`; read it before the first step.
+
 ## Arguments
 Format: `<template-id> [--name <custom-name>] [--no-auto-fix] [--keep-versions]`
 - template-id: Numeric template ID from the n8n library (required)

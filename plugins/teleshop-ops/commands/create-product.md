@@ -1,12 +1,14 @@
 ---
 description: Create a new product in the store
 allowed-tools: ["mcp__plugin_teleshop-ops_teleshop__create_product", "mcp__plugin_teleshop-ops_teleshop__list_categories"]
-argument-hint: <title> <sku> <price> [--quantity <n>] [--category <id>] [--description <text>]
+argument-hint: "<title> <sku> <price> [--quantity <n>] [--category <id>] [--description <text>]"
 ---
 
 # Create Product
 
 Create a new product in the Teleshop store.
+
+Method and rules: the `teleshop-ops:product-management` skill.
 
 ## Arguments
 Format: `<title> <sku> <price> [--quantity <n>] [--category <id>] [--description <text>]`

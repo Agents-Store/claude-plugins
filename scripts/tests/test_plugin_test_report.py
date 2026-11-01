@@ -203,6 +203,15 @@ class StatusPolicyTest(unittest.TestCase):
         from plugin_test.model import CHECK_IDS, STATUS
         self.assertEqual(set(STATUS), set(CHECK_IDS))
 
+    def test_l2_file_checks(self):
+        from plugin_test.model import STATUS
+        self.assertEqual((STATUS["eval-files"], STATUS["eval-coverage"]), (BLOCKING, BLOCKING))
+
+    def test_behavior_is_advisory_and_opt_in(self):
+        from plugin_test.model import DEFAULT_CHECKS, STATUS
+        self.assertEqual(STATUS["behavior"], ADVISORY)
+        self.assertNotIn("behavior", DEFAULT_CHECKS)
+
 
 if __name__ == "__main__":
     unittest.main()

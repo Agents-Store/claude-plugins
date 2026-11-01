@@ -1,6 +1,6 @@
 ---
 description: Turn requirements nobody scheduled into well-described tasks, edit tasks and milestones, and reconcile TASKS.md with the team's own tracker
-argument-hint: [add <what> | sync | status | milestone <id> | (empty = find unplanned work)]
+argument-hint: '[add <what> | sync | status | milestone <id> | (empty = find unplanned work)]'
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, Skill]
 ---
 

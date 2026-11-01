@@ -5,6 +5,8 @@
 [skip]
 "skill-links" = ["skills/nocobase-*"]
 "skill-snippets" = ["skills/nocobase-*"]
+# L2: наборы срабатывания vendored skills — отдельной задачей после калибровки (spec очереди 2 §1).
+"eval-coverage" = ["skills/nocobase-*"]
 
 # Vendored-тесты runtime nocobase-ui-builder (node --test, 99 тестов). docs-consistency.test.js читает README.md плагина
 # (../../README.md, как README апстрима) и требует на строке nocobase-portal-manage фразу «Default dispatcher for NocoBase

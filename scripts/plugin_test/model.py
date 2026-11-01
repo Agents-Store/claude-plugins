@@ -14,6 +14,7 @@ CI, SERVER = "ci", "server"
 CHECK_IDS = (
     "manifest", "skill-links", "skill-snippets", "skill-budget", "mcp-names",
     "mcp-list", "hook-fixtures", "cli-flags", "api-paths", "unit",
+    "eval-files", "eval-coverage", "behavior",
 )
 
 # Статус внедрения (spec §6). advisory: fail понижается до warn. blocking: fail
@@ -34,11 +35,30 @@ STATUS = {
     "cli-flags": BLOCKING,
     "api-paths": BLOCKING,
     "unit": BLOCKING,
+    "eval-files": BLOCKING,       # формат кейсов L2 — с первого дня (spec очереди 2 §4.1)
+    "eval-coverage": BLOCKING,    # наборы срабатывания у всех наших skill (наполнение — Tasks 12–16 очереди 2)
+    "behavior": ADVISORY,         # L2 зовёт модель; blocking — решением владельца после калибровки (spec очереди 2 §9)
 }
+
+# Проверки, которые запускает только явный --check: behavior зовёт модель (spec очереди 2 §2).
+# Без --check — DEFAULT_CHECKS: CI, ночной L1 и этап contract в /plugin-creator:test модель не трогают.
+OPT_IN_CHECKS = ("behavior",)
+DEFAULT_CHECKS = tuple(c for c in CHECK_IDS if c not in OPT_IN_CHECKS)
+
+# Префиксы сообщений behavior: по ним issue раскладывает раздел «L2 Поведение» (spec очереди 2 §7).
+L2_MISFIRE = "промах срабатывания"
+L2_BELOW = "ниже порога"
+L2_REGRESS = "регресс"
+L2_UNHELPFUL = "не помогает"
+L2_FLAKY = "нестабильно"
+L2_NOT_RUN = "L2 не прогнан"
+L2_FAILED = "L2 сбой"
+L2_STOPPED = "L2 остановлен"   # info: этот плагин остановил L2 на ночь (порог подписки) — l2plan откладывает остальные репозитории
 
 CHECK_TIMEOUT = 120      # потолок одного subprocess проверки, секунды
 MCP_START_TIMEOUT = 60   # initialize + tools/list одного MCP-сервера
 UNIT_TIMEOUT = 600       # [[unit]] по умолчанию
+L2_TIMEOUT = 5400        # один вызов claude plugin eval (все кейсы плагина), секунды
 
 
 @dataclass(frozen=True)
@@ -66,3 +86,6 @@ class Context:
     catalog: object                  # discover.Catalog по всем известным репозиториям
     env: dict = field(default_factory=dict)   # значения env-файла; {} в режиме ci
     update_snapshots: bool = False
+    state_dir: str = ""      # каталог состояния L2 (история оценок); "" — история не ведётся
+    deadline: float = 0.0    # unix-время: после него L2 не начинает новый плагин; 0 — без окна
+    l2_stop: str = ""        # L2 остановлен в этом прогоне (лимит подписки) — дальше только infra

@@ -7,8 +7,8 @@ import json
 import os
 import sys
 
-from . import discover, envfile, report
-from .model import CHECK_IDS, CI, SERVER, Context
+from . import discover, envfile, model, report
+from .model import BLOCKING, CHECK_IDS, CI, DEFAULT_CHECKS, SERVER, Context
 from .runner import run_plugin
 
 DEFAULT_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -29,6 +29,11 @@ def parse_args(argv):
     ap.add_argument("--strict", action="store_true", help="warn проверок со статусом blocking — провал")
     ap.add_argument("--update-snapshots", action="store_true", help="перезаписать снимки вместо сравнения")
     ap.add_argument("--verbose", action="store_true", help="печатать и skipped / info")
+    ap.add_argument("--state-dir", help="каталог состояния L2: история оценок (для --check behavior)")
+    ap.add_argument("--deadline", type=float, default=0.0, metavar="UNIX",
+                    help="L2 не начинает новый плагин после этого unix-времени")
+    ap.add_argument("--if-blocking", action="store_true",
+                    help="ничего не запускать, если ни одна выбранная проверка не blocking (для plugin_finish.py)")
     return ap.parse_args(argv)
 
 
@@ -67,8 +72,12 @@ def main(argv=None):
 
     repos = [repo, *(os.path.abspath(r) for r in args.with_repo), *discover.sibling_repos(repo)]
     ctx = Context(mode=args.mode, repo=repo, catalog=discover.build_catalog(repos),
-                  env=env if args.mode == SERVER else {}, update_snapshots=args.update_snapshots)
-    checks = args.check or list(CHECK_IDS)
+                  env=env if args.mode == SERVER else {}, update_snapshots=args.update_snapshots,
+                  state_dir=os.path.abspath(args.state_dir) if args.state_dir else "", deadline=args.deadline)
+    checks = args.check or list(DEFAULT_CHECKS)
+    if args.if_blocking and not any(model.STATUS.get(c) == BLOCKING for c in checks):
+        print("plugin-test: %s — advisory, пропущено (--if-blocking)" % ", ".join(checks))
+        return 0
     started = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     findings, suppressed = [], 0

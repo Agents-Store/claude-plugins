@@ -8,6 +8,8 @@ argument-hint: <template-id-or-url>
 
 Analyze an n8n workflow before importing — check complexity, credentials, compatibility, and security.
 
+The analysis steps, the report format and the quick variant are written down in `${CLAUDE_PLUGIN_ROOT}/skills/workflow-analysis/SKILL.md`; read it before the first step.
+
 ## Arguments
 Format: `<template-id-or-url>`
 - Numeric ID: treated as an official template ID (fetched via `~~template_get`; when n8n-mcp answers `Template <id> not found`, fetched from `api.n8n.io` — see `template-discovery`)
