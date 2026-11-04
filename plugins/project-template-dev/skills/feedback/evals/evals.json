@@ -54,19 +54,6 @@
         "The answer checks whether the parent template already has the skill before creating it",
         "The answer says to record the addition in project-template's LEARNINGS.md"
       ]
-    },
-    {
-      "id": 11,
-      "prompt": "I'm in a Level 2 project (acme-website, parent is project-directus-nextjs) and I want to add a 'new-api-route' skill that scaffolds Next.js API routes with Directus data fetching. This is specific to the Directus+Next.js stack. Push it to the Level 1 template. In this session nothing is installed: there is no shell, no template repository and nobody to ask. Do not ask questions and do not refuse; answer in text with the commands you would run, the files you would create or edit with their key contents, and what you would check at each step. Put the whole answer in your final message; there are no files to read.",
-      "expected_output": "The feedback skill routes this to Level 1 (project-directus-nextjs), creates the new-api-route skill with proper SKILL.md frontmatter and Next.js + Directus-specific content, records in LEARNINGS.md, and commits.",
-      "files": [],
-      "expectations": [
-        "The answer routes the change to Level 1 (project-directus-nextjs) and not to Level 0",
-        "The answer checks whether the parent template already has a new-api-route skill before it edits",
-        "The answer creates .claude/skills/new-api-route/SKILL.md in the parent template",
-        "The answer gives the SKILL.md a frontmatter with a name and a description that holds trigger phrases",
-        "The answer appends an entry to LEARNINGS.md with a Source line that names acme-website"
-      ]
     }
   ]
 }

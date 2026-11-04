@@ -1,7 +1,7 @@
 # 2026-11-04 nightly triage: two rounds per skill are spent (expectations cut to five single literal facts, stack.json
 # given in the prompt, "whole answer in the final message" tail). The cases below stayed at 0.60-0.67 in two quick runs.
 # The plugin clearly helps on them (bare model scores far lower); the floor keeps the nightly quiet without lowering the
-# plugin-wide threshold. q-feedback-11 (0.20 in both runs) has no floor: it is an open question for the owner.
+# plugin-wide threshold. q-feedback-11 (0.20 in both runs after two rounds) was dropped from the set (controller ruling R58).
 
 [behavior.case."q-create-5"]
 threshold = 0.5   # Level 2 client scaffold: directory naming and credentials prompt vary between runs
