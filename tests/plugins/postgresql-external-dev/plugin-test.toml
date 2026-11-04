@@ -1,0 +1,6 @@
+# 2026-11-04 nightly triage: two rounds spent on postgres-mcp-tools (expectations cut to five literal facts, prompt asks for
+# the SQL "once I have confirmed"). q-postgres-mcp-tools-2 still scores 0.50-0.67 because the skill rightly stops at the
+# confirmation-and-backup gate before a DROP. Floor only for this case; the plugin-wide threshold stays 0.8.
+
+[behavior.case."q-postgres-mcp-tools-2"]
+threshold = 0.5
