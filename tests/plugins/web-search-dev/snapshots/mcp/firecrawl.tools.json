@@ -1791,7 +1791,7 @@
       "name": "firecrawl_research_related_papers"
     },
     {
-      "description": "\nSearch paper metadata and abstracts with a natural-language query across the indexed corpus, which spans biomedical, life-science, and clinical literature (PubMed, bioRxiv, medRxiv) alongside arXiv and other scientific sources. Optional author, category, and date filters constrain results.\n\nSeveral distinct framings of the same question surface different papers than a single query does.\n\nReturns ranked papers with canonical IDs, titles, authors, and abstracts.\n",
+      "description": "\nSearch paper metadata and abstracts with a natural-language query across the indexed corpus, which spans biomedical, life-science, and clinical literature (PubMed, bioRxiv, medRxiv) alongside arXiv and other scientific sources. Optional author, category, date, and sort options constrain or reorder results.\n\nSeveral distinct framings of the same question surface different papers than a single query does.\n\nReturns ranked papers with canonical IDs, titles, authors, and abstracts.\n",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "additionalProperties": false,
@@ -1823,6 +1823,14 @@
           "query": {
             "description": "Natural-language research topic or question, including methods, systems, conditions, populations, interventions, or outcomes when relevant.",
             "minLength": 1,
+            "type": "string"
+          },
+          "sort": {
+            "description": "`relevance` (default) or `date_desc`, which returns the newest of the most relevant matches, newest first by created date. It does not list every paper in a date range; add `from` (and `to`) for that.",
+            "enum": [
+              "relevance",
+              "date_desc"
+            ],
             "type": "string"
           },
           "to": {
