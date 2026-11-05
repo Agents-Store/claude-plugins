@@ -46,9 +46,20 @@ HIDDEN = "<скрыто: похоже на секрет>"
 # имя=значение и не длинный токен посреди текста
 RE_SECRET = re.compile(
     r"(?i)(?:\b(?:bearer|basic)\s+[A-Za-z0-9._~+/=-]{12,})"
-    r"|(?:\b[A-Za-z0-9_.-]*(?:token|secret|passw(?:or)?d|api[_-]?key|authorization|credential)[A-Za-z0-9_.-]*"
-    r"\s*[:=]\s*\S{6,})"
+    # пара имя=значение / имя: значение, в том числе ключ JSON в кавычках
+    r"|(?:[A-Za-z0-9_.-]*(?:token|secret|passw(?:or)?d|api[_-]?key|authorization|credential)[A-Za-z0-9_.-]*"
+    r"[\"']?\s*[:=]\s*[\"']?\S{6,})"
+    r"|(?:://[^/\s:@]+:[^@\s]+@)"                                   # учётные данные в URL: схема://имя:пароль@хост
+    r"|(?:\b(?:AKIA|ASIA)[0-9A-Z]{16}\b)"                            # идентификатор ключа AWS
+    r"|(?:\b\d{8,10}:[A-Za-z0-9_-]{30,})"                            # токен Telegram-бота
+    r"|(?:(?<![A-Za-z0-9/+=])(?=[A-Za-z0-9/+]*[/+])(?=[A-Za-z0-9/+]*\d)(?=[A-Za-z0-9/+]*[A-Za-z])"
+    r"[A-Za-z0-9/+]{40}(?![A-Za-z0-9/+=]))"                           # секретный ключ AWS: 40 знаков base64 с / или +
     r"|(?:(?<![A-Za-z0-9_-])(?=[A-Za-z0-9_-]*\d)(?=[A-Za-z0-9_-]*[A-Za-z])[A-Za-z0-9_-]{32,}(?![A-Za-z0-9_-]))")
+# Report.Redactor.text квадратичен на длинных сплошных идентификаторах (10k знаков ≈ 4 с): такие серии вырезаются до него
+RE_LONG_RUN = re.compile(r"[A-Za-z0-9_+/=-]{200,}")
+LONG_TOKEN = "<long token omitted>"
+MAX_LINE = 4000
+RAW_FACTOR = 4         # сырой текст режется до limit*4 перед редактором: цена, а не граница ответа
 
 
 def _debug(text):
@@ -201,7 +212,11 @@ class Keeper:
     def _clean(self, text, limit):
         if not isinstance(text, str):
             return None
-        text = self.redactor.text(text[:limit * 2])
+        # порядок: серии без пробелов и длинные строки — до редактора (он квадратичен), редактор и фильтр — по
+        # всему тексту, обрезка до limit — одна и последняя: секрет не режется пополам до того, как его увидели
+        text = RE_LONG_RUN.sub(LONG_TOKEN, text[:limit * RAW_FACTOR])
+        text = "\n".join(line[:MAX_LINE] for line in text.split("\n"))
+        text = self.redactor.text(text)
         text = "\n".join(HIDDEN if RE_SECRET.search(line) else line for line in text.split("\n"))
         return text[:limit]
 
@@ -209,6 +224,8 @@ class Keeper:
         run = dict(run, call=call)
         run["answer"] = self._clean(run["answer"], MAX_ANSWER)
         run["error"] = self._clean(run["error"], MAX_ERROR)
+        if run["skills_called"] is not None:
+            run["skills_called"] = [self._clean(name, 80) for name in run["skills_called"]]
         graders = []
         for g in run["graders"]:
             g = dict(g)

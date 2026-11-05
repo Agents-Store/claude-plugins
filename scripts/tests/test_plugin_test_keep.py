@@ -1,5 +1,6 @@
 """PLUGIN_TEST_L2_KEEP: ответы модели и вердикты судьи сохраняются локально для триажа и больше нигде не видны."""
 import contextlib
+import time
 import io
 import json
 import os
@@ -12,7 +13,7 @@ from plugin_test_fixtures import eval_case, eval_result  # noqa: E402
 import test_plugin_test_behavior as tb  # noqa: E402  (модулем: имя BehaviorTest в этом модуле подхватил бы unittest)
 from test_plugin_test_behavior import NO, QUALITY, REJECTED, T, YES, behavior  # noqa: E402
 
-from plugin_test import keep  # noqa: E402
+from plugin_test import keep, report  # noqa: E402
 from plugin_test.model import L2_BELOW  # noqa: E402
 
 SECRET = "-".join(["sk", "ant", "api03", "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789"])    # собирается в рантайме: не секрет в дереве
@@ -319,6 +320,94 @@ class KeepTest(unittest.TestCase):
         self.assertEqual(keep._file_name("q-web-1"), "q-web-1.json")
         self.assertRegex(keep._file_name("../.."), r"^[A-Za-z0-9_.-]+$")
         self.assertFalse(keep._file_name("../..").startswith("."))
+
+    # --- I1: формы секретов, которые должен скрывать узкий фильтр ---
+    def clean(self, text, limit=keep.MAX_ANSWER):
+        return keep.Keeper(self.keep, "p", report.Redactor({}))._clean(text, limit)
+
+    def assert_hidden(self, secret, template="note: %s then more"):
+        out = self.clean("before\n" + template % secret + "\nafter")
+        self.assertNotIn(secret, out)
+        self.assertIn("before", out)
+        self.assertIn("after", out)
+
+    def test_credential_urls_are_hidden(self):
+        self.assert_hidden("postgres://" + "admin:S3cr3t" + "Pass@db.example.com:5432/app")
+        self.assert_hidden("https://" + "user:pw" + "@host.example/path")
+
+    def test_json_quoted_keys_are_hidden(self):
+        self.assert_hidden('{"password": "hunt' + 'er2xyz"}')
+        self.assert_hidden("{'api_key': 'abc' 'def123'}".replace("' '", ""))
+
+    def test_aws_access_key_id_is_hidden(self):
+        self.assert_hidden("AKIA" + "ABCDEFGHIJKLMNOP")
+        self.assert_hidden("ASIA" + "ABCDEFGHIJKLMNOP")
+
+    def test_aws_secret_access_key_with_slash_and_plus_is_hidden(self):
+        self.assert_hidden("wJalrXUtnFEMI" + "/K7MDENG+bPxRfiCYEXAMPLEKEY")
+
+    def test_telegram_bot_token_is_hidden(self):
+        self.assert_hidden("123456789" + ":AAH" + "dqTcvCH1vGWJxfSeofSAs0K5PALDsaw")
+
+    def test_ordinary_text_is_not_hidden(self):
+        text = "Run `SELECT 1;` on plugins/postgresql-external-dev/skills/examples/SKILL.md, see https://example.com/a/b"
+        self.assertEqual(self.clean(text), text)
+
+    # --- I2: Redactor квадратичен на длинных идентификаторах ---
+    def test_a_long_identifier_run_is_cut_before_the_redactor_and_is_fast(self):
+        text = "head\n" + "a-" * 25000 + "\ntail"
+        started = time.monotonic()
+        out = self.clean(text)
+        self.assertLess(time.monotonic() - started, 2.0)
+        self.assertIn("<long token omitted>", out)
+        self.assertIn("head", out)
+        self.assertIn("tail", out)
+
+    def test_redaction_happens_before_the_single_truncation(self):
+        secret = "pass" + "word=" + "hunter2hunter2"
+        out = self.clean("x" * 40 + secret, limit=48)
+        self.assertNotIn("hunter2", out)
+        self.assertLessEqual(len(out), 48)
+
+    # --- M3: Redactor, имя плагина, tool_used ---
+    def test_env_values_and_absolute_paths_in_an_answer_are_redacted(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        value = "envvalue-" + "q" * 20
+        ctx = self.ctx()
+        ctx.env = {"SOME_ENDPOINT_TOKEN": value}
+        answer = "token is %s, file at %s/plugins/b-dev/x.md" % (value, self.repo.root)
+        case = with_graders(eval_case("q-web-1", 0.5, runs=[run(0.5, answer=answer, graders=[llm(False)])]))
+        self.go([{"result": eval_result(case)}], ctx=ctx)
+        got = self.kept("q-web-1")["runs"][0]["answer"]
+        self.assertNotIn(value, got)
+        self.assertNotIn(self.repo.root, got)
+        self.assertIn("${SOME_ENDPOINT_TOKEN}", got)
+        self.assertIn("<repo>/plugins/b-dev/x.md", got)
+
+    def test_open_keeper_refuses_a_path_like_plugin_name(self):
+        with mock.patch.dict(os.environ, {keep.KEEP_VAR: self.keep}):
+            for name in ("../x", "..", "a/b", ""):
+                self.assertIsNone(keep.open_keeper(name, {}, self.repo.root), name)
+            self.assertIsNotNone(keep.open_keeper("b-dev", {}, self.repo.root))
+
+    def test_a_non_fixed_tool_used_explanation_is_absent(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        case = with_graders(eval_case("q-web-1", 0.5, runs=[
+            run(0.5, graders=[fired(True, explanation="tool_used saw: foo")])]))
+        self.go([{"result": eval_result(case)}])
+        tool = self.kept("q-web-1")["runs"][0]["graders"][0]
+        self.assertNotIn("explanation", tool)
+        self.assertNotIn("tool_used saw", self.all_text())
+
+    # --- M4: имена вызванных Skill тоже проходят фильтр ---
+    def test_skill_names_pass_through_the_secret_filter(self):
+        self.add_plugin(queries=(), quality=QUALITY)
+        case = with_graders(eval_case("q-web-1", 0.5, runs=[run(0.5, skill=SECRET, graders=[llm(False)])]))
+        self.go([{"result": eval_result(case)}])
+        r = self.kept("q-web-1")["runs"][0]
+        self.assertTrue(r["skill_fired"])
+        self.assertEqual(len(r["skills_called"]), 1)
+        self.assertNotIn(SECRET, self.all_text())
 
 
 if __name__ == "__main__":
