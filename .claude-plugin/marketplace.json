@@ -129,7 +129,7 @@
       "name": "document-generator-ops",
       "source": "./plugins/document-generator-ops",
       "description": "Professional document generator plugin. Create business proposals, invoices, reports, presentations, and contracts in PDF, DOCX, and PPTX. Convert between MD, DOCX, PDF, HTML, and PPTX using open-source libraries (docx-js, Playwright, pptxgenjs, pandoc).",
-      "version": "3.1.6",
+      "version": "3.1.7",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -154,7 +154,7 @@
       "name": "openclaw-ops",
       "source": "./plugins/openclaw-ops",
       "description": "Day-two operations for a fleet of self-hosted OpenClaw gateway instances on one Docker host. Discovers every instance from the live Docker state instead of hard-coded paths, classifies it ok / degraded / down / alien, and drives the repair work: health and liveness reporting, provider-auth triage (expired, emptied and shadowed OAuth profiles, shared-credential token sink), config surgery with a snapshot and an executable rollback, memory and embedding repair, shared skills and plugins consolidation, secret-delivery audit by key name only, security audit, version-drift and channel-aware upgrades, and reference-instance cloning. Mutations are dry-run behind an eight-block plan, need --yes, and need a typed confirmation when irreversible. Secrets are reported as fingerprint, presence and expiry — never as values. No MCP server and no required environment variables: the one optional variable, OPENCLAW_OPS_CONFIG, is an escape hatch for the fleet-config path, and deployment specifics live in that operator-owned config outside the repository. Also carries the workspace persona guides (AGENTS.md, SOUL.md, USER.md, IDENTITY.md, standing orders, bootstrap, memory, session analysis) taken over from the retired openclaw-configurator.",
-      "version": "1.2.7",
+      "version": "1.2.8",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -280,7 +280,7 @@
       "name": "stack-directus-nextjs",
       "source": "./plugins/stack-directus-nextjs",
       "description": "Directus + Next.js architecture plugin. How Directus (content, files, access) and a Next.js App Router frontend fit together: who holds the token, how the cache is invalidated, how assets and types cross the boundary, who owns the session, and a production checklist. Tool knowledge comes from its dependencies.",
-      "version": "2.0.4",
+      "version": "2.0.5",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -324,7 +324,7 @@
       "name": "web-search-dev",
       "source": "./plugins/web-search-dev",
       "description": "Developer reference for web search, scraping and documentation lookup — Firecrawl, Exa, Jina, Perplexity, Context7 MCP tools and REST/SDK/CLI — plus Pexels and Unsplash REST media search.",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -347,7 +347,7 @@
       "name": "project-template-dev",
       "source": "./plugins/project-template-dev",
       "description": "Manage project template hierarchy with unified improvement workflow. Route fixes to plugins or parent templates automatically, quick-capture ideas, unified end-of-session reviews covering both plugins and templates.",
-      "version": "2.2.8",
+      "version": "2.2.10",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -415,7 +415,7 @@
       "name": "sqlalchemy-dev",
       "source": "./plugins/sqlalchemy-dev",
       "description": "SQLAlchemy dev plugin for Agents Store. Typed SQLAlchemy 2.0 style (Mapped, mapped_column, select) with a SQLAlchemy 2.1 section: model definition patterns, relationship mapping, query optimization, Alembic migrations, and troubleshooting.",
-      "version": "2.1.5",
+      "version": "2.1.6",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -499,7 +499,7 @@
       "name": "postgresql-external-dev",
       "source": "./plugins/postgresql-external-dev",
       "description": "PostgreSQL knowledge for low-code stacks. Schema design for external database connections (compatible SQL patterns for NocoDB and NocoBase — table creation, column types, relations, indexes, anti-patterns), plus the 29-tool PostgreSQL MCP reference and the PostgREST REST API.",
-      "version": "1.2.7",
+      "version": "1.2.8",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -603,7 +603,7 @@
       "name": "dataforseo-dev",
       "source": "./plugins/dataforseo-dev",
       "description": "DataForSEO data for SEO work — keywords, SERP, backlinks, on-page, AI visibility — through the v3 MCP server. Not a general web-search tool.",
-      "version": "2.0.8",
+      "version": "2.0.9",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -718,7 +718,7 @@
       "name": "codemap-dev",
       "source": "./plugins/codemap-dev",
       "description": "Code understanding plugin for developers. Helps onboard to unfamiliar projects through beginner-friendly code review, step-by-step explanations, visual diagrams (architecture, ERD, flows) via drawio-mcp, and frontend testing via Playwright MCP.",
-      "version": "1.4.5",
+      "version": "1.4.6",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -761,7 +761,7 @@
       "name": "payloadcms-dev",
       "source": "./plugins/payloadcms-dev",
       "description": "PayloadCMS dev plugin for Agents Store. Covers collections, fields, globals, hooks, access control, authentication, queries, data management (trash/query presets/folders), localization, adapters, Lexical rich text, admin customization, jobs queue, plugin development, official plugins, Next.js integration, deployment, CLI, migrations, and end-to-end scenarios for TypeScript developers building with Payload v3.",
-      "version": "1.3.7",
+      "version": "1.3.8",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -940,7 +940,7 @@
       "name": "chatwoot-dev",
       "source": "./plugins/chatwoot-dev",
       "description": "Chatwoot dev plugin for Agents Store. Full REST API coverage (Application, Platform, and Public/Client APIs) with bundled OpenAPI specs, official chatwoot CLI recipes, webhook & agent-bot automation, and troubleshooting for developers building on Chatwoot. Authenticates with the api-access-token header (hyphenated, proxy-safe) via CHATWOOT_API_KEY against CHATWOOT_BASE_URL.",
-      "version": "1.1.5",
+      "version": "1.1.6",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1017,7 +1017,7 @@
       "name": "macstack-dev",
       "source": "./plugins/macstack-dev",
       "description": "Turns what a client says into documents they can correct, a machine spec an agent can build from, and a work list somebody can pick up. Keeps the macstack/ folder of a project: macstack.json — the standardized business + technical stack specification, always English — and the six client documents it is written from. OVERVIEW says what the product is and who it is for; USER-CASES carries each case with its UX bar and an addressable acceptance list; UX-UI states what each screen shows and what must never appear on it; AUTOMATION is the trigger -> task -> workflow -> role model; HANDBOOK is how a person actually uses the thing; OPEN-QUESTIONS splits what the client owes from what the team deferred. v3 makes those six pure markdown — headings and bullet lists, nothing else. No YAML blocks, no tables, no change-log sections: the only machine markup is an HTML comment the reader never sees, pointing each entity at its place in the spec. A client can edit the document in any editor and hand it back. Around them: an immutable inbox for anything a client sends, a gated delta/rulings loop that merges it, generated requirements, architecture, test cases and index that carry every id the client documents carry, an append-only ledger with one row per edit and per client comment, tasks reconciled with the team's own tracker, and a review package that shows each statement with its own history and reads the client's answers back into the ledger. Eight commands, one job each — including one that reconciles the whole folder against the source tree in a direction you have to declare: the code is master and every document is corrected through a gate that never silently overrules an answer the client gave, or the documents are master and the gaps become tasks. Every edit is journalled, every finished task sweeps the client documents and not only the generated ones, task statuses move to what the audit actually found — closing what is built and reopening what is not — and every document carries the date it was last checked against the code, so a document that reads perfectly cannot quietly describe a system that no longer exists.",
-      "version": "3.10.4",
+      "version": "3.10.5",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1074,7 +1074,7 @@
       "name": "vaultwarden-dev",
       "source": "./plugins/vaultwarden-dev",
       "description": "Vaultwarden dev plugin for Agents Store. Script and integrate a self-hosted Vaultwarden (Bitwarden-compatible) server: what the client API can and cannot do under end-to-end encryption, the identity token flows, organization member management, the /admin panel API, the Bitwarden CLI (bw, bw serve), python-vaultwarden and Terraform, client/server version compatibility, troubleshooting, and a guard hook that asks before a command prints decrypted secrets into the chat. File-based knowledge, no MCP, no stored credentials.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "author": {
         "name": "AGENTS.STORE"
       },

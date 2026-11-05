@@ -1,6 +1,110 @@
 {
   "tools": [
     {
+      "description": "Start or resume an Exa Agent run for multi-step research, list-building, or enrichment. Use it instead of running many searches yourself when a task needs multiple searches, cross-source verification, or a structured table of results. Long-running: returns a run ID; resume with runId when the tool reports the run is still running. Not for a single question or lookup or reading a known URL. An interrupted tool call is not an explicit cancellation request.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "additionalProperties": false,
+            "description": "Per-run spend and duration limits for the metered auto and ultra efforts. Set it when the user names a cost or time limit.",
+            "properties": {
+              "maxCostDollars": {
+                "description": "Maximum spend for the run in US dollars, $1–$100. Only for effort auto or ultra; defaults to $5 for auto and $20 for ultra.",
+                "type": "number"
+              },
+              "maxDurationSeconds": {
+                "description": "Soft wall-clock limit in seconds, 300–10800. Only for effort ultra; the run returns what it has found as it nears the limit.",
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "dataSources": {
+            "description": "Exa Connect providers to enable for this run.",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "provider": {
+                  "description": "Exa Connect provider ID. Self-serve providers: fiber, financial_datasets, similarweb, baselayer, affiliate, particle, jinko, polymarket, macrobond. Other providers work only when enabled for your Exa team.",
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "provider"
+              ],
+              "type": "object"
+            },
+            "maxItems": 5,
+            "type": "array"
+          },
+          "effort": {
+            "description": "Agent effort level. Defaults to low.",
+            "enum": [
+              "minimal",
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "ultra",
+              "auto"
+            ],
+            "type": "string"
+          },
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "data": {
+                "description": "Known rows/entities to enrich or process.",
+                "items": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "exclusion": {
+                "description": "Entities, rows, or records Agent should avoid returning again.",
+                "items": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "outputSchema": {
+            "additionalProperties": {},
+            "description": "JSON Schema describing the desired research output. Prefer a top-level object with bounded arrays and source/evidence fields.",
+            "type": "object"
+          },
+          "previousRunId": {
+            "description": "ID of a completed prior run to use as context for a new run.",
+            "pattern": "^agent_run_",
+            "type": "string"
+          },
+          "query": {
+            "description": "Natural-language research or enrichment objective. Provide query or runId, not both.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "runId": {
+            "description": "ID returned by an earlier call. Use it to check or continue waiting for the same run. Do not start a duplicate run.",
+            "pattern": "^agent_run_",
+            "type": "string"
+          },
+          "systemPrompt": {
+            "description": "System-level guidance for the Agent.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "agent_run"
+    },
+    {
       "description": "Read a webpage's full content as clean markdown. Use after web_search_exa when highlights are insufficient or to read any URL.\n\nBest for: Extracting full content from known URLs. Batch multiple URLs in one call.\nReturns: Clean text content and metadata from the page(s).",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
