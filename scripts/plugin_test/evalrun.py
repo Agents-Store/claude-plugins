@@ -26,6 +26,7 @@ import tempfile
 import time
 from dataclasses import dataclass, field
 
+from . import keep as keepmod
 from .model import L2_TIMEOUT
 from .proc import run_group
 
@@ -68,6 +69,7 @@ class RunResult:
     usage: dict = field(default_factory=dict)
     problems: list = field(default_factory=list)
     snapshot: dict = field(default_factory=dict)     # {status, overage, windows: {окно: {utilization, resets_at?}}} из трейсов
+    kept: list = field(default_factory=list)         # keep.collect: ответы и вердикты судьи для триажа; только при keep=True
 
 
 def environment():
@@ -147,7 +149,8 @@ def _ident(value, default="не указан"):
     return value if isinstance(value, str) and RE_IDENT.fullmatch(value) else default
 
 
-def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeout=L2_TIMEOUT):
+def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeout=L2_TIMEOUT, keep=False):
+    """keep — снять копию ответов и вердиктов судьи (keep.collect) до очистки каталогов трейсов; в результат — RunResult.kept."""
     os.makedirs(out_dir, exist_ok=True)
     try:
         os.remove(os.path.join(out_dir, RESULT))   # результат прошлого прохода не должен сойти за свежий
@@ -174,12 +177,23 @@ def run(claude, copy_dir, eval_dir, out_dir, *, ablation, runs=None, env, timeou
         _debug("код 1: %s" % (_tail(done.stderr) or "без stderr"))
         result.problems.append("claude plugin eval, код 1")
     try:
+        if keep:
+            result.kept = _collect(data)
         usage, status, overage, result.snapshot = _scan_traces(data)
         result.usage = usage
         result.stop, result.invalid = _verdict(data, done.returncode, usage, status, overage)
     finally:
         _cleanup(data)
     return result
+
+
+def _collect(data):
+    """Копия для триажа не должна ронуть вызов: сбой чтения — строка в журнал и пустой список."""
+    try:
+        return keepmod.collect(data, _temp_root)
+    except Exception as exc:     # noqa: BLE001 — любая неожиданная форма вывода CLI
+        _debug("копия для триажа не снята: %s" % type(exc).__name__)
+        return []
 
 
 def _runs(data):
