@@ -8,7 +8,9 @@ fail — подтверждённый промах, ниже порога, ре�
 и фиксированные классификации сбоев; сырая деталь идёт одной строкой в stderr (журнал ночного прогона).
 Волны и ручные прогоны могут удешевить повтор переменными окружения runner-а (читаются на каждый плагин, не при
 импорте; ночной прогон их не ставит): PLUGIN_TEST_L2_SKILLS — только эти skills плагина, без родных кейсов;
-PLUGIN_TEST_L2_QUICK=1 — качество в один прогон без плеча «без плагина» (нет дельты, регресса и записи в историю).
+PLUGIN_TEST_L2_QUICK=1 — качество в один прогон без плеча «без плагина» (нет дельты, регресса и записи в историю);
+PLUGIN_TEST_L2_KEEP=<каталог> — триаж: ответы модели и вердикты судьи каждого прогона копируются в
+<каталог>/<плагин>/<кейс>.json до очистки трейсов (keep.py); в находки, историю, issue и stdout они не попадают.
 Ошибка отдельного прогона (API, сеть, 5xx — не лимит) вердиктом не становится: такой прогон не судится, а кейс без
 чистых прогонов и вызов, где ошибка у большинства, дают одну infra «L2 сбой» (ожидаемый обрыв прогона срабатывания
 по max_turns: 1 ошибкой не считается — evalrun.run_error). Прошлый снимок подписки (<state-dir>/l2-usage.json,
@@ -26,7 +28,7 @@ import tempfile
 import time
 from dataclasses import dataclass, field
 
-from .. import evalgen, evalrun, evalsrc, history, mcp_config, snapshots
+from .. import evalgen, evalrun, evalsrc, history, keep, mcp_config, snapshots
 from ..model import (FAIL, INFO, INFRA, L2_BELOW, L2_FAILED, L2_FLAKY, L2_MISFIRE, L2_NOT_RUN, L2_REGRESS,
                      L2_STOPPED, L2_TIMEOUT, L2_UNHELPFUL, SERVER, Finding)
 
@@ -169,18 +171,21 @@ def run(plugin, ctx, manifest):
     src.routes = evalgen.skill_routes(plugin.dir, plugin.name)     # раз на плагин: команда, ведущая к skill, = срабатывание
     repo_name = os.path.basename(os.path.abspath(plugin.repo))
     past = history.scores(ctx.state_dir, repo_name, plugin.name, model=evalrun.MODEL)
+    keeper = keep.open_keeper(plugin.name, ctx.env, plugin.repo)
     entries, out = [], []
     with tempfile.TemporaryDirectory(prefix="plugin-test-l2-") as tmp:
         # L2 меряет skills, не агентов: в песочнице агент плагина забирает ход у Skill (срабатывание) и портит
         # ответ (качество) — одна копия без agents/ на все прогоны плагина
         copy = evalgen.copy_plugin(plugin.dir, os.path.join(tmp, plugin.dirname), drop_agents=True)
         if src.triggers:
-            out += _triggers(plugin, ctx, src, copy, tmp, claude, env, entries)
+            out += _triggers(plugin, ctx, src, copy, tmp, claude, env, entries, keeper)
         if src.quality or src.native:
             if ctx.l2_stop:
                 out.append(_infra(plugin, "%s: %s (кейсы качества)" % (L2_NOT_RUN, ctx.l2_stop)))
             else:
-                out += _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries)
+                out += _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries, keeper)
+    if keeper:
+        keeper.announce()
     if ctx.l2_stop:   # остановил этот плагин (выше ранний возврат при уже заданной остановке)
         out.append(_stopped(plugin, ctx.l2_stop))
     if entries:
@@ -194,8 +199,9 @@ def run(plugin, ctx, manifest):
     return out
 
 
-def _call(plugin, ctx, label, claude, copy, eval_dir, out_dir, env, **kw):
-    """(RunResult | None, находки). None — оценкам не верить, находки уже объясняют почему."""
+def _call(plugin, ctx, label, claude, copy, eval_dir, out_dir, env, keeper=None, tree="", **kw):
+    """(RunResult | None, находки). None — оценкам не верить, находки уже объясняют почему.
+    keeper — триаж (keep.py): ответы и вердикты судьи сохраняются и у недействительного вызова."""
     timeout = L2_TIMEOUT
     if ctx.deadline:
         left = int(ctx.deadline + GRACE_AFTER_DEADLINE - time.time())
@@ -203,11 +209,16 @@ def _call(plugin, ctx, label, claude, copy, eval_dir, out_dir, env, **kw):
             return None, [_infra(plugin, "%s: окно ночи закончилось (%s)" % (L2_NOT_RUN, label))]
         timeout = min(L2_TIMEOUT, left)
     try:
-        res = evalrun.run(claude, copy, eval_dir, out_dir, env=env, timeout=timeout, **kw)
+        res = evalrun.run(claude, copy, eval_dir, out_dir, env=env, timeout=timeout, keep=keeper is not None, **kw)
     except evalrun.EvalError as exc:
         if ctx.deadline and time.time() >= ctx.deadline:
             return None, [_infra(plugin, "%s: окно ночи закончилось во время прогона (%s)" % (L2_NOT_RUN, label))]
         return None, [_infra(plugin, "%s: %s: %s" % (L2_FAILED, label, exc))]
+    if keeper is not None:
+        try:
+            keeper.add(label, tree, res.kept)
+        except Exception as exc:     # noqa: BLE001 — копия для триажа не должна ронуть прогон L2
+            _debug("%s: копия для триажа не снята: %s" % (plugin.name, type(exc).__name__))
     evalrun.save_usage(ctx.state_dir, res)      # и у недействительного вызова: лимит в трейсе — самое важное для следующего
     found = [_infra(plugin, "%s: %s: %s" % (L2_FAILED, label, p)) for p in res.problems]
     if res.stop:
@@ -238,10 +249,10 @@ def _mostly_errored(plugin, label, entries, turn_cap_ok=False):
     return _infra(plugin, "%s: %s: более половины прогонов с ошибкой" % (L2_FAILED, label))
 
 
-def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
+def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries, keeper=None):
     cases = evalgen.write_triggers(copy, evalgen.TRIGGER_DIR, plugin.name, src.triggers, routes=src.routes)
     res, out = _call(plugin, ctx, "срабатывание", claude, copy, evalgen.TRIGGER_DIR, os.path.join(tmp, "out-trigger"),
-                     env, ablation="none", runs=1)
+                     env, keeper, "trigger", ablation="none", runs=1)
     if res is None:
         return out
     got = evalrun.cases(res.data)
@@ -265,7 +276,8 @@ def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
         evalgen.write_triggers(copy, evalgen.RERUN_DIR, plugin.name, src.triggers, only=set(pending),
                                routes=src.routes)
         res2, more = _call(plugin, ctx, "повтор срабатывания", claude, copy, evalgen.RERUN_DIR,
-                           os.path.join(tmp, "out-rerun"), env, ablation="none", runs=CONFIRM_RUNS)
+                           os.path.join(tmp, "out-rerun"), env, keeper, "trigger", ablation="none",
+                           runs=CONFIRM_RUNS)
         out += more
         if res2 is not None:
             got2 = evalrun.cases(res2.data)
@@ -303,7 +315,7 @@ def _triggers(plugin, ctx, src, copy, tmp, claude, env, entries):
     return out
 
 
-def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
+def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries, keeper=None):
     quick = _quick()
     invocable = {name: s.invocable for name, s in src.skills.items()}
     meta = evalgen.write_quality(copy, plugin.name, src.quality, invocable, _mocks(plugin),
@@ -314,7 +326,8 @@ def _quality(plugin, ctx, manifest, src, copy, tmp, claude, env, past, entries):
     if quick:    # один прогон, без плеча «без плагина»: дельты нет, а прошлые медианы (3 прогона с/без) несравнимы
         _debug("%s: быстрый режим качества (1 прогон, без сравнения)" % plugin.name)
     res, out = _call(plugin, ctx, "качество", claude, copy, evalgen.QUALITY_DIR, os.path.join(tmp, "out-quality"),
-                     env, **({"ablation": "none", "runs": 1} if quick else {"ablation": "with-without"}))
+                     env, keeper, "quality",
+                     **({"ablation": "none", "runs": 1} if quick else {"ablation": "with-without"}))
     if res is None:
         return out
     got = evalrun.cases(res.data)

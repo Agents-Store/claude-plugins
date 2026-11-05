@@ -4,7 +4,8 @@
 STUB_PLAN — JSON-массив шагов, по одному на вызов `plugin eval` (последний повторяется):
   {"exit": 0, "stdout": "", "stderr": "", "sleep": 0, "result": <aggregate-result.json> | null}
 У прогона в result ключ "trace": [rate_limit_info, …] — заглушка создаёт <tmp>/claude-eval-*/out/trace.jsonl
-с этими событиями и подставляет tracePath, как настоящий CLI с --keep-temp.
+с этими событиями и подставляет tracePath, как настоящий CLI с --keep-temp. Ключ "events": [событие stream-json, …]
+дописывается в тот же трейс как есть (ответ модели, вызовы инструментов, шум); с одним "events" трейс тоже создаётся.
 STUB_AUTH — что печатать на `auth status --json` ("SLEEP" — зависнуть). STUB_LOG — журнал вызовов:
 argv, имена переменных окружения, значение ENABLE_CLAUDEAI_MCP_SERVERS (не секрет) и, для `plugin eval`,
 файлы дерева --eval-dir, текст его graders/fired.md и prompt.md кейсов (prompts), весь список файлов копии плагина
@@ -31,15 +32,18 @@ def materialize_traces(result):
         for arm in ("with", "without"):
             for run in (case.get("arms") or {}).get(arm) or []:
                 infos = run.pop("trace", None)
-                if infos is None:
+                events = run.pop("events", None)
+                if infos is None and events is None:
                     continue
                 tmp = tempfile.mkdtemp(prefix="claude-eval-")
                 os.makedirs(os.path.join(tmp, "out"))
                 trace = os.path.join(tmp, "out", "trace.jsonl")
                 with open(trace, "w", encoding="utf-8") as fh:
                     fh.write(json.dumps({"type": "system", "subtype": "init"}) + "\n")
-                    for info in infos:
+                    for info in infos or []:
                         fh.write(json.dumps({"type": "rate_limit_event", "rate_limit_info": info}) + "\n")
+                    for event in events or []:
+                        fh.write(json.dumps(event) + "\n")
                 run["tracePath"] = trace
 
 
