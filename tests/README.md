@@ -160,6 +160,19 @@ url = "https://nextjs.org/docs"
 MCP-серверы и CLI здесь не перечисляются — их уже сверяют `mcp-list` и `cli-flags`. `pinned` и `reviewed` пишет
 `/plugin-creator:refresh`; руками их не правят без причины.
 
+### Сверка версий
+
+```bash
+python3 scripts/plugin_upstream.py queue --repo . --nightly-report <отчёт ночного L1 .json> --out queue.json
+```
+
+Без модели и ключей: npm registry, PyPI, GitHub (через `gh api`), Docker Hub. Очередь — плагины с поводом,
+по приоритету. Поводы: `security` (в заметках релиза security, CVE или GHSA), `major`, `minor` (и
+нераспознанная версия, `unparsed`), `mcp-drift` / `cli-drift` (из ночного `mcp-list` / `cli-flags`), `quarterly`
+(`reviewed` старше 90 дней), `never-reviewed` (нет `reviewed`), `patch`. Prerelease поводом не считается.
+Реестр не ответил — повод `source-error`: он виден в очереди, но плагин из-за него в очередь не ставится, код выхода 0.
+Плагин, у которого все skills под `skip_paths`, не сверяется.
+
 ## Кейсы L2
 
 Источник — файлы формата skill-creator рядом со skill; они едут вместе с плагином, правка = новая версия.
