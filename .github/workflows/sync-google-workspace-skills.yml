@@ -46,6 +46,10 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
+          # SYNC_PR_TOKEN: fine-grained PAT (contents + pull requests: write on this repo). A PR opened
+          # with it comes from a trusted account, so its checks start without manual approval; until the
+          # secret exists the built-in token is used and the checks wait for approval as before.
+          token: ${{ secrets.SYNC_PR_TOKEN || github.token }}
           branch: chore/sync-google-workspace-skills
           commit-message: |
             chore(google-workspace-dev): sync upstream skills @ ${{ steps.sync.outputs.upstream_short }}
