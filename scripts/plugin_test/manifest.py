@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import datetime
 import os
 import tomllib
 from dataclasses import dataclass, field
@@ -13,7 +14,8 @@ from .model import CHECK_IDS, FAIL, UNIT_TIMEOUT, WARN, Finding
 
 START_VALUES = ("ci", "server", "never")
 SNAPSHOT_VALUES = ("full", "names")
-TOP_KEYS = {"mcp", "cli", "api", "unit", "skip", "budget", "behavior"}
+TOP_KEYS = {"mcp", "cli", "api", "unit", "skip", "budget", "behavior", "upstream"}
+UPSTREAM_KINDS = ("npm", "pypi", "github-release", "github-tag", "docker", "docs")   # за чем следит плагин (refresh)
 DEFAULT_ALWAYS_ON = 3000
 DEFAULT_THRESHOLD = 0.8
 FIX = "исправь plugin-test.toml по образцу из tests/README.md"
@@ -49,6 +51,14 @@ class UnitSpec:
 
 
 @dataclass
+class UpstreamSource:
+    kind: str                   # UPSTREAM_KINDS
+    id: str = ""                # пакет npm/PyPI, owner/repo на GitHub, образ Docker
+    url: str = ""               # страница документации или changelog (kind = docs)
+    pinned: str = ""            # версия, под которую плагин сейчас выверен (пишет /plugin-creator:refresh)
+
+
+@dataclass
 class Manifest:
     mcp: dict = field(default_factory=dict)
     cli: dict = field(default_factory=dict)
@@ -58,6 +68,9 @@ class Manifest:
     always_on_tokens: int = DEFAULT_ALWAYS_ON
     threshold: float = DEFAULT_THRESHOLD                 # порог оценки кейса L2 (spec очереди 2 §5.4)
     case_thresholds: dict = field(default_factory=dict)  # имя кейса → свой порог (с причиной в комментарии)
+    upstream_sources: list = field(default_factory=list)     # UpstreamSource — что сверяет plugin_upstream.py
+    upstream_reviewed: "datetime.date | None" = None          # последнее полное обновление (квартальная ротация)
+    upstream_skip_paths: list = field(default_factory=list)  # маски vendored-путей: refresh их не правит
 
     def mcp_spec(self, server) -> McpSpec:
         return self.mcp.get(server) or McpSpec()
@@ -103,6 +116,7 @@ def load(plugin):
     _skip(_section(data, "skip", dict, "должна быть таблицей «проверка = [маски]»", bad), m, bad)
     _budget(_section(data, "budget", dict, "должна быть таблицей", bad), m, bad)
     _behavior(_section(data, "behavior", dict, "должна быть таблицей", bad), m, bad)
+    _upstream(_section(data, "upstream", dict, "должна быть таблицей", bad), m, bad)
     return m, findings
 
 
@@ -224,3 +238,52 @@ def _behavior(raw, m, bad):
             bad("[behavior.case.%s] нужен threshold — число от 0 до 1" % name)
             continue
         m.case_thresholds[name] = float(value)
+
+
+SOURCE_KEYS = {"kind", "id", "url", "pinned"}
+
+
+def _upstream(raw, m, bad):
+    if raw is None:
+        return
+    for key in sorted(set(raw) - {"reviewed", "skip_paths", "source"}):
+        bad("[upstream] неизвестный ключ %r" % key, WARN)
+    if "reviewed" in raw:
+        value = raw["reviewed"]
+        if isinstance(value, datetime.date) and not isinstance(value, datetime.datetime):
+            m.upstream_reviewed = value
+        else:
+            bad("[upstream] reviewed — дата TOML без кавычек: reviewed = 2026-11-20")
+    paths = raw.get("skip_paths", [])
+    if isinstance(paths, list) and all(isinstance(p, str) for p in paths):
+        m.upstream_skip_paths = list(paths)
+    else:
+        bad("[upstream] skip_paths — массив строк-масок")
+    sources = raw.get("source", [])
+    if not isinstance(sources, list):
+        bad("[upstream] source — массив таблиц ([[upstream.source]])")
+        return
+    for i, spec in enumerate(sources):
+        where = "[[upstream.source]] #%d" % (i + 1)
+        if not isinstance(spec, dict):
+            bad("%s должен быть таблицей" % where)
+            continue
+        extra = sorted(set(spec) - SOURCE_KEYS)
+        if extra:
+            bad("%s: неизвестный ключ %r (допустимы kind, id, url, pinned)" % (where, extra[0]))
+            continue
+        kind = spec.get("kind")
+        if kind not in UPSTREAM_KINDS:
+            bad("%s: kind — один из %s" % (where, ", ".join(UPSTREAM_KINDS)))
+            continue
+        if any(not isinstance(spec.get(k, ""), str) for k in ("id", "url", "pinned")):
+            bad("%s: id, url и pinned — строки" % where)
+            continue
+        if kind == "docs" and not spec.get("url"):
+            bad("%s: kind = \"docs\" требует url" % where)
+            continue
+        if kind != "docs" and not spec.get("id"):
+            bad("%s: kind = \"%s\" требует id" % (where, kind))
+            continue
+        m.upstream_sources.append(UpstreamSource(kind, id=spec.get("id", ""), url=spec.get("url", ""),
+                                                 pinned=spec.get("pinned", "")))

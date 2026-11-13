@@ -130,6 +130,36 @@ python3 scripts/plugin_test.py --mode server --env-file <workspace>/.env \
 
 Значения из env-файла в снимке заменяются на `${ИМЯ}`; scrub-check после записи обязателен.
 
+## Раздел `[upstream]`
+
+За каким продуктом и какой его версией следит плагин. Его читает сверка версий (`scripts/plugin_upstream.py`)
+и обновление `/plugin-creator:refresh` (spec `docs/superpowers/specs/2026-11-13-plugin-refresh-design.md` в workspace).
+
+```toml
+[upstream]
+reviewed = 2026-11-20                 # дата последнего полного обновления — TOML-дата без кавычек
+skip_paths = ["skills/n8n-*/*"]       # vendored-пути: refresh их не правит
+[[upstream.source]]
+kind = "npm"
+id = "next"
+pinned = "16.3.8"                     # версия, под которую плагин выверен
+[[upstream.source]]
+kind = "docs"
+url = "https://nextjs.org/docs"
+```
+
+| `kind` | `id` | Что сверяется |
+|---|---|---|
+| `npm` | пакет | последняя версия в npm registry |
+| `pypi` | пакет | последняя версия на PyPI |
+| `github-release` | `owner/repo` | последний релиз GitHub, его заметки (security, CVE, GHSA) |
+| `github-tag` | `owner/repo` | старший semver-тег |
+| `docker` | образ | старший semver-тег Docker Hub |
+| `docs` | — (`url`) | ночью не сверяется: только квартальная ротация |
+
+MCP-серверы и CLI здесь не перечисляются — их уже сверяют `mcp-list` и `cli-flags`. `pinned` и `reviewed` пишет
+`/plugin-creator:refresh`; руками их не правят без причины.
+
 ## Кейсы L2
 
 Источник — файлы формата skill-creator рядом со skill; они едут вместе с плагином, правка = новая версия.

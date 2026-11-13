@@ -193,6 +193,72 @@ class BehaviorSectionTest(unittest.TestCase):
         self.assertEqual([f.level for f in findings], [FAIL])
 
 
+UPSTREAM = """
+[upstream]
+reviewed = 2026-11-20
+skip_paths = ["skills/n8n-*/*"]
+[[upstream.source]]
+kind = "npm"
+id = "next"
+pinned = "16.3.8"
+[[upstream.source]]
+kind = "docs"
+url = "https://nextjs.org/docs"
+"""
+
+
+class UpstreamSectionTest(unittest.TestCase):
+    def setUp(self):
+        self.repo = Repo()
+        self.addCleanup(self.repo.cleanup)
+        self.repo.plugin("u-dev")
+
+    def load(self, toml):
+        self.repo.tests("u-dev", {"plugin-test.toml": toml})
+        return manifest.load(load_plugin(self.repo.root, "u-dev"))
+
+    def test_upstream_parsed(self):
+        import datetime
+        m, findings = self.load(UPSTREAM)
+        self.assertEqual(findings, [])
+        self.assertEqual(m.upstream_reviewed, datetime.date(2026, 11, 20))
+        self.assertEqual(m.upstream_skip_paths, ["skills/n8n-*/*"])
+        self.assertEqual(m.upstream_sources, [manifest.UpstreamSource("npm", id="next", pinned="16.3.8"),
+                                              manifest.UpstreamSource("docs", url="https://nextjs.org/docs")])
+
+    def test_no_upstream_section(self):
+        m, findings = self.load("")
+        self.assertEqual((m.upstream_sources, m.upstream_reviewed, m.upstream_skip_paths, findings),
+                         ([], None, [], []))
+
+    def test_kinds(self):
+        self.assertEqual(manifest.UPSTREAM_KINDS, ("npm", "pypi", "github-release", "github-tag", "docker", "docs"))
+
+    def test_upstream_errors(self):
+        cases = {
+            "unknown kind": '[[upstream.source]]\nkind = "cargo"\nid = "x"\n',
+            "npm without id": '[[upstream.source]]\nkind = "npm"\n',
+            "docs without url": '[[upstream.source]]\nkind = "docs"\n',
+            "reviewed as string": '[upstream]\nreviewed = "2026-11-20"\n',
+            "pinned not a string": '[[upstream.source]]\nkind = "npm"\nid = "x"\npinned = 16\n',
+            "unknown source key": '[[upstream.source]]\nkind = "npm"\nid = "x"\nversion = "1"\n',
+            "source not a list": '[upstream]\nsource = 3\n',
+            "skip_paths not strings": '[upstream]\nskip_paths = [1]\n',
+        }
+        for label, toml in cases.items():
+            m, findings = self.load(toml)
+            self.assertEqual([f.level for f in findings], [FAIL], label)
+            self.assertIn("[upstream", findings[0].message, label)
+
+    def test_bad_source_is_dropped(self):
+        m, _ = self.load('[[upstream.source]]\nkind = "npm"\n\n[[upstream.source]]\nkind = "pypi"\nid = "requests"\n')
+        self.assertEqual(m.upstream_sources, [manifest.UpstreamSource("pypi", id="requests")])
+
+    def test_unknown_upstream_key_warns(self):
+        _, findings = self.load('[upstream]\nreviewd = 2026-11-20\n')
+        self.assertEqual([f.level for f in findings], [WARN])
+
+
 class EnvFileTest(unittest.TestCase):
     def test_parse(self):
         env = envfile.parse('# c\nA=1\nexport B="two words"\nC=\'q\'\nD=v # note\nbad line\n=x\n'
