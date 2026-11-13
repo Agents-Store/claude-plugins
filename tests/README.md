@@ -130,6 +130,50 @@ python3 scripts/plugin_test.py --mode server --env-file <workspace>/.env \
 
 Значения из env-файла в снимке заменяются на `${ИМЯ}`; scrub-check после записи обязателен.
 
+## Раздел `[upstream]`
+
+За каким продуктом и какой его версией следит плагин. Его читает сверка версий (`scripts/plugin_upstream.py`)
+и обновление `/plugin-creator:refresh` (spec `docs/superpowers/specs/2026-11-13-plugin-refresh-design.md` в workspace).
+
+```toml
+[upstream]
+reviewed = 2026-11-20                 # дата последнего полного обновления — TOML-дата без кавычек
+skip_paths = ["skills/n8n-*/*"]       # vendored-пути: refresh их не правит
+[[upstream.source]]
+kind = "npm"
+id = "next"
+pinned = "16.3.8"                     # версия, под которую плагин выверен
+[[upstream.source]]
+kind = "docs"
+url = "https://nextjs.org/docs"
+```
+
+| `kind` | `id` | Что сверяется |
+|---|---|---|
+| `npm` | пакет | последняя версия в npm registry |
+| `pypi` | пакет | последняя версия на PyPI |
+| `github-release` | `owner/repo` | последний релиз GitHub, его заметки (security, CVE, GHSA) |
+| `github-tag` | `owner/repo` | старший semver-тег |
+| `docker` | образ | старший semver-тег Docker Hub |
+| `docs` | — (`url`) | ночью не сверяется: только квартальная ротация |
+
+MCP-серверы и CLI здесь не перечисляются — их уже сверяют `mcp-list` и `cli-flags`. `pinned` и `reviewed` пишет
+`/plugin-creator:refresh`; руками их не правят без причины.
+
+### Сверка версий
+
+```bash
+python3 scripts/plugin_upstream.py queue --repo . --nightly-report <отчёт ночного L1 .json> --out queue.json
+```
+
+Без модели и ключей: npm registry, PyPI, GitHub (через `gh api`), Docker Hub. Очередь — плагины с поводом,
+по приоритету. Поводы: `security` (в заметках релиза security, CVE или GHSA), `major`, `minor` (и
+нераспознанная версия, `unparsed`), `mcp-drift` / `cli-drift` (из ночного `mcp-list` / `cli-flags`), `quarterly`
+(`reviewed` старше 90 дней), `never-reviewed` (нет `reviewed`), `patch`. Prerelease поводом не считается.
+Реестр не ответил (или `id` неверен) — повод `source-error`: плагин из-за него в очередь не ставится, код выхода 0;
+каждый такой источник — строка `<плагин>: источник <kind:id> не ответил` в stderr (у ночной службы — `<repo>.watch.log`).
+Плагин, у которого все skills под `skip_paths`, не сверяется.
+
 ## Кейсы L2
 
 Источник — файлы формата skill-creator рядом со skill; они едут вместе с плагином, правка = новая версия.
