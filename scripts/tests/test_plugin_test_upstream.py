@@ -169,6 +169,28 @@ class NightlyDriftTest(unittest.TestCase):
         self.assertEqual(upstream.nightly_drift("/nonexistent/report.json"), {})
 
 
+class RobustFetchTest(unittest.TestCase):
+    def test_bad_id_is_upstream_error_not_crash(self):
+        # id с пробелом (его мог записать засев) — http.client.InvalidURL до всякой сети; должен стать UpstreamError
+        with self.assertRaises(upstream.UpstreamError):
+            upstream.default_fetch(upstream.url_for(manifest.UpstreamSource("npm", id="foo bar")))
+
+    def test_unexpected_error_becomes_source_error(self):
+        repo = Repo()
+        self.addCleanup(repo.cleanup)
+        repo.plugin("a-dev", files={"skills/a/SKILL.md": "---\nname: a\n---\n"})
+        repo.tests("a-dev", {"plugin-test.toml": '[upstream]\nreviewed = 2026-11-01\n[[upstream.source]]\n'
+                                                 'kind = "npm"\nid = "x"\npinned = "1.0.0"\n'})
+        repo.plugin("b-dev", files={"skills/b/SKILL.md": "---\nname: b\n---\n"})
+
+        def boom(url):
+            raise RuntimeError("registry sent garbage")
+        errors = []
+        q = upstream.queue(repo.root, boom, datetime.date(2026, 11, 20), {}, errors=errors)
+        self.assertEqual([e["plugin"] for e in q], ["b-dev"])
+        self.assertEqual(errors, [{"plugin": "a-dev", "source": "npm:x"}])
+
+
 class CliTest(unittest.TestCase):
     def setUp(self):
         self.repo = Repo()
@@ -190,6 +212,9 @@ class CliTest(unittest.TestCase):
         self.assertEqual([q["plugin"] for q in queue], ["b-dev"])          # a-dev: только source-error
         self.assertEqual(queue[0]["reasons"][0]["kind"], "never-reviewed")
         self.assertEqual(queue[0]["dir"], "plugins/b-dev")
+        # мёртвый источник виден в журнале сверки, хотя в очередь не идёт
+        self.assertIn("a-dev: источник npm:definitely-not-a-package-xyz не ответил", proc.stderr)
+        self.assertIn("ошибок источников 1", proc.stderr)
 
 
 if __name__ == "__main__":

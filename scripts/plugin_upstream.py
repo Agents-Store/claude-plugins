@@ -29,12 +29,14 @@ def main(argv=None):
     args = ap.parse_args(argv)
     today = datetime.date.fromisoformat(args.today) if args.today else datetime.datetime.now(datetime.timezone.utc).date()
     drift = upstream.nightly_drift(args.nightly_report) if args.nightly_report else {}
-    entries = upstream.queue(os.path.abspath(args.repo), upstream.default_fetch, today, drift)
+    errors = []
+    entries = upstream.queue(os.path.abspath(args.repo), upstream.default_fetch, today, drift, errors=errors)
     with open(args.out, "w", encoding="utf-8") as fh:
         json.dump(entries, fh, ensure_ascii=False, indent=2, sort_keys=True)
         fh.write("\n")
-    errors = sum(1 for e in entries for r in e["reasons"] if r["kind"] == "source-error")
-    print("plugin_upstream: в очереди %d, ошибок источников у них %d" % (len(entries), errors), file=sys.stderr)
+    for e in errors:       # мёртвый или неверный источник: в очередь не идёт, но виден в журнале сверки
+        print("plugin_upstream: %s: источник %s не ответил" % (e["plugin"], e["source"]), file=sys.stderr)
+    print("plugin_upstream: в очереди %d, ошибок источников %d" % (len(entries), len(errors)), file=sys.stderr)
     return 0
 
 

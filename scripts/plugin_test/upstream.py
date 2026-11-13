@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import datetime
 import fnmatch
+import http.client
 import json
 import os
 import re
@@ -164,7 +165,7 @@ def reasons(plugin, m, fetch, today: datetime.date, drift: set) -> list:
             continue
         try:
             release = latest(source, fetch)
-        except UpstreamError:
+        except Exception:   # noqa: BLE001 — реестр не должен ронять сверку (Review Focus 1): любой сбой = source-error
             out.append({"kind": "source-error", "source": _label(source), "from": source.pinned, "to": ""})
             continue
         if not source.pinned:
@@ -232,16 +233,19 @@ def default_fetch(url):
             return json.loads(resp.read().decode("utf-8"))
     except UpstreamError:
         raise
-    except (OSError, ValueError, subprocess.SubprocessError, urllib.error.URLError) as exc:
+    except (OSError, ValueError, subprocess.SubprocessError, urllib.error.URLError, http.client.HTTPException) as exc:
         raise UpstreamError(type(exc).__name__)
 
 
-def queue(repo, fetch, today, drift_by_plugin) -> list:
-    """Очередь [{plugin, dir, priority, reasons}] по возрастанию приоритета."""
+def queue(repo, fetch, today, drift_by_plugin, errors=None) -> list:
+    """Очередь [{plugin, dir, priority, reasons}] по возрастанию приоритета. errors (список) получает
+    {plugin, source} каждого неответившего источника — и тех плагинов, что в очередь не попали."""
     out = []
     for plugin in discover.discover(repo):
         m, _ = manifest.load(plugin)
         found = reasons(plugin, m, fetch, today, drift_by_plugin.get(plugin.name, set()))
+        if errors is not None:
+            errors += [{"plugin": plugin.name, "source": r["source"]} for r in found if r["kind"] == "source-error"]
         prio = priority(found)
         if prio is None:
             continue

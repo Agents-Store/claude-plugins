@@ -170,7 +170,8 @@ python3 scripts/plugin_upstream.py queue --repo . --nightly-report <отчёт �
 по приоритету. Поводы: `security` (в заметках релиза security, CVE или GHSA), `major`, `minor` (и
 нераспознанная версия, `unparsed`), `mcp-drift` / `cli-drift` (из ночного `mcp-list` / `cli-flags`), `quarterly`
 (`reviewed` старше 90 дней), `never-reviewed` (нет `reviewed`), `patch`. Prerelease поводом не считается.
-Реестр не ответил — повод `source-error`: он виден в очереди, но плагин из-за него в очередь не ставится, код выхода 0.
+Реестр не ответил (или `id` неверен) — повод `source-error`: плагин из-за него в очередь не ставится, код выхода 0;
+каждый такой источник — строка `<плагин>: источник <kind:id> не ответил` в stderr (у ночной службы — `<repo>.watch.log`).
 Плагин, у которого все skills под `skip_paths`, не сверяется.
 
 ## Кейсы L2
