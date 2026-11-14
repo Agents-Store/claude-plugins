@@ -17,3 +17,21 @@ name = "nocobase-ui-builder runtime"
 run = "node --test ./tests/*.test.js ../scripts/*.test.mjs"
 cwd = "plugins/nocobase-dev/skills/nocobase-ui-builder/runtime"
 needs = ["node"]
+
+# NocoBase: плагин выверен по @nocobase/cli 2.2.20 (stable-канал; README, cli-recipes, LEARNINGS 2026-10-03) и по
+# OpenAPI-снимку ядра NocoBase v2.1.0-beta.29 (references/openapi, api-reference; обновление со стенда 2.2.x в планах).
+# Двадцать skills nocobase-* зеркалятся из nocobase/skills (scripts/sync-nocobase-skills.sh) — их версию ведёт
+# еженедельный sync, refresh их не правит. Свои skills (overview, auth, cli-recipes, api-reference, examples) refresh правит.
+[upstream]
+skip_paths = ["skills/nocobase-*"]
+[[upstream.source]]
+kind = "npm"
+id = "@nocobase/cli"
+pinned = "2.2.20"
+[[upstream.source]]
+kind = "github-release"
+id = "nocobase/nocobase"
+pinned = "2.1.0-beta.29"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.nocobase.com"

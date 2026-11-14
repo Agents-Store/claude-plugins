@@ -1,0 +1,21 @@
+# trigger.dev: плагин выверен по Trigger.dev 4.7.2 (LEARNINGS 2026-10-03: проход свежести, 41 MCP-инструмент
+# снят с живых схем и исходников CLI; в тексте плагина 4.7.2 — старшая названная версия сервера).
+# Источники — CLI `trigger.dev` и SDK `@trigger.dev/sdk` (версии у них общие) и релизы монорепозитория.
+# Vendored-путей нет: skip_paths пуст.
+[upstream]
+skip_paths = []
+[[upstream.source]]
+kind = "npm"
+id = "trigger.dev"
+pinned = "4.7.2"
+[[upstream.source]]
+kind = "npm"
+id = "@trigger.dev/sdk"
+pinned = "4.7.2"
+[[upstream.source]]
+kind = "github-release"
+id = "triggerdotdev/trigger.dev"
+pinned = "4.7.2"
+[[upstream.source]]
+kind = "docs"
+url = "https://trigger.dev/docs"

@@ -1,0 +1,22 @@
+# SQLAlchemy: плагин выверен по SQLAlchemy 2.1.3 (api-reference/references/sqlalchemy-2.1.md, 2026-10-03) и Alembic 1.20 (cli-recipes, setup);
+# Flask-SQLAlchemy 3.1.1 и Flask-Migrate 4.1 упомянуты как пины и совместимость. Vendored-путей нет: skip_paths не нужен.
+[upstream]
+[[upstream.source]]
+kind = "pypi"
+id = "sqlalchemy"
+pinned = "2.1.3"
+[[upstream.source]]
+kind = "pypi"
+id = "alembic"
+pinned = "1.20.0"
+[[upstream.source]]
+kind = "pypi"
+id = "flask-sqlalchemy"
+pinned = "3.1.1"
+[[upstream.source]]
+kind = "pypi"
+id = "flask-migrate"
+pinned = "4.1.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.sqlalchemy.org/en/21/"

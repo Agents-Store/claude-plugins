@@ -8,3 +8,16 @@ timeout = 300
 
 [budget]
 always_on_tokens = 3000
+
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "@anthropic-ai/claude-code"
+pinned = "2.1.289"
+[[upstream.source]]
+kind = "github-release"
+id = "anthropics/claude-code"
+pinned = "2.1.289"
+[[upstream.source]]
+kind = "docs"
+url = "https://code.claude.com/docs"

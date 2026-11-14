@@ -1,2 +1,13 @@
 [mcp.shadcn]
 start = "ci"
+
+# shadcn/ui: плагин выверен по shadcn CLI 4.21.1 (README, setup, mcp-tools, troubleshoot, LEARNINGS 2026-10-03).
+# Vendored-путей нет: skip_paths не нужен. Официальный shadcn MCP (npx shadcn@latest mcp) сверяет mcp-list, здесь он не перечисляется.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "shadcn"
+pinned = "4.21.1"
+[[upstream.source]]
+kind = "docs"
+url = "https://ui.shadcn.com/docs"

@@ -1,3 +1,14 @@
 # playwright: tools/list без запуска браузера. drawio — публичный http, снимается ночью (start по умолчанию — server).
 [mcp.playwright]
 start = "ci"
+
+# Playwright MCP — npm-пакет, плагин закреплён на 0.0.83 (.mcp.json, README, LEARNINGS 2026-10-03).
+# drawio-mcp — размещённый HTTP-сервер без пакета, релизов и тегов: следим только за документацией.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "@playwright/mcp"
+pinned = "0.0.83"
+[[upstream.source]]
+kind = "docs"
+url = "https://github.com/jgraph/drawio-mcp"

@@ -7,3 +7,16 @@
 
 # L2: наборы срабатывания vendored skills — отдельной задачей после калибровки (spec очереди 2 §1).
 "eval-coverage" = ["skills/gws-*", "skills/persona-*", "skills/recipe-*"]
+
+# Плагин выверен по googleworkspace/cli 0.22.5 (npm и релиз GitHub, 2026-10-03): vendored-скиллы — зеркало тега v0.22.5.
+# Зеркалятся еженедельной синхронизацией, поэтому refresh их не правит (skip_paths); свои — google-workspace-setup и examples.
+[upstream]
+skip_paths = ["skills/gws-*/*", "skills/persona-*/*", "skills/recipe-*/*", "SKILLS_INDEX.md", "LICENSE"]
+[[upstream.source]]
+kind = "npm"
+id = "@googleworkspace/cli"
+pinned = "0.22.5"
+[[upstream.source]]
+kind = "github-release"
+id = "googleworkspace/cli"
+pinned = "v0.22.5"

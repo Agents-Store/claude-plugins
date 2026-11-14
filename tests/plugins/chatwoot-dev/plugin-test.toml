@@ -1,0 +1,15 @@
+# Chatwoot: плагин выверен по релизу chatwoot 4.18.0 и официальному CLI 0.7.0 (текст на 2026-10-03).
+# OpenAPI-спецификации в references/openapi/ — vendored-снимок ветки develop, refresh их не правит.
+[upstream]
+skip_paths = ["skills/api-reference/references/openapi/*"]
+[[upstream.source]]
+kind = "github-release"
+id = "chatwoot/chatwoot"
+pinned = "4.18.0"
+[[upstream.source]]
+kind = "github-release"
+id = "chatwoot/cli"
+pinned = "0.7.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://developers.chatwoot.com/api-reference/introduction"

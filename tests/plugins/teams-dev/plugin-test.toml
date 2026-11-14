@@ -9,3 +9,19 @@
 
 # L2: vendored teams-sdk skill; наборы срабатывания — отдельной задачей после калибровки.
 "eval-coverage" = ["skills/teams-sdk-*/*"]
+
+# Teams SDK 2.1.0 и Teams Developer CLI 3.0.3: плагин выверен по опубликованным пакетам (LEARNINGS 2026-10-03).
+# Vendored — skills/teams-sdk-* (официальный skill microsoft/teams-sdk, синхронизируется скриптом).
+[upstream]
+skip_paths = ["skills/teams-sdk-*/*"]
+[[upstream.source]]
+kind = "npm"
+id = "@microsoft/teams.apps"
+pinned = "2.1.0"
+[[upstream.source]]
+kind = "npm"
+id = "@microsoft/teams.cli"
+pinned = "3.0.3"
+[[upstream.source]]
+kind = "docs"
+url = "https://microsoft.github.io/teams-sdk/"

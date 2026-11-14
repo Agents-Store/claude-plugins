@@ -39,3 +39,21 @@ threshold = 0.5
 
 [behavior.case."q-work-items-4"]
 threshold = 0.5
+
+# Plane: плагин выверен по официальному серверу plane-mcp-server 0.3.3 (LEARNINGS 2026-10-03: 1061 вызов сверен
+# с декларациями ACTIONS; 0.3.4 вышел 2026-10-08, уже после выверки) и по ядру Plane 1.4.2 (последний релиз
+# на дату выверки 2026-10-03; в тексте плагина версия ядра не названа). Пакет npm @makeplane/plane-mcp-server
+# устарел и плагином не советуется — не источник. Vendored-путей нет: skip_paths пуст.
+[upstream]
+skip_paths = []
+[[upstream.source]]
+kind = "pypi"
+id = "plane-mcp-server"
+pinned = "0.3.3"
+[[upstream.source]]
+kind = "github-release"
+id = "makeplane/plane"
+pinned = "1.4.2"
+[[upstream.source]]
+kind = "docs"
+url = "https://developers.plane.so"

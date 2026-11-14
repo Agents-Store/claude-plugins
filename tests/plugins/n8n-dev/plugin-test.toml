@@ -30,3 +30,30 @@ always_on_tokens = 3600
                    "skills/n8n-expression-syntax/*", "skills/n8n-mcp-tools-expert/*", "skills/n8n-multi-instance/*",
                    "skills/n8n-node-configuration/*", "skills/n8n-self-hosting/*", "skills/n8n-subworkflows/*",
                    "skills/n8n-validation-expert/*", "skills/n8n-workflow-patterns/*", "skills/using-n8n-mcp-skills/*"]
+
+# n8n: плагин выверен по n8n 2.41.6 (публичный OpenAPI в api-reference собран с тега n8n@2.41.6, 2026-10-02),
+# внешнему MCP n8n-mcp (2.91.0 — последний релиз на дату выверки 2026-10-03; в тексте плагина версия не названа)
+# и @n8n/cli 0.20.0 (так сказано в cli-recipes). Пятнадцать vendored-skills (czlonkowski/n8n-skills v1.35.0) зеркалятся
+# scripts/sync-n8n-skills.sh и недоступны refresh; источником они не заведены — их версию ведёт еженедельный sync.
+# Шесть своих skills (n8n-native-mcp, api-reference, cli-recipes, setup, troubleshoot, examples) refresh правит.
+[upstream]
+skip_paths = ["skills/n8n-agents/*", "skills/n8n-binary-and-data/*", "skills/n8n-code-javascript/*",
+              "skills/n8n-code-python/*", "skills/n8n-code-tool/*", "skills/n8n-error-handling/*",
+              "skills/n8n-expression-syntax/*", "skills/n8n-mcp-tools-expert/*", "skills/n8n-multi-instance/*",
+              "skills/n8n-node-configuration/*", "skills/n8n-self-hosting/*", "skills/n8n-subworkflows/*",
+              "skills/n8n-validation-expert/*", "skills/n8n-workflow-patterns/*", "skills/using-n8n-mcp-skills/*"]
+[[upstream.source]]
+kind = "github-release"
+id = "n8n-io/n8n"
+pinned = "2.41.6"
+[[upstream.source]]
+kind = "npm"
+id = "n8n-mcp"
+pinned = "2.91.0"
+[[upstream.source]]
+kind = "npm"
+id = "@n8n/cli"
+pinned = "0.20.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.n8n.io"

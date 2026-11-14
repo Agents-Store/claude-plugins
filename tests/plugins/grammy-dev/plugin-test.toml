@@ -1,0 +1,30 @@
+# grammY: плагин выверен по grammY 1.46 (Bot API 10.3) и @grammyjs/types 5.0 (README, api-reference, plugins-catalog, setup, scaffold-скрипт).
+# Плагины экосистемы — menu 1.5, commands 1.4, conversations 2.x, runner 2.x. Vendored-путей нет.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "grammy"
+pinned = "1.46.0"
+[[upstream.source]]
+kind = "npm"
+id = "@grammyjs/types"
+pinned = "5.0.0"
+[[upstream.source]]
+kind = "npm"
+id = "@grammyjs/menu"
+pinned = "1.5.0"
+[[upstream.source]]
+kind = "npm"
+id = "@grammyjs/commands"
+pinned = "1.4.0"
+[[upstream.source]]
+kind = "npm"
+id = "@grammyjs/conversations"
+pinned = "2.1.1"
+[[upstream.source]]
+kind = "npm"
+id = "@grammyjs/runner"
+pinned = "2.0.3"
+[[upstream.source]]
+kind = "docs"
+url = "https://grammy.dev"

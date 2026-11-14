@@ -6,3 +6,16 @@ base_vars = { JIRA = "/rest/api/3", JIRA_ROOT = "" }
 [[api]]
 spec = "skills/api-reference/references/confluence-openapi-v2.json"
 base_vars = { CONF = "", CONF_ROOT = "" }
+
+# Atlassian Cloud — SaaS без пакета и версии: следим за документацией и changelog.
+# Плагин выверен по снимку OpenAPI-спецификаций и документации от 2026-10-03 (pinned не нужен).
+[upstream]
+[[upstream.source]]
+kind = "docs"
+url = "https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/"
+[[upstream.source]]
+kind = "docs"
+url = "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/"
+[[upstream.source]]
+kind = "docs"
+url = "https://developer.atlassian.com/changelog/"

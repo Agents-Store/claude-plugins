@@ -6,3 +6,31 @@ snapshot = "names"
 [mcp.trigger-dev]
 start = "server"
 env = { TRIGGER_ACCESS_TOKEN = "dummy", TRIGGER_API_URL = "https://trigger.example.com", TRIGGER_PROJECT_REF = "proj_dummy" }
+
+# Стек описывает архитектуру и выверен по тем же версиям, что его технологические плагины directus-dev, nextjs-dev и
+# trigger-dev: Directus 12.4.1, @directus/sdk 26, next 16.3.8 и Trigger.dev 4.7.2 (LEARNINGS 2026-10-03: сервер, CLI trigger.dev,
+# @trigger.dev/sdk и @trigger.dev/react-hooks — одна версия, поэтому в npm следим за CLI). Vendored-путей нет;
+# серверы directus и trigger-dev из .mcp.json сверяет mcp-list.
+[upstream]
+[[upstream.source]]
+kind = "github-release"
+id = "directus/directus"
+pinned = "12.4.1"
+[[upstream.source]]
+kind = "npm"
+id = "@directus/sdk"
+pinned = "26.0.0"
+[[upstream.source]]
+kind = "npm"
+id = "next"
+pinned = "16.3.8"
+[[upstream.source]]
+kind = "npm"
+id = "trigger.dev"
+pinned = "4.7.2"
+[[upstream.source]]
+kind = "docs"
+url = "https://directus.io/docs"
+[[upstream.source]]
+kind = "docs"
+url = "https://trigger.dev/docs"

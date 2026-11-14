@@ -1,3 +1,17 @@
 # Self-hosted сервер: tools/list может нести данные инстанса — в снимок только имена.
 [mcp.nocodb]
 snapshot = "names"
+
+# NocoDB: плагин выверен по релизу NocoDB 2026.09.1 (LEARNINGS 2026-10: MCP-инструменты схемы на Cloud/licensed,
+# Meta API v3; OpenAPI-спеки пересобраны из swagger-v3.json ядра). Пакет `nocodb` в npm давно не обновляется
+# (0.301.x) — версию ведёт только GitHub-релиз. Официальный скрипт nocodb.sh живёт в nocodb/agent-skills и не вендорится.
+# Vendored-путей нет: skip_paths пуст.
+[upstream]
+skip_paths = []
+[[upstream.source]]
+kind = "github-release"
+id = "nocodb/nocodb"
+pinned = "2026.09.1"
+[[upstream.source]]
+kind = "docs"
+url = "https://nocodb.com/docs"

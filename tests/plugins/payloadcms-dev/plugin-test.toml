@@ -1,0 +1,10 @@
+# Payload CMS: плагин выверен по payload 3.90.2 (README, setup, authentication, official-plugins, LEARNINGS 2026-10-03; релиз 3.90 — security).
+# Все @payloadcms/* пакеты выходят теми же номерами, что payload, отдельных источников не нужно. Vendored-путей нет: материал payloadcms/skills переработан под свои skills.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "payload"
+pinned = "3.90.2"
+[[upstream.source]]
+kind = "docs"
+url = "https://payloadcms.com/docs"
