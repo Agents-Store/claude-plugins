@@ -1,3 +1,23 @@
 # Self-hosted сервер: tools/list может нести данные инстанса — в снимок только имена.
 [mcp.directus]
 snapshot = "names"
+
+# Стек описывает архитектуру и выверен по тем же версиям, что его технологические плагины directus-dev и nextjs-dev:
+# Directus 12.4.1 (LEARNINGS 2026-10-03, ограничение Core-tier), @directus/sdk 26 (init-project, README), next 16.3.8
+# (init-project, deployment, README: next@^16.3.8). Vendored-путей нет; сервер directus из .mcp.json сверяет mcp-list.
+[upstream]
+[[upstream.source]]
+kind = "github-release"
+id = "directus/directus"
+pinned = "12.4.1"
+[[upstream.source]]
+kind = "npm"
+id = "@directus/sdk"
+pinned = "26.0.0"
+[[upstream.source]]
+kind = "npm"
+id = "next"
+pinned = "16.3.8"
+[[upstream.source]]
+kind = "docs"
+url = "https://directus.io/docs"

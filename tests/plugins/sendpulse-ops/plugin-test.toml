@@ -1,3 +1,15 @@
 # OAuth (вход через браузер): наш клиент токен не получает. Снимок — очередь 4 (дрейф).
 [mcp.sendpulse]
 start = "never"
+
+# Плагин работает только через MCP-сервер SendPulse (SDK и пакетов нет), версии продукта нет — сверяются только страницы документации.
+[upstream]
+[[upstream.source]]
+kind = "docs"
+url = "https://sendpulse.com/knowledge-base/account-settings/mcp-server"
+[[upstream.source]]
+kind = "docs"
+url = "https://sendpulse.com/knowledge-base/account-settings/mcp-tools"
+[[upstream.source]]
+kind = "docs"
+url = "https://sendpulse.com/integrations/api"

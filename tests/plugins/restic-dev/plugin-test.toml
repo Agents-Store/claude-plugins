@@ -1,0 +1,11 @@
+# restic: плагин выверен по релизу restic 0.19.1 (LEARNINGS 2026-10-03: коды выхода 0.19, `forget`, `snapshots --latest`).
+# Vendored-путей нет: skip_paths пуст. Скрипт restic-backup.sh — собственный, не копия upstream.
+[upstream]
+skip_paths = []
+[[upstream.source]]
+kind = "github-release"
+id = "restic/restic"
+pinned = "0.19.1"
+[[upstream.source]]
+kind = "docs"
+url = "https://restic.readthedocs.io/en/stable/"

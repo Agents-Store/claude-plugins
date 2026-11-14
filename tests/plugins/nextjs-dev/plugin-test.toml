@@ -1,3 +1,14 @@
 # 2026-10-04 owner accepted: testing-patterns — справочный skill (503 строки), грузится по требованию; skill-budget — advisory.
 [skip]
 "skill-budget" = ["skills/testing-patterns/SKILL.md"]
+
+# Next.js: плагин выверен по next 16.3.8 (README, setup, security-patterns, cache-components, LEARNINGS 2026-10-03; сентябрьский security-релиз).
+# Vendored-путей нет: skip_paths не нужен. next-devtools-mcp сверяет mcp-list, здесь он не перечисляется.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "next"
+pinned = "16.3.8"
+[[upstream.source]]
+kind = "docs"
+url = "https://nextjs.org/docs"

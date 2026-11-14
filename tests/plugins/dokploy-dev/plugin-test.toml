@@ -5,3 +5,19 @@ env = { DOKPLOY_URL = "https://dokploy.example.com", DOKPLOY_API_KEY = "dummy" }
 # 2026-10-04 owner accepted: справочный skill грузится по требованию, разбивать его не нужно; skill-budget — advisory.
 [skip]
 "skill-budget" = ["skills/mcp-patterns/SKILL.md"]
+
+# Dokploy: плагин выверен по Dokploy 0.30.7 (OpenAPI, 604 операции) и @dokploy/mcp / @dokploy/cli 0.30.7 (текст на 2026-10-03).
+# Vendored-содержимого нет: индексы в skills/api-reference/references сгенерированы из OpenAPI, но правятся refresh — skip_paths не нужен.
+[upstream]
+[[upstream.source]]
+kind = "github-release"
+id = "Dokploy/dokploy"
+pinned = "0.30.7"
+[[upstream.source]]
+kind = "npm"
+id = "@dokploy/mcp"
+pinned = "0.30.7"
+[[upstream.source]]
+kind = "npm"
+id = "@dokploy/cli"
+pinned = "0.30.7"

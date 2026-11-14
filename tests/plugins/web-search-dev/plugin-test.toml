@@ -1,6 +1,38 @@
 # Ключи фиктивные: в CI проверяется только, что сервер стартует и отдаёт свой список. jina — http, ночью.
 # start = server (было ci): снимок снят с реальным env, и слова из описаний, совпавшие со значениями env,
 # записаны как ${ИМЯ}; CI без env получает исходный текст — WARN «изменились описания». Сравнение — ночью.
+# Upstream: плагин выверен 2026-10-02 (LEARNINGS 2026-10) по SDK firecrawl 4.x, exa-js 2.x, @perplexity-ai/perplexity_ai 0.38.x.
+# MCP-серверы (firecrawl-mcp, exa-mcp-server, context7-mcp, perplexity) здесь не перечисляются: их сверяет mcp-list.
+# Vendored-путей нет: skip_paths не нужен.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "firecrawl"
+pinned = "4.42.4"
+[[upstream.source]]
+kind = "npm"
+id = "exa-js"
+pinned = "2.25.0"
+[[upstream.source]]
+kind = "npm"
+id = "@perplexity-ai/perplexity_ai"
+pinned = "0.38.7"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.firecrawl.dev"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.exa.ai"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.perplexity.ai"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.jina.ai"
+[[upstream.source]]
+kind = "docs"
+url = "https://context7.com/docs"
+
 [mcp.firecrawl]
 start = "server"
 env = { FIRECRAWL_API_TOKEN = "dummy" }

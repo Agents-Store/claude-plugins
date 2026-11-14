@@ -2,3 +2,19 @@
 name = "macstack-dev run-tests.sh"
 run = "sh run-tests.sh"
 needs = ["sh", "python3"]
+
+# Стандарт MACSTACK живёт в двух репозиториях без релизов и тегов, поэтому следим только за документацией (docs).
+# Плагин выверен по схеме rev 18 (зеркало в skills/lint/references/, LEARNINGS 2026-10-04); копии чужих файлов
+# правятся у источника и синхронизируются байт-в-байт, refresh их не трогает.
+[upstream]
+skip_paths = [
+  "skills/lint/references/macstack.schema.json",
+  "skills/lint/references/coverage-areas.json",
+  "skills/lint/references/software-categories.json",
+]
+[[upstream.source]]
+kind = "docs"
+url = "https://github.com/macstacks/macstack"
+[[upstream.source]]
+kind = "docs"
+url = "https://github.com/macstacks/registry"

@@ -1,0 +1,16 @@
+# Deep research: у плагина нет своего продукта, пакета и версии — он ведёт исследование через серверы web-search-dev
+# (Exa, Firecrawl, Jina, Perplexity). Цепочки fallback и docs/tool_reference.md выверены по их списку инструментов
+# от 2026-10-03 (LEARNINGS 3.1.0). Версионных источников нет, поэтому pinned не нужен: следим за документацией провайдеров.
+[upstream]
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.firecrawl.dev"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.exa.ai"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.perplexity.ai"
+[[upstream.source]]
+kind = "docs"
+url = "https://jina.ai/reader"

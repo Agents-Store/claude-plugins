@@ -1,0 +1,26 @@
+# Flask: плагин выверен по Flask 3.1 (README, setup, app-patterns, api-reference, LEARNINGS 2026-10-03), расширения — по последним релизам на PyPI.
+# Flask 3.2 в плагине описан как ещё не вышедший (app-patterns, «Upgrade watch list»). Vendored-путей нет.
+[upstream]
+[[upstream.source]]
+kind = "pypi"
+id = "flask"
+pinned = "3.1.3"
+[[upstream.source]]
+kind = "pypi"
+id = "flask-sqlalchemy"
+pinned = "3.1.1"
+[[upstream.source]]
+kind = "pypi"
+id = "flask-wtf"
+pinned = "1.3.0"
+[[upstream.source]]
+kind = "pypi"
+id = "flask-login"
+pinned = "0.6.3"
+[[upstream.source]]
+kind = "pypi"
+id = "flask-migrate"
+pinned = "4.1.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://flask.palletsprojects.com"

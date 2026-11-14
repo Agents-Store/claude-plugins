@@ -1,0 +1,16 @@
+# n8n: плагин выверен по n8n 2.41.6 (последний стабильный релиз на дату выверки 2026-10-03; правила публикации
+# PUBLISH_FORBIDDEN из 2.39+, папки из 2.19+) и внешнему MCP n8n-mcp 2.91.0 (последний релиз на ту же дату; в тексте
+# плагина версия не названа — названы имена и параметры инструментов). Каталог шаблонов api.n8n.io версий не имеет,
+# его описывает документация. Vendored-каталогов в плагине нет, skip_paths не нужен.
+[upstream]
+[[upstream.source]]
+kind = "github-release"
+id = "n8n-io/n8n"
+pinned = "2.41.6"
+[[upstream.source]]
+kind = "npm"
+id = "n8n-mcp"
+pinned = "2.91.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.n8n.io"

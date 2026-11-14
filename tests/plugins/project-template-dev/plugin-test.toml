@@ -3,6 +3,17 @@
 # The plugin clearly helps on them (bare model scores far lower); the floor keeps the nightly quiet without lowering the
 # plugin-wide threshold. q-feedback-11 (0.20 in both runs after two rounds) was dropped from the set (controller ruling R58).
 
+# Следим за Claude Code: плагин описывает его конвенции (skills, .mcp.json, settings.json, AGENTS.md, CLAUDE.md, marketplace).
+# Версия 2.1.288 — та, против которой выверен README (LEARNINGS 2026-10-03). Vendored-путей нет.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "@anthropic-ai/claude-code"
+pinned = "2.1.288"
+[[upstream.source]]
+kind = "docs"
+url = "https://code.claude.com/docs"
+
 [behavior.case."q-create-5"]
 threshold = 0.5   # Level 2 client scaffold: directory naming and credentials prompt vary between runs
 

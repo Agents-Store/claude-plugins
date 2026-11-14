@@ -1,0 +1,13 @@
+# Taiga: плагин выверен по taiga-back 6.10.0 (LEARNINGS 2026-10-03: поведение archived_code сверено с main taiga-back,
+# архивация проектов появилась в 6.10.0, 2026-04-20). Релизов на GitHub у taiga-back нет, только теги.
+# Плагин — чистый REST-справочник (curl), без MCP и CLI; сторонние MCP-серверы названы в тексте как необязательные.
+# Все skills свои, vendored-путей нет, поэтому skip_paths пуст.
+[upstream]
+skip_paths = []
+[[upstream.source]]
+kind = "github-tag"
+id = "taigaio/taiga-back"
+pinned = "6.10.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.taiga.io/api.html"

@@ -24,3 +24,20 @@ timeout = 900
 
 # L2: все skills — vendored; наборы срабатывания — отдельной задачей после калибровки (spec очереди 2 §1).
 "eval-coverage" = ["skills/*"]
+
+# Плагин — vendored vercel/vercel-plugin 0.53.0 (e8a2e71) с локальными патчами (LEARNINGS.md). У репозитория нет ни
+# релизов, ни тегов, версия живёт только в его package.json, поэтому как источник он идёт docs-ссылкой, без pinned;
+# обновление вендора — отдельная ресинхронизация по рецепту из LEARNINGS.md, не refresh. pinned у CLI — версия, по
+# которой выверен references/cli-deploys.md (62.2.0). Vendored: код хуков, сборка, тесты и зеркала skills/*/upstream.
+[upstream]
+skip_paths = ["hooks/*", "src/*", "scripts/*", "tests/*", "skills/*/upstream/*", "skills/*/overlay.yaml"]
+[[upstream.source]]
+kind = "npm"
+id = "vercel"
+pinned = "62.2.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://github.com/vercel/vercel-plugin"
+[[upstream.source]]
+kind = "docs"
+url = "https://vercel.com/docs"

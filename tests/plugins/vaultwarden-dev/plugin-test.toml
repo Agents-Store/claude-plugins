@@ -5,3 +5,34 @@ name = "vaultwarden-dev bw_guard unittest"
 run = "python3 -W error::ResourceWarning -m unittest discover -s . -p 'test_*.py' -v"
 cwd = "tests/plugins/vaultwarden-dev"
 needs = ["python3"]
+
+# Vaultwarden: плагин выверен по серверу 1.37.4 и bw 2026.9.1 (README, version-matrix, setup, admin-panel, LEARNINGS 2026-10-07).
+# Библиотеки и MCP из sdk-patterns / mcp-patterns — версии из их таблиц. Vendored-путей нет: skip_paths не нужен.
+[upstream]
+[[upstream.source]]
+kind = "github-release"
+id = "dani-garcia/vaultwarden"
+pinned = "1.37.4"
+[[upstream.source]]
+kind = "npm"
+id = "@bitwarden/cli"
+pinned = "2026.9.1"
+[[upstream.source]]
+kind = "npm"
+id = "@bitwarden/mcp-server"
+pinned = "2026.7.0"
+[[upstream.source]]
+kind = "npm"
+id = "@icoretech/warden-mcp"
+pinned = "0.2.50"
+[[upstream.source]]
+kind = "pypi"
+id = "python-vaultwarden"
+pinned = "1.1.2"
+[[upstream.source]]
+kind = "github-release"
+id = "maxlaverse/terraform-provider-bitwarden"
+pinned = "v0.21.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://github.com/dani-garcia/vaultwarden/wiki"

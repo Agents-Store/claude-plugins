@@ -3,3 +3,18 @@
 version = "0.43.138"
 commands = ["login", "run", "export", "init", "scan", "agent", "vault", "token", "user",
             "secrets", "secrets get", "secrets set", "secrets delete", "secrets folders", "dynamic-secrets", "profile", "profile create"]
+
+# Infisical CLI: плагин выверен по CLI 0.43.138 (--help релизного бинаря и docs, текст на 2026-10-03).
+# Vendored-содержимого нет — skip_paths не нужен. MCP-сервера у плагина нет; CLI сверяет cli-flags.
+[upstream]
+[[upstream.source]]
+kind = "github-release"
+id = "Infisical/cli"
+pinned = "0.43.138"
+[[upstream.source]]
+kind = "npm"
+id = "@infisical/cli"
+pinned = "0.43.138"
+[[upstream.source]]
+kind = "docs"
+url = "https://infisical.com/docs/cli/overview"

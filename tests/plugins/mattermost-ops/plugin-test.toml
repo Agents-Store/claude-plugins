@@ -1,0 +1,13 @@
+# Mattermost: плагин выверен по серверу v11.11.1 (OpenAPI v4 собран из тега v11.11.1) плюс заметки о поведении v12.0 (текст на 2026-10-03).
+# Спецификация в skills/api-reference/references пересобирается refresh по рецепту из LEARNINGS.md, поэтому skip_paths не нужен.
+[upstream]
+[[upstream.source]]
+kind = "github-release"
+id = "mattermost/mattermost"
+pinned = "11.11.1"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.mattermost.com/about/mattermost-server-releases.html"
+[[upstream.source]]
+kind = "docs"
+url = "https://developers.mattermost.com/api-documentation/"

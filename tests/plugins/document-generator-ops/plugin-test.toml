@@ -1,0 +1,23 @@
+# Генератор документов: плагин выверен по lock-файлу scripts-пакета (LEARNINGS 2026-10-03, версия 3.1.0).
+# pandoc и Typst — системные утилиты конвертации, не пакеты: сверяются через cli-flags, не здесь.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "docx"
+pinned = "9.8.1"
+[[upstream.source]]
+kind = "npm"
+id = "pdfkit"
+pinned = "0.20.2"
+[[upstream.source]]
+kind = "npm"
+id = "playwright"
+pinned = "1.63.0"
+[[upstream.source]]
+kind = "npm"
+id = "pptxgenjs"
+pinned = "4.0.1"
+[[upstream.source]]
+kind = "npm"
+id = "pdf-parse"
+pinned = "1.1.4"

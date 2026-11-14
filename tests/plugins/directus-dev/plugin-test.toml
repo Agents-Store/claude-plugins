@@ -1,0 +1,14 @@
+# Directus: плагин выверен по серверу Directus 12.4.1 и @directus/sdk 26.0.0 (README, mcp-tools, sdk-patterns, docker-local-dev, LEARNINGS 2026-10-03).
+# Docker-образ directus/directus идёт теми же номерами, что релиз GitHub, отдельного источника не нужно. Vendored-путей нет.
+[upstream]
+[[upstream.source]]
+kind = "github-release"
+id = "directus/directus"
+pinned = "12.4.1"
+[[upstream.source]]
+kind = "npm"
+id = "@directus/sdk"
+pinned = "26.0.0"
+[[upstream.source]]
+kind = "docs"
+url = "https://directus.io/docs"

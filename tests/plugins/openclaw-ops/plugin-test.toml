@@ -25,3 +25,14 @@ always_on_tokens = 4800
 # without lowering the plugin-wide threshold.
 [behavior.case."q-docs-research-5"]
 threshold = 0.5
+
+# OpenClaw: плагин выверен по релизу 2026.9.8 (stable на 2026-10-03: updating-гайд, release-channels, мост 2026.9.5 в versions.py,
+# LEARNINGS 2026-10-03). Vendored-путей нет. npm-пакет и docs.openclaw.ai — основные источники; релизы GitHub идут тем же потоком.
+[upstream]
+[[upstream.source]]
+kind = "npm"
+id = "openclaw"
+pinned = "2026.9.8"
+[[upstream.source]]
+kind = "docs"
+url = "https://docs.openclaw.ai/llms.txt"
