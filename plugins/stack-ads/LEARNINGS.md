@@ -188,3 +188,9 @@
 **Fix:** Every quality prompt names its skill, asks for a short text answer and ends with a line of the rules relied on, in the style of the calibrated cases of this repository. Each expectation is one literal fact that the skill states. The three trigger queries became tasks that need the skill, and `media-plan` gained the trigger "is this budget enough". No skill text was changed for the run: the last run of every skill shows no warning, with the skill firing in three of three runs.
 **Root cause:** Cases written before any run, from the skill author's view of what a good answer contains, not from what the judge can see.
 **Severity:** Minor
+\n\n## 2026-11-15 — ad-copy, media-plan, performance-report: frontmatter only Claude Code could read
+
+**Problem:** Three descriptions ended with a boundary such as `Text only: for images ...`. A colon followed by a space inside an unquoted YAML value is a syntax error for a strict parser. Claude Code reads it anyway, so the official validator, the contract tests and the behaviour run all passed, and version 1.0.0 shipped with it. Ten of the eleven generated targets receive SKILL.md as written, and an agent with a strict parser would not have loaded these three skills.
+**Fix:** The three descriptions say `Text only. For images ...`. `tests/test_docs.py` now refuses a plain frontmatter value that holds `: ` or ` #`, and parses every frontmatter block with a real YAML parser when one is installed. Version 1.0.1.
+**Root cause:** The descriptions were checked for length and trigger phrases, never parsed as YAML. Found when the mirrors were compared with the source after the first sync: the OpenCode writer had quoted exactly these three values.
+**Severity:** Major
