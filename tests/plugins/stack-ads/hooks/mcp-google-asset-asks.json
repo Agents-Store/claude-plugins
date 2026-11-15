@@ -1,0 +1,15 @@
+{
+  "event": "PreToolUse",
+  "matcher": "mcp__plugin_stack-ads_(meta-ads|tiktok-ads|google-ads)__.*",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "mcp__plugin_stack-ads_google-ads__assets_create_asset",
+    "tool_input": {}
+  },
+  "expect": {
+    "exit": 0,
+    "json": {
+      "hookSpecificOutput.permissionDecision": "ask"
+    }
+  }
+}

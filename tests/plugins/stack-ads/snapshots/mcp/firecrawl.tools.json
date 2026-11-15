@@ -1,0 +1,367 @@
+{
+  "tools": [
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "calls",
+          "objective"
+        ],
+        "type": "object"
+      },
+      "name": "alexandria_library_read"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "command",
+          "objective"
+        ],
+        "type": "object"
+      },
+      "name": "alexandria_library_search"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_agent_activity"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_agent_status"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_check_crawl_status"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_crawl"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_credit_usage"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_developer_search"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "endpoint",
+          "rating"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_feedback"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "objective"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_find_tools"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_gov_search"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_interact"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "scrapeId"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_interact_stop"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_map"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "checkId",
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_monitor_check"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_monitor_checks"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_monitor_create"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_monitor_delete"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_monitor_get"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_monitor_list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_monitor_run"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_monitor_update"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_parse"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_provider_directory"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_recommended_providers"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "paperId"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_research_inspect_paper"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "paperId",
+          "question"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_research_read_paper"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "intent",
+          "seed_ids"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_research_related_papers"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_research_search_papers"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "objective"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_scrape"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "objective",
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_search"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "rating",
+          "searchId"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_search_feedback"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_usage_dashboard"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "objective"
+        ],
+        "type": "object"
+      },
+      "name": "jobs_search"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "objective"
+        ],
+        "type": "object"
+      },
+      "name": "people_company_enrich"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "entity",
+          "objective"
+        ],
+        "type": "object"
+      },
+      "name": "people_company_search"
+    }
+  ]
+}

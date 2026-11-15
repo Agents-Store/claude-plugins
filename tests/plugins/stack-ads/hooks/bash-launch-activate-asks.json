@@ -1,0 +1,18 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Bash",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "python3 ads/tools/ads.py launch activate --file ads/launch/demo.json --yes"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "json": {
+      "hookSpecificOutput.permissionDecision": "ask"
+    },
+    "stdout_contains": "spend can start"
+  }
+}

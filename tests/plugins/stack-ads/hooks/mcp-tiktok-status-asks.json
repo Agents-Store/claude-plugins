@@ -1,0 +1,16 @@
+{
+  "event": "PreToolUse",
+  "matcher": "mcp__plugin_stack-ads_(meta-ads|tiktok-ads|google-ads)__.*",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "mcp__plugin_stack-ads_tiktok-ads__campaign_status_update",
+    "tool_input": {}
+  },
+  "expect": {
+    "exit": 0,
+    "json": {
+      "hookSpecificOutput.permissionDecision": "ask"
+    },
+    "stdout_contains": "spend may start"
+  }
+}

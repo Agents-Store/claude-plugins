@@ -1,0 +1,29 @@
+{
+  "description": "Asks before a command or a tool of the Meta, TikTok or Google Ads MCP server writes to an ad account or can start spend.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking for ad-account writes"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__plugin_stack-ads_(meta-ads|tiktok-ads|google-ads)__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking for ad-account writes"
+          }
+        ]
+      }
+    ]
+  }
+}

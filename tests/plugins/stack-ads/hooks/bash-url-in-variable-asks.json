@@ -1,0 +1,18 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Bash",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "URL=https://graph.facebook.com/v27.0/act_0/campaigns; curl -X POST \"$URL\" -d status=PAUSED"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "json": {
+      "hookSpecificOutput.permissionDecision": "ask"
+    },
+    "stdout_contains": "outside the toolkit"
+  }
+}

@@ -141,6 +141,9 @@ ALLOWED_HOST_SUFFIXES = (
     ".jsdelivr.net", ".unpkg.com", ".cdnjs.com", ".gravatar.com",
     ".apache.org", ".oracle.com", ".python-requests.org", ".slack.com",
     ".posthog.com", ".auth0.com", ".context7.com",
+    # ad platforms and generative-media vendors (stack-ads): API, MCP and docs hosts
+    ".facebook.com", ".meta.com", ".tiktok.com", ".youtube.com",
+    ".fal.ai", ".fal.run", ".fal.media", ".google.dev",
     # placeholder domains conventional in documentation
     "company.com", "mycompany.com", "yourcompany.com", "your-domain.com",
     "yourdomain.com", "mydomain.com", "myapp.com", "mysite.com", "acme.com",
