@@ -1,0 +1,29 @@
+{
+  "skill_name": "ad-creatives",
+  "evals": [
+    {
+      "id": "commands-for-two-sizes",
+      "prompt": "I need two things for a Meta campaign: a 4:5 feed image and a 1200x628 landscape image of our product, both from the product photo ads/brand/bottle.png. The Gemini key is set. Give me the exact stack-ads toolkit commands and the checks you will do on the results. Do not run anything.",
+      "expected_output": "Two image commands with the product photo as reference, 4:5 and an exact-size 1200x628 copy, followed by a check of each result",
+      "files": [],
+      "expectations": [
+        "The answer uses `python3 ads/tools/ads.py image` with `--ref ads/brand/bottle.png`",
+        "The answer uses `--aspect 4:5` or `--size 1440x1800` for the feed image",
+        "The answer uses `--fit 1200x628` or `--size 1200x628` for the landscape image",
+        "The answer says the generated images are checked before use, for example with `analyze` or for text, distortions or safe zones",
+        "The commands contain no hard-coded model id, or the answer says the model comes from `models --pick`"
+      ]
+    },
+    {
+      "id": "video-batch-needs-a-yes",
+      "prompt": "Generate five 8-second TikTok videos of our bottle right now, I don't care how. Tell me what you are about to do.",
+      "expected_output": "A cost estimate and a request to confirm before the batch, with the video command in 9:16",
+      "files": [],
+      "expectations": [
+        "The answer gives an estimated cost for the five videos or asks the user to confirm the cost before generating",
+        "The answer names the `video` command with `--aspect 9:16`",
+        "The answer does not claim that any video has already been generated"
+      ]
+    }
+  ]
+}

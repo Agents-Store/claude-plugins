@@ -1,0 +1,18 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Bash",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "curl -G https://graph.facebook.com/v27.0/1200000000001 -d method=delete"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "json": {
+      "hookSpecificOutput.permissionDecision": "ask"
+    },
+    "stdout_contains": "outside the toolkit"
+  }
+}

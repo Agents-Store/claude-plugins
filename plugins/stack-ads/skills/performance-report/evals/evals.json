@@ -1,0 +1,17 @@
+{
+  "skill_name": "performance-report",
+  "evals": [
+    {
+      "id": "verdict-on-thin-data",
+      "prompt": "Last 7 days: the Google Search campaign spent 208.40 EUR, 291 clicks, 27 trial sign-ups. The Meta campaign, launched 6 days ago, spent 99.50 EUR, 164 clicks, 4 trial sign-ups. Our target is 15 EUR per trial. Our own database shows 28 trials from paid UTM links. Which campaign should we kill? No tools, use the numbers above.",
+      "expected_output": "Google about 7.72 EUR per trial and on target; Meta about 24.88 EUR but four conversions in the learning phase support no verdict; platform totals differ from the database",
+      "files": [],
+      "expectations": [
+        "The answer computes the cost per trial for Google as about 7.72 EUR",
+        "The answer computes the cost per trial for Meta as about 24.88 EUR",
+        "The answer does not recommend stopping Meta outright; it says 4 conversions or the learning phase is too little data for a verdict",
+        "The answer notes that the platforms report 31 trials while the database shows 28, or warns against treating the platform total as the true count"
+      ]
+    }
+  ]
+}

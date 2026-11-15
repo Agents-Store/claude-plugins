@@ -1,0 +1,29 @@
+{
+  "skill_name": "media-plan",
+  "evals": [
+    {
+      "id": "budget-too-thin-for-three-platforms",
+      "prompt": "Budget 600 EUR a month, target cost per purchase 25 EUR, product: a reusable bottle sold online in Germany. The client wants Google Search, Meta with three ad sets and TikTok at the same time, each optimised for purchases. Is that a sound plan? Give me your recommendation with the arithmetic. Do not run tools.",
+      "expected_output": "About 20 EUR a day buys fewer than six purchases a week, far below the learning volume; recommend one platform or an earlier event, with tracking as a prerequisite",
+      "files": [],
+      "expectations": [
+        "The answer computes the daily budget as about 20 EUR",
+        "The answer says the budget cannot reach the learning volume (about 50 conversions or events a week) for that many campaigns or ad sets",
+        "The answer recommends fewer campaigns, one platform first, or optimising for an earlier event than purchase",
+        "The answer does not recommend splitting the budget evenly across the three platforms",
+        "The answer names a firing conversion event or pixel as a prerequisite for purchase optimisation"
+      ]
+    },
+    {
+      "id": "compliance-for-loans",
+      "prompt": "We want to advertise consumer loans to people in Germany on Meta. What must the media plan contain for compliance before launch? No tools.",
+      "expected_output": "Special ad category for financial products with its targeting limits, EU beneficiary and payer fields, provable claims",
+      "files": [],
+      "expectations": [
+        "The answer says the campaign must declare a special ad category for credit or financial products",
+        "The answer says targeting is limited for that category, for example no age, gender or postcode targeting",
+        "The answer mentions the EU fields for beneficiary and payer of the ad"
+      ]
+    }
+  ]
+}

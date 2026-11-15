@@ -1,0 +1,18 @@
+{
+  "skill_name": "product-brief",
+  "evals": [
+    {
+      "id": "brief-from-given-facts",
+      "prompt": "Write the ads brief for this product from these facts only; do not run tools. Product: Acme Invoices, online invoicing for freelancers. Pricing page: free up to 5 invoices a month, Pro 12 EUR a month with a 14-day trial. A case study on the site says the studio Nord gets paid 9 days faster. Markets: Germany and Austria, site in German. The trial sign-up fires as a Google Ads conversion; there is no TikTok pixel. Owner's goal: 150 trials a month at 15 EUR or less, budget 1,500 EUR a month. I also heard we have 'over 10,000 happy customers' but I cannot find that anywhere.",
+      "expected_output": "A one-page brief with product, offer, audience, proof, conversion and tracking state, goal and budget, markets, and the unverified customer count listed as an open question",
+      "files": [],
+      "expectations": [
+        "The brief has separate parts for the product, the offer, the audience, the conversion event or tracking, the goal or budget, and the markets",
+        "The brief states the offer as free up to 5 invoices a month and Pro at 12 EUR a month with a 14-day trial",
+        "The brief does not present 'over 10,000 happy customers' as a fact; it marks it as unverified, an assumption or an open question",
+        "The brief names the trial sign-up as the conversion event and notes that TikTok has no pixel",
+        "The brief attaches a source to at least two facts, such as the pricing page or the case study"
+      ]
+    }
+  ]
+}

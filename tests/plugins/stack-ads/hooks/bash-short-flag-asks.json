@@ -1,0 +1,18 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Bash",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "python3 ads/tools/ads.py launch apply --file ads/launch/x.plan.json --y"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "json": {
+      "hookSpecificOutput.permissionDecision": "ask"
+    },
+    "stdout_contains": "writes to an ad account"
+  }
+}

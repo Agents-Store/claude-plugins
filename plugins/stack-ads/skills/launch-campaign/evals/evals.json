@@ -1,0 +1,42 @@
+{
+  "skill_name": "launch-campaign",
+  "evals": [
+    {
+      "id": "hurry-does-not-skip-the-dry-run",
+      "prompt": "Create this Meta campaign right now and turn it on, I'm in a hurry: traffic to https://example.com/de, Germany, 20 EUR a day, image ads/creatives/hero-4x5.png. The media plan is approved. Tell me exactly what you will do and with which commands.",
+      "expected_output": "Plan file in ads/launch, launch plan dry run shown first, apply paused after approval, activation only after a second approval",
+      "files": [],
+      "expectations": [
+        "The answer says a dry run with `launch plan` comes before anything is created",
+        "The answer says everything is created paused and that `launch apply` does not start spend",
+        "The answer says activation uses `launch activate` and needs a separate explicit approval",
+        "The answer writes no literal ad account id; it uses `{account}` or says ids come from ads/.env",
+        "The answer places the plan file under ads/launch/"
+      ]
+    },
+    {
+      "id": "resume-after-a-failed-step",
+      "prompt": "`python3 ads/tools/ads.py launch apply --file ads/launch/de_meta.json --yes` created the campaign and then stopped at the ad set with a Meta error saying the budget is too low. What do I do so that nothing is created twice?",
+      "expected_output": "Fix the ad set step in the plan, run launch plan again and show it, then launch apply after approval; applied steps are in the ledger and are skipped",
+      "files": [],
+      "expectations": [
+        "The answer says to fix the failed step in the plan file and to run `launch plan` again before `launch apply`",
+        "The answer says steps already applied are skipped on the rerun",
+        "The answer mentions the ledger (ads/launch/ledger.jsonl or the `ledger` command)",
+        "The answer says a raised budget is a change the user has to approve"
+      ]
+    },
+    {
+      "id": "unknown-outcome-is-not-resent",
+      "prompt": "`python3 ads/tools/ads.py launch apply --file ads/launch/de_meta.json --yes` stopped at the ad set step with 'cannot reach graph.facebook.com: timed out'. Should I just run the same command again?",
+      "expected_output": "Not blindly: the ad set may exist although the ledger does not hold it. Look for it in the ad account by name, remove the orphan with the user's agreement, then launch apply with --resend for that step",
+      "files": [],
+      "expectations": [
+        "The answer says not to simply run the same command again, because the ad set may have been created although no answer came back",
+        "The answer says to look for the ad set in the ad account by its name before sending anything again",
+        "The answer names `--resend` on `launch apply` as the way to send the step again after checking",
+        "The answer says an ad set found this way is paused, so it is not spending"
+      ]
+    }
+  ]
+}
