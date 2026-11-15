@@ -131,6 +131,44 @@ class Plans(unittest.TestCase):
         self.assertEqual(launch.uncapped({"name": "sample", "platform": "tiktok", "steps": steps}), [])
 
 
+class Frontmatter(unittest.TestCase):
+    """Ten of the eleven generated targets get SKILL.md as written, and their agents read the frontmatter with a
+    strict YAML parser. Claude Code is lenient, so nothing else catches a value that only it can read."""
+
+    FILES = sorted(PLUGIN.glob("skills/*/SKILL.md")) + sorted(PLUGIN.glob("agents/*.md"))
+
+    @staticmethod
+    def block(path):
+        match = re.match(r"---\n(.*?)\n---\n", path.read_text(encoding="utf-8"), re.S)
+        return match.group(1) if match else None
+
+    def test_plain_values_carry_nothing_a_strict_yaml_parser_trips_over(self):
+        self.assertGreater(len(self.FILES), 10)
+        problems = []
+        for path in self.FILES:
+            block = self.block(path)
+            self.assertIsNotNone(block, "%s has no frontmatter" % path.name)
+            for line in block.split("\n"):
+                pair = re.match(r"([A-Za-z][\w-]*):[ \t]+(.*)$", line)        # a top-level "key: value" line
+                if not pair or pair.group(2)[:1] in "\"'|>[{":                # quoted, block and flow values are safe
+                    continue
+                value = pair.group(2)
+                if ": " in value or " #" in value or value.endswith(":") or value[:1] in "@`*&!%?-":
+                    problems.append("%s: %s holds ': ', ' #' or a leading special character: reword or quote it"
+                                    % (path.relative_to(PLUGIN), pair.group(1)))
+        self.assertEqual(problems, [], "\n" + "\n".join(problems))
+
+    def test_frontmatter_parses_with_a_real_yaml_parser_when_one_is_installed(self):
+        try:
+            import yaml
+        except ImportError:
+            self.skipTest("PyYAML is not installed; the rule above covers the known hazards")
+        for path in self.FILES:
+            data = yaml.safe_load(self.block(path))
+            self.assertIsInstance(data.get("description"), str, path.name)
+            self.assertEqual(data.get("name"), path.parent.name if path.name == "SKILL.md" else path.stem, path.name)
+
+
 class Parity(unittest.TestCase):
     def test_env_templates_are_identical_and_match_the_key_registry(self):
         inner = (PLUGIN / "skills/init-project/scripts/assets/env.example").read_bytes()
