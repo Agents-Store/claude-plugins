@@ -181,3 +181,10 @@
 **Fix:** A `method=` override is a write for every client and for the toolkit. Code handed to an interpreter that names an ad platform is asked about unless it is plainly a single fetch. The upload host is covered.
 **Root cause:** For inline code the hook listed the signs of a write; it now lists the signs of a read and asks for the rest.
 **Severity:** Minor
+
+## 2026-11-15 — evals: quality cases the behaviour run could not measure
+
+**Problem:** The first L2 run gave 12 quality cases below the threshold and 3 trigger misses, although the saved answers were right. The prompts said "No tools", and loading a skill is a tool call, so the skill fired in none or one of three runs and the case compared the model with itself. Answers ran to 3,000 characters and more, with the facts behind a preamble about the empty sandbox. Expectations joined several facts in one sentence, which the judge fails as a whole. Three trigger queries were plain questions that the model answers from memory.
+**Fix:** Every quality prompt names its skill, asks for a short text answer and ends with a line of the rules relied on, in the style of the calibrated cases of this repository. Each expectation is one literal fact that the skill states. The three trigger queries became tasks that need the skill, and `media-plan` gained the trigger "is this budget enough". No skill text was changed for the run: the last run of every skill shows no warning, with the skill firing in three of three runs.
+**Root cause:** Cases written before any run, from the skill author's view of what a good answer contains, not from what the judge can see.
+**Severity:** Minor

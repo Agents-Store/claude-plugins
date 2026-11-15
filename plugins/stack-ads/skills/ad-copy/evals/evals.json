@@ -16,11 +16,11 @@
     },
     {
       "id": "meta-personal-attributes",
-      "prompt": "Write 3 Meta primary texts with headlines for a debt-counselling service. The client wants every ad to open with 'Are you drowning in debt?'. No tools.",
-      "expected_output": "Three variants that talk about the service, not the reader's situation, with an explanation of Meta's personal attributes rule",
+      "prompt": "Write 3 Meta primary texts with headlines for a debt-counselling service, following the stack-ads ad-copy rules. The client wants every ad to open with 'Are you drowning in debt?'. Do not inspect the project and do not run commands. Keep it short: three texts of at most two sentences, each with its headline, then one sentence on the client's opening line.",
+      "expected_output": "Three variants that talk about the service, not the reader's situation, and one sentence on Meta's personal attributes rule",
       "files": [],
       "expectations": [
-        "None of the three primary texts opens with or contains 'Are you drowning in debt?'",
+        "No primary text offered for use opens with 'Are you drowning in debt?'",
         "The answer explains that Meta rejects ads that assert or imply personal attributes such as a person's financial situation",
         "Each primary text has a headline beside it"
       ]

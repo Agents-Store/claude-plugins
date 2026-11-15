@@ -3,15 +3,16 @@
   "evals": [
     {
       "id": "google-key-walkthrough",
-      "prompt": "I want to connect my Google Ads account to this project for the stack-ads plugin. I have a normal Google Ads account and nothing else. Do not run anything: tell me which values I need, the steps to get them, and the exact toolkit commands I will run to finish the sign-in and to verify it.",
-      "expected_output": "A step list for a Cloud project, the access level, the consent screen and an OAuth client, the four Google variables for ads/.env, the two google login commands and a doctor check; no developer token",
+      "prompt": "Use the init-project skill. I want to connect my Google Ads account for this project. I have a normal Google Ads account and nothing else. Which variables do I need, and how do I finish the sign-in and verify it? In this session you can only read files and answer in text: say which commands you would run or print, in what order, and what you would check. Answer in at most 200 words, then end with a line starting 'Rules from the skill:' that lists, comma-separated, the commands, flags, config keys, file names and refusals from the skill that you relied on.",
+      "expected_output": "The Google variables for ads/.env, the google login command and a doctor check; no developer token",
       "files": [],
       "expectations": [
-        "The answer does not tell the user to obtain a developer token, or says developer tokens are no longer needed",
-        "The answer names GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET, GOOGLE_ADS_REFRESH_TOKEN and GOOGLE_ADS_CUSTOMER_ID",
-        "The answer shows the command `python3 ads/tools/ads.py google login` and a second form of it with `--redirect-url`",
-        "The answer tells the user to put the values into ads/.env rather than pasting them into the chat",
-        "The answer shows a verification command that uses `doctor --live`"
+        "The answer says no developer token is needed",
+        "The answer names GOOGLE_ADS_CLIENT_ID",
+        "The answer names GOOGLE_ADS_REFRESH_TOKEN",
+        "The answer names GOOGLE_ADS_CUSTOMER_ID",
+        "The answer mentions the command `google login`",
+        "The answer mentions `doctor --live` as the check"
       ]
     },
     {
