@@ -217,6 +217,92 @@ class McpTools(unittest.TestCase):
         self.assertIsNone(guard.mcp_reason(self.PREFIX + "dataforseo__api_request"))
 
 
+class LiveNames(unittest.TestCase):
+    """Tool names the live TikTok and Meta servers listed on 2026-11-22 (tests/fixtures/mcp-live-names.json)."""
+
+    PREFIX = "mcp__plugin_stack-ads_"
+    DISPATCHER = PREFIX + "tiktok-ads__tool_execute"
+
+    @classmethod
+    def setUpClass(cls):
+        path = helpers.PLUGIN / "tests" / "fixtures" / "mcp-live-names.json"
+        cls.live = json.loads(path.read_text(encoding="utf-8"))
+
+    def asked(self, server, names):
+        return sorted(name for name in names if guard.mcp_reason("%s%s__%s" % (self.PREFIX, server, name)))
+
+    def test_smart_plus_is_a_product_name_not_two_actions(self):
+        for tool in ("smart_plus_campaign_get", "smart_plus_adgroup_get", "smart_plus_ad_get",
+                     "smart_plus_ad_review_info_get", "smart_plus_material_review_info_get"):
+            self.assertIsNone(guard.mcp_reason(self.PREFIX + "tiktok-ads__" + tool), tool)
+
+    def test_smart_plus_writes_still_ask(self):
+        for tool in ("smart_plus_campaign_create", "smart_plus_adgroup_create", "smart_plus_ad_create",
+                     "smart_plus_campaign_update", "smart_plus_ad_update", "smart_plus_ad_appeal"):
+            self.assertIsNotNone(guard.mcp_reason(self.PREFIX + "tiktok-ads__" + tool), tool)
+        for tool in ("smart_plus_campaign_status_update", "smart_plus_adgroup_budget_update"):
+            self.assertIn("spend", guard.mcp_reason(self.PREFIX + "tiktok-ads__" + tool), tool)
+
+    def test_a_set_of_products_or_events_is_a_thing_not_an_action(self):
+        for tool in ("tiktok-ads__catalog_set_get", "tiktok-ads__catalog_set_product_get",
+                     "tiktok-ads__ctm_message_event_set_get",
+                     "meta-ads__ads_catalog_get_product_feed_upload_sessions"):
+            self.assertIsNone(guard.mcp_reason(self.PREFIX + tool), tool)
+
+    def test_writes_on_those_things_still_ask(self):
+        for tool in ("tiktok-ads__catalog_set_create", "tiktok-ads__catalog_set_update", "tiktok-ads__catalog_set_delete",
+                     "meta-ads__ads_catalog_create_product_set", "meta-ads__ads_catalog_update_product_set",
+                     "meta-ads__ads_catalog_product_set_delete",
+                     "meta-ads__ads_catalog_create_product_feed_upload_session",
+                     "meta-ads__ads_permission_set_asset_permissions"):
+            self.assertIsNotNone(guard.mcp_reason(self.PREFIX + tool), tool)
+
+    def test_a_get_that_changes_something_asks(self):
+        # the live server names two writes like reads: one stops a split test, one stores an edited image
+        for tool in ("split_test_end_get", "creative_image_edit_get"):
+            self.assertIsNotNone(guard.mcp_reason(self.PREFIX + "tiktok-ads__" + tool), tool)
+            self.assertIsNotNone(decide(self.DISPATCHER, {"tool_name": tool, "params": {}}), tool)
+
+    def test_the_dispatcher_passes_a_read(self):
+        for tool in ("campaign_get", "adgroup_get", "ad_get", "tool_region_get", "bc_asset_get", "report_task_check"):
+            self.assertIsNone(decide(self.DISPATCHER, {"tool_name": tool, "params": {"advertiser_id": "1"}}), tool)
+
+    def test_the_dispatcher_asks_for_a_write_and_names_it(self):
+        for tool in ("campaign_create", "adgroup_create", "ad_create", "file_video_ad_upload",
+                     "bc_asset_advertiser_assign", "advertiser_update", "bc_transfer", "term_confirm"):
+            verdict = decide(self.DISPATCHER, {"tool_name": tool, "params": {}})
+            self.assertIsNotNone(verdict, tool)
+            self.assertEqual(verdict["permissionDecision"], "ask")
+            self.assertIn(tool, verdict["permissionDecisionReason"])
+
+    def test_the_dispatcher_warns_when_delivery_can_change(self):
+        for tool in ("campaign_status_update", "adgroup_status_update", "ad_status_update", "adgroup_budget_update"):
+            verdict = decide(self.DISPATCHER, {"tool_name": tool, "params": {"operation_status": "ENABLE"}})
+            self.assertIn("spend", verdict["permissionDecisionReason"], tool)
+
+    def test_the_dispatcher_asks_when_the_tool_is_not_a_plain_name(self):
+        for tool_input in ({}, {"params": {}}, {"tool_name": ""}, {"tool_name": None}, {"tool_name": ["campaign_get"]},
+                           {"tool_name": "campaign_get;campaign_create"}, {"tool_name": "Campaign_Get"},
+                           {"tool_name": "tool_execute"}, {"tool_name": "campaign get"}):
+            self.assertIsNotNone(decide(self.DISPATCHER, tool_input), tool_input)
+
+    def test_only_the_tiktok_server_has_a_dispatcher(self):
+        for server in ("meta-ads", "google-ads"):
+            tool = "%s%s__tool_execute" % (self.PREFIX, server)
+            self.assertIsNotNone(decide(tool, {"tool_name": "campaign_get", "params": {}}), server)
+
+    def test_the_verdict_on_every_live_name_is_the_reviewed_one(self):
+        # A rule change that frees or adds a name fails here: review the name, then update the list in the fixture.
+        for key, server in (("tiktok_core", "tiktok-ads"), ("tiktok_dispatcher", "tiktok-ads"), ("meta", "meta-ads")):
+            self.assertEqual(self.asked(server, self.live[key]), self.live[key + "_ask"], key)
+
+    def test_every_live_tool_behind_the_dispatcher_is_judged_like_the_tool_itself(self):
+        for tool in self.live["tiktok_dispatcher"]:
+            direct = guard.mcp_reason(self.PREFIX + "tiktok-ads__" + tool)
+            through = guard.mcp_reason(self.DISPATCHER, {"tool_name": tool, "params": {}})
+            self.assertEqual(direct is None, through is None, tool)
+
+
 class HookProcess(unittest.TestCase):
     def test_answers_ask_as_json(self):
         out = decide("Bash", {"command": "python3 ads/tools/ads.py launch apply --file x.json --yes"})
