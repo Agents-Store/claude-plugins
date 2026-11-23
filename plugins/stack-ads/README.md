@@ -137,8 +137,9 @@ Run against live accounts on 2026-11-22 and 2026-11-23:
 - **Apify**: `apify actor` and one capped `apify run`.
 - **TikTok, through the official MCP server**: sign-in, reads, a campaign and an ad group created disabled with the bodies of the reference and then deleted, and the linking of a TikTok account.
 - **Meta, through the official MCP server**: sign-in, reads, a campaign draft created and discarded.
+- **Meta, through the toolkit**: the whole launch cycle with an image ad on a production account: `launch plan`, `launch apply` (image, campaign, ad set, creative, ad, all paused), `launch status`, `launch rollback --remove`.
 
-Not run against a live account: the toolkit's own `meta` and `tiktok` commands and their launch plans (they need a system-user token and a developer app), Performance Max and Demand Gen plans, `google keyword-ideas` (Basic access), conversion uploads, `launch activate`, ad creation on Meta and TikTok, and uploads through the MCP servers. These are covered by unit tests with simulated HTTP and were written from the official documentation. Treat the first dry run of each as the real test, and expect to adjust a field or two; `LEARNINGS.md` records what the live runs changed.
+Not run against a live account: the toolkit's own `tiktok` commands and their launch plans (they need a developer app), Performance Max and Demand Gen plans, `google keyword-ideas` (Basic access), conversion uploads, `launch activate`, ad creation on TikTok, and uploads through the MCP servers. These are covered by unit tests with simulated HTTP and were written from the official documentation. Treat the first dry run of each as the real test, and expect to adjust a field or two; `LEARNINGS.md` records what the live runs changed.
 
 ## Tests
 

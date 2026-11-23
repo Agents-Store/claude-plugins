@@ -243,3 +243,17 @@
 **Fix:** The Meta key guide and the errors reference explain the limit, where to read it, and the ways on (partner access to an account of another portfolio, support, an appeal), and warn against opening a new portfolio to get around a disabled account.
 **Root cause:** The guide assumed a working ad account.
 **Severity:** Minor
+
+## 2026-11-23 — launch-campaign: the Meta launch cycle on a live account, through the toolkit
+
+**Problem:** Version 1.0.2 had run Meta only through the MCP server. With a system-user token the toolkit's own cycle ran on a production account for the first time: dry run, apply of an image ad (image, campaign, ad set, creative, ad), status, removal. Four things got in the way. The creative failed with 100/1885183 because the app was still in development mode; the key guide said an app needs no review and did not say it must be published. The token dialog said "No permissions available" until the system user had a role on the app. `{account}/promote_pages` was empty, so the guide's way to find the Page id found nothing. And the project currency was EUR for the Google account while the Meta account bills in USD, so one of the two always failed the dry run.
+**Fix:** The key guide has a step that publishes the app and explains both errors; the Page id comes from `me/accounts`, which lists the Pages a system user may advertise for. `project.currencies` names a currency per platform and wins over `project.currency`; `guardrails.max_daily_budget` and `max_total_budget` take one number or one per platform, read in that platform's currency, and a map without the plan's platform refuses every budget there.
+**Root cause:** The guide was written from Meta's pages, which treat publishing as part of App Review, and the currency rule assumed one currency per project.
+**Severity:** Major
+
+## 2026-11-23 — launch-campaign: a removal left the creative and the image behind
+
+**Problem:** `launch rollback --remove` deleted the ad, the ad set and the campaign, and left the creative and the uploaded image in the account; `meta delete` could not remove an image, because Meta deletes one by its hash, a parameter, and the command took none.
+**Fix:** A Meta removal deletes the plan's creatives and then the images it uploaded, once everything that uses them is gone; when an object above them could not be removed, they wait for the next run. An image is deleted only when it entered the library with this upload: Meta keeps one image per hash, so an upload of a file the library already held returns an image other ads may use. Its `created_time` is read right after the upload; an image older than the upload, or one whose age cannot be read, stays, and the output names it with the command that removes it. `meta delete` takes `-p`.
+**Root cause:** The rollback knew only what can be paused.
+**Severity:** Minor
