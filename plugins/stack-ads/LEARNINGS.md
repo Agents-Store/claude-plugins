@@ -194,3 +194,52 @@
 **Fix:** The three descriptions say `Text only. For images ...`. `tests/test_docs.py` now refuses a plain frontmatter value that holds `: ` or ` #`, and parses every frontmatter block with a real YAML parser when one is installed. Version 1.0.1.
 **Root cause:** The descriptions were checked for length and trigger phrases, never parsed as YAML. Found when the mirrors were compared with the source after the first sync: the OpenCode writer had quoted exactly these three values.
 **Severity:** Major
+
+## 2026-11-23 — launch-campaign: first runs against live accounts
+
+**Problem:** Until 2026-11-22 no ad platform call had run against a real account (entry of 2026-11-14). The owner then granted access: Google Ads and Search Console through an OAuth client, TikTok and Meta through their official MCP servers, Apify through a token.
+**Fix:** Ran, with the owner's yes before every write: the whole Google launch cycle through the toolkit on a production account (the sample Search plan of the reference validated, applied paused, read back and removed), Search Console reads, one capped Apify run, a TikTok campaign and ad group created disabled and deleted through the MCP server, and a Meta campaign draft created and discarded through the MCP server. The sample bodies of the Google and TikTok references passed unchanged. Still not run live: the toolkit's own `meta` and `tiktok` commands, Performance Max and Demand Gen, `keyword-ideas`, conversion uploads, `launch activate`, ad creation on Meta and TikTok. The README lists both sets.
+**Root cause:** Access to real accounts came after the release.
+**Severity:** Major
+
+## 2026-11-23 — hooks: plain reads of the live servers asked for confirmation
+
+**Problem:** On the live TikTok server the hook asked before `smart_plus_campaign_get`, `smart_plus_adgroup_get`, `smart_plus_ad_get` and `catalog_set_get`, and before every call of `tool_execute`, through which most TikTok tools run, reads included. On the live Meta server it asked before the read `ads_catalog_get_product_feed_upload_sessions`. A confirmation on every read teaches the user to say yes without reading.
+**Fix:** `mcp_reason` reads `smart_plus`, `catalog_set`, `product_set`, `event_set` and `upload_session` as one word, and judges a `tool_execute` call by the tool named in its input: a read runs, a write asks and names the tool, a call without a plain tool name asks. The verdict on all 533 live tool names is stored in `tests/fixtures/mcp-live-names.json` and checked by a test; every name the hook lets through was read against the server's own description. A rule by the last word of a name was rejected: `split_test_end_get` stops a split test and `creative_image_edit_get` stores a new image.
+**Root cause:** The word lists were written from documentation, before any server could be listed: "plus" was taken as a joining word and "set" as an action.
+**Severity:** Major
+
+## 2026-11-23 — launch-campaign: the MCP routes behaved differently from the references
+
+**Problem:** The TikTok reference listed tools by name without saying that on the layered server only about 45 are called by name and the rest run through `tool_list`, `tool_get` and `tool_execute`. The Meta reference said the server creates paused objects; live, `ads_create_campaign` returned a draft whose stored status was ACTIVE, `DELETED` was refused on it, and a draft is removed with `discard_draft_changes` and a confirmation token. It also said the server has no upload tool, and the live list has several. Neither reference said how a TikTok account is linked to an ad account, without which no ad can be built for TikTok placement.
+**Fix:** Section 7 of `tiktok-ads.md` names the dispatcher and marks how each tool is called; section 2 has the two linking steps. Section 6 of `meta-ads.md` describes drafts, what was and was not exercised, and the account fields to read first. `SKILL.md` of `launch-campaign` and `init-project`, the README and the Meta key guide no longer say "paused objects".
+**Root cause:** Both servers are new and their behaviour is not documented at this level; the text was written from the vendors' overview pages.
+**Severity:** Major
+
+## 2026-11-23 — market-research: an Apify run reported a cost of 0
+
+**Problem:** `apify run` printed `usage_usd: 0` for a run that cost 0.015 USD. Apify fills `usageTotalUsd` a moment after a run ends.
+**Fix:** `recon.run_cost` adds up `chargedEventCounts` with the event prices of `pricingInfo` and reports the larger of that sum and `usageTotalUsd`.
+**Root cause:** The run object was read once, at the moment it reached SUCCEEDED.
+**Severity:** Minor
+
+## 2026-11-23 — init-project: the Google guide lost the owner three times
+
+**Problem:** (1) **Publish app** stayed greyed out with "complete your configuration on the Branding page" although the three required fields were filled: since autumn 2026 Google also wants a home page, a privacy policy link and their authorized domain. (2) The owner twice gave the consent with the login that owns the Cloud project; the ad account belonged to another login, and Google answered `NOT_ADS_USER`. (3) The owner sent the address of Google's warning page instead of the redirect address.
+**Fix:** The key guide names the three Branding fields and the Testing fallback, says which login gives the consent and that it need not own the project, and says which address to copy. The consent link carries `prompt=select_account consent`, so Google always shows the account chooser. `NOT_ADS_USER` and the Keyword Planner refusal on Explorer access now print a next step. The errors reference has the new rows.
+**Root cause:** The guide was written for a user with one Google login, from Google's pages as they were before the Branding change.
+**Severity:** Major
+
+## 2026-11-23 — init-project: sign-in to an MCP server from a remote machine
+
+**Problem:** The TikTok and Meta servers sign in through a browser redirect to `localhost`. On a remote or headless machine that address does not load, and the link expires after 5 minutes: three links expired before the owner got through.
+**Fix:** The TikTok and Meta key guides and the errors reference describe `claude mcp login --no-browser <server>` with the pasted redirect address, and say to open the link only when the sign-in can be finished in one go.
+**Root cause:** The guides assumed a browser on the machine that runs the session.
+**Severity:** Minor
+
+## 2026-11-23 — init-project: Meta refuses a second ad account without a reason
+
+**Problem:** The owner's business portfolio answered "Unable to create" when adding an ad account. Meta's rule, from its Business Help Center: a new portfolio may create one ad account, three once a campaign has delivered and a payment was made, and a closed account keeps counting. The portfolio's only account was disabled, so the limit could not grow.
+**Fix:** The Meta key guide and the errors reference explain the limit, where to read it, and the ways on (partner access to an account of another portfolio, support, an appeal), and warn against opening a new portfolio to get around a disabled account.
+**Root cause:** The guide assumed a working ad account.
+**Severity:** Minor

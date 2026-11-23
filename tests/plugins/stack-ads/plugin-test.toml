@@ -6,6 +6,8 @@
 # credentials file of a real account and an approved Cloud project, meta-ads an Employee system-user
 # token of a real business, tiktok-ads a browser OAuth sign-in. Their tool names are therefore not
 # written into the skills; the skills name the servers and tell the agent to read the live tool list.
+# The names the live TikTok and Meta servers listed on 2026-11-22 are kept in
+# plugins/stack-ads/tests/fixtures/mcp-live-names.json: the hook's unit tests check its verdict on each of them.
 [mcp.dataforseo]
 start = "ci"
 env = { DATAFORSEO_USERNAME = "dummy", DATAFORSEO_PASSWORD = "dummy" }

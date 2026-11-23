@@ -109,7 +109,7 @@ The plugin declares six official servers. They are optional: the toolkit covers 
 | `apify` | hosted HTTP | `APIFY_TOKEN` | Actors |
 | `dataforseo` | stdio, `npx` | `DATAFORSEO_USERNAME`, `DATAFORSEO_PASSWORD` | keyword and SERP data |
 | `google-ads` | stdio, `pipx` | `GOOGLE_CLOUD_PROJECT`, `GOOGLE_APPLICATION_CREDENTIALS`; for an account under a manager account also `GOOGLE_ADS_LOGIN_CUSTOMER_ID` in the session environment | reads and asset creation; it cannot create campaigns |
-| `meta-ads` | hosted HTTP | `META_ACCESS_TOKEN` of an Employee-role system user with `ads_mcp_management` | creates paused objects |
+| `meta-ads` | hosted HTTP | `META_ACCESS_TOKEN` of an Employee-role system user with `ads_mcp_management` | creates drafts, which are not paused until you set them |
 | `tiktok-ads` | hosted HTTP | OAuth sign-in in `/mcp` | no developer app needed |
 
 `python3 ads/tools/ads.py env sync-claude` copies the keys from `ads/.env` into the `env` block of `.claude/settings.local.json`, where `${VAR}` in the MCP configuration is resolved; restart the session afterwards. A server whose variable is missing shows as failed and is otherwise harmless.
@@ -128,9 +128,17 @@ The catalogue generates this plugin for other coding agents. Skills, with the to
 
 ## What was verified, and how
 
-Checked 2026-11-14. Run against the live services with real keys: Firecrawl, DataForSEO, OpenAI, Gemini (image, video, speech, music, analysis) and fal.ai, plus `doctor`, model discovery and `env sync-claude`.
+Run against the live services with real keys on 2026-11-14: Firecrawl, DataForSEO, OpenAI, Gemini (image, video, speech, music, analysis) and fal.ai, plus `doctor`, model discovery and `env sync-claude`.
 
-Verified against the official documentation and by unit tests with simulated HTTP, not against a live ad account: Google Ads, Search Console, Meta, TikTok and Apify. Treat the first dry run on each ad platform as the real test, and expect to adjust a field or two; `LEARNINGS.md` records what was not run live.
+Run against live accounts on 2026-11-22 and 2026-11-23:
+
+- **Google Ads, through the toolkit**: `google login`, `google customers`, `google search`, `google geo`, and the whole launch cycle on a production account with the sample Search plan of the reference: `launch plan` with Google's own validation, `launch apply`, `launch status`, `launch rollback --remove`.
+- **Search Console**: `gsc sites` and `gsc query`.
+- **Apify**: `apify actor` and one capped `apify run`.
+- **TikTok, through the official MCP server**: sign-in, reads, a campaign and an ad group created disabled with the bodies of the reference and then deleted, and the linking of a TikTok account.
+- **Meta, through the official MCP server**: sign-in, reads, a campaign draft created and discarded.
+
+Not run against a live account: the toolkit's own `meta` and `tiktok` commands and their launch plans (they need a system-user token and a developer app), Performance Max and Demand Gen plans, `google keyword-ideas` (Basic access), conversion uploads, `launch activate`, ad creation on Meta and TikTok, and uploads through the MCP servers. These are covered by unit tests with simulated HTTP and were written from the official documentation. Treat the first dry run of each as the real test, and expect to adjust a field or two; `LEARNINGS.md` records what the live runs changed.
 
 ## Tests
 

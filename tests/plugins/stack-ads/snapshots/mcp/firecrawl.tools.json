@@ -105,16 +105,6 @@
       "description": "",
       "inputSchema": {
         "required": [
-          "objective"
-        ],
-        "type": "object"
-      },
-      "name": "firecrawl_find_tools"
-    },
-    {
-      "description": "",
-      "inputSchema": {
-        "required": [
           "query"
         ],
         "type": "object"
@@ -264,6 +254,16 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "protein"
+        ],
+        "type": "object"
+      },
+      "name": "firecrawl_research_lookup_protein"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "paperId",
           "question"
         ],
@@ -295,8 +295,17 @@
     {
       "description": "",
       "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "firecrawl_save_skill"
+    },
+    {
+      "description": "",
+      "inputSchema": {
         "required": [
-          "objective"
+          "objective",
+          "url"
         ],
         "type": "object"
       },

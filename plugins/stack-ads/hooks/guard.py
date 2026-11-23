@@ -69,6 +69,12 @@ MCP_WRITE = {"create", "update", "delete", "remove", "add", "set", "edit", "acti
              "convert", "migrate", "upgrade", "new", "make", "build", "init", "setup", "configure"}
 # A name that joins two actions is never plainly a read: search_and_replace, get_then_cancel.
 MCP_JOIN = {"and", "then", "or", "plus"}
+# Product and object names of the live servers that contain a word from the lists above: Smart+ campaigns,
+# product sets, event sets, upload sessions. They are read as one word, so the action in the name decides.
+MCP_NOUNS = re.compile(r"(?<![a-z])(smart_plus|catalog_set|product_sets?|event_set|upload_sessions?)(?![a-z])")
+# The TikTok server runs most of its tools through one dispatcher; the tool it runs is named in the input.
+MCP_DISPATCHER = ("tiktok-ads", "tool_execute")
+PLAIN_TOOL = re.compile(r"[a-z][a-z0-9_]*\Z")
 MCP_SPEND = {"activate", "enable", "resume", "boost", "publish", "launch", "start", "status", "budget", "update",
              "increase", "raise", "toggle", "switch", "recharge", "optimize", "optimise", "scale", "promote"}
 
@@ -291,13 +297,19 @@ def bash_reason(command, depth=0):
     return scan(command, depth)[0]
 
 
-def mcp_reason(tool):
+def mcp_reason(tool, tool_input=None):
     """Ad-platform servers of this plugin: ask for everything that is not plainly a read."""
     match = re.match(r"mcp__plugin_stack-ads_([a-z-]+)__(.+)$", tool)
     if not match or match.group(1) not in MCP_SERVERS:
         return None
     platform, name = MCP_SERVERS[match.group(1)], match.group(2)
-    words = set(w for w in re.split(r"[^a-z]+", name.lower()) if w)
+    if (match.group(1), name) == MCP_DISPATCHER:
+        name = tool_input.get("tool_name") if isinstance(tool_input, dict) else None
+        if not isinstance(name, str) or not PLAIN_TOOL.match(name) or name == MCP_DISPATCHER[1]:
+            return ("stack-ads: %s tool %s does not name the tool it runs. Confirm what it changes before it runs."
+                    % (platform, MCP_DISPATCHER[1]))
+    plain = MCP_NOUNS.sub(lambda found: found.group(0).replace("_", ""), name.lower())
+    words = set(w for w in re.split(r"[^a-z]+", plain) if w)
     writes = words & MCP_WRITE
     if not writes:
         if words & MCP_READ and not words & MCP_JOIN:
@@ -321,7 +333,7 @@ def main():
     if tool == "Bash":
         reason = bash_reason((event.get("tool_input") or {}).get("command") or "")
     elif tool.startswith("mcp__plugin_stack-ads_"):
-        reason = mcp_reason(tool)
+        reason = mcp_reason(tool, event.get("tool_input"))
     if reason:
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "ask",
                                                  "permissionDecisionReason": reason}}))

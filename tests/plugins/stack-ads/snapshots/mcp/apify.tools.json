@@ -1,0 +1,159 @@
+{
+  "tools": [
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "runId"
+        ],
+        "type": "object"
+      },
+      "name": "abort-actor-run"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "method",
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "apify--web-fetch"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "method",
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "apify--web-search"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "actor",
+          "input"
+        ],
+        "type": "object"
+      },
+      "name": "call-actor"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "actor",
+          "tool"
+        ],
+        "type": "object"
+      },
+      "name": "call-actor-mcp-tool"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "actor"
+        ],
+        "type": "object"
+      },
+      "name": "fetch-actor-details"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "actor"
+        ],
+        "type": "object"
+      },
+      "name": "fetch-actor-mcp-tool-list"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "name": "fetch-apify-docs"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "runId"
+        ],
+        "type": "object"
+      },
+      "name": "get-actor-run"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "datasetId"
+        ],
+        "type": "object"
+      },
+      "name": "get-dataset-items"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "keyValueStoreId",
+          "recordKey"
+        ],
+        "type": "object"
+      },
+      "name": "get-key-value-store-record"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "message"
+        ],
+        "type": "object"
+      },
+      "name": "report-problem"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "search-actors"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search-apify-docs"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "actor",
+          "method",
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "send-server-actor-request"
+    }
+  ]
+}
