@@ -407,7 +407,7 @@ class UnknownOutcome(unittest.TestCase):
                     launch.apply(ws.ctx, path, yes=True, resend=["campaign"])
                 launch.apply(ws.ctx, path, yes=True, resend=["adset"])
             self.assertEqual(len(real_posts(http, "act_111222333/adsets")), 2)
-            self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 4)
+            self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 5)
             self.assertEqual(launch.uncertain_steps(ws.ctx, "meta-traffic"), {})
             events = [e["event"] for e in read_jsonl(launch.ledger_file(ws.ctx)) if e.get("step") == "adset"]
             self.assertEqual(events, ["sending", "step", "resend", "sending", "step"])
@@ -451,7 +451,7 @@ class UnknownOutcome(unittest.TestCase):
                     launch.apply(ws.ctx, path, yes=True)
                 self.assertEqual(launch.uncertain_steps(ws.ctx, "meta-traffic"), {})
                 launch.apply(ws.ctx, path, yes=True)
-            self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 4)
+            self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 5)
 
 
 class PlanAndAccount(unittest.TestCase):
@@ -605,13 +605,14 @@ class Rollback(unittest.TestCase):
                     launch.rollback(ws.ctx, path, remove=True, yes=True)
                 self.assertIn("s-1", caught.exception.message)
                 self.assertEqual([c[1].rsplit("/", 1)[-1] for c in http.calls if c[0] == "DELETE"], ["a-1", "s-1", "c-1"])
+                # the creative and the image wait: an ad set that is still there leaves them for the next run
                 self.assertEqual([(e["type"], e["id"]) for e in launch.entities(ws.ctx, "meta-traffic")],
-                                 [("adset", "s-1"), ("creative", "cr-1")])
+                                 [("image", "hash-1"), ("adset", "s-1"), ("creative", "cr-1")])
                 with self.assertRaises(Refused):
                     launch.apply(ws.ctx, path, yes=True)
                 http.calls.clear()
                 launch.rollback(ws.ctx, path, remove=True, yes=True)
-                self.assertEqual([c[1].rsplit("/", 1)[-1] for c in http.calls if c[0] == "DELETE"], ["s-1"])
+                self.assertEqual([c[1].rsplit("/", 1)[-1] for c in http.calls if c[0] == "DELETE"], ["s-1", "cr-1"])
             self.assertEqual(launch.entities(ws.ctx, "meta-traffic"), [])
 
     def test_an_object_the_platform_no_longer_has_does_not_stop_the_rest(self):
@@ -1099,7 +1100,7 @@ class LedgerAndPlan(unittest.TestCase):
                     launch.apply(ws.ctx, path, yes=True)
                 self.assertIn("--resend campaign", caught.exception.hint)
                 launch.apply(ws.ctx, path, yes=True, resend=["campaign"])
-            self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 4)
+            self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 5)
 
     def test_activation_checks_the_budget_again(self):
         with helpers.Workspace() as ws:

@@ -192,7 +192,7 @@ class MetaLaunch(unittest.TestCase):
                 self.assertEqual(real_posts(http, "act_111222333"), [])
                 planned(ws, path)
                 launch.apply(ws.ctx, path, yes=True)
-            self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 4)
+            self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 5)
 
     def test_a_dry_run_with_problems_does_not_unlock_apply(self):
         with helpers.Workspace() as ws:
@@ -220,7 +220,8 @@ class MetaLaunch(unittest.TestCase):
             ad = [c for c in real_posts(http, "") if c[1].endswith("/ads")][0][2]["data"]
             self.assertEqual(json.loads(ad["creative"]), {"creative_id": "cr-1"})
             kinds = [(e["type"], e["id"]) for e in launch.entities(ws.ctx, "meta-traffic")]
-            self.assertEqual(kinds, [("campaign", "c-1"), ("adset", "s-1"), ("creative", "cr-1"), ("ad", "a-1")])
+            self.assertEqual(kinds, [("image", "hash-1"), ("campaign", "c-1"), ("adset", "s-1"), ("creative", "cr-1"),
+                                     ("ad", "a-1")])
 
     def test_second_apply_is_a_no_op(self):
         with helpers.Workspace() as ws:
@@ -289,10 +290,11 @@ class MetaLaunch(unittest.TestCase):
                 launch.rollback(ws.ctx, path, yes=True)
                 order = [(c[1].rsplit("/", 1)[-1], c[2]["data"]["status"]) for c in http.calls if c[0] == "POST"]
                 self.assertEqual(order, [("a-1", "PAUSED"), ("s-1", "PAUSED"), ("c-1", "PAUSED")])
-                self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 4)
+                self.assertEqual(len(launch.entities(ws.ctx, "meta-traffic")), 5)
                 http.calls.clear()
                 launch.rollback(ws.ctx, path, remove=True, yes=True)
-                self.assertEqual([c[0] for c in http.calls], ["DELETE", "DELETE", "DELETE"])
+                # ad, ad set, campaign and creative; the image is kept because its age could not be read here
+                self.assertEqual([c[0] for c in http.calls if c[0] != "GET"], ["DELETE", "DELETE", "DELETE", "DELETE"])
             self.assertEqual(launch.entities(ws.ctx, "meta-traffic"), [])
 
 
