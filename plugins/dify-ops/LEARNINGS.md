@@ -1,5 +1,12 @@
 # LEARNINGS
 
+## 2026-11-24 — dify-docker-architecture, env-sync: Add the new 1.18.0 and 1.20.0 features
+
+**Problem:** The refresh to 1.20.0 left three features of the service unreferenced: the opt-in KnowledgeFS integration (1.18.0), the forwarded-header and trusted real-IP setup for installs behind a load balancer (1.18.0), and knowledge-file malware scanning (1.20.0).
+**Fix:** `dify-docker-architecture` gained `references/knowledge-fs.md` (profiles, the separate database, readiness before `KNOWLEDGE_FS_ENABLED`, backups) and a section "Client IP Behind a Load Balancer" (`real-ip.conf`, `RESPECT_XFORWARD_HEADERS_ENABLED`); `env-sync` gained the `FILE_SCAN_*` keys and a short section on enabling the scanner. Version 1.3.0.
+**Source:** github.com/langgenius/dify releases 1.18.0 and 1.20.0, `docker/README.md` and `docker-compose.yaml` at tag 1.20.0 (2026-11-24).
+**Severity:** Minor
+
 ## 2026-11-24 — refresh: Align with Dify 1.20.0 (Compose 2.35, `.defaults` layout, agent sandbox token)
 
 **Problem:** The plugin was aligned with 1.17.1. Since then: Docker Compose must be 2.35.0 or newer (1.19.0); the root `.env.example` shrank to two keys and the tracked defaults moved into `envs/**/*.defaults` with local `*.env` overrides (1.19.0), `shared.env` stopped being loaded in favour of `api-worker.env` and `urls.env` (1.20.0); `dify-env-sync.sh` no longer rebuilds `.env` and drops keys but only appends (1.19.0); the local Agent sandbox needs a non-empty `DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN` (1.18.0); the bundled Weaviate pin is 1.39.13 and the runbook's last rung follows the target release; the release-notes extraction in `update` matched none of the 1.18-1.20 headings.
