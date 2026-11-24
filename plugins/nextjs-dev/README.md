@@ -57,13 +57,21 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 
 ## Prerequisites
 
-- A Next.js project (16.x recommended, pinned `next@^16.3.8` — earlier 16.3.x patches miss several security fixes; 14+ minimum for App Router content)
+- A Next.js project (16.x recommended, pinned `next@^16.4.5` — earlier 16.x patches miss critical and medium security fixes; 14+ minimum for App Router content)
 - Node.js 22 or 24 LTS recommended (Next.js 16 formally requires >=20.9.0, but Node 20 is end-of-life)
-- For MCP integration: install `next-devtools-mcp` in your project and run `next@>=16.3.8` (earlier dev servers expose `/_next/mcp` without an origin check)
+- For MCP integration: install `next-devtools-mcp` in your project and run `next@^16.4.5` (dev servers before 16.3.8 expose `/_next/mcp` without an origin check)
 
 ## Installation
 
 Install as a Claude Code plugin from the Agents Store marketplace.
+
+## What's New in v1.6.9
+
+Aligned with `next@16.4.6` and the October and November 2026 security releases:
+- **Version floor** — recommended range is now `next@^16.4.5` (15.5.x: `15.5.29`); 16.4.1 fixed two critical RCEs (`use cache` typed arrays, SVG in Image Optimization) and a Server Actions DoS, 16.4.5 seven medium issues (`use cache` leaks across tenants, users and route params, shell cache poisoning, SVG rejection bypass, an Edge cookie header leak)
+- **Cache Components is recommended for every app** — new `create-next-app` projects have it on by default and it becomes the default in Next.js 17; the previous-model route config examples in this plugin still apply only to apps that have not enabled it
+- **Removed option** — `unstable_eager` is gone; per-link prefetching uses `<Link prefetch={true}>`
+- **Agent skills** — the list now covers `next-bundle-optimizer` and `next-partial-prefetching-optimizer`
 
 ## What's New in v1.5.0
 
