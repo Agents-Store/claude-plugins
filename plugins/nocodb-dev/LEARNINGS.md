@@ -11,6 +11,20 @@ Accumulated fixes and discoveries for the `nocodb-dev` plugin. Append entries ch
 **Severity:** Critical / Major / Minor
 ```
 
+## 2026-11-24 — refresh: NocoDB 2026.10.2 (MCP `/mcp` lists every tool, filter/sort endpoints, tokens, statuses)
+
+**Problem:** The plugin was aligned with NocoDB 2026.09.1 and said five things that are no longer true:
+1. The MCP contract: schema, view, hook and workflow write tools "stay out of the tool list" and are reached only through `listTools` → `callTool`, and a missing `listTools` meant Community Edition. Since 2026.10.1 the `/mcp` endpoint lists every tool; `listTools` / `callTool` remain on `/mcp-discovery`, the endpoint for clients that cap the tool list at 100, and on older servers.
+2. Filter and sort update / delete were documented as `PATCH` / `DELETE …/filters/{filterId}` and `…/sorts/{sortId}`. The 2026.10.2 spec has `PATCH` / `DELETE …/views/{viewId}/filters` and `…/sorts` with the `id` in the body.
+3. `POST /meta/tokens` was shown with a `description` body; the spec has always required `title`, and on Cloud / licensed self-hosted at least one entry in `scopes`.
+4. Workflow execution `status` lacked `queued` and `paused`, so the polling loop's list of non-final states was incomplete. Dashboard reads can return `gauge`, `table` and `pivot` widgets.
+5. Bundled OpenAPI specs predated 2026.10.2 (49 paths / 100 operations; dashboards, scripts and workflows used snake_case path parameters).
+
+**Fix:** `mcp-patterns`, `setup`, README, the `schema-architect` agent and the table / field / view / webhook / workflow skills now say "call the listed tool; use `listTools` → `callTool` only where it is hidden", and edition detection looks for `createTable` in the tool list first. Filter / sort recipes, token payload, status lists and the widget note were corrected; path parameters are camelCase; both specs were re-cut from the 2026.10.2 `swagger-v3.json` (meta + docs 50 paths / 105 operations, data 7 / 12) with one example request id replaced by a placeholder. Added: password change deletes API tokens and MCP token secrets are shown once (2026.10.1).
+**Source:** https://github.com/nocodb/nocodb/releases (2026.10.0, 2026.10.1, 2026.10.2), https://nocodb.com/docs/mcp (2026-11-05), `packages/nocodb/src/schema/swagger-v3.json` at tag 2026.10.2.
+**Root cause:** The 2026-10 rewrite recorded the MCP behaviour of 2026.09.x as a permanent contract and cut the specs before the filter / sort endpoints were reorganised.
+**Severity:** Major
+
 ## 2026-10 — nc CLI never existed; NOCODB_TOKEN; v3 payload keys; schema tools exist on Cloud/licensed
 
 **Problem:** Five separate defects, all present in 1.1.0:
