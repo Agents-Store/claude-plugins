@@ -68,3 +68,11 @@ Format:
 **Root cause:** Plugin examples tracked docs prose, not the published type definitions. Both compile-breaking snippets (Stripe `rest`, Azure options) would have been caught by typechecking the snippet against the current package; the unknown-breaking class (changed defaults) needs a read of the release notes of every minor since the last alignment.
 **Verification note:** snippets for Stripe, Azure, Form Builder, MCP, jobs overrides/concurrency, upload options and the Lexical import were typechecked against the 3.90.2 packages; the scaffold flags were run (`--no-agent` skips the prompt, `--agent claude` writes `.claude/skills/payload`). Payload 4 remains canary — not for production; this plugin targets v3.
 **Severity:** Critical
+
+## 2026-11-24 — refresh: alignment vs Payload 3.94.1 (v1.4.0)
+
+**Problem:** The plugin was aligned to 3.90.2. Releases 3.91.0 → 3.94.1 raised the published floors: `payload` engines are now `^22.23.5 || ^24.22.3 || >=26.13.1` (the plugin still said `^18.20.2 || >=20.9.0`, so `/scaffold` accepted Node 20), `@payloadcms/next` needs `next >=16.4.5 <17` plus patched React 19 (the plugin said `>=16.3.3`), `@payloadcms/email-nodemailer` moved to nodemailer 10 (3.91), and 3.93.0 is a further security release. Payload 4.0 is now published as beta, not only canary.
+**Fix:** `setup`, `commands/scaffold.md`, README — new Node range, templates pin Payload 3.94.x with Next 16.4.6; `nextjs-integration`, README, `troubleshoot` — new `next`/`react` peer ranges and an "Unsupported engine" row; `adapters` — nodemailer 10 note (own `transport` needs `nodemailer@^10`, drop `@types/nodemailer`); `deployment` — 3.93 security-release bullet; README — 4.0 beta/canary wording.
+**Source:** GitHub release notes of payloadcms/payload v3.91.0–v3.94.1 (2026-10-15 … 2026-11-20); `npm view payload@3.94.1 engines`, `@payloadcms/next@3.94.1 peerDependencies`, templates/blank `package.json` at v3.94.1.
+**Not changed on purpose:** `skills/*/evals/triggers.json` (queries, no version facts); Lexical (still 0.50.0); `slugField` text (3.94.0 fixes a 3.90.2-era required-validation regression in the core helper — no plugin wording depended on it). Proposals (`auth.passwordHashIterations`, `defaultAdminPanelUserAccess`, field access `id`) listed in the PR, not coded.
+**Severity:** Major
