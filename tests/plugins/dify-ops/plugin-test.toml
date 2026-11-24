@@ -1,10 +1,11 @@
-# Dify self-hosted: плагин выверен по релизу 1.17.1 (раскладка docker/ с envs/, Weaviate-gate на 1.17.1).
+# Dify self-hosted: плагин выверен по релизу 1.20.0 (раскладка docker/ с envs/**/*.defaults, Compose >= 2.35.0, Weaviate-gate на 1.17.1).
 # Образы и compose-файл едут в одном релизе langgenius/dify, поэтому отдельный docker-источник не нужен.
 [upstream]
+reviewed = 2026-11-24
 [[upstream.source]]
 kind = "github-release"
 id = "langgenius/dify"
-pinned = "1.17.1"
+pinned = "1.20.0"
 [[upstream.source]]
 kind = "docs"
 url = "https://docs.dify.ai/en/self-host/deploy/troubleshooting/weaviate-server-migration-path"
