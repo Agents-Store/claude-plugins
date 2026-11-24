@@ -1,0 +1,7 @@
+# safety-allow.txt — reviewed exceptions for scripts/safety_check.py.
+#
+# One line per exception:  path-glob:rule-id[#value-selector]:reason
+# The reason is mandatory. Rule ids: remote-exec decode-exec reverse-shell secret-exfil secret-read destroy
+# persistence hidden-chars prompt-injection, or * for a whole vendored file.
+# Adding a line must be the only change in its pull request (the scrub workflow enforces it), so an exception
+# is reviewed on its own and never rides along with a feature.

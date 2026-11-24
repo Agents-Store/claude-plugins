@@ -1,6 +1,6 @@
 name: Scrub check
 
-# Publication gate. Three passes, all blocking.
+# Publication gate. Four passes, all blocking.
 #
 #   1. scrub_check.py  — a public plugin must not carry deployment-specific
 #      data: host and instance names, private endpoints, routable IPs, layout
@@ -15,6 +15,12 @@ name: Scrub check
 #   3. validate_pass.py — `claude plugin validate --strict` on every plugin:
 #      the official manifest validator, so a manifest Claude Code itself would
 #      refuse never reaches the marketplace.
+#   4. safety_check.py — nothing in a plugin may hurt the person who installs
+#      it: code that pipes downloads or decoded payloads into a shell, reverse
+#      shells, credential exfiltration, wiping commands; prompt injection or
+#      invisible characters in skills, agents and commands. On a pull request
+#      only what the PR adds is judged (--base), and every new finding fails;
+#      on main the tree is reported, documented installers as warnings.
 #
 # The three files macstack-dev bundles from other repositories — the standard's
 # schema and the registry's two vocabularies — are compared with the canon on
@@ -23,7 +29,7 @@ name: Scrub check
 #
 # Passes 1 and 2 read the WORKING TREE only. A value that already reached git
 # history is not caught here and cannot be fixed by editing a file — revoke it
-# at the source. Locally, ./scripts/scrub-check.sh runs all three passes at
+# at the source. Locally, ./scripts/scrub-check.sh runs all four passes at
 # once.
 #
 # The findings catalog check (openclaw-ops), the plugins' own unit tests and
@@ -101,7 +107,31 @@ jobs:
           npm install -g @anthropic-ai/claude-code
           python3 scripts/validate_pass.py
 
-      # scrub-allow.txt is the escape hatch, so it gets its own review.
+      # Fourth pass: what would hurt the person who installs the plugin.
+      - name: Safety (prompts and scripts)
+        if: always() && steps.gate.outcome != 'cancelled'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          args=()
+          if [ -n "${BASE_SHA}" ]; then args=(--base "${BASE_SHA}"); fi
+          set +e
+          python3 scripts/safety_check.py "${args[@]}" | tee safety.log
+          status="${PIPESTATUS[0]}"
+          set -e
+          case "$status" in
+            0) echo "::notice::safety-check clean" ;;
+            2) grep '^WARN' safety.log | while read -r line; do
+                 echo "::warning::${line}"
+               done ;;
+            *) grep '^FAIL' safety.log | while read -r line; do
+                 echo "::error::${line}"
+               done
+               echo "::error::safety-check found code or an instruction that could hurt the person who installs the plugin (a download or decoded payload piped into a shell, a reverse shell, credential exfiltration, a wiping command, prompt injection or invisible characters). Remove it; only if it is genuinely needed and safe, add a justified line to scripts/safety-allow.txt in its own pull request."
+               exit 1 ;;
+          esac
+
+      # scrub-allow.txt and safety-allow.txt are the escape hatches, so each gets its own review.
       # Removing a line is ordinary work. Adding one must be the only change in
       # the pull request, otherwise an exception can ride along with a feature.
       - name: Baseline may only shrink
@@ -109,16 +139,18 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          baseline="scripts/scrub-allow.txt"
-          added="$(git diff --numstat "${BASE_SHA}...HEAD" -- "$baseline" | awk '{print $1}')"
-          added="${added:-0}"
-          if [ "$added" -eq 0 ]; then
-            echo "No lines added to ${baseline}."
-            exit 0
-          fi
-          others="$(git diff --name-only "${BASE_SHA}...HEAD" -- . ":(exclude)${baseline}" | wc -l | tr -d ' ')"
-          if [ "$others" -ne 0 ]; then
-            echo "::error file=${baseline}::This pull request adds ${added} exception line(s) to ${baseline} and also changes ${others} other file(s). An added exception must be its own pull request so it is reviewed on its own merits. Removing lines is always fine."
-            exit 1
-          fi
-          echo "Baseline grew by ${added} line(s) in a baseline-only pull request — reviewable."
+          for baseline in scripts/scrub-allow.txt scripts/safety-allow.txt; do
+            # only real exception lines count: comments and blank lines may change with anything
+            added="$(git diff -U0 "${BASE_SHA}...HEAD" -- "$baseline" | grep -cE '^\+[^+#[:space:]]' || true)"
+            added="${added:-0}"
+            if [ "$added" -eq 0 ]; then
+              echo "No lines added to ${baseline}."
+              continue
+            fi
+            others="$(git diff --name-only "${BASE_SHA}...HEAD" -- . ":(exclude)${baseline}" | wc -l | tr -d ' ')"
+            if [ "$others" -ne 0 ]; then
+              echo "::error file=${baseline}::This pull request adds ${added} exception line(s) to ${baseline} and also changes ${others} other file(s). An added exception must be its own pull request so it is reviewed on its own merits. Removing lines is always fine."
+              exit 1
+            fi
+            echo "${baseline} grew by ${added} line(s) in a baseline-only pull request — reviewable."
+          done
