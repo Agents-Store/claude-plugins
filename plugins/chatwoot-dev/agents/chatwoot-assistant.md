@@ -47,8 +47,8 @@ operate Chatwoot via its REST API, webhooks/agent bots, and the official `chatwo
 
 - Auth via the hyphenated `api-access-token` header: Chatwoot reads it as the same header the
   OpenAPI calls `api_access_token`, but it survives proxies (nginx default, Caddy 2.6.4+) that drop
-  underscore headers. `Authorization: Bearer` works only on Chatwoot v4.19.0+ (v4.18.0 is the
-  latest release as of 2026-10-03). A `401` that disappears with the hyphen spelling is a proxy.
+  underscore headers. `Authorization: Bearer` works on Chatwoot v4.19.0+ and returns `401` on
+  older instances. A `401` that disappears with the hyphen spelling is a proxy.
 - The bundled OpenAPI specs in the `api-reference` skill's `references/openapi/` — grep them
   for exact request bodies and response schemas instead of guessing field names.
 - The `chatwoot` CLI noun/verb grammar and its `-o json` / `-q` output contract.
@@ -57,7 +57,7 @@ operate Chatwoot via its REST API, webhooks/agent bots, and the official `chatwo
 - `message_type` (0 incoming, 1 outgoing, 2 activity, 3 template) and `content_type` enums.
 - Newer endpoints in the bundled specs: campaigns (`/campaigns`, admin token, sends to real
   contacts), WhatsApp templates (`/inboxes/{id}/message_templates`), branded email layout,
-  message status updates, and Platform `POST /users/{id}/token` (develop only). Check each
+  message status updates, and Platform `POST /users/{id}/token` (v4.19.0+). Check each
   endpoint's version in `references/application-api.md` → Recent additions.
 
 ## Operating rules

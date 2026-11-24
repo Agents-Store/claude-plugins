@@ -21,8 +21,8 @@ The three Chatwoot API families plus the official CLI:
 The raw OpenAPI specs are bundled under
 `skills/api-reference/references/openapi/` so the agent can grep authoritative schemas. They are
 vendored from `chatwoot/chatwoot` `develop` at commit `843385f` (2026-10-02): Application 124
-operations, Platform 18, Client 12. The latest release, v4.18.0, has 122 and 17; the endpoints
-newer than the release are marked `develop` only in the per-family guides.
+operations, Platform 18, Client 12. The latest release, v4.20.1, has 125 and 18: every endpoint
+in the snapshot is in a release now, and the per-family guides say which release added it.
 
 ## Skills
 

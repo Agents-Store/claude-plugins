@@ -28,7 +28,7 @@ Follow these steps:
    `${CLAUDE_PLUGIN_ROOT}/skills/api-reference/references/{application,platform,client}-api.md`.
 
 3. **Build the curl** with the right auth header (`api-access-token`, hyphenated: it survives
-   proxies that drop underscore headers; Bearer works only on Chatwoot v4.19.0+):
+   proxies that drop underscore headers; Bearer works on Chatwoot v4.19.0+ and gets `401` on older ones):
    ```bash
    curl -s -H "api-access-token: ${CHATWOOT_API_KEY}" \
      "${CHATWOOT_BASE_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/<path>" | jq .
