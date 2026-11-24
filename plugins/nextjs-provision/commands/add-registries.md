@@ -34,7 +34,7 @@ Fetch the list of shadcn-compatible registries from the official endpoint and po
 
 5. Read the current `components.json` and extract the existing `"registries"` object (may be empty or missing).
 
-6. Build the new registries object by merging existing entries with the fetched ones. **Skip every registry whose `health.status` is `unavailable` or whose `health.hidden` is true** — on 2026-10-02 that was 39 of 418 entries, none of which install. Keep `degraded` ones but count them for the report. For each remaining registry:
+6. Build the new registries object by merging existing entries with the fetched ones. **Skip every registry whose `health.status` is `unavailable` or whose `health.hidden` is true** — on 2026-11-24 that was 57 of 593 entries, none of which install. Keep `degraded` ones but count them for the report. For each remaining registry:
    - Key: the `name` field (e.g. `"@magicui"`)
    - Value: the `url` field (e.g. `"https://magicui.design/r/{name}"`)
    - Do NOT clobber existing **object-valued** entries (registries with `headers`/`params` auth, e.g. shadcn studio premium) — the merge must preserve those objects as-is.
@@ -46,9 +46,9 @@ Fetch the list of shadcn-compatible registries from the official endpoint and po
 ## Example Output
 
 ```
-Fetched 418 registries from https://ui.shadcn.com/r/registries.json
-Skipped 39 unavailable/hidden registries
-Added 374 new registries to components.json (41 of them degraded)
+Fetched 593 registries from https://ui.shadcn.com/r/registries.json
+Skipped 57 unavailable/hidden registries
+Added 531 new registries to components.json (50 of them degraded)
 Kept 5 already configured
-Total registries in components.json: 379
+Total registries in components.json: 536
 ```

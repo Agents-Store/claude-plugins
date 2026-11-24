@@ -6,7 +6,7 @@ allowed-tools: [Read, Bash, Grep, Glob, mcp__plugin_nextjs-provision_shadcn__sea
 
 # Search Components
 
-Search for shadcn-compatible components across the registries in the official directory (418 on 2026-10-02).
+Search for shadcn-compatible components across the registries in the official directory (593 on 2026-11-24).
 
 ## Instructions
 
@@ -29,7 +29,7 @@ Search for shadcn-compatible components across the registries in the official di
 
 6. Check if the user's project has `components.json` — if registries are not configured, suggest running `/setup-registries` first
 7. If the official `shadcn` MCP server is available, use it for more specific matches — it searches all registries configured in `components.json`:
-   - `mcp__plugin_nextjs-provision_shadcn__search_items_in_registries` — fuzzy search (its printed `Add command` is broken in shadcn 4.21.1 — do not copy it)
+   - `mcp__plugin_nextjs-provision_shadcn__search_items_in_registries` — fuzzy search (each hit prints its `Add command`; before shadcn 4.21.5 that line read `[object Promise]` — then use `get_add_command_for_items`)
    - `mcp__plugin_nextjs-provision_shadcn__view_items_in_registries` — read an item's files before installing
    - `mcp__plugin_nextjs-provision_shadcn__get_add_command_for_items` — the correct `npx shadcn@latest add @registry/item` command
 8. Without the MCP, use the CLI: `npx shadcn@latest search @registry -q "<term>"` and `npx shadcn@latest view @registry/item`
