@@ -24,3 +24,10 @@ Accumulated fixes and discoveries for this plugin. Format:
 **Severity:** Minor
 
 **Follow-up (same refresh):** the `troubleshoot` description now also names `502` and a self-hosted instance, matching the body table that already covered `404`/`502` behind a proxy; the Russian "HTML instead of JSON, sometimes 502" trigger case missed in two quick L2 runs, and on the unmodified plugin it missed in one of two.
+
+## 2026-11-24 — new features documented: contact export, private-network webhooks, upgrade notes, rate-limit buckets (v4.20.1)
+
+**Problem:** The v4.20 line added things the plugin did not cover: `POST /data_exports`, the SSRF filter on webhook deliveries (private receivers are refused unless `SAFE_FETCH_ALLOW_PRIVATE_NETWORK` is set), new self-hosted requirements, and rate-limit rules that were only visible in the server code. The bundled OpenAPI snapshot was a `develop` build that lacked the export call.
+**Fix:** `application-api.md` has a Contact export section; `webhooks-automation` and `troubleshoot` explain the private-network refusal; `troubleshoot` has an upgrade-requirements table; `pagination-errors.md` lists the rate-limit buckets; the four bundled specs are now the v4.20.1 release files (125 / 18 / 12 / 1 operations). Source: v4.20.0 and v4.20.1 release notes, swagger, `lib/safe_fetch.rb`, `lib/webhooks/trigger.rb` and `config/initializers/rack_attack.rb` at v4.20.1 (github.com/chatwoot/chatwoot).
+**Root cause:** The refresh that aligned the plugin to v4.20.1 corrected existing facts only; the additions were proposed separately.
+**Severity:** Minor

@@ -20,9 +20,9 @@ The three Chatwoot API families plus the official CLI:
 
 The raw OpenAPI specs are bundled under
 `skills/api-reference/references/openapi/` so the agent can grep authoritative schemas. They are
-vendored from `chatwoot/chatwoot` `develop` at commit `843385f` (2026-10-02): Application 124
-operations, Platform 18, Client 12. The latest release, v4.20.1, has 125 and 18: every endpoint
-in the snapshot is in a release now, and the per-family guides say which release added it.
+vendored from the `chatwoot/chatwoot` release tag v4.20.1 (`swagger/tag_groups/`, the latest release on
+2026-11-24): Application 125 operations, Platform 18, Client 12, CSAT page 1. Every endpoint in the
+snapshot is in a release, and the per-family guides say which release added it.
 
 ## Skills
 
@@ -32,7 +32,7 @@ in the snapshot is in a release now, and the per-family guides say which release
 | `api-reference` | All endpoints, per-family guides, and the bundled OpenAPI specs (manual-load: `disable-model-invocation`) |
 | `cli-recipes` | The `chatwoot` CLI — grammar, `-o json`/`-q` output contract, triage recipes, safety |
 | `webhooks-automation` | Webhooks (+ HMAC signature verification), automation rules, agent bots, integrations |
-| `troubleshoot` | 401/403/404/422/429, CLI auth, webhook signature mismatches |
+| `troubleshoot` | 401/403/404/422/429, CLI auth, webhook signature mismatches, private-network receivers, v4.20 upgrade requirements |
 | `examples` | Worked end-to-end scenarios (seed conversation, agent bot, bulk import, CLI triage) |
 
 ## Agent

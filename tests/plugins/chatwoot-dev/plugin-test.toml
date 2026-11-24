@@ -1,5 +1,5 @@
 # Chatwoot: плагин выверен по релизу chatwoot 4.20.1 и официальному CLI 0.7.0 (текст на 2026-11-24).
-# OpenAPI-спецификации в references/openapi/ — vendored-снимок ветки develop, refresh их не правит.
+# OpenAPI-спецификации в references/openapi/ — vendored-снимок релиза v4.20.1, refresh их не правит.
 [upstream]
 reviewed = 2026-11-24
 skip_paths = ["skills/api-reference/references/openapi/*"]
