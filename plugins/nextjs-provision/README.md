@@ -1,6 +1,6 @@
 # nextjs-provision
 
-Next.js provisioning plugin for the Agents Store marketplace. Knowledge base for setting up shadcn/ui and shadcn studio in Next.js projects -- component installation, theme configuration, project scaffolding, MCP server integration, and multi-registry component search across the 400+ registries (418 on 2026-10-02, with health status) of the official shadcn directory (ui.shadcn.com/r/registries.json).
+Next.js provisioning plugin for the Agents Store marketplace. Knowledge base for setting up shadcn/ui and shadcn studio in Next.js projects -- component installation, theme configuration, project scaffolding, MCP server integration, and multi-registry component search across the 400+ registries (593 on 2026-11-24, with health status) of the official shadcn directory (ui.shadcn.com/r/registries.json).
 
 ## Type
 
@@ -61,9 +61,9 @@ This plugin includes knowledge of the registries in the official shadcn director
 - **Extended UI**: COSS (@coss, formerly Origin UI), DiceUI, BaseCN, 8bitCN, BoldKit
 - **Blocks**: BundUI, Blocks.so, Efferd (degraded)
 - **E-Commerce**: Commercn (@commercn)
-- **AI/Chat**: AI Elements, Assistant UI, Tool UI
+- **AI/Chat**: AI Elements (degraded), Assistant UI, Tool UI
 - **File Upload**: Better Upload
-- **Editors/AI**: @kibo-ui, @plate (editor), @reui, @kokonutui, @intentui, @tailark (degraded) and more — 418 in the directory on 2026-10-02
+- **Editors/AI**: @kibo-ui, @plate (editor), @reui, @kokonutui, @intentui, @tailark (degraded) and more — 593 in the directory on 2026-11-24
 
 Use the `component-search` skill or `/search-components` command to find and install components across all registries.
 
