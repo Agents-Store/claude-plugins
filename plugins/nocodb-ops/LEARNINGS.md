@@ -1,5 +1,12 @@
 # LEARNINGS.md
 
+## 2026-11-24 — refresh: NocoDB 2026.10.2, the MCP tool list and `aggregate`
+
+**Problem:** The plugin said the extra Cloud / licensed tools sit behind `listTools` / `callTool`, that `aggregate` always needs both `aggregations` and `filterGroups`, and that Community Edition has eleven tools including `aggregate`. The live MCP server no longer matches: the nightly L1 reports `callTool` and `listTools` gone and `filterGroups` no longer required.
+**Fix:** `/mcp` now lists every tool (200+), so `listTools` / `callTool` are described as belonging to the `/mcp-discovery` endpoint only (for clients that cap the list at 100). `filterGroups` is optional on `aggregate`. Community Edition has `aggregate_single` (`aggregations` plus `filter` / `where` / `viewId`) and also `linkRecords` / `unlinkRecords`. Added to webhooks: millisecond timestamps (2026.10.1), receivers on private networks refused (2026.10.0), After Update on link changes, field-tracking hooks. Added the per-account MCP rate limit and the 5,000-link CSV cap. Pinned to 2026.10.2. The MCP snapshot in `tests/plugins/nocodb-ops/snapshots/` is NOT re-taken here (it needs the keyed server); the owner re-takes it with `--mode server --update-snapshots`.
+**Source:** https://github.com/nocodb/nocodb/releases (2026.10.0, 2026.10.1, 2026.10.2); https://nocodb.com/docs/mcp (updated 2026-11-05), https://nocodb.com/docs/mcp/records, https://nocodb.com/docs/mcp/connections; `packages/nocodb/src/mcp/mcp.service.ts` at tag 2026.10.2.
+**Severity:** Major
+
 ## 2026-10 — 100-record batches, sort objects, exactDate filters; no `nc` binary; MCP contract
 
 **Problem:** Six defects, all present in 1.0.6 and checked against the live NocoDB MCP server (release 2026.09.1):
