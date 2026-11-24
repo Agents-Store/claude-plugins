@@ -108,8 +108,9 @@ export const Settings: CollectionConfig = {
 It returns `true` only when there is a user and `user.collection === config.admin.user`; it never returns a `Where`. Use it instead of hand-writing that comparison in each project or plugin; combine it with a role check when you need more than collection membership. Sources: release v3.94.0, `payload@3.94.1` (`dist/auth/defaultAdminPanelUserAccess.js`).
 
 If `access` is omitted on a collection, the defaults are:
-- `read` — `() => true` (public).
-- `create / update / delete` — `({ req: { user } }) => Boolean(user)` (logged-in users).
+- `read / create / update / delete` — `({ req: { user } }) => Boolean(user)` (logged-in users only). Nothing is public by
+  default: a collection the site reads anonymously needs an explicit `read: () => true` (or a `Where`). Source:
+  `payload@3.94.1` (`dist/collections/config/defaults.js`, `dist/auth/defaultAccess.js`).
 - `admin` — same as `update`.
 
 ## Field Access
