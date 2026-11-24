@@ -16,6 +16,7 @@ NocoDB schema development plugin for Claude Code. Create and edit tables, fields
 | **webhooks** | HookV3 lifecycle — triggers, notifications (URL, Email, Slack/Discord/Telegram/Whatsapp/Twilio, Script) |
 | **dashboards** | Create dashboards and widgets — metric, bar/line/pie/donut/scatter chart, text, iframe |
 | **workflows** | List, execute, and inspect NocoDB Workflows + executions; author drafts over MCP on Cloud/licensed |
+| **permissions** | Table and field permission grants — who sees a table, adds or deletes records, downloads data or edits a field — over MCP and REST |
 | **troubleshoot** | Diagnose schema-side errors: read-only fields, type changes, relation cycles, formula syntax |
 | **examples** | CRM and e-commerce schema build-out walkthroughs |
 
