@@ -63,3 +63,10 @@ Accumulated fixes, discoveries, and improvements for the nextjs-provision plugin
 **Root cause:** Version-pinned workarounds and dated health data were not revisited after 4.21.1. The 4.21.2–4.23.0 changes themselves (BOM-tolerant config reader, ts-morph removal, `add --all` limited to the project's style, Zod 4 for `shadcn/schema`, MCP TypeScript SDK v2) do not change any command the plugin documents.
 **Source:** https://github.com/shadcn-ui/ui/releases (shadcn@4.21.5, 4.22.0, 4.22.1, 4.23.0), https://ui.shadcn.com/r/registries.json (2026-11-24)
 **Severity:** Minor
+
+## 2026-11-24 — new-features: shadcn 4.22.0 / 4.23.0 changes and two re-added registries (v1.4.0)
+
+**Feature:** `troubleshoot` has a "Registry Authors: Zod 4 Schemas" note (Zod 3 `z.infer` / `z.array` and `error.errors` replaced by the exported types, `.array()` and `issues`); `mcp-tools` has an "Embedding the server" note (`shadcn/mcp` is an `McpServer`, new `createServer()` export, `registerTool` instead of `setRequestHandler`); `@chamaac` and `@hextaui` are back in the `community-registries.md` tables.
+**Implementation:** Three additions, no existing text removed; both registries answered on 2026-11-24 (`registry.json` index fetched) and the directory lists them as healthy.
+**Rationale:** The three items were proposed in the 1.3.8 refresh review and approved by the owner.
+**Source:** https://github.com/shadcn-ui/ui/releases (shadcn@4.22.0, 4.23.0), https://ui.shadcn.com/r/registries.json (2026-11-24)
