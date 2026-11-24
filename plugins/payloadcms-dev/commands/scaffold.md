@@ -28,11 +28,11 @@ Use `AskUserQuestion` to gather (skip any the user already supplied as `$ARGUMEN
 Run a Bash check before scaffolding:
 
 ```bash
-node --version          # Recommend Node 22 or 24 LTS (payload engines allow ^18.20.2 || >=20.9.0; Node 18 and 20 are end-of-life)
+node --version          # Needs a patched Node 22 or 24 LTS (payload engines: ^22.23.5 || ^24.22.3 || >=26.13.1)
 which pnpm || which npm || which yarn || which bun
 ```
 
-If Node is below the supported range (`^18.20.2 || >=20.9.0`), tell the user to install LTS Node via `nvm install --lts && nvm use --lts` and stop here. If it is Node 18 or 20 (both end-of-life — still accepted by the engines field), recommend upgrading to a 22/24 LTS before going to production.
+If Node is below the supported range (`^22.23.5 || ^24.22.3 || >=26.13.1`) — this includes every Node 18 and 20 — tell the user to install LTS Node via `nvm install --lts && nvm use --lts` and stop here.
 
 ## Step 3 — Run the Scaffolder
 
@@ -90,7 +90,7 @@ Don't auto-invoke other skills. Tell the user to invoke the relevant ones based 
 
 - **Scaffolder sits at "Select a coding agent…" or another prompt** → a flag is missing; rerun with `--no-agent` (or `-a <agent>`), `-t`, `-d` and `--db-accept-recommended` so nothing is asked.
 - **`create-payload-app` errors with EACCES** → suggest `sudo chown -R $(whoami) ~/.npm` and rerun.
-- **`Node version too low`** → install a 22/24 LTS via nvm (engines allow `^18.20.2 || >=20.9.0`; Node 18 and 20 are end-of-life).
+- **`Node version too low`** → install a patched 22/24 LTS via nvm (engines: `^22.23.5 || ^24.22.3 || >=26.13.1`; Node 18 and 20 are not supported since 3.92).
 - **`Cannot find module 'sharp'`** after install → run `pnpm add sharp` inside the project, then retry `pnpm dev`.
 - **Database connection refused** → confirm the DB is reachable from the dev machine and the URI matches.
 
