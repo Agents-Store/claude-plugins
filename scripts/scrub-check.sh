@@ -10,7 +10,7 @@
 #
 # Exit: 0 clean · 1 hard fail (blocks the merge) · 2 warnings only.
 #
-# Three passes run behind this one entry point:
+# Four passes run behind this one entry point:
 #   scrub_check.py   deployment data in the tree — rules written as shapes,
 #                    never as literal values from any real deployment, because a
 #                    gate that hardcodes the strings it hunts becomes the leak it
@@ -25,6 +25,12 @@
 #   validate_pass.py the official manifest validator, `claude plugin validate
 #                    --strict`, over every covered plugin. Without the claude CLI
 #                    on PATH it reports "skipped" and does not fail.
+#   safety_check.py  what would hurt the person who installs the plugin: code that
+#                    runs downloads or decoded payloads, reverse shells, credential
+#                    exfiltration, wiping commands (FAIL); prompt injection and
+#                    invisible characters in instructions (FAIL); the same tricks
+#                    quoted in docs (WARN). --base <ref> keeps only new findings,
+#                    each a FAIL. Exceptions: scripts/safety-allow.txt.
 #
 # NOTE: the scrub and lint passes read the WORKING TREE only. A value that
 # already reached git history is not caught here and cannot be fixed by editing
@@ -72,27 +78,29 @@ if [ "$run_lint" -eq 0 ]; then
 fi
 
 if [ "$want_json" -eq 1 ]; then
-  scrub_out="$(mktemp)"; lint_out="$(mktemp)"; validate_out="$(mktemp)"
-  trap 'rm -f "${scrub_out}" "${lint_out}" "${validate_out}"' EXIT
+  scrub_out="$(mktemp)"; lint_out="$(mktemp)"; validate_out="$(mktemp)"; safety_out="$(mktemp)"
+  trap 'rm -f "${scrub_out}" "${lint_out}" "${validate_out}" "${safety_out}"' EXIT
   set +e
   python3 "${here}/scrub_check.py"    "${args[@]+"${args[@]}"}" >"${scrub_out}";    scrub_status=$?
   python3 "${here}/plugin_lint.py"    "${args[@]+"${args[@]}"}" >"${lint_out}";     lint_status=$?
   python3 "${here}/validate_pass.py"  "${args[@]+"${args[@]}"}" >"${validate_out}"; validate_status=$?
+  python3 "${here}/safety_check.py"   "${args[@]+"${args[@]}"}" >"${safety_out}"; safety_status=$?
   set -e
-  python3 - "${scrub_out}" "${lint_out}" "${validate_out}" <<'PY'
+  python3 - "${scrub_out}" "${lint_out}" "${validate_out}" "${safety_out}" <<'PY'
 import json, sys
 docs = {}
-for key, path in zip(("scrub", "lint", "validate"), sys.argv[1:4]):
+for key, path in zip(("scrub", "lint", "validate", "safety"), sys.argv[1:5]):
     with open(path, encoding="utf-8") as fh:
         docs[key] = json.load(fh)
 print(json.dumps(docs, indent=2))
 PY
-  exit "$(worst "$(worst "${scrub_status}" "${lint_status}")" "${validate_status}")"
+  exit "$(worst "$(worst "$(worst "${scrub_status}" "${lint_status}")" "${validate_status}")" "${safety_status}")"
 fi
 
 set +e
 python3 "${here}/scrub_check.py"   "${args[@]+"${args[@]}"}"; scrub_status=$?
 python3 "${here}/plugin_lint.py"   "${args[@]+"${args[@]}"}"; lint_status=$?
 python3 "${here}/validate_pass.py" "${args[@]+"${args[@]}"}"; validate_status=$?
+python3 "${here}/safety_check.py"  "${args[@]+"${args[@]}"}"; safety_status=$?
 set -e
-exit "$(worst "$(worst "${scrub_status}" "${lint_status}")" "${validate_status}")"
+exit "$(worst "$(worst "$(worst "${scrub_status}" "${lint_status}")" "${validate_status}")" "${safety_status}")"

@@ -152,14 +152,14 @@ Its `renames` map moves an installed copy of a retired or renamed plugin to its 
 7. Register in `.claude-plugin/marketplace.json` (exactly the 7 fields, version in sync with
    `plugin.json`)
 8. Drop a `.scrub-strict` marker in the plugin root — every new plugin ships under the strict ruleset
-9. Run `./scripts/scrub-check.sh plugins/<name>` — all three passes must exit 0 before the plugin ships
+9. Run `./scripts/scrub-check.sh plugins/<name>` — no pass may FAIL before the plugin ships (exit 0, or 2 for warnings)
    (the validator pass reports "skipped" and does not fail when the `claude` CLI is not on `PATH`)
 
 Or use `plugin-creator` from the private marketplace: `/plugin-creator:create`
 
 ## Publication Gate
 
-Everything in `plugins/` is published. `scripts/scrub-check.sh` runs **three passes** and blocks the
+Everything in `plugins/` is published. `scripts/scrub-check.sh` runs **four passes** and blocks the
 merge on any of them; it runs on every pull request (`.github/workflows/scrub.yml`).
 
 ```bash
@@ -169,6 +169,8 @@ merge on any of them; it runs on every pull request (`.github/workflows/scrub.ym
 ./scripts/scrub-check.sh --no-lint <path> # content pass only, skip the structure and validator passes
 ./scripts/plugin_lint.py plugins/<name>   # structure pass on its own
 ./scripts/validate_pass.py plugins/<name> # official validator pass on its own
+./scripts/safety_check.py plugins/<name>  # safety pass on its own
+./scripts/safety_check.py --base origin/main plugins/<name>  # only what a change adds; each new finding fails
 ```
 
 **Pass 1 — content (`scripts/scrub_check.py`).** Refuses: host and server names, private endpoints
@@ -227,6 +229,19 @@ over every covered plugin, so a manifest Claude Code itself would refuse never r
 marketplace. Without the `claude` CLI on `PATH` it reports "skipped" and exits 0; CI installs the
 CLI for it. No baseline either.
 
+**Pass 4 — safety (`scripts/safety_check.py`).** Nothing in a plugin may hurt the person who installs it.
+In code (`*.sh *.py *.js *.ts …`, `hooks.json`, `.mcp.json`) it fails a download or decoded payload piped
+into a shell (`remote-exec`, `decode-exec`), a reverse shell, a credential file read and sent over the
+network on one line (`secret-exfil`) and a command that wipes `/`, the home directory or a disk
+(`destroy`); it warns on reading a credential file, on changes to shell startup, cron, SSH keys or
+services (`persistence`) and on invisible characters. In instructions (`SKILL.md`, agents, commands,
+references, README) it fails prompt injection — «ignore previous instructions», «do not tell the user
+about…», «without the user's knowledge» — and invisible zero-width, bidi or tag characters; the code
+tricks quoted in documentation (an official `curl … | sh` installer) are warnings. On a pull request CI
+runs it with `--base`: only what the PR adds is judged and **every new finding fails**, warnings
+included. Exceptions live in `scripts/safety-allow.txt` (same format and same own-PR rule as
+`scrub-allow.txt`).
+
 **Strict scope.** A plugin that drops a `.scrub-strict` marker file in its root also gets: no host
 that is not a vendor, upstream or example host; no absolute path that upstream does not document or
 that lacks a placeholder; no hardcoded model id outside an `<!-- example-only -->` block; no bound
@@ -247,7 +262,7 @@ the next real endpoint on the same surface still fails; `#<glob>` matches the ex
 baseline may be **shrunk** in any pull request; a line may only be **added** — or narrowed, which
 also counts as an added line — by a pull request that changes nothing else, and CI enforces it.
 
-**What the gate does not cover: git history.** All three passes read the **working tree only**. A host,
+**What the gate does not cover: git history.** All four passes read the **working tree only**. A host,
 address, identifier or credential that already reached a commit is invisible to them, and deleting
 the line in a later commit does not remove it — the old blob stays fetchable by anyone who clones.
 Such a leak is answered by **revoking the value at its source** (rotate the token, retire the
