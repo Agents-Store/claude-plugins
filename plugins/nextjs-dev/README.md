@@ -65,6 +65,15 @@ Technology (Level 1) — knowledge-only, no MCP server bundled.
 
 Install as a Claude Code plugin from the Agents Store marketplace.
 
+## What's New in v1.7.0
+
+New 16.4 features, each added to the skill that owns the topic:
+- **Static guarantees and staged prefetching** — `ensureStatic` segment config (`'shell'`, `'prefetch'`, `'navigation'`) and `prefetch()` / `navigation()` from `next/cache` in the Cache Components reference of `data-fetching`; `api-reference` lists the two functions
+- **Agent upgrades (experimental)** — `next upgrade --agent` with its three policies, `experimental.agentUpgrade` reminders and `experimental.agentFeedback` in `cli-recipes`, summarised in `mcp-tools`
+- **Turbopack experiments (experimental)** — `turbopackGc`, `turbopackLazyDynamicImports`, `turbopackPluginRuntimeStrategy: 'workerThreads'` and `turbopackAdditionalRoots` in `performance-optimization`; `next analyze` snapshots and `export` in `cli-recipes`
+- **React 19.3** — `use(browser())` and Fragment Refs in `server-client-components`
+- **Route Handler compression** — `next start` compresses handler responses since 16.4.6 (`api-design`)
+
 ## What's New in v1.6.9
 
 Aligned with `next@16.4.6` and the October and November 2026 security releases:
