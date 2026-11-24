@@ -58,14 +58,14 @@ VS=$(grep -E '^VECTOR_STORE=' "$DOCKER_DIR/.env" 2>/dev/null | tail -1 | cut -d=
 if [ "$VS" = weaviate ] && [ -n "$(ls -A "$DOCKER_DIR/volumes/weaviate" 2>/dev/null)" ] \
    && [ "$(printf '%s\n' "${RUNNING:-0}" 1.17.1 | sort -V | head -1)" != 1.17.1 ] \
    && [ "$(printf '%s\n' "${LATEST_TAG:-0}" 1.17.1 | sort -V | head -1)" = 1.17.1 ]; then
-  echo "NOTE: updating to 1.17.1 or newer moves the bundled Weaviate 1.27.0 -> 1.39.2 and needs a staged volume upgrade first."
+  echo "NOTE: updating to 1.17.1 or newer moves the bundled Weaviate 1.27.0 -> 1.39.x and needs a staged volume upgrade first."
   echo "      /dify-ops:update stops and points to the runbook; see the update-workflow skill."
 fi
 ```
 
 ### Step 3: .env Sync Check
 
-Compares key names in `.env` with `.env.example`, then checks the keys a name comparison misses. It never prints a value of a secret-looking key.
+Compares key names in `.env` with `.env.example`, then checks the keys a name comparison misses. It never prints a value of a secret-looking key. Since 1.19.0 the root `.env.example` is short, so an older `.env` lists many extra keys: they are overrides, not errors.
 
 ```bash
 cd "$DOCKER_DIR"
@@ -80,18 +80,22 @@ else
 
   echo ".env: exists"
   [ "$NEW_COUNT" -gt 0 ] && echo "Missing vars: $NEW_COUNT (run /dify-ops:update to add)" || echo "Missing vars: 0 — in sync"
-  [ "$REMOVED_COUNT" -gt 0 ] && echo "Extra vars:   $REMOVED_COUNT (deprecated, moved to envs/, or custom)"
+  [ "$REMOVED_COUNT" -gt 0 ] && echo "Extra vars:   $REMOVED_COUNT (local overrides: custom, deprecated, or defaults that moved to envs/)"
 
   grep -q '^COMPOSE_PROFILES=.*collaboration' .env || echo "COMPOSE_PROFILES: no 'collaboration' profile — api_websocket does not start (default since 1.14.1)"
   grep -q '^EDITION=' .env && echo "EDITION is set — renamed DEPLOYMENT_EDITION in 1.17.0"
+  grep -qE '^DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN=.+' .env || echo "DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN: not set — required from 1.18.0 on (openssl rand -hex 32)"
 fi
+[ -f envs/core-services/shared.env ] && echo "envs/core-services/shared.env: retired, not loaded since 1.20.0 — move its settings to api-worker.env"
+CV=$(docker compose version --short 2>/dev/null | sed 's/^v//')
+[ -n "$CV" ] && [ "$(printf '%s\n' "$CV" 2.35.0 | sort -V | head -1)" != 2.35.0 ] && echo "Docker Compose $CV: 1.19.0 and newer need >= 2.35.0"
 
-# Optional templates: envs/**/*.env the user created, against their paired *.env.example
+# Override files: envs/**/*.env the user created, against the paired *.defaults (1.19.0 and newer) or *.env.example
 find envs -name '*.env' -type f 2>/dev/null | while read -r f; do
-  tpl="$f.example"
-  [ -f "$tpl" ] || { echo "$f: no template $tpl"; continue; }
-  n=$(comm -23 <(grep -oE '^[A-Z_][A-Z0-9_]*' "$tpl" | sort -u) <(grep -oE '^[A-Z_][A-Z0-9_]*' "$f" | sort -u) | wc -l | tr -d ' ')
-  [ "$n" -gt 0 ] && echo "$f: $n new key(s) in its template"
+  tpl="${f%.env}.defaults"; [ -f "$tpl" ] || tpl="$f.example"
+  [ -f "$tpl" ] || { echo "$f: no defaults file or template"; continue; }
+  n=$(comm -23 <(grep -oE '^#? ?[A-Z_][A-Z0-9_]*=' "$tpl" | tr -d '# =' | sort -u) <(grep -oE '^[A-Z_][A-Z0-9_]*' "$f" | sort -u) | wc -l | tr -d ' ')
+  [ "$n" -gt 0 ] && echo "$f: $n key(s) in its defaults file that the override does not set"
 done
 ```
 

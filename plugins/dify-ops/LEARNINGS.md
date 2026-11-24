@@ -1,5 +1,12 @@
 # LEARNINGS
 
+## 2026-11-24 — refresh: Align with Dify 1.20.0 (Compose 2.35, `.defaults` layout, agent sandbox token)
+
+**Problem:** The plugin was aligned with 1.17.1. Since then: Docker Compose must be 2.35.0 or newer (1.19.0); the root `.env.example` shrank to two keys and the tracked defaults moved into `envs/**/*.defaults` with local `*.env` overrides (1.19.0), `shared.env` stopped being loaded in favour of `api-worker.env` and `urls.env` (1.20.0); `dify-env-sync.sh` no longer rebuilds `.env` and drops keys but only appends (1.19.0); the local Agent sandbox needs a non-empty `DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN` (1.18.0); the bundled Weaviate pin is 1.39.13 and the runbook's last rung follows the target release; the release-notes extraction in `update` matched none of the 1.18-1.20 headings.
+**Fix:** `update` and `update-workflow` require Compose 2.35.0, name the Weaviate version per release, take `.defaults` upstream on conflicts and read the new section headings; the env sync step now tells the two script behaviours apart, checks the sandbox token, `shared.env`, the shared plugin keys and `OPENAPI_ENABLED`, and compares override files with their `.defaults`; `update-workflow` gained a short list of the 1.18.0 to 1.20.0 upgrade notes; `env-sync`, `dify-docker-architecture`, `status`, README and the two scenarios follow. `[upstream]` pinned to 1.20.0. Version 1.2.0.
+**Source:** github.com/langgenius/dify releases 1.18.0, 1.19.0, 1.20.0 and `docker/README.md` and `dify-env-sync.sh` at tag 1.20.0 (2026-11-24); docs.dify.ai Weaviate server upgrade path page (2026-11-24).
+**Severity:** Major
+
 ## 2026-10-03 — update command: Pre-flight the Weaviate migration path and back up before the merge
 
 **Problem:** `/dify-ops:update` merged `origin/main` and ran `docker compose up -d` with no version check and no backup. On an install older than 1.17.1 with the bundled Weaviate that pulls server 1.39.2 over a 1.27.0 data volume; upstream says vector search then breaks silently and permanently, and a hard kill during any stop does the same. The 2026-03-27 backup fix had reached the skill and the scenarios but never the command, and it archived `volumes/` after the merge, from running containers.

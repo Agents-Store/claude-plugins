@@ -20,7 +20,7 @@ The Bash tool does not keep shell variables between calls. Step 2 prints `DIFY_R
 - `main` — merge `origin/main`. Its deployment files track development and can drift from the latest release; use it only when asked
 - empty — the latest stable tag (`MAJOR.MINOR.PATCH`). `rc`, `alpha` and `beta` tags are never picked
 - `--yes` — apply right after printing the plan, without the confirmation question. It never skips the Weaviate STOP, the dirty-tree question or conflict resolution
-- `--weaviate-staged` — you already stepped the bundled Weaviate volume to `1.39.2` with the official runbook (Step 2, check 5). It lifts that one STOP and nothing else
+- `--weaviate-staged` — you already stepped the bundled Weaviate volume up to the version the target release pins (`1.39.2` for 1.17.1, `1.39.13` from 1.18.0) with the official runbook (Step 2, check 5). It lifts that one STOP and nothing else
 
 ## Step 1: Detect Working Directory
 
@@ -64,11 +64,11 @@ DIRTY=$(git status --porcelain)
 - `dev` missing — the official `git clone --branch <tag>` leaves a detached HEAD and no `dev`. Tell the user Step 5 will run `git switch -c dev` before merging.
 - The rollback resets `dev` to `DEV_TIP`, never to `HEAD`: when the update starts on `main` or on a detached HEAD, `HEAD` is not where `dev` is, and resetting `dev` to it would throw away the user's customization commits. It then returns to `START_BRANCH` (or `START_COMMIT`).
 
-**2. Docker Compose >= 2.24.0** (the compose files use `env_file … required: false`):
+**2. Docker Compose >= 2.35.0** (1.19.0 raised the minimum: below it a root `.env` value does not override the defaults files of a service):
 
 ```bash
 CV=$(docker compose version --short 2>/dev/null | sed 's/^v//')
-[ "$(printf '%s\n' "$CV" 2.24.0 | sort -V | head -1)" = 2.24.0 ] || { echo "ERROR: Docker Compose >= 2.24.0 required (found: ${CV:-none})"; exit 1; }
+[ "$(printf '%s\n' "$CV" 2.35.0 | sort -V | head -1)" = 2.35.0 ] || { echo "ERROR: Docker Compose >= 2.35.0 required (found: ${CV:-none})"; exit 1; }
 ```
 
 **3. Docker project name** — read it from the labels of the running `api` container of this directory, never parse container names:
@@ -109,7 +109,7 @@ echo "Current: ${CUR:-unknown}   Target: $TARGET (images $TGT)"
 
 An explicit pre-release tag is allowed with a warning that it is not for production.
 
-**5. Weaviate migration gate.** From Dify 1.17.1 the bundled Weaviate server moves from `1.27.0` to `1.39.2`. An existing data volume cannot cross 12 minor versions in one step; pulling and restarting silently and permanently breaks vector search. The gate fires only for a bundled Weaviate that holds data, an update that crosses `1.17.1`, and no `--weaviate-staged`. A fresh install, an external Weaviate and every other `VECTOR_STORE` are not affected.
+**5. Weaviate migration gate.** From Dify 1.17.1 the bundled Weaviate server moves from `1.27.0` to `1.39.2` (`1.39.13` from 1.18.0). An existing data volume cannot cross 12 minor versions in one step; pulling and restarting silently and permanently breaks vector search. The gate fires only for a bundled Weaviate that holds data, an update that crosses `1.17.1`, and no `--weaviate-staged`. A fresh install, an external Weaviate and every other `VECTOR_STORE` are not affected.
 
 ```bash
 cd "$DOCKER_DIR"
@@ -120,7 +120,7 @@ older() { [ "$(printf '%s\n' "$1" "$2" | sort -V | head -1)" != "$2" ]; }   # tr
 # CUR, TGT and STAGED come from check 4
 if [ "$VS" = weaviate ] && [ "$WV_DATA" = yes ] && [ "$STAGED" != yes ] \
    && older "$CUR" 1.17.1 && { [ -z "$TGT" ] || ! older "$TGT" 1.17.1; }; then
-  echo "STOP: this update crosses Dify 1.17.1 and the bundled Weaviate moves 1.27.0 -> 1.39.2."
+  echo "STOP: this update crosses Dify 1.17.1 and the bundled Weaviate moves 1.27.0 -> 1.39.x."
   echo "An existing volume cannot jump 12 minor versions; a plain pull + up -d breaks vector search silently."
   echo "Nothing was changed. Runbook: https://docs.dify.ai/en/self-host/deploy/troubleshooting/weaviate-server-migration-path"
   exit 1
@@ -128,22 +128,26 @@ fi
 echo "Weaviate gate: pass (VECTOR_STORE=$VS, volumes/weaviate data: $WV_DATA)"
 ```
 
-On STOP do not run Step 4 or later: no merge, no `docker compose up -d`. Hand the user the runbook (summary in the `update-workflow` skill: back up the volume, step through every minor `1.27` → `1.38`, land exactly on `1.39.2`, always stop with `docker compose stop -t -1 weaviate`, never `docker kill` or `rm -f`), then offer three ways forward and ask which one:
+On STOP do not run Step 4 or later: no merge, no `docker compose up -d`. Hand the user the runbook (summary in the `update-workflow` skill: back up the volume, step through every minor `1.27` → `1.38`, land on the version the target release pins (`1.39.2` for 1.17.1, `1.39.13` from 1.18.0 — not a newer patch), always stop with `docker compose stop -t -1 weaviate`, never `docker kill` or `rm -f`), then offer three ways forward and ask which one:
 
-1. Follow the runbook, confirm with `/v1/meta` that the server reports `1.39.2`, then run `/dify-ops:update <tag> --weaviate-staged`.
+1. Follow the runbook, confirm with `/v1/meta` that the server reports the version the target pins, then run `/dify-ops:update <tag> --weaviate-staged`.
 2. Update only to a release below `1.17.1` (for example `1.17.0`); the gate does not fire there.
 3. Move to another vector store or an external Weaviate first (re-index the knowledge bases), then update.
 
 If `CUR` or `TGT` could not be read the gate fails closed and stops the same way.
 
-**Release notes for every step.** For each stable tag after `CUR` up to the target, show only the three sections that matter:
+**Release notes for every step.** For each stable tag after `CUR` up to the target, show only the sections that matter (the headings vary by release: environment variable or configuration changes, database migrations, upgrade guide):
 
 ```bash
 cd "$DIFY_ROOT"
 git tag --list | grep -E "$STABLE" | sort -V | awk -v lo="$CUR" -v hi="$TARGET" 'p{print} $0==lo{p=1} $0==hi{exit}' | while read -r T; do
   echo "=== $T ==="
   gh release view "$T" -R langgenius/dify --json body -q .body 2>/dev/null \
-    | awk '/^## (Environment Variable Changes|Database Migrations|Upgrade Guide)/{p=1} /^## /&&!/^## (Environment Variable Changes|Database Migrations|Upgrade Guide)/{p=0} p'
+    | awk '{ l = tolower($0) }
+         l ~ /^##+ (environment variable changes|configuration and integration changes|database migrations|upgrade guide)/ { p = 1 }
+         l ~ /^## / && l !~ /^## (environment variable changes|configuration and integration changes|database migrations|upgrade guide)/ { p = 0 }
+         l ~ /^### (detailed changes|developer spotlight)/ { p = 0 }
+         p'
 done
 ```
 
@@ -156,7 +160,7 @@ Print the plan with all eight blocks, then stop and ask "Apply this plan?" unles
 ```text
 DIFY UPDATE PLAN   <CUR> -> <TARGET>
 TARGET    <DIFY_ROOT> · compose project <PROJECT_NAME> · merge <TARGET_REF> into dev
-PRECHECK  tree clean · Compose >= 2.24.0 · Weaviate gate: pass | n/a (<VECTOR_STORE>) · release notes read
+PRECHECK  tree clean · Compose >= 2.35.0 · Weaviate gate: pass | n/a (<VECTOR_STORE>) · release notes read
 CHANGE    git merge <TARGET_REF> · env sync (.env, envs/) · docker compose pull && docker compose up -d
 BACKUP    <backup-dir>: docker-compose.yaml, .env, volumes.tgz — the whole stack is down while volumes/ is archived
 IMPACT    downtime from down to up · start-up runs DB migrations, which are one-way · <changed env defaults, new services>
@@ -233,7 +237,7 @@ If the user chose to stash, run `git stash` right before this block.
 **If merge conflicts occur:**
 
 1. List conflicted files: `git diff --name-only --diff-filter=U`
-2. Generated or template files — `docker/.env.example`, `docker/docker-compose.yaml`, `docker/docker-compose-template.yaml`, `docker/envs/**/*.env.example`: take upstream (`git checkout --theirs <path> && git add <path>`). `docker-compose.yaml` is generated by `generate_docker_compose` and a release can add services Dify needs — never keep the old file.
+2. Generated or template files — `docker/.env.example`, `docker/docker-compose.yaml`, `docker/docker-compose-template.yaml`, `docker/envs/**/*.defaults`, `docker/envs/**/*.env.example`: take upstream (`git checkout --theirs <path> && git add <path>`). `docker-compose.yaml` is generated by `generate_docker_compose` and a release can add services Dify needs — never keep the old file.
 3. The user's customizations move out of those files: ports and most settings into `.env` (host ports are `EXPOSE_NGINX_PORT` and `EXPOSE_NGINX_SSL_PORT`), extra volumes or services into `docker/docker-compose.override.yaml` (Compose reads it automatically; upstream git ignores it), template-level changes into `docker-compose-template.yaml` followed by `./generate_docker_compose` in `docker/`.
 4. Other files: show the diff, let the user decide.
 5. Stage the resolved files by name and commit: `git add <each resolved path> && git commit -m "Merge <TARGET> into dev"`. Never `git add .`.
@@ -245,7 +249,7 @@ set -a; . <backup-dir>/state.env; set +a
 cd "$DOCKER_DIR"
 if [ ! -f .env ]; then
   cp .env.example .env
-  echo "Created .env from .env.example — review security-sensitive values"
+  echo "Created .env from .env.example — set DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN (openssl rand -hex 32) and review security-sensitive values"
 elif [ -f dify-env-sync.sh ]; then
   bash dify-env-sync.sh 2>&1 | awk '
     { gsub(/\033\[[0-9;]*m/, "") }
@@ -265,23 +269,26 @@ else
 fi
 ```
 
-What the official `dify-env-sync.sh` really does: it backs `.env` up to `env-backup/`, then **rebuilds `.env` from the new `.env.example`**. A key that is still in the example keeps your value; a new key gets the example's value; **every key that is not in the new example is dropped** — custom keys, keys that moved into `envs/` (SMTP and storage credentials, `DIFY_AGENT_RUN_RETENTION_SECONDS`) and keys removed upstream. Its closing "consider manually removing these variables" warning is misleading: they are already gone (the pre-sync copy is in `<backup-dir>/.env`).
+What the official `dify-env-sync.sh` does depends on the release you just merged — the script in the working tree is the target's:
 
-The script also prints the current `.env` value of every differing key. The `awk` filter above shows a value only when it is a number, a boolean or empty and the key name does not look secret; everything else — passwords, tokens, credential-bearing URLs such as `CELERY_BROKER_URL` — prints as `***`. Any other line is the continuation of a multi-line value (a PEM key whose `\n` the script expands) and is dropped. Never run the script without it.
+- **1.19.0 and newer:** it backs `.env` up to `env-backup/`, then only **appends** the keys that `.env.example` has and `.env` lacks. Your values, comments and extra keys stay; it names the extra keys it found. Since 1.19.0 the root `.env.example` is a short template (`COMPOSE_PROFILES` and `DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN`), so an old `.env` shows many "extra" keys: that is expected. It never touches `envs/`.
+- **1.18.0 and older:** it **rebuilds `.env` from the new `.env.example`** and **drops every key that is not in it** — custom keys, keys that moved into `envs/` and keys removed upstream. Its closing "consider manually removing these variables" warning is misleading: they are already gone (the pre-sync copy is in `<backup-dir>/.env`).
 
-**Restore the dropped keys.** List them by name (never values) and where each belongs:
+Both versions print the current `.env` value of every differing key. The `awk` filter above shows a value only when it is a number, a boolean or empty and the key name does not look secret; everything else — passwords, tokens, credential-bearing URLs such as `CELERY_BROKER_URL` — prints as `***`. Any other line is the continuation of a multi-line value (a PEM key whose `\n` the script expands) and is dropped. Never run the script without it.
+
+**Check for dropped keys** (a no-op on 1.19.0 and newer). List them by name (never values) and where each belongs:
 
 ```bash
 set -a; . <backup-dir>/state.env; set +a
 cd "$DOCKER_DIR"
 DROPPED=$(comm -23 <(grep -oE '^[A-Z_][A-Z0-9_]*' "$BACKUP_DIR/.env" | sort -u) <(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sort -u))
 for K in $DROPPED; do
-  T=$(grep -rl "^$K=" envs --include='*.env.example' 2>/dev/null | sed 's/\.example$//' | sort | paste -sd' ' -)
+  T=$(grep -rlE "^#? ?$K=" envs --include='*.defaults' --include='*.env.example' 2>/dev/null | sed -E 's/\.(defaults|env\.example)$/.env/' | sort -u | paste -sd' ' -)
   if [ -n "$T" ]; then echo "$K -> $T"; else echo "$K -> .env   (no template declares it: custom, or removed upstream)"; fi
 done
 ```
 
-Ask the user which keys to restore. A key that templates under `envs/` declare goes into one of the matching `envs/**/*.env` files (when several are listed, ask which; the file is created if missing); anything else goes into `.env`. A key that no template declares and that the release notes list as removed stays dropped. Restore by copying the line from the backup, which prints nothing:
+Ask the user which keys to restore. A key that a file under `envs/` declares goes into the matching `envs/**/*.env` override file (when several are listed, ask which; the file is created if missing); anything else goes into `.env`. A key that nothing declares and that the release notes list as removed stays dropped. Restore by copying the line from the backup, which prints nothing:
 
 ```bash
 set -a; . <backup-dir>/state.env; set +a
@@ -290,13 +297,17 @@ restore() { mkdir -p "$(dirname "$2")"; grep "^$1=" "$BACKUP_DIR/.env" | tail -1
 restore <KEY> <target-file>
 ```
 
-Then check three things:
+Then check these, by key name only (full table in the `env-sync` skill):
 
 - `COMPOSE_PROFILES` contains `collaboration`, or the `api_websocket` service never starts
+- `DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN` (required from 1.18.0) is set and not empty; when it is missing or empty, offer to generate one without printing it: `sed -i '/^DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN=$/d' .env && printf 'DIFY_AGENT_LOCAL_SANDBOX_AUTH_TOKEN=%s\n' "$(openssl rand -hex 32)" >> .env`. Keep an existing value unchanged on every later update
+- `envs/core-services/shared.env` exists: from 1.20.0 no service loads it. Rename it to `api-worker.env`, or merge only the missing keys when `api-worker.env` exists (existing values win, empty ones included)
+- `PLUGIN_DAEMON_KEY` and `PLUGIN_DIFY_INNER_API_KEY`, when you set them, belong in the root `.env` (1.19.0): set in a service file only, they cause HTTP 401 between the plugin daemon and its clients
 - `EDITION` was renamed `DEPLOYMENT_EDITION` in 1.17.0
-- `DIFY_AGENT_RUN_RETENTION_SECONDS`: the default dropped from 3 days to 2 hours in 1.17.1 and the key left the root example, so the script drops an old pinned value; restore it into `envs/core-services/dify-agent.env` to keep the old retention, otherwise the 2-hour default applies
+- `DIFY_AGENT_RUN_RETENTION_SECONDS`: the default dropped from 3 days to 2 hours in 1.17.1; an old pinned value only survives in `.env` (or `envs/core-services/dify-agent.env`), restore it there to keep the old retention
+- `OPENAPI_ENABLED`: the default became `true` in 1.20.0 (`/openapi/v1/*` is reachable); set it to `false` in `.env` when you do not use personal access tokens or `difyctl`
 
-Optional settings live in `docker/envs/**/*.env.example`; for each existing `envs/**/*.env`, compare with its paired template and only show new keys. Flag security-sensitive new keys (`*SECRET*`, `*PASSWORD*`, `*KEY*`, `*TOKEN*`) and development defaults (`*-for-dev-only`, `difyai123456`). Ask before appending anything.
+Optional settings: each `envs/**/*.defaults` file is tracked, loaded automatically and replaced by the release; your override is the same name with `.env` (`envs/<group>/<name>.env`) and is never overwritten. For each existing `envs/**/*.env`, compare it with its paired `.defaults` (or, for an optional integration, `.env.example`) and only show new keys. Flag security-sensitive new keys (`*SECRET*`, `*PASSWORD*`, `*KEY*`, `*TOKEN*`) and development defaults (`*-for-dev-only`, `difyai123456`). Ask before appending anything.
 
 ## Step 7: Pull and start
 
@@ -309,7 +320,7 @@ docker compose pull
 docker compose up -d
 ```
 
-Database migrations run automatically at start-up (`MIGRATION_ENABLED=true`); the first start after a release can take minutes.
+Database migrations run automatically at start-up (`MIGRATION_ENABLED=true`); the first start after a release can take minutes. Apply every env-file change with `docker compose up -d`: `docker compose restart` does not reload env files. Dify's own notes for 1.18.0 and newer also ask for matching images of the API, workers, web and Agent services at the same release — a full `pull` and `up -d` does that.
 
 Targets between 1.15 and 1.17.0, on an install upgraded from before 1.15, also need the one-time `flask data-migrate legacy-model-types` step from their upgrade notes (see the `update-workflow` skill); 1.17.1 and newer do it automatically.
 
