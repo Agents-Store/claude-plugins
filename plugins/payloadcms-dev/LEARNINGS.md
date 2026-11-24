@@ -76,3 +76,14 @@ Format:
 **Source:** GitHub release notes of payloadcms/payload v3.91.0–v3.94.1 (2026-10-15 … 2026-11-20); `npm view payload@3.94.1 engines`, `@payloadcms/next@3.94.1 peerDependencies`, templates/blank `package.json` at v3.94.1.
 **Not changed on purpose:** `skills/*/evals/triggers.json` (queries, no version facts); Lexical (still 0.50.0); `slugField` text (3.94.0 fixes a 3.90.2-era required-validation regression in the core helper — no plugin wording depended on it). Proposals (`auth.passwordHashIterations`, `defaultAdminPanelUserAccess`, field access `id`) listed in the PR, not coded.
 **Severity:** Major
+
+## 2026-11-24 — new features: Payload 3.92–3.94 additions (v1.5.0)
+
+**Feature:** Added the four items proposed in the 1.4.0 refresh PR (#44), verified against the `payload@3.94.1` package and the GitHub releases and security advisories.
+**Implementation:**
+- `authentication`, `adapters` — `auth.passwordHashIterations` (`100000 | 600000`, 3.93) for runtimes that cap PBKDF2 such as Cloudflare Workers, with the sign-in trade-off for existing 600,000-iteration hashes.
+- `access-control`, `collections` — `defaultAdminPanelUserAccess` helper exported from `payload` (3.94): admits only users of the `admin.user` collection; not a `Where`-returning function.
+- `access-control` — field access receives the document `id` (3.92) with an owner-or-admin example. Correction to the proposal: the argument already existed in the types and was not newly added; 3.92 fills it in during document-level permission evaluation.
+- `access-control`, `collections`, `troubleshoot` — security checklist for 3.93 (block field read access enforced in queries, block rows limited to the field's configured types, `pasteURL` applied to remote-URL uploads) and a troubleshoot row.
+**Source:** releases v3.92.0, v3.93.0, v3.94.0 of payloadcms/payload; `payload@3.94.1` types and `dist/auth`; advisories GHSA-j4q6-g29w-5cmg and GHSA-wc63-5fg7-7r49; Payload authentication and field-access docs.
+**Severity:** Minor
