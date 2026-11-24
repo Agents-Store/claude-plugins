@@ -11,6 +11,14 @@ Accumulated fixes and discoveries for the `nocodb-dev` plugin. Append entries ch
 **Severity:** Critical / Major / Minor
 ```
 
+## 2026-11-24 — features from the 2026.10 refresh proposals (new `permissions` skill, dry run, token scopes, MCP clients)
+
+**Problem:** The 2026.10.2 refresh (PR #41) left six NocoDB features undocumented: the `dryRun` flag on `updateField` / `removeFieldOptions`, the table and field permissions API, fine-grained token scopes with `expiry` and `ip_allowlist`, the rollup `countAll` / formula single-select / conditional-link options, the Button field's *Run automation* action, and the OAuth sign-in plus `/mcp-discovery` client list.
+**Fix:** New `permissions` skill (MCP `listPermissions` / `setPermission` / `dropPermission` and REST `/bases/{baseId}/permissions`) with the endpoint table in `meta-api-endpoints.md`; `field-management` gets the dry run and a "Newer field options" section, `mcp-patterns` points to it; token scopes, levels, `expiry`, `ip_allowlist` and `PATCH` are in `meta-api-endpoints.md` and `api-reference`; `workflows` and `field-types.md` say the automation button is UI-only (the v3 Button `options` schema has no automation type); `setup` explains OAuth sign-in and which clients need `/mcp-discovery`.
+**Source:** https://nocodb.com/docs/mcp, /mcp/schema, /mcp/permissions, /mcp/claude-code; release 2026.10.0; `swagger-v3.json` at tag 2026.10.2 (bundled spec).
+**Root cause:** The refresh was scoped to corrections; new capabilities were listed as proposals.
+**Severity:** Minor
+
 ## 2026-11-24 — refresh: NocoDB 2026.10.2 (MCP `/mcp` lists every tool, filter/sort endpoints, tokens, statuses)
 
 **Problem:** The plugin was aligned with NocoDB 2026.09.1 and said five things that are no longer true:
