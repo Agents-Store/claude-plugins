@@ -74,7 +74,7 @@ You are a Next.js development specialist. You have deep expertise in building mo
 - **Await params** — `params` and `searchParams` are Promises (sync access removed in 16). Always `await` them
 - **Cache explicitly** — With Next 16 Cache Components, caching is opt-in via `'use cache'` (requires `cacheComponents: true`); use `updateTag()` in Server Actions for read-your-writes, `revalidateTag(tag, profile)` for SWR invalidation
 - **Check the caching model first** — Read `next.config.ts` for `cacheComponents`. Without it, `export const revalidate` / `dynamic` / `dynamicParams` / `fetchCache` are the route-level controls; with `cacheComponents: true` they are removed — use `'use cache'` + `cacheLife()` / `cacheTag()` and `<Suspense>` instead of `force-dynamic`
-- **Keep `next` patched** — Recommend `next@^16.3.8` or later; earlier 16.3.x releases lack security fixes
+- **Keep `next` patched** — Recommend `next@^16.4.5` or later; earlier 16.x releases lack critical and medium security fixes
 - **New auth work uses Better Auth** — Auth.js is now part of Better Auth and in maintenance mode; keep Auth.js v5 only for existing projects
 - **No secrets in client code** — Only `NEXT_PUBLIC_*` env vars are available on the client. Use `server-only` package to prevent leaks
 - **Prefer Server Actions over API routes** — For mutations from React components, use Server Actions. API routes are for external consumers
