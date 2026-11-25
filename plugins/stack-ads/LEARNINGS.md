@@ -257,3 +257,17 @@
 **Fix:** A Meta removal deletes the plan's creatives and then the images it uploaded, once everything that uses them is gone; when an object above them could not be removed, they wait for the next run. An image is deleted only when it entered the library with this upload: Meta keeps one image per hash, so an upload of a file the library already held returns an image other ads may use. Its `created_time` is read right after the upload; an image older than the upload, or one whose age cannot be read, stays, and the output names it with the command that removes it. `meta delete` takes `-p`.
 **Root cause:** The rollback knew only what can be paused.
 **Severity:** Minor
+
+## 2026-11-25 — launch-campaign: generated creatives in Google and Meta, end to end
+
+**Problem:** Two images and a 5-second video were generated and put through both platforms. Google refused the Performance Max and Demand Gen plans written after the reference: the samples gave image assets no `name` (`NAME_REQUIRED_FOR_ASSET_TYPE`), and one missing name brought up to a dozen follow-up errors about missing headlines, logos and resources. On Meta `meta delete VIDEO_ID` was refused with code 200 and `pages_manage_posts`, so the test video stayed behind. `launch-campaign` still said that Meta creatives and Google budgets stay after a removal, which has been wrong since 1.0.3 for creatives and was never right for a budget that is not shared.
+**Fix:** Every image asset in the samples carries a name, a documentation test holds that, and the error tables name the code. Validation showed that text and YouTube assets need no name. The Demand Gen section got the image ad that ran live, the Meta video section the body that ran live (thumbnail by `image_hash`, `message` and `title` accepted). A video leaves the ad account's library through `{account}/advideos` with `video_id`, which needs no extra permission. The text on what stays after a removal is corrected.
+**Root cause:** The two Google samples were composed from field definitions and had never met Google's validation. The video edge was looked for on the video object instead of the ad account.
+**Severity:** Minor
+
+## 2026-11-25 — launch-campaign: a deleted Meta image came back
+
+**Problem:** The test image deleted on 2026-11-23 (the library showed it gone right after) was listed again two days later: `ACTIVE`, a suffix on its name, `updated_time` seconds after the delete. Before that it had been deleted once and revived by a new upload of the same file.
+**Fix:** Deleted again; the library still showed it gone a minute later. The reference says to read the library again some time after a removal.
+**Root cause:** Not known. Meta keeps one image per hash and revives a deleted one with its first `created_time` when the same file is uploaded.
+**Severity:** Minor
