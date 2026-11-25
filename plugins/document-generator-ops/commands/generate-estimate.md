@@ -135,6 +135,6 @@ Parse from "$ARGUMENTS".
 
 ## Example Usage
 ```
-/document-generator-ops:generate-estimate "EST-2026-001" --company "TechCo" --client "Acme Corp"
+/document-generator-ops:generate-estimate "EST-2026-001" --company "Example Inc" --client "Acme Corp"
 /document-generator-ops:generate-estimate "Q-042"
 ```

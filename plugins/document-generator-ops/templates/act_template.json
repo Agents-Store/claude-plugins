@@ -31,13 +31,13 @@
     "vatRate": 0,
     "contractor": {
       "name": "Acme Consulting LLC",
-      "representative": "John Smith",
+      "representative": "John Doe",
       "title": "Managing Director",
       "reg": "Company No.: 1234567890",
       "address": "10 Innovation Street, London, EC2A 4BX"
     },
     "customer": {
-      "name": "Global Client Corp.",
+      "name": "Example Inc",
       "representative": "Jane Doe",
       "title": "Director",
       "reg": "Company No.: 98765432",
