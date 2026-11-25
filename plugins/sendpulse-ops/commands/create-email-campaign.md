@@ -70,7 +70,7 @@ Parse from "$ARGUMENTS".
 
 ## Example Usage
 ```
-/create-email-campaign "March Newsletter" --addressbook list_001 --sender news@acme.com --template tmpl_monthly
+/create-email-campaign "March Newsletter" --addressbook list_001 --sender news@example.com --template tmpl_monthly
 /create-email-campaign "Product Launch Announcement"
 ```
 

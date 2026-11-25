@@ -32,7 +32,7 @@
       "name": "sendpulse-ops",
       "source": "./plugins/sendpulse-ops",
       "description": "Sendpulse multi-channel marketing plugin. Manage chatbots (Telegram, WhatsApp, Instagram, Messenger, Viber, TikTok), CRM (contacts, deals, pipelines, boards, tasks), Courses (LMS) academies, courses and students, email campaigns, templates, addressbooks, and SMTP transactional email via 147 MCP tools.",
-      "version": "2.1.6",
+      "version": "2.1.7",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -415,7 +415,7 @@
       "name": "sqlalchemy-dev",
       "source": "./plugins/sqlalchemy-dev",
       "description": "SQLAlchemy dev plugin for Agents Store. Typed SQLAlchemy 2.0 style (Mapped, mapped_column, select) with a SQLAlchemy 2.1 section: model definition patterns, relationship mapping, query optimization, Alembic migrations, and troubleshooting.",
-      "version": "2.1.6",
+      "version": "2.1.7",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -476,7 +476,7 @@
       "name": "seo-dev",
       "source": "./plugins/seo-dev",
       "description": "SEO development plugin for Agents Store. Technical SEO, structured data (JSON-LD), metadata API, Core Web Vitals, sitemaps, and content optimization patterns for Next.js App Router.",
-      "version": "1.1.6",
+      "version": "1.1.7",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -1097,7 +1097,7 @@
       "name": "stack-ads",
       "source": "./plugins/stack-ads",
       "description": "Paid advertising stack for any project. Researches the product and its market, derives targeting, writes ad copy, generates images, video and voice-over, launches paused campaigns on Google Ads, Meta and TikTok from a reviewed dry-run plan with budget ceilings and a rollback ledger, and reports results. Walks the user through obtaining every key. Integrates Google Ads, Search Console, Meta, TikTok, Firecrawl, Apify, DataForSEO, OpenAI, Gemini and fal.ai via MCP and one dependency-free toolkit.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "AGENTS.STORE"
       },
