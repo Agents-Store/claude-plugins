@@ -180,6 +180,15 @@ def _common_dir(path):
 
 
 @functools.lru_cache(maxsize=None)
+def toplevel(directory):
+    try:
+        return subprocess.run(["git", "-C", directory, "rev-parse", "--show-toplevel"], capture_output=True, text=True,
+                              check=True).stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return ""
+
+
+@functools.lru_cache(maxsize=None)
 def in_this_repository(directory):
     """A directory of this repository or of any of its worktrees: the owner's names matter only in what is published."""
     here = _common_dir(REPO_ROOT)
@@ -207,14 +216,14 @@ def private_names():
     return re.compile("|".join(r"(?<![A-Za-z0-9])" + re.escape(t) + r"(?![A-Za-z0-9])" for t in terms), re.I)
 
 
-def scan_text(rel_path, text, root=None, names_ok=True):
+def scan_text(rel_path, text, root=None, names_ok=True, inner=None):
     """Findings for one file's text; the kind (code / instruction / data) decides the rules and the severity."""
     kind = file_kind(rel_path)
     if kind is None:
         return []
     out = []
     names = private_names() if names_ok else None
-    vendored = is_skipped(root or REPO_ROOT, rel_path)
+    vendored = is_skipped(root or REPO_ROOT, inner or rel_path)
 
     def add(lineno, rule, severity, line):
         out.append(scrub_check.Finding(rel_path, lineno, rule, severity, scrub_check.redact(line), MESSAGES[rule]))
@@ -325,10 +334,14 @@ def main(argv=None):
         text = read_file(rel_path)
         if text is None:
             continue
-        ours = in_this_repository(os.path.dirname(os.path.normpath(os.path.join(REPO_ROOT, rel_path))))
-        current = scan_text(rel_path, text, names_ok=ours)
+        abs_path = os.path.normpath(os.path.join(REPO_ROOT, rel_path))
+        top = toplevel(os.path.dirname(abs_path)) or REPO_ROOT
+        inner = os.path.relpath(abs_path, top)                # the file's own repository decides skip_paths and names
+        ours = in_this_repository(os.path.dirname(abs_path))
+        current = scan_text(rel_path, text, root=top, names_ok=ours, inner=inner)
         if args.base:
-            old = collections.Counter(key(f) for f in scan_text(rel_path, text_at(args.base, rel_path), names_ok=ours))
+            old = collections.Counter(key(f) for f in scan_text(rel_path, text_at(args.base, rel_path), root=top,
+                                                                names_ok=ours, inner=inner))
             fresh = []
             for f in current:
                 if old[key(f)]:

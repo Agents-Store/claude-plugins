@@ -198,6 +198,29 @@ class CliTest(unittest.TestCase):
         self.assertEqual(out.count("FAIL "), 1, out)
 
 
+class SkipPathsAcrossWorktreesTest(unittest.TestCase):
+    def test_skip_paths_come_from_the_files_own_repository(self):
+        tmp = tempfile.mkdtemp(prefix="wt-")
+        self.addCleanup(shutil.rmtree, tmp, True)
+        env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@example.com",
+                   GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@example.com")
+        subprocess.run(["git", "-C", tmp, "init", "-q"], check=True, env=env, capture_output=True)
+        for rel, text in (("tests/plugins/p/plugin-test.toml", '[upstream]\nskip_paths = ["skills/vendor-*"]\n'),
+                          ("plugins/p/skills/vendor-x/SKILL.md", "Invoice to accounts@client" + ".com\n"),
+                          ("plugins/p/skills/own/SKILL.md", "Invoice to accounts@client" + ".com\n")):
+            path = os.path.join(tmp, rel)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w") as fh:
+                fh.write(text)
+        subprocess.run(["git", "-C", tmp, "add", "-A"], check=True, env=env, capture_output=True)
+        out = io.StringIO()
+        with redirect_stdout(out):
+            code = safety_check.main([os.path.join(tmp, "plugins"), "--no-baseline"])
+        self.assertEqual(code, 2, out.getvalue())
+        self.assertIn("skills/own/SKILL.md", out.getvalue())
+        self.assertNotIn("vendor-x", out.getvalue())
+
+
 class PrivateNameScopeTest(unittest.TestCase):
     def test_names_apply_only_to_the_public_repository(self):
         tmp = tempfile.mkdtemp(prefix="scope-")
