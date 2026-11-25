@@ -41,9 +41,9 @@ Parse from "$ARGUMENTS".
 
 ## Example Usage
 ```
-/create-contact user@example.com --name "John Doe" --phone "+380501234567"
-/create-contact lead@company.com --name "Jane Smith"
-/create-contact prospect@corp.com
+/create-contact user@example.com --name "John Doe" --phone "+1-555-0100"
+/create-contact lead@example.com --name "Jane Doe"
+/create-contact prospect@example.com
 ```
 
 ## Notes

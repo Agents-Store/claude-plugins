@@ -45,7 +45,7 @@ Parse from "$ARGUMENTS".
 ## Example Usage
 ```
 /add-subscriber user@example.com --addressbook list_001 --name "John Doe"
-/add-subscriber lead@company.com
+/add-subscriber lead@example.com
 ```
 
 ## Notes

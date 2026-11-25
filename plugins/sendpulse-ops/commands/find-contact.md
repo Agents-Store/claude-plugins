@@ -41,7 +41,7 @@ Parse from "$ARGUMENTS".
 ## Example Usage
 ```
 /find-contact user@example.com
-/find-contact cto@bigcorp.com
+/find-contact cto@example.com
 ```
 
 ## Notes
