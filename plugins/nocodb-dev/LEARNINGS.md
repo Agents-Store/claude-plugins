@@ -11,6 +11,14 @@ Accumulated fixes and discoveries for the `nocodb-dev` plugin. Append entries ch
 **Severity:** Critical / Major / Minor
 ```
 
+## 2026-11-25 — examples: the flat `/mcp` endpoint has no `listTools` / `callTool`
+
+**Problem:** The MCP snapshot re-taken from the live server no longer contains `listTools` and `callTool`; 17 examples in `examples`, `field-management`, `mcp-patterns`, `setup`, `table-management`, `view-management` and `webhooks` called them as the normal path (`listTools category: "fields"`, then `callTool name: "createField"`).
+**Fix:** The examples call the real tool directly with its own arguments (`createField { tableId, field }`, `createTable`, `createView`, `shareView`, `createHook`). The prose in the other skills, commands, the `schema-architect` agent, README, `plugin.json` and the marketplace description says "call the tool by name" (`updateView` with `{ viewId, title }`); `mcp-patterns` keeps `listTools` → `callTool` as one short note for `/mcp-discovery` and older servers, and the others point to it. Edition detection (`mcp-patterns`, `setup`) reads the tool list: `createTable` listed means Cloud / licensed, absent means Community Edition (REST); `listTools category: "tables"` is the fallback on `/mcp-discovery` only.
+**Source:** https://nocodb.com/docs/mcp; the live tool list (flat mode, 215 tools).
+**Root cause:** The default `/mcp` endpoint serves every tool directly; the meta tools exist only on `/mcp-discovery`, for clients that cannot take more than 100 tools.
+**Severity:** Minor
+
 ## 2026-11-24 — features from the 2026.10 refresh proposals (new `permissions` skill, dry run, token scopes, MCP clients)
 
 **Problem:** The 2026.10.2 refresh (PR #41) left six NocoDB features undocumented: the `dryRun` flag on `updateField` / `removeFieldOptions`, the table and field permissions API, fine-grained token scopes with `expiry` and `ip_allowlist`, the rollup `countAll` / formula single-select / conditional-link options, the Button field's *Run automation* action, and the OAuth sign-in plus `/mcp-discovery` client list.

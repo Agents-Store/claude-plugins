@@ -28,7 +28,7 @@ The field types, create payloads and update rules are written down in `${CLAUDE_
    - "computed value" → `Formula` (gather expression)
    - "auto-incrementing id" → `AutoNumber`
 5. Build the payload (per `field-types.md`): `{ "title": …, "type": …, "options": { … } }`.
-6. Create it. On Cloud / licensed: `listTools category: "fields"`, then `callTool name: "createField"` with `arguments: { tableId: "<tableId>", field: <payload> }`. On Community Edition (or as a fallback):
+6. Create it. On Cloud / licensed: call `createField` with `{ tableId: "<tableId>", field: <payload> }`. On Community Edition (or as a fallback):
    ```bash
    curl -sS -X POST \
      -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \

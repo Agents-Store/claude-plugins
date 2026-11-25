@@ -7,7 +7,7 @@ NocoDB schema development plugin for Claude Code. Create and edit tables, fields
 | Skill | Description |
 |-------|-------------|
 | **setup** | Verify NocoDB connection across the MCP and REST surfaces and detect the edition |
-| **mcp-patterns** | The MCP contract — listed tools, schema tools behind `listTools(category)` → `callTool` on `/mcp-discovery`, Community vs Cloud/licensed |
+| **mcp-patterns** | The MCP contract — listed tools, the `/mcp-discovery` variant, Community vs Cloud/licensed |
 | **api-reference** | NocoDB REST API guide. Bundled Data API + Meta API v3 OpenAPI specs, full Meta API endpoint reference, full field-type catalog |
 | **cli-reference** | `curl` recipes by resource, mapped to the commands of the official `nocodb.sh` script |
 | **table-management** | Create, update, rename, duplicate, and delete tables |
@@ -65,9 +65,9 @@ The REST token variable is `NOCODB_TOKEN` (the same name the official `nocodb.sh
 | Edition | MCP server | Schema writes |
 |---------|-----------|---------------|
 | **Community Edition** | Record tools and read tools only (`getTablesList`, `getTableSchema`, `queryRecords`, `createRecords`, …) | REST (`curl` on Meta API v3) |
-| **Cloud / licensed self-hosted** | The same listed tools, plus schema, view, hook, workflow, dashboard, script, permission and docs **write** tools — all listed on `/mcp` since 2026.10.1; behind `listTools` on `/mcp-discovery` and older servers | **MCP first**: call the tool, or `listTools(category)` → `callTool(name, arguments)` where it is hidden; REST is the fallback |
+| **Cloud / licensed self-hosted** | The same listed tools, plus schema, view, hook, workflow, dashboard, script, permission and docs **write** tools — all listed on `/mcp` since 2026.10.1; hidden on `/mcp-discovery` and older servers | **MCP first**: call the tool by name; REST is the fallback |
 
-On Cloud / licensed with `/mcp` (2026.10.1 and later) call the write tools by name. Where they are hidden (`/mcp-discovery`, older servers), call `listTools` with a category (`tables`, `fields`, `views`, `filters`, `sorts`, `hooks`, `workflows`, … — 32 in all), read the argument schemas it returns, and invoke the tool with `callTool`. `getBaseSchema` returns every table with its fields and views in one call. Once per session look for `createTable` in the tool list or in `listTools category: "tables"`: if it is there, use MCP-first; otherwise use REST. The **mcp-patterns** skill has the details.
+On Cloud / licensed with `/mcp` call the write tools by name. `getBaseSchema returns every table with its fields and views in one call. Once per session look for `createTable` in the tool list: if it is there, use MCP-first; otherwise (Community Edition) use REST. `/mcp-discovery` and older servers hide the write tools behind a discovery step; the **mcp-patterns** skill has the details.
 
 ## Command Line
 

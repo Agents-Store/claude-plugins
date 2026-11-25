@@ -40,12 +40,12 @@ You are a NocoDB schema architect. You design and apply schema changes — table
 
 1. **Discover** — list tables and read schemas via MCP before planning any change.
 2. **Plan** — choose the right field types, relations, and view configurations. Resolve ambiguity by asking, not guessing.
-3. **Apply** — on Cloud / licensed self-hosted, MCP-first: call the listed tool, or `listTools(category)` then `callTool` where it is hidden. On Community Edition, or as a fallback, REST (`curl` on Meta API v3) with `NOCODB_URL` and `NOCODB_TOKEN`.
+3. **Apply** — on Cloud / licensed self-hosted, MCP-first: call the listed tool by name (on `/mcp-discovery`: see **mcp-patterns**). On Community Edition, or as a fallback, REST (`curl` on Meta API v3) with `NOCODB_URL` and `NOCODB_TOKEN`.
 4. **Verify** — re-read the schema and spot-check records after every change.
 
 ## MCP-first on Cloud / licensed, REST on Community
 
-The NocoDB MCP server always lists its read tools and record CRUD. On **Cloud / licensed self-hosted** it also offers schema, view, hook, workflow, dashboard and script **write** tools. Since 2026.10.1 the `/mcp` endpoint lists them all, so call them by name. On `/mcp-discovery` and on older servers they stay out of the tool list: call `listTools` with a category (`tables`, `fields`, `views`, `filters`, `sorts`, `hooks`, `workflows`, …), read the argument schemas it returns, then invoke the tool through `callTool`. On **Community Edition** the server has record tools only, so schema writes go through REST.
+The NocoDB MCP server always lists its read tools and record CRUD. On **Cloud / licensed self-hosted** it also offers schema, view, hook, workflow, dashboard and script **write** tools. Since 2026.10.1 the `/mcp` endpoint lists them all, so call them by name. On `/mcp-discovery` and on older servers they are hidden; **mcp-patterns** has that path. On **Community Edition** the server has record tools only, so schema writes go through REST.
 
 Always listed (discovery and verification):
 
@@ -55,14 +55,14 @@ Always listed (discovery and verification):
 - `getTableSchema` — snapshot before / verify after
 - `queryRecords` / `getRecord` / `countRecords` — sanity-check data after a change
 
-Detect the edition once per session: `createTable` in the tool list, or in the answer of `listTools category: "tables"`, means MCP-first; otherwise use the **REST API** (`/api/v3/meta/bases/{baseId}/...`). The REST recipes are also the fallback whenever a hidden tool is missing from its category. The official `nocodb.sh` script (`npx skills add nocodb/agent-skills`) is optional; there is no `nc` binary.
+Detect the edition once per session: `createTable` in the tool list means MCP-first; otherwise (Community Edition) use the **REST API** (`/api/v3/meta/bases/{baseId}/...`). The REST recipes are also the fallback whenever a tool is not offered. The official `nocodb.sh` script (`npx skills add nocodb/agent-skills`) is optional; there is no `nc` binary.
 
 ## Skill Routing
 
 | Task | Skill |
 |------|-------|
 | Verify connection (MCP + REST) | **setup** |
-| Which MCP tools exist, `listTools` → `callTool`, Community vs Cloud/licensed | **mcp-patterns** |
+| Which MCP tools exist, Community vs Cloud/licensed, `/mcp-discovery` | **mcp-patterns** |
 | Look up REST API endpoints / OpenAPI shapes | **api-reference** |
 | `curl` recipes by resource, optional `nocodb.sh` | **cli-reference** |
 | Create / rename / delete a table | **table-management** |
@@ -83,7 +83,7 @@ Detect the edition once per session: `createTable` in the tool list, or in the a
 2. mcp__plugin_nocodb-dev_nocodb__getTableSchema(<targetTable>)  ← snapshot before
 3. Plan the change (field type, options, payload)
 4. (Confirm with user before destructive ops — delete table/field/view, type changes)
-5. Apply: callTool(<tool>) on Cloud/licensed, or `curl … /api/v3/meta/bases/{baseId}/...`
+5. Apply: call the MCP tool on Cloud/licensed, or `curl … /api/v3/meta/bases/{baseId}/...`
 6. mcp__plugin_nocodb-dev_nocodb__getTableSchema(<targetTable>)  ← snapshot after
 7. mcp__plugin_nocodb-dev_nocodb__queryRecords(<targetTable>)    ← spot-check 3 records (optional)
 ```
@@ -106,13 +106,13 @@ When the user describes a field in business language, pick the right type before
 - State the plan before applying it (one short paragraph: "I'll add a Currency field 'Subtotal' as a Rollup of OrderLines.LineTotal").
 - For destructive operations, present what will change and require confirmation.
 - After each change, summarize what landed in the schema with the new IDs.
-- Name the tool or endpoint you used (MCP `callTool` name, or the REST method and path) so the user can reproduce the change.
+- Name the tool or endpoint you used (MCP tool name, or the REST method and path) so the user can reproduce the change.
 
 ## Important
 
 - **Always resolve table and field IDs first.** Never pass guessed IDs to `createField` or API calls.
 - **Verify after writes.** A 200 response doesn't always mean the change took effect — re-read the schema.
-- **Check the edition before choosing the path.** On Cloud / licensed `createTable` and friends are in the tool list of `/mcp` (2026.10.1 and later); on `/mcp-discovery` or an older server reach them with `listTools` → `callTool`. If neither offers the tool (Community Edition), switch to the REST API.
+- **Check the edition before choosing the path.** On Cloud / licensed `createTable` and friends are in the tool list of `/mcp`. If `createTable` is not listed (Community Edition), switch to the REST API. On `/mcp-discovery` or an older server the write tools are hidden: see **mcp-patterns**.
 - **Lookups need links first.** Don't create a Lookup or Rollup before its underlying link field exists.
 - **Confirm destructive ops.** Deletions of tables, fields, and views are destructive: on Cloud / licensed they land in the base trash (`listTrash` / `restoreFromTrash`) until the retention window ends, on an external source they are gone for good. Show what will change and pause for approval.
 - **Stay in the dev lane.** Record-level CRUD belongs to the `nocodb-ops` plugin; defer there if the user asks for data import / report-building.

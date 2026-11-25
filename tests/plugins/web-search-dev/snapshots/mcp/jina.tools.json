@@ -76,7 +76,7 @@
             "type": "string"
           },
           "url": {
-            "description": "PDF URL. Give id or url.",
+            "description": "PDF URL on arxiv.org, ssrn.com, openreview.net or aclanthology.org; other hosts are refused. Give id or url.",
             "format": "uri",
             "type": "string"
           }

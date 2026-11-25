@@ -84,6 +84,17 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "scope",
+          "skill"
+        ],
+        "type": "object"
+      },
+      "name": "create_skill"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "code"
         ],
         "type": "object"
@@ -111,6 +122,16 @@
         "type": "object"
       },
       "name": "delete_data_table_column"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "skillId"
+        ],
+        "type": "object"
+      },
+      "name": "delete_skill"
     },
     {
       "description": "",
@@ -171,6 +192,17 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "agentId",
+          "sessionId"
+        ],
+        "type": "object"
+      },
+      "name": "get_agent_session"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "dataTableId",
           "projectId"
         ],
@@ -187,6 +219,24 @@
         "type": "object"
       },
       "name": "get_node_types"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "skillId"
+        ],
+        "type": "object"
+      },
+      "name": "get_skill"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "get_user_preferences"
     },
     {
       "description": "",
@@ -259,6 +309,16 @@
         "type": "object"
       },
       "name": "get_workflow_versions_diff"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "list_agent_sessions"
     },
     {
       "description": "",
@@ -396,6 +456,16 @@
     {
       "description": "",
       "inputSchema": {
+        "required": [
+          "content"
+        ],
+        "type": "object"
+      },
+      "name": "save_user_preference"
+    },
+    {
+      "description": "",
+      "inputSchema": {
         "required": [],
         "type": "object"
       },
@@ -418,6 +488,14 @@
         "type": "object"
       },
       "name": "search_folders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "search_n8n_skills"
     },
     {
       "description": "",
@@ -468,6 +546,16 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "undo_user_preference"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "agentId"
         ],
         "type": "object"
@@ -490,7 +578,6 @@
         "required": [
           "action",
           "agentId",
-          "credentialId",
           "type"
         ],
         "type": "object"
@@ -507,6 +594,27 @@
         "type": "object"
       },
       "name": "update_folder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "baseSkillHash",
+          "skillId"
+        ],
+        "type": "object"
+      },
+      "name": "update_skill"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "update_user_preference"
     },
     {
       "description": "",
