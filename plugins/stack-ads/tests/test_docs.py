@@ -131,6 +131,22 @@ class Plans(unittest.TestCase):
         self.assertEqual(launch.uncapped({"name": "sample", "platform": "tiktok", "steps": steps}), [])
 
 
+    def test_every_image_asset_in_the_google_samples_has_its_own_name(self):
+        """Google refuses an image asset without a name (NAME_REQUIRED_FOR_ASSET_TYPE, seen live on 2026-11-25)."""
+        google = (PLUGIN / "skills/launch-campaign/references/google-ads.md").read_text(encoding="utf-8")
+        bodies = [self.commented_json(block) for block in re.findall(r"```jsonc\n(.*?)```", google, re.S)]
+        bodies = [json.loads(text) for text in bodies if text.strip().startswith("[")]
+        found = 0
+        for operations in bodies:
+            assets = [op["assetOperation"]["create"] for op in operations if "assetOperation" in op]
+            images = [asset for asset in assets if "imageAsset" in asset]
+            found += len(images)
+            names = [asset.get("name") for asset in images]
+            self.assertTrue(all(names), names)
+            self.assertEqual(len(set(names)), len(names), names)
+        self.assertGreaterEqual(found, 4)
+
+
 class Frontmatter(unittest.TestCase):
     """Ten of the eleven generated targets get SKILL.md as written, and their agents read the frontmatter with a
     strict YAML parser. Claude Code is lenient, so nothing else catches a value that only it can read."""

@@ -130,16 +130,16 @@ The catalogue generates this plugin for other coding agents. Skills, with the to
 
 Run against the live services with real keys on 2026-11-14: Firecrawl, DataForSEO, OpenAI, Gemini (image, video, speech, music, analysis) and fal.ai, plus `doctor`, model discovery and `env sync-claude`.
 
-Run against live accounts on 2026-11-22 and 2026-11-23:
+Run against live accounts on 2026-11-22, 2026-11-23 and 2026-11-25:
 
-- **Google Ads, through the toolkit**: `google login`, `google customers`, `google search`, `google geo`, and the whole launch cycle on a production account with the sample Search plan of the reference: `launch plan` with Google's own validation, `launch apply`, `launch status`, `launch rollback --remove`.
+- **Google Ads, through the toolkit**: `google login`, `google customers`, `google search`, `google geo`, and the whole launch cycle on a production account with the sample Search plan of the reference: `launch plan` with Google's own validation, `launch apply`, `launch status`, `launch rollback --remove`. The same cycle with a Demand Gen image ad made from generated images. Performance Max and the Demand Gen video ad passed Google's validation and were not created.
 - **Search Console**: `gsc sites` and `gsc query`.
 - **Apify**: `apify actor` and one capped `apify run`.
 - **TikTok, through the official MCP server**: sign-in, reads, a campaign and an ad group created disabled with the bodies of the reference and then deleted, and the linking of a TikTok account.
 - **Meta, through the official MCP server**: sign-in, reads, a campaign draft created and discarded.
-- **Meta, through the toolkit**: the whole launch cycle with an image ad on a production account: `launch plan`, `launch apply` (image, campaign, ad set, creative, ad, all paused), `launch status`, `launch rollback --remove`.
+- **Meta, through the toolkit**: the whole launch cycle with an image ad on a production account: `launch plan`, `launch apply` (image, campaign, ad set, creative, ad, all paused), `launch status`, `launch rollback --remove`. The same cycle with a generated vertical video.
 
-Not run against a live account: the toolkit's own `tiktok` commands and their launch plans (they need a developer app), Performance Max and Demand Gen plans, `google keyword-ideas` (Basic access), conversion uploads, `launch activate`, ad creation on TikTok, and uploads through the MCP servers. These are covered by unit tests with simulated HTTP and were written from the official documentation. Treat the first dry run of each as the real test, and expect to adjust a field or two; `LEARNINGS.md` records what the live runs changed.
+Not run against a live account: the toolkit's own `tiktok` commands and their launch plans (they need a developer app), Performance Max and Demand Gen video campaigns, `google keyword-ideas` (Basic access), conversion uploads, `launch activate`, ad creation on TikTok, and uploads through the MCP servers. These are covered by unit tests with simulated HTTP and were written from the official documentation. Treat the first dry run of each as the real test, and expect to adjust a field or two; `LEARNINGS.md` records what the live runs changed.
 
 ## Tests
 
