@@ -35,7 +35,7 @@ Set these environment variables (shell, or this repo's `.env`):
 
 | Variable | Required | Example | Notes |
 |----------|----------|---------|-------|
-| `MATTERMOST_API_URL` | yes | `https://mattermost.mycompany.com` | Server root — the API is served under `/api/v4`. No trailing slash needed. |
+| `MATTERMOST_API_URL` | yes | `https://mattermost.example.com` | Server root — the API is served under `/api/v4`. No trailing slash needed. |
 | `MATTERMOST_ADMIN_USERNAME` | yes | `admin` | Username **or** email used to log in. |
 | `MATTERMOST_ADMIN_PASSWORD` | yes | `••••••••` | Password for that account (must hold the System Admin role for admin operations). |
 | `MATTERMOST_TOKEN` | derived | — | Obtained at runtime by the `setup` skill from the login `Token` header; reused for the session. |

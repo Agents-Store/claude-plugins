@@ -53,7 +53,7 @@ Claude doesn't need either to give you grammY code — the prerequisites are for
 
 ## Out of scope
 
-- This plugin teaches Claude how to *build* a Telegram bot. To *operate* a Telegram user account programmatically (read DMs, send messages from a user phone number), use the `tg-client` plugin instead.
+- This plugin teaches Claude how to *build* a Telegram bot. To *operate* a Telegram user account programmatically (read DMs, send messages from a user phone number), use a separate MTProto user-account client (for example Telethon or GramJS) instead.
 - This plugin does not bundle any MCP server. grammY is a code framework — it does not run a hosted service Claude can call.
 
 ## License
