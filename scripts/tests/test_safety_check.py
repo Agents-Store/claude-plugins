@@ -198,6 +198,27 @@ class CliTest(unittest.TestCase):
         self.assertEqual(out.count("FAIL "), 1, out)
 
 
+class PrivateNameScopeTest(unittest.TestCase):
+    def test_names_apply_only_to_the_public_repository(self):
+        tmp = tempfile.mkdtemp(prefix="scope-")
+        self.addCleanup(shutil.rmtree, tmp, True)
+        names = os.path.join(tmp, "names.txt")
+        with open(names, "w") as fh:
+            fh.write("zorblat\n")
+        other = os.path.join(tmp, "plugins", "p", "README.md")         # файл вне этого репозитория (например, приватного)
+        os.makedirs(os.path.dirname(other))
+        with open(other, "w") as fh:
+            fh.write("Zorblat\n")
+        old = os.environ.get("AGENTS_STORE_PRIVATE_NAMES")
+        os.environ["AGENTS_STORE_PRIVATE_NAMES"] = names
+        safety_check.private_names.cache_clear()
+        self.addCleanup(safety_check.private_names.cache_clear)
+        self.addCleanup(lambda: os.environ.pop("AGENTS_STORE_PRIVATE_NAMES", None) if old is None
+                        else os.environ.__setitem__("AGENTS_STORE_PRIVATE_NAMES", old))
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(safety_check.main([other, "--no-baseline"]), 0)
+
+
 class RepoTest(unittest.TestCase):
     def setUp(self):
         self.old = os.environ.get("AGENTS_STORE_PRIVATE_NAMES")

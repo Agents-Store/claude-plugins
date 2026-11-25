@@ -170,6 +170,22 @@ def is_demo_phone(text):
     return any(p.match(digits) for p in FICTIONAL_PHONES)
 
 
+def _common_dir(path):
+    try:
+        out = subprocess.run(["git", "-C", path, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        return os.path.realpath(out) if out else ""
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return ""
+
+
+@functools.lru_cache(maxsize=None)
+def in_this_repository(directory):
+    """A directory of this repository or of any of its worktrees: the owner's names matter only in what is published."""
+    here = _common_dir(REPO_ROOT)
+    return bool(here) and _common_dir(directory) == here
+
+
 @functools.lru_cache(maxsize=1)
 def private_names():
     """Compiled matcher of the owner's private names, or None. The list lives outside every repository."""
@@ -191,13 +207,13 @@ def private_names():
     return re.compile("|".join(r"(?<![A-Za-z0-9])" + re.escape(t) + r"(?![A-Za-z0-9])" for t in terms), re.I)
 
 
-def scan_text(rel_path, text, root=None):
+def scan_text(rel_path, text, root=None, names_ok=True):
     """Findings for one file's text; the kind (code / instruction / data) decides the rules and the severity."""
     kind = file_kind(rel_path)
     if kind is None:
         return []
     out = []
-    names = private_names()
+    names = private_names() if names_ok else None
     vendored = is_skipped(root or REPO_ROOT, rel_path)
 
     def add(lineno, rule, severity, line):
@@ -309,9 +325,10 @@ def main(argv=None):
         text = read_file(rel_path)
         if text is None:
             continue
-        current = scan_text(rel_path, text)
+        ours = in_this_repository(os.path.dirname(os.path.normpath(os.path.join(REPO_ROOT, rel_path))))
+        current = scan_text(rel_path, text, names_ok=ours)
         if args.base:
-            old = collections.Counter(key(f) for f in scan_text(rel_path, text_at(args.base, rel_path)))
+            old = collections.Counter(key(f) for f in scan_text(rel_path, text_at(args.base, rel_path), names_ok=ours))
             fresh = []
             for f in current:
                 if old[key(f)]:
