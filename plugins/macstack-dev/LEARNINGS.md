@@ -177,8 +177,8 @@ found the day somebody checked. Nothing said how to check — so each audit re-i
 its own method, and the only record of a check was a dated review that nobody re-runs.
 Three rules came out of reading real acceptance bullets rather than imagining them:
 
-- **One case mixes both kinds.** C-06 in the live project asserts both "отметиться без
-  геолокации можно всегда" (a machine can decide that) and "предупреждение написано
+- **One case mixes both kinds.** C-06 in the live project asserts both "вернуть заказ без
+  указания причины можно всегда" (a machine can decide that) and "предупреждение написано
   спокойно: это не обвинение" (only a person can). Splitting the document by automation
   would tear the case in half, so the tag lives on the test, not on the file.
 - **`auto` describes how it is checked today**, not what could be automated one day.
@@ -452,7 +452,7 @@ below it, and a client quoting `C-04.2` from memory or from an earlier email poi
 different sentence. The immutability of the handoff protects the old comment; it does
 nothing for the conversation that continues afterwards.
 
-**Fix:** ids allocated from the document's own order (`C-04.a3`, `coach-today.f2`),
+**Fix:** ids allocated from the document's own order (`C-04.a3`, `my-orders.f2`),
 identical across rebuilds, verified by diffing the id set of two runs.
 
 **Also fixed here:** the SKILL promised the package carried four documents and named why —
@@ -869,7 +869,7 @@ verdict is therefore argued and not measured.
 
 - `A27` — вопрос, но файл называется `OPEN-QUESTIONS.md`. Откуда `A`?
 - `M15-T11` — задача, но файл `TASKS.md`. Откуда `M`?
-- `T-19` — кейс тренинг-центра, а `T` в `M15-T11` — задача. **Одна буква, два
+- `T-19` — кейс команды магазина, а `T` в `M15-T11` — задача. **Одна буква, два
   пространства имён.** По id нельзя было сказать, что перед тобой.
 
 Он же предложил решение: `CC`, `CT`, `CO` — буква вида плюс буква роли.
@@ -973,7 +973,7 @@ verdict is therefore argued and not measured.
   still inside, while `screens` beside it split correctly. Fixed with a narrow `PATHISH`
   predicate (no whitespace, contains `/`) beside `IDENT` — deliberately tight, so the
   regression the predicate exists for stays fixed: cron `0 6 1,16 * *` contains spaces
-  and is still text, and `einsaetze.rate_unit` has no slash and stays a scalar. Guarded
+  and is still text, and `buecher.price_unit` has no slash and stays a scalar. Guarded
   by `ValueSplitting` in `tests/test_v3_writer.py` (6 cases, proven by mutation: reverting
   `PATHISH` reddens exactly one). Severity: medium — a two-document bullet parsed to a
   single unusable token, and no test would have said so.
