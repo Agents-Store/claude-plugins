@@ -177,8 +177,8 @@ found the day somebody checked. Nothing said how to check — so each audit re-i
 its own method, and the only record of a check was a dated review that nobody re-runs.
 Three rules came out of reading real acceptance bullets rather than imagining them:
 
-- **One case mixes both kinds.** C-06 in the live project asserts both "отметиться без
-  геолокации можно всегда" (a machine can decide that) and "предупреждение написано
+- **One case mixes both kinds.** C-06 in the live project asserts both "вернуть заказ без
+  указания причины можно всегда" (a machine can decide that) and "предупреждение написано
   спокойно: это не обвинение" (only a person can). Splitting the document by automation
   would tear the case in half, so the tag lives on the test, not on the file.
 - **`auto` describes how it is checked today**, not what could be automated one day.
@@ -452,7 +452,7 @@ below it, and a client quoting `C-04.2` from memory or from an earlier email poi
 different sentence. The immutability of the handoff protects the old comment; it does
 nothing for the conversation that continues afterwards.
 
-**Fix:** ids allocated from the document's own order (`C-04.a3`, `coach-today.f2`),
+**Fix:** ids allocated from the document's own order (`C-04.a3`, `my-orders.f2`),
 identical across rebuilds, verified by diffing the id set of two runs.
 
 **Also fixed here:** the SKILL promised the package carried four documents and named why —
@@ -869,7 +869,7 @@ verdict is therefore argued and not measured.
 
 - `A27` — вопрос, но файл называется `OPEN-QUESTIONS.md`. Откуда `A`?
 - `M15-T11` — задача, но файл `TASKS.md`. Откуда `M`?
-- `T-19` — кейс тренинг-центра, а `T` в `M15-T11` — задача. **Одна буква, два
+- `T-19` — кейс команды магазина, а `T` в `M15-T11` — задача. **Одна буква, два
   пространства имён.** По id нельзя было сказать, что перед тобой.
 
 Он же предложил решение: `CC`, `CT`, `CO` — буква вида плюс буква роли.
@@ -973,7 +973,7 @@ verdict is therefore argued and not measured.
   still inside, while `screens` beside it split correctly. Fixed with a narrow `PATHISH`
   predicate (no whitespace, contains `/`) beside `IDENT` — deliberately tight, so the
   regression the predicate exists for stays fixed: cron `0 6 1,16 * *` contains spaces
-  and is still text, and `einsaetze.rate_unit` has no slash and stays a scalar. Guarded
+  and is still text, and `buecher.price_unit` has no slash and stays a scalar. Guarded
   by `ValueSplitting` in `tests/test_v3_writer.py` (6 cases, proven by mutation: reverting
   `PATHISH` reddens exactly one). Severity: medium — a two-document bullet parsed to a
   single unusable token, and no test would have said so.
@@ -1227,7 +1227,7 @@ journal, что и `intake`, — сменился только источник 
 
 **Тесты.** Новые файлы (до правки красные): `lint/references/tests/test_docs_files_keys.py` (4), `test_status_vocabulary.py` (12), `test_gate_none.py` (5), `test_blocked_by_v3.py` (8), `test_case_space_c_prefix.py` (4), `test_rule_12_0_empty_kinds.py` (4); `documents/references/tests/test_migrate_vocabulary.py` (3), `test_migrate_gate.py` (4); `sync/references/tests/test_sync_spec_isolation.py` (9); `tests/test_docs_vs_schema.py` (7); в репозитории — `scripts/tests/test_check_macstack_canon.py` (9). Охранные тесты в каждом файле держат старые находки живыми: настоящий несовпадающий гейт, неизвестный статус, ключ схемы до rev 18, недостающая человеческая задача — всё это по-прежнему ошибки.
 
-**На живом v3-проекте** (ohawo, read-only): до — 101 находка, после — 104: ровно три новых предупреждения 12.1 (`ledger`, `requirements`, `inbox_manifest`), ни одной новой ошибки. `blocked_by: QA29` у `M15-T2` разрешается. Чтобы убедиться, что ветка теперь видит v3, на КОПИИ `TASKS.md` значение заменено на `QA999`: прежний линтер — «чисто», новый — одно предупреждение со строкой 84.
+**На живом клиентском v3-проекте** (read-only): до — 101 находка, после — 104: ровно три новых предупреждения 12.1 (`ledger`, `requirements`, `inbox_manifest`), ни одной новой ошибки. `blocked_by: QA29` у `M15-T2` разрешается. Чтобы убедиться, что ветка теперь видит v3, на КОПИИ `TASKS.md` значение заменено на `QA999`: прежний линтер — «чисто», новый — одно предупреждение со строкой 84.
 
 **Закрыто здесь из «найдено попутно» записи выше:** ветка `blocked_by` слепа на v3; `none` в контракте и в `migrate.py`; `entity_kind` и `CX-01`; 12.0 на AUTOMATION.md без человеческих задач; 12.3 для `X-01` / `CX-01`.
 
@@ -1235,7 +1235,7 @@ journal, что и `intake`, — сменился только источник 
 - **Когда `blocked_by` и ключи rev 18 станут ошибками.** Сейчас обе находки — предупреждения. Критерий предлагаю такой: «на живых проектах ноль предупреждений 12.4 / 12.1 в течение релиза».
 - **Страж канона красен, пока rev 18 не влит в `main` канона:** копия здесь — rev 18, `main` — rev 17 (`sha256` расходятся). Ожидаемо; пока PR канона не влит, задание `macstack-canon` будет падать. Файлы реестра совпадают с `main`. Периодического запуска (`schedule`) не добавлял: он включил бы по расписанию и остальные задания `scrub.yml`; без него расхождение видно только на следующем PR или push в `main`.
 - **`planned · building · live`** удалены из контракта. Если владелец хочет такие состояния (сборка, выпуск) — это правка канона (`taskRef.status` / `milestoneRef.status`), а не плагина; я её не придумывал.
-- **`blocked_by` на §A-вопрос.** `planning/SKILL.md` велит «никогда §A», 12.4 принимает любой открытый пункт; в ohawo `M15-T2` назван `QA29`. Хотите — это следующее предупреждение.
+- **`blocked_by` на §A-вопрос.** `planning/SKILL.md` велит «никогда §A», 12.4 принимает любой открытый пункт; в живом клиентском v3-проекте `M15-T2` назван `QA29`. Хотите — это следующее предупреждение.
 - **`migrate_spec` не дописывает** `requirements`, `ledger`, `inbox_manifest` в `docs.files` (скилл `documents` теперь велит называть их при создании папки; существующим проектам строка для вставки напечатана в самом предупреждении).
 - **Один `fields.status` на всё.** Статусы результатов, интеграций и воркфлоу (`$defs/status`: `planned · in_progress · implemented · partial · …`) не проверяются ничем; это отдельный словарь, и сейчас у него нет читателя.
 - **ARCHITECTURE.md пишет у воркфлоу только `location`**, `source` (rev 15) — нет; не трогал.

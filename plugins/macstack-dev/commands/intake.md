@@ -11,7 +11,7 @@ Use `macstack-dev:intake`. It owns the loop; this command only routes into it.
 1. **A file in `inbox/`** — a PDF, a spec, a screenshot, a spreadsheet. Anything.
 2. **A stray file that appeared in `client/`** — anything there that is not one of the
    six documents is incoming material, not a document. Move it to `inbox/` first.
-3. **Text typed into this chat.** "убери геолокацию", "клиент сказал, что счета должны
+3. **Text typed into this chat.** "убери проверку срока возврата", "клиент сказал, что счета должны
    выходить 5-го". Write it to `inbox/<date>-<slug>.md` before doing anything else.
 
 The third is the one people forget to record. A correction that exists only in a chat

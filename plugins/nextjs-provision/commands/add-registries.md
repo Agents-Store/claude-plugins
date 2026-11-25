@@ -20,7 +20,7 @@ Fetch the list of shadcn-compatible registries from the official endpoint and po
 
 2b. For a handful of registries, the native CLI command is an alternative to the fetch-and-merge flow:
    ```bash
-   npx shadcn registry add @name=https://domain.com/r/{name}.json @name2=https://other.com/r/{name}.json
+   npx shadcn registry add @name=https://registry.example.com/r/{name}.json @name2=https://other.example.com/r/{name}.json
    ```
    The fetch-and-merge flow below remains the way to add the whole directory in bulk.
 
