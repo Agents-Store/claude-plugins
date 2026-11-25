@@ -62,7 +62,7 @@ Parse from "$ARGUMENTS".
 
 ## Example Usage
 ```
-/document-generator-ops:generate-nda --type mutual --party1 "Acme Corp" --party2 "TechStart Inc"
+/document-generator-ops:generate-nda --type mutual --party1 "Acme Corp" --party2 "Example Inc"
 /document-generator-ops:generate-nda --type unilateral
 /document-generator-ops:generate-nda
 ```

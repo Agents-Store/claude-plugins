@@ -31,5 +31,5 @@ Read and extract content from a web page or PDF. Follow `${CLAUDE_PLUGIN_ROOT}/s
 ```
 /read-url https://example.com/article
 /read-url https://arxiv.org/pdf/2301.00001
-/read-url https://spa-app.com/page --format screenshot
+/read-url https://spa.example.com/page --format screenshot
 ```
