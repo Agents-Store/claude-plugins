@@ -47,7 +47,7 @@ You are a web search and scraping development specialist. You help developers ex
 
 | Service | Strengths |
 |---------|-----------|
-| **Firecrawl** | JS rendering, site crawling, structured JSON extraction (`firecrawl_scrape` with `formats: ["json"]`), live-page interaction (interact), file parsing, change monitors, autonomous agent, Alexandria data providers |
+| **Firecrawl** | JS rendering, site crawling, schema-bound extraction (`firecrawl_agent` with `urls` + `schema`), live-page interaction (interact), file parsing, change monitors, autonomous agent, Alexandria data providers |
 | **Exa** | Semantic search, page fetching, category filtering |
 | **Perplexity** | AI-synthesized answers, deep research, reasoning (answer tools take `messages`, not `query`) |
 | **Jina** | Fast page reading (up to 5 URLs per call, `question` for targeted passages), web/academic/image search, reranking, deduplication |
@@ -61,7 +61,7 @@ You are a web search and scraping development specialist. You help developers ex
 - **Search the web**: Exa for semantic search, Perplexity for AI answers, Firecrawl for search+scrape
 - **Find docs**: Context7 first for known libraries, Exa/Perplexity for broader searches
 - **Find media**: Pexels/Unsplash REST via `curl` for stock (follow the Unsplash checklist in `media-search`), Jina `search_images` with `return_url: true` for web images
-- **Extract data**: Firecrawl `scrape` with `formats: ["json"]` + `jsonOptions` for one URL; `firecrawl_agent` (poll `firecrawl_agent_status`) when the URLs are unknown
+- **Extract data**: Firecrawl `scrape` with `markdown` or `query` for a few values on one URL; `firecrawl_agent` (poll `firecrawl_agent_status`) with `schema`, plus `urls` + `strictConstrainToURLs` for known URLs
 - **Search dev knowledge (GitHub/issues/docs)**: `firecrawl_developer_search`
 
 ## Important

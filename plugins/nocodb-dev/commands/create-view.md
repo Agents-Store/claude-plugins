@@ -26,7 +26,7 @@ The view types, their prerequisites and create payloads are written down in `${C
    - **Gantt** — needs start/end Date fields; `options.date_dependency` is required (`null` takes the table default)
    - **List** — needs linked tables; describe them in `options.levels`
    - **Map** — needs a Geometry field; capture for `options.geo_data_field_id`
-5. Create the view. On Cloud / licensed: `listTools category: "views"`, then `callTool name: "createView"` with `arguments: { tableId, title, type, lock_type?, options?, fields? }`. On Community Edition (or as a fallback) — payloads per **view-management**:
+5. Create the view. On Cloud / licensed: call `createView` with `{ tableId, title, type, lock_type?, options?, fields? }`. On Community Edition (or as a fallback) — payloads per **view-management**:
    ```bash
    curl -sS -X POST \
      -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \

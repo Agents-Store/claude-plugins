@@ -23,7 +23,7 @@ How Link, Lookup and Rollup fields are built and verified is written down in `${
    mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <fromTableId>
    mcp__plugin_nocodb-dev_nocodb__getTableSchema  tableId: <toTableId>
    ```
-4. Create the link field on the "from" table. On Cloud / licensed, `listTools category: "fields"` then `callTool name: "createField"` with `arguments: { tableId: "<fromTableId>", field: { … } }`; on Community Edition (or as a fallback) use REST with the same object as the body:
+4. Create the link field on the "from" table. On Cloud / licensed, call `createField` with `{ tableId: "<fromTableId>", field: { … } }`; on Community Edition (or as a fallback) use REST with the same object as the body:
    ```bash
    curl -sS -X POST \
      -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \

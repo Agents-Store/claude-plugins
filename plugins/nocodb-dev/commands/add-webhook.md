@@ -24,7 +24,7 @@ The HookV3 anatomy, notification types and the pre-flight checklist are written 
    ```
    mcp__plugin_nocodb-dev_nocodb__listHooks  tableId: <tableId>
    ```
-5. Create the hook. On Cloud / licensed: `listTools category: "hooks"`, then `callTool name: "createHook"` with `arguments: { tableId, title, event, operation, notification, active, trigger_fields? }`. On Community Edition (or as a fallback) use REST:
+5. Create the hook. On Cloud / licensed: call `createHook` with `{ tableId, title, event, operation, notification, active, trigger_fields? }`. On Community Edition (or as a fallback) use REST:
    ```bash
    curl -sS -X POST \
      -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \

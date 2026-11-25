@@ -8,7 +8,7 @@ This plugin also replaces `image-search-dev` (retired; installed copies are rena
 
 | Service | Tools | Use For |
 |---------|-------|---------|
-| **Firecrawl** | 27 MCP tools | Scraping, crawling, structured JSON extraction, agent research, live-page interaction, file parsing, change monitors, Alexandria data providers |
+| **Firecrawl** | 34 MCP tools | Scraping, crawling, schema-bound extraction via the agent, agent research, live-page interaction, file parsing, change monitors, Alexandria data providers |
 | **Exa** | 2 MCP tools (search + fetch), +2 opt-in | Semantic web search, page fetching, advanced filters and `agent_run` (opt-in) |
 | **Perplexity** | 4 MCP tools | Search, AI-powered Q&A, deep research, reasoning |
 | **Jina** | 12 MCP tools | Page reading (batch + question mode), web/academic/image search, reranking, deduplication |

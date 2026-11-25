@@ -4,8 +4,74 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "base_role",
+          "emails"
+        ],
+        "type": "object"
+      },
+      "name": "addBaseMembers"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "base_role",
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "addBaseTeam"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "choices",
+          "fieldId"
+        ],
+        "type": "object"
+      },
+      "name": "addFieldOptions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "color",
+          "condition",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "addRowColorCondition"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "field_id",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "addSort"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "node",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "addWorkflowNode"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "aggregations",
-          "filterGroups",
           "tableId"
         ],
         "type": "object"
@@ -29,11 +95,33 @@
       "description": "",
       "inputSchema": {
         "required": [
-          "name"
+          "pageId"
         ],
         "type": "object"
       },
-      "name": "callTool"
+      "name": "clearInterfacePageDraft"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "clearRowColoring"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "source",
+          "target",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "connectWorkflowNodes"
     },
     {
       "description": "",
@@ -44,6 +132,168 @@
         "type": "object"
       },
       "name": "countRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createAgent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "fk_integration_id"
+        ],
+        "type": "object"
+      },
+      "name": "createAgentChannel"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createAutomationFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "comment",
+          "recordId",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "createComment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createDashboard"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createDocument"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "comment",
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "createDocumentComment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "field",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "createField"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filter",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "createFilter"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "operation",
+          "tableId",
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createHook"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createInterface"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fk_interface_id",
+          "layout",
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createInterfacePage"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "templateId"
+        ],
+        "type": "object"
+      },
+      "name": "createRecordFromTemplate"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId",
+          "template_data",
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createRecordTemplate"
     },
     {
       "description": "",
@@ -60,6 +310,234 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "createRlsPolicy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createScript"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createTable"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId",
+          "title",
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "createView"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId",
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createViewFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dashboardId",
+          "title",
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "createWidget"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "createWorkflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteAgent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "channelId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteAgentChannel"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteAutomationFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "commentId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteComment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dashboardId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteDashboard"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteDateDependency"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteDocument"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "commentId",
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteDocumentComment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteField"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filterId",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteFilter"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "hookId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteHook"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "interfaceId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteInterface"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "pageId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteInterfacePage"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "templateId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteRecordTemplate"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "records",
           "tableId"
         ],
@@ -70,10 +548,272 @@
     {
       "description": "",
       "inputSchema": {
+        "required": [
+          "policyId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteRlsPolicy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "conditionId",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteRowColorCondition"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "scriptId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteScript"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "sortId",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteSort"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteTable"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteView"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteViewFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "widgetId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteWidget"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteWorkflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "nodeId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "deleteWorkflowNode"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "source",
+          "target",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "disconnectWorkflowNodes"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "entity",
+          "entityId",
+          "permission"
+        ],
+        "type": "object"
+      },
+      "name": "dropPermission"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "duplicateAgent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "duplicateBase"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId"
+        ],
+        "type": "object"
+      },
+      "name": "duplicateField"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "interfaceId"
+        ],
+        "type": "object"
+      },
+      "name": "duplicateInterface"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "pageId"
+        ],
+        "type": "object"
+      },
+      "name": "duplicateInterfacePage"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "scriptId"
+        ],
+        "type": "object"
+      },
+      "name": "duplicateScript"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "duplicateTable"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "duplicateView"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "duplicateWorkflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
         "required": [],
         "type": "object"
       },
       "name": "exportCsv"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "exportExcel"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "generateSkillGuide"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "getAgent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "sessionId"
+        ],
+        "type": "object"
+      },
+      "name": "getAgentSession"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "kind"
+        ],
+        "type": "object"
+      },
+      "name": "getAppUrl"
     },
     {
       "description": "",
@@ -125,6 +865,16 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "getDateDependency"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "documentId"
         ],
         "type": "object"
@@ -171,6 +921,16 @@
         "type": "object"
       },
       "name": "getFormFieldConditions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "pageId"
+        ],
+        "type": "object"
+      },
+      "name": "getFormSchema"
     },
     {
       "description": "",
@@ -261,6 +1021,16 @@
         "type": "object"
       },
       "name": "getRecord"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "templateId"
+        ],
+        "type": "object"
+      },
+      "name": "getRecordTemplate"
     },
     {
       "description": "",
@@ -391,6 +1161,16 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "csv"
+        ],
+        "type": "object"
+      },
+      "name": "importCsv"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "fieldId",
           "records",
           "tableId"
@@ -402,10 +1182,59 @@
     {
       "description": "",
       "inputSchema": {
+        "required": [
+          "fieldId",
+          "records",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "linkRecordsByDisplayValue"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "sessionId"
+        ],
+        "type": "object"
+      },
+      "name": "listAgentMessages"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "listAgentSessions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listAgents"
+    },
+    {
+      "description": "",
+      "inputSchema": {
         "required": [],
         "type": "object"
       },
       "name": "listAutomationFolders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listBaseAudits"
     },
     {
       "description": "",
@@ -433,6 +1262,16 @@
         "type": "object"
       },
       "name": "listDashboards"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "listDocumentComments"
     },
     {
       "description": "",
@@ -479,6 +1318,17 @@
         "type": "object"
       },
       "name": "listFolders"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId",
+          "pageId"
+        ],
+        "type": "object"
+      },
+      "name": "listFormLinkCandidates"
     },
     {
       "description": "",
@@ -532,6 +1382,25 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "recordId",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "listRecordAudits"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "listRecordTemplates"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "tableId"
         ],
         "type": "object"
@@ -567,12 +1436,10 @@
     {
       "description": "",
       "inputSchema": {
-        "required": [
-          "category"
-        ],
+        "required": [],
         "type": "object"
       },
-      "name": "listTools"
+      "name": "listTrash"
     },
     {
       "description": "",
@@ -624,6 +1491,81 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "automationId",
+          "entity",
+          "folderId"
+        ],
+        "type": "object"
+      },
+      "name": "moveAutomationToFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "moveDocument"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "moveTableToFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "moveViewToFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "contentUpdates",
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "patchDocument"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "interfaceId"
+        ],
+        "type": "object"
+      },
+      "name": "publishInterface"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "publishWorkflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "tableId"
         ],
         "type": "object"
@@ -644,6 +1586,242 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "removeBaseMember"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "removeBaseTeam"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "choices",
+          "fieldId"
+        ],
+        "type": "object"
+      },
+      "name": "removeFieldOptions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filter",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "replaceFilters"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "commentId"
+        ],
+        "type": "object"
+      },
+      "name": "resolveComment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "commentId",
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "resolveDocumentComment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "trashId"
+        ],
+        "type": "object"
+      },
+      "name": "restoreFromTrash"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "rowIds",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "restoreRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "scriptId"
+        ],
+        "type": "object"
+      },
+      "name": "restoreScript"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "content"
+        ],
+        "type": "object"
+      },
+      "name": "sendAgentMessage"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "setDateDependency"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId"
+        ],
+        "type": "object"
+      },
+      "name": "setDisplayField"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "conditions",
+          "fieldId",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "setFormFieldConditions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "entity",
+          "entityId",
+          "grantedType",
+          "permission"
+        ],
+        "type": "object"
+      },
+      "name": "setPermission"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "conditions",
+          "policyId"
+        ],
+        "type": "object"
+      },
+      "name": "setRlsPolicyConditions"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "policyId",
+          "subjects"
+        ],
+        "type": "object"
+      },
+      "name": "setRlsPolicySubjects"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldId",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "setRowColorBySelect"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "shareDocument"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "shareView"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "sessionId"
+        ],
+        "type": "object"
+      },
+      "name": "stopAgentSession"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fields",
+          "pageId"
+        ],
+        "type": "object"
+      },
+      "name": "submitForm"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "channelId"
+        ],
+        "type": "object"
+      },
+      "name": "testAgentChannel"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "fieldId",
           "records",
           "tableId"
@@ -656,12 +1834,357 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "unshareDocument"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "unshareView"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "updateAgent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "agentId",
+          "channelId"
+        ],
+        "type": "object"
+      },
+      "name": "updateAgentChannel"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId"
+        ],
+        "type": "object"
+      },
+      "name": "updateAutomationFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "baseId"
+        ],
+        "type": "object"
+      },
+      "name": "updateBase"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "base_role",
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "updateBaseMember"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "base_role",
+          "id"
+        ],
+        "type": "object"
+      },
+      "name": "updateBaseTeam"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "comment",
+          "commentId"
+        ],
+        "type": "object"
+      },
+      "name": "updateComment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "dashboardId"
+        ],
+        "type": "object"
+      },
+      "name": "updateDashboard"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "updateDocument"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "comment",
+          "commentId",
+          "documentId"
+        ],
+        "type": "object"
+      },
+      "name": "updateDocumentComment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "field",
+          "fieldId"
+        ],
+        "type": "object"
+      },
+      "name": "updateField"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "filter",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "updateFilter"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId"
+        ],
+        "type": "object"
+      },
+      "name": "updateFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "hookId"
+        ],
+        "type": "object"
+      },
+      "name": "updateHook"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "interfaceId"
+        ],
+        "type": "object"
+      },
+      "name": "updateInterface"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "pageId"
+        ],
+        "type": "object"
+      },
+      "name": "updateInterfacePage"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "templateId"
+        ],
+        "type": "object"
+      },
+      "name": "updateRecordTemplate"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "records",
           "tableId"
         ],
         "type": "object"
       },
       "name": "updateRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fields",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "updateRecordsByCondition"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "policyId"
+        ],
+        "type": "object"
+      },
+      "name": "updateRlsPolicy"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "conditionId",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "updateRowColorCondition"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "scriptId"
+        ],
+        "type": "object"
+      },
+      "name": "updateScript"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "sortId",
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "updateSort"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "updateTable"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "viewId"
+        ],
+        "type": "object"
+      },
+      "name": "updateView"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "folderId"
+        ],
+        "type": "object"
+      },
+      "name": "updateViewFolder"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "widgetId"
+        ],
+        "type": "object"
+      },
+      "name": "updateWidget"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "updateWorkflow"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "nodeId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "updateWorkflowNode"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "files"
+        ],
+        "type": "object"
+      },
+      "name": "uploadAttachment"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "fieldsToMergeOn",
+          "records",
+          "tableId"
+        ],
+        "type": "object"
+      },
+      "name": "upsertRecords"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "nodeId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "validateWorkflowNode"
     },
     {
       "description": "",

@@ -58,6 +58,557 @@
       "name": "close_agent_chat"
     },
     {
+      "description": "Create a monitoring alert for a project. Use list_alert_capabilities first to find a capabilityKey and understand its condition shape.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "behavior": {
+            "description": "Optional expiry. Alerts keep firing until they expire or are stopped.",
+            "properties": {
+              "expiresAt": {
+                "description": "ISO 8601 timestamp after which the alert stops.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "capabilityKey": {
+            "description": "The capability key to monitor. Use list_alert_capabilities to discover available keys.",
+            "type": "string"
+          },
+          "condition": {
+            "description": "The condition that raises the alert, matching the kind returned by list_alert_capabilities for this capability.",
+            "oneOf": [
+              {
+                "properties": {
+                  "holdSec": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
+                  "kind": {
+                    "const": "threshold",
+                    "type": "string"
+                  },
+                  "operator": {
+                    "enum": [
+                      ">",
+                      "<"
+                    ],
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "number"
+                  },
+                  "windowSec": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "operator",
+                  "value",
+                  "windowSec"
+                ],
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "holdSec": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
+                  "kind": {
+                    "const": "state",
+                    "type": "string"
+                  },
+                  "params": {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "description": "Overrides for the capability's param defaults, e.g. thresholds.",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "stateKey": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "stateKey"
+                ],
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "occurrence",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind"
+                ],
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "absence",
+                    "type": "string"
+                  },
+                  "quietWindowSec": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1800,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "quietWindowSec"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "description": "An optional display name for the alert.",
+            "type": "string"
+          },
+          "notifiers": {
+            "description": "Who to notify when the alert raises, e.g. [{ type: 'chat', chatId: '<id>' }].",
+            "items": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "channelId": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "const": "channel",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "channelId",
+                    "type"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "chatId": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "const": "chat",
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "chatId",
+                    "type"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "params": {
+            "description": "The scope for this capability, e.g. { scope: { type: 'queue', queue: 'my-queue' } } or { scope: { type: 'errorGroup', taskIdentifier, fingerprint } }.",
+            "properties": {
+              "scope": {
+                "description": "Defaults to all.",
+                "properties": {
+                  "fingerprint": {
+                    "type": "string"
+                  },
+                  "pattern": {
+                    "type": "string"
+                  },
+                  "queue": {
+                    "type": "string"
+                  },
+                  "taskIdentifier": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "enum": [
+                      "queue",
+                      "queuePattern",
+                      "task",
+                      "all",
+                      "errorGroup"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "type": "object"
+              },
+              "windowSec": {
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "query": {
+            "description": "The TRQL query a custom.query alert watches. Only valid with custom.query.",
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "signal": {
+            "description": "How a custom.query alert reads its query: threshold on a measure, absence of rows, or any matching row. Only valid with custom.query.",
+            "properties": {
+              "measure": {
+                "maxLength": 128,
+                "type": "string"
+              },
+              "mode": {
+                "enum": [
+                  "threshold",
+                  "absence",
+                  "match"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "behavior",
+          "capabilityKey",
+          "condition",
+          "notifiers",
+          "params"
+        ],
+        "type": "object"
+      },
+      "name": "create_alert"
+    },
+    {
+      "description": "Create a custom metrics dashboard, optionally with widgets. Each widget has a title, a TRQL query (use get_query_schema to see the tables and columns, and the query tool to try a query first), and a display: a table, a chart (bar or line, with x-axis and y-axis columns), a big number, or a title section header. Widgets without a position are stacked full width in order. Returns the dashboard id.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "description": {
+            "description": "An optional description",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "title": {
+            "description": "The dashboard title",
+            "type": "string"
+          },
+          "widgets": {
+            "description": "The widgets to add, in order. Leave out to create an empty dashboard.",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "display": {
+                  "oneOf": [
+                    {
+                      "properties": {
+                        "prettyFormatting": {
+                          "default": true,
+                          "type": "boolean"
+                        },
+                        "sorting": {
+                          "default": [],
+                          "items": {
+                            "properties": {
+                              "desc": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "desc",
+                              "id"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "type": {
+                          "const": "table",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "aggregation": {
+                          "enum": [
+                            "sum",
+                            "avg",
+                            "count",
+                            "min",
+                            "max"
+                          ],
+                          "type": "string"
+                        },
+                        "chartType": {
+                          "enum": [
+                            "bar",
+                            "line"
+                          ],
+                          "type": "string"
+                        },
+                        "groupByColumn": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seriesColors": {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "sortByColumn": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "sortDirection": {
+                          "enum": [
+                            "asc",
+                            "desc"
+                          ],
+                          "type": "string"
+                        },
+                        "stacked": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "const": "chart",
+                          "type": "string"
+                        },
+                        "xAxisColumn": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "yAxisColumns": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "aggregation",
+                        "chartType",
+                        "groupByColumn",
+                        "sortByColumn",
+                        "sortDirection",
+                        "stacked",
+                        "type",
+                        "xAxisColumn",
+                        "yAxisColumns"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "abbreviate": {
+                          "default": false,
+                          "type": "boolean"
+                        },
+                        "aggregation": {
+                          "enum": [
+                            "sum",
+                            "avg",
+                            "count",
+                            "min",
+                            "max",
+                            "first",
+                            "last"
+                          ],
+                          "type": "string"
+                        },
+                        "column": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "sortDirection": {
+                          "enum": [
+                            "asc",
+                            "desc"
+                          ],
+                          "type": "string"
+                        },
+                        "suffix": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "const": "bignumber",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "aggregation",
+                        "column",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "type": {
+                          "const": "title",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "fillGaps": {
+                  "type": "boolean"
+                },
+                "id": {
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                  "type": "string"
+                },
+                "position": {
+                  "properties": {
+                    "h": {
+                      "maximum": 9007199254740991,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "w": {
+                      "maximum": 12,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "x": {
+                      "maximum": 11,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "y": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "h",
+                    "w",
+                    "x",
+                    "y"
+                  ],
+                  "type": "object"
+                },
+                "query": {
+                  "default": "",
+                  "type": "string"
+                },
+                "title": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "display",
+                "title"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "name": "create_dashboard"
+    },
+    {
       "description": "Create a new project in an organization. Only do this if the user wants to add Trigger.dev to an existing project. If there is already a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file present, then you should not create a new project.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -146,8 +697,7 @@
             "type": "string"
           },
           "environment": {
-            "default": "prod",
-            "description": "The environment to ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} the task in",
+            "description": "The environment to deploy to. There is no default: if the user hasn't said which environment, ask them. Deploying to prod changes the version that live runs use.",
             "enum": [
               "staging",
               "prod",
@@ -172,6 +722,9 @@
             "type": "boolean"
           }
         },
+        "required": [
+          "environment"
+        ],
         "type": "object"
       },
       "name": "deploy"
@@ -192,6 +745,52 @@
         "type": "object"
       },
       "name": "dev_server_status"
+    },
+    {
+      "description": "Generate a new signing secret for a hosted webhook endpoint and return it once, for providers where you choose the secret (for example GitHub). It replaces the existing secret; pass previousSecretTtlSeconds to keep accepting the old one while you update the provider, otherwise deliveries signed with it fail. Never print, log or commit the returned secret. The returned secret enters your context. To keep it out, run the CLI instead: `npx ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev@latest webhooks generate-secret <endpoint> --env <env> --to-env <NAME>` saves it to .env.local without printing it, so you can pass it to the provider by variable name, or `--print` pipes it straight into the provider's CLI. When the endpoint already has a secret, add `--previous-secret-ttl` (for example 24h, or 0 if the old secret leaked). Prefer the CLI whenever you can run shell commands.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "endpointId": {
+            "description": "The webhook endpoint: its declared id (e.g. payments) or wh_ id. Use list_webhook_endpoints to find it.",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "previousSecretTtlSeconds": {
+            "description": "Keep accepting the replaced secret for this many seconds (at most 604800, 7 days) so deliveries the provider still signs with it keep verifying. Omit or pass 0 to replace it immediately, for example when it leaked.",
+            "maximum": 604800,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpointId"
+        ],
+        "type": "object"
+      },
+      "name": "generate_webhook_secret"
     },
     {
       "description": "Get the current worker for the project, including version and registered task slugs. Use get_task_schema to get the payload schema for a specific task.",
@@ -495,6 +1094,86 @@
       "name": "get_task_schema"
     },
     {
+      "description": "Get one webhook delivery: its status and error, what happened at each subscriber (the run or session it triggered, or why its filter skipped the event), how many waiting runs it resumed, and the event body and headers it carried. Use this to debug why a webhook did or didn't ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} a task.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "deliveryId": {
+            "description": "The delivery id, starting with whd_. Use list_webhook_deliveries to find it.",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "deliveryId"
+        ],
+        "type": "object"
+      },
+      "name": "get_webhook_delivery"
+    },
+    {
+      "description": "Get a hosted webhook endpoint's details, its subscribers (with the filters that decide which events they accept) and its setup prompt: step-by-step instructions for registering the endpoint with its provider and handling the signing secret. Follow the setup prompt when asked to connect or configure a webhook.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "endpointId": {
+            "description": "The webhook endpoint: its declared id (e.g. payments) or wh_ id. Use list_webhook_endpoints to find it.",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpointId"
+        ],
+        "type": "object"
+      },
+      "name": "get_webhook_endpoint_details"
+    },
+    {
       "description": "Initialize Trigger.dev in your project. This will create a new project in the organization you select and add Trigger.dev to your project.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -558,7 +1237,80 @@
       "name": "list_agents"
     },
     {
-      "description": "List available built-in dashboards with their widgets. Each dashboard contains pre-built queries for common metrics like run success rates, costs, LLM usage, and more. Use run_dashboard to execute a dashboard's queries.",
+      "description": "List what a monitoring alert can watch for a project — queues, runs and health signals. Health capabilities expose tunable params (e.g. thresholds) with defaults, surfaced on each capability. Use this before create_alert to find a valid capabilityKey and its allowed condition shape.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "area": {
+            "description": "Filter capabilities to a specific area, e.g. 'queues', 'runs', 'health'.",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_alert_capabilities"
+    },
+    {
+      "description": "List monitoring alerts for a project and environment, optionally filtered by lifecycle (active/completed/expired/stopped) or attention (clear/needs_attention).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "attention": {
+            "description": "Filter by whether the alert currently needs attention.",
+            "enum": [
+              "clear",
+              "needs_attention"
+            ],
+            "type": "string"
+          },
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "lifecycle": {
+            "description": "Filter by alert lifecycle state.",
+            "enum": [
+              "active",
+              "completed",
+              "expired",
+              "stopped"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_alerts"
+    },
+    {
+      "description": "List the built-in dashboards and the organization's custom dashboards, with their widgets. Built-in dashboards contain pre-built queries for common metrics like run success rates, costs, LLM usage, and more. Use run_dashboard_query to execute a widget's query.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
@@ -609,7 +1361,7 @@
           },
           "environment": {
             "default": "prod",
-            "description": "The environment to ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} the task in",
+            "description": "The environment to list deploys for",
             "enum": [
               "staging",
               "prod",
@@ -740,8 +1492,16 @@
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
+          "batch": {
+            "description": "Filter for runs in this batch, starts with batch_",
+            "type": "string"
+          },
           "branch": {
             "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "bulkAction": {
+            "description": "Filter for runs in this bulk action, starts with bulk_",
             "type": "string"
           },
           "configPath": {
@@ -764,7 +1524,7 @@
             "type": "string"
           },
           "from": {
-            "description": "Filter for runs created after this ISO 8601 timestamp",
+            "description": "Filter for runs created after this ISO 8601 timestamp. Ignored when period is set",
             "type": "string"
           },
           "limit": {
@@ -787,15 +1547,23 @@
             "type": "string"
           },
           "period": {
-            "description": "Filter for runs created in the last N time period. e.g. 7d, 30d, 365d",
+            "description": "Filter for runs created in the last N time period. e.g. 7d, 30d, 365d. Takes precedence: when period is set, from and to are ignored",
             "type": "string"
           },
           "projectRef": {
             "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
             "type": "string"
           },
+          "queue": {
+            "description": "Filter for runs in this queue, e.g. task/my-task or a custom queue name",
+            "type": "string"
+          },
           "region": {
             "description": "Filter for runs that executed in this region (the worker instance group masterQueue identifier, e.g. '${AWS_DEFAULT_REGION}' or 'main')",
+            "type": "string"
+          },
+          "schedule": {
+            "description": "Filter for runs triggered by this schedule, starts with sched_",
             "type": "string"
           },
           "status": {
@@ -826,17 +1594,116 @@
             "type": "string"
           },
           "to": {
-            "description": "Filter for runs created before this ISO 8601 timestamp",
+            "description": "Filter for runs created before this ISO 8601 timestamp. Ignored when period is set",
             "type": "string"
           },
           "version": {
-            "description": "Filter for runs that match this version, e.g. 20250808.3",
+            "description": "Filter for runs that match this version, e.g. 20250808.3. Separate several versions with commas, e.g. 20250808.3,20250809.1",
             "type": "string"
           }
         },
         "type": "object"
       },
       "name": "list_runs"
+    },
+    {
+      "description": "List recent webhook deliveries (the verified events providers sent), newest first, optionally for one endpoint and only some statuses: succeeded, failed, filtered (no subscriber's filter accepted it), pending or processing. Use this to find out whether a provider's event arrived, then get_webhook_delivery for where it went.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "cursor": {
+            "description": "The cursor from a previous call, to get the next page of older deliveries.",
+            "type": "string"
+          },
+          "endpointId": {
+            "description": "Only this endpoint's deliveries: its declared id (e.g. payments) or wh_ id.",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "description": "How many to return (default 20).",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "period": {
+            "description": "How far back to look, e.g. \"1h\", \"1d\" or \"7d\". Defaults to 7d.",
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "status": {
+            "description": "Only deliveries with these statuses, e.g. [\"failed\", \"filtered\"].",
+            "items": {
+              "enum": [
+                "pending",
+                "processing",
+                "succeeded",
+                "failed",
+                "filtered",
+                "unmatched"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_webhook_deliveries"
+    },
+    {
+      "description": "List the hosted webhook endpoints in the project environment: each endpoint's id (wh_...), declared id, provider source, status, webhook URL and whether its signing secret is set. Use get_webhook_endpoint_details for an endpoint's subscribers and setup prompt.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_webhook_endpoints"
     },
     {
       "description": "Promote a prompt version to be the current active version. Only code-sourced versions can be promoted — dashboard overrides must use the override tools instead.",
@@ -1105,7 +1972,222 @@
       "name": "remove_prompt_override"
     },
     {
-      "description": "Execute a single widget query from a built-in dashboard. Use list_dashboards first to see available dashboards, widget IDs, and their queries. Supports time period and scope options.",
+      "description": "Replay a run: create a new run of the same task in the same environment, reusing the original run's payload, metadata, tags, queue, concurrency key and machine. Pass any of payload, metadata, tags, queue, concurrencyKey, machine, version, region, delay, ttl, idempotencyKey, maxAttempts, maxDuration or priority to override them for the new run. The run ID starts with run_",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "concurrencyKey": {
+            "description": "The concurrency key for the replayed run",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "delay": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "type": "string"
+              }
+            ],
+            "description": "Delay the replayed run, as a duration like 1h30m or an ISO 8601 date"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "description": "An idempotency key for the replayed run",
+            "type": "string"
+          },
+          "machine": {
+            "description": "The machine preset for the replayed run",
+            "enum": [
+              "micro",
+              "small-1x",
+              "small-2x",
+              "medium-1x",
+              "medium-2x",
+              "large-1x",
+              "large-2x"
+            ],
+            "type": "string"
+          },
+          "maxAttempts": {
+            "description": "The maximum number of attempts for the replayed run",
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "maxDuration": {
+            "description": "The maximum duration in seconds of the replayed run",
+            "type": "number"
+          },
+          "metadata": {
+            "additionalProperties": {},
+            "description": "New metadata for the replayed run. Omit it to reuse the original run's metadata.",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "payload": {
+            "description": "A new payload for the replayed run, as the actual payload object (not a JSON string). Omit it to reuse the original run's payload."
+          },
+          "priority": {
+            "description": "Priority offset in seconds. Higher values are dequeued sooner.",
+            "type": "number"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "queue": {
+            "description": "The name of an existing queue to run on. Omit it to use the original run's queue.",
+            "type": "string"
+          },
+          "region": {
+            "description": "The region to run in. Defaults to the original run's region.",
+            "type": "string"
+          },
+          "runId": {
+            "description": "The ID of the run to get the details of, starts with run_",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Tags for the replayed run, replacing the original run's tags. Up to 10.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ttl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              }
+            ],
+            "description": "How long the replayed run can stay queued before it expires, as a duration like 10m or a number of seconds"
+          },
+          "version": {
+            "description": "Lock the replayed run to this deployed version, e.g. 20250101.1. Defaults to the current version.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "type": "object"
+      },
+      "name": "replay_run"
+    },
+    {
+      "description": "Replay a webhook delivery from its stored event as a new delivery. With no targetId it goes to every subscriber again, re-checking their filters; with targetId it goes to that one subscriber even if its filter skipped the event. Replays ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE} real runs, so confirm with the user first.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "deliveryId": {
+            "description": "The delivery id, starting with whd_. Use list_webhook_deliveries to find it.",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "targetId": {
+            "description": "Replay to only this subscriber (its id on the endpoint, from the delivery's targets), even if its filter skipped the event. Omit to replay to every subscriber, re-checking their filters.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "deliveryId"
+        ],
+        "type": "object"
+      },
+      "name": "replay_webhook_delivery"
+    },
+    {
+      "description": "Resolve a monitoring alert that needs attention, acknowledging it. The alert re-arms after resolving.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "alertId": {
+            "description": "The id of the alert to resolve. Use list_alerts to find it.",
+            "type": "string"
+          },
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alertId"
+        ],
+        "type": "object"
+      },
+      "name": "resolve_alert"
+    },
+    {
+      "description": "Execute a single widget query from a built-in or custom dashboard. Use list_dashboards first to see available dashboards, widget IDs, and their queries. Supports time period and scope options.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {
@@ -1208,6 +2290,341 @@
         "type": "object"
       },
       "name": "send_agent_message"
+    },
+    {
+      "description": "Replace every widget on a custom dashboard with the given list, and optionally rename it. A widget that already exists keeps its position unless you pass a new one; new widgets without a position are stacked full width below the others. Use list_dashboards to find the dashboard id.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "dashboardId": {
+            "description": "The custom dashboard id, as listed by list_dashboards",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "title": {
+            "description": "A new title for the dashboard",
+            "type": "string"
+          },
+          "widgets": {
+            "description": "The full list of widgets the dashboard should have",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "display": {
+                  "oneOf": [
+                    {
+                      "properties": {
+                        "prettyFormatting": {
+                          "default": true,
+                          "type": "boolean"
+                        },
+                        "sorting": {
+                          "default": [],
+                          "items": {
+                            "properties": {
+                              "desc": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "desc",
+                              "id"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "type": {
+                          "const": "table",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "aggregation": {
+                          "enum": [
+                            "sum",
+                            "avg",
+                            "count",
+                            "min",
+                            "max"
+                          ],
+                          "type": "string"
+                        },
+                        "chartType": {
+                          "enum": [
+                            "bar",
+                            "line"
+                          ],
+                          "type": "string"
+                        },
+                        "groupByColumn": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seriesColors": {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "sortByColumn": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "sortDirection": {
+                          "enum": [
+                            "asc",
+                            "desc"
+                          ],
+                          "type": "string"
+                        },
+                        "stacked": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "const": "chart",
+                          "type": "string"
+                        },
+                        "xAxisColumn": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "yAxisColumns": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "aggregation",
+                        "chartType",
+                        "groupByColumn",
+                        "sortByColumn",
+                        "sortDirection",
+                        "stacked",
+                        "type",
+                        "xAxisColumn",
+                        "yAxisColumns"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "abbreviate": {
+                          "default": false,
+                          "type": "boolean"
+                        },
+                        "aggregation": {
+                          "enum": [
+                            "sum",
+                            "avg",
+                            "count",
+                            "min",
+                            "max",
+                            "first",
+                            "last"
+                          ],
+                          "type": "string"
+                        },
+                        "column": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "sortDirection": {
+                          "enum": [
+                            "asc",
+                            "desc"
+                          ],
+                          "type": "string"
+                        },
+                        "suffix": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "const": "bignumber",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "aggregation",
+                        "column",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "type": {
+                          "const": "title",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "fillGaps": {
+                  "type": "boolean"
+                },
+                "id": {
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                  "type": "string"
+                },
+                "position": {
+                  "properties": {
+                    "h": {
+                      "maximum": 9007199254740991,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "w": {
+                      "maximum": 12,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "x": {
+                      "maximum": 11,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "y": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "h",
+                    "w",
+                    "x",
+                    "y"
+                  ],
+                  "type": "object"
+                },
+                "query": {
+                  "default": "",
+                  "type": "string"
+                },
+                "title": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "display",
+                "title"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "dashboardId",
+          "widgets"
+        ],
+        "type": "object"
+      },
+      "name": "set_dashboard_widgets"
+    },
+    {
+      "description": "Store the signing secret (or ${POSTGRESQL_SCHEMA} key) a provider issued for a hosted webhook endpoint, for example the whsec_ secret Stripe returns when a webhook endpoint is created. It replaces the existing secret; pass previousSecretTtlSeconds to keep accepting the old one for a while. The secret you pass here enters your context. To keep it out, run the CLI instead, which never prints it: pipe it from the provider's CLI (`<provider command> | npx ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev@latest webhooks set-secret <endpoint> --env <env>`), or read it from an environment variable or the project's .env files (`webhooks set-secret <endpoint> --env <env> --from-env STRIPE_WEBHOOK_SECRET`). When the endpoint already has a secret, add `--previous-secret-ttl` (for example 24h, or 0 if the old secret leaked). Prefer the CLI whenever you can run shell commands.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "branch": {
+            "description": "The branch to get tasks for, only used for preview environments and branchable development environments",
+            "type": "string"
+          },
+          "configPath": {
+            "description": "The path to the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file. Only used when the ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file is not at the root dir (like in a monorepo setup). If not provided, we will try to find the config file in the current working directory",
+            "type": "string"
+          },
+          "endpointId": {
+            "description": "The webhook endpoint: its declared id (e.g. payments) or wh_ id. Use list_webhook_endpoints to find it.",
+            "type": "string"
+          },
+          "environment": {
+            "default": "dev",
+            "description": "The environment to get tasks for",
+            "enum": [
+              "dev",
+              "staging",
+              "prod",
+              "preview"
+            ],
+            "type": "string"
+          },
+          "previousSecretTtlSeconds": {
+            "description": "Keep accepting the replaced secret for this many seconds (at most 604800, 7 days) so deliveries the provider still signs with it keep verifying. Omit or pass 0 to replace it immediately, for example when it leaked.",
+            "maximum": 604800,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "projectRef": {
+            "description": "The ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.dev project ref, starts with proj_. We will attempt to automatically detect the project ref if running inside a directory that includes a ${DOCKER_TRIGGER_DEV_REGISTRY_NAMESPACE}.config.ts file, or if you pass the --project-ref option to the MCP server.",
+            "type": "string"
+          },
+          "secret": {
+            "description": "The signing secret or ${POSTGRESQL_SCHEMA} key the provider issued",
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpointId",
+          "secret"
+        ],
+        "type": "object"
+      },
+      "name": "set_webhook_secret"
     },
     {
       "description": "Start a conversation with a chat agent. Returns a chatId you can use with send_agent_message. Optionally preloads the agent so it initializes before the first message.",

@@ -18,7 +18,7 @@ The table payloads, the display field and the pre-flight checklist are written d
    mcp__plugin_nocodb-dev_nocodb__getTablesList
    ```
 3. Ask the user for any initial fields they want included, or proceed with just a title and let them add fields later.
-4. Create the table with the gathered payload (see the **table-management** skill for the payload shape and **field-management** for per-type field options). On Cloud / licensed: `listTools category: "tables"`, then `callTool name: "createTable"` with `arguments: { title, description?, fields? }`. On Community Edition (or as a fallback):
+4. Create the table with the gathered payload (see the **table-management** skill for the payload shape and **field-management** for per-type field options). On Cloud / licensed: call `createTable` with `{ title, description?, fields? }`. On Community Edition (or as a fallback):
    ```bash
    curl -sS -X POST \
      -H "xc-token: ${NOCODB_TOKEN}" -H "Content-Type: application/json" \
