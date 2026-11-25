@@ -556,7 +556,7 @@
       "name": "nocodb-ops",
       "source": "./plugins/nocodb-ops",
       "description": "NocoDB ops plugin for Agents Store. Record management, filtering (structured filters, exactDate date filters), sorting, reports, search, webhooks (events, payload, conditions), and data import/export for business users via the NocoDB MCP server (writes in batches of up to 100 records; extra tools on Cloud/licensed through listTools/callTool) and curl on the v3 API.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -761,7 +761,7 @@
       "name": "payloadcms-dev",
       "source": "./plugins/payloadcms-dev",
       "description": "PayloadCMS dev plugin for Agents Store. Covers collections, fields, globals, hooks, access control, authentication, queries, data management (trash/query presets/folders), localization, adapters, Lexical rich text, admin customization, jobs queue, plugin development, official plugins, Next.js integration, deployment, CLI, migrations, and end-to-end scenarios for TypeScript developers building with Payload v3.",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "author": {
         "name": "AGENTS.STORE"
       },
@@ -868,7 +868,7 @@
       "name": "outline-ops",
       "source": "./plugins/outline-ops",
       "description": "Outline knowledge-base ops plugin. Drive the full Outline REST API by curl — documents (create, search, move, archive, trash, import/export, AI answers, memberships), collections (CRUD, archive, duplicate, import, user/group permissions, export), comments & reactions, pins, subscriptions, notifications, stars, views, shares & access requests, webhook subscriptions, users & groups, attachments & file operations, revisions, templates, events (audit log), API keys, OAuth clients, and data attributes (154 operations). Also points to Outline's built-in MCP server. Authenticates with a Bearer OUTLINE_API_KEY against OUTLINE_API_URL.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "author": {
         "name": "AGENTS.STORE"
       },

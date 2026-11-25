@@ -40,7 +40,7 @@ Set these environment variables (shell, or this repo's `.env`):
 
 | Variable | Required | Example | Notes |
 |----------|----------|---------|-------|
-| `OUTLINE_API_URL` | yes | `https://app.getoutline.com/api` | API base **including `/api`**. Self-hosted: `https://wiki.mycompany.com/api`. |
+| `OUTLINE_API_URL` | yes | `https://app.getoutline.com/api` | API base **including `/api`**. Self-hosted: `https://wiki.example.com/api`. |
 | `OUTLINE_API_KEY` | yes | `ol_api_••••` | Personal API key, created under **Settings → API & Apps** (or with `apiKeys.create`). Always starts with `ol_api_`. Treat it like a password. |
 
 In this repo, add the two vars to `.env.example`, store real values in Infisical, and run `./scripts/setup.sh dev .env .claude/settings.local.json` to pull them locally.
@@ -52,7 +52,7 @@ Ask Claude in plain language, e.g.:
 - "Search Outline for our onboarding docs and show me the top 5"
 - "Create a 'Handbook' collection and add a 'Welcome' document under it, then publish"
 - "Share the Welcome doc publicly and give me the link"
-- "Invite alice@acme.com and bob@acme.com as members and add them to the Handbook collection"
+- "Invite alice@example.com and bob@example.com as members and add them to the Handbook collection"
 - "Give me a report of the most-viewed documents this month"
 
 ## Authentication
