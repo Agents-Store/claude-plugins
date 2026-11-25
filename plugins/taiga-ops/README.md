@@ -33,7 +33,7 @@ Set these environment variables (shell, or this repo's `.env`):
 
 | Variable | Required | Example | Notes |
 |----------|----------|---------|-------|
-| `TAIGA_API_URL` | yes | `https://taiga.mycompany.com` or `https://api.taiga.io` | Instance root — the API is served under `/api/v1`. No trailing slash needed. |
+| `TAIGA_API_URL` | yes | `https://taiga.example.com` or `https://api.taiga.io` | Instance root — the API is served under `/api/v1`. No trailing slash needed. |
 | `TAIGA_ADMIN_USERNAME` | yes | `admin` | Username or email used to log in. |
 | `TAIGA_ADMIN_PASSWORD` | yes | `••••••••` | Password for that account. |
 | `TAIGA_AUTH_TOKEN` | derived | — | Obtained at runtime by the `setup` skill via `POST /api/v1/auth`; reused for the session. |
@@ -47,9 +47,9 @@ In this repo, add the three input vars to `.env.example`, store real values in I
 Ask Claude in plain language, e.g.:
 
 - "Log into Taiga and show my projects"
-- "Create a two-week sprint in the Apollo project and add these 5 stories"
+- "Create a two-week sprint in the Demo Project and add these 5 stories"
 - "File a high-severity bug about checkout failing and assign it to me"
-- "Summarize open issues and remaining sprint points for Apollo"
+- "Summarize open issues and remaining sprint points for Demo Project"
 - "Give me the curl to create a webhook on project 7"
 
 ## Authentication flow

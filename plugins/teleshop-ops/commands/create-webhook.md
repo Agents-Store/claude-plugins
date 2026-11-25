@@ -50,8 +50,8 @@ Parse from "$ARGUMENTS".
 
 ## Example Usage
 ```
-/create-webhook https://my-server.com/webhooks
-/create-webhook https://my-server.com/webhooks order.created
+/create-webhook https://my-server.example.com/webhooks
+/create-webhook https://my-server.example.com/webhooks order.created
 ```
 
 ## Notes

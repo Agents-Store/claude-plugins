@@ -34,5 +34,5 @@ Parse from "$ARGUMENTS".
 ```
 /list-customers
 /list-customers --search John
-/list-customers --search "+380991234567"
+/list-customers --search "+1-555-0123"
 ```
