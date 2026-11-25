@@ -38,8 +38,8 @@ NocoDB operations plugin for business users. Manage records, build reports, sear
 
 | Edition | What the MCP server offers |
 |---------|----------------------------|
-| **Community Edition** | The eleven record tools only: `getBaseInfo`, `getTablesList`, `getTableSchema`, `queryRecords`, `getRecord`, `countRecords`, `aggregate`, `createRecords`, `updateRecords`, `deleteRecords`, `readAttachment` |
-| **Cloud / licensed self-hosted** | Those plus many more (about 200 in 2026.09): `whoami`, `groupByRecords`, `linkRecords`, `exportCsv` are listed directly; `upsertRecords`, `updateRecordsByCondition`, `importCsv`, `exportExcel` and the trash tools are reached with `listTools(category)` then `callTool(name, arguments)` |
+| **Community Edition** | The record tools only: `getBaseInfo`, `getTablesList`, `getTableSchema`, `queryRecords`, `getRecord`, `countRecords`, `aggregate_single`, `readAttachment`, `createRecords`, `updateRecords`, `linkRecords`, `unlinkRecords`, `deleteRecords` |
+| **Cloud / licensed self-hosted** | `aggregate` instead of `aggregate_single`, plus more than 200 tools in all (2026.10): `whoami`, `groupByRecords`, `upsertRecords`, `updateRecordsByCondition`, `importCsv`, `exportCsv`, `exportExcel`, the trash tools and the rest. The `/mcp` endpoint lists every one of them; only the `/mcp-discovery` endpoint, meant for clients that cap the tool list at 100, reaches the unlisted ones with `listTools(category)` then `callTool(name, arguments)` |
 
 Limits worth knowing before you write: record-array tools take **at most 100 records per call** (a longer array is rejected outright), `queryRecords` pages default to 50 and cap at 200, `sort` is an array of `{field, direction}` objects, and date filters need a sub-operator (`exactDate`) -- ranges are two bounds, never `btw`. The **mcp-patterns** skill has the details.
 
@@ -49,7 +49,7 @@ Enable the plugin in Claude Code. Set these environment variables:
 
 ```bash
 # MCP -- used by .mcp.json
-export NOCODB_MCP_URL="https://your-nocodb-instance.com/mcp"      # Community Edition: .../mcp/<your-endpoint-id>
+export NOCODB_MCP_URL="https://your-nocodb-instance.com/mcp"      # Community Edition: .../mcp/<your-endpoint-id>; clients capping tools at 100: .../mcp-discovery
 export NOCODB_MCP_TOKEN="your-mcp-token"
 
 # REST / curl recipes -- optional

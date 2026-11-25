@@ -59,10 +59,10 @@ The NocoDB MCP server provides these tools:
 | `createRecords` | Create records (bulk, at most 100 per call) |
 | `updateRecords` | Update records (bulk, at most 100 per call) |
 | `deleteRecords` | Delete records (bulk, at most 100 per call) |
-| `aggregate` | Run aggregations with filter groups (`aggregations` and `filterGroups` both required) |
+| `aggregate` | Run aggregations, optionally split by filter groups (`aggregations` required, `filterGroups` optional); Community Edition has `aggregate_single` instead (`aggregations` plus one `filter`) |
 | `readAttachment` | Read file attachments |
 
-On Cloud / licensed servers there are more, and some sit behind `listTools(category)` then `callTool`: `whoami`, `groupByRecords`, `linkRecords` / `unlinkRecords`, `exportCsv` are listed directly; `upsertRecords`, `updateRecordsByCondition`, `importCsv`, `exportExcel` and the trash tools (`listTrash`, `restoreRecords`) are reached through `callTool`. Community Edition has the eleven tools above only. See **mcp-patterns**.
+On Cloud / licensed servers there are more, all listed directly on `/mcp`: `whoami`, `groupByRecords`, `linkRecords` / `unlinkRecords`, `exportCsv`, `upsertRecords`, `updateRecordsByCondition`, `importCsv`, `exportExcel` and the trash tools (`listTrash`, `restoreRecords`). Only on the `/mcp-discovery` endpoint are some of them reached through `listTools(category)` then `callTool`. Community Edition has the record tools above only (and `linkRecords` / `unlinkRecords`). See **mcp-patterns**.
 
 ## Skill Routing
 
@@ -94,7 +94,7 @@ Use these skills for detailed guidance:
 ```
 1. getTablesList → Find table
 2. getTableSchema → Identify numeric fields
-3. aggregate with aggregations and filterGroups → Get summaries
+3. aggregate with aggregations (and filterGroups for segments) → Get summaries
 4. queryRecords for detail rows if needed
 5. Format as a report with totals
 ```
