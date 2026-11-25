@@ -82,6 +82,69 @@ class InstructionRulesTest(unittest.TestCase):
         self.assertIn(("remote-exec", "WARN"), rules("plugins/p/skills/setup/SKILL.md", "```bash\n" + PIPE_SH + "\n```\n"))
 
 
+class DemoDataTest(unittest.TestCase):
+    def test_demo_and_vendor_mailboxes_are_fine(self):
+        text = ("Mail jane.doe@example.com or ops@example.org.\n"
+                "Clone git@github.com:acme/repo.git\n"
+                "Ask at support@mail.example and bot@shop.test\n")
+        self.assertEqual(rules("plugins/p/skills/s/SKILL.md", text), [])
+
+    def test_plausible_mailbox_warns(self):
+        self.assertIn(("demo-contact", "WARN"), rules("plugins/p/skills/s/SKILL.md", "Invoice to accounts@client" + ".com\n"))
+        self.assertIn(("demo-contact", "WARN"), rules("plugins/p/scripts/a.py", "FROM = 'alex@novatech" + ".com'\n"))
+
+    def test_fictional_phones_are_fine(self):
+        text = "Call +1-555-0142, +1 (202) 555-0199 or +44 7700 900123; a unix time 1720000000 is not a phone, +380 44 000 0000 is a placeholder.\n"
+        self.assertEqual(rules("plugins/p/skills/s/SKILL.md", text), [])
+
+    def test_real_looking_phone_warns(self):
+        self.assertIn(("demo-contact", "WARN"), rules("plugins/p/skills/s/SKILL.md", '"phones": ["+3805076' + '54321"]\n'))
+
+
+class PrivateNameTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix="names-")
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.names = os.path.join(self.tmp, "names.txt")
+        with open(self.names, "w", encoding="utf-8") as fh:
+            fh.write("# private\nzorblat\nacme-internal\n")
+        self.addCleanup(safety_check.private_names.cache_clear)
+
+    def scan(self, path, text, names):
+        old = os.environ.get("AGENTS_STORE_PRIVATE_NAMES")
+        os.environ["AGENTS_STORE_PRIVATE_NAMES"] = names       # "" → выключено явно, файл владельца не читается
+        safety_check.private_names.cache_clear()
+        try:
+            return rules(path, text)
+        finally:
+            if old is None:
+                os.environ.pop("AGENTS_STORE_PRIVATE_NAMES", None)
+            else:
+                os.environ["AGENTS_STORE_PRIVATE_NAMES"] = old
+            safety_check.private_names.cache_clear()
+
+    def test_listed_name_fails_anywhere_word_bounded(self):
+        for path in ("plugins/p/LEARNINGS.md", "plugins/p/scripts/a.py", ".claude-plugin/marketplace.json"):
+            self.assertIn(("private-name", "FAIL"), self.scan(path, "seen on the Zorblat project\n", self.names), path)
+        self.assertEqual(self.scan("plugins/p/LEARNINGS.md", "zorblatting is fine\n", self.names), [])
+
+    def test_silent_without_the_list(self):
+        self.assertEqual(self.scan("plugins/p/LEARNINGS.md", "seen on the Zorblat project\n", ""), [])
+
+
+class SkipPathsTest(unittest.TestCase):
+    def test_vendored_paths_skip_demo_contact_only(self):
+        tmp = tempfile.mkdtemp(prefix="skip-")
+        self.addCleanup(shutil.rmtree, tmp, True)
+        os.makedirs(os.path.join(tmp, "tests", "plugins", "p"))
+        with open(os.path.join(tmp, "tests", "plugins", "p", "plugin-test.toml"), "w") as fh:
+            fh.write('[upstream]\nskip_paths = ["skills/vendor-*"]\n')
+        line = "Invoice to accounts@client" + ".com\n"
+        self.assertEqual(safety_check.skip_globs(tmp, "p"), ["skills/vendor-*"])
+        self.assertTrue(safety_check.is_skipped(tmp, "plugins/p/skills/vendor-x/SKILL.md"))
+        self.assertFalse(safety_check.is_skipped(tmp, "plugins/p/skills/own/SKILL.md"))
+
+
 class CliTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix="safety-")
@@ -135,7 +198,59 @@ class CliTest(unittest.TestCase):
         self.assertEqual(out.count("FAIL "), 1, out)
 
 
+class SkipPathsAcrossWorktreesTest(unittest.TestCase):
+    def test_skip_paths_come_from_the_files_own_repository(self):
+        tmp = tempfile.mkdtemp(prefix="wt-")
+        self.addCleanup(shutil.rmtree, tmp, True)
+        env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@example.com",
+                   GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@example.com")
+        subprocess.run(["git", "-C", tmp, "init", "-q"], check=True, env=env, capture_output=True)
+        for rel, text in (("tests/plugins/p/plugin-test.toml", '[upstream]\nskip_paths = ["skills/vendor-*"]\n'),
+                          ("plugins/p/skills/vendor-x/SKILL.md", "Invoice to accounts@client" + ".com\n"),
+                          ("plugins/p/skills/own/SKILL.md", "Invoice to accounts@client" + ".com\n")):
+            path = os.path.join(tmp, rel)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w") as fh:
+                fh.write(text)
+        subprocess.run(["git", "-C", tmp, "add", "-A"], check=True, env=env, capture_output=True)
+        out = io.StringIO()
+        with redirect_stdout(out):
+            code = safety_check.main([os.path.join(tmp, "plugins"), "--no-baseline"])
+        self.assertEqual(code, 2, out.getvalue())
+        self.assertIn("skills/own/SKILL.md", out.getvalue())
+        self.assertNotIn("vendor-x", out.getvalue())
+
+
+class PrivateNameScopeTest(unittest.TestCase):
+    def test_names_apply_only_to_the_public_repository(self):
+        tmp = tempfile.mkdtemp(prefix="scope-")
+        self.addCleanup(shutil.rmtree, tmp, True)
+        names = os.path.join(tmp, "names.txt")
+        with open(names, "w") as fh:
+            fh.write("zorblat\n")
+        other = os.path.join(tmp, "plugins", "p", "README.md")         # файл вне этого репозитория (например, приватного)
+        os.makedirs(os.path.dirname(other))
+        with open(other, "w") as fh:
+            fh.write("Zorblat\n")
+        old = os.environ.get("AGENTS_STORE_PRIVATE_NAMES")
+        os.environ["AGENTS_STORE_PRIVATE_NAMES"] = names
+        safety_check.private_names.cache_clear()
+        self.addCleanup(safety_check.private_names.cache_clear)
+        self.addCleanup(lambda: os.environ.pop("AGENTS_STORE_PRIVATE_NAMES", None) if old is None
+                        else os.environ.__setitem__("AGENTS_STORE_PRIVATE_NAMES", old))
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(safety_check.main([other, "--no-baseline"]), 0)
+
+
 class RepoTest(unittest.TestCase):
+    def setUp(self):
+        self.old = os.environ.get("AGENTS_STORE_PRIVATE_NAMES")
+        os.environ["AGENTS_STORE_PRIVATE_NAMES"] = ""          # не зависеть от приватного списка на этой машине
+        safety_check.private_names.cache_clear()
+        self.addCleanup(safety_check.private_names.cache_clear)
+        self.addCleanup(lambda: os.environ.pop("AGENTS_STORE_PRIVATE_NAMES", None) if self.old is None
+                        else os.environ.__setitem__("AGENTS_STORE_PRIVATE_NAMES", self.old))
+
     def test_current_plugins_have_no_fail(self):
         out = io.StringIO()
         with redirect_stdout(out):

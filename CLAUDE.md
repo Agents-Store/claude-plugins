@@ -242,6 +242,16 @@ runs it with `--base`: only what the PR adds is judged and **every new finding f
 included. Exceptions live in `scripts/safety-allow.txt` (same format and same own-PR rule as
 `scrub-allow.txt`).
 
+**Demo data only.** Plugins are for everyone, so every company, project, person and contact in an example is
+fictional: `Acme Corp`, `Example Inc`, `Demo Shop` · `Jane Doe`, `John Doe`, `Alex Example` · `acme-shop`,
+`demo-project` · `example.com`, `example.org`, `example.net`, `*.example`, `*.test` · phones `+1-555-0100`…`+1-555-0199`
+(reserved for fiction) · IPs 192.0.2.x, 198.51.100.x, 203.0.113.x. Never a real client, project, person, mailbox,
+phone or site, and never a plugin or tool the reader cannot get. Exempt: the product the plugin is about and its
+vendor's own domains, docs and community links, the AGENTS.STORE brand, and vendored text (`[upstream] skip_paths`).
+Pass 4 warns on real-looking mailboxes and phones (`demo-contact`; a new one fails on a pull request) and, where the
+owner's private list exists (`~/.config/agents-store/private-names.txt`, outside the repositories, never committed),
+fails on any name from it (`private-name`). Names in prose are still the author's and the reviewer's job.
+
 **Strict scope.** A plugin that drops a `.scrub-strict` marker file in its root also gets: no host
 that is not a vendor, upstream or example host; no absolute path that upstream does not document or
 that lacks a placeholder; no hardcoded model id outside an `<!-- example-only -->` block; no bound

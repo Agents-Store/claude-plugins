@@ -8,6 +8,14 @@ scrub pass asks «does this leak our deployment?», this one asks «would this h
                                              secret-read, persistence, hidden-chars                          → WARN
   instructions (SKILL.md, agents, commands,  prompt-injection, hidden-chars                                  → FAIL
   references, README, CLAUDE.md)             the code tricks inside documentation (an official installer)    → WARN
+  examples, everywhere                       demo-contact: a mailbox off the demo and vendor domains, a phone
+                                             outside the reserved fictional ranges                           → WARN
+  anything, when the owner's list exists     private-name: a name from the owner's private list, a file kept
+  (~/.config/agents-store/private-names.txt  outside every repository (AGENTS_STORE_PRIVATE_NAMES overrides
+                                             the path; CI has none and stays silent)                         → FAIL
+
+demo-contact skips a plugin's vendored text ([upstream] skip_paths in tests/plugins/<p>/plugin-test.toml): that is the
+vendor's own demo data and the sync overwrites ours.
 
 --base <ref> reports only findings that are new against that commit, and every new finding is a FAIL: what is already
 there does not block, everything added must be fixed or excused on its own (scripts/safety-allow.txt, own PR).
@@ -17,6 +25,8 @@ Exceptions: scripts/safety-allow.txt, `path:rule-id[#value-selector]:reason`, th
 """
 import argparse
 import collections
+import fnmatch
+import functools
 import json
 import os
 import re
@@ -34,6 +44,7 @@ FAIL, WARN = "FAIL", "WARN"
 
 CODE_SUFFIXES = (".sh", ".bash", ".zsh", ".py", ".js", ".mjs", ".cjs", ".ts", ".rb", ".ps1", ".pl")
 CODE_BASENAMES = ("hooks.json", ".mcp.json")
+DATA_SUFFIXES = (".json", ".yaml", ".yml", ".toml", ".txt")      # only private-name looks there
 
 SHELLS = r"(?:sudo\s+(?:-\S+\s+)*)?(?:ba|z|da|k)?sh\b"
 DOWNLOAD = r"\b(?:curl|wget|iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\b"
@@ -91,6 +102,13 @@ RE_INJECTION = [
     re.compile(r"\byou\s+are\s+now\s+(?:in\s+)?(?:developer|DAN|jailbreak|god|unrestricted)\s+mode\b", re.I),
 ]
 
+# A mailbox or a site in an example must be a demo one: RFC 2606/6761 names or the product's own vendor.
+RE_EMAIL = re.compile(r"(?<![\w.+-])[A-Za-z0-9_.+-]+@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})(?![\w@])")
+DEMO_DOMAINS = ("example.com", "example.org", "example.net", ".example", ".test", ".invalid", ".localhost")
+# Fictional by convention: NANP 555-01xx, Ofcom drama numbers.
+RE_PHONE = re.compile(r"(?<![\w.])\+\d[\d\s().-]{8,}\d(?![\w])")
+FICTIONAL_PHONES = (re.compile(r"^1(?:\d{3})?55501\d\d$"), re.compile(r"^447700900\d{3}$"), re.compile(r"^44207946\d{4}$"))
+
 MESSAGES = {
     "remote-exec": "downloaded content goes straight into a shell — pin a version, download, verify, then run",
     "decode-exec": "decoded data is executed — hidden payloads have no place in a plugin",
@@ -101,6 +119,8 @@ MESSAGES = {
     "persistence": "changes the user's shell startup, cron, SSH keys or services",
     "hidden-chars": "invisible Unicode characters (zero-width, bidi or tag) — text the reader cannot see",
     "prompt-injection": "tells the model to drop its instructions or to hide something from the user",
+    "demo-contact": "a real-looking mailbox or phone — examples use example.com addresses and 555-01xx numbers",
+    "private-name": "a name from the owner's private list — examples use demo companies, people and projects",
 }
 CODE_TRICKS = (("remote-exec", RE_REMOTE_EXEC), ("decode-exec", RE_DECODE_EXEC),
                ("reverse-shell", RE_REVERSE_SHELL), ("destroy", RE_DESTROY))
@@ -112,21 +132,113 @@ def file_kind(rel_path):
         return "code"
     if base.endswith(".md"):
         return "instruction"
+    if rel_path.endswith(DATA_SUFFIXES):
+        return "data"
     return None
 
 
-def scan_text(rel_path, text):
-    """Findings for one file's text; the kind (code / instruction) decides the rules and the severity."""
+def skip_globs(root, plugin):
+    """[upstream] skip_paths of a plugin: text it vendors from upstream."""
+    path = os.path.join(root, "tests", "plugins", plugin, "plugin-test.toml")
+    try:
+        import tomllib
+        with open(path, "rb") as fh:
+            skip = tomllib.load(fh).get("upstream", {}).get("skip_paths") or []
+    except (OSError, ValueError, ImportError):
+        return []
+    return [g for g in skip if isinstance(g, str)]
+
+
+def is_skipped(root, rel_path):
+    parts = rel_path.split("/")
+    if len(parts) < 3 or parts[0] != "plugins":
+        return False
+    inside = "/".join(parts[2:])
+    return any(fnmatch.fnmatch(inside, g) or fnmatch.fnmatch(inside, g.rstrip("/*") + "/*") for g in skip_globs(root, parts[1]))
+
+
+def is_demo_mailbox(domain):
+    d = domain.lower()
+    return any(d == x or d.endswith("." + x.lstrip(".")) or (x.startswith(".") and d.endswith(x)) for x in DEMO_DOMAINS) \
+        or scrub_check.host_allowed(d)
+
+
+def is_demo_phone(text):
+    digits = re.sub(r"\D", "", text)
+    if not 10 <= len(digits) <= 15 or len(set(digits)) == 1 or digits.endswith("000000"):
+        return True                       # not a phone number, or an obvious placeholder
+    return any(p.match(digits) for p in FICTIONAL_PHONES)
+
+
+def _common_dir(path):
+    try:
+        out = subprocess.run(["git", "-C", path, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        return os.path.realpath(out) if out else ""
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return ""
+
+
+@functools.lru_cache(maxsize=None)
+def toplevel(directory):
+    try:
+        return subprocess.run(["git", "-C", directory, "rev-parse", "--show-toplevel"], capture_output=True, text=True,
+                              check=True).stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return ""
+
+
+@functools.lru_cache(maxsize=None)
+def in_this_repository(directory):
+    """A directory of this repository or of any of its worktrees: the owner's names matter only in what is published."""
+    here = _common_dir(REPO_ROOT)
+    return bool(here) and _common_dir(directory) == here
+
+
+@functools.lru_cache(maxsize=1)
+def private_names():
+    """Compiled matcher of the owner's private names, or None. The list lives outside every repository."""
+    path = os.environ.get("AGENTS_STORE_PRIVATE_NAMES")
+    if path is None:                                   # unset → the owner's default place; set to "" → off
+        path = os.path.expanduser("~/.config/agents-store/private-names.txt")
+        if not os.path.isfile(path):
+            return None
+    if not path:
+        return None
+    try:
+        with open(path, encoding="utf-8") as fh:
+            terms = [t.strip() for t in fh if t.strip() and not t.lstrip().startswith("#")]
+    except OSError:
+        print("safety-check: AGENTS_STORE_PRIVATE_NAMES points at a file that cannot be read", file=sys.stderr)
+        return None
+    if not terms:
+        return None
+    return re.compile("|".join(r"(?<![A-Za-z0-9])" + re.escape(t) + r"(?![A-Za-z0-9])" for t in terms), re.I)
+
+
+def scan_text(rel_path, text, root=None, names_ok=True, inner=None):
+    """Findings for one file's text; the kind (code / instruction / data) decides the rules and the severity."""
     kind = file_kind(rel_path)
     if kind is None:
         return []
     out = []
+    names = private_names() if names_ok else None
+    vendored = is_skipped(root or REPO_ROOT, inner or rel_path)
 
     def add(lineno, rule, severity, line):
         out.append(scrub_check.Finding(rel_path, lineno, rule, severity, scrub_check.redact(line), MESSAGES[rule]))
 
     doc = kind == "instruction"
     for lineno, line in enumerate(text.splitlines(), 1):
+        if names is not None and names.search(line):
+            add(lineno, "private-name", FAIL, line)
+        if kind == "data":
+            continue
+        if not vendored:
+            mails = [m.group(0) for m in RE_EMAIL.finditer(line) if not is_demo_mailbox(m.group(1))]
+            phones = [m.group(0) for m in RE_PHONE.finditer(line) if not is_demo_phone(m.group(0))]
+            if mails or phones:
+                add(lineno, "demo-contact", WARN, line)
         for rule, patterns in CODE_TRICKS:
             if any(p.search(line) for p in patterns):
                 add(lineno, rule, WARN if doc else FAIL, line)
@@ -213,7 +325,7 @@ def main(argv=None):
     files, seen = [], set()
     for target in args.targets or [os.path.join(REPO_ROOT, t) for t in DEFAULT_TARGETS]:
         for f in scrub_check.tracked_files(target):
-            if f not in seen and file_kind(f):
+            if f not in seen and file_kind(f) and (file_kind(f) != "data" or private_names() is not None):
                 seen.add(f)
                 files.append(f)
 
@@ -222,9 +334,14 @@ def main(argv=None):
         text = read_file(rel_path)
         if text is None:
             continue
-        current = scan_text(rel_path, text)
+        abs_path = os.path.normpath(os.path.join(REPO_ROOT, rel_path))
+        top = toplevel(os.path.dirname(abs_path)) or REPO_ROOT
+        inner = os.path.relpath(abs_path, top)                # the file's own repository decides skip_paths and names
+        ours = in_this_repository(os.path.dirname(abs_path))
+        current = scan_text(rel_path, text, root=top, names_ok=ours, inner=inner)
         if args.base:
-            old = collections.Counter(key(f) for f in scan_text(rel_path, text_at(args.base, rel_path)))
+            old = collections.Counter(key(f) for f in scan_text(rel_path, text_at(args.base, rel_path), root=top,
+                                                                names_ok=ours, inner=inner))
             fresh = []
             for f in current:
                 if old[key(f)]:
