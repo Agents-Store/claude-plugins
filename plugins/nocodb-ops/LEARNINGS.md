@@ -1,5 +1,12 @@
 # LEARNINGS.md
 
+## 2026-11-27 — refresh: NocoDB 2026.11.0, calendar date filters, export permission, token revocation
+
+**Problem:** The plugin said `isWithin` has only rolling windows (`pastMonth` = the last 30 days, "there is no `thisMonth`") and that a calendar month always needs two `exactDate` bounds. NocoDB 2026.11.0 added calendar-period sub-operators and an explicit date range. The release also lets a table limit CSV / Excel downloads to chosen roles (this covers MCP exports as well), cancels slow PostgreSQL counts and aggregations after 30 seconds on self-hosted servers, and on Cloud deletes API and MCP tokens when a password is changed with *Also disconnect apps*. None of the error tables covered these cases.
+**Fix:** search-filter, views-and-reports and the cli-reference `filter-syntax` now list `thisCalendarWeek|Month|Year`, `lastCalendar…`, `nextCalendar…` and `dateRange` (`from,to`, both days included), each marked 2026.11.0+. The `exactDate` bounds stay as the fallback for older servers. `filter-syntax` notes that `(field,eq,null)` works only in a `where` string; in a structured filter use `blank` or `null`. Troubleshoot gained rows for a refused export (*Download Data* permission) and for the query-timeout message. The 401 causes in troubleshoot and setup now include token revocation after a password change, and import-export mentions the download permission. `[upstream]` is pinned to 2026.11.0.
+**Source:** https://github.com/nocodb/nocodb/releases/tag/2026.11.0 (2026-11-26); `packages/nocodb-sdk/src/lib/parser/queryFilter/query-filter-ops.ts` and `packages/nocodb/src/mcp/descriptions.ts` at tag 2026.11.0; https://nocodb.com/docs/product/collaboration/table-permissions (2026-11-13); https://nocodb.com/docs/product/account-settings/authentication/sign-out-other-devices (2026-11-13); https://nocodb.com/docs/self-hosting/environment-variables (2026-11-26).
+**Severity:** Major
+
 ## 2026-11-24 — refresh: NocoDB 2026.10.2, the MCP tool list and `aggregate`
 
 **Problem:** The plugin said the extra Cloud / licensed tools sit behind `listTools` / `callTool`, that `aggregate` always needs both `aggregations` and `filterGroups`, and that Community Edition has eleven tools including `aggregate`. The live MCP server no longer matches: the nightly L1 reports `callTool` and `listTools` gone and `filterGroups` no longer required.
