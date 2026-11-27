@@ -27,7 +27,7 @@ Code understanding plugin for Claude Code. Helps developers (especially beginner
 ## Requirements
 
 - **drawio-mcp** — public HTTP MCP server (auto-configured by plugin, no API key needed)
-- **Playwright MCP** — local stdio server, auto-installed via `npx @playwright/mcp@0.0.83` (requires Node.js)
+- **Playwright MCP** — local stdio server, auto-installed via `npx @playwright/mcp@0.0.86` (requires Node.js 20 or later)
 
 ## Commands
 
