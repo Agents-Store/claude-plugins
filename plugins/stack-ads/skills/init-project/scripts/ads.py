@@ -10,6 +10,9 @@ and stops unless it carries --yes; starting spend also needs --activate.
 from __future__ import annotations
 
 import argparse
+import csv
+import io
+import json
 import sys
 from pathlib import Path
 
@@ -98,6 +101,14 @@ def build_parser():
     p.add_argument("--query", required=True)
     p.add_argument("--country")
     p.add_argument("--locale", default="en")
+    p = sub.add_parser("upload-conversions", help="click conversions through the Data Manager API (validation only without --yes)")
+    p.add_argument("--file", required=True, help="CSV or JSON list: gclid (or gbraid, wbraid), time, value, currency, order_id")
+    p.add_argument("--action", required=True, help="numeric id of an UPLOAD_CLICKS or WEBPAGE conversion action")
+    p.add_argument("--source", default="WEB", choices=("WEB", "APP", "IN_STORE", "PHONE", "MESSAGE", "OTHER"))
+    p.add_argument("--customer")
+    add_write(p)
+    p = sub.add_parser("upload-status", help="processing result of a Data Manager upload")
+    p.add_argument("--request-id", required=True)
     p = sub.add_parser("call", help="a read or a conversion upload by its REST path")
     p.add_argument("method")
     p.add_argument("path")
@@ -306,6 +317,14 @@ def build_parser():
     return parser
 
 
+def read_rows(path):
+    """Conversion rows from a CSV file with a header line, or from a JSON list."""
+    text = Path(path).read_text(encoding="utf-8-sig")
+    if path.lower().endswith(".json") or text.lstrip().startswith("["):
+        return load_json_arg("@" + path)
+    return [dict(row) for row in csv.DictReader(io.StringIO(text))]
+
+
 def run(args):
     if args.group == "init":
         return emit(workspace.init(getattr(args, "dir", None) or "ads", update=args.update))
@@ -357,8 +376,20 @@ def run(args):
                         args.format, args.out)
         if command == "geo":
             return emit(google.geo(ctx, args.query, args.country, args.locale))
+        if command == "upload-conversions":
+            return emit(google.upload_conversions(ctx, read_rows(args.file), args.action, args.source, args.customer, yes=args.yes))
+        if command == "upload-status":
+            return emit(google.conversion_status(ctx, args.request_id))
         if command == "call":
-            return emit(google.call(ctx, args.method, args.path, load_json_arg(args.data), yes=args.yes), "json", args.out)
+            out = google.call(ctx, args.method, args.path, load_json_arg(args.data), yes=args.yes)
+            emit(out, "json", args.out)
+            failure = out.get("partialFailureError") if isinstance(out, dict) else None
+            if failure:
+                text = json.dumps(failure)
+                hint = ("new integrations upload conversions through the Data Manager API: use google upload-conversions"
+                        if "CUSTOMER_NOT_ALLOWLISTED_FOR_THIS_FEATURE" in text else "the output above names what failed")
+                raise AdsError("Google refused part or all of the request: %s" % failure.get("message", text[:300]), hint)
+            return None
     if group == "gsc":
         if command == "sites":
             return emit(google.gsc_sites(ctx))

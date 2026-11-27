@@ -9,7 +9,7 @@ from unittest import mock
 import helpers  # first: it puts the toolkit on the import path
 import ads  # noqa: E402
 import test_launch  # noqa: E402
-from adskit import google, launch, meta, recon
+from adskit import google, guards, launch, meta, recon
 from adskit.core import AdsError, Refused
 
 
@@ -210,6 +210,139 @@ class CurrencyPerPlatform(unittest.TestCase):
                 meta.post(ws.ctx, "{account}/adsets", {"name": "Set", "campaign_id": "1", "daily_budget": 3000,
                                                        "status": "PAUSED"}, yes=False, preview=True)
         self.assertIn("ceiling of 2000", caught.exception.message)
+
+
+class DataManagerConversions(unittest.TestCase):
+    """uploadClickConversions answers CUSTOMER_NOT_ALLOWLISTED_FOR_THIS_FEATURE for new integrations (2026-11-27):
+    conversions go to the Data Manager API, events:ingest."""
+
+    ROWS = [{"gclid": "gclid-example-1", "time": "2026-11-26 12:00:00+00:00", "value": 30.5, "currency": "EUR",
+             "order_id": "order-1"}]
+
+    def handler(self, action_type="UPLOAD_CLICKS", ingest=None):
+        def answer(method, url, kwargs):
+            if "oauth2.googleapis.com" in url:
+                return {"access_token": "access-example"}
+            if "googleAds:search" in url:
+                return {"results": [{"conversionAction": {"id": "555", "type": action_type, "status": "ENABLED"}}]}
+            if "datamanager.googleapis.com" in url:
+                return ingest if ingest is not None else {"requestId": "req-1"}
+            raise AssertionError(url)
+        return answer
+
+    def run_upload(self, rows=None, yes=False, action_type="UPLOAD_CLICKS", ingest=None):
+        with helpers.Workspace() as ws:
+            http = helpers.FakeHttp(self.handler(action_type, ingest))
+            with mock.patch.object(google, "request", http), mock.patch.dict(google._TOKENS, {}, clear=True):
+                out = google.upload_conversions(ws.ctx, rows or self.ROWS, "555", yes=yes)
+        sent = http.sent("datamanager.googleapis.com")
+        return out, sent
+
+    def test_without_yes_google_only_validates(self):
+        out, sent = self.run_upload()
+        method, url, kwargs = sent[0]
+        body = kwargs["json_body"]
+        self.assertEqual((method, url), ("POST", google.DM_ROOT + "/events:ingest"))
+        self.assertEqual(urllib.parse.urlsplit(url).netloc, "datamanager.googleapis.com")
+        self.assertIs(body["validateOnly"], True)
+        self.assertEqual(body["destinations"], [{"operatingAccount": {"accountType": "GOOGLE_ADS", "accountId": "1234567890"},
+                                                 "productDestinationId": "555"}])
+        event = body["events"][0]
+        self.assertEqual(event["eventTimestamp"], "2026-11-26T12:00:00+00:00")
+        self.assertEqual(event["adIdentifiers"], {"gclid": "gclid-example-1"})
+        self.assertEqual((event["conversionValue"], event["currency"], event["transactionId"], event["eventSource"]),
+                         (30.5, "EUR", "order-1", "WEB"))
+        self.assertTrue(out["validated_only"])
+
+    def test_with_yes_the_events_are_ingested(self):
+        out, sent = self.run_upload(yes=True)
+        self.assertIs(sent[0][2]["json_body"]["validateOnly"], False)
+        self.assertEqual(out["requestId"], "req-1")
+
+    def test_a_webpage_action_needs_an_order_id(self):
+        rows = [dict(self.ROWS[0], order_id="")]
+        with self.assertRaises(Refused) as caught:
+            self.run_upload(rows, action_type="WEBPAGE")
+        self.assertIn("order_id", caught.exception.message)
+        out, sent = self.run_upload(action_type="WEBPAGE")
+        self.assertEqual(len(sent), 1)
+
+    def test_other_action_types_are_refused(self):
+        with self.assertRaises(Refused):
+            self.run_upload(action_type="ANDROID_INSTALLS_ALL_OTHER_APPS")
+
+    def test_rows_are_checked_before_anything_is_sent(self):
+        bad = [[dict(self.ROWS[0], gclid="")], [dict(self.ROWS[0], value=-1)], [dict(self.ROWS[0], currency="EURO")],
+               [dict(self.ROWS[0], time="yesterday")], [self.ROWS[0]] * 2001]
+        for rows in bad:
+            with self.assertRaises(Refused):
+                guards.conversion_rows(rows)
+        self.assertEqual(guards.conversion_rows([dict(self.ROWS[0], time="2026-11-26T12:00:00Z")])[0]["eventTimestamp"],
+                         "2026-11-26T12:00:00Z")
+
+    def test_a_field_violation_is_explained(self):
+        failure = helpers.http_error(400, {"error": {"code": 400, "status": "INVALID_ARGUMENT", "message": "bad", "details": [
+            {"@type": "type.googleapis.com/google.rpc.BadRequest",
+             "fieldViolations": [{"field": "events[0].currency", "description": "Invalid currency", "reason": "INVALID_CURRENCY_CODE"}]}]}})
+        with self.assertRaises(AdsError) as caught:
+            self.run_upload(ingest=failure)
+        self.assertIn("events[0].currency", caught.exception.message)
+        self.assertIn("INVALID_CURRENCY_CODE", caught.exception.message)
+
+    def test_a_missing_scope_and_a_disabled_api_get_a_next_step(self):
+        scope = helpers.http_error(403, {"error": {"code": 403, "status": "PERMISSION_DENIED",
+                                                   "message": "Request had insufficient authentication scopes.",
+                                                   "details": [{"reason": "ACCESS_TOKEN_SCOPE_INSUFFICIENT"}]}})
+        with self.assertRaises(AdsError) as caught:
+            self.run_upload(ingest=scope)
+        self.assertIn("--scopes ads,gsc,datamanager", caught.exception.hint)
+        disabled = helpers.http_error(403, {"error": {"code": 403, "status": "PERMISSION_DENIED", "message": "disabled",
+                                                      "details": [{"reason": "SERVICE_DISABLED"}]}})
+        with self.assertRaises(AdsError) as caught:
+            self.run_upload(ingest=disabled)
+        self.assertIn("datamanager.googleapis.com", caught.exception.hint)
+
+    def test_the_login_offers_the_scope(self):
+        with helpers.Workspace() as ws:
+            url = google.login_url(ws.ctx, scopes="ads,gsc,datamanager")
+        self.assertIn("auth%2Fdatamanager", url)
+
+    def test_the_commands_parse(self):
+        parser = ads.build_parser()
+        args = parser.parse_args(["google", "upload-conversions", "--file", "c.csv", "--action", "555", "--yes"])
+        self.assertEqual((args.file, args.action, args.yes, args.source), ("c.csv", "555", True, "WEB"))
+        self.assertEqual(parser.parse_args(["google", "upload-status", "--request-id", "r1"]).request_id, "r1")
+
+    def test_a_csv_file_is_read(self):
+        with helpers.Workspace() as ws:
+            path = ws.project / "c.csv"
+            path.write_text("gclid,time,value,currency,order_id\ngclid-example-1,2026-11-26 12:00:00+00:00,30.5,EUR,order-2\n",
+                            encoding="utf-8")
+            rows = ads.read_rows(str(path))
+        self.assertEqual(rows[0]["gclid"], "gclid-example-1")
+        self.assertEqual(guards.conversion_rows(rows)[0]["conversionValue"], 30.5)
+
+
+class GoogleCallPartialFailure(unittest.TestCase):
+    """google call exited 0 although Google refused every conversion in a partialFailureError (2026-11-27)."""
+
+    def test_a_partial_failure_ends_with_an_error(self):
+        reply = {"partialFailureError": {"code": 3, "message": "New integrations for uploading click conversions should use "
+                                         "the Data Manager API.", "details": [{"errors": [{"errorCode": {
+                                             "notAllowlistedError": "CUSTOMER_NOT_ALLOWLISTED_FOR_THIS_FEATURE"}}]}]}}
+
+        def handler(method, url, kwargs):
+            return {"access_token": "access-example"} if "oauth2" in url else reply
+
+        with helpers.Workspace() as ws:
+            body = ws.project / "c.json"
+            body.write_text('{"conversions": [], "partialFailure": true, "validateOnly": true}', encoding="utf-8")
+            with mock.patch.object(google, "request", helpers.FakeHttp(handler)), mock.patch.dict(google._TOKENS, {}, clear=True), \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as err:
+                code = ads.main(["--dir", str(ws.project / "ads"), "google", "call", "POST",
+                                 "customers/{customer}:uploadClickConversions", "--data", "@" + str(body), "--yes"])
+        self.assertNotEqual(code, 0)
+        self.assertIn("upload-conversions", err.getvalue())
 
 
 if __name__ == "__main__":
