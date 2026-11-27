@@ -443,6 +443,8 @@ INSTANCE_VOCAB = {
     "incident", "responder", "auditor", "doctor", "health", "healthcheck",
     "status", "repair", "clone", "memory", "versions", "exec", "logs", "init",
     "features", "audit", "security", "diagnostics", "report", "surgery",
+    # plugin SDK components (openclaw-plugin-dev skills, an MCP client name)
+    "channel", "registration", "bridge",
     # canonical placeholder names in documentation
     "alpha", "beta", "gamma", "delta", "one", "two", "three", "first", "second",
 }
