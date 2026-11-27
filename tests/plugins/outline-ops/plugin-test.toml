@@ -1,12 +1,13 @@
-# Outline: плагин выверен по серверу Outline v1.10.1 (README, LEARNINGS 2026-10-03: OpenAPI spec3.yml на коммите 40f51b75ef, 154 операции).
+# Outline: плагин выверен по серверу Outline v1.13.0 (README, LEARNINGS 2026-11-27: OpenAPI spec3.yml на коммите fbc3545a1c, 153 операции).
 # Спецификация в skills/api-reference/references пересобирается refresh по рецепту из LEARNINGS.md, поэтому skip_paths пуст.
 # Встроенный MCP-сервер Outline пользователь подключает сам — в манифесте он не описан.
 [upstream]
 skip_paths = []
+reviewed = 2026-11-27
 [[upstream.source]]
 kind = "github-release"
 id = "outline/outline"
-pinned = "1.10.1"
+pinned = "1.13.0"
 [[upstream.source]]
 kind = "docs"
 url = "https://docs.getoutline.com"
