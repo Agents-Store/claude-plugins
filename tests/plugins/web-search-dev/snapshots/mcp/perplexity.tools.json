@@ -1,11 +1,23 @@
 {
   "tools": [
     {
-      "description": "Answer a question using web-grounded AI (Perplexity Agent API, fast preset). Best for: quick factual questions, summaries, explanations, and general Q&A. Returns a text response with numbered citations. Fastest and cheapest option. Supports filtering by recency (hour/day/week/month/year), domain restrictions, and search context size. For in-depth multi-source research, use perplexity_research instead. For step-by-step reasoning and analysis, use perplexity_reason instead.",
+      "description": "Answer a question using web-grounded AI (Perplexity Agent API, fast preset). Best for: quick factual questions, summaries, explanations, and general Q&A. Returns a text response with numbered citations. Fastest and cheapest option. Supports filtering by recency (hour/day/week/month/year), domain restrictions, and search token budgets. For in-depth multi-source research, use perplexity_research instead. For step-by-step reasoning and analysis, use perplexity_reason instead.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
+          "max_tokens": {
+            "description": "Maximum total search-context tokens, not generated answer tokens. Overrides the legacy search_context_size total budget.",
+            "exclusiveMinimum": 0,
+            "maximum": 120000,
+            "type": "integer"
+          },
+          "max_tokens_per_page": {
+            "description": "Maximum search-context tokens extracted per result page. Overrides the legacy search_context_size per-page budget.",
+            "exclusiveMinimum": 0,
+            "maximum": 20000,
+            "type": "integer"
+          },
           "messages": {
             "description": "Array of conversation messages",
             "items": {
@@ -34,7 +46,7 @@
             "type": "array"
           },
           "search_context_size": {
-            "description": "Controls how much web context is retrieved. 'low' is fastest, 'high' provides more comprehensive results.",
+            "description": "Deprecated compatibility shorthand for search token budgets: low=2000/512, medium=4000/1024, high=8000/2048 (total/per-page). Explicit max_tokens and max_tokens_per_page override these defaults.",
             "enum": [
               "low",
               "medium",
@@ -69,11 +81,143 @@
       "name": "perplexity_ask"
     },
     {
-      "description": "Analyze a question using step-by-step reasoning with web grounding (Perplexity Agent API, medium preset). Best for: math, logic, comparisons, complex arguments, and tasks requiring chain-of-thought. Returns a reasoned response with numbered citations. Supports filtering by recency (hour/day/week/month/year), domain restrictions, and search context size. For quick factual questions, use perplexity_ask instead. For comprehensive multi-source research, use perplexity_research instead.",
+      "description": "Fetch web pages by URL through the Perplexity Context API. Best for: reading pages when you already have the URLs. Returns Markdown by default. Can also return HTML, links, the passages most relevant to a query (highlights), and yes or no scores for your questions (criteria). Every result with status ok or not_modified includes page metadata. Full pages can be long; to get specific facts, set formats to ['highlights'] and set highlights.query. To find URLs, use perplexity_search instead.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
+          "cache_only": {
+            "description": "When true, read only stored copies and never fetch live (default: false). A URL with no stored copy returns status no_content. Requires max_age_seconds above 0. Cannot be combined with snapshot_as_of.",
+            "type": "boolean"
+          },
+          "criteria": {
+            "additionalProperties": {
+              "additionalProperties": false,
+              "properties": {
+                "criteria": {
+                  "additionalProperties": false,
+                  "description": "Optional descriptions of what makes the answer true and what makes it false",
+                  "properties": {
+                    "false": {
+                      "description": "What makes the answer false (1-500 characters)",
+                      "type": "string"
+                    },
+                    "true": {
+                      "description": "What makes the answer true (1-500 characters)",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "instructions": {
+                  "description": "The yes or no question to answer, or the statement to check (1-1000 characters)",
+                  "type": "string"
+                },
+                "type": {
+                  "description": "Question type. Always 'noul'.",
+                  "enum": [
+                    "noul"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "instructions",
+                "type"
+              ],
+              "type": "object"
+            },
+            "description": "Yes or no questions to score each page with (1-5 questions). An object keyed by question ID. Each value is an object with type 'noul', the question in instructions, and optionally a nested criteria object that says what makes the answer true or false (e.g., {\"is_changelog\": {\"type\": \"noul\", \"instructions\": \"Is this page a product changelog?\", \"criteria\": {\"true\": \"The page lists dated releases.\", \"false\": \"The page is not a list of releases.\"}}}). IDs must match [A-Za-z0-9_-]{1,64}. 'query' is reserved, and this tool does not accept '__proto__'. Each answer is a probability of yes from 0 to 1. Scoring does not filter or reorder results.",
+            "type": "object"
+          },
+          "formats": {
+            "description": "What to return for each page (default: ['markdown']). Every result with status ok or not_modified includes metadata, so do not list it; pass [] for metadata only. 'highlights' also requires the highlights object.",
+            "items": {
+              "enum": [
+                "markdown",
+                "html",
+                "links",
+                "highlights"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "highlights": {
+            "additionalProperties": false,
+            "description": "Settings for the 'highlights' format. Whenever you set this, also set formats to include 'highlights' (e.g., formats: ['highlights']). A request that sets highlights fails if formats is omitted or does not include 'highlights'.",
+            "properties": {
+              "max_tokens_per_url": {
+                "description": "Maximum length of each page's highlights in tokens (1-4096, default: 1024)",
+                "maximum": 4096,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "query": {
+                "description": "What to look for in each page (1-1024 characters)",
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "type": "object"
+          },
+          "if_modified_since": {
+            "description": "A metadata last_modified value from an earlier result, in IMF-fixdate form (e.g., 'Thu, 03 Dec 1992 08:37:20 GMT'). Requires exactly one URL and max_age_seconds 0. A page that has not changed returns status not_modified and no content.",
+            "type": "string"
+          },
+          "max_age_seconds": {
+            "description": "Maximum age in seconds of a stored copy to accept (0-63072000, default: 172800). 0 always fetches the page live. Cannot be combined with snapshot_as_of.",
+            "maximum": 63072000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "snapshot_as_of": {
+            "description": "Return each page as stored at or before this RFC 3339 time with a time zone (e.g., '2026-11-01T00:00:00Z'). Must not be in the future or more than 365 days ago. Never fetches live. Cannot be combined with max_age_seconds, cache_only, or if_modified_since.",
+            "type": "string"
+          },
+          "timeout_ms": {
+            "description": "Time budget in milliseconds for fetching the pages (1000-110000). A URL that does not finish in time returns status crawl_timeout.",
+            "maximum": 110000,
+            "minimum": 1000,
+            "type": "integer"
+          },
+          "urls": {
+            "description": "http or https URLs to fetch (1-50). Each URL gets its own result and status.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "urls"
+        ],
+        "type": "object"
+      },
+      "name": "perplexity_context"
+    },
+    {
+      "description": "Analyze a question using step-by-step reasoning with web grounding (Perplexity Agent API, medium preset). Best for: math, logic, comparisons, complex arguments, and tasks requiring chain-of-thought. Returns a reasoned response with numbered citations. Supports filtering by recency (hour/day/week/month/year), domain restrictions, and search token budgets. For quick factual questions, use perplexity_ask instead. For comprehensive multi-source research, use perplexity_research instead.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "max_tokens": {
+            "description": "Maximum total search-context tokens, not generated answer tokens. Overrides the legacy search_context_size total budget.",
+            "exclusiveMinimum": 0,
+            "maximum": 120000,
+            "type": "integer"
+          },
+          "max_tokens_per_page": {
+            "description": "Maximum search-context tokens extracted per result page. Overrides the legacy search_context_size per-page budget.",
+            "exclusiveMinimum": 0,
+            "maximum": 20000,
+            "type": "integer"
+          },
           "messages": {
             "description": "Array of conversation messages",
             "items": {
@@ -102,7 +246,7 @@
             "type": "array"
           },
           "search_context_size": {
-            "description": "Controls how much web context is retrieved. 'low' is fastest, 'high' provides more comprehensive results.",
+            "description": "Deprecated compatibility shorthand for search token budgets: low=2000/512, medium=4000/1024, high=8000/2048 (total/per-page). Explicit max_tokens and max_tokens_per_page override these defaults.",
             "enum": [
               "low",
               "medium",
