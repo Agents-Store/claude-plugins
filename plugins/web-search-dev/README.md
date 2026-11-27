@@ -1,6 +1,6 @@
 # web-search-dev
 
-Developer reference for web search, scraping and documentation lookup in Claude Code: 5 bundled MCP servers (47 tools), REST APIs, SDKs and CLIs, plus Pexels and Unsplash REST media search. Role in the search family: tools and API reference for developers (search, scraping, documentation lookup).
+Developer reference for web search, scraping and documentation lookup in Claude Code: 5 bundled MCP servers (56 tools), REST APIs, SDKs and CLIs, plus Pexels and Unsplash REST media search. Role in the search family: tools and API reference for developers (search, scraping, documentation lookup).
 
 This plugin also replaces `image-search-dev` (retired; installed copies are renamed to `web-search-dev`).
 
@@ -9,8 +9,8 @@ This plugin also replaces `image-search-dev` (retired; installed copies are rena
 | Service | Tools | Use For |
 |---------|-------|---------|
 | **Firecrawl** | 34 MCP tools | Scraping, crawling, schema-bound extraction via the agent, agent research, live-page interaction, file parsing, change monitors, Alexandria data providers |
-| **Exa** | 2 MCP tools (search + fetch), +2 opt-in | Semantic web search, page fetching, advanced filters and `agent_run` (opt-in) |
-| **Perplexity** | 4 MCP tools | Search, AI-powered Q&A, deep research, reasoning |
+| **Exa** | 3 MCP tools (search, fetch, `agent_run` with a key), +1 opt-in | Semantic web search, page fetching, Exa Agent, advanced filters (opt-in) |
+| **Perplexity** | 5 MCP tools | Search, AI-powered Q&A, deep research, reasoning, page fetching (Context API) |
 | **Jina** | 12 MCP tools | Page reading (batch + question mode), web/academic/image search, reranking, deduplication |
 | **Context7** | 2 MCP tools | Up-to-date framework/library documentation |
 | **Pexels** | REST (`curl`) | Stock photos and videos |
@@ -21,7 +21,7 @@ This plugin also replaces `image-search-dev` (retired; installed copies are rena
 | Skill | Description |
 |-------|-------------|
 | **setup** | Verify which services are connected and operational |
-| **mcp-patterns** | All 47 MCP tools with routing table, per-service references and media REST reference |
+| **mcp-patterns** | All 56 MCP tools with routing table, per-service references and media REST reference |
 | **api-reference** | REST API endpoints with curl examples for all services, including Pexels and Unsplash |
 | **sdk-patterns** | SDK installation and code patterns (TypeScript + Python) |
 | **cli-recipes** | Firecrawl CLI and Jina CLI commands and workflows |
@@ -56,7 +56,7 @@ Hosted alternatives (if you prefer remote MCP over npx; keep `${VAR}` placeholde
 
 API keys are configured via standard environment variables (`FIRECRAWL_API_TOKEN`, `EXA_API_KEY`, `PERPLEXITY_API_KEY`, `JINA_API_KEY`, `CONTEXT7_API_KEY`).
 
-Exa's `web_search_advanced_exa` and `agent_run` are opt-in on the bundled server: set `ENABLED_TOOLS=web_search_exa,web_fetch_exa,web_search_advanced_exa,agent_run` in the environment that launches Claude Code.
+Exa's `agent_run` is on by default once `EXA_API_KEY` is set; `web_search_advanced_exa` is opt-in on the bundled server: set `ENABLED_TOOLS=web_search_exa,web_fetch_exa,web_search_advanced_exa,agent_run` in the environment that launches Claude Code.
 
 ## Media search (Pexels and Unsplash — REST)
 
