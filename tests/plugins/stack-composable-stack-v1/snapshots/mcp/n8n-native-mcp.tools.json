@@ -29,6 +29,16 @@
       "description": "",
       "inputSchema": {
         "required": [
+          "agentId"
+        ],
+        "type": "object"
+      },
+      "name": "archive_agent"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
           "workflowId"
         ],
         "type": "object"
@@ -100,16 +110,6 @@
         "type": "object"
       },
       "name": "create_workflow_from_code"
-    },
-    {
-      "description": "",
-      "inputSchema": {
-        "required": [
-          "agentId"
-        ],
-        "type": "object"
-      },
-      "name": "delete_agent"
     },
     {
       "description": "",
@@ -209,6 +209,22 @@
         "type": "object"
       },
       "name": "get_data_table_rows"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "get_migration_findings"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [],
+        "type": "object"
+      },
+      "name": "get_migration_report"
     },
     {
       "description": "",
@@ -353,6 +369,17 @@
         "type": "object"
       },
       "name": "list_workflow_tags"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "ruleId",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "migrate_workflow"
     },
     {
       "description": "",
@@ -530,6 +557,18 @@
         "type": "object"
       },
       "name": "search_workflows"
+    },
+    {
+      "description": "",
+      "inputSchema": {
+        "required": [
+          "ruleId",
+          "status",
+          "workflowId"
+        ],
+        "type": "object"
+      },
+      "name": "set_migration_finding_status"
     },
     {
       "description": "",

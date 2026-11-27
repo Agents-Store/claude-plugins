@@ -23,36 +23,38 @@ snapshot = "names"
 [mcp.nocobase-dev]
 snapshot = "names"
 
-# Стек описывает архитектуру и версий продуктов в тексте не называет (LEARNINGS 2026-10-03, вариант A). Выверен по тем
-# же версиям, что пять его технологических плагинов (n8n-dev, nocodb-ops, nocobase-dev, postgresql-external-dev,
-# trigger-dev): n8n-mcp и trigger.dev — серверы из .mcp.json, остальное — сервисы, которые они соединяют.
+# Стек описывает архитектуру и версий продуктов в тексте не называет (LEARNINGS 2026-10-03, вариант A). С refresh
+# 2026-11-27 выверен по релизам сервисов напрямую — его технологические плагины (n8n-dev, nocodb-ops, nocobase-dev,
+# postgresql-external-dev, trigger-dev) могут быть выверены по более старым: n8n-mcp и trigger.dev — серверы из
+# .mcp.json, остальное — сервисы, которые они соединяют.
 # Vendored-путей нет.
 [upstream]
+reviewed = 2026-11-27
 [[upstream.source]]
 kind = "github-release"
 id = "n8n-io/n8n"
-pinned = "2.41.6"
+pinned = "2.49.8"
 [[upstream.source]]
 kind = "npm"
 id = "n8n-mcp"
-pinned = "2.91.0"
+pinned = "2.104.2"
 [[upstream.source]]
 kind = "npm"
 id = "trigger.dev"
-pinned = "4.7.2"
+pinned = "4.8.10"
 [[upstream.source]]
 kind = "github-release"
 id = "nocodb/nocodb"
-pinned = "2026.09.1"
+pinned = "2026.11.0"
 [[upstream.source]]
 kind = "github-release"
 id = "nocobase/nocobase"
-pinned = "2.1.0-beta.29"
+pinned = "2.2.53"
 [[upstream.source]]
 kind = "github-release"
 id = "googleapis/mcp-toolbox"
-pinned = "1.13.1"
+pinned = "1.18.0"
 [[upstream.source]]
 kind = "github-release"
 id = "PostgREST/postgrest"
-pinned = "16.3"
+pinned = "16.6"
