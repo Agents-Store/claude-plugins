@@ -2,17 +2,17 @@
 [mcp.nocodb]
 snapshot = "names"
 
-# NocoDB: плагин выверен по релизу NocoDB 2026.10.2 (LEARNINGS 2026-11: /mcp отдаёт все инструменты, Meta API v3;
+# NocoDB: плагин выверен по релизу NocoDB 2026.11.0 (LEARNINGS 2026-11: /mcp отдаёт все инструменты, Meta API v3;
 # OpenAPI-спеки пересобраны из swagger-v3.json ядра). Пакет `nocodb` в npm давно не обновляется
 # (0.301.x) — версию ведёт только GitHub-релиз. Официальный скрипт nocodb.sh живёт в nocodb/agent-skills и не вендорится.
 # Vendored-путей нет: skip_paths пуст.
 [upstream]
-reviewed = 2026-11-24
+reviewed = 2026-11-27
 skip_paths = []
 [[upstream.source]]
 kind = "github-release"
 id = "nocodb/nocodb"
-pinned = "2026.10.2"
+pinned = "2026.11.0"
 [[upstream.source]]
 kind = "docs"
 url = "https://nocodb.com/docs"
