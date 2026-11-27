@@ -271,3 +271,10 @@
 **Fix:** Deleted again; the library still showed it gone a minute later. The reference says to read the library again some time after a removal.
 **Root cause:** Not known. Meta keeps one image per hash and revives a deleted one with its first `created_time` when the same file is uploaded.
 **Severity:** Minor
+
+## 2026-11-27 — launch-campaign: approved and ACTIVE ads showed 0 impressions, and finding why took many manual reads
+
+**Problem:** Two Meta ads, one made by the toolkit and one by Meta's own MCP server, were approved and ACTIVE yet had 0 impressions for a day. Finding the cause meant reading statuses per level, review feedback, `issues_info`, the delivery estimate, the account state, `ads_volume`, the schedule, insights and the MCP server's own delivery sub-state ("preparing") by hand. `launch status` read only names and statuses.
+**Fix:** `launch diagnose --file PLAN [--json]` reads all of that for a launched plan on Meta, Google and TikTok, without writing, and returns findings with a next step each. Approved, on, schedule open and 0 impressions 6 hours or more after the last activation is a failure with suspects (Meta: the Delivery column, recreate after 48 hours, an isolating test of one image ad on Facebook feed with a real Instagram account); sooner it is "too early". Meta rejects unknown fields (`delivery_status`, `delivery_checks` do not exist), so the audit asks only for fields seen live.
+**Root cause:** The toolkit could create and switch on, but had no way to say why a switched-on plan did not deliver, so the diagnosis lived in the head of whoever did it.
+**Severity:** Major

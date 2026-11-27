@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from adskit import __version__, creative, google, keys, launch, meta, recon, tiktok, workspace  # noqa: E402
+from adskit import __version__, creative, diagnose, google, keys, launch, meta, recon, tiktok, workspace  # noqa: E402
 from adskit.core import (AdsError, Context, EXIT_USAGE, Refused, emit, find_workspace, load_json_arg,  # noqa: E402
                          parse_pairs, redact)
 
@@ -301,11 +301,14 @@ def build_parser():
     sub = groups.add_parser("launch", help="launch plans").add_subparsers(dest="command", required=True)
     for name, text in (("plan", "dry run: print the eight blocks"), ("apply", "create everything, paused"),
                        ("status", "read back what the plan created"), ("activate", "enable what the plan created"),
-                       ("rollback", "pause, or with --remove delete, what the plan created")):
+                       ("rollback", "pause, or with --remove delete, what the plan created"),
+                       ("diagnose", "read-only audit: why what the plan created does not deliver")):
         p = sub.add_parser(name, help=text)
         p.add_argument("--file", required=True)
         if name in ("apply", "activate", "rollback"):
             p.add_argument("--yes", action="store_true")
+        if name == "diagnose":
+            p.add_argument("--json", action="store_true", help="print the findings as a JSON list")
         if name == "rollback":
             p.add_argument("--remove", action="store_true")
         if name == "apply":
@@ -502,6 +505,9 @@ def run(args):
             return print(redact(launch.apply(ctx, args.file, yes=args.yes, resend=args.resend)), end="")
         if command == "status":
             return emit(launch.status(ctx, args.file))
+        if command == "diagnose":
+            findings = diagnose.diagnose(ctx, args.file)
+            return emit(findings) if args.json else print(redact(diagnose.table(findings)), end="")
         if command == "activate":
             return print(redact(launch.activate(ctx, args.file, yes=args.yes)), end="")
         if command == "rollback":
