@@ -49,7 +49,7 @@ Read the codemap-diagram skill at `${CLAUDE_PLUGIN_ROOT}/skills/codemap-diagram/
 3. **Generate mxGraph XML** — using templates, with proper colors and labels
 4. **Save as .drawio file** — to `docs/codemap/diagrams/{type}-{scope}.drawio`
 5. **Call drawio-mcp** — use `create_diagram` tool for an inline preview (rendered only in clients that support MCP Apps)
-6. **Report the outputs** — the file path always; the preview only if one was rendered
+6. **Report the outputs** — the file path always; the preview or editor link only if the tool returned one
 
 ## Diagram Generation Process
 
@@ -64,8 +64,8 @@ For every diagram:
    - Edge labels (imports, calls, FK names)
    - Title at the top of the diagram
 4. Save the XML as a `.drawio` file using the Write tool
-5. Call `create_diagram` MCP tool with the same XML for preview — clients without MCP Apps support get the XML back as text and no URL
-6. Present the file path to the user, and mention the preview only if one was actually rendered (never promise a URL)
+5. Call `create_diagram` MCP tool with the same XML for preview — clients without MCP Apps support get the XML back plus a link that opens the diagram in the draw.io editor (call `get_drawio_reference` with `format: "xml"` once before the first diagram, as the server asks)
+6. Present the file path to the user, and mention the preview or editor link only if the tool actually returned one (never promise a link in advance)
 
 ## Critical Rules
 
@@ -75,6 +75,6 @@ For every diagram:
 - **Max 15 nodes** per diagram — split into multiple diagrams if more
 - **Always save file first**, then call MCP for preview — the `.drawio` file is the deliverable, the preview is a bonus
 - **Use real names** from the codebase, not generic labels
-- **Tool names** — this plugin declares the `drawio` server, so its tools are `mcp__plugin_codemap-dev_drawio__create_diagram` and `mcp__plugin_codemap-dev_drawio__search_shapes` (short names above)
+- **Tool names** — this plugin declares the `drawio` server, so its tools are `mcp__plugin_codemap-dev_drawio__create_diagram`, `mcp__plugin_codemap-dev_drawio__get_drawio_reference` and `mcp__plugin_codemap-dev_drawio__search_shapes` (short names above)
 - **Include color legend** in architecture and ERD diagrams
 - Cell IDs start from 2 (0 and 1 are reserved for root and default parent)

@@ -2,13 +2,14 @@
 [mcp.playwright]
 start = "ci"
 
-# Playwright MCP — npm-пакет, плагин закреплён на 0.0.83 (.mcp.json, README, LEARNINGS 2026-10-03).
+# Playwright MCP — npm-пакет, плагин закреплён на 0.0.86 (.mcp.json, README, LEARNINGS 2026-11-27).
 # drawio-mcp — размещённый HTTP-сервер без пакета, релизов и тегов: следим только за документацией.
 [upstream]
+reviewed = 2026-11-27
 [[upstream.source]]
 kind = "npm"
 id = "@playwright/mcp"
-pinned = "0.0.83"
+pinned = "0.0.86"
 [[upstream.source]]
 kind = "docs"
 url = "https://github.com/jgraph/drawio-mcp"

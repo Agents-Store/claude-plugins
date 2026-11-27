@@ -50,7 +50,7 @@
       "name": "browser_click"
     },
     {
-      "description": "Close the page",
+      "description": "Close the browser and all open tabs.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -363,6 +363,10 @@
             "description": "Save results to a file instead of returning them in the response. Relative file names are resolved against the workspace root.",
             "type": "string"
           },
+          "maxResults": {
+            "description": "Maximum number of matching items to return. Defaults to returning all matches.",
+            "type": "number"
+          },
           "regex": {
             "description": "Regular expression to search for in the page snapshot. Matching is case-sensitive by default; wrap the pattern in slashes to add flags, e.g. \"/error/i\" for case-insensitive. Provide either text or regex, not both.",
             "type": "string"
@@ -488,6 +492,10 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
+          "all": {
+            "description": "Return all network requests since the beginning of the session, not just since the last navigation. Defaults to false.",
+            "type": "boolean"
+          },
           "filename": {
             "description": "File name to save the network requests to. Relative file names are resolved against the workspace root. If not provided, requests are returned as text.",
             "type": "string"
@@ -646,6 +654,10 @@
             "description": "Tab index, used for close/select. If omitted for close, current tab is closed.",
             "type": "number"
           },
+          "isolatedContext": {
+            "description": "Name of an isolated browser context to create the new tab in, used for new. Tabs in the same isolated context share cookies and storage, tabs in different contexts are fully isolated. If omitted or \"default\", the tab is created in the default context.",
+            "type": "string"
+          },
           "url": {
             "description": "URL to navigate to in the new tab, used for new.",
             "type": "string"
@@ -659,7 +671,7 @@
       "name": "browser_tabs"
     },
     {
-      "description": "Take a screenshot of the current page. You can't perform actions based on the screenshot, use browser_snapshot for actions.",
+      "description": "Take a screenshot of the current page. Use browser_snapshot for actions by default. With the vision capability enabled, use screenshot coordinates with the coordinate-based mouse tools for elements not exposed in the accessibility snapshot.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -742,7 +754,7 @@
       "name": "browser_type"
     },
     {
-      "description": "Wait for text to appear or disappear or a specified time to pass",
+      "description": "Wait for text to appear or disappear or a specified time to pass. When both text and textGone are provided, waits for the first one to happen",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -756,7 +768,7 @@
             "type": "string"
           },
           "time": {
-            "description": "The time to wait in seconds, at most 30",
+            "description": "The time to wait in seconds, at most 30. When combined with text or textGone, serves as a timeout for them instead of the default action timeout",
             "type": "number"
           }
         },

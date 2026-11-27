@@ -67,3 +67,9 @@ Accumulated fixes and discoveries from plugin usage.
 - Documented the real tool names for plugin-declared servers: `mcp__plugin_codemap-dev_<server>__<tool>`; frontmatter `tools:` still not pinned (agents inherit)
 - Dropped the redundant `mcpServers` key from `plugin.json` (`.mcp.json` at the plugin root loads automatically)
 **Rationale:** The wrong tool name returns "tool not found"; the unprefixed command names do not exist; an unpinned npx package is an unreviewed code path; promising a URL that Claude Code may not return misleads the user.
+
+## 2026-11-27 — refresh: Playwright MCP 0.0.86, drawio-mcp editor link and reference tool
+
+**Problem:** `.mcp.json` and the README pinned Playwright MCP 0.0.83 and promised any Node.js, but 0.0.86 is current and needs Node.js 20 or later. The hosted drawio-mcp now answers clients without MCP Apps with a link to the draw.io editor (the skill and the diagrammer agent said "no URL"), and it gained `get_drawio_reference`, which its `create_diagram` description asks the model to call before the first diagram, plus a fast-mode `create_semantic_diagram`.
+**Fix:** Pin `@playwright/mcp@0.0.86` and state Node.js 20+; codemap-diagram and the diagrammer agent pass the editor link on when the tool returns one, list `get_drawio_reference` (format `xml`, once per conversation) and say `create_semantic_diagram` is not used because the plugin writes and saves its own XML. MCP snapshots retaken: the service changed them (new tools and parameters, no removals). Version 1.4.6 → 1.4.7.
+**Source:** Playwright MCP release notes v0.0.84–v0.0.86 (github.com/microsoft/playwright-mcp/releases, 2026-10-31 to 2026-11-18); drawio-mcp `docs/app-server-tools.md` (github.com/jgraph/drawio-mcp, app server 1.11.0, 2026-11-23) and the live `tools/list`.
