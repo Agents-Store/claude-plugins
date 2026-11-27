@@ -45,6 +45,32 @@ class UpstreamSeverityTest(unittest.TestCase):
             healthcheck.upstream_severity(None)
 
 
+
+class MemoryStatusOwnershipTest(unittest.TestCase):
+    """A build that refuses `memory status` under a live gateway is not a memory failure."""
+
+    def run_memory(self, rc, stdout="", stderr=""):
+        rec = _rec()
+        result = ocjson.interpret("memory status", rc, stdout, stderr,
+                                  argv=["memory", "status", "--json"])
+        opts = _LintOpts()
+        with mock.patch.object(healthcheck, "oc_read", return_value=(result, "ok")):
+            healthcheck.check_memory(rec, {"paths": {}}, opts)
+        return rec
+
+    def test_a_gateway_owned_refusal_is_recorded_not_reported(self):
+        rec = self.run_memory(1, stderr="The local Gateway owns this state directory; stop the "
+                                        "Gateway and retry.")
+        self.assertEqual(rec["commands"]["memory_status"], "offline-only")
+        self.assertEqual(rec["metrics"]["embeddings"], "unread")
+        self.assertEqual(rec["findings"], [])
+
+    def test_an_unrelated_failure_keeps_the_plain_status(self):
+        rec = self.run_memory(1, stderr="something else went wrong")
+        self.assertEqual(rec["commands"]["memory_status"], "ok")
+        self.assertNotIn("embeddings", rec["metrics"])
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -96,6 +122,31 @@ class OrphanedTimerTest(unittest.TestCase):
     def test_a_main_timer_without_a_binding_is_still_orphaned(self):
         self.assertTrue(healthcheck._timer_is_orphaned({"id": "c", "sessionTarget": "main"}))
         self.assertTrue(healthcheck._timer_is_orphaned({"id": "d"}))
+
+    def test_a_resolved_effective_owner_is_not_orphaned(self):
+        # current builds resolve agent-less jobs through the system agent
+        self.assertFalse(healthcheck._timer_is_orphaned(
+            {"id": "e", "sessionTarget": "main", "agentId": None, "effectiveAgentId": "main"}))
+
+    def test_an_unresolved_effective_owner_is_orphaned_even_when_isolated(self):
+        self.assertTrue(healthcheck._timer_is_orphaned(
+            {"id": "f", "sessionTarget": "isolated", "effectiveAgentId": None}))
+
+
+class ReadyzDetailTest(unittest.TestCase):
+    """Loopback callers get the readiness details without a token."""
+
+    def test_a_body_with_failing_channels_carries_detail(self):
+        self.assertTrue(healthcheck._readyz_has_detail(
+            '{"ok": false, "status": "not-ready", "coreReady": true, "failing": ["telegram"]}'))
+
+    def test_a_truncated_body_is_matched_by_key(self):
+        self.assertTrue(healthcheck._readyz_has_detail('{"ok":false,"degraded": ["slack", "disc'))
+
+    def test_a_bare_negative_carries_no_detail(self):
+        self.assertFalse(healthcheck._readyz_has_detail('{"ok": false, "status": "not-ready"}'))
+        self.assertFalse(healthcheck._readyz_has_detail(""))
+        self.assertFalse(healthcheck._readyz_has_detail(None))
 
 
 class _LintOpts(object):

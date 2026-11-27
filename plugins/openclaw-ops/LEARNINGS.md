@@ -29,6 +29,33 @@ Accumulated fixes and discoveries for the OpenClaw fleet-operations plugin. Newe
 **Severity:** Critical / Major / Minor
 -->
 
+## 2026-11-27 — refresh: aligned with the current OpenClaw stable after two months of upstream changes
+
+**Problem:** the plugin was written against the early-October stable. Since then upstream turned the heartbeat
+into an ordinary automation job and made the `agents.*.heartbeat` keys (and `compaction.memoryFlush.model`)
+invalid config, so `heartbeat-md` taught keys that now stop the gateway. Most `memory` and `models auth` verbs
+now refuse while a gateway owns the state directory, so the battery's live `memory status` read went silent and
+the skills advised live reads that are refused. Memory search recovers from a fallback on its own, the key is
+no longer part of the index identity, and the global skill install now lands in the state-directory tier and
+shadows the shared tree. A workshop-skills tier was added to the loading order. `/readyz` gives its details to
+local-direct callers too, so the in-container probe filed real readiness failures as an unreadable warn.
+Agent-less automation jobs resolve to the system agent (`effectiveAgentId`), so the orphan check fired on healthy
+jobs. The security-audit finding shape is `title`/`detail`/`remediation` and needs the CLI's own `--json`.
+Doctor may write partial `.scoped.bak` migration archives, and container restarts retire older Doctor copies.
+The experimental `fleet` command is gone. The USER.md and BOOTSTRAP.md templates were rewritten upstream.
+**Fix:** rewrote `heartbeat-md` around `openclaw automations edit` flags and the Doctor migration (R4,
+interactive). Marked the retired keys in the config reference. Documented offline-only memory and auth verbs
+and their live alternatives. `healthcheck.py` now records a gateway-owned `memory status` refusal as
+`offline-only`, files a `/readyz` negative that carries details as `fleet.probe.readyz-fail`, and trusts
+`effectiveAgentId` when present (unit tests added). Updated the diagnostics catalog, upstream-issue rows and
+security-audit docs. Four eval cases whose checked fact changed were updated with the source in hand.
+**Source:** https://docs.openclaw.ai/gateway/heartbeat · https://docs.openclaw.ai/gateway/doctor/config-migrations ·
+https://docs.openclaw.ai/cli/memory · https://docs.openclaw.ai/cli/models · https://docs.openclaw.ai/reference/memory-config ·
+https://docs.openclaw.ai/tools/skills · https://docs.openclaw.ai/gateway/health · https://docs.openclaw.ai/cli/cron ·
+https://docs.openclaw.ai/cli/security · https://docs.openclaw.ai/install/docker · https://docs.openclaw.ai/install/updating
+**Root cause:** fast upstream release cadence; the plugin had not been reviewed since its alignment.
+**Severity:** Major
+
 ## [2026-10-03] — instance-upgrade: a documented alias walked past the R4 marker written for the original
 
 **Problem:** the repair posture of `doctor` has two spellings (`--fix` and `--repair`), the update command has a

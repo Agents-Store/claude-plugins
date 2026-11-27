@@ -27,9 +27,12 @@ Probe notes that are easy to get wrong
 --------------------------------------
 * ``/healthz`` only proves the HTTP server is up. ``/startupz`` adds "startup
   finished" and deliberately ignores channel health. Only ``/readyz`` means the
-  channels passed a deep check — and **only with a Bearer token**: unauthenticated
-  it answers a bare ``{"ready": false}`` with no list of what failed, which reads
-  like a healthy negative and is not.
+  channels passed a deep check. Its details (``failing``, ``degraded``,
+  ``coreReady``) go to local-direct **or** authenticated callers; a remote caller
+  without a token gets a bare ``ok``/``status`` with no list of what failed, which
+  reads like a healthy negative and is not. The probe runs on loopback inside the
+  container, so it normally receives the details even without a token
+  (``_readyz_has_detail``); only a bare negative is treated as unreadable.
 * ``health --json`` with top-level ``ok: true`` does **not** mean the delivery
   queues are clear. ``deliveryQueues.ingressPressure`` is parsed explicitly.
 * ``models status --check`` is the monitoring path: exit 1 = expired, 2 =
@@ -133,6 +136,13 @@ def severity_rank(value, where="finding"):
             "unknown severity %r in %s: the vocabulary is %s"
             % (value, where, ", ".join(SEVERITIES)))
 
+
+# Current builds refuse most memory commands while a gateway owns the state directory
+# (only search and session-backfill route through it). Such a refusal is not a broken
+# memory subsystem; the battery records it and moves on.
+GATEWAY_OWNED_RE = re.compile(
+    r"gateway\b.{0,80}\b(owns|is running|running gateway)|stop the gateway"
+    r"|exclusive (offline )?ownership|state directory is (owned|in use)", re.I)
 
 UNSUPPORTED_RE = re.compile(
     r"(unknown|unrecognized|unrecognised|invalid)\s+(command|argument|option|flag)"
@@ -453,6 +463,18 @@ def check_container(rec, record):
                 source="docker:inspect")
 
 
+_READYZ_DETAIL_RE = re.compile(r'"(?:failing|degraded|coreReady)"\s*:')
+
+
+def _readyz_has_detail(body):
+    """Does a /readyz body carry the readiness details (failing, degraded, coreReady)?
+
+    Upstream sends them to local-direct and authenticated callers alike; the probe
+    body is truncated, so a cut-off JSON document is matched by key, not parsed.
+    """
+    return bool(body) and bool(_READYZ_DETAIL_RE.search(str(body)))
+
+
 def check_http(rec, record, opts):
     """Endpoint battery, and the distinction between the three endpoints."""
     if opts.skip_http or (record.get("container") or {}).get("state") != "running":
@@ -487,17 +509,18 @@ def check_http(rec, record, opts):
         rec["metrics"]["readyz_authenticated"] = ready.get("authenticated")
         if ready.get("status") != 200:
             detail = ready.get("body") or ""
-            if not ready.get("authenticated"):
+            if not ready.get("authenticated") and not _readyz_has_detail(detail):
                 finding(rec, "fleet.liveness.health-vs-ready", "warn",
-                        "/readyz answered %s without a bearer token, so the response carries no "
-                        "list of failing channels — this is an unreadable negative, not a verdict"
+                        "/readyz answered %s without a bearer token and without readiness details, "
+                        "so the response carries no list of failing channels — this is an "
+                        "unreadable negative, not a verdict"
                         % ready.get("status"),
                         source="probe:/readyz",
                         fix="set --token-env to the variable holding the gateway token, or add it "
                             "to the container environment, then re-run")
             else:
                 finding(rec, "fleet.probe.readyz-fail", "high",
-                        "/readyz answered %s with a token: channels failed the deep check"
+                        "/readyz answered %s with readiness details: channels failed the deep check"
                         % ready.get("status"),
                         source="probe:/readyz", evidence=detail[:300])
     if not res["token_env"]:
@@ -644,11 +667,19 @@ def check_plugins(rec, record, opts):
 def _timer_is_orphaned(row):
     """True when a timer should carry an agent binding and does not.
 
-    A timer whose ``sessionTarget`` is ``isolated`` spawns a throwaway session per
-    tick and carries no binding by construction — counting those makes every healthy
-    isolated schedule read as broken, which is how this check used to flag a fleet
-    whose timers all ran fine.
+    Current builds resolve the owner themselves (declared agent, then an
+    agent-scoped session key, then the system agent) and report it as
+    ``effectiveAgentId`` in each JSON row — ``null`` only when ownership is
+    unresolved. When that field is present it is the whole answer: a job with no
+    declared ``agentId`` is normal there.
+
+    Older rows lack the field. Then a timer whose ``sessionTarget`` is ``isolated``
+    spawns a throwaway session per tick and carries no binding by construction —
+    counting those makes every healthy isolated schedule read as broken, which is
+    how this check used to flag a fleet whose timers all ran fine.
     """
+    if isinstance(row, dict) and "effectiveAgentId" in row:
+        return not row.get("effectiveAgentId")
     if _dig(row, "agentId", "agent", depth=1):
         return False
     return str(_dig(row, "sessionTarget", "target", depth=1) or "").lower() != "isolated"
@@ -736,6 +767,11 @@ def check_memory(rec, record, opts):
     if opts.skip_cli:
         return
     result, status = oc_read(record, ["memory", "status", "--json"], opts.timeout)
+    if (status == "ok" and result is not None and result.json is None and result.rc != 0
+            and GATEWAY_OWNED_RE.search((result.stderr or "") + " " + (result.stdout or ""))):
+        # an offline-only read on this build: not evidence about the memory subsystem
+        status = "offline-only"
+        rec["metrics"]["embeddings"] = "unread"
     rec["commands"]["memory_status"] = status
     if status != "ok" or result is None or result.json is None:
         if status == "unsupported":
@@ -765,13 +801,14 @@ def check_memory(rec, record, opts):
         finding(rec, "fleet.memory.embeddings-unauthorized", "critical",
                 "the embedding provider is failing: %s" % text,
                 source="cli:memory status --json",
-                fix="an invalid-JWT style rejection means a token was presented where an API key "
-                    "was expected — an OAuth session does not satisfy embedding requests")
+                fix="an invalid-JWT style rejection means a token was presented where the "
+                    "embedding endpoint does not accept it — most subscription OAuth sessions do "
+                    "not cover embeddings; check which credential class this provider accepts")
     elif paused:
         rec["metrics"]["embeddings"] = "paused"
         finding(rec, "fleet.memory.index-identity-changed", "high",
-                "vector search is paused on an index-identity mismatch: the provider, model or "
-                "chunking changed, and reindexing is explicit — it never happens by itself",
+                "vector search is paused on an index-identity mismatch: the provider, model, "
+                "scope or chunking changed, and this reindex is explicit — it does not happen by itself",
                 source="cli:memory status --json")
     else:
         rec["metrics"]["embeddings"] = "ok"

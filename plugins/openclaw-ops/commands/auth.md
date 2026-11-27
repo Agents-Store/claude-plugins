@@ -21,7 +21,7 @@ another consumer holds: `gate.RETRY_RULES` gives `oauth-login`/`oauth-refresh` *
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/ocexec.py" <instance> --json -- models status --check
    ```
-   Exit 0 healthy · 1 expired · 2 expiring (`ocjson.EXIT_CONTRACTS`); add the other probe-free signals from `provider-auth`. States: healthy · expiring · expired · **emptied** · absent · **orphan-runtime** · **shadowed**.
+   Exit 0 healthy · 1 expired, missing, an incompatible route, an unavailable runtime or indeterminate readiness (so `orphan-runtime` lands here too) · 2 expiring (`ocjson.EXIT_CONTRACTS`); add the other probe-free signals from `provider-auth`. States: healthy · expiring · expired · **emptied** · absent · **orphan-runtime** · **shadowed**.
 
 3. **Print the matrix**: instance × provider, state, expiry as a date, account fingerprint, which runtime
    serves the ref. `--provider <id>` narrows to one id from this instance's own catalogue; values never appear.
