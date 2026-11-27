@@ -32,6 +32,8 @@ class BashCommands(unittest.TestCase):
         # curl, in the shapes people really type
         "curl -X POST https://graph.facebook.com/v27.0/act_1/campaigns -F name=x",
         "curl -s https://googleads.googleapis.com/v26/customers/1/googleAds:mutate -d @body.json",
+        "curl -X POST datamanager.googleapis.com/v1/events:ingest -d @events.json",
+        "python3 ads/tools/ads.py google upload-conversions --file c.csv --action 555 --yes",
         "curl -H 'Access-Token: x' -X POST https://business-api.tiktok.com/open_api/v1.3/campaign/create/ -d '{}'",
         "curl -X POST \\\n  https://graph.facebook.com/v27.0/act_1/campaigns \\\n  -d name=x",
         "curl --request POST https://graph.facebook.com/v27.0/act_1/campaigns",

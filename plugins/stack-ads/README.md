@@ -139,7 +139,18 @@ Run against live accounts on 2026-11-22, 2026-11-23 and 2026-11-25:
 - **Meta, through the official MCP server**: sign-in, reads, a campaign draft created and discarded.
 - **Meta, through the toolkit**: the whole launch cycle with an image ad on a production account: `launch plan`, `launch apply` (image, campaign, ad set, creative, ad, all paused), `launch status`, `launch rollback --remove`. The same cycle with a generated vertical video.
 
-Not run against a live account: the toolkit's own `tiktok` commands and their launch plans (they need a developer app), Performance Max and Demand Gen video campaigns, `google keyword-ideas` (Basic access), conversion uploads, `launch activate`, ad creation on TikTok, and uploads through the MCP servers. These are covered by unit tests with simulated HTTP and were written from the official documentation. Treat the first dry run of each as the real test, and expect to adjust a field or two; `LEARNINGS.md` records what the live runs changed.
+Run against live accounts on 2026-11-26 and 2026-11-27:
+
+- `launch activate` on Google and on Meta.
+- A real Google Demand Gen campaign that delivered: 8,119 impressions in one day.
+- A Performance Max campaign created paused and removed.
+- The reads of the google-ads MCP server.
+- `google keyword-ideas`, refused under Explorer access as documented.
+- `launch diagnose`.
+
+Not verified: Meta delivery (two approved ads showed 0 impressions in one ad account over 31 hours, cause unknown), conversion uploads (the code is ready; the live check waits for the owner's Google login with the new scope) and the toolkit's own `tiktok` commands.
+
+Not run against a live account: the Demand Gen video ad, `google keyword-ideas` with Basic access, ad creation on TikTok, and uploads through the MCP servers. These are covered by unit tests with simulated HTTP and were written from the official documentation. Treat the first dry run of each as the real test, and expect to adjust a field or two; `LEARNINGS.md` records what the live runs changed.
 
 ## Tests
 

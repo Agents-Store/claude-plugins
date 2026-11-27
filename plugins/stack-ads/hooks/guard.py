@@ -23,6 +23,7 @@ import sys
 import urllib.parse
 
 AD_HOST = re.compile(r"graph(-video)?\.facebook\.com|mcp\.facebook\.com|graph\.instagram\.com|googleads\.googleapis\.com|"
+                     r"datamanager\.googleapis\.com|"
                      r"business-api\.tiktok\.com", re.I)
 GOOGLE_HOST = re.compile(r"googleads\.googleapis\.com", re.I)
 # Google Ads methods that are sent as POST and only read: judged on the end of the URL path, never on its query.
