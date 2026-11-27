@@ -2,7 +2,7 @@
 
 Drive the **full [Outline](https://www.getoutline.com/) REST API** from Claude Code. Outline is an open-source, self-hostable team knowledge base / wiki; this plugin teaches Claude every operation its API exposes — no MCP server required, just `curl` and a Bearer API key. (Outline also ships a [built-in MCP server](#built-in-outline-mcp-server) in every workspace; it is optional and complementary.)
 
-Built from the official API reference: https://www.getoutline.com/developers (OpenAPI 3.0 spec bundled in `skills/api-reference/references/outline-openapi.yml` — 154 operations across 26 resource groups; snapshot of [`outline/openapi`](https://github.com/outline/openapi) `spec3.yml` at commit `40f51b75ef`, 2026-09-23, matching Outline server v1.10.1).
+Built from the official API reference: https://www.getoutline.com/developers (OpenAPI 3.0 spec bundled in `skills/api-reference/references/outline-openapi.yml` — 153 operations across 26 resource groups; snapshot of [`outline/openapi`](https://github.com/outline/openapi) `spec3.yml` at commit `fbc3545a1c`, 2026-11-27, matching Outline server v1.13.0).
 
 ## What it covers
 
@@ -14,12 +14,12 @@ Every documented resource group:
 - **Pins, subscriptions & notifications** — pin documents to a collection or home screen, subscribe to documents/collections, read and clear notifications, choose notification types
 - **Stars & Views** — star/unstar documents & collections, reorder, list view counts
 - **Sharing, access & webhooks** — public share links (create/update/revoke/list), access requests (create/approve/dismiss), auth info & config, workspace webhook subscriptions (admin)
-- **Users & groups** — invite/resend, list/filter, update, change email and role, suspend/activate, delete; group CRUD, group roles and membership management; documents shared with the current user or their groups
+- **Users & groups** — invite/resend, list/filter, update, change role, suspend/activate, delete; group CRUD, group roles and membership management; documents shared with the current user or their groups
 - **Attachments & file operations** — create upload, create from a URL, list, redirect-to-file, delete; import/export job status, list, redirect, delete
 - **Revisions** — list, retrieve, name, delete and export historical document snapshots
 - **Templates** — CRUD (draft/published), restore, duplicate (reusable document starting points)
 - **Events** — the workspace audit trail / activity stream
-- **API keys & OAuth** — personal API key create/list/revoke, OAuth client CRUD + secret rotation, and user OAuth authentication management
+- **API keys & OAuth** — personal API key listing (keys are created and revoked in the UI), OAuth client CRUD + secret rotation, and user OAuth authentication management
 - **Data attributes** — custom document metadata fields (Business / Enterprise)
 
 ## Skills
@@ -28,7 +28,7 @@ Every documented resource group:
 |-------|-------------|---------|
 | `setup` | yes | Read `OUTLINE_API_KEY` + `OUTLINE_API_URL`, verify with `auth.info`, and learn the global conventions (RPC POST style, Bearer header, response envelope, limit/offset pagination, sorting, rate limits, policies) |
 | `common-operations` | yes | Plain-language playbooks for everyday work — create/find/update documents, organize collections, share, manage people & permissions, run reports |
-| `api-reference` | on request | Full endpoint catalog (154 operations), split across 8 domain files under `references/`, plus the raw OpenAPI spec |
+| `api-reference` | on request | Full endpoint catalog (153 operations), split across 8 domain files under `references/`, plus the raw OpenAPI spec |
 | `troubleshoot` | yes | Symptom → cause → fix for 401/403/404/429/400, empty `.data`, title-vs-UUID mistakes, self-hosted URL/SSL issues |
 | `examples` | yes | End-to-end scenarios: publish a knowledge base, document lifecycle, search & report, onboard users & permissions |
 
@@ -41,7 +41,7 @@ Set these environment variables (shell, or this repo's `.env`):
 | Variable | Required | Example | Notes |
 |----------|----------|---------|-------|
 | `OUTLINE_API_URL` | yes | `https://app.getoutline.com/api` | API base **including `/api`**. Self-hosted: `https://wiki.example.com/api`. |
-| `OUTLINE_API_KEY` | yes | `ol_api_••••` | Personal API key, created under **Settings → API & Apps** (or with `apiKeys.create`). Always starts with `ol_api_`. Treat it like a password. |
+| `OUTLINE_API_KEY` | yes | `ol_api_••••` | Personal API key, created under **Settings → API & Access** (key creation needs a signed-in browser session, so there is no API-key way to mint one). Always starts with `ol_api_`. Treat it like a password. |
 
 In this repo, add the two vars to `.env.example`, store real values in Infisical, and run `./scripts/setup.sh dev .env .claude/settings.local.json` to pull them locally.
 
