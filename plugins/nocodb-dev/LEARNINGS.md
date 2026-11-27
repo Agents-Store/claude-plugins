@@ -11,6 +11,13 @@ Accumulated fixes and discoveries for the `nocodb-dev` plugin. Append entries ch
 **Severity:** Critical / Major / Minor
 ```
 
+## 2026-11-27 — refresh: NocoDB 2026.11.0 (password change no longer always deletes tokens)
+
+**Problem:** `setup` and `troubleshoot` said a password change deletes the user's API tokens (true for 2026.10.1). Since 2026.11.0 a password change signs out the other sessions; API tokens, MCP connection tokens and authorized apps are revoked only when *Also disconnect apps* is ticked, which is the default on a reset from an email link.
+**Fix:** The 401 rows in `setup` (REST and MCP) and `troubleshoot` name the option instead of the bare password change. The bundled `swagger-v3.json` is byte-identical between tags 2026.10.2 and 2026.11.0, so the specs and payloads were left as they are.
+**Source:** https://github.com/nocodb/nocodb/releases/tag/2026.11.0; https://nocodb.com/docs/product/account-settings/authentication/sign-out-other-devices and https://nocodb.com/docs/product/account-settings/api-tokens (both updated 2026-11-13).
+**Severity:** Minor
+
 ## 2026-11-25 — examples: the flat `/mcp` endpoint has no `listTools` / `callTool`
 
 **Problem:** The MCP snapshot re-taken from the live server no longer contains `listTools` and `callTool`; 17 examples in `examples`, `field-management`, `mcp-patterns`, `setup`, `table-management`, `view-management` and `webhooks` called them as the normal path (`listTools category: "fields"`, then `callTool name: "createField"`).
