@@ -60,9 +60,11 @@ def label(kind, ident, name=None):
 # ── the ledger side ──────────────────────────────────────────────────────
 
 def activation(ctx, name):
-    """When the plan was last switched on and has not been paused since, from the ledger.
+    """When the plan was last switched on, and until when, from the ledger.
 
-    Returns {"on", "ts", "hours", "since", "paused_at"}: hours and since (a UTC date) are None unless the plan is on.
+    Returns {"on", "ever", "ts", "paused_at", "start", "end", "hours", "since", "until"}. "on" is true while no pause
+    follows the last activation. start and end are the stretch the plan was switched on (end is now while it is on),
+    hours its length, since and until their UTC dates. All of them are None for a plan that was never activated.
     """
     ts = paused = None
     for entry in launch._events(ctx, name):
@@ -70,18 +72,59 @@ def activation(ctx, name):
             ts, paused = entry.get("ts"), None
         elif entry.get("event") == "pause":
             paused = entry.get("ts")
-    started = parse_time(ts)
-    on = bool(started) and not paused
-    return {"on": on, "ts": ts, "paused_at": paused,
-            "hours": (utcnow() - started).total_seconds() / 3600 if on else None,
-            "since": started.strftime("%Y-%m-%d") if on else None}
+    start, stopped = parse_time(ts), parse_time(paused)
+    on = bool(start) and not stopped
+    end = (utcnow() if on else stopped or start) if start else None
+    return {"on": on, "ever": bool(start), "ts": ts, "paused_at": paused, "start": start, "end": end,
+            "hours": max((end - start).total_seconds() / 3600, 0.0) if start else None,
+            "since": start.strftime("%Y-%m-%d") if start else None, "until": end.strftime("%Y-%m-%d") if end else None}
 
 
 class Audit:
     """The findings of one run, and the part of them that decides whether delivery should have started."""
 
     def __init__(self, ctx, info):
-        self.ctx, self.info, self.rows, self.gate = ctx, info, [], []
+        self.ctx, self.info, self.rows, self.gate, self.windows = ctx, info, [], [], []
+
+    @property
+    def expected_off(self):
+        """True when the ledger says the plan is not switched on, so a paused object is what it should be."""
+        return not self.info["on"]
+
+    def off_reason(self):
+        if self.info["paused_at"]:
+            return "paused by launch rollback at %s, as the ledger says" % self.info["paused_at"]
+        return "paused, as the ledger says: the plan was never activated"
+
+    def schedule(self, level, obj, start, end, start_text, end_text):
+        """The schedule window of an object. A live plan fails on a window that is shut; the window is kept for the alarm."""
+        if not (start or end):
+            return
+        self.windows.append((start, end))
+        now = utcnow()
+        if not self.info["on"]:
+            self.add(level, obj, "schedule", "ok", "window from %s to %s" % (start_text or "now", end_text or "no end"))
+        elif start and start > now:
+            self.add(level, obj, "schedule", "fail", "not started: starts %s, in %.0f hours"
+                     % (start_text, (start - now).total_seconds() / 3600),
+                     "nothing delivers before the start time: move the start time to now, or wait")
+        elif end and end < now:
+            self.add(level, obj, "schedule", "fail", "ended at %s" % end_text, "set a later end for it, or create a new one")
+        else:
+            self.add(level, obj, "schedule", "ok", "window open: from %s to %s" % (start_text or "now", end_text or "no end"))
+
+    def inside_hours(self):
+        """Hours the plan was switched on and inside the schedule window of its objects (the best of them)."""
+        info = self.info
+        if not info["ever"]:
+            return None
+        if not self.windows:
+            return info["hours"]
+        best = 0.0
+        for start, end in self.windows:
+            low, high = max(info["start"], start) if start else info["start"], min(info["end"], end) if end else info["end"]
+            best = max(best, (high - low).total_seconds() / 3600)
+        return best
 
     def add(self, level, obj, check, state, detail, next_="", gate=None):
         row = {"level": level, "object": obj, "check": check, "state": state, "detail": detail, "next": next_}
@@ -107,52 +150,65 @@ class Audit:
         if info["on"]:
             self.add("plan", "plan", "activation", "ok", "switched on %.1f hours ago (%s)" % (info["hours"], info["ts"]))
         elif info["paused_at"]:
-            self.add("plan", "plan", "activation", "warn",
-                     "switched on at %s, paused with launch rollback at %s: nothing should deliver"
-                     % (info["ts"], info["paused_at"]), "run launch activate --yes only after the user agreed to spend again",
-                     gate=False)
+            self.add("plan", "plan", "activation", "ok",
+                     "switched on at %s, paused with launch rollback at %s (on for %.1f hours)"
+                     % (info["ts"], info["paused_at"], info["hours"]))
         else:
             self.add("plan", "plan", "activation", "warn",
                      "the ledger holds no activation of this plan, so nothing should deliver yet",
                      "show the plan to the user, then run: %s launch activate --file PLAN" % SELF, gate=False)
 
     def delivery(self, impressions, summary, suspects, steps):
-        """The verdict on delivery, from the impressions since activation and what the checks above found."""
+        """The verdict on delivery: impressions over the stretch the plan was on, against what the checks above found.
+
+        A paused plan is judged on the hours it was on inside its schedule, so an ad that never delivered is not forgotten
+        once somebody pauses it.
+        """
         info = self.info
-        if impressions is None or not info["on"]:
+        if impressions is None or not info["ever"]:
             return
+        self.add("plan", "plan", "impressions", "ok", summary)
         if impressions > 0:
-            self.add("plan", "plan", "delivery", "ok", summary)
+            self.add("plan", "plan", "delivery", "ok", "delivering: %d impressions" % impressions)
             return
-        hours = info["hours"]
+        live, hours, inside = info["on"], info["hours"], self.inside_hours()
         early = hours < TOO_EARLY_HOURS
+        when = "%.1f hours after activation" % hours if live else "in the %.1f hours it was on before the pause" % hours
         fails = [r for r in self.gate if r["state"] == "fail"]
         warns = [r for r in self.gate if r["state"] == "warn"]
         if fails:
             names = ", ".join(sorted({"%s %s" % (r["level"], r["check"]) for r in fails}))
             self.add("plan", "plan", "delivery", "warn" if early else "fail",
-                     "no impressions %.1f hours after activation%s; blocked by: %s"
-                     % (hours, " (too early to call it stuck, but it is already blocked)" if early else "", names),
+                     "no impressions %s%s; blocked by: %s"
+                     % (when, " (too early to call it stuck, but it is already blocked)" if early and live else "", names),
                      "fix the failed checks above first, then run launch diagnose again", gate=False)
         elif warns:
             self.add("plan", "plan", "delivery", "warn",
-                     "no impressions %.1f hours after activation; still waiting on: %s"
-                     % (hours, ", ".join(sorted({"%s %s" % (r["level"], r["check"]) for r in warns}))),
+                     "no impressions %s; still waiting on: %s"
+                     % (when, ", ".join(sorted({"%s %s" % (r["level"], r["check"]) for r in warns}))),
                      "wait for the review or learning phase to finish, then run launch diagnose again", gate=False)
-        elif early:
-            self.add("plan", "plan", "delivery", "warn",
-                     "too early: %.1f hours after activation and no impressions yet. Everything reads back as approved, on "
-                     "and inside its schedule; delivery can take several hours to start" % hours,
-                     "run launch diagnose again once %d hours have passed since activation" % TOO_EARLY_HOURS, gate=False)
+        elif inside < TOO_EARLY_HOURS:
+            if live:
+                self.add("plan", "plan", "delivery", "warn",
+                         "too early: %.1f hours inside the schedule since activation and no impressions yet. Everything reads "
+                         "back as approved, on and inside its schedule; delivery can take several hours to start" % inside,
+                         "run launch diagnose again once %d hours have passed since activation" % TOO_EARLY_HOURS, gate=False)
+            else:
+                self.add("plan", "plan", "delivery", "warn",
+                         "was on %.1f h inside its schedule, 0 impressions: too short to judge (switched on %s, paused %s)"
+                         % (inside, info["ts"], info["paused_at"]),
+                         "a longer run is needed before it can be called stuck", gate=False)
         else:
-            self.add("plan", "plan", "delivery", "fail",
-                     "approved, switched on, schedule open and still 0 impressions %.1f hours after activation. "
-                     "Suspects: %s" % (hours, "; ".join(suspects)), " ".join("%d) %s." % (i, s) for i, s in enumerate(steps, 1)),
-                     gate=False)
+            what = ("approved, switched on, schedule open and still 0 impressions %.1f hours after activation" % inside
+                    if live else "was on %.1f h inside its schedule, 0 impressions (switched on %s, paused %s)"
+                    % (inside, info["ts"], info["paused_at"]))
+            self.add("plan", "plan", "delivery", "fail", "%s. Suspects: %s" % (what, "; ".join(suspects)),
+                     " ".join("%d) %s." % (i, step) for i, step in enumerate(steps, 1)), gate=False)
 
 
 def since_until(info):
-    return info["since"], utcnow().strftime("%Y-%m-%d")
+    """The dates to read metrics over: from the last activation to its pause, or to today while it is on."""
+    return info["since"], info["until"]
 
 
 # ── Meta ─────────────────────────────────────────────────────────────────
@@ -171,13 +227,14 @@ META_STATUS = {
     "ARCHIVED": ("fail", "archived", "an archived object never delivers: recreate it"),
     "DELETED": ("fail", "deleted", "a deleted object never delivers: recreate it"),
 }
+META_PAUSED = ("PAUSED", "CAMPAIGN_PAUSED", "ADSET_PAUSED")
 META_ACCOUNT = {1: "active", 2: "disabled", 3: "unsettled (an unpaid balance)", 7: "pending risk review",
                 8: "pending settlement", 9: "in grace period", 100: "pending closure", 101: "closed",
                 201: "any active", 202: "any closed"}
 META_FIELDS = {
     "campaign": "name,status,effective_status,issues_info,recommendations,daily_budget,budget_remaining",
     "adset": "name,status,effective_status,start_time,end_time,daily_budget,lifetime_budget,budget_remaining,"
-             "optimization_goal,issues_info,recommendations,learning_stage_info,failed_delivery_checks",
+             "optimization_goal,issues_info,recommendations,learning_stage_info",
     "ad": "name,status,effective_status,issues_info,recommendations,ad_review_feedback,failed_delivery_checks",
 }
 META_SUSPECTS = [
@@ -244,18 +301,8 @@ def meta_account(audit, ctx):
 
 
 def meta_schedule(audit, level, obj, info):
-    start, end = parse_time(info.get("start_time")), parse_time(info.get("end_time"))
-    now = utcnow()
-    if start and start > now:
-        hours = (start - now).total_seconds() / 3600
-        audit.add(level, obj, "schedule", "fail", "not started: starts %s, in %.0f hours" % (info["start_time"], hours),
-                  "nothing delivers before the start time: move the start time to now, or wait")
-    elif end and end < now:
-        audit.add(level, obj, "schedule", "fail", "ended at %s" % info["end_time"],
-                  "set a later end time on the ad set, or create a new one")
-    elif start or end:
-        audit.add(level, obj, "schedule", "ok", "window open: from %s to %s" % (info.get("start_time") or "now",
-                                                                              info.get("end_time") or "no end"))
+    audit.schedule(level, obj, parse_time(info.get("start_time")), parse_time(info.get("end_time")),
+                   info.get("start_time"), info.get("end_time"))
 
 
 def meta_object(audit, ctx, level, item):
@@ -268,7 +315,10 @@ def meta_object(audit, ctx, level, item):
     state, word, advice = META_STATUS.get(effective, ("warn", "state not known to this audit", "read it in Ads Manager"))
     detail = "status %s, effective_status %s: %s" % (info.get("status"), effective, word) if word else \
         "status %s, effective_status %s" % (info.get("status"), effective)
-    audit.add(level, obj, "status", state, detail, advice.replace("%s", SELF) if "%s" in advice else advice)
+    advice = advice.replace("%s", SELF)
+    if state == "fail" and effective in META_PAUSED and audit.expected_off:
+        state, detail, advice = "ok", "status %s, effective_status %s: %s" % (info.get("status"), effective, audit.off_reason()), ""
+    audit.add(level, obj, "status", state, detail, advice)
     if level == "ad":
         reasons = flatten(info.get("ad_review_feedback"))
         if effective == "DISAPPROVED":
@@ -363,7 +413,7 @@ def meta_delivery(audit, ctx, campaigns):
     if failed:
         return
     where = ", ".join("%s %d" % kv for kv in sorted(platforms.items(), key=lambda kv: -kv[1]))
-    audit.delivery(total, "%d impressions and %.2f spend since %s%s" % (total, spend, since, "; " + where if where else ""),
+    audit.delivery(total, "%d impressions and %.2f spend from %s to %s%s" % (total, spend, since, until, "; " + where if where else ""),
                    META_SUSPECTS, META_STEPS)
 
 
@@ -388,7 +438,7 @@ def meta_audit(audit, ctx, found):
                       "recreate the ad after 48 hours", gate=False)
         else:
             audit.add("account", "account", "ads running", "ok", "%d ad(s) running or in review" % count)
-    if audit.info["on"] and kinds["campaign"]:
+    if audit.info["ever"] and kinds["campaign"]:
         meta_delivery(audit, ctx, kinds["campaign"])
 
 
@@ -478,9 +528,21 @@ def google_account(audit, ctx):
                       "an ended or cancelled account budget stops delivery on invoiced accounts: renew it in Billing")
 
 
+GOOGLE_PAUSED_REASONS = {"CAMPAIGN_PAUSED", "AD_GROUPS_PAUSED", "AD_GROUP_ADS_PAUSED", "AD_GROUP_PAUSED", "AD_PAUSED"}
+
+
+def google_primary(audit, level, obj, primary, reasons):
+    text, steps = explain_reasons(reasons)
+    state = GOOGLE_PRIMARY.get(primary, "warn")
+    detail = "primary status %s%s" % (primary, ": %s" % text if text else "")
+    if state == "fail" and audit.expected_off and (primary == "PAUSED" or (reasons and set(reasons) <= GOOGLE_PAUSED_REASONS)):
+        state, detail, steps = "ok", "%s; %s" % (detail, audit.off_reason()), ""
+    audit.add(level, obj, "primary status", state, detail, steps)
+
+
 def google_campaign(audit, ctx, name):
     query = ("SELECT campaign.name, campaign.status, campaign.primary_status, campaign.primary_status_reasons, "
-             "campaign.serving_status, campaign.start_date, campaign.end_date, campaign_budget.amount_micros "
+             "campaign.serving_status, campaign.start_date_time, campaign.end_date_time, campaign_budget.amount_micros "
              "FROM campaign WHERE campaign.resource_name = '%s'" % name)
     rows = audit.read("campaign", label("campaign", name), "status", google.search, ctx, query)
     if not rows:
@@ -491,24 +553,21 @@ def google_campaign(audit, ctx, name):
     campaign, budget = rows[0].get("campaign", {}), rows[0].get("campaignBudget", {})
     obj = label("campaign", name.rsplit("/", 1)[-1], campaign.get("name"))
     status = campaign.get("status")
-    audit.add("campaign", obj, "status", "ok" if status == "ENABLED" else "fail", "campaign.status %s" % status,
-              "" if status == "ENABLED" else "switch it on with launch activate --yes after the user agreed to spend")
+    if status != "ENABLED" and audit.expected_off:
+        audit.add("campaign", obj, "status", "ok", "campaign.status %s: %s" % (status, audit.off_reason()))
+    else:
+        audit.add("campaign", obj, "status", "ok" if status == "ENABLED" else "fail", "campaign.status %s" % status,
+                  "" if status == "ENABLED" else "switch it on with launch activate --yes after the user agreed to spend")
     primary, reasons = campaign.get("primaryStatus"), campaign.get("primaryStatusReasons") or []
-    text, steps = explain_reasons(reasons)
-    audit.add("campaign", obj, "primary status", GOOGLE_PRIMARY.get(primary, "warn"),
-              "primary status %s%s" % (primary, ": %s" % text if text else ""), steps)
+    google_primary(audit, "campaign", obj, primary, reasons)
     serving = campaign.get("servingStatus")
     if serving:
         audit.add("campaign", obj, "serving", "ok" if serving == "SERVING" else "warn", "serving status %s" % serving,
                   "" if serving == "SERVING" else "see the primary status line and the schedule")
-    today = utcnow().strftime("%Y-%m-%d")
-    start, end = campaign.get("startDate"), campaign.get("endDate")
-    if start and start > today:
-        audit.add("campaign", obj, "schedule", "fail", "not started: starts %s" % start, "nothing delivers before the start date")
-    elif end and end < today and not end.startswith("2037"):
-        audit.add("campaign", obj, "schedule", "fail", "ended on %s" % end, "set a later end date")
-    elif start or end:
-        audit.add("campaign", obj, "schedule", "ok", "window open: from %s to %s" % (start or "now", end or "no end"))
+    start, end = campaign.get("startDateTime"), campaign.get("endDateTime")
+    if end and end.startswith("2037"):
+        end = None                                      # Google's "no end date"
+    audit.schedule("campaign", obj, parse_time(start), parse_time(end), start, end)
     if budget.get("amountMicros"):
         audit.add("campaign", obj, "budget", "ok", "daily budget %.2f (account currency)" % (whole(budget["amountMicros"]) / 1e6))
     return obj
@@ -523,8 +582,12 @@ def google_ads(audit, ctx, name):
     for row in rows or []:        # every ad counts, also one that Google made itself
         ad = row.get("adGroupAd", {})
         obj = label("ad", ad.get("ad", {}).get("id"), ad.get("ad", {}).get("name"))
-        audit.add("ad", obj, "status", "ok" if ad.get("status") == "ENABLED" else "fail", "ad_group_ad.status %s" % ad.get("status"),
-                  "" if ad.get("status") == "ENABLED" else "enable the ad after the user agreed")
+        if ad.get("status") != "ENABLED" and audit.expected_off:
+            audit.add("ad", obj, "status", "ok", "ad_group_ad.status %s: %s" % (ad.get("status"), audit.off_reason()))
+        else:
+            audit.add("ad", obj, "status", "ok" if ad.get("status") == "ENABLED" else "fail",
+                      "ad_group_ad.status %s" % ad.get("status"),
+                      "" if ad.get("status") == "ENABLED" else "enable the ad after the user agreed")
         policy = ad.get("policySummary", {})
         approval = policy.get("approvalStatus")
         topics = ", ".join("%s (%s)" % (t.get("topic"), t.get("type")) for t in policy.get("policyTopicEntries") or [])
@@ -534,9 +597,7 @@ def google_ads(audit, ctx, name):
                       GOOGLE_APPROVAL.get(approval, "warn"), "fix the policy topic named here, then edit the ad to send it to review again"))
         primary = ad.get("primaryStatus")
         if primary:
-            text, steps = explain_reasons(ad.get("primaryStatusReasons") or [])
-            audit.add("ad", obj, "primary status", GOOGLE_PRIMARY.get(primary, "warn"),
-                      "primary status %s%s" % (primary, ": %s" % text if text else ""), steps)
+            google_primary(audit, "ad", obj, primary, ad.get("primaryStatusReasons") or [])
 
 
 def google_audit(audit, ctx, found):
@@ -545,7 +606,7 @@ def google_audit(audit, ctx, found):
     for name in campaigns:
         google_campaign(audit, ctx, name)
         google_ads(audit, ctx, name)
-    if not (audit.info["on"] and campaigns):
+    if not (audit.info["ever"] and campaigns):
         return
     since, until = since_until(audit.info)
     impressions, clicks, cost, failed = 0, 0, 0, False
@@ -560,7 +621,7 @@ def google_audit(audit, ctx, found):
         clicks += sum(whole(r.get("metrics", {}).get("clicks")) for r in rows)
         cost += sum(whole(r.get("metrics", {}).get("costMicros")) for r in rows)
     if not failed:
-        audit.delivery(impressions, "%d impressions, %d clicks, cost %.2f since %s" % (impressions, clicks, cost / 1e6, since),
+        audit.delivery(impressions, "%d impressions, %d clicks, cost %.2f from %s to %s" % (impressions, clicks, cost / 1e6, since, until),
                        GOOGLE_SUSPECTS, GOOGLE_STEPS)
 
 
@@ -622,7 +683,12 @@ def tiktok_object(audit, ctx, level, item):
     obj = label(level, ident, row.get(name_key))
     operation, secondary = row.get("operation_status"), row.get("secondary_status")
     state, words, advice = tiktok_state(operation, secondary)
+    if state == "fail" and words == "switched off" and audit.expected_off:
+        state, words, advice = "ok", audit.off_reason(), ""
     audit.add(level, obj, "status", state, "operation_status %s, secondary_status %s: %s" % (operation, secondary, words), advice)
+    if level == "adgroup":
+        start, end = row.get("schedule_start_time"), row.get("schedule_end_time")
+        audit.schedule(level, obj, parse_time(start), parse_time(end), start, end)
     if level == "ad" and "DENY" in str(secondary):
         review = audit.read(level, obj, "review", tiktok.get, ctx, "ad/review_info", {"ad_ids": [ident]})
         if review is not None:
@@ -654,7 +720,7 @@ def tiktok_audit(audit, ctx, found):
             if item["type"] == level:
                 tiktok_object(audit, ctx, level, item)
     campaigns = [i["id"] for i in found if i["type"] == "campaign"]
-    if not (audit.info["on"] and campaigns):
+    if not (audit.info["ever"] and campaigns):
         return
     since, until = since_until(audit.info)
     rows = audit.read("campaign", "campaigns of the plan", "report", tiktok.report, ctx, "AUCTION_CAMPAIGN", since, until,
@@ -664,7 +730,7 @@ def tiktok_audit(audit, ctx, found):
     mine = [r for r in rows if str(r.get("campaign_id")) in campaigns]
     impressions = sum(whole(r.get("impressions")) for r in mine)
     spend = sum(float(r.get("spend") or 0) for r in mine)
-    audit.delivery(impressions, "%d impressions and %.2f spend since %s" % (impressions, spend, since), TIKTOK_SUSPECTS, TIKTOK_STEPS)
+    audit.delivery(impressions, "%d impressions and %.2f spend from %s to %s" % (impressions, spend, since, until), TIKTOK_SUSPECTS, TIKTOK_STEPS)
 
 
 # ── entry points ─────────────────────────────────────────────────────────

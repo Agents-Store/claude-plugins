@@ -278,3 +278,11 @@
 **Fix:** `launch diagnose --file PLAN [--json]` reads all of that for a launched plan on Meta, Google and TikTok, without writing, and returns findings with a next step each. Approved, on, schedule open and 0 impressions 6 hours or more after the last activation is a failure with suspects (Meta: the Delivery column, recreate after 48 hours, an isolating test of one image ad on Facebook feed with a real Instagram account); sooner it is "too early". Meta rejects unknown fields (`delivery_status`, `delivery_checks` do not exist), so the audit asks only for fields seen live.
 **Root cause:** The toolkit could create and switch on, but had no way to say why a switched-on plan did not deliver, so the diagnosis lived in the head of whoever did it.
 **Severity:** Major
+
+## 2026-11-27 — launch-campaign: the first live run of launch diagnose missed the case it was built for
+
+**Problem:** On live plans the audit (1) asked Google for `campaign.start_date` and `campaign.end_date`, which API v26 refuses, (2) asked Meta for `failed_delivery_checks` on the ad set, a field only the ad has, so the whole ad set read failed, (3) reported the objects of a plan paused with `launch rollback` as failures, and (4) said nothing about a Meta ad that was approved and ACTIVE for about 40 hours with 0 impressions, because it judged only plans that were still switched on.
+**Fix:** Google reads `campaign.start_date_time` and `campaign.end_date_time`. The Meta field lists are pinned by a test whose fake answers error 100 for a field the object type lacks. A plan the ledger shows as paused has its paused objects reported `ok`, and its delivery is judged on the hours it was switched on inside its schedule window, with insights, metrics and the report read from the activation date to the pause date. The impressions and spend line is always shown; empty insights count as 0.
+**Root cause:** The fakes were written from the documentation, not from the live answers, and the alarm assumed the audit runs while the plan is still on.
+**Severity:** Major
+

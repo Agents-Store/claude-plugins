@@ -3,6 +3,7 @@ import contextlib
 import datetime
 import io
 import json
+import re
 import unittest
 from unittest import mock
 
@@ -81,12 +82,35 @@ def meta_world(**over):
     return world
 
 
+# What Meta accepts in `fields`, per object type (seen live: failed_delivery_checks exists on the Ad only).
+META_VALID_FIELDS = {
+    "campaign": {"id", "name", "status", "effective_status", "issues_info", "recommendations", "daily_budget",
+                 "lifetime_budget", "budget_remaining", "start_time", "stop_time"},
+    "adset": {"id", "name", "status", "effective_status", "start_time", "end_time", "daily_budget", "lifetime_budget",
+              "budget_remaining", "optimization_goal", "issues_info", "recommendations", "learning_stage_info"},
+    "ad": {"id", "name", "status", "effective_status", "issues_info", "recommendations", "ad_review_feedback",
+           "failed_delivery_checks"},
+    "creative": {"id", "name", "status"},
+    "account": {"id", "name", "account_status", "disable_reason", "amount_spent", "spend_cap", "funding_source_details",
+                "currency"},
+}
+
+
+def unknown_fields(kind, kwargs):
+    asked = str((kwargs.get("params") or {}).get("fields") or "")
+    return [f for f in asked.split(",") if f and f not in META_VALID_FIELDS[kind]]
+
+
 def meta_handler(world):
     def handler(method, url, kwargs):
         tail = url.rstrip("/").split("/")
         last, before = tail[-1], tail[-2] if len(tail) > 1 else ""
         if world["fail"].get(last):
             return helpers.http_error(400, {"error": {"code": 100, "message": "Tried accessing nonexisting field"}})
+        kind = {"act_111222333": "account", "c-1": "campaign", "s-1": "adset", "a-1": "ad", "cr-1": "creative"}.get(last)
+        for name in unknown_fields(kind, kwargs) if kind else []:
+            return helpers.http_error(400, {"error": {"code": 100, "message": "(#100) Tried accessing nonexisting field (%s) "
+                                                                           "on node type (%s)" % (name, kind)}})
         if last == "act_111222333":
             return world["account"]
         if last == "ads_volume":
@@ -145,7 +169,7 @@ class MetaDiagnose(unittest.TestCase):
         delivery = one(findings, "delivery")
         self.assertEqual(delivery["state"], "ok")
         self.assertIn("420", delivery["detail"])
-        self.assertIn("facebook 400", delivery["detail"])
+        self.assertIn("facebook 400", one(findings, "impressions")["detail"])
         self.assertEqual([f for f in findings if f["state"] == "fail"], [])
 
     def test_a_disapproved_ad_names_the_reasons_from_its_review_feedback(self):
@@ -176,13 +200,30 @@ class MetaDiagnose(unittest.TestCase):
     def test_recommendations_and_failed_delivery_checks_are_reported_when_present(self):
         world = meta_world(adset={"id": "s-1", "name": "Example set", "status": "ACTIVE", "effective_status": "ACTIVE",
                                   "start_time": meta_time(-30), "daily_budget": "500", "budget_remaining": "500",
-                                  "failed_delivery_checks": [{"summary": "Targeting", "description": "No eligible audience",
-                                                              "check_name": "TARGETING"}],
-                                  "recommendations": [{"title": "Raise the budget", "message": "Low budget", "importance": "HIGH"}]})
+                                  "recommendations": [{"title": "Raise the budget", "message": "Low budget", "importance": "HIGH"}]},
+                           ad={"id": "a-1", "name": "Example ad", "status": "ACTIVE", "effective_status": "ACTIVE",
+                               "failed_delivery_checks": [{"summary": "Targeting", "description": "No eligible audience",
+                                                           "check_name": "TARGETING"}]})
         findings = self.run_meta(world)
-        self.assertEqual(one(findings, "delivery checks", "adset")["state"], "fail")
-        self.assertIn("No eligible audience", one(findings, "delivery checks", "adset")["detail"])
+        self.assertEqual(one(findings, "delivery checks", "ad")["state"], "fail")
+        self.assertIn("No eligible audience", one(findings, "delivery checks", "ad")["detail"])
         self.assertIn("Raise the budget", one(findings, "recommendations", "adset")["detail"])
+
+    def test_the_fields_asked_for_exist_on_each_object_type(self):
+        # Meta answers error 100 for a field the object type does not have: the fake does the same, per type
+        findings = self.run_meta()
+        self.assertEqual([f for f in findings if "could not read" in f["detail"]], [])
+        asked = {}
+        for _, url, kwargs in self.http.calls:
+            object_id = url.rstrip("/").split("/")[-1]
+            if object_id in ("c-1", "s-1", "a-1"):
+                asked[object_id] = str(kwargs["params"]["fields"]).split(",")
+        self.assertEqual(set(asked), {"c-1", "s-1", "a-1"})
+        self.assertNotIn("failed_delivery_checks", asked["c-1"])
+        self.assertNotIn("failed_delivery_checks", asked["s-1"])
+        self.assertIn("failed_delivery_checks", asked["a-1"])
+        for field in ("delivery_status", "delivery_checks"):
+            self.assertTrue(all(field not in names for names in asked.values()))
 
     def test_a_schedule_that_has_not_started_is_named_with_its_start(self):
         world = meta_world(adset={"id": "s-1", "name": "Example set", "status": "ACTIVE", "effective_status": "ACTIVE",
@@ -283,11 +324,9 @@ class MetaDiagnose(unittest.TestCase):
         self.assertEqual(one(findings, "activation", "plan")["state"], "warn")
         self.assertEqual(http.sent("insights"), [])
         self.assertEqual([f for f in findings if f["check"] == "delivery"], [])
-
-    def test_a_pause_after_the_activation_is_not_counted_as_running(self):
-        findings = self.run_meta(activated=30, paused=2)
-        self.assertIn("paused", one(findings, "activation", "plan")["detail"])
-        self.assertEqual([f for f in findings if f["check"] == "delivery"], [])
+        # a plan that was never switched on is expected to be paused
+        self.assertEqual([f for f in findings if f["state"] == "fail"], [])
+        self.assertEqual(one(findings, "status", "campaign")["state"], "ok")
 
     def test_the_hours_run_from_the_activation_after_the_last_pause(self):
         with helpers.Workspace() as ws:
@@ -323,7 +362,8 @@ def google_world(**over):
         "customer": [{"customer": {"status": "ENABLED", "currencyCode": "EUR"}}],
         "campaign": [{"campaign": {"name": "Example search", "status": "ENABLED", "primaryStatus": "ELIGIBLE",
                                    "primaryStatusReasons": [], "servingStatus": "SERVING",
-                                   "startDate": "2020-01-01", "endDate": "2037-12-30"},
+                                   "startDateTime": "2020-01-01 00:00:00",
+                                   "endDateTime": "2037-12-30 23:59:59"},
                       "campaignBudget": {"amountMicros": "10000000"}}],
         "ads": [{"adGroupAd": {"status": "ENABLED", "ad": {"id": "301", "name": "Example ad"},
                                "policySummary": {"approvalStatus": "APPROVED", "reviewStatus": "REVIEWED"},
@@ -342,6 +382,9 @@ def google_handler(world, seen=None):
         query = kwargs["json_body"]["query"]
         if seen is not None:
             seen.append(query)
+        if re.search(r"campaign\.(start|end)_date\b", query):      # v26 has the _time fields only
+            return helpers.http_error(400, {"error": {"code": 400, "status": "INVALID_ARGUMENT", "message":
+                                                      "Unrecognized fields in the query: 'campaign.start_date', 'campaign.end_date'"}})
         for marker, key in (("FROM billing_setup", "billing"), ("FROM account_budget", "budget"),
                             ("FROM customer", "customer"), ("FROM ad_group_ad", "ads")):
             if marker in query:
@@ -360,14 +403,14 @@ GOOGLE_ENTITIES = [{"platform": "google", "type": "campaignBudgets", "id": "cust
 
 
 class GoogleDiagnose(unittest.TestCase):
-    def run_google(self, world=None, activated=8):
+    def run_google(self, world=None, activated=8, paused=None):
         world = world or google_world()
         self.queries = []
         with helpers.Workspace() as ws:
             ws.ctx.config["project"]["currency"] = "EUR"
             plan = dict(test_launch.GoogleLaunch.PLAN)
             path = ws.write_plan(plan)
-            record(ws, plan, GOOGLE_ENTITIES, activated=activated)
+            record(ws, plan, GOOGLE_ENTITIES, activated=activated, paused=paused)
             http = helpers.FakeHttp(google_handler(world, self.queries))
             with mock.patch.object(google, "request", http), mock.patch.dict(google._TOKENS, {}, clear=True):
                 findings = diagnose.diagnose(ws.ctx, path)
@@ -406,7 +449,7 @@ class GoogleDiagnose(unittest.TestCase):
 
     def test_a_campaign_that_starts_later_fails_on_the_schedule(self):
         later = (datetime.datetime.now(UTC) + datetime.timedelta(days=3)).strftime("%Y-%m-%d")
-        schedule = one(self.run_google(self.with_campaign(startDate=later)), "schedule", "campaign")
+        schedule = one(self.run_google(self.with_campaign(startDateTime=later + " 00:00:00")), "schedule", "campaign")
         self.assertEqual(schedule["state"], "fail")
         self.assertIn(later, schedule["detail"])
 
@@ -471,6 +514,20 @@ class GoogleDiagnose(unittest.TestCase):
         self.assertIn("BETWEEN '%s' AND '%s'" % (since, today), query)
         self.assertNotIn("LAST_7_DAYS", query)
 
+    def test_the_campaign_query_asks_for_the_date_time_fields_only(self):
+        findings = self.run_google()
+        query = next(q for q in self.queries if "FROM campaign" in q and "metrics" not in q)
+        self.assertIn("campaign.start_date_time", query)
+        self.assertIn("campaign.end_date_time", query)
+        self.assertEqual([f for f in findings if "could not read" in f["detail"]], [])
+        self.assertEqual(one(findings, "schedule", "campaign")["state"], "ok")
+        self.assertIn("no end", one(findings, "schedule", "campaign")["detail"])
+
+    def test_a_campaign_that_has_ended_fails_on_the_schedule(self):
+        past = (datetime.datetime.now(UTC) - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        schedule = one(self.run_google(self.with_campaign(endDateTime=past + " 23:59:59")), "schedule", "campaign")
+        self.assertEqual(schedule["state"], "fail")
+
     def test_only_search_requests_are_sent(self):
         self.run_google()
         self.assertTrue(self.queries)
@@ -517,10 +574,10 @@ def tiktok_handler(world):
 
 
 class TikTokDiagnose(unittest.TestCase):
-    def run_tiktok(self, world=None, activated=8):
+    def run_tiktok(self, world=None, activated=8, paused=None):
         with helpers.Workspace() as ws:
             path = ws.write_plan(TIKTOK_PLAN)
-            record(ws, TIKTOK_PLAN, TIKTOK_ENTITIES, activated=activated)
+            record(ws, TIKTOK_PLAN, TIKTOK_ENTITIES, activated=activated, paused=paused)
             http = helpers.FakeHttp(tiktok_handler(world or tiktok_world()))
             with mock.patch.object(tiktok, "request", http):
                 findings = diagnose.diagnose(ws.ctx, path)
@@ -584,6 +641,216 @@ class TikTokDiagnose(unittest.TestCase):
     def test_only_reads_are_sent(self):
         self.run_tiktok()
         self.assertGreaterEqual(len(self.http.calls), 5)
+        read_only(self, self.http.calls)
+
+
+# ── a plan that was paused on purpose ────────────────────────────────────
+
+def day(hours_ago):
+    return (datetime.datetime.now(UTC) - datetime.timedelta(hours=hours_ago)).strftime("%Y-%m-%d")
+
+
+def paused_meta_world(window_opens=-30, **over):
+    paused = {"status": "PAUSED", "effective_status": "PAUSED"}
+    world = meta_world(
+        campaign=dict(meta_world()["campaign"], **paused),
+        adset=dict(meta_world()["adset"], start_time=meta_time(window_opens), **paused),
+        ad=dict(meta_world()["ad"], **paused),
+        ads_volume={"data": [{"ads_running_or_in_review_count": 0}]})
+    world.update(over)
+    return world
+
+
+class PausedMetaPlan(unittest.TestCase):
+    """The plan was switched on and paused again with launch rollback: what it did meanwhile is the question."""
+
+    def run_meta(self, world, activated=40, paused=2):
+        with helpers.Workspace() as ws:
+            plan = test_launch.meta_plan(ws)
+            path = ws.write_plan(plan)
+            record(ws, plan, META_ENTITIES, activated=activated, paused=paused)
+            http = helpers.FakeHttp(meta_handler(world))
+            with mock.patch.object(meta, "request", http):
+                findings = diagnose.diagnose(ws.ctx, path)
+        self.http = http
+        return findings
+
+    def test_objects_paused_on_purpose_are_ok_and_the_verdict_is_not_fail(self):
+        world = paused_meta_world(insights={"data": [{"impressions": "90", "spend": "0.40"}]})
+        findings = self.run_meta(world)
+        for level in ("campaign", "adset", "ad"):
+            status = one(findings, "status", level)
+            self.assertEqual(status["state"], "ok")
+            self.assertIn("paused by launch rollback at", status["detail"])
+            self.assertIn("as the ledger says", status["detail"])
+        self.assertEqual(one(findings, "activation", "plan")["state"], "ok")
+        self.assertEqual([f for f in findings if f["state"] == "fail"], [])
+        self.assertNotIn("FAIL", diagnose.verdict(findings))
+        self.assertEqual(one(findings, "delivery")["state"], "ok")
+
+    def test_on_for_hours_inside_its_schedule_with_no_impressions_fails_like_the_live_alarm(self):
+        findings = self.run_meta(paused_meta_world())          # on 38 h, the ad set window opened 30 h ago, paused 2 h ago
+        alarm = one(findings, "delivery")
+        self.assertEqual(alarm["state"], "fail")
+        self.assertRegex(alarm["detail"], r"was on 2[78]\.\d h inside its schedule, 0 impressions")
+        self.assertIn("Suspects", alarm["detail"])
+        self.assertIn("Delivery column", alarm["next"])
+        self.assertIn("48", alarm["next"])
+        self.assertIn("Facebook", alarm["next"])
+        self.assertTrue(diagnose.verdict(findings).startswith("verdict: FAIL"))
+        # everything else read back as fine
+        self.assertEqual([f["check"] for f in findings if f["state"] == "fail"], ["delivery"])
+
+    def test_insights_cover_the_span_between_activation_and_pause(self):
+        self.run_meta(paused_meta_world())
+        window = json.loads(self.http.sent("c-1/insights")[0][2]["params"]["time_range"])
+        self.assertEqual(window, {"since": day(40), "until": day(2)})
+
+    def test_empty_insights_count_as_zero_and_an_impressions_line_is_shown(self):
+        findings = self.run_meta(paused_meta_world(insights={"data": []}))
+        line = one(findings, "impressions")
+        self.assertEqual(line["state"], "ok")
+        self.assertIn("0 impressions", line["detail"])
+        self.assertIn("spend", line["detail"])
+
+    def test_the_impressions_line_is_shown_for_a_live_plan_too(self):
+        with helpers.Workspace() as ws:
+            plan = test_launch.meta_plan(ws)
+            path = ws.write_plan(plan)
+            record(ws, plan, META_ENTITIES, activated=8)
+            world = meta_world(insights={"data": [{"impressions": "420", "spend": "1.50"}]})
+            with mock.patch.object(meta, "request", helpers.FakeHttp(meta_handler(world))):
+                findings = diagnose.diagnose(ws.ctx, path)
+        self.assertIn("420 impressions", one(findings, "impressions")["detail"])
+
+    def test_only_the_hours_inside_the_schedule_count(self):
+        # activated 40 h ago and paused 2 h ago, but the ad set window opened 6 h ago: 4 h of it were inside
+        findings = self.run_meta(paused_meta_world(window_opens=-6))
+        alarm = one(findings, "delivery")
+        self.assertEqual(alarm["state"], "warn")
+        self.assertRegex(alarm["detail"], r"was on [34]\.\d h inside its schedule")
+        self.assertIn("too short", alarm["detail"])
+
+    def test_a_window_that_opened_after_the_pause_never_counted(self):
+        alarm = one(self.run_meta(paused_meta_world(window_opens=+10)), "delivery")
+        self.assertEqual(alarm["state"], "warn")
+        self.assertIn("was on 0.0 h inside its schedule", alarm["detail"])
+
+    def test_a_short_stretch_is_too_short_to_judge(self):
+        alarm = one(self.run_meta(paused_meta_world(), activated=5, paused=1), "delivery")
+        self.assertEqual(alarm["state"], "warn")
+        self.assertIn("too short", alarm["detail"])
+
+    def test_a_disapproved_ad_of_a_paused_plan_is_still_a_failure(self):
+        ad = dict(meta_world()["ad"], status="PAUSED", effective_status="DISAPPROVED",
+                  ad_review_feedback={"global": {"Personal attributes": "The ad asserts a personal attribute"}})
+        findings = self.run_meta(paused_meta_world(ad=ad))
+        self.assertEqual(one(findings, "status", "ad")["state"], "fail")
+        self.assertEqual(one(findings, "review", "ad")["state"], "fail")
+        self.assertEqual(one(findings, "delivery")["state"], "fail")
+        self.assertIn("blocked by", one(findings, "delivery")["detail"])
+
+    def test_the_live_alarm_counts_from_the_opening_of_the_schedule(self):
+        # switched on 8 h ago, the schedule opened 3 h ago: only 3 h are inside it
+        with helpers.Workspace() as ws:
+            plan = test_launch.meta_plan(ws)
+            path = ws.write_plan(plan)
+            record(ws, plan, META_ENTITIES, activated=8)
+            world = meta_world(adset=dict(meta_world()["adset"], start_time=meta_time(-3)))
+            with mock.patch.object(meta, "request", helpers.FakeHttp(meta_handler(world))):
+                findings = diagnose.diagnose(ws.ctx, path)
+        alarm = one(findings, "delivery")
+        self.assertEqual(alarm["state"], "warn")
+        self.assertIn("too early", alarm["detail"])
+
+    def test_only_reads_are_sent(self):
+        self.run_meta(paused_meta_world())
+        read_only(self, self.http.calls)
+
+
+class PausedGooglePlan(unittest.TestCase):
+    def run_google(self, world, activated=40, paused=2):
+        self.queries = []
+        with helpers.Workspace() as ws:
+            ws.ctx.config["project"]["currency"] = "EUR"
+            plan = dict(test_launch.GoogleLaunch.PLAN)
+            path = ws.write_plan(plan)
+            record(ws, plan, GOOGLE_ENTITIES, activated=activated, paused=paused)
+            http = helpers.FakeHttp(google_handler(world, self.queries))
+            with mock.patch.object(google, "request", http), mock.patch.dict(google._TOKENS, {}, clear=True):
+                findings = diagnose.diagnose(ws.ctx, path)
+        self.http = http
+        return findings
+
+    def world(self, **over):
+        campaign = dict(google_world()["campaign"][0]["campaign"], status="PAUSED", primaryStatus="PAUSED",
+                        primaryStatusReasons=["CAMPAIGN_PAUSED"])
+        return google_world(campaign=[{"campaign": campaign, "campaignBudget": {"amountMicros": "10000000"}}], **over)
+
+    def test_a_paused_campaign_is_ok_when_the_ledger_says_it_was_paused(self):
+        findings = self.run_google(self.world(metrics=[{"metrics": {"impressions": "70", "clicks": "2", "costMicros": "900000"}}]))
+        for check in ("status", "primary status"):
+            self.assertEqual(one(findings, check, "campaign")["state"], "ok")
+        self.assertIn("paused by launch rollback at", one(findings, "status", "campaign")["detail"])
+        self.assertEqual([f for f in findings if f["state"] == "fail"], [])
+        self.assertNotIn("FAIL", diagnose.verdict(findings))
+
+    def test_on_for_hours_with_no_impressions_fails_and_the_metrics_span_activation_to_pause(self):
+        findings = self.run_google(self.world())
+        alarm = one(findings, "delivery")
+        self.assertEqual(alarm["state"], "fail")
+        self.assertRegex(alarm["detail"], r"was on 3[78]\.\d h inside its schedule, 0 impressions")
+        self.assertTrue(alarm["next"])
+        query = next(q for q in self.queries if "metrics.impressions" in q)
+        self.assertIn("BETWEEN '%s' AND '%s'" % (day(40), day(2)), query)
+        self.assertEqual(one(findings, "impressions")["state"], "ok")
+        self.assertIn("0 impressions", one(findings, "impressions")["detail"])
+
+    def test_only_search_requests_are_sent(self):
+        self.run_google(self.world())
+        for _, url, _ in self.http.calls:
+            self.assertTrue(url.endswith("googleAds:search") or "oauth2.googleapis.com" in url, url)
+
+
+class PausedTikTokPlan(unittest.TestCase):
+    def world(self, **over):
+        off = {"operation_status": "DISABLE"}
+        world = tiktok_world(
+            campaign={"list": [dict(tiktok_world()["campaign"]["list"][0], secondary_status="CAMPAIGN_STATUS_DISABLE", **off)]},
+            adgroup={"list": [dict(tiktok_world()["adgroup"]["list"][0], secondary_status="ADGROUP_STATUS_DISABLE",
+                                   schedule_start_time=(datetime.datetime.now(UTC) - datetime.timedelta(hours=30)).strftime(
+                                       "%Y-%m-%d %H:%M:%S"), **off)]},
+            ad={"list": [dict(tiktok_world()["ad"]["list"][0], secondary_status="AD_STATUS_DISABLE", **off)]})
+        world.update(over)
+        return world
+
+    def run_tiktok(self, world, activated=40, paused=2):
+        with helpers.Workspace() as ws:
+            path = ws.write_plan(TIKTOK_PLAN)
+            record(ws, TIKTOK_PLAN, TIKTOK_ENTITIES, activated=activated, paused=paused)
+            http = helpers.FakeHttp(tiktok_handler(world))
+            with mock.patch.object(tiktok, "request", http):
+                findings = diagnose.diagnose(ws.ctx, path)
+        self.http = http
+        return findings
+
+    def test_disabled_objects_of_a_paused_plan_are_ok(self):
+        report = {"list": [{"dimensions": {"campaign_id": "900"}, "metrics": {"impressions": "800", "spend": "3.20"}}],
+                  "page_info": {"total_page": 1}}
+        findings = self.run_tiktok(self.world(report=report))
+        for level in ("campaign", "adgroup", "ad"):
+            self.assertEqual(one(findings, "status", level)["state"], "ok")
+        self.assertEqual([f for f in findings if f["state"] == "fail"], [])
+        self.assertNotIn("FAIL", diagnose.verdict(findings))
+
+    def test_on_inside_the_schedule_with_no_impressions_fails_and_the_report_spans_the_pause(self):
+        findings = self.run_tiktok(self.world())
+        alarm = one(findings, "delivery")
+        self.assertEqual(alarm["state"], "fail")
+        self.assertRegex(alarm["detail"], r"was on 2[78]\.\d h inside its schedule, 0 impressions")
+        params = self.http.sent("report/integrated/get")[0][2]["params"]
+        self.assertEqual((params["start_date"], params["end_date"]), (day(40), day(2)))
+        self.assertIn("0 impressions", one(findings, "impressions")["detail"])
         read_only(self, self.http.calls)
 
 
