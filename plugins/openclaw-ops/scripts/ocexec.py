@@ -157,7 +157,8 @@ R3_MARKERS = (("memory", "index", "--force"), ("memory", "reset"), ("memory", "f
 #   secrets store set|rm|import, secrets apply   credential writes
 #   doctor --generate-gateway-token              rotates the gateway bearer
 #   doctor --fix, security audit --fix           repair flags that choose what they touch
-#   fleet rm, migrate apply, upgrade             deletion and migration
+#   fleet rm, migrate apply, upgrade             deletion and migration (``fleet`` is retired upstream;
+#                                                the marker stays for older builds in a mixed fleet)
 #   doctor --yes                                 upstream: accepts defaults and ENTERS REPAIR
 #                                                MAINTENANCE (stops and restarts the managed gateway)
 #   --update                                     the root shorthand for ``openclaw update``

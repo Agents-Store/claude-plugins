@@ -26,13 +26,15 @@ always_on_tokens = 4800
 [behavior.case."q-docs-research-5"]
 threshold = 0.5
 
-# OpenClaw: плагин выверен по релизу 2026.9.8 (stable на 2026-10-03: updating-гайд, release-channels, мост 2026.9.5 в versions.py,
-# LEARNINGS 2026-10-03). Vendored-путей нет. npm-пакет и docs.openclaw.ai — основные источники; релизы GitHub идут тем же потоком.
+# OpenClaw: плагин выверен по релизу 2026.11.10 (stable на 2026-11-27: heartbeat как automation-задача, офлайн-команды memory и
+# models auth, мост 2026.9.5 в versions.py без изменений; LEARNINGS 2026-11-27). Vendored-путей нет. npm-пакет и docs.openclaw.ai —
+# основные источники; релизы GitHub идут тем же потоком.
 [upstream]
+reviewed = 2026-11-27
 [[upstream.source]]
 kind = "npm"
 id = "openclaw"
-pinned = "2026.9.8"
+pinned = "2026.11.10"
 [[upstream.source]]
 kind = "docs"
 url = "https://docs.openclaw.ai/llms.txt"

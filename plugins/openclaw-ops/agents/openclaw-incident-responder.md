@@ -72,13 +72,14 @@ Scripts live in `${CLAUDE_PLUGIN_ROOT}/scripts/`; they are named bare below.
 6. **Check the known-behaviour catalog** — `upstream-issues.md` beside the findings catalog —
    before hunting for a local cause. Several of these symptoms are open upstream with no fix and a
    known mitigation — a nightly timer stall the process reports as active, search stuck on a
-   fallback model until a full restart, schedules duplicated by an upgrade, a gateway deliberately
+   fallback model on older builds, schedules duplicated by an upgrade, a gateway deliberately
    left stopped when startup repairs cannot complete safely. Recognising one saves hours;
    chasing it wastes them.
 7. **Layer the health evidence correctly.** The basic endpoint proves only that HTTP answers;
    the startup endpoint adds "startup finished" and ignores channel health; only the readiness
-   endpoint, **with the bearer token**, lists what actually failed — unauthenticated it returns a
-   bare negative that reads like a healthy answer. A top-level `ok` does not mean the delivery
+   endpoint lists what actually failed, and only to a local-direct or authenticated caller — the
+   battery's in-container probe qualifies; a remote unauthenticated call returns a bare negative
+   that reads like a healthy answer. A top-level `ok` does not mean the delivery
    queues are clear.
 8. **Use history when the symptom is temporal.** A stalled timer is invisible to any single
    observation: compare the health snapshots (`report.py --compare-with auto`) and read expected
