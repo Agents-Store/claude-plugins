@@ -193,6 +193,8 @@ Google ships one MCP server, `google-ads-mcp` (Python, PyPI). It is pre-1.0: pin
 | `GOOGLE_APPLICATION_CREDENTIALS` | the full path of the ADC file; `google export-adc` stores it for you. By hand, write the path in full: whether `~` is expanded in the MCP environment is unverified |
 | `GOOGLE_ADS_LOGIN_CUSTOMER_ID` | only for a manager account; the same variable as in Step 6 |
 
+Without `pipx`, `uvx --from google-ads-mcp==0.0.6 google-ads-mcp` started the server (live on 2026-11-27); it reported serverInfo version 4.2.6. Its tools were `customers_list_accessible_customers`, `search_search`, `assets_create_asset`, `assets_upload_video_asset`, `metadata_get_resource_metadata`, `labels_manage_labels` and `labels_manage_label_associations`. `search_search` takes `customer_id`, `resource`, `fields`, `conditions`, `orderings` and `limit`, not a GAQL string. Two reads worked with the ADC file written by `google export-adc`.
+
 What it can do: list accessible accounts, run structured GAQL reads, return resource metadata, create assets (text, image, YouTube video, sitelink, callout, structured snippet), upload video, manage labels. Every write runs `validateOnly` first and needs a confirm step with a checksum.
 
 What it cannot do: create, change, pause or enable campaigns, ad groups, ads, budgets, bids or keywords; link assets to campaigns or asset groups; keyword planning. Use the toolkit (`google mutate`, `google keyword-ideas`) for those. The server needs no developer token.
